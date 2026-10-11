@@ -9,7 +9,7 @@ The readers of this document are AI agents.
 
 1. sqll must do all that sqlfluff does: dialects, rules, fixes, configuration, and templaters.
 2. The target is one pinned sqlfluff version. A human approves each version change.
-3. Exclusions: Python plugins, and features that need a Python runtime.
+3. Exclusions: Python plugins, and features that need a Python runtime. An example is the dbt templater.
 4. Parity is a number: the percentage of sqlfluff test cases that sqll passes.
 5. The harness runs each test case through a binary, not through function calls.
 6. The same harness runs sqlfluff, sqruff, and sqll. Thus the results are comparable.
@@ -17,16 +17,18 @@ The readers of this document are AI agents.
 ### G2. Code generation
 
 1. sqll generates typed code from SQL, as sqlc does.
-2. sqll must support each parameter style and templater that G1 supports.
-3. Code generation and linting use the same parser.
+2. For each query, sqll describes the input parameters and the output columns in a standard schema format. Other tools can make code in each language from that schema.
+3. sqll must support each parameter style and templater that G1 supports.
+4. Code generation and linting use the same parser.
 
 ### G3. Speed
 
 1. Each command must be as fast as reasonably possible. This includes start time.
 2. Each command has a benchmark.
 3. Each benchmark measures sqlfluff, sqruff, and sqll on the same input.
-4. sqll must be faster than sqlfluff and sqruff on each benchmark.
-5. A change that makes a benchmark slower must give the reason in the change record.
+4. sqll must be faster than sqlfluff on each benchmark.
+5. sqll must not be slower than sqruff on any benchmark. sqll must be faster than sqruff on the total of all benchmarks.
+6. A change that makes a benchmark slower must give the reason in the change record.
 
 ### G4. Verification first
 
@@ -42,12 +44,13 @@ Correctness is more important than speed. Do not make a result wrong to make it 
 
 ## 2. Rules for agents
 
-1. Read this document and STONES.md before you start work.
+1. Read AGENTS.md before you start work.
 2. Use ASD-STE100 Simplified Technical English for all text: documents, commit messages, pull requests, code comments, and messages to humans.
 3. Write only what the reader needs. Do not over communicate.
 4. Each canonical document must be short. A human must read it in 5 minutes or less.
 5. Do not say that work is complete without proof. Proof is harness output: tests pass and benchmarks do not become slower.
 6. Keep the license and attribution of all ported code and test data.
+7. Write a code comment only if it helps the long-term maintenance of the project. Clear code is better than a comment.
 
 ## 3. References
 
