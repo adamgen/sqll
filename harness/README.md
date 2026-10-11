@@ -45,7 +45,9 @@ A case passes only if all its checks pass.
 
 The sqlfluff adapter uses `--templater raw`, because the sqlfluff test does not
 use a templater. Extra config goes in a temporary file named `pyproject.toml`,
-because sqlfluff reads a config file as TOML only with that name.
+because sqlfluff reads a config file as TOML only with that name. It also uses
+`--ignore-local-config`, because the sqlfluff test reads no config file. Without
+it the CLI reads the `.sqlfluff` files in `test/fixtures/dialects/<d>/`.
 
 ## Checks that are not reproduced
 

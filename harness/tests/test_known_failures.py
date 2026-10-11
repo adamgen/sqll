@@ -58,6 +58,17 @@ def test_fake_id_is_reported_for_complete_suite_only():
     assert known_failures.evaluate([_r("dialects/a/x", PASS)], known, set()).ok
 
 
+def test_id_with_unknown_suite_is_reported_when_every_case_ran():
+    known = {"dialect/ansi/x": "", "fake_case": ""}
+    results = [_r("dialects/a/x", PASS)]
+    out = known_failures.evaluate(results, known, {"dialects"}, every_case_ran=True)
+    assert out.not_found == ["dialect/ansi/x", "fake_case"]
+    assert "t: unexpected pass: fake_case (no such case; remove it from the list)" in (
+        out.messages("t")
+    )
+    assert known_failures.evaluate(results, known, {"dialects"}).ok
+
+
 needs_sqlfluff = pytest.mark.skipif(
     not SqlfluffAdapter().binary.exists(),
     reason="sqlfluff tool venv is not installed; run scripts/test",
@@ -112,3 +123,32 @@ def test_cli_passes_with_empty_list(tmp_path, capsys):
         "reason",
         "duration_ms",
     }
+
+
+class _EmptySuite:
+    NAME = "dialects"
+
+    @staticmethod
+    def discover(root):
+        return []
+
+
+@needs_sqlfluff
+@pytest.mark.parametrize("case_id", ["fake_case", "dialect/ansi/x"])
+def test_cli_full_run_reports_id_with_unknown_suite(
+    tmp_path, capsys, monkeypatch, case_id
+):
+    monkeypatch.setattr(cli, "SUITES", {"dialects": _EmptySuite})
+    (tmp_path / "sqlfluff.txt").write_text(case_id + "\n")
+    rc = cli.main(
+        [
+            "run",
+            "--tool=sqlfluff",
+            f"--known-failures={tmp_path}",
+            f"--out={tmp_path / 'report.json'}",
+        ]
+    )
+    assert rc == 1
+    assert f"sqlfluff: unexpected pass: {case_id} (no such case" in (
+        capsys.readouterr().out
+    )

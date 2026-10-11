@@ -58,3 +58,15 @@ def test_extra_config_is_applied(tmp_path):
     )
     assert high.tree is not None
     assert high.rc == 0
+
+
+@needs_sqlfluff
+def test_local_config_file_is_ignored(tmp_path):
+    src = SQLFLUFF_ROOT / "test/fixtures/dialects/ansi/expression_recursion.sql"
+    sql = tmp_path / src.name
+    sql.write_text(src.read_text())
+    # This config makes the parse fail if sqlfluff reads it.
+    (tmp_path / ".sqlfluff").write_text("[sqlfluff]\nmax_parse_depth = 5\n")
+    r = adapter.parse(sql, "ansi", True, False, tmp_path)
+    assert r.tree is not None
+    assert r.rc == 0

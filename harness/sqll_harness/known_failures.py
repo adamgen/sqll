@@ -65,11 +65,14 @@ def evaluate(
     results: list[CaseResult],
     known: dict[str, str],
     complete_suites: set[str],
+    every_case_ran: bool = False,
 ) -> Outcome:
     """Compare the results of one tool with its known failures.
 
     complete_suites are the suites that ran with no filter. A listed id in
-    one of these suites that did not run is reported as not found.
+    one of these suites that did not run is reported as not found. If
+    every_case_ran is true, each listed id that did not run is reported as
+    not found, also when its suite is not known.
     """
     outcome = Outcome()
     seen = set()
@@ -81,6 +84,8 @@ def evaluate(
         elif not r.passed and not listed:
             outcome.new_failures.append(r)
     for case_id in known:
-        if case_id not in seen and case_id.split("/", 1)[0] in complete_suites:
+        if case_id in seen:
+            continue
+        if every_case_ran or case_id.split("/", 1)[0] in complete_suites:
             outcome.not_found.append(case_id)
     return outcome

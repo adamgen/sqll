@@ -62,6 +62,9 @@ class SqlfluffAdapter(Adapter):
         if include_meta:
             cmd.append("-m")
         cmd += ["--templater", "raw", "--dialect", dialect]
+        # The sqlfluff test reads no config file. Without this flag the CLI
+        # reads .sqlfluff files from cwd and from the folder of the SQL file.
+        cmd.append("--ignore-local-config")
         with tempfile.TemporaryDirectory(prefix="sqll-case-") as tmp:
             if extra_config:
                 # sqlfluff reads a config file as TOML only if its name is

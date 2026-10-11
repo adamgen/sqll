@@ -35,8 +35,8 @@ def _parser() -> argparse.ArgumentParser:
     run.add_argument(
         "--jobs",
         type=int,
-        default=os.cpu_count() or 1,
-        help="Number of cases to run in parallel. Default: number of CPUs.",
+        default=os.process_cpu_count() or 1,
+        help="Number of cases to run in parallel. Default: CPUs this process can use.",
     )
     run.add_argument("--out", type=Path, default=DEFAULT_REPORT)
     run.add_argument(
@@ -110,12 +110,17 @@ def run(args: argparse.Namespace) -> int:
                 print(f"  {i}/{len(jobs)}", file=sys.stderr)
 
     complete = set() if args.filter else set(suites)
+    # With no --suite and no --filter every case ran, so a listed id with an
+    # unknown suite is also not found.
+    every_case_ran = not args.suite and not args.filter
     outcomes = {}
     for tool in tools:
         known = known_failures.load(args.known_failures, tool)
-        known = {k: v for k, v in known.items() if k.split("/", 1)[0] in suites}
         outcomes[tool] = known_failures.evaluate(
-            [r for r in results if r.tool == tool], known, complete
+            [r for r in results if r.tool == tool],
+            known,
+            complete,
+            every_case_ran=every_case_ran,
         )
 
     rep = report.build(_sqlfluff_ref(root), versions, results, outcomes)
