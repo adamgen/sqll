@@ -16,7 +16,6 @@ def test_sqlfluff_is_not_importable():
 
 def test_harness_code_does_not_import_sqlfluff():
     for path in PACKAGE.rglob("*.py"):
-        for line in path.read_text().splitlines():
-            stripped = line.strip()
-            assert not stripped.startswith("import sqlfluff"), path
-            assert not stripped.startswith("from sqlfluff"), path
+        text = path.read_text()
+        assert "import sqlfluff" not in text, path
+        assert "from sqlfluff" not in text, path

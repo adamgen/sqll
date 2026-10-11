@@ -1,4 +1,4 @@
-# Parts of this file are ported from sqlfluff 4.4.0, test/conftest.py
+# Parts of this file are a port of sqlfluff 4.4.0 code: test/conftest.py
 # (process_struct, load_yaml) and test/dialects/dialects_test.py
 # (test__dialect__base_parse_struct).
 # Source: https://github.com/sqlfluff/sqlfluff
