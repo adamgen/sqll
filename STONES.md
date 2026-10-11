@@ -45,7 +45,9 @@ Full parity (G1) is S4, S5, and S6 complete.
 - Find the types of query parameters and result columns.
 - Support each parameter style and templater from S6.
 - Generate code for a first target language.
+- Lint and code generation in one command parse each file one time.
 - Exit: generated code compiles and passes tests for each parameter style.
+- Exit: the harness shows one parse for each file when one command lints and generates code.
 
 ## S8. External corpus
 
