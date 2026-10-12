@@ -21,9 +21,16 @@ Ported code (MIT, attribution in each file header):
 
 ## Tools
 
-The harness installs these tools in `.tools/` from `tools/<tool>/uv.lock`. We do
-not distribute them.
+`scripts/setup` installs these tools in `SQLL_TOOLS_DIR` (default `.tools/`).
+The pins are in `tools/<tool>/`. The CI image
+`ghcr.io/adamgen/sqll-ci` contains them. That image is private to this
+repository. We do not distribute the tools in another way.
 
-| Tool | Version | License |
-|---|---|---|
-| sqlfluff | 4.4.0 (PyPI) | MIT |
+| Tool | Version | Source | License |
+|---|---|---|---|
+| sqlfluff | 4.4.0 | PyPI `sqlfluff` | MIT |
+| sqlfluffrs (in `sqlfluff[rs]`) | 4.4.0 | PyPI `sqlfluffrs`; code in `third_party/sqlfluff/sqlfluffrs/` | MIT |
+| sqruff binary | 0.41.0 | crates.io `sqruff`, built with `cargo install --locked --features parser,python` | Apache-2.0 |
+| sqruff Python templaters | 0.41.0 | PyPI `sqruff[jinja]` (only its Python modules are used) | Apache-2.0 |
+
+The Python dependencies of each tool are in `tools/<tool>/uv.lock`.

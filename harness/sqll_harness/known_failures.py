@@ -7,6 +7,7 @@ Format: one case id on each line, sorted, with no duplicates. Text after
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from . import shard as shards
 from .cases import CaseResult
 
 
@@ -66,13 +67,15 @@ def evaluate(
     known: dict[str, str],
     complete_suites: set[str],
     every_case_ran: bool = False,
+    shard: shards.Shard | None = None,
 ) -> Outcome:
     """Compare the results of one tool with its known failures.
 
     complete_suites are the suites that ran with no filter. A listed id in
     one of these suites that did not run is reported as not found. If
     every_case_ran is true, each listed id that did not run is reported as
-    not found, also when its suite is not known.
+    not found, also when its suite is not known. With a shard, only the
+    listed ids in that shard can be not found.
     """
     outcome = Outcome()
     seen = set()
@@ -84,7 +87,7 @@ def evaluate(
         elif not r.passed and not listed:
             outcome.new_failures.append(r)
     for case_id in known:
-        if case_id in seen:
+        if case_id in seen or not shards.contains(shard, case_id):
             continue
         if every_case_ran or case_id.split("/", 1)[0] in complete_suites:
             outcome.not_found.append(case_id)

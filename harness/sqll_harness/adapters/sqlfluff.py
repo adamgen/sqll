@@ -9,7 +9,7 @@ from typing import Any
 import tomli_w
 
 from ..compare import has_node
-from ..paths import TOOLS_DIR
+from ..paths import tools_dir
 from .base import Adapter, EmptyHome, ParseResult, ToolNotInstalled, isolated_env
 
 TIMEOUT_S = 600
@@ -19,14 +19,14 @@ class SqlfluffAdapter(Adapter):
     name = "sqlfluff"
 
     def __init__(self, venv: Path | None = None) -> None:
-        self.venv = venv or TOOLS_DIR / "sqlfluff"
+        self.venv = venv or tools_dir() / "sqlfluff"
         self.binary = self.venv / "bin" / "sqlfluff"
         self._version: str | None = None
 
     def _check(self) -> None:
         if not self.binary.exists():
             raise ToolNotInstalled(
-                f"{self.binary} does not exist. Run scripts/test to install it."
+                f"{self.binary} does not exist. Run scripts/setup to install it."
             )
 
     def version(self) -> str:

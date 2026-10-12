@@ -11,6 +11,12 @@ from typing import Any
 
 import yaml
 
+# sqlfluff uses yaml.CLoader. CSafeLoader has the same parser and the same
+# scalar resolvers, so it gives the same data for plain YAML. It does not
+# construct Python objects from tags such as !!python/object. A fixture with
+# such a tag gives an error, not a different tree. tests/test_compare.py
+# proves that both loaders give equal data for all dialect fixtures.
+# SafeLoader is the pure-Python fallback when libyaml is not available.
 _Loader = getattr(yaml, "CSafeLoader", yaml.SafeLoader)
 
 Struct = tuple | str | None

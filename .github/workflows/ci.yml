@@ -4,48 +4,188 @@ on:
   pull_request:
   push:
     branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  IMAGE_REPO: ghcr.io/adamgen/sqll-ci
 
 jobs:
-  test:
+  # The image tag is a hash of all image inputs (ci/image_tag.py). Build and
+  # push the image only if the registry does not have that tag.
+  image:
     runs-on: ubuntu-latest
     timeout-minutes: 60
-    env:
-      UV_PYTHON: "3.13"
-      UV_PYTHON_PREFERENCE: only-system
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image: ${{ steps.tag.outputs.image }}
+      matrix: ${{ steps.tag.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - id: tag
+        run: |
+          echo "image=$IMAGE_REPO:$(python3 ci/image_tag.py)" >> "$GITHUB_OUTPUT"
+          echo "matrix=$(python3 ci/matrix.py)" >> "$GITHUB_OUTPUT"
+
+      - uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - id: find
+        env:
+          IMAGE: ${{ steps.tag.outputs.image }}
+        run: |
+          if docker buildx imagetools inspect "$IMAGE" > /dev/null 2>&1; then
+            echo "Image $IMAGE exists. The build is not necessary."
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Image $IMAGE does not exist. Build and push it."
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - if: steps.find.outputs.exists == 'false'
+        uses: docker/setup-buildx-action@v4
+
+      - if: steps.find.outputs.exists == 'false'
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: ci/Dockerfile
+          push: true
+          tags: ${{ steps.tag.outputs.image }}
+          cache-from: type=registry,ref=${{ env.IMAGE_REPO }}:buildcache
+          cache-to: type=registry,ref=${{ env.IMAGE_REPO }}:buildcache,mode=max
+
+  lint:
+    needs: image
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      packages: read
+    container:
+      image: ${{ needs.image.outputs.image }}
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v7
         with:
           submodules: true
 
-      - id: py
-        uses: actions/setup-python@v7
-        with:
-          python-version: "3.13"
+      # The runner user owns the workspace, not the container user.
+      - run: git config --global --add safe.directory '*'
 
-      - uses: astral-sh/setup-uv@v7
-        with:
-          version: "0.11.32"
-          enable-cache: true
-          cache-dependency-glob: "harness/uv.lock"
-
-      - name: Cache tool venvs
-        uses: actions/cache@v6
-        with:
-          path: .tools
-          key: tools-${{ runner.os }}-py${{ steps.py.outputs.python-version }}-${{ hashFiles('tools/*/uv.lock', 'tools/*/pyproject.toml') }}
+      - name: Tools
+        run: |
+          uv run --frozen --project harness sqll-harness tools
+          "$SQLL_TOOLS_DIR/sqruff/bin/sqruff" templaters
 
       - name: Lint
         run: |
-          uvx ruff@0.14.0 check harness
-          uvx ruff@0.14.0 format --check harness
+          uv run --frozen --project harness ruff check harness ci
+          uv run --frozen --project harness ruff format --check harness ci
 
-      - name: Test
-        run: scripts/test
+      - name: Unit tests
+        env:
+          SQLL_REQUIRE_TOOLS: "1"
+        run: uv run --frozen --project harness pytest -q harness/tests
 
-      - name: Upload report
-        if: always()
+  test:
+    needs: image
+    name: test (${{ matrix.name }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: read
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.image.outputs.matrix) }}
+    container:
+      image: ${{ needs.image.outputs.image }}
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: true
+
+      # The runner user owns the workspace, not the container user.
+      - run: git config --global --add safe.directory '*'
+
+      - name: Run shard
+        run: >-
+          uv run --frozen --project harness sqll-harness run
+          --suite ${{ matrix.suite }} --tool ${{ matrix.tool }}
+          --shard ${{ matrix.shard }} --out out/shards/${{ matrix.name }}.json
+
+      - if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: shard-${{ matrix.name }}
+          path: out/shards/${{ matrix.name }}.json
+          if-no-files-found: error
+
+  # Merge the shard reports and check the known failures over the full run.
+  report:
+    needs: [image, test]
+    if: always() && needs.image.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      packages: read
+    container:
+      image: ${{ needs.image.outputs.image }}
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v7
+
+      # The runner user owns the workspace, not the container user.
+      - run: git config --global --add safe.directory '*'
+
+      - uses: actions/download-artifact@v7
+        with:
+          pattern: shard-*
+          path: out/shards
+          merge-multiple: true
+
+      - name: Merge
+        run: >-
+          uv run --frozen --project harness sqll-harness merge
+          --expect ci/matrix.json out/shards/*.json
+
+      - name: Check sqlfluff commit in the report
+        run: |
+          want=$(git rev-parse HEAD:third_party/sqlfluff)
+          got=$(python3 -c 'import json; print(json.load(open("out/report.json"))["sqlfluff_ref"])')
+          echo "submodule: $want, report: $got"
+          test "$want" = "$got"
+
+      - if: always()
         uses: actions/upload-artifact@v7
         with:
           name: report
           path: out/report.json
-          if-no-files-found: warn
+          if-no-files-found: error
+
+      - name: Check test jobs
+        if: needs.test.result != 'success'
+        run: |
+          echo "A test job did not succeed: ${{ needs.test.result }}"
+          exit 1

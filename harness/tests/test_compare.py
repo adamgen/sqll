@@ -72,3 +72,17 @@ def test_has_node():
     assert has_node(rec, "unparsable")
     assert not has_node(rec, "keyword")
     assert not has_node(None, "unparsable")
+
+
+def test_safe_loader_gives_the_same_data_as_sqlfluff_loader():
+    # sqlfluff loads the fixtures with yaml.CLoader. See compare.py.
+    import yaml
+
+    from sqll_harness.compare import _Loader
+    from sqll_harness.suites import dialects
+
+    assert _Loader is yaml.CSafeLoader
+    cases = dialects.discover(SQLFLUFF_ROOT)
+    for path in sorted({SQLFLUFF_ROOT / c.yml for c in cases}):
+        text = path.read_text(encoding="utf8")
+        assert yaml.load(text, Loader=_Loader) == yaml.load(text, Loader=yaml.CLoader)
