@@ -3,7 +3,7 @@ import subprocess
 import tomllib
 
 import pytest
-from conftest import needs_all_tools
+from conftest import needs, needs_all_tools
 
 from sqll_harness import cli, tools
 from sqll_harness.paths import REPO_ROOT, TOOL_SPECS_DIR, tools_dir
@@ -38,6 +38,17 @@ def test_oracle_has_the_same_sqlfluff_packages():
     oracle.pop("sqll-sqlfluff-oracle")
     assert {k: oracle.get(k) for k in plain} == plain
     assert oracle["pytest"] == "9.1.1"
+
+
+@needs("sqlfluff-oracle/bin/python")
+def test_setup_installs_the_oracle():
+    # CI runs scripts/sqlfluff-rule-oracle with this venv and no network.
+    python = tools_dir() / "sqlfluff-oracle" / "bin" / "python"
+    code = "import sqlfluff, pytest; print(sqlfluff.__version__, pytest.__version__)"
+    out = subprocess.run(
+        [str(python), "-I", "-c", code], capture_output=True, text=True, check=True
+    ).stdout.split()
+    assert out == [_lock("sqlfluff-oracle")["sqlfluff"], "9.1.1"]
 
 
 def test_install_script_reads_the_same_sqruff_version():

@@ -102,6 +102,13 @@ jobs:
           SQLL_REQUIRE_TOOLS: "1"
         run: uv run --frozen --project harness pytest -q harness/tests
 
+      # The key prefix of each harness rule fixture must agree with the
+      # sqlfluff test.
+      - name: Check the harness rule fixtures with the sqlfluff test
+        run: >-
+          "$SQLL_TOOLS_DIR/sqlfluff-oracle/bin/python" scripts/sqlfluff-rule-oracle
+          --cases 'harness/tests/fixtures/rules/*.yml' --check-prefixes
+
       - name: Check that the sqlfluff submodule is clean
         run: scripts/check-submodule "after the tests"
 
@@ -187,10 +194,8 @@ jobs:
 
       # The sqlfluff test of each rule case must give the same status.
       - name: Compare the rule results with the sqlfluff test
-        env:
-          UV_PROJECT_ENVIRONMENT: /tmp/sqll-oracle
         run: |
-          uv run --frozen --project tools/sqlfluff-oracle \
+          "$SQLL_TOOLS_DIR/sqlfluff-oracle/bin/python" \
             scripts/sqlfluff-rule-oracle --report out/report.json \
             --out out/oracle.jsonl
           scripts/check-submodule "after the comparison"
