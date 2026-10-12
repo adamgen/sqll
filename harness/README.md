@@ -142,7 +142,7 @@ These checks exist only as Python internals:
 - `test__dialect__base_broad_fix`. It has no expected result in data.
 
 Results of the sqlfluff pytest for `test/rules/yaml_test_cases_test.py` and of
-the `rules` suite must agree. The PR of T3 has the comparison.
+the `rules` suite must agree. PR #5 has the comparison.
 
 ## Report: `out/report.json`
 
