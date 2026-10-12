@@ -22,15 +22,32 @@ def summarize(results: list[CaseResult]) -> dict[str, dict[str, dict[str, int]]]
     return summary
 
 
+def scope(
+    suites: list[str],
+    tools: list[str],
+    filter: str | None = None,
+    shard: tuple[int, int] | None = None,
+) -> dict:
+    """Return the record of what a run tried to run. merge uses it."""
+    return {
+        "suites": sorted(suites),
+        "tools": sorted(tools),
+        "filter": filter,
+        "shard": f"{shard[0]}/{shard[1]}" if shard else None,
+    }
+
+
 def build(
     sqlfluff_ref: str,
     versions: dict[str, str],
     results: list[CaseResult],
     outcomes: dict[str, Outcome],
+    run_scope: dict | None,
 ) -> dict:
     ordered = sorted(results, key=lambda r: (r.suite, r.tool, r.id))
     return {
         "sqlfluff_ref": sqlfluff_ref,
+        "scope": run_scope,
         "tools": {name: {"version": v} for name, v in sorted(versions.items())},
         "summary": summarize(ordered),
         "known_failures": {

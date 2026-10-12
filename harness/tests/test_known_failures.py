@@ -152,3 +152,13 @@ def test_cli_full_run_reports_id_with_unknown_suite(
     assert f"sqlfluff: unexpected pass: {case_id} (no such case" in (
         capsys.readouterr().out
     )
+
+
+def test_shard_reports_only_its_own_listed_ids():
+    from sqll_harness import shard
+
+    ids = [f"dialects/x/{i}" for i in range(20)]
+    known = dict.fromkeys(ids, "")
+    for k in (1, 2, 3):
+        out = known_failures.evaluate([], known, {"dialects"}, shard=(k, 3))
+        assert out.not_found == [i for i in ids if shard.index(i, 3) == k]

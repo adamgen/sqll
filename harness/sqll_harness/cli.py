@@ -1,6 +1,7 @@
-"""Command line: sqll-harness run [--tool T] [--suite S] [--jobs N] [--out PATH]."""
+"""Command line: sqll-harness run | merge | tools. See harness/README.md."""
 
 import argparse
+import json
 import os
 import subprocess
 import sys
@@ -9,11 +10,19 @@ import traceback
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
-from . import known_failures, report
+from . import known_failures, merge, report, shard, tools
 from .adapters import ADAPTERS, Adapter
 from .cases import ERROR, CaseResult
+from .known_failures import Outcome
 from .paths import DEFAULT_REPORT, KNOWN_FAILURES_DIR, SQLFLUFF_ROOT
 from .suites import SUITES
+
+
+def _shard(text: str) -> shard.Shard:
+    try:
+        return shard.parse(text)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError(str(exc)) from None
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -43,8 +52,38 @@ def _parser() -> argparse.ArgumentParser:
         "--filter",
         help="Run only the cases whose id starts with this text.",
     )
+    run.add_argument(
+        "--shard",
+        type=_shard,
+        metavar="K/N",
+        help="Run only shard K of N. The shard of a case depends on its id.",
+    )
     run.add_argument("--known-failures", type=Path, default=KNOWN_FAILURES_DIR)
     run.add_argument("--sqlfluff-root", type=Path, default=SQLFLUFF_ROOT)
+
+    mrg = sub.add_parser(
+        "merge",
+        help="Merge shard reports into one report and check known failures.",
+    )
+    mrg.add_argument("reports", nargs="+", type=Path, help="Reports of shard runs.")
+    mrg.add_argument("--out", type=Path, default=DEFAULT_REPORT)
+    mrg.add_argument("--known-failures", type=Path, default=KNOWN_FAILURES_DIR)
+    mrg.add_argument(
+        "--expect",
+        type=Path,
+        help='JSON list of {"suite", "tool", "shards"}. Each must be in the reports.',
+    )
+
+    tls = sub.add_parser(
+        "tools",
+        help="Print the installed tools as JSON. Fail if a tool is not as pinned.",
+    )
+    tls.add_argument(
+        "--tool",
+        action="append",
+        choices=sorted(tools.CHECKS),
+        help="Tool to check. Repeat for more tools. Default: all tools.",
+    )
     return p
 
 
@@ -78,6 +117,22 @@ def _run_one(suite, adapter: Adapter, case, root: Path) -> CaseResult:
     return result
 
 
+def _finish(rep: dict, out: Path, outcomes: dict[str, Outcome]) -> int:
+    report.write(rep, out)
+    for line in report.summary_lines(rep):
+        print(line)
+    failed = False
+    for tool, outcome in outcomes.items():
+        for msg in outcome.messages(tool):
+            print(msg)
+        failed |= not outcome.ok
+    print(f"report: {out}")
+    if failed:
+        print("FAIL: results differ from known_failures/.")
+        return 1
+    return 0
+
+
 def run(args: argparse.Namespace) -> int:
     root: Path = args.sqlfluff_root.resolve()
     if not (root / "test" / "fixtures").is_dir():
@@ -86,9 +141,15 @@ def run(args: argparse.Namespace) -> int:
             file=sys.stderr,
         )
         return 2
-    tools = args.tool or sorted(ADAPTERS)
+    tool_names = args.tool or sorted(ADAPTERS)
     suites = args.suite or sorted(SUITES)
-    adapters = {name: ADAPTERS[name]() for name in tools}
+    bad = [i for i in tools.check(tool_names) if not i.ok]
+    for info in bad:
+        for err in info.errors:
+            print(f"error: {info.name}: {err}", file=sys.stderr)
+    if bad:
+        return 2
+    adapters = {name: ADAPTERS[name]() for name in tool_names}
     versions = {name: a.version() for name, a in adapters.items()}
 
     jobs = []
@@ -97,6 +158,7 @@ def run(args: argparse.Namespace) -> int:
         cases = suite.discover(root)
         if args.filter:
             cases = [c for c in cases if c.id.startswith(args.filter)]
+        cases = [c for c in cases if shard.contains(args.shard, c.id)]
         for adapter in adapters.values():
             jobs += [(suite, adapter, c) for c in cases]
 
@@ -114,35 +176,53 @@ def run(args: argparse.Namespace) -> int:
     # unknown suite is also not found.
     every_case_ran = not args.suite and not args.filter
     outcomes = {}
-    for tool in tools:
+    for tool in tool_names:
         known = known_failures.load(args.known_failures, tool)
         outcomes[tool] = known_failures.evaluate(
             [r for r in results if r.tool == tool],
             known,
             complete,
             every_case_ran=every_case_ran,
+            shard=args.shard,
         )
 
-    rep = report.build(_sqlfluff_ref(root), versions, results, outcomes)
-    report.write(rep, args.out)
-    for line in report.summary_lines(rep):
-        print(line)
-    failed = False
-    for tool, outcome in outcomes.items():
-        for msg in outcome.messages(tool):
-            print(msg)
-        failed |= not outcome.ok
-    print(f"report: {args.out}")
-    if failed:
-        print("FAIL: results differ from known_failures/.")
-        return 1
-    return 0
+    scope = report.scope(suites, tool_names, args.filter, args.shard)
+    rep = report.build(_sqlfluff_ref(root), versions, results, outcomes, scope)
+    return _finish(rep, args.out, outcomes)
+
+
+def merge_reports(args: argparse.Namespace) -> int:
+    try:
+        expected = merge.load_expected(args.expect) if args.expect else None
+        reports = [(str(p), merge.load(p)) for p in args.reports]
+        rep, outcomes = merge.merge(
+            reports, args.known_failures, sorted(SUITES), expected
+        )
+    except (merge.MergeError, known_failures.KnownFailuresError) as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
+    print(f"merged {len(reports)} reports")
+    return _finish(rep, args.out, outcomes)
+
+
+def show_tools(args: argparse.Namespace) -> int:
+    infos = tools.check(args.tool)
+    out = {
+        "tools_dir": str(tools.tools_dir()),
+        "tools": [i.to_json() for i in infos],
+    }
+    print(json.dumps(out, indent=1))
+    return 0 if all(i.ok for i in infos) else 1
 
 
 def main(argv: list[str] | None = None) -> int:
     args = _parser().parse_args(argv)
     if args.command == "run":
         return run(args)
+    if args.command == "merge":
+        return merge_reports(args)
+    if args.command == "tools":
+        return show_tools(args)
     return 2
 
 

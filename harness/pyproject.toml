@@ -14,14 +14,18 @@ sqll-harness = "sqll_harness.cli:main"
 [dependency-groups]
 dev = [
     "pytest>=8.3",
+    "ruff==0.14.0",
 ]
 
+# uv builds the harness with its own build backend when uv_build matches its
+# version. Thus "uv sync" needs no download in the CI image.
 [build-system]
-requires = ["hatchling>=1.27"]
-build-backend = "hatchling.build"
+requires = ["uv_build>=0.11.32,<0.12"]
+build-backend = "uv_build"
 
-[tool.hatch.build.targets.wheel]
-packages = ["sqll_harness"]
+[tool.uv.build-backend]
+module-name = "sqll_harness"
+module-root = ""
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

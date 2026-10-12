@@ -1,0 +1,19 @@
+#!/bin/sh
+# Install the pinned tools in SQLL_TOOLS_DIR (default: .tools/).
+# The CI image (ci/Dockerfile) runs this script too.
+# Needs: uv, Python 3.13 with a shared libpython, and cargo to build sqruff.
+set -eu
+
+root=$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)
+tools_dir=${SQLL_TOOLS_DIR:-$root/.tools}
+mkdir -p "$tools_dir"
+tools_dir=$(CDPATH='' cd -- "$tools_dir" && pwd)
+
+sync() {
+    UV_PROJECT_ENVIRONMENT="$2" uv sync --quiet --frozen --project "$root/tools/$1"
+}
+
+sync sqlfluff "$tools_dir/sqlfluff"
+sync sqlfluff-rs "$tools_dir/sqlfluff-rs"
+sync sqruff "$tools_dir/sqruff/python"
+"$root/tools/sqruff/install.sh" "$tools_dir/sqruff"

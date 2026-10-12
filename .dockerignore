@@ -1,0 +1,12 @@
+# The build context of ci/Dockerfile is only the inputs in ci/image_tag.py.
+*
+!ci/uv-requirements.txt
+!harness/pyproject.toml
+!harness/uv.lock
+!scripts/setup
+!tools/
+**/.venv
+**/__pycache__
+**/.pytest_cache
+**/.ruff_cache
+**/*.pyc

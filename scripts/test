@@ -1,6 +1,7 @@
 #!/bin/sh
-# Run all sqll tests: harness unit tests, then all suites for all tools.
-# Arguments go to "sqll-harness run". Output: out/report.json.
+# Run all sqll tests: install the tools, run the harness unit tests, then run
+# all suites for all tools. Arguments go to "sqll-harness run".
+# Output: out/tools.json and out/report.json.
 set -eu
 
 root=$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)
@@ -11,12 +12,15 @@ if [ ! -d third_party/sqlfluff/test/fixtures ]; then
     exit 2
 fi
 
-for dir in tools/*/; do
-    tool=$(basename "$dir")
-    UV_PROJECT_ENVIRONMENT="$root/.tools/$tool" \
-        uv sync --quiet --frozen --project "$dir"
-done
+SQLL_TOOLS_DIR=${SQLL_TOOLS_DIR:-$root/.tools}
+export SQLL_TOOLS_DIR
+scripts/setup
 
 uv sync --quiet --frozen --project harness
-uv run --quiet --frozen --project harness pytest -q harness/tests
+mkdir -p out
+uv run --quiet --frozen --project harness sqll-harness tools > out/tools.json || {
+    cat out/tools.json
+    exit 1
+}
+SQLL_REQUIRE_TOOLS=1 uv run --quiet --frozen --project harness pytest -q harness/tests
 uv run --quiet --frozen --project harness sqll-harness run "$@"

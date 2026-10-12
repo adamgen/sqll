@@ -7,13 +7,19 @@
 
 | Task | Description | State |
 |---|---|---|
-| T1 | Harness foundation: submodule, CI, `scripts/test`, sqlfluff parse adapter, dialect suite | In review |
-| T2 | Rule case suite (`std_rule_cases`), sqlfluff lint and fix adapter | Open |
-| T3 | Autofix suite (`linter/autofix`) for sqlfluff | Open |
-| T4 | Templater suite for sqlfluff | Open |
-| T5 | `sqlfluff[rs]` adapter and recorded results | Open |
-| T6 | sqruff adapter and recorded results | Open |
-| T7 | S1 exit: full run, recorded baseline, status | Open |
+| T1 | Harness foundation: submodule, CI, `scripts/test`, sqlfluff parse adapter, dialect suite | Done (PR #3) |
+| T2 | CI image in GHCR, all 3 tools pinned, sharded CI matrix | In review |
+| T3 | Rule case suite (`std_rule_cases`), sqlfluff lint and fix | Open |
+| T4 | Autofix suite (`linter/autofix`) for sqlfluff | Open |
+| T5 | Templater suite for sqlfluff | Open |
+| T6 | `sqlfluff[rs]` adapter on all 4 suites, results recorded | Open |
+| T7 | sqruff adapter on all 4 suites, results recorded | Open |
+| T8 | S1 exit: full run, recorded baseline, status | Open |
+
+## Tools
+
+sqlfluff 4.4.0, `sqlfluff[rs]` 4.4.0 with sqlfluffrs 4.4.0, sqruff 0.41.0
+(features `parser,python`). See `harness/README.md`.
 
 ## Parity
 
