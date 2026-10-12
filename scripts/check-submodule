@@ -5,7 +5,14 @@
 set -eu
 
 root=$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)
-changes=$(git -C "$root/third_party/sqlfluff" status --porcelain --ignored)
+sub="$root/third_party/sqlfluff"
+# Without a checkout, "git -C" finds the parent repository instead.
+if [ ! -e "$sub/.git" ]; then
+    echo "error: third_party/sqlfluff is not checked out${1:+ $1}." \
+        "Run: git submodule update --init" >&2
+    exit 1
+fi
+changes=$(git -C "$sub" status --porcelain --ignored)
 if [ -n "$changes" ]; then
     echo "error: third_party/sqlfluff is not clean${1:+ $1}:" >&2
     echo "$changes" >&2
