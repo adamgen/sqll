@@ -8,7 +8,7 @@ from conftest import needs_sqlfluff
 
 from sqll_harness.adapters.base import EmptyHome, FixResult, LintResult
 from sqll_harness.adapters.sqlfluff import SqlfluffAdapter, sqlfluff_toml
-from sqll_harness.cases import FAIL, PASS, SKIP
+from sqll_harness.cases import ERROR, FAIL, PASS, SKIP
 from sqll_harness.paths import SQLFLUFF_ROOT
 from sqll_harness.suites import rules
 
@@ -167,38 +167,103 @@ def _v(code, line, pos, **extra):
     return {"code": code, "start_line_no": line, "start_line_pos": pos, **extra}
 
 
+def _one(*violations):
+    return rules.Found.from_one(list(violations))
+
+
 def test_pass_problems():
-    assert rules.pass_problems([], ["LT01"]) == []
-    assert rules.pass_problems([_v("AL01", 1, 1)], ["LT01"]) == []
-    assert rules.pass_problems([_v("LT01", 2, 1)], ["LT01"]) == [
+    assert rules.pass_problems(_one(), ["LT01"]) == []
+    assert rules.pass_problems(_one(_v("AL01", 1, 1)), ["LT01"]) == []
+    assert rules.pass_problems(_one(_v("LT01", 2, 1)), ["LT01"]) == [
         "1 violations of LT01 (lines [2])"
     ]
     # A lexer error also makes a pass_str fail. A warning is a violation.
-    assert rules.pass_problems([_v("LXR", 1, 1, description="x")], ["LT01"])
-    assert rules.pass_problems([_v("LT01", 1, 1, warning=True)], ["LT01"])
+    assert rules.pass_problems(_one(_v("LXR", 1, 1, description="x")), ["LT01"])
+    assert rules.pass_problems(_one(_v("LT01", 1, 1, warning=True)), ["LT01"])
+
+
+def test_pass_problems_use_the_lists_with_no_filter():
+    prs = _v("PRS", 1, 1, description="bad")
+    lt01 = _v("LT01", 1, 5)
+    # "ignore" or noqa removed both from the filtered list.
+    found = rules.Found(filtered=[], raw=[prs, lt01], parse_stage=[prs])
+    assert rules.pass_problems(found, ["LT01"]) == [
+        "PRS: bad",
+        "1 violations of LT01 (lines [1])",
+    ]
+    # The PRS of a bad noqa comment is not a parse error.
+    noqa = _v("PRS", 1, 9, description="Malformed 'noqa' section.")
+    found = rules.Found(filtered=[noqa], raw=[noqa], parse_stage=[], noqa_errors=[noqa])
+    assert rules.pass_problems(found, ["LT01"]) == []
 
 
 def test_fail_problems():
-    ok = [_v("LT01", 1, 5), _v("LT01", 3, 1)]
+    ok = _one(_v("LT01", 1, 5), _v("LT01", 3, 1))
     assert rules.fail_problems(ok, ["LT01"], [], None, "LT01") == []
     assert rules.fail_problems(ok, ["LT01"], [1, 3], None, "LT01") == []
     assert rules.fail_problems(ok, ["LT01"], [1, 2], None, "LT01") == [
         "line numbers [1, 3], expected [1, 2]"
     ]
-    assert rules.fail_problems([], ["LT01"], [], None, "LT01") == [
+    assert rules.fail_problems(_one(), ["LT01"], [], None, "LT01") == [
         "no violation of LT01"
     ]
     # A warning does not count, and an LXR error does not fail a fail_str.
-    warn = [_v("LT01", 1, 1, warning=True), _v("LXR", 1, 1)]
+    warn = _one(_v("LT01", 1, 1, warning=True), _v("LXR", 1, 1))
     assert rules.fail_problems(warn, ["LT01"], [], None, "LT01") == [
         "no violation of LT01"
     ]
-    prs = [_v("PRS", 1, 1, description="bad"), *ok]
+    prs = _one(_v("PRS", 1, 1, description="bad"), *ok.raw)
     assert rules.fail_problems(prs, ["LT01"], [], None, "LT01") == ["PRS: bad"]
-    crash = [_v("LT01", 1, 1, description="Unexpected exception: boom;\nmore")]
+    crash = _one(_v("LT01", 1, 1, description="Unexpected exception: boom;\nmore"))
     assert rules.fail_problems(crash, ["LT01"], [], None, "LT01") == [
         "rule crash: Unexpected exception: boom;"
     ]
+
+
+def test_fail_problems_filter_only_for_the_checks():
+    # "ignore: parsing" hides the PRS from the checks, but not from the
+    # comparison with "violations".
+    lt01, prs = _v("LT01", 1, 5), _v("PRS", 2, 1, description="bad")
+    found = rules.Found(filtered=[lt01], raw=[lt01, prs], parse_stage=[prs])
+    assert rules.fail_problems(found, ["LT01"], [1], None, "LT01") == []
+    assert rules.fail_problems(found, ["LT01"], [], [lt01, prs], "LT01") == []
+    assert rules.fail_problems(found, ["LT01"], [], [lt01], "LT01") == [
+        "violations differ"
+    ]
+
+
+def test_compose():
+    lt01 = _v("LT01", 1, 5)
+    parse = _v("PRS", 2, 1, description="unparsable")
+    bad_noqa = _v("PRS", 1, 9, description="Malformed 'noqa' section.")
+    hidden = _v("LT01", 1, 9)  # a noqa for LT01 removes it in the test too
+    found = rules.compose(
+        filtered=[lt01],
+        unignored=[lt01, bad_noqa],
+        no_noqa=[lt01, hidden, parse],
+    )
+    assert found.filtered == [lt01]
+    assert found.parse_stage == [parse]
+    assert found.noqa_errors == [bad_noqa]
+    assert found.raw == [parse, bad_noqa, lt01]
+
+
+def test_config_variants():
+    assert rules.config_without_ignore(None) is None
+    assert rules.config_without_ignore({"core": {"dialect": "tsql"}}) is None
+    config = {"core": {"ignore": "parsing", "dialect": "tsql"}, "rules": {"a": 1}}
+    assert rules.config_without_ignore(config) == {
+        "core": {"dialect": "tsql"},
+        "rules": {"a": 1},
+    }
+    assert rules.config_without_noqa(None) == {"core": {"disable_noqa": True}}
+    config["core"]["disable_noqa_except"] = "LT01"
+    assert rules.config_without_noqa(config) == {
+        "core": {"dialect": "tsql", "disable_noqa": True},
+        "rules": {"a": 1},
+    }
+    # The case config does not change.
+    assert config["core"]["ignore"] == "parsing"
 
 
 def test_violations_match_adds_missing_code():
@@ -219,10 +284,19 @@ def test_violations_match_order():
     assert not rules.violations_match([a, b, c], [c, a, b], "x")
 
 
+def test_violations_match_bad_noqa_order():
+    # sqlfluff sorts the PRS of a bad noqa comment as if it is at position 0.
+    lt01 = _v("LT01", 1, 5)
+    noqa = _v("PRS", 1, 9, description="Malformed 'noqa' section.")
+    assert rules.violations_match([lt01, noqa], [noqa, lt01], "x", [noqa])
+    assert not rules.violations_match([lt01, noqa], [lt01, noqa], "x", [noqa])
+    assert rules.violations_match([lt01, noqa], [lt01, noqa], "x")
+
+
 def test_fail_problems_compare_all_violations():
-    found = [_v("LT01", 1, 1), _v("LT01", 2, 1, warning=True)]
-    assert rules.fail_problems(found, ["LT01"], [], found, "LT01") == []
-    assert rules.fail_problems(found, ["LT01"], [], found[:1], "LT01") == [
+    found = _one(_v("LT01", 1, 1), _v("LT01", 2, 1, warning=True))
+    assert rules.fail_problems(found, ["LT01"], [], found.raw, "LT01") == []
+    assert rules.fail_problems(found, ["LT01"], [], found.raw[:1], "LT01") == [
         "violations differ"
     ]
 
@@ -236,9 +310,11 @@ class FakeAdapter:
         self.lint_violations = lint or {}
         self.fixed = fixed
         self.calls = []
+        self.configs = []
 
     def lint(self, sql_paths, rules_, dialect, config, workdir):
         self.calls.append(("lint", [p.name for p in sql_paths], rules_, dialect))
+        self.configs.append(config)
         return LintResult({p: self.lint_violations.get(p.name, []) for p in sql_paths})
 
     def fix(self, sql_path, rules_, dialect, config, workdir):
@@ -310,6 +386,55 @@ def test_run_violations_after_fix():
     assert result.checks["after_fix"] is False
 
 
+def test_run_lints_again_with_no_filter():
+    lint = {"fail.sql": [_v("LT01", 1, 1)]}
+    ignore = {"core": {"ignore": "parsing", "dialect": "tsql"}}
+    # No "ignore" and no noqa: one lint.
+    case = rules.RuleCase(id="rules/x/y", rule="LT01", fail_str="f")
+    adapter = FakeAdapter(lint=lint, fixed="f")
+    assert rules.run(adapter, case, SQLFLUFF_ROOT).status == PASS
+    assert adapter.configs == [None]
+    # "ignore": a lint with no "ignore", and with it the same for noqa.
+    case = rules.RuleCase(id="rules/x/y", rule="LT01", fail_str="f", configs=ignore)
+    adapter = FakeAdapter(lint=lint, fixed="f")
+    assert rules.run(adapter, case, SQLFLUFF_ROOT).status == PASS
+    assert adapter.configs == [ignore, {"core": {"dialect": "tsql"}}]
+    # noqa in a string: a lint with disable_noqa too.
+    case = rules.RuleCase(
+        id="rules/x/y", rule="LT01", pass_str="p -- noqa", fail_str="f"
+    )
+    adapter = FakeAdapter(lint=lint, fixed="f")
+    assert rules.run(adapter, case, SQLFLUFF_ROOT).status == PASS
+    assert adapter.configs == [None, {"core": {"disable_noqa": True}}]
+    assert [c[0] for c in adapter.calls] == ["lint", "lint", "fix"]
+    # Both.
+    case = rules.RuleCase(
+        id="rules/x/y", rule="LT01", fail_str="f -- noqa", configs=ignore
+    )
+    adapter = FakeAdapter(lint={"fail.sql": lint["fail.sql"]}, fixed="f -- noqa")
+    assert rules.run(adapter, case, SQLFLUFF_ROOT).status == PASS
+    assert adapter.configs == [
+        ignore,
+        {"core": {"dialect": "tsql"}},
+        {"core": {"dialect": "tsql", "disable_noqa": True}},
+    ]
+
+
+@pytest.mark.parametrize("field", ["pass_str", "fail_str", "fix_str"])
+def test_carriage_return_is_an_error(field):
+    strings = {
+        "pass_str": "SELECT 1\n",
+        "fail_str": "SELECT 1\n",
+        field: "SELECT 1\r\n",
+    }
+    case = rules.RuleCase(id="rules/x/y", rule="LT01", **strings)
+    adapter = FakeAdapter()
+    result = rules.run(adapter, case, SQLFLUFF_ROOT)
+    assert result.status == ERROR
+    assert result.reason == rules.CARRIAGE_RETURN_REASON
+    assert adapter.calls == []
+
+
 def test_run_with_empty_strings_checks_nothing():
     # sqlfluff tests the strings for truth, so an empty string is no string.
     case = rules.RuleCase(id="rules/x/y", rule="LT01", pass_str="", fail_str="")
@@ -339,6 +464,23 @@ def test_wrong_fix_str_gives_fix_mismatch():
     assert right.status == PASS, right.reason
     skip = rules.run(adapter, cases["rules/LT01_harness/test_skip"], SQLFLUFF_ROOT)
     assert skip.status == SKIP
+
+
+UNFILTERED = {
+    c.id: c
+    for name in ("LT01_unfiltered.yml", "AL04_unfiltered.yml")
+    for c in rules.load_file(FIXTURES / name)
+}
+
+
+@needs_sqlfluff
+@pytest.mark.parametrize("case_id", sorted(UNFILTERED))
+def test_ignore_and_noqa_do_not_hide_violations(case_id):
+    # The key prefix is the result of the sqlfluff test for the case
+    # (scripts/sqlfluff-rule-oracle).
+    want = PASS if case_id.split("/")[-1].startswith("expect_pass_") else FAIL
+    result = rules.run(SqlfluffAdapter(), UNFILTERED[case_id], SQLFLUFF_ROOT)
+    assert result.status == want, result.reason
 
 
 @needs_sqlfluff

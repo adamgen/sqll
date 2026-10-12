@@ -180,3 +180,19 @@ def test_summary_counts_skipped_cases():
     results = [_r("a", PASS), _r("b", FAIL), _r("c", ERROR), _r("d", SKIP)]
     summary = report.summarize(results)["dialects"]["t"]
     assert summary == {"total": 4, "passed": 1, "failed": 2, "skipped": 1}
+
+
+def test_summary_check_order_does_not_depend_on_case_order():
+    a = CaseResult("a", "rules", "t", PASS, checks={"pass_str": True})
+    b = CaseResult("b", "rules", "t", PASS, checks={"fail_str": True, "fix": True})
+    for results in ([a, b], [b, a]):
+        summary = report.summarize(results)["rules"]["t"]
+        assert list(summary) == [
+            "total",
+            "passed",
+            "failed",
+            "skipped",
+            "fail_str",
+            "fix",
+            "pass_str",
+        ]

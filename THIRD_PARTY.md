@@ -37,3 +37,7 @@ repository. We do not distribute the tools in another way.
 | sqruff Python templaters | 0.41.0 | PyPI `sqruff[jinja]` (only its Python modules are used) | Apache-2.0 |
 
 The Python dependencies of each tool are in `tools/<tool>/uv.lock`.
+
+`scripts/sqlfluff-rule-oracle` runs the pinned sqlfluff with pytest 9.1.1
+(PyPI `pytest`, MIT), pinned in `tools/sqlfluff-oracle/uv.lock`. The harness
+does not use it.

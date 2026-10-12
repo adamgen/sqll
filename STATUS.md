@@ -26,10 +26,10 @@ sqlfluff 4.4.0, `sqlfluff[rs]` 4.4.0 with sqlfluffrs 4.4.0, sqruff 0.41.0
 | Suite | Tool | Total | Passed | Skipped | Checks |
 |---|---|---|---|---|---|
 | dialects | sqlfluff 4.4.0 | 2306 | 2306 | 0 | exact 2306, no_unparsable 2306 |
-| rules | sqlfluff 4.4.0 | 2527 | 2527 | 0 | pass_str 1332, fail_str 1193, fix 1193, after_fix 851 |
+| rules | sqlfluff 4.4.0 | 2527 | 2527 | 0 | after_fix 851, fail_str 1193, fix 1193, pass_str 1332 |
 
-The sqlfluff pytest of `test/rules/yaml_test_cases_test.py` passes the same
-2527 rule cases.
+The sqlfluff rule test passes the same 2527 rule cases
+(`scripts/sqlfluff-rule-oracle`: 0 differences; CI checks this).
 
 ## Known failures
 

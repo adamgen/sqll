@@ -1,0 +1,104 @@
+#!/usr/bin/env python3
+"""Run the sqlfluff rule test on rule case files, and compare with a report.
+
+This is the reference for the "rules" suite. It calls rules__test_helper of
+sqlfluff through Python, as test/rules/yaml_test_cases_test.py does. The
+harness must never do this; only this check does.
+
+Run it with the pinned sqlfluff and pytest (tools/sqlfluff-oracle):
+
+  UV_PROJECT_ENVIRONMENT=/tmp/sqll-oracle uv run --frozen \\
+      --project tools/sqlfluff-oracle scripts/sqlfluff-rule-oracle \\
+      [--cases GLOB] [--report out/report.json] [--out out/oracle.jsonl]
+
+It writes one JSON line for each case to --out (default: stdout): {"id",
+"status", "reason"}. With --report, it compares the status of each case with
+the "rules" results of --tool in that report, and prints the totals and each
+difference. The exit code is 1 if there is a difference or a case is only in
+one of the two.
+"""
+
+import argparse
+import contextlib
+import io
+import json
+import sys
+from collections import Counter
+from glob import glob
+from pathlib import Path
+
+import pytest
+from sqlfluff.utils.testing.rules import load_test_cases, rules__test_helper
+
+ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_CASES = "third_party/sqlfluff/test/fixtures/rules/std_rule_cases/*.yml"
+
+
+def run_cases(pattern: str) -> dict[str, tuple[str, str]]:
+    """Return {harness case id: (status, reason)}."""
+    results = {}
+    for path in sorted(glob(pattern)):
+        ids, cases = load_test_cases(path)
+        for test_id, case in zip(ids, cases):
+            # load_test_cases gives "<rule with _ for ,>_<key>".
+            key = test_id[len(case.rule.replace(",", "_")) + 1 :]
+            case_id = f"rules/{Path(path).stem}/{key}"
+            try:
+                # The helper prints debug text for pytest. Do not show it.
+                with contextlib.redirect_stdout(io.StringIO()):
+                    rules__test_helper(case)
+                results[case_id] = ("pass", "")
+            except pytest.skip.Exception as e:
+                results[case_id] = ("skip", str(e))
+            except (pytest.fail.Exception, Exception) as e:
+                lines = str(e).splitlines()
+                results[case_id] = (
+                    "fail",
+                    f"{type(e).__name__}: {lines[0] if lines else ''}",
+                )
+    return results
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument("--cases", default=str(ROOT / DEFAULT_CASES))
+    parser.add_argument("--report", type=Path)
+    parser.add_argument("--tool", default="sqlfluff")
+    parser.add_argument("--out", type=Path)
+    args = parser.parse_args()
+
+    oracle = run_cases(args.cases)
+    lines = [
+        json.dumps({"id": case_id, "status": status, "reason": reason}) + "\n"
+        for case_id, (status, reason) in oracle.items()
+    ]
+    if args.out:
+        args.out.parent.mkdir(parents=True, exist_ok=True)
+        args.out.write_text("".join(lines), encoding="utf8")
+    else:
+        sys.stdout.writelines(lines)
+    if args.report is None:
+        return 0
+
+    report = json.loads(args.report.read_text(encoding="utf8"))
+    harness = {
+        c["id"]: c["status"]
+        for c in report["cases"]
+        if c["suite"] == "rules" and c["tool"] == args.tool
+    }
+    print(f"oracle cases: {len(oracle)}, harness cases: {len(harness)}")
+    print(f"oracle: {dict(Counter(s for s, _ in oracle.values()))}")
+    print(f"harness: {dict(Counter(harness.values()))}")
+    only_oracle = sorted(set(oracle) - set(harness))
+    only_harness = sorted(set(harness) - set(oracle))
+    differ = sorted(i for i in set(oracle) & set(harness) if oracle[i][0] != harness[i])
+    print(f"only in oracle: {len(only_oracle)} {only_oracle[:10]}")
+    print(f"only in harness: {len(only_harness)} {only_harness[:10]}")
+    print(f"different status: {len(differ)}")
+    for i in differ:
+        print(f"  {i}: oracle {oracle[i][0]}, harness {harness[i]}")
+    return 1 if only_oracle or only_harness or differ else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

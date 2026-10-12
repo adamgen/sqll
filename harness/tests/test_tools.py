@@ -31,6 +31,15 @@ def test_sqlfluff_and_sqlfluff_rs_have_the_same_dependencies():
     assert plain == rs
 
 
+def test_oracle_has_the_same_sqlfluff_packages():
+    # scripts/sqlfluff-rule-oracle must run the sqlfluff of the harness.
+    plain, oracle = _lock("sqlfluff"), _lock("sqlfluff-oracle")
+    plain.pop("sqll-tool-sqlfluff")
+    oracle.pop("sqll-sqlfluff-oracle")
+    assert {k: oracle.get(k) for k in plain} == plain
+    assert oracle["pytest"] == "9.1.1"
+
+
 def test_install_script_reads_the_same_sqruff_version():
     script = TOOL_SPECS_DIR / "sqruff" / "install.sh"
     out = subprocess.run(

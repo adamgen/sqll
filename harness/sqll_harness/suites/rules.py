@@ -19,7 +19,7 @@ import yaml
 
 from ..adapters import Adapter
 from ..adapters.base import LintResult
-from ..cases import FAIL, PASS, SKIP, CaseResult
+from ..cases import ERROR, FAIL, PASS, SKIP, CaseResult
 
 NAME = "rules"
 FIXTURE_DIR = Path("test") / "fixtures" / "rules" / "std_rule_cases"
@@ -46,6 +46,10 @@ PARSE_STAGE_CODES = frozenset({"TMP", "LXR", "PRS"})
 FAIL_STR_ERROR_CODES = frozenset({"TMP", "PRS"})
 # The codes of the violations that are not lint violations (SQLLintError).
 NON_LINT_CODES = frozenset({"TMP", "LXR", "PRS", "NOQA"})
+CARRIAGE_RETURN_REASON = (
+    "a SQL string has a carriage return; the tool reads files with universal "
+    "newlines, so the harness cannot give it the same string"
+)
 
 
 @dataclass(frozen=True)
@@ -110,21 +114,69 @@ def default_dialect(configs: dict[str, Any] | None) -> str | None:
     return None
 
 
-def pass_problems(violations: list[dict], codes: list[str]) -> list[str]:
-    """Return why a pass_str fails (assert_rule_pass_in_sql)."""
+@dataclass
+class Found:
+    """The violations of one SQL file, as the sqlfluff test sees them.
+
+    filtered: what get_violations() gives, but with warnings. "lint -f json"
+    with the case config gives this list.
+    raw: all violations (LintedFile.violations), with no "ignore" or noqa
+    filter.
+    parse_stage: the TMP, LXR, and PRS violations of templating, lexing,
+    and parsing, with no filter (ParsedString.violations).
+    noqa_errors: the PRS violations in raw for a bad noqa comment.
+    """
+
+    filtered: list[dict]
+    raw: list[dict]
+    parse_stage: list[dict]
+    noqa_errors: list[dict] = field(default_factory=list)
+
+    @classmethod
+    def from_one(cls, violations: list[dict]) -> "Found":
+        """Use when no filter applies: no core "ignore" and no noqa comment."""
+        stage = [v for v in violations if v.get("code") in PARSE_STAGE_CODES]
+        return cls(violations, violations, stage)
+
+
+def compose(filtered: list[dict], unignored: list[dict], no_noqa: list[dict]) -> Found:
+    """Make Found from 3 lint outputs of one file.
+
+    filtered: lint with the case config.
+    unignored: lint with no core "ignore". The lint errors are those of the
+    test: a noqa comment for a rule removes its lint errors before any list.
+    no_noqa: lint with no core "ignore" and with disable_noqa. The noqa
+    comments do not remove TMP, LXR, or PRS violations, and give no PRS for a
+    bad noqa comment.
+    """
+    stage = [v for v in no_noqa if v.get("code") in PARSE_STAGE_CODES]
+    lint = [v for v in unignored if v.get("code") not in NON_LINT_CODES]
+    noqa_errors = [v for v in unignored if v.get("code") == "PRS"]
+    for v in stage:
+        if v in noqa_errors:
+            noqa_errors.remove(v)
+    return Found(filtered, stage + noqa_errors + lint, stage, noqa_errors)
+
+
+def pass_problems(found: Found, codes: list[str]) -> list[str]:
+    """Return why a pass_str fails (assert_rule_pass_in_sql).
+
+    The test fails on each violation of parse_rendered, and on each lint
+    error of the rules in the full list. Thus "ignore" and noqa do not apply.
+    """
     problems = []
-    stage = [v for v in violations if v.get("code") in PARSE_STAGE_CODES]
+    stage = found.parse_stage
     if stage:
         problems.append(f"{stage[0]['code']}: {stage[0].get('description', '')}")
-    found = [v for v in violations if v.get("code") in codes]
-    if found:
-        lines = sorted({v.get("start_line_no") for v in found})
-        problems.append(f"{len(found)} violations of {','.join(codes)} (lines {lines})")
+    hits = [v for v in found.raw if v.get("code") in codes]
+    if hits:
+        lines = sorted({v.get("start_line_no") for v in hits})
+        problems.append(f"{len(hits)} violations of {','.join(codes)} (lines {lines})")
     return problems
 
 
 def fail_problems(
-    violations: list[dict],
+    found: Found,
     codes: list[str],
     line_numbers: list[int],
     expected: list[dict] | None,
@@ -133,10 +185,11 @@ def fail_problems(
     """Return why a fail_str fails (assert_rule_fail_in_sql).
 
     expected is the "violations" (or "violations_after_fix") list of the
-    case. The test compares it with all violations of the file.
+    case. The test compares it with all violations of the file, with no
+    filter. The other checks use get_violations(), which applies the
+    filters and removes warnings.
     """
-    # The test uses get_violations(), which removes warnings.
-    shown = [v for v in violations if not v.get("warning")]
+    shown = [v for v in found.filtered if not v.get("warning")]
     problems = []
     crashes = [
         v
@@ -155,39 +208,73 @@ def fail_problems(
         actual = [v.get("start_line_no") for v in lint]
         if actual != line_numbers:
             problems.append(f"line numbers {actual}, expected {line_numbers}")
-    if expected and not violations_match(violations, expected, rule):
+    if expected and not violations_match(found.raw, expected, rule, found.noqa_errors):
         problems.append("violations differ")
     return problems
 
 
-def _position(v: dict) -> tuple:
-    return (v.get("start_line_no", 0), v.get("start_line_pos", 0))
-
-
-def violations_match(actual: list[dict], expected: list[dict], rule: str) -> bool:
+def violations_match(
+    actual: list[dict],
+    expected: list[dict],
+    rule: str,
+    noqa_errors: list[dict] | None = None,
+) -> bool:
     """Compare violations as assert_violations_before_fix does.
 
     The test compares the list of all violations, in the order of sqlfluff:
-    sorted by line and position. "lint -f json" sorts again by line,
-    position, and code. Thus the expected list must be sorted by line and
-    position, and equal to the tool output after the same second sort. As
-    in prep_violations, a violation with no code gets the rule of the case.
+    a stable sort by line and position. A PRS for a bad noqa comment has
+    position 0 in that sort. "lint -f json" sorts by line, position, and
+    code. Thus the expected list must be in the order of sqlfluff, and equal
+    to the tool output after the same second sort. As in prep_violations, a
+    violation with no code gets the rule of the case.
     """
+    noqa_errors = noqa_errors or []
+
+    def position(v: dict) -> tuple:
+        line, pos = v.get("start_line_no", 0), v.get("start_line_pos", 0)
+        return (line, 0) if v in noqa_errors else (line, pos)
+
+    def order(v: dict) -> tuple:
+        return (*position(v), str(v["code"]))
+
     prepared = [v if "code" in v else {**v, "code": rule} for v in expected]
-    if prepared != sorted(prepared, key=_position):
+    if prepared != sorted(prepared, key=position):
         return False
-    resorted = sorted(prepared, key=lambda v: (*_position(v), str(v["code"])))
-    return actual == resorted
+    return sorted(actual, key=order) == sorted(prepared, key=order)
 
 
-def _lint_problems(lint: LintResult) -> list[str]:
-    return [f"lint: {e}" for e in lint.errors]
+def config_without_ignore(configs: dict[str, Any] | None) -> dict[str, Any] | None:
+    """Return the config with no core "ignore", or None if it has none."""
+    core = configs.get("core") if configs else None
+    if not isinstance(core, dict) or "ignore" not in core:
+        return None
+    return {**configs, "core": {k: v for k, v in core.items() if k != "ignore"}}
+
+
+def config_without_noqa(configs: dict[str, Any] | None) -> dict[str, Any]:
+    """Return the config with no core "ignore" and with disable_noqa."""
+    core = configs.get("core") if configs else None
+    core = dict(core) if isinstance(core, dict) else {}
+    core.pop("ignore", None)
+    core.pop("disable_noqa_except", None)
+    core["disable_noqa"] = True
+    return {**(configs or {}), "core": core}
+
+
+def _lint_problems(lints: list[LintResult]) -> list[str]:
+    return [f"lint: {e}" for lint in lints for e in lint.errors]
 
 
 def run(adapter: Adapter, case: RuleCase, sqlfluff_root: Path) -> CaseResult:
     """Run one case as rules__test_helper in sqlfluff does."""
     if case.skip:
         return CaseResult(case.id, NAME, adapter.name, SKIP, reason=str(case.skip))
+    if any("\r" in s for s in (case.pass_str, case.fail_str, case.fix_str) if s):
+        # sqlfluff reads a file with universal newlines: "\r" becomes "\n".
+        # The test gives the string, so no file can give the same input.
+        return CaseResult(
+            case.id, NAME, adapter.name, ERROR, reason=CARRIAGE_RETURN_REASON
+        )
     codes = rule_codes(case.rule)
     dialect = default_dialect(case.configs)
     checks: dict[str, bool] = {}
@@ -208,32 +295,33 @@ def run(adapter: Adapter, case: RuleCase, sqlfluff_root: Path) -> CaseResult:
         paths = {k: work / f"{k}.sql" for k, text in sql.items() if text}
         for k, path in paths.items():
             path.write_bytes(sql[k].encode("utf8"))
-        lint = None
+        lints: list[LintResult] = []
         if paths:
-            lint = adapter.lint(
-                list(paths.values()), codes, dialect, case.configs, work
-            )
+            lints = _lint_all(adapter, list(paths.values()), codes, dialect, case, work)
 
-        def violations(k: str) -> list[dict] | None:
-            if lint is None or lint.violations is None or lint.errors:
+        def found(k: str) -> Found | None:
+            if not lints or any(r.violations is None or r.errors for r in lints):
                 return None
-            return lint.violations[paths[k]]
+            if len(lints) == 1:
+                return Found.from_one(lints[0].violations[paths[k]])
+            filtered, unignored, no_noqa = (r.violations[paths[k]] for r in lints)
+            return compose(filtered, unignored, no_noqa)
 
         if case.pass_str:
-            found = violations("pass")
+            got = found("pass")
             check(
                 "pass_str",
-                _lint_problems(lint) if found is None else pass_problems(found, codes),
+                _lint_problems(lints) if got is None else pass_problems(got, codes),
             )
 
         if case.fail_str:
-            found = violations("fail")
+            got = found("fail")
             check(
                 "fail_str",
-                _lint_problems(lint)
-                if found is None
+                _lint_problems(lints)
+                if got is None
                 else fail_problems(
-                    found, codes, case.line_numbers, case.violations, case.rule
+                    got, codes, case.line_numbers, case.violations, case.rule
                 ),
             )
             fix_path = work / "fix.sql"
@@ -248,19 +336,19 @@ def run(adapter: Adapter, case: RuleCase, sqlfluff_root: Path) -> CaseResult:
                     reasons.append("fix mismatch")
 
             if case.fix_str:
-                found = violations("fixed")
-                if found is None:
-                    problems = _lint_problems(lint)
+                got = found("fixed")
+                if got is None:
+                    problems = _lint_problems(lints)
                 elif case.violations_after_fix:
                     problems = fail_problems(
-                        found,
+                        got,
                         codes,
                         case.line_numbers,
                         case.violations_after_fix,
                         case.rule,
                     )
                 else:
-                    problems = pass_problems(found, codes)
+                    problems = pass_problems(got, codes)
                 check("after_fix", problems)
 
     return CaseResult(
@@ -271,3 +359,34 @@ def run(adapter: Adapter, case: RuleCase, sqlfluff_root: Path) -> CaseResult:
         checks=checks,
         reason="; ".join(reasons),
     )
+
+
+def _lint_all(
+    adapter: Adapter,
+    paths: list[Path],
+    codes: list[str],
+    dialect: str | None,
+    case: RuleCase,
+    work: Path,
+) -> list[LintResult]:
+    """Lint the files of a case. Return 1 result, or 3 if a filter applies.
+
+    "lint -f json" applies the core "ignore" config and the noqa comments.
+    The test uses lists with no filter for some checks. Thus if the config
+    has "ignore" or a SQL string has "noqa", lint again with no "ignore",
+    then also with disable_noqa. See compose().
+    """
+    filtered = adapter.lint(paths, codes, dialect, case.configs, work)
+    unignored_config = config_without_ignore(case.configs)
+    has_noqa = any("noqa" in p.read_text(encoding="utf8") for p in paths)
+    if unignored_config is None and not has_noqa:
+        return [filtered]
+    unignored = filtered
+    if unignored_config is not None:
+        unignored = adapter.lint(paths, codes, dialect, unignored_config, work)
+    no_noqa = unignored
+    if has_noqa:
+        no_noqa = adapter.lint(
+            paths, codes, dialect, config_without_noqa(case.configs), work
+        )
+    return [filtered, unignored, no_noqa]

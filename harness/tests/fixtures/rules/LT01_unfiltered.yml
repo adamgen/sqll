@@ -1,0 +1,82 @@
+# Harness test cases. They are not sqlfluff fixtures.
+# The sqlfluff test uses violation lists with no "ignore" or noqa filter for
+# some checks. "lint -f json" applies these filters. The key prefix gives the
+# result of the sqlfluff test (scripts/sqlfluff-rule-oracle).
+rule: LT01
+
+expect_fail_noqa_prs_pass_str:
+  pass_str: "SELECT a FROM t WHERE ( -- noqa: PRS\n"
+
+expect_fail_ignore_parsing_pass_str:
+  pass_str: "SELECT a FROM t WHERE (\n"
+  configs:
+    core:
+      ignore: parsing
+
+expect_fail_ignore_linting_pass_str:
+  pass_str: "SELECT a  +  b FROM t\n"
+  configs:
+    core:
+      ignore: linting
+
+expect_fail_ignore_parsing_violations:
+  fail_str: "SELECT a  +  b FROM t;\nfoo bar baz;\n"
+  fix_str: "SELECT a + b FROM t;\nfoo bar baz;\n"
+  configs:
+    core:
+      ignore: parsing
+      fix_even_unparsable: true
+  violations:
+    - start_line_no: 1
+      start_line_pos: 9
+      code: LT01
+      description: Expected only single space before binary operator '+'. Found '  '.
+      name: layout.spacing
+      warning: false
+      fixes:
+        - type: replace
+          edit: " "
+          start_line_no: 1
+          start_line_pos: 9
+          start_file_pos: 8
+          end_line_no: 1
+          end_line_pos: 11
+          end_file_pos: 10
+      start_file_pos: 8
+      end_line_no: 1
+      end_line_pos: 11
+      end_file_pos: 10
+    - start_line_no: 1
+      start_line_pos: 12
+      code: LT01
+      description: Expected only single space before naked identifier. Found '  '.
+      name: layout.spacing
+      warning: false
+      fixes:
+        - type: replace
+          edit: " "
+          start_line_no: 1
+          start_line_pos: 12
+          start_file_pos: 11
+          end_line_no: 1
+          end_line_pos: 14
+          end_file_pos: 13
+      start_file_pos: 11
+      end_line_no: 1
+      end_line_pos: 14
+      end_file_pos: 13
+
+# A noqa comment for the rule removes its lint errors before any list.
+expect_pass_rule_noqa:
+  pass_str: "SELECT a  +  b FROM t -- noqa: LT01\n"
+
+# A bad noqa comment gives a PRS in the lint result, but not in the parse
+# result. The pass_str check uses only the parse result for PRS.
+expect_pass_bad_noqa_pass_str:
+  pass_str: "SELECT a + b FROM t -- noqa LT01\n"
+
+# The fail_str check uses the lint result, so the PRS of a bad noqa comment
+# makes it fail.
+expect_fail_bad_noqa_fail_str:
+  fail_str: "SELECT a  +  b FROM t -- noqa LT01\n"
+  fix_str: "SELECT a + b FROM t -- noqa LT01\n"
