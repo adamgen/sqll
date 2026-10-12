@@ -2,9 +2,9 @@ import json
 
 import pytest
 
-from sqll_harness import cli, known_failures
+from sqll_harness import cli, known_failures, report
 from sqll_harness.adapters.sqlfluff import SqlfluffAdapter
-from sqll_harness.cases import FAIL, PASS, CaseResult
+from sqll_harness.cases import ERROR, FAIL, PASS, SKIP, CaseResult
 
 
 def _r(case_id: str, status: str) -> CaseResult:
@@ -162,3 +162,21 @@ def test_shard_reports_only_its_own_listed_ids():
     for k in (1, 2, 3):
         out = known_failures.evaluate([], known, {"dialects"}, shard=(k, 3))
         assert out.not_found == [i for i in ids if shard.index(i, 3) == k]
+
+
+def test_skipped_case_is_not_a_failure():
+    out = known_failures.evaluate([_r("dialects/a/x", SKIP)], {}, {"dialects"})
+    assert out.ok
+
+
+def test_listed_skipped_case_is_reported():
+    out = known_failures.evaluate(
+        [_r("dialects/a/x", SKIP)], {"dialects/a/x": ""}, {"dialects"}
+    )
+    assert out.unexpected_passes == ["dialects/a/x"]
+
+
+def test_summary_counts_skipped_cases():
+    results = [_r("a", PASS), _r("b", FAIL), _r("c", ERROR), _r("d", SKIP)]
+    summary = report.summarize(results)["dialects"]["t"]
+    assert summary == {"total": 4, "passed": 1, "failed": 2, "skipped": 1}

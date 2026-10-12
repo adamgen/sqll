@@ -102,6 +102,12 @@ jobs:
           SQLL_REQUIRE_TOOLS: "1"
         run: uv run --frozen --project harness pytest -q harness/tests
 
+      - name: Check that the sqlfluff submodule is clean
+        run: |
+          changes=$(git -C third_party/sqlfluff status --porcelain --ignored)
+          echo "$changes"
+          test -z "$changes"
+
   test:
     needs: image
     name: test (${{ matrix.name }})
@@ -131,6 +137,12 @@ jobs:
           uv run --frozen --project harness sqll-harness run
           --suite ${{ matrix.suite }} --tool ${{ matrix.tool }}
           --shard ${{ matrix.shard }} --out out/shards/${{ matrix.name }}.json
+
+      - name: Check that the sqlfluff submodule is clean
+        run: |
+          changes=$(git -C third_party/sqlfluff status --porcelain --ignored)
+          echo "$changes"
+          test -z "$changes"
 
       - if: always()
         uses: actions/upload-artifact@v7

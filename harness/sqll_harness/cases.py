@@ -5,6 +5,7 @@ from dataclasses import dataclass, field
 PASS = "pass"
 FAIL = "fail"
 ERROR = "error"
+SKIP = "skip"
 
 
 @dataclass
@@ -12,6 +13,7 @@ class CaseResult:
     """status is "pass" only if all checks are true.
 
     "error" means that the harness or the tool did not complete the case.
+    "skip" means that the fixture tells the test to skip the case.
     """
 
     id: str
@@ -25,3 +27,7 @@ class CaseResult:
     @property
     def passed(self) -> bool:
         return self.status == PASS
+
+    @property
+    def skipped(self) -> bool:
+        return self.status == SKIP

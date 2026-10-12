@@ -9,14 +9,17 @@ from .known_failures import Outcome
 
 
 def summarize(results: list[CaseResult]) -> dict[str, dict[str, dict[str, int]]]:
-    """Return {suite: {tool: {total, passed, failed, <check>...}}}."""
+    """Return {suite: {tool: {total, passed, failed, skipped, <check>...}}}.
+
+    failed counts the cases with status "fail" or "error".
+    """
     summary: dict[str, dict[str, dict[str, int]]] = {}
     for r in results:
         s = summary.setdefault(r.suite, {}).setdefault(
-            r.tool, {"total": 0, "passed": 0, "failed": 0}
+            r.tool, {"total": 0, "passed": 0, "failed": 0, "skipped": 0}
         )
         s["total"] += 1
-        s["passed" if r.passed else "failed"] += 1
+        s["passed" if r.passed else "skipped" if r.skipped else "failed"] += 1
         for name, ok in r.checks.items():
             s[name] = s.get(name, 0) + int(ok)
     return summary
@@ -70,14 +73,8 @@ def summary_lines(report: dict) -> list[str]:
     lines = []
     for suite, tools in report["summary"].items():
         for tool, s in tools.items():
-            extra = " ".join(
-                f"{k}={v}"
-                for k, v in s.items()
-                if k not in {"total", "passed", "failed"}
-            )
+            # total, passed, failed, and skipped come first, then the checks.
+            counts = " ".join(f"{k}={v}" for k, v in s.items())
             pct = 100.0 * s["passed"] / s["total"] if s["total"] else 0.0
-            lines.append(
-                f"{suite}/{tool}: total={s['total']} passed={s['passed']} "
-                f"failed={s['failed']} {extra} ({pct:.2f}% pass)".rstrip()
-            )
+            lines.append(f"{suite}/{tool}: {counts} ({pct:.2f}% pass)")
     return lines

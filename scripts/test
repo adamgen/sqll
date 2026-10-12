@@ -22,5 +22,20 @@ uv run --quiet --frozen --project harness sqll-harness tools > out/tools.json ||
     cat out/tools.json
     exit 1
 }
+
+# The tests and the suites must not change the sqlfluff submodule.
+submodule_clean() {
+    changes=$(git -C third_party/sqlfluff status --porcelain --ignored)
+    if [ -n "$changes" ]; then
+        echo "error: third_party/sqlfluff is not clean $1:" >&2
+        echo "$changes" >&2
+        exit 1
+    fi
+}
+submodule_clean "before the tests"
+
 SQLL_REQUIRE_TOOLS=1 uv run --quiet --frozen --project harness pytest -q harness/tests
-uv run --quiet --frozen --project harness sqll-harness run "$@"
+status=0
+uv run --quiet --frozen --project harness sqll-harness run "$@" || status=$?
+submodule_clean "after the run"
+exit "$status"
