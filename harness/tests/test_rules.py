@@ -277,11 +277,26 @@ def test_violations_match_adds_missing_code():
 def test_violations_match_order():
     a, b = _v("AL01", 1, 1), _v("LT01", 1, 1)
     c = _v("LT01", 2, 1)
-    # The tool output is sorted by line, position, and code.
-    assert rules.violations_match([a, b, c], [b, a, c], "x")
+    # At one position the test keeps the rule order, which is code order.
     assert rules.violations_match([a, b, c], [a, b, c], "x")
+    assert not rules.violations_match([a, b, c], [b, a, c], "x")
     # The expected list must be in line and position order, as in sqlfluff.
     assert not rules.violations_match([a, b, c], [c, a, b], "x")
+
+
+def test_sqlfluff_order_puts_parse_stage_first():
+    # "lint -f json" sorts by code. The test puts TMP, LXR, and PRS before
+    # the lint errors at the same position.
+    al01, lt01 = _v("AL01", 1, 5), _v("LT01", 1, 5)
+    lxr, prs, tmp = _v("LXR", 1, 5), _v("PRS", 1, 5), _v("TMP", 1, 5)
+    later = _v("AL01", 1, 6)
+    tool = [al01, lxr, lt01, prs, tmp, later]
+    assert rules.sqlfluff_order(tool, []) == [tmp, lxr, prs, al01, lt01, later]
+    assert rules.violations_match(tool, [tmp, lxr, prs, al01, lt01, later], "x")
+    assert not rules.violations_match(tool, [al01, lxr, lt01, prs, tmp, later], "x")
+    # Same code, same position: the order of the tool stays.
+    first, second = _v("LT01", 2, 1, description="1"), _v("LT01", 2, 1, description="2")
+    assert rules.sqlfluff_order([first, second], []) == [first, second]
 
 
 def test_violations_match_bad_noqa_order():
@@ -291,6 +306,56 @@ def test_violations_match_bad_noqa_order():
     assert rules.violations_match([lt01, noqa], [noqa, lt01], "x", [noqa])
     assert not rules.violations_match([lt01, noqa], [lt01, noqa], "x", [noqa])
     assert rules.violations_match([lt01, noqa], [lt01, noqa], "x")
+
+
+@pytest.mark.parametrize(
+    "sql, found",
+    [
+        ("-- sqlfluff:ignore:parsing\nSELECT 1\n", True),
+        ("SELECT 1\n--sqlfluff:dialect:tsql\n", True),
+        ("-- sqlfluff\n", True),
+        ("SELECT 1 -- sqlfluff:ignore:parsing\n", False),
+        (" -- sqlfluff:ignore:parsing\n", False),
+        ("-- noqa\n", False),
+    ],
+)
+def test_has_inline_config(sql, found):
+    # The same test as FluffConfig.process_raw_file_for_config.
+    assert rules.has_inline_config(sql) is found
+
+
+def _fixes():
+    return [{"type": "replace", "edit": " "}]
+
+
+def test_fix_not_shown():
+    lt01 = _v("LT01", 1, 5, fixes=_fixes())
+    prs = _v("PRS", 2, 1)
+    tmp = _v("TMP", 2, 1)
+    # No TMP or PRS: the tool writes the file.
+    found = _one(lt01)
+    assert rules.fix_not_shown(found, [[lt01]], None) is None
+    # A hidden PRS and fixes: the tool does not write the file.
+    found = rules.Found(filtered=[lt01], raw=[lt01, prs], parse_stage=[prs])
+    why = rules.fix_not_shown(found, [[lt01], [lt01, prs]], None)
+    assert why.startswith("'sqlfluff fix' does not write a file with a PRS")
+    found = rules.Found(filtered=[lt01], raw=[tmp, lt01], parse_stage=[tmp])
+    assert "TMP" in rules.fix_not_shown(found, [[lt01], [tmp, lt01]], None)
+    # fix_even_unparsable makes the tool write the file.
+    even = {"core": {"fix_even_unparsable": True}}
+    found = rules.Found(filtered=[lt01], raw=[lt01, prs], parse_stage=[prs])
+    assert rules.fix_not_shown(found, [[lt01], [lt01, prs]], even) is None
+    # Not a bool: fail closed.
+    text = {"core": {"fix_even_unparsable": "True"}}
+    assert rules.fix_not_shown(found, [[lt01], [lt01, prs]], text)
+    # No fixes: the test does not change the SQL, as the tool.
+    plain = _v("LT01", 1, 5, fixes=[])
+    found = rules.Found(filtered=[plain], raw=[plain, prs], parse_stage=[prs])
+    assert rules.fix_not_shown(found, [[plain], [plain, prs]], None) is None
+    # Only hidden violations have fixes.
+    found = rules.Found(filtered=[plain], raw=[plain, lt01], parse_stage=[])
+    why = rules.fix_not_shown(found, [[plain], [plain, lt01]], None)
+    assert "only hidden violations have fixes" in why
 
 
 def test_fail_problems_compare_all_violations():
@@ -435,6 +500,41 @@ def test_carriage_return_is_an_error(field):
     assert adapter.calls == []
 
 
+def test_inline_config_is_an_error():
+    case = rules.RuleCase(
+        id="rules/x/y", rule="LT01", fail_str="SELECT 1\n", fix_str="--sqlfluff:x\n"
+    )
+    adapter = FakeAdapter()
+    result = rules.run(adapter, case, SQLFLUFF_ROOT)
+    assert result.status == ERROR
+    assert result.reason == rules.INLINE_CONFIG_REASON
+    assert adapter.calls == []
+
+
+def test_run_fix_not_shown_gives_error():
+    lt01 = _v("LT01", 1, 1, fixes=_fixes())
+    prs = _v("PRS", 2, 1)
+    ignore = {"core": {"ignore": "parsing"}}
+    case = rules.RuleCase(id="rules/x/y", rule="LT01", fail_str="f", configs=ignore)
+
+    class Adapter(FakeAdapter):
+        def lint(self, sql_paths, rules_, dialect, config, workdir):
+            result = super().lint(sql_paths, rules_, dialect, config, workdir)
+            if config != ignore:
+                result.violations = {p: v + [prs] for p, v in result.violations.items()}
+            return result
+
+    result = rules.run(Adapter(lint={"fail.sql": [lt01]}), case, SQLFLUFF_ROOT)
+    assert result.status == ERROR
+    assert result.checks == {"fail_str": True}
+    assert result.reason.startswith("fix: 'sqlfluff fix' does not write a file")
+    # A check that fails gives "fail": the test stops there.
+    case = dataclasses.replace(case, line_numbers=[3])
+    result = rules.run(Adapter(lint={"fail.sql": [lt01]}), case, SQLFLUFF_ROOT)
+    assert result.status == FAIL
+    assert result.checks == {"fail_str": False}
+
+
 def test_run_with_empty_strings_checks_nothing():
     # sqlfluff tests the strings for truth, so an empty string is no string.
     case = rules.RuleCase(id="rules/x/y", rule="LT01", pass_str="", fail_str="")
@@ -481,6 +581,27 @@ def test_ignore_and_noqa_do_not_hide_violations(case_id):
     want = PASS if case_id.split("/")[-1].startswith("expect_pass_") else FAIL
     result = rules.run(SqlfluffAdapter(), UNFILTERED[case_id], SQLFLUFF_ROOT)
     assert result.status == want, result.reason
+
+
+FAIL_CLOSED = {c.id: c for c in rules.load_file(FIXTURES / "LT01_fail_closed.yml")}
+
+
+@needs_sqlfluff
+@pytest.mark.parametrize("case_id", sorted(FAIL_CLOSED))
+def test_cases_the_cli_cannot_show_give_error(case_id):
+    # The sqlfluff test fails on each of these cases (key prefix
+    # expect_fail_). The harness must not give "pass".
+    assert case_id.split("/")[-1].startswith("expect_fail_")
+    result = rules.run(SqlfluffAdapter(), FAIL_CLOSED[case_id], SQLFLUFF_ROOT)
+    assert result.status == ERROR, (result.status, result.reason)
+    if "_directive_" in case_id:
+        assert result.reason == rules.INLINE_CONFIG_REASON
+    else:
+        assert result.checks == {"fail_str": True}
+        assert result.reason == (
+            "fix: 'sqlfluff fix' does not write a file with a PRS violation, "
+            "but the test applies the fixes"
+        )
 
 
 @needs_sqlfluff

@@ -1,0 +1,31 @@
+# Harness test cases. They are not sqlfluff fixtures.
+# The sqlfluff test fails on each case. The CLI cannot show this result, so
+# the harness must give status "error", not "pass". The key prefix gives the
+# result of the sqlfluff test (scripts/sqlfluff-rule-oracle).
+rule: LT01
+
+# An in-file config directive overrides the config file. Thus the harness
+# cannot get the violation lists with no "ignore" filter.
+expect_fail_directive_ignore_parsing_pass_str:
+  pass_str: "-- sqlfluff:ignore:parsing\nSELECT a FROM t WHERE (\n"
+
+expect_fail_directive_ignore_linting_pass_str:
+  pass_str: "-- sqlfluff:ignore:linting\nSELECT a  +  b FROM t\n"
+
+expect_fail_directive_ignore_parsing_fail_str:
+  fail_str: "-- sqlfluff:ignore:parsing\nSELECT a  +  b FROM t;\nfoo bar baz;\n"
+  fix_str: "-- sqlfluff:ignore:parsing\nSELECT a + b FROM t;\nfoo bar baz;\n"
+  configs:
+    core:
+      fix_even_unparsable: true
+
+# "sqlfluff fix" does not write a file with a TMP or PRS violation, also if
+# "ignore" or noqa hides it. The test applies the fixes.
+expect_fail_hidden_prs_no_fix_str:
+  fail_str: "SELECT a  +  b FROM t;\nfoo bar baz;\n"
+  configs:
+    core:
+      ignore: parsing
+
+expect_fail_noqa_prs_no_fix_str:
+  fail_str: "SELECT a  +  b FROM t;\nfoo bar baz; -- noqa: PRS\n"

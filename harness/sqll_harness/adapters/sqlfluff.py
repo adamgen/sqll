@@ -134,6 +134,9 @@ class SqlfluffAdapter(Adapter):
         config: dict[str, Any] | None,
         workdir: Path,
     ) -> FixResult:
+        # "sqlfluff fix" does not write a file with a TMP or PRS violation,
+        # also a hidden one, unless fix_even_unparsable is set. The rule suite
+        # finds this case (rules.fix_not_shown).
         self._check()
         cmd = [str(self.binary), "fix"]
         cmd += _rule_args(rules, dialect, config, workdir)

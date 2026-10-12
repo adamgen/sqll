@@ -7,7 +7,7 @@
 
 Each top-level key of a file, except "rule" and "configs", is one case. The
 checks are those of rules__test_helper in sqlfluff, through the lint and fix
-commands of a tool. See harness/README.md.
+commands of a tool. See harness/rules.md.
 """
 
 import tempfile
@@ -50,6 +50,19 @@ CARRIAGE_RETURN_REASON = (
     "a SQL string has a carriage return; the tool reads files with universal "
     "newlines, so the harness cannot give it the same string"
 )
+# FluffConfig.process_raw_file_for_config reads a line with one of these
+# prefixes as config.
+INLINE_CONFIG_PREFIXES = ("-- sqlfluff", "--sqlfluff")
+INLINE_CONFIG_REASON = (
+    "a SQL string has an in-file config line ('-- sqlfluff...'); it overrides "
+    "the config file, so the harness cannot get the violation lists with no "
+    "filter"
+)
+# The rank of each violation type in the list of the test before its sort by
+# line and position: templating, lexing, parsing, bad noqa, lint errors.
+_STAGE_RANK = {"TMP": 0, "LXR": 1, "PRS": 2}
+_NOQA_RANK = 3
+_LINT_RANK = 4
 
 
 @dataclass(frozen=True)
@@ -213,6 +226,28 @@ def fail_problems(
     return problems
 
 
+def sqlfluff_order(violations: list[dict], noqa_errors: list[dict]) -> list[dict]:
+    """Put violations from "lint -f json" in the order of LintedFile.violations.
+
+    lint_parsed makes the list in this order: TMP, then LXR and PRS of the
+    root variant, then the PRS of each bad noqa comment, then the lint errors
+    in rule code order. deduplicate_in_source_space then does a stable sort
+    by line and position. A bad noqa PRS has position 0 in that sort.
+    "lint -f json" sorts by line, position, and code, and keeps the order of
+    equal items. Thus a stable sort by line, position, and rank gives the
+    order of the test. The lint errors of other template variants are last
+    at their position in the test; this function cannot find them.
+    """
+
+    def key(v: dict) -> tuple:
+        line, pos = v.get("start_line_no", 0), v.get("start_line_pos", 0)
+        if v in noqa_errors:
+            return (line, 0, _NOQA_RANK)
+        return (line, pos, _STAGE_RANK.get(v.get("code"), _LINT_RANK))
+
+    return sorted(violations, key=key)
+
+
 def violations_match(
     actual: list[dict],
     expected: list[dict],
@@ -221,26 +256,47 @@ def violations_match(
 ) -> bool:
     """Compare violations as assert_violations_before_fix does.
 
-    The test compares the list of all violations, in the order of sqlfluff:
-    a stable sort by line and position. A PRS for a bad noqa comment has
-    position 0 in that sort. "lint -f json" sorts by line, position, and
-    code. Thus the expected list must be in the order of sqlfluff, and equal
-    to the tool output after the same second sort. As in prep_violations, a
-    violation with no code gets the rule of the case.
+    The test compares the list of all violations, in its order (see
+    sqlfluff_order). As in prep_violations, a violation with no code gets the
+    rule of the case.
     """
-    noqa_errors = noqa_errors or []
-
-    def position(v: dict) -> tuple:
-        line, pos = v.get("start_line_no", 0), v.get("start_line_pos", 0)
-        return (line, 0) if v in noqa_errors else (line, pos)
-
-    def order(v: dict) -> tuple:
-        return (*position(v), str(v["code"]))
-
     prepared = [v if "code" in v else {**v, "code": rule} for v in expected]
-    if prepared != sorted(prepared, key=position):
-        return False
-    return sorted(actual, key=order) == sorted(prepared, key=order)
+    return sqlfluff_order(actual, noqa_errors or []) == prepared
+
+
+def has_inline_config(sql: str) -> bool:
+    """Return True if a line of sql is an in-file config line for sqlfluff."""
+    return any(line.startswith(INLINE_CONFIG_PREFIXES) for line in sql.splitlines())
+
+
+def fix_not_shown(
+    found: Found, lists: list[list[dict]], configs: dict[str, Any] | None
+) -> str | None:
+    """Return why the fixed file can be different from the test, or None.
+
+    The test always applies the fixes (fix_string). "sqlfluff fix" writes the
+    file only if it has no TMP or PRS violation, with no filter, or if
+    fix_even_unparsable is set (Linter.lint_paths). It also writes the file
+    only if a violation in the filtered list has fixes (persist_tree). If it
+    does not write the file and a rule gave fixes, the result of the test is
+    not known. lists are all lint outputs of the file.
+    """
+    if not any(v.get("fixes") for violations in lists for v in violations):
+        return None
+    core = configs.get("core") if configs else None
+    even = isinstance(core, dict) and core.get("fix_even_unparsable") is True
+    blocking = [v for v in found.raw if v.get("code") in FAIL_STR_ERROR_CODES]
+    if blocking and not even:
+        return (
+            f"'sqlfluff fix' does not write a file with a {blocking[0]['code']} "
+            "violation, but the test applies the fixes"
+        )
+    if not any(v.get("fixes") for v in found.filtered):
+        return (
+            "'sqlfluff fix' does not write a file when only hidden violations "
+            "have fixes, but the test applies the fixes"
+        )
+    return None
 
 
 def config_without_ignore(configs: dict[str, Any] | None) -> dict[str, Any] | None:
@@ -275,10 +331,18 @@ def run(adapter: Adapter, case: RuleCase, sqlfluff_root: Path) -> CaseResult:
         return CaseResult(
             case.id, NAME, adapter.name, ERROR, reason=CARRIAGE_RETURN_REASON
         )
+    if any(
+        has_inline_config(s) for s in (case.pass_str, case.fail_str, case.fix_str) if s
+    ):
+        return CaseResult(
+            case.id, NAME, adapter.name, ERROR, reason=INLINE_CONFIG_REASON
+        )
     codes = rule_codes(case.rule)
     dialect = default_dialect(case.configs)
     checks: dict[str, bool] = {}
     reasons: list[str] = []
+    # Checks that the CLI cannot show. Their result is not known.
+    unknown: list[str] = []
 
     def check(name: str, problems: list[str]) -> None:
         checks[name] = not problems
@@ -299,13 +363,18 @@ def run(adapter: Adapter, case: RuleCase, sqlfluff_root: Path) -> CaseResult:
         if paths:
             lints = _lint_all(adapter, list(paths.values()), codes, dialect, case, work)
 
-        def found(k: str) -> Found | None:
+        def outputs(k: str) -> list[list[dict]] | None:
             if not lints or any(r.violations is None or r.errors for r in lints):
                 return None
-            if len(lints) == 1:
-                return Found.from_one(lints[0].violations[paths[k]])
-            filtered, unignored, no_noqa = (r.violations[paths[k]] for r in lints)
-            return compose(filtered, unignored, no_noqa)
+            return [r.violations[paths[k]] for r in lints]
+
+        def found(k: str) -> Found | None:
+            lists = outputs(k)
+            if lists is None:
+                return None
+            if len(lists) == 1:
+                return Found.from_one(lists[0])
+            return compose(*lists)
 
         if case.pass_str:
             got = found("pass")
@@ -315,21 +384,28 @@ def run(adapter: Adapter, case: RuleCase, sqlfluff_root: Path) -> CaseResult:
             )
 
         if case.fail_str:
-            got = found("fail")
+            failed = found("fail")
             check(
                 "fail_str",
                 _lint_problems(lints)
-                if got is None
+                if failed is None
                 else fail_problems(
-                    got, codes, case.line_numbers, case.violations, case.rule
+                    failed, codes, case.line_numbers, case.violations, case.rule
                 ),
             )
             fix_path = work / "fix.sql"
             fix_path.write_bytes(case.fail_str.encode("utf8"))
             fix = adapter.fix(fix_path, codes, dialect, case.configs, work)
             want = case.fix_str if case.fix_str else case.fail_str
+            not_shown = (
+                None
+                if failed is None
+                else fix_not_shown(failed, outputs("fail"), case.configs)
+            )
             if fix.fixed is None:
                 check("fix", [f"tool: {e}" for e in fix.errors])
+            elif not_shown:
+                unknown.append(f"fix: {not_shown}")
             else:
                 checks["fix"] = fix.fixed == want
                 if not checks["fix"]:
@@ -351,13 +427,21 @@ def run(adapter: Adapter, case: RuleCase, sqlfluff_root: Path) -> CaseResult:
                     problems = pass_problems(got, codes)
                 check("after_fix", problems)
 
+    # The test stops at the first check that fails. Thus a failed check gives
+    # "fail" also if the result of another check is not known.
+    if not all(checks.values()):
+        status = FAIL
+    elif unknown:
+        status = ERROR
+    else:
+        status = PASS
     return CaseResult(
         id=case.id,
         suite=NAME,
         tool=adapter.name,
-        status=PASS if all(checks.values()) else FAIL,
+        status=status,
         checks=checks,
-        reason="; ".join(reasons),
+        reason="; ".join(reasons + unknown),
     )
 
 
