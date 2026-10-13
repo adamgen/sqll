@@ -1,7 +1,4 @@
 #!/usr/bin/env python3
-# fail_on_parse_error_after_fix is a port of sqlfluff 4.4.0 code:
-# test/conftest.py. Copyright (c) 2018-2026 Alan Cruickshank. MIT License.
-# See THIRD_PARTY.md.
 """Run the sqlfluff rule test on rule case files, and compare with a report.
 
 This is the reference for the "rules" suite. It calls rules__test_helper of
@@ -31,40 +28,25 @@ import contextlib
 import io
 import json
 import sys
-from collections import Counter
 from glob import glob
 from pathlib import Path
 
 import pytest
-from sqlfluff.core import Linter
-from sqlfluff.core.parser.segments.base import BaseSegment
 from sqlfluff.utils.testing.rules import load_test_cases, rules__test_helper
+from sqlfluff_oracle import (
+    ROOT,
+    Results,
+    check_prefixes,
+    compare_with_report,
+    fail_on_parse_error_after_fix,
+    failure_reason,
+    write_results,
+)
 
-ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CASES = "third_party/sqlfluff/test/fixtures/rules/std_rule_cases/*.yml"
 
 
-def fail_on_parse_error_after_fix() -> None:
-    """Make 2 log functions raise ValueError, as sqlfluff test/conftest.py does.
-
-    The autouse fixture of the same name sets this for each sqlfluff test.
-    """
-
-    def raise_error_apply_fixes_check_issue(message, *args):
-        raise ValueError(message % args)
-
-    def raise_error_conflicting_fixes_same_anchor(message: str):
-        raise ValueError(message)
-
-    BaseSegment._log_apply_fixes_check_issue = staticmethod(
-        raise_error_apply_fixes_check_issue
-    )
-    Linter._report_conflicting_fixes_same_anchor = staticmethod(
-        raise_error_conflicting_fixes_same_anchor
-    )
-
-
-def run_cases(pattern: str) -> dict[str, tuple[str, str]]:
+def run_cases(pattern: str) -> Results:
     """Return {harness case id: (status, reason)}."""
     results = {}
     for path in sorted(glob(pattern)):
@@ -81,31 +63,8 @@ def run_cases(pattern: str) -> dict[str, tuple[str, str]]:
             except pytest.skip.Exception as e:
                 results[case_id] = ("skip", str(e))
             except (pytest.fail.Exception, Exception) as e:
-                lines = str(e).splitlines()
-                results[case_id] = (
-                    "fail",
-                    f"{type(e).__name__}: {lines[0] if lines else ''}",
-                )
+                results[case_id] = ("fail", failure_reason(e))
     return results
-
-
-PREFIXES = {"expect_pass_": "pass", "expect_fail_": "fail"}
-
-
-def check_prefixes(oracle: dict[str, tuple[str, str]]) -> int:
-    """Check the status of each case with a key prefix. Return the exit code."""
-    checked = 0
-    wrong = []
-    for case_id, (status, reason) in oracle.items():
-        key = case_id.rsplit("/", 1)[-1]
-        for prefix, want in PREFIXES.items():
-            if key.startswith(prefix):
-                checked += 1
-                if status != want:
-                    wrong.append(f"  {case_id}: {status}, expected {want} ({reason})")
-    print(f"cases with a key prefix: {checked}, different status: {len(wrong)}")
-    print("\n".join(wrong), end="\n" if wrong else "")
-    return 1 if wrong or not checked else 0
 
 
 def main() -> int:
@@ -119,37 +78,15 @@ def main() -> int:
 
     fail_on_parse_error_after_fix()
     oracle = run_cases(args.cases)
-    lines = [
-        json.dumps({"id": case_id, "status": status, "reason": reason}) + "\n"
-        for case_id, (status, reason) in oracle.items()
-    ]
     if args.out:
-        args.out.parent.mkdir(parents=True, exist_ok=True)
-        args.out.write_text("".join(lines), encoding="utf8")
+        write_results(oracle, args.out)
     elif not args.check_prefixes:
-        sys.stdout.writelines(lines)
+        for case_id, (status, reason) in oracle.items():
+            print(json.dumps({"id": case_id, "status": status, "reason": reason}))
     status = check_prefixes(oracle) if args.check_prefixes else 0
     if args.report is None:
         return status
-
-    report = json.loads(args.report.read_text(encoding="utf8"))
-    harness = {
-        c["id"]: c["status"]
-        for c in report["cases"]
-        if c["suite"] == "rules" and c["tool"] == args.tool
-    }
-    print(f"oracle cases: {len(oracle)}, harness cases: {len(harness)}")
-    print(f"oracle: {dict(Counter(s for s, _ in oracle.values()))}")
-    print(f"harness: {dict(Counter(harness.values()))}")
-    only_oracle = sorted(set(oracle) - set(harness))
-    only_harness = sorted(set(harness) - set(oracle))
-    differ = sorted(i for i in set(oracle) & set(harness) if oracle[i][0] != harness[i])
-    print(f"only in oracle: {len(only_oracle)} {only_oracle[:10]}")
-    print(f"only in harness: {len(only_harness)} {only_harness[:10]}")
-    print(f"different status: {len(differ)}")
-    for i in differ:
-        print(f"  {i}: oracle {oracle[i][0]}, harness {harness[i]}")
-    return 1 if status or only_oracle or only_harness or differ else 0
+    return compare_with_report(oracle, args.report, "rules", args.tool) or status
 
 
 if __name__ == "__main__":

@@ -1,0 +1,167 @@
+#!/usr/bin/env python3
+# discover is a port of sqlfluff 4.4.0 code: test/rules/std_fix_auto_test.py
+# (test_cases). Copyright (c) 2018-2026 Alan Cruickshank. MIT License.
+# See THIRD_PARTY.md.
+"""Run the sqlfluff autofix test on autofix cases, and compare with a report.
+
+This is the reference for the "autofix" suite. It calls auto_fix_test of
+test/rules/std_fix_auto_test.py in the sqlfluff submodule through Python, as
+test__std_fix_auto does. The harness must never do this; only this check
+does.
+
+Run it with the pinned sqlfluff and pytest that scripts/setup installs
+(tools/sqlfluff-oracle):
+
+  .tools/sqlfluff-oracle/bin/python scripts/sqlfluff-autofix-oracle \\
+      [--root DIR] [--report out/report.json] [--out out/autofix-oracle.jsonl]
+      [--check-prefixes]
+
+The current folder of the test is the sqlfluff root, because the test and
+some case configs use paths relative to it. --root is the folder of the
+cases (<root>/<dialect>/<case>/); the default is the folder of the pinned
+sqlfluff test. The case id is autofix/<dialect>/<case>.
+
+It writes one JSON line for each case to --out (default: stdout): {"id",
+"status", "reason"}. With --report, it compares the status of each case with
+the "autofix" results of --tool in that report, and prints the totals and
+each difference. The exit code is 1 if there is a difference or a case is
+only in one of the two.
+
+With --check-prefixes, a case folder name that starts with "expect_pass_" or
+"expect_fail_" must have that status. The harness test fixtures use these
+prefixes. The exit code is 1 if a status is different or no case has a
+prefix.
+"""
+
+import argparse
+import contextlib
+import importlib.util
+import io
+import json
+import logging
+import os
+import sys
+import tempfile
+from pathlib import Path
+
+import pytest
+from sqlfluff_oracle import (
+    SQLFLUFF_ROOT,
+    Results,
+    check_prefixes,
+    compare_with_report,
+    fail_on_parse_error_after_fix,
+    failure_reason,
+    write_results,
+)
+
+TEST_FILE = SQLFLUFF_ROOT / "test" / "rules" / "std_fix_auto_test.py"
+
+
+class CapLog:
+    """The part of the pytest caplog fixture that auto_fix_test uses."""
+
+    def __init__(self) -> None:
+        self._levels: dict[str, int] = {}
+
+    def set_level(self, level: int, logger: str | None = None) -> None:
+        log = logging.getLogger(logger)
+        self._levels.setdefault(logger or "", log.level)
+        log.setLevel(level)
+
+    def restore(self) -> None:
+        for name, level in self._levels.items():
+            logging.getLogger(name or None).setLevel(level)
+        self._levels.clear()
+
+
+def load_test_module():
+    """Import std_fix_auto_test.py from the submodule.
+
+    The current folder must be the sqlfluff root: the module finds its cases
+    with a relative path when it loads. Python must not write a bytecode
+    file in the submodule.
+    """
+    sys.dont_write_bytecode = True
+    spec = importlib.util.spec_from_file_location("std_fix_auto_test", TEST_FILE)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def discover(root: Path) -> list[tuple[str, str]]:
+    """Find the cases in root as the test module does when it loads."""
+    cases = []
+    for dialect in os.listdir(root):
+        if dialect.endswith(".md"):
+            continue
+        for case in os.listdir(root / dialect):
+            cases.append((dialect, case))
+    return cases
+
+
+def run_cases(module, cases: list[tuple[str, str]]) -> Results:
+    """Return {harness case id: (status, reason)}."""
+    results = {}
+    caplog = CapLog()
+    for dialect, case in sorted(cases):
+        case_id = f"autofix/{dialect}/{case}"
+        try:
+            # The test prints debug text for pytest. Do not show it.
+            with contextlib.redirect_stdout(io.StringIO()):
+                module.auto_fix_test(dialect=dialect, folder=case, caplog=caplog)
+            results[case_id] = ("pass", "")
+        except pytest.skip.Exception as e:
+            results[case_id] = ("skip", str(e))
+        except (pytest.fail.Exception, Exception) as e:
+            results[case_id] = ("fail", failure_reason(e))
+        finally:
+            caplog.restore()
+    return results
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument("--root", type=Path)
+    parser.add_argument("--report", type=Path)
+    parser.add_argument("--tool", default="sqlfluff")
+    parser.add_argument("--out", type=Path)
+    parser.add_argument("--check-prefixes", action="store_true")
+    args = parser.parse_args()
+    # The paths of the arguments are relative to the folder of the caller.
+    root, report, out = (
+        p.resolve() if p else None for p in (args.root, args.report, args.out)
+    )
+
+    os.chdir(SQLFLUFF_ROOT)
+    fail_on_parse_error_after_fix()
+    module = load_test_module()
+    if root is None:
+        cases = list(module.test_cases)
+    else:
+        module.base_auto_fix_path = (str(root),)
+        cases = discover(root)
+    # The test does not remove its temporary folder when it fails.
+    with tempfile.TemporaryDirectory(prefix="sqll-autofix-oracle-") as tmp:
+        tempfile.tempdir = tmp
+        try:
+            oracle = run_cases(module, cases)
+        finally:
+            tempfile.tempdir = None
+    if len(oracle) != len(cases):
+        print(f"error: {len(cases)} cases give {len(oracle)} ids", file=sys.stderr)
+        return 1
+
+    if out:
+        write_results(oracle, out)
+    elif not args.check_prefixes:
+        for case_id, (status, reason) in oracle.items():
+            print(json.dumps({"id": case_id, "status": status, "reason": reason}))
+    status = check_prefixes(oracle) if args.check_prefixes else 0
+    if report is None:
+        return status
+    return compare_with_report(oracle, report, "autofix", args.tool) or status
+
+
+if __name__ == "__main__":
+    sys.exit(main())

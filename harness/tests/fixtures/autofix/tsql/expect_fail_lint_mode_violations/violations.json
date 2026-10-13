@@ -1,0 +1,7 @@
+{
+    "violations": {
+        "linting": {
+            "AL02": [[2, 9]]
+        }
+    }
+}

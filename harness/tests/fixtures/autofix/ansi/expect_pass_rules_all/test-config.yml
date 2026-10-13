@@ -1,0 +1,4 @@
+test-config:
+  rules:
+    - lt01
+    - all
