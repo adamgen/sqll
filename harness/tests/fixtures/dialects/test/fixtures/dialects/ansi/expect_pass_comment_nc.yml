@@ -1,0 +1,23 @@
+# Made with the method of test/generate_parse_fixture_yml.py of sqlfluff 4.4.0.
+_hash: 16fbaecf0adb7b11936d28429f764533777a07fdd9552cfaa9c0b9ae7d3e85ac
+file:
+  statement:
+    select_statement:
+      select_clause:
+        keyword: SELECT
+        whitespace: ' '
+        select_clause_element:
+          column_reference:
+            naked_identifier: a
+      whitespace: ' '
+      inline_comment: -- note
+      newline: "\n"
+      from_clause:
+        keyword: FROM
+        whitespace: ' '
+        from_expression:
+          from_expression_element:
+            table_expression:
+              table_reference:
+                naked_identifier: tbl
+  newline: "\n"

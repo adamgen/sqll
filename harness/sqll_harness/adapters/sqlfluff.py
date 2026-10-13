@@ -58,9 +58,27 @@ class SqlfluffAdapter(Adapter):
     name = "sqlfluff"
 
     def __init__(self, venv: Path | None = None) -> None:
-        self.venv = venv or tools_dir() / "sqlfluff"
+        self.venv = venv or tools_dir() / self.name
         self.binary = self.venv / "bin" / "sqlfluff"
         self._version: str | None = None
+
+    def case_config(
+        self, config: dict[str, Any] | None, sql_paths: list[Path]
+    ) -> dict[str, Any] | None:
+        """Return the config file content for a run with --ignore-local-config.
+
+        config is the config of the case. sql_paths are the files of the run.
+        A subclass can add settings here.
+        """
+        return config
+
+    def user_config_file(self, sql_path: Path, cwd: Path) -> Path | None:
+        """Return an extra config file for a run with the config of the user.
+
+        sqlfluff loads it after the config files of the user, and before the
+        in-file config lines. None: no extra file.
+        """
+        return None
 
     def _check(self) -> None:
         if not self.binary.exists():
@@ -104,6 +122,7 @@ class SqlfluffAdapter(Adapter):
         # The sqlfluff test reads no config file. Without this flag the CLI
         # reads .sqlfluff files from cwd and from the folder of the SQL file.
         cmd.append("--ignore-local-config")
+        extra_config = self.case_config(extra_config, [cwd / sql_path])
         with tempfile.TemporaryDirectory(prefix="sqll-case-") as tmp:
             if extra_config:
                 cfg = Path(tmp) / CONFIG_NAME
@@ -124,6 +143,7 @@ class SqlfluffAdapter(Adapter):
         self._check()
         names = {str(p.relative_to(workdir)): p for p in sql_paths}
         cmd = [str(self.binary), "lint", "-f", "json", "--nofail"]
+        config = self.case_config(config, sql_paths)
         cmd += _rule_args(rules, dialect, config, workdir) + list(names)
         proc = self._run(cmd, workdir)
         return _lint_output(proc.stdout, proc.returncode, proc.stderr, names)
@@ -141,6 +161,7 @@ class SqlfluffAdapter(Adapter):
         # finds this case (rules.fix_not_shown).
         self._check()
         cmd = [str(self.binary), "fix"]
+        config = self.case_config(config, [sql_path])
         cmd += _rule_args(rules, dialect, config, workdir)
         cmd.append(str(sql_path.relative_to(workdir)))
         proc = self._run(cmd, workdir)
@@ -174,6 +195,7 @@ class SqlfluffAdapter(Adapter):
             cmd.append("-m")
         if dialect is not None:
             cmd += ["--dialect", dialect]
+        cmd += self._user_config_args(sql_path, cwd)
         cmd.append(str(sql_path))
         proc = self._run(cmd, cwd)
         return _parse_file_output(proc.stdout, proc.returncode, proc.stderr)
@@ -186,14 +208,15 @@ class SqlfluffAdapter(Adapter):
         cwd: Path,
         show_violations: bool = False,
     ) -> FileFixResult:
-        # No --ignore-local-config and no --config: the tool reads the config
-        # files near the file and in cwd. --nocolor only removes colors.
+        # No --ignore-local-config: the tool reads the config files near the
+        # file and in cwd. --nocolor only removes colors.
         self._check()
         cmd = [str(self.binary), "fix", "--nocolor", "--dialect", dialect]
         if rules is not None:
             cmd += ["--rules", ",".join(rules)]
         if show_violations:
             cmd.append("--show-lint-violations")
+        cmd += self._user_config_args(sql_path, cwd)
         cmd.append(str(sql_path))
         proc = self._run(cmd, cwd)
         stdout = _ANSI.sub("", proc.stdout)
@@ -215,6 +238,10 @@ class SqlfluffAdapter(Adapter):
             except ValueError as exc:
                 result.errors.append(f"fix output: {exc}")
         return result
+
+    def _user_config_args(self, sql_path: Path, cwd: Path) -> list[str]:
+        extra = self.user_config_file(sql_path, cwd)
+        return [] if extra is None else ["--config", str(extra)]
 
     def _run(self, cmd: list[str], cwd: Path) -> subprocess.CompletedProcess:
         return subprocess.run(

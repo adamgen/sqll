@@ -1,0 +1,30 @@
+# Made with the method of test/generate_parse_fixture_yml.py of sqlfluff 4.4.0.
+_hash: 4a12f17234b7e07411a0d9190d60208cea9a643b925277c277ce25ee1ef4f584
+file:
+  statement:
+    select_statement:
+      select_clause:
+      - keyword: SELECT
+      - select_clause_element:
+          column_reference:
+            naked_identifier: a
+      - comma: ','
+      - select_clause_element:
+          column_reference:
+            naked_identifier: b
+      from_clause:
+        keyword: FROM
+        from_expression:
+          from_expression_element:
+            table_expression:
+              table_reference:
+                naked_identifier: tbl
+      where_clause:
+        keyword: WHERE
+        expression:
+          column_reference:
+            naked_identifier: a
+          comparison_operator:
+            raw_comparison_operator: '='
+          numeric_literal: '1'
+  statement_terminator: ;

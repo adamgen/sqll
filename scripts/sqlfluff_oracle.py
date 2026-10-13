@@ -5,11 +5,14 @@
 
 An oracle runs a sqlfluff test through Python and compares the status of
 each case with a harness report. Only the oracles import sqlfluff; the
-harness must never do this. Run them with the Python of tools/sqlfluff-oracle.
+harness must never do this. Run them with the Python of tools/sqlfluff-oracle,
+or with --rust and the Python of tools/sqlfluff-rs-oracle.
 """
 
+import argparse
 import json
 import logging
+import sys
 from collections import Counter
 from pathlib import Path
 
@@ -23,6 +26,82 @@ SQLFLUFF_ROOT = ROOT / "third_party" / "sqlfluff"
 Results = dict[str, tuple[str, str]]
 
 PREFIXES = {"expect_pass_": "pass", "expect_fail_": "fail"}
+
+# The config layer of the sqlfluff-rs adapter
+# (harness/sqll_harness/adapters/sqlfluff_rs.py).
+RUST_CORE = {"use_rust_parser": True, "use_rust_rules": True}
+
+
+def add_tool_arguments(parser: argparse.ArgumentParser) -> None:
+    """Add --tool and --rust. The default tool is sqlfluff-rs with --rust."""
+    parser.add_argument("--tool", help="Tool in the report. Default: see --rust.")
+    parser.add_argument(
+        "--rust",
+        action="store_true",
+        help="Use the Rust parser and rules, as the sqlfluff-rs adapter does.",
+    )
+
+
+def setup_tool(args: argparse.Namespace) -> Counter | None:
+    """Set args.tool. With --rust, call force_rust and return its counter."""
+    if args.tool is None:
+        args.tool = "sqlfluff-rs" if args.rust else "sqlfluff"
+    return force_rust() if args.rust else None
+
+
+def force_rust() -> Counter:
+    """Make sqlfluff use the Rust parser and rules for each test.
+
+    Each FluffConfig gets RUST_CORE under the configs that the test gives, so
+    a setting of the test does not change. The harness gives "error" for a
+    case that sets one of these keys. Return a counter of the parse runs of
+    each parser class: "RustParser" and "Parser" (Python).
+    """
+    try:
+        import sqlfluffrs  # noqa: F401
+    except ImportError as exc:
+        sys.exit(f"error: --rust needs sqlfluffrs: {exc}")
+    from sqlfluff.core.config import FluffConfig
+    from sqlfluff.core.helpers.dict import nested_combine
+    from sqlfluff.core.parser import Parser
+    from sqlfluff.core.parser.rust_parser import RustParser
+
+    if RustParser is None:
+        sys.exit("error: --rust: the Rust parser of sqlfluff does not load")
+    init = FluffConfig.__init__
+
+    def rust_init(self, configs=None, *args, **kwargs):
+        configs = nested_combine({"core": dict(RUST_CORE)}, configs or {})
+        init(self, configs, *args, **kwargs)
+
+    FluffConfig.__init__ = rust_init
+    runs: Counter = Counter()
+    for cls in (Parser, RustParser):
+
+        def parse(self, *args, _parse=cls.parse, _name=cls.__name__, **kwargs):
+            runs[_name] += 1
+            return _parse(self, *args, **kwargs)
+
+        cls.parse = parse
+    return runs
+
+
+def check_rust_runs(runs: Counter | None) -> int:
+    """Print the parse runs of each parser. Return 1 if the Python parser ran
+    or the Rust parser did not run, else 0. None (no --rust) gives 0."""
+    if runs is None:
+        return 0
+    print(
+        f"parse runs: RustParser {runs['RustParser']}, Parser {runs['Parser']}",
+        file=sys.stderr,
+    )
+    if runs["Parser"] or not runs["RustParser"]:
+        print(
+            "error: --rust: the Python parser ran, or the Rust parser did not",
+            file=sys.stderr,
+        )
+        return 1
+    return 0
 
 
 class CapLog:

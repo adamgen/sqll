@@ -2,7 +2,8 @@
 
 These checks of the sqlfluff tests exist only as Python internals, or the CLI
 cannot give the same input. See [README.md](README.md), [rules.md](rules.md),
-[autofix.md](autofix.md), and [templater.md](templater.md).
+[autofix.md](autofix.md), [templater.md](templater.md), and
+[sqlfluff-rs.md](sqlfluff-rs.md).
 
 ## Rule cases
 
@@ -111,3 +112,31 @@ The T3 reviews found these false passes with fixtures that are not in sqlfluff
 - The `_hash` field of the dialect YAML files. It only makes contributors use
   the generator script. The tree check is sufficient.
 - `test__dialect__base_broad_fix`. It has no expected result in data.
+- `sqlfluff parse` applies the in-file config lines (`-- sqlfluff:...`) of the
+  SQL file. They have priority over `--dialect` and `--ignore-local-config`.
+  The test (`parse_example_file`, `lex_and_parse`) does not apply them. A line
+  that changes a setting can give a false pass or a false fail. The harness
+  does not fail closed for it. In sqlfluff 4.4.0 only
+  `clickhouse/create_user.sql` has such a line
+  (`-- sqlfluff:dialect:clickhouse`). It sets the dialect of its folder, so it
+  has no effect.
+
+`scripts/sqlfluff-dialect-oracle` runs the 2 tests that have the first 2
+checks (`test__dialect__base_file_parse`, `test__dialect__base_parse_struct`)
+on the same cases. If a test fails on a case that the harness passes, the CI
+comparison fails. This also shows a difference that an in-file config line
+causes.
+
+## sqlfluff-rs
+
+- No sqlfluff test compares a tree of the Rust parser with a dialect YAML
+  file: `test__dialect__base_parse_struct` always uses the Python `Parser`.
+  The dialect oracle with `--rust` runs it with `RustParser`, and also runs
+  `test__parity__dialect_fixture_corpus` (Python and Rust trees are equal).
+- sqlfluff does not log the Rust detection of a rule (`use_rust_rules`: CP01,
+  CP03, CP04 in 4.4.0). The harness cannot show that it ran. It finds only
+  the warning `falling back to Python` (no Rust parse arena). The oracles set
+  the same config.
+- The oracles add the 2 keys under the config of the test. The adapter adds
+  them over the config files of the case, and gives `error` if the case sets
+  one of them. No 4.4.0 case sets them, so the 2 configs are equal.

@@ -32,8 +32,9 @@ setting. Needs: uv, Python 3.13 with a shared libpython, and cargo.
 | `sqruff` | `tools/sqruff/uv.lock` | `<dir>/sqruff/bin/sqruff` and `<dir>/sqruff/python` |
 
 It also installs `<dir>/sqlfluff-oracle` for the oracle scripts
-(`scripts/sqlfluff-rule-oracle`, `scripts/sqlfluff-autofix-oracle`,
-`scripts/sqlfluff-templater-oracle`).
+(`scripts/sqlfluff-dialect-oracle`, `scripts/sqlfluff-rule-oracle`,
+`scripts/sqlfluff-autofix-oracle`, `scripts/sqlfluff-templater-oracle`), and
+`<dir>/sqlfluff-rs-oracle` for the same scripts with `--rust`.
 
 `tools/sqruff/install.sh` builds sqruff with `cargo install --locked
 --features parser,python`. The `parser` feature adds the `parse` command. The
@@ -44,8 +45,13 @@ binary links to the libpython of the Python that it was built with.
 
 `sqll-harness tools` prints each tool as JSON: name, version, pin, binary, and
 checks. It fails if a version is not the pin, if `sqlfluffrs` does not import
-in the `sqlfluff-rs` venv, or if `sqruff parse` or its jinja templater does not
-work. `sqll-harness run` makes the same check for the tools that it runs.
+in the `sqlfluff-rs` venv, if `sqlfluff-rs` does not log that it uses the Rust
+parser, or if `sqruff parse` or its jinja templater does not work.
+`sqll-harness run` makes the same check for the tools that it runs, before
+the first case.
+
+The `sqlfluff-rs` adapter is the `sqlfluff` adapter with the Rust parser and
+rules forced on. See [sqlfluff-rs.md](sqlfluff-rs.md).
 
 ## Shards and CI
 
@@ -53,19 +59,24 @@ work. `sqll-harness run` makes the same check for the tools that it runs.
 case is a hash of its id. `sqll-harness merge REPORT...` merges shard reports
 into `out/report.json` and does the known-failure check again on all results.
 Thus it reports a listed id that no shard ran. It fails if a shard report is
-missing or is in two reports.
+missing or is in two reports, or if 2 reports have a different record of a
+tool.
 
 CI (`.github/workflows/ci.yml`):
 
 1. `image`: `ci/image_tag.py` hashes all inputs of `ci/Dockerfile`. If
    `ghcr.io/adamgen/sqll-ci:<hash>` does not exist, CI builds and pushes it.
 2. `lint`: `sqll-harness tools`, ruff, the unit tests, and the oracles on
-   the harness rule, autofix, and templater fixtures, in the image.
+   the harness dialect, rule, autofix, and templater fixtures (also with
+   `--rust`), in the image.
 3. `test`: one job for each suite, tool, and shard in `ci/matrix.json`.
-4. `report`: `sqll-harness merge --expect ci/matrix.json`, then the 3
-   oracle scripts on the merged report. It uploads `out/report.json`,
-   `out/oracle.jsonl`, `out/autofix-oracle.jsonl`, and
-   `out/templater-oracle.jsonl`.
+4. `report`: `sqll-harness merge --expect ci/matrix.json`, then the rule,
+   autofix, and templater oracles on the merged report for `sqlfluff`, and
+   again with `--rust` for `sqlfluff-rs`. It uploads `out/report.json` and
+   the `out/*oracle.jsonl` files.
+5. `dialect-oracle`: `scripts/sqlfluff-dialect-oracle` on the merged report,
+   one job for `sqlfluff` and one for `sqlfluff-rs` (`--rust`). It takes some
+   minutes.
 
 To add a suite or a tool to CI, add an entry to `ci/matrix.json`.
 
@@ -79,6 +90,9 @@ To add a suite or a tool to CI, add an entry to `ci/matrix.json`.
 | `templater` | each row of `test__templater_full` (`test/fixtures/templater/<subpath>.sql`) | `exact`, `no_unparsable` |
 
 Dialect case id: `dialects/<dialect>/<stem>` (`<stem>_nc` for `_nc.yml`).
+`scripts/sqlfluff-dialect-oracle` runs the sqlfluff dialect tests
+(`test__dialect__base_parse_struct`, `test__dialect__base_file_parse`) on the
+same cases and compares the status with the report.
 
 - `exact`: the tree is equal to the YAML tree, with the sqlfluff rules
   (`process_struct`). Two trees with no children are equal. Parity uses this
@@ -89,11 +103,14 @@ Dialect case id: `dialects/<dialect>/<stem>` (`<stem>_nc` for `_nc.yml`).
 
 A case passes only if all its checks pass.
 
-In the dialects suite the sqlfluff adapter uses `--templater raw`, because the sqlfluff
-test does not use a templater. Extra config goes in a temporary file named `pyproject.toml`,
-because sqlfluff reads a config file as TOML only with that name. It also uses
-`--ignore-local-config`, because the sqlfluff test reads no config file. Without
-it the CLI reads the `.sqlfluff` files in `test/fixtures/dialects/<d>/`.
+In the dialects suite the sqlfluff adapter uses `--templater raw`, because
+the sqlfluff test does not use a templater. Extra config goes in a temporary
+file named `pyproject.toml`, because sqlfluff reads a config file as TOML only
+with that name. It also uses `--ignore-local-config`, because the sqlfluff test
+reads no config file. Without it the CLI reads the `.sqlfluff` files in
+`test/fixtures/dialects/<d>/`. The CLI also applies the in-file config lines
+(`-- sqlfluff:...`) of the SQL file, and the test does not.
+[not-reproduced.md](not-reproduced.md) records this difference.
 
 ## Rule cases
 
@@ -126,7 +143,7 @@ folder.
 {
   "sqlfluff_ref": "<commit of third_party/sqlfluff>",
   "scope": {"suites": [], "tools": [], "filter": null, "shard": "K/N"},
-  "tools": {"<tool>": {"version": "<version>"}},
+  "tools": {"<tool>": {"version": "<version>", "config": {}, "preflight": {}}},
   "summary": {"<suite>": {"<tool>": {
     "total": 0, "passed": 0, "failed": 0, "skipped": 0, "<check>": 0}}},
   "known_failures": {"<tool>": {"new_failures": [], "unexpected_passes": []}},
@@ -136,7 +153,9 @@ folder.
 }
 ```
 
-`scope` is what the run tried to run. A merged report has `"scope": null` and
+`config` is the config layer that the adapter adds to each case, and
+`preflight` the details of the tool check. A tool has them only if they are
+not empty. `scope` is what the run tried to run. A merged report has `"scope": null` and
 a `parts` list with the scope of each merged report. `<check>` is the number
 of cases where that check is true. A case has only the checks that apply to
 it. `failed` counts `fail` and `error`. `error` means that the case did not

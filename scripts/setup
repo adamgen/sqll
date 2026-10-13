@@ -16,6 +16,8 @@ sync() {
 sync sqlfluff "$tools_dir/sqlfluff"
 sync sqlfluff-rs "$tools_dir/sqlfluff-rs"
 sync sqruff "$tools_dir/sqruff/python"
-# Not a harness tool: sqlfluff and pytest for scripts/sqlfluff-rule-oracle.
+# Not harness tools: sqlfluff and pytest for the oracle scripts, and the same
+# with sqlfluffrs for the oracle scripts with --rust.
 sync sqlfluff-oracle "$tools_dir/sqlfluff-oracle"
+sync sqlfluff-rs-oracle "$tools_dir/sqlfluff-rs-oracle"
 "$root/tools/sqruff/install.sh" "$tools_dir/sqruff"

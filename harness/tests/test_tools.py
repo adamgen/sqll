@@ -3,7 +3,7 @@ import subprocess
 import tomllib
 
 import pytest
-from conftest import needs, needs_all_tools
+from conftest import needs, needs_all_tools, needs_sqlfluff
 
 from sqll_harness import cli, tools
 from sqll_harness.paths import REPO_ROOT, TOOL_SPECS_DIR, tools_dir
@@ -38,6 +38,35 @@ def test_oracle_has_the_same_sqlfluff_packages():
     oracle.pop("sqll-sqlfluff-oracle")
     assert {k: oracle.get(k) for k in plain} == plain
     assert oracle["pytest"] == "9.1.1"
+
+
+def test_rust_oracle_has_the_sqlfluff_rs_and_oracle_packages():
+    # The oracle scripts with --rust must run the sqlfluff-rs of the harness.
+    rs, oracle, rs_oracle = (
+        _lock("sqlfluff-rs"),
+        _lock("sqlfluff-oracle"),
+        _lock("sqlfluff-rs-oracle"),
+    )
+    rs.pop("sqll-tool-sqlfluff-rs")
+    oracle.pop("sqll-sqlfluff-oracle")
+    rs_oracle.pop("sqll-sqlfluff-rs-oracle")
+    assert rs_oracle == {**oracle, **rs}
+    assert rs_oracle["sqlfluffrs"] == "4.4.0"
+
+
+@needs("sqlfluff-rs-oracle/bin/python")
+def test_setup_installs_the_rust_oracle():
+    python = tools_dir() / "sqlfluff-rs-oracle" / "bin" / "python"
+    code = (
+        "import sqlfluff, sqlfluffrs, pytest;"
+        "from sqlfluff.core.parser.rust_parser import RustParser;"
+        "assert RustParser is not None;"
+        "print(sqlfluff.__version__, pytest.__version__)"
+    )
+    out = subprocess.run(
+        [str(python), "-I", "-c", code], capture_output=True, text=True, check=True
+    ).stdout.split()
+    assert out == ["4.4.0", "9.1.1"]
 
 
 @needs("sqlfluff-oracle/bin/python")
@@ -84,8 +113,24 @@ def _script(path, body):
     path.chmod(0o755)
 
 
-def _fake_sqlfluff(root, name, version, python_body):
-    _script(root / name / "bin" / "sqlfluff", f'echo "sqlfluff, version {version}"\n')
+# A fake parse as sqlfluff[rs] does it. With use_rust_parser true in the
+# config file, it logs the Rust parser, and stops at the iteration limit.
+RUST_PARSE = """\
+if grep -q 'use_rust_parser = true' pyproject.toml; then
+  grep -q 'rust_parser_max_iterations = 1' pyproject.toml && {
+    echo 'PanicException: Parser exceeded maximum iteration limit (1).' >&2
+    exit 1
+  }
+  echo 'INFO       Using Rust parser (experimental)' >&2
+fi
+"""
+TREE = '[{"filepath": "check.sql", "segments": {"file": {}}}]'
+
+
+def _fake_sqlfluff(root, name, version, python_body, parse_body=RUST_PARSE):
+    body = f"[ \"$1\" = parse ] && {{\n{parse_body}echo '{TREE}'\nexit 0\n}}\n"
+    body += f'echo "sqlfluff, version {version}"\n'
+    _script(root / name / "bin" / "sqlfluff", body)
     _script(root / name / "bin" / "python3", python_body)
 
 
@@ -119,10 +164,110 @@ def test_sqlfluff_rs_needs_importable_sqlfluffrs(tmp_path):
     _fake_sqlfluff(tmp_path, "sqlfluff-rs", "4.4.0", ok)
     info = tools.check_sqlfluff_rs(tmp_path, TOOL_SPECS_DIR)
     assert info.ok, info.errors
-    assert info.details == {"sqlfluffrs": "4.4.0"}
+    assert info.details == {
+        "sqlfluffrs": "4.4.0",
+        "rust_parser": True,
+        "rust_iteration_limit": True,
+    }
     _fake_sqlfluff(tmp_path, "sqlfluff-rs", "4.4.0", "echo 4.3.9\n")
     info = tools.check_sqlfluff_rs(tmp_path, TOOL_SPECS_DIR)
     assert info.errors == ["sqlfluffrs 4.3.9 is not the pin 4.4.0"]
+
+
+LIMIT_ERROR = (
+    "the Rust parser does not run: a parse with rust_parser_max_iterations = 1 "
+    "does not stop with 'maximum iteration limit'"
+)
+
+
+def test_sqlfluff_rs_must_use_the_rust_parser(tmp_path):
+    ok = "echo 4.4.0\n"
+    fallback = (
+        "echo 'WARNING    use_rust_parser=True but sqlfluffrs not available.' >&2\n"
+    )
+    _fake_sqlfluff(tmp_path, "sqlfluff-rs", "4.4.0", ok, fallback)
+    info = tools.check_sqlfluff_rs(tmp_path, TOOL_SPECS_DIR)
+    assert info.details["rust_parser"] is False
+    assert info.details["rust_iteration_limit"] is False
+    assert info.errors == [
+        "the Rust parser does not run: sqlfluff logs 'sqlfluffrs not available'",
+        LIMIT_ERROR,
+    ]
+    _fake_sqlfluff(tmp_path, "sqlfluff-rs", "4.4.0", ok, "")
+    info = tools.check_sqlfluff_rs(tmp_path, TOOL_SPECS_DIR)
+    assert info.errors == [
+        "the Rust parser does not run: no 'Using Rust parser' log, exit code 0",
+        LIMIT_ERROR,
+    ]
+    # The controls: the Python parser (use_rust_parser false) must not log
+    # the Rust parser, and must not stop at the limit.
+    always = (
+        "echo 'INFO       Using Rust parser (experimental)' >&2\n"
+        "grep -q 'rust_parser_max_iterations = 1' pyproject.toml && {\n"
+        "  echo 'maximum iteration limit' >&2\n  exit 1\n}\n"
+    )
+    _fake_sqlfluff(tmp_path, "sqlfluff-rs", "4.4.0", ok, always)
+    info = tools.check_sqlfluff_rs(tmp_path, TOOL_SPECS_DIR)
+    assert info.details["rust_parser"] is True
+    assert info.details["rust_iteration_limit"] is True
+    assert info.errors == [
+        "the Rust parser check is not valid: the 'Using Rust parser' log is "
+        "also there with use_rust_parser False",
+        "the Rust parser check is not valid: the Python parser gives no tree "
+        "with rust_parser_max_iterations = 1",
+    ]
+
+
+def test_rust_parser_control_that_fails_has_its_own_message(tmp_path):
+    # The control parse fails with no "Using Rust parser" log.
+    fails = RUST_PARSE + "grep -q 'use_rust_parser = false' pyproject.toml && exit 3\n"
+    _fake_sqlfluff(tmp_path, "sqlfluff-rs", "4.4.0", "echo 4.4.0\n", fails)
+    info = tools.check_sqlfluff_rs(tmp_path, TOOL_SPECS_DIR)
+    assert info.details["rust_parser"] is True
+    assert info.errors == [
+        "the Rust parser check is not valid: the parse with use_rust_parser "
+        "False gives exit code 3",
+        "the Rust parser check is not valid: the Python parser gives no tree "
+        "with rust_parser_max_iterations = 1",
+    ]
+
+
+def _no_sqlfluffrs(tmp_path):
+    """Return a tools folder where sqlfluff-rs is the sqlfluff venv. It has
+    sqlfluff 4.4.0 but no sqlfluffrs."""
+    tmp_path.mkdir(parents=True, exist_ok=True)
+    (tmp_path / "sqlfluff-rs").symlink_to(tools_dir() / "sqlfluff")
+    return tmp_path
+
+
+@needs_sqlfluff
+def test_real_sqlfluff_without_sqlfluffrs(tmp_path):
+    info = tools.check_sqlfluff_rs(_no_sqlfluffrs(tmp_path), TOOL_SPECS_DIR)
+    assert info.version == "4.4.0"
+    assert info.details["rust_parser"] is False
+    assert info.details["rust_iteration_limit"] is False
+    assert info.errors == [
+        "sqlfluffrs is not importable: "
+        "ModuleNotFoundError: No module named 'sqlfluffrs'",
+        "the Rust parser does not run: sqlfluff logs 'sqlfluffrs not available'",
+        LIMIT_ERROR,
+    ]
+
+
+@needs_sqlfluff
+def test_run_stops_when_sqlfluffrs_is_missing(tmp_path, monkeypatch, capsys):
+    monkeypatch.setenv("SQLL_TOOLS_DIR", str(_no_sqlfluffrs(tmp_path / "tools")))
+    out = tmp_path / "report.json"
+    args = ["run", "--tool=sqlfluff-rs", "--suite=dialects", f"--out={out}"]
+    assert cli.main([*args, "--filter=dialects/ansi/select_a"]) == 2
+    err = capsys.readouterr().err
+    assert (
+        "error: sqlfluff-rs: sqlfluffrs is not importable: "
+        "ModuleNotFoundError: No module named 'sqlfluffrs'"
+    ) in err
+    assert "error: sqlfluff-rs: the Rust parser does not run" in err
+    assert "running" not in err
+    assert not out.exists()
 
 
 def test_sqruff_version_must_match_the_pin(tmp_path):
@@ -158,7 +303,11 @@ def test_installed_tools(capsys):
         "sqruff": "0.41.0",
     }
     assert all(t["ok"] for t in out.values())
-    assert out["sqlfluff-rs"]["details"] == {"sqlfluffrs": "4.4.0"}
+    assert out["sqlfluff-rs"]["details"] == {
+        "sqlfluffrs": "4.4.0",
+        "rust_parser": True,
+        "rust_iteration_limit": True,
+    }
     sqruff = out["sqruff"]["details"]
     assert sqruff["sqruff"] == "0.41.0"
     assert sqruff["parse"] is True

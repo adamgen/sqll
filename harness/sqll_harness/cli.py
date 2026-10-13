@@ -144,14 +144,18 @@ def run(args: argparse.Namespace) -> int:
         return 2
     tool_names = args.tool or sorted(ADAPTERS)
     suites = args.suite or sorted(SUITES)
-    bad = [i for i in tools.check(tool_names) if not i.ok]
+    checked = {i.name: i for i in tools.check(tool_names)}
+    bad = [i for i in checked.values() if not i.ok]
     for info in bad:
         for err in info.errors:
             print(f"error: {info.name}: {err}", file=sys.stderr)
     if bad:
         return 2
     adapters = {name: ADAPTERS[name]() for name in tool_names}
-    versions = {name: a.version() for name, a in adapters.items()}
+    tool_infos = {
+        name: report.tool_entry(a.version(), a.config_layer, checked[name].details)
+        for name, a in adapters.items()
+    }
 
     jobs = []
     for suite_name in suites:
@@ -188,7 +192,7 @@ def run(args: argparse.Namespace) -> int:
         )
 
     scope = report.scope(suites, tool_names, args.filter, args.shard)
-    rep = report.build(_sqlfluff_ref(root), versions, results, outcomes, scope)
+    rep = report.build(_sqlfluff_ref(root), tool_infos, results, outcomes, scope)
     return _finish(rep, args.out, outcomes)
 
 

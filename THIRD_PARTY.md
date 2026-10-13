@@ -20,6 +20,9 @@ Test data that the harness reads:
 - `test/core/templaters/jinja_test.py`: the case table of
   `test__templater_full`. The harness reads only its literal list.
 
+`scripts/sqlfluff-dialect-oracle` imports and runs
+`test/dialects/dialects_test.py`, `test/conftest.py`, and
+`test/core/parser/parity/corpus_test.py` from the submodule.
 `scripts/sqlfluff-autofix-oracle` imports and runs
 `test/rules/std_fix_auto_test.py` from the submodule.
 `scripts/sqlfluff-templater-oracle` imports and runs
@@ -56,4 +59,5 @@ The Python dependencies of each tool are in `tools/<tool>/uv.lock`.
 
 The oracle scripts (`scripts/sqlfluff-*-oracle`) run the pinned sqlfluff with
 pytest 9.1.1 (PyPI `pytest`, MIT), pinned in `tools/sqlfluff-oracle/uv.lock`.
-The harness does not use it.
+With `--rust` they run the pinned `sqlfluff[rs]` and pytest of
+`tools/sqlfluff-rs-oracle/uv.lock`. The harness does not use them.

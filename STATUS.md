@@ -11,8 +11,8 @@
 | T2 | CI image in GHCR, all 3 tools pinned, sharded CI matrix | Done (PR #4) |
 | T3 | Rule case suite (`std_rule_cases`), sqlfluff lint and fix | Done (PR #5) |
 | T4 | Autofix suite (`linter/autofix`) for sqlfluff | Done (PR #6) |
-| T5 | Templater suite (`test__templater_full`) for sqlfluff | In review |
-| T6 | `sqlfluff[rs]` adapter on all 4 suites, results recorded | Open |
+| T5 | Templater suite (`test__templater_full`) for sqlfluff | Done (PR #7) |
+| T6 | `sqlfluff[rs]` adapter on all 4 suites, results recorded | In review |
 | T7 | sqruff adapter on all 4 suites, results recorded | Open |
 | T8 | S1 exit: full run, recorded baseline, status | Open |
 
@@ -29,14 +29,24 @@ sqlfluff 4.4.0, `sqlfluff[rs]` 4.4.0 with sqlfluffrs 4.4.0, sqruff 0.41.0
 | rules | sqlfluff 4.4.0 | 2527 | 2527 | 0 | after_fix 851, fail_str 1193, fix 1193, pass_str 1332 |
 | autofix | sqlfluff 4.4.0 | 61 | 61 | 0 | fix 61, non_linting 61, tree 61, violations 1 |
 | templater | sqlfluff 4.4.0 | 43 | 43 | 0 | exact 43, no_unparsable 43 |
+| dialects | sqlfluff-rs 4.4.0 | 2306 | 2306 | 0 | exact 2306, no_unparsable 2306 |
+| rules | sqlfluff-rs 4.4.0 | 2527 | 2527 | 0 | after_fix 851, fail_str 1193, fix 1193, pass_str 1332 |
+| autofix | sqlfluff-rs 4.4.0 | 61 | 61 | 0 | fix 61, non_linting 61, tree 61, violations 1 |
+| templater | sqlfluff-rs 4.4.0 | 43 | 43 | 0 | exact 43, no_unparsable 43 |
 
 The sqlfluff tests pass the same cases, with 0 differences
-(`scripts/sqlfluff-rule-oracle`: 2527 rule cases;
+(`scripts/sqlfluff-dialect-oracle`: 2306 dialect cases;
+`scripts/sqlfluff-rule-oracle`: 2527 rule cases;
 `scripts/sqlfluff-autofix-oracle`: 61 autofix cases;
-`scripts/sqlfluff-templater-oracle`: 43 templater cases). CI checks this.
+`scripts/sqlfluff-templater-oracle`: 43 templater cases). With `--rust` the
+same is true for sqlfluff-rs; for dialects this includes the sqlfluff
+Python-vs-Rust parity test. CI checks this. sqlfluff-rs is sqlfluff with
+`use_rust_parser` and `use_rust_rules` set to true (see
+`harness/sqlfluff-rs.md`).
 3 templater cases need a Python runtime (`needs_python`, see
 `harness/templater.md`).
 
 ## Known failures
 
 - sqlfluff: none.
+- sqlfluff-rs: none.
