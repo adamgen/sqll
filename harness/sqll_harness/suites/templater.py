@@ -11,6 +11,7 @@ with the ast module. See harness/templater.md.
 
 import ast
 import configparser
+import os
 import tomllib
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -19,6 +20,7 @@ from typing import Any
 import yaml
 
 from ..adapters import Adapter
+from ..adapters.base import EmptyHome
 from ..cases import ERROR, FAIL, PASS, CaseResult
 from ..compare import has_node, load_yaml, record_to_test_tuple, strip_positions
 
@@ -33,6 +35,15 @@ NEEDS_PYTHON = "needs_python"
 CONFIG_FILES = ("setup.cfg", "tox.ini", "pep8.ini", ".sqlfluff", "pyproject.toml")
 # Templaters that run Python code of the user or need a Python package.
 PYTHON_TEMPLATERS = ("python", "dbt")
+# The templater of Linter() in the test: the default of sqlfluff.
+TEST_TEMPLATER = "jinja"
+LIBRARY_PATH_KEYS = (("core", "library_path"), ("templater", "jinja", "library_path"))
+CONFIG_ERRORS = (
+    OSError,
+    UnicodeDecodeError,
+    configparser.Error,
+    tomllib.TOMLDecodeError,
+)
 
 
 class TableError(Exception):
@@ -187,32 +198,73 @@ def _inline_config(sql: str) -> dict[tuple[str, ...], str]:
     return flat
 
 
-def python_needs(sqlfluff_root: Path, sql: Path) -> list[str]:
-    """Return why the case needs a Python runtime, or an empty list.
+def root_config_folders(sqlfluff_root: Path, home: Path) -> list[Path]:
+    """Return the folders of the config that the CLI reads before the files,
+    in the order of load_config_up_to_path(".") with sqlfluff_root as the
+    current folder: the user appdir, home, then each folder after the common
+    path of home and sqlfluff_root, to sqlfluff_root.
 
-    The harness reads the config files in each folder between sqlfluff_root
-    and the folder of sql, as the tool does when sqlfluff_root is its current
-    folder, then the in-file config lines of sql. A later file overrides an
-    earlier one. A case needs Python if it sets
-    library_path (Python modules for the jinja templater), or uses the
-    python or dbt templater.
+    The CLI makes its Linter, and thus its templater, from this config
+    (FluffConfig.from_root).
     """
+    root = sqlfluff_root.resolve()
+    home = home.resolve()
+    appdir = home / ".config" / "sqlfluff"
+    if not appdir.exists():
+        # XDG_CONFIG_HOME is home in isolated_env.
+        appdir = home / "sqlfluff"
+    folders = [appdir, home]
+    common = Path(os.path.commonpath([root, home]))
+    folder = common
+    for part in root.relative_to(common).parts:
+        folder = folder / part
+        folders.append(folder)
+    if root == common:
+        folders.append(root)
+    return folders
+
+
+def _read_folders(folders: list[Path]) -> dict[tuple[str, ...], Any]:
     config: dict[tuple[str, ...], Any] = {}
-    folder = sqlfluff_root
-    for part in (None, *sql.parent.parts):
-        if part is not None:
-            folder = folder / part
+    for folder in folders:
         for name in CONFIG_FILES:
             if (folder / name).is_file():
                 config.update(_read_config(folder / name))
+    return config
+
+
+def cli_templater(sqlfluff_root: Path, home: Path) -> str:
+    """Return the name of the templater that the CLI uses for each file.
+
+    The test always uses jinja: Linter() reads no config file, and sqlfluff
+    does not change the templater for one file (it logs a warning). The CLI
+    uses the templater of the config in root_config_folders.
+    """
+    config = _read_folders(root_config_folders(sqlfluff_root, home))
+    return str(config.get(("core", "templater"), TEST_TEMPLATER)).strip()
+
+
+def python_needs(sqlfluff_root: Path, sql: Path, home: Path | None = None) -> list[str]:
+    """Return why the case needs a Python runtime, or an empty list.
+
+    The harness reads the config files as the tool does when sqlfluff_root
+    is its current folder: those of root_config_folders, then those in each
+    folder between sqlfluff_root and the folder of sql, then the in-file config
+    lines of sql. A later file overrides an earlier one. A case needs Python
+    if it sets library_path (Python modules for the jinja templater), or
+    uses the python or dbt templater. home is the home folder of the tool
+    (default: the empty home of the harness).
+    """
+    folders = root_config_folders(sqlfluff_root, home or EmptyHome.path())
+    folder = sqlfluff_root.resolve()
+    for part in sql.parent.parts:
+        folder = folder / part
+        folders.append(folder)
+    config = _read_folders(folders)
     if (sqlfluff_root / sql).is_file():
         config.update(_inline_config((sqlfluff_root / sql).read_text(encoding="utf8")))
     needs = []
-    library_paths = [
-        str(v)
-        for k, v in config.items()
-        if k[-1] == "library_path" and (k[0] == "core" or k[0] == "templater")
-    ]
+    library_paths = [str(config[k]) for k in LIBRARY_PATH_KEYS if k in config]
     if any(v.strip() and v.strip().lower() != "none" for v in library_paths):
         needs.append("library_path")
     templater = str(config.get(("core", "templater"), "")).strip().lower()
@@ -240,6 +292,21 @@ def run(adapter: Adapter, case: TemplaterCase, sqlfluff_root: Path) -> CaseResul
     """
     if not (sqlfluff_root / case.sql).is_file():
         return _result(case, adapter, FAIL, reason=f"the test fails: no {case.sql}")
+    try:
+        tool_templater = cli_templater(sqlfluff_root, EmptyHome.path())
+    except CONFIG_ERRORS as exc:
+        return _result(case, adapter, ERROR, reason=f"config: {exc}")
+    if tool_templater != TEST_TEMPLATER:
+        return _result(
+            case,
+            adapter,
+            ERROR,
+            reason=(
+                f"a config file of the sqlfluff root, a parent folder, or home "
+                f"sets the {tool_templater!r} templater; the tool uses it, the "
+                f"test always uses {TEST_TEMPLATER!r}"
+            ),
+        )
     parsed = adapter.parse_file(
         case.sql,
         None,

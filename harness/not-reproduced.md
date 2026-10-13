@@ -97,6 +97,11 @@ The T3 reviews found these false passes with fixtures that are not in sqlfluff
   instance type `unparsable` gives `fail` where the test passes.
 - The test uses the home folder of the user, and the harness an empty one.
   A sqlfluff config file in the home folder changes only the test.
+- The test always uses the `jinja` templater. The CLI uses the templater of
+  the config in home, in the folders after the common path of home and the
+  current folder, and in the current folder (the sqlfluff root). If this
+  config sets another templater, the status is `error`. The config
+  files in the 4.4.0 sqlfluff root have no sqlfluff section.
 - The test sets the `DEBUG` level of 2 loggers with `caplog`. This changes
   only the log.
 

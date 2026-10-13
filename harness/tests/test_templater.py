@@ -239,6 +239,14 @@ SQL = Path("test/fixtures/templater/d/sub/x.sql")
             [],
         ),
         (
+            {
+                "test/fixtures/templater/d/.sqlfluff": (
+                    "[sqlfluff:templater:jinja:context]\nlibrary_path=foo\n"
+                ),
+            },
+            [],
+        ),
+        (
             {"test/fixtures/templater/d/.sqlfluff": "[sqlfluff]\ntemplater=python\n"},
             ["templater python"],
         ),
@@ -297,6 +305,73 @@ def test_python_needs(tmp_path, files, want):
     for rel, text in files.items():
         _write(tmp_path, rel, text)
     assert templater.python_needs(tmp_path, SQL) == want
+
+
+def test_python_needs_reads_parent_folders_and_home(tmp_path):
+    root, home = tmp_path / "a" / "root", tmp_path / "home"
+    root.mkdir(parents=True)
+    home.mkdir()
+    _write(tmp_path, "a/.sqlfluff", "[sqlfluff]\nlibrary_path=libs\n")
+    assert templater.python_needs(root, SQL, home) == ["library_path"]
+    _write(home, ".sqlfluff", "[sqlfluff]\ntemplater=python\n")
+    assert templater.python_needs(root, SQL, home) == [
+        "library_path",
+        "templater python",
+    ]
+
+
+# The templater of the CLI. sqlfluff reads the config of the user (appdir and
+# home), then the folders after the common path of home and the current
+# folder, to the current folder.
+
+
+@pytest.mark.parametrize(
+    "root, home, want",
+    [
+        ("h/a/b", "h", ["h/.config/sqlfluff", "h", "h/a", "h/a/b"]),
+        ("x/a", "h", ["h/.config/sqlfluff", "h", "x", "x/a"]),
+        ("h", "h", ["h/.config/sqlfluff", "h", "h"]),
+        ("x", "x/h", ["x/h/.config/sqlfluff", "x/h", "x"]),
+    ],
+)
+def test_root_config_folders(tmp_path, root, home, want):
+    (tmp_path / home / ".config" / "sqlfluff").mkdir(parents=True)
+    folders = templater.root_config_folders(tmp_path / root, tmp_path / home)
+    assert folders == [tmp_path.resolve() / f for f in want]
+
+
+def test_root_config_folders_xdg_appdir(tmp_path):
+    folders = templater.root_config_folders(tmp_path, tmp_path)
+    assert folders[0] == tmp_path.resolve() / "sqlfluff"
+
+
+@pytest.mark.parametrize(
+    "files, want",
+    [
+        ({}, "jinja"),
+        ({"r/.sqlfluff": "[sqlfluff]\ndialect = ansi\n"}, "jinja"),
+        ({"r/.sqlfluff": "[sqlfluff]\ntemplater = placeholder\n"}, "placeholder"),
+        ({"r/pyproject.toml": "[tool.sqlfluff.core]\ntemplater = 'raw'\n"}, "raw"),
+        # sqlfluff does not read the common path of home and the current folder.
+        ({".sqlfluff": "[sqlfluff]\ntemplater = python\n"}, "jinja"),
+        ({"h/.sqlfluff": "[sqlfluff]\ntemplater = raw\n"}, "raw"),
+        ({"h/.config/sqlfluff/.sqlfluff": "[sqlfluff]\ntemplater = raw\n"}, "raw"),
+        (
+            {
+                "h/.sqlfluff": "[sqlfluff]\ntemplater = python\n",
+                "r/tox.ini": "[sqlfluff]\ntemplater = jinja\n",
+            },
+            "jinja",
+        ),
+        ({"r/sub/.sqlfluff": "[sqlfluff]\ntemplater = raw\n"}, "jinja"),
+    ],
+)
+def test_cli_templater(tmp_path, files, want):
+    (tmp_path / "r").mkdir()
+    (tmp_path / "h").mkdir()
+    for rel, text in files.items():
+        _write(tmp_path, rel, text)
+    assert templater.cli_templater(tmp_path / "r", tmp_path / "h") == want
 
 
 def test_run_one_keeps_the_tags_of_the_case():
@@ -396,6 +471,28 @@ def test_run_with_no_tree_fails(tmp_path):
         result = templater.run(FakeAdapter([_tree(None)] * 2), case, tmp_path)
         assert result.status == FAIL
         assert result.checks == {"exact": False, "no_unparsable": False}
+
+
+@pytest.mark.parametrize(
+    "rel, text, status",
+    [
+        ("root/.sqlfluff", "[sqlfluff]\ntemplater = placeholder\n", ERROR),
+        (".sqlfluff", "[sqlfluff]\ntemplater = raw\n", ERROR),
+        ("root/setup.cfg", "[sqlfluff]\ntemplater = jinja\n", PASS),
+        ("root/test/.sqlfluff", "[sqlfluff]\ntemplater = placeholder\n", PASS),
+        ("root/.sqlfluff", "[sqlfluff\n", ERROR),
+    ],
+)
+def test_run_root_templater(tmp_path, rel, text, status):
+    # The test always uses jinja. A templater in a config file of a sub
+    # folder only gives a warning, in the test and in the CLI.
+    root = tmp_path / "root"
+    case = _case(root)
+    _write(tmp_path, rel, text)
+    adapter = FakeAdapter([_tree(SELECT)] * 2)
+    result = templater.run(adapter, case, root)
+    assert result.status == status, result.reason
+    assert bool(adapter.calls) == (status == PASS)
 
 
 def test_run_with_one_tree_is_an_error(tmp_path):
@@ -613,3 +710,24 @@ def test_real_case_with_a_templating_violation():
     case = CASES["templater/jinja_t_loader_search_path/jinja"]
     result = templater.run(adapter, case, SQLFLUFF_ROOT)
     assert result.status == PASS, result.reason
+
+
+@needs_sqlfluff
+def test_real_root_templater_is_an_error(tmp_path):
+    # The tool uses the placeholder templater and the tree agrees. The test
+    # uses jinja and fails.
+    _write(
+        tmp_path,
+        ".sqlfluff",
+        "[sqlfluff]\ndialect = ansi\ntemplater = placeholder\n"
+        "[sqlfluff:templater:placeholder]\n"
+        "param_regex = (?P<param_name>xyz)\nxyz = 1\n",
+    )
+    case = _case(tmp_path)
+    (tmp_path / case.sql).write_text("SELECT xyz AS a\n", encoding="utf8")
+    parsed = adapter.parse_file(case.sql, None, tmp_path)
+    assert not parsed.errors
+    assert parsed.tree is not None
+    result = templater.run(adapter, case, tmp_path)
+    assert result.status == ERROR
+    assert "'placeholder' templater" in result.reason

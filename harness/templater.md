@@ -30,6 +30,13 @@ templater, and no config file:
    `include_meta`.
 2. If `code_only`: `parse -f json <path>` again, for the full tree.
 
+The test always uses the `jinja` templater: `Linter()` reads no config
+file, and a templater in the config of a file only gives a warning. The CLI
+uses the templater of the config in home, in the folders after the common
+path of home and the sqlfluff root, and in the sqlfluff root. If this
+config sets another templater, the status is `error` and the harness does
+not run the tool.
+
 ## Checks
 
 The test fails if the full tree has an `unparsable` segment, or if
@@ -57,12 +64,14 @@ command fails or the 2 runs do not agree on a tree, the status is `error`.
 ## Python runtime
 
 A case has the tag `needs_python` in the report if its config sets a
-`library_path` (in `[sqlfluff]` or a templater section, not `none`), or sets
-the `python` or `dbt` templater. The harness reads the config files from
-the sqlfluff root to the folder of the case, then the in-file config lines
-of the SQL file. In 4.4.0 these 3 cases have it
-(`library_path`): `jinja_j_libraries/jinja`, `jinja_m_libraries_module/jinja`,
-and `jinja_s_filters_in_library/jinja`. S6 uses this tag.
+`library_path` (in `[sqlfluff]` or `[sqlfluff:templater:jinja]`, not
+`none`), or sets the `python` or `dbt` templater. The harness reads the
+config files as the tool does: home, the parent folders (see Run), the
+folders from the sqlfluff root to the folder of the case, then the in-file
+config lines of the SQL file. In 4.4.0 these 3 cases have it
+(`library_path`): `jinja_j_libraries/jinja`,
+`jinja_m_libraries_module/jinja`, and `jinja_s_filters_in_library/jinja`.
+S6 uses this tag.
 
 ## Fixture files that are not data cases
 
@@ -80,8 +89,9 @@ These files in `test/fixtures/templater/` are not cases of this suite:
 The `.sqlfluff`, `macros/`, `libs/`, and other folders of the cases are
 config and support files. Other tests also use some case files
 (`jinja_a/jinja.sql`, `jinja_h_macros/jinja.sql`,
-`jinja_exclude_macro_path/`), with expected results in Python code. S7
-converts such tests.
+`jinja_exclude_macro_path/`, and `jinja_l_metas/002.sql` in
+`test__templater_jinja_block_matching`), with expected results in Python
+code. S7 converts such tests.
 
 ## Agreement with the sqlfluff test
 

@@ -122,7 +122,7 @@ def test_strip_positions_of_each_record_form():
     }
 
 
-def test_strip_positions_keeps_a_segment_with_a_position_name():
+def test_strip_positions_rejects_a_position_key_that_is_not_an_int():
     for value in ("x", None, {"a": "b"}, ["c"], True, 1.5):
         with pytest.raises(ValueError, match="position key 'end_file_pos'"):
             strip_positions({"file": {"end_file_pos": value}})
