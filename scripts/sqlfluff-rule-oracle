@@ -5,10 +5,10 @@ This is the reference for the "rules" suite. It calls rules__test_helper of
 sqlfluff through Python, as test/rules/yaml_test_cases_test.py does. The
 harness must never do this; only this check does.
 
-Run it with the pinned sqlfluff and pytest (tools/sqlfluff-oracle):
+Run it with the pinned sqlfluff and pytest that scripts/setup installs
+(tools/sqlfluff-oracle):
 
-  UV_PROJECT_ENVIRONMENT=/tmp/sqll-oracle uv run --frozen \\
-      --project tools/sqlfluff-oracle scripts/sqlfluff-rule-oracle \\
+  .tools/sqlfluff-oracle/bin/python scripts/sqlfluff-rule-oracle \\
       [--cases GLOB] [--report out/report.json] [--out out/oracle.jsonl]
       [--check-prefixes]
 

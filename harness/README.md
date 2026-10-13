@@ -117,5 +117,6 @@ that the harness does not reproduce.
 a `parts` list with the scope of each merged report. `<check>` is the number
 of cases where that check is true. A case has only the checks that apply to
 it. `failed` counts `fail` and `error`. `error` means that the case did not
-complete, or that the harness cannot know the result of a check. `skip` means that the fixture skips the case; a skipped case must not
-be in `known_failures/`.
+complete, or that the harness cannot know the result of a check. `skip`
+means that the fixture skips the case; a skipped case must not be in
+`known_failures/`.
