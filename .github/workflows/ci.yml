@@ -127,6 +127,18 @@ jobs:
           "$SQLL_TOOLS_DIR/sqlfluff-oracle/bin/python" scripts/sqlfluff-templater-oracle
           --root harness/tests/fixtures/templater --check-prefixes
 
+      # The same checks with the Rust parser and rules (--rust), as the
+      # sqlfluff-rs adapter uses them.
+      - name: Check the harness fixtures with the sqlfluff test and --rust
+        run: |
+          py="$SQLL_TOOLS_DIR/sqlfluff-rs-oracle/bin/python"
+          "$py" scripts/sqlfluff-rule-oracle --rust \
+            --cases 'harness/tests/fixtures/rules/*.yml' --check-prefixes
+          "$py" scripts/sqlfluff-autofix-oracle --rust \
+            --root harness/tests/fixtures/autofix --check-prefixes
+          "$py" scripts/sqlfluff-templater-oracle --rust \
+            --root harness/tests/fixtures/templater --check-prefixes
+
       - name: Check that the sqlfluff submodule is clean
         run: scripts/check-submodule "after the tests"
 
@@ -234,6 +246,19 @@ jobs:
             --out out/templater-oracle.jsonl
           scripts/check-submodule "after the comparison"
 
+      # The sqlfluff tests with the Rust parser and rules (--rust) must give
+      # the same status as the sqlfluff-rs results.
+      - name: Compare the sqlfluff-rs results with the sqlfluff tests
+        run: |
+          py="$SQLL_TOOLS_DIR/sqlfluff-rs-oracle/bin/python"
+          "$py" scripts/sqlfluff-rule-oracle --rust \
+            --report out/report.json --out out/rs-oracle.jsonl
+          "$py" scripts/sqlfluff-autofix-oracle --rust \
+            --report out/report.json --out out/rs-autofix-oracle.jsonl
+          "$py" scripts/sqlfluff-templater-oracle --rust \
+            --report out/report.json --out out/rs-templater-oracle.jsonl
+          scripts/check-submodule "after the comparison"
+
       - if: always()
         uses: actions/upload-artifact@v7
         with:
@@ -243,6 +268,9 @@ jobs:
             out/oracle.jsonl
             out/autofix-oracle.jsonl
             out/templater-oracle.jsonl
+            out/rs-oracle.jsonl
+            out/rs-autofix-oracle.jsonl
+            out/rs-templater-oracle.jsonl
           if-no-files-found: error
 
       - name: Check test jobs

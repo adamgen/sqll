@@ -95,13 +95,16 @@ def merge(
         if g.count != count:
             raise MergeError(f"{suite}/{tool}: {g.count} shards, expected {count}")
 
-    versions: dict[str, str] = {}
+    tool_infos: dict[str, dict] = {}
     results: list[CaseResult] = []
     seen: set[tuple[str, str, str]] = set()
     for name, rep in reports:
         for tool, info in rep["tools"].items():
-            if versions.setdefault(tool, info["version"]) != info["version"]:
+            first = tool_infos.setdefault(tool, info)
+            if first["version"] != info["version"]:
                 raise MergeError(f"{name}: {tool} version {info['version']} differs")
+            if first != info:
+                raise MergeError(f"{name}: {tool} config or preflight differs")
         scope = rep["scope"]
         for case in rep["cases"]:
             r = CaseResult(**case)
@@ -123,7 +126,7 @@ def merge(
             complete,
             every_case_ran=set(all_suites) <= complete,
         )
-    rep = report.build(refs.pop(), versions, results, outcomes, None)
+    rep = report.build(refs.pop(), tool_infos, results, outcomes, None)
     rep["parts"] = sorted(
         (r["scope"] for _, r in reports),
         key=lambda s: json.dumps(s, sort_keys=True),

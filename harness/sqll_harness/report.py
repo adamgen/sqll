@@ -45,18 +45,35 @@ def scope(
     }
 
 
+def tool_entry(
+    version: str, config: dict | None = None, preflight: dict | None = None
+) -> dict:
+    """Return the report record of one tool.
+
+    config is the config layer that the adapter adds to each case.
+    preflight is the details of the tool check (sqll-harness tools).
+    """
+    entry: dict = {"version": version}
+    if config:
+        entry["config"] = config
+    if preflight:
+        entry["preflight"] = preflight
+    return entry
+
+
 def build(
     sqlfluff_ref: str,
-    versions: dict[str, str],
+    tools: dict[str, dict],
     results: list[CaseResult],
     outcomes: dict[str, Outcome],
     run_scope: dict | None,
 ) -> dict:
+    """tools maps each tool to its tool_entry()."""
     ordered = sorted(results, key=lambda r: (r.suite, r.tool, r.id))
     return {
         "sqlfluff_ref": sqlfluff_ref,
         "scope": run_scope,
-        "tools": {name: {"version": v} for name, v in sorted(versions.items())},
+        "tools": dict(sorted(tools.items())),
         "summary": summarize(ordered),
         "known_failures": {
             tool: {

@@ -58,6 +58,7 @@ def test_inputs_include_each_tool_file_and_the_uv_pin():
         "scripts/setup",
         "tools/sqlfluff/uv.lock",
         "tools/sqlfluff-rs/uv.lock",
+        "tools/sqlfluff-rs-oracle/uv.lock",
         "tools/sqruff/uv.lock",
         "tools/sqruff/install.sh",
     ):
@@ -158,3 +159,10 @@ def test_ci_matrix_names_real_suites_and_tools():
         assert e["suite"] in SUITES
         assert e["tool"] in ADAPTERS
     assert matrix.expand(entries)["include"]
+
+
+def test_ci_matrix_runs_sqlfluff_rs_on_each_suite():
+    entries = json.loads((REPO_ROOT / "ci" / "matrix.json").read_text())
+    shards = {(e["suite"], e["tool"]): e["shards"] for e in entries}
+    for suite in SUITES:
+        assert shards[(suite, "sqlfluff-rs")] == shards[(suite, "sqlfluff")]

@@ -2,7 +2,8 @@
 
 These checks of the sqlfluff tests exist only as Python internals, or the CLI
 cannot give the same input. See [README.md](README.md), [rules.md](rules.md),
-[autofix.md](autofix.md), and [templater.md](templater.md).
+[autofix.md](autofix.md), [templater.md](templater.md), and
+[sqlfluff-rs.md](sqlfluff-rs.md).
 
 ## Rule cases
 
@@ -111,3 +112,16 @@ The T3 reviews found these false passes with fixtures that are not in sqlfluff
 - The `_hash` field of the dialect YAML files. It only makes contributors use
   the generator script. The tree check is sufficient.
 - `test__dialect__base_broad_fix`. It has no expected result in data.
+
+## sqlfluff-rs
+
+- No sqlfluff test compares a tree of the Rust parser with a dialect YAML
+  file: `test__dialect__base_parse_struct` always uses the Python `Parser`.
+  Thus the `dialects` suite has no oracle for `sqlfluff-rs`.
+- sqlfluff does not log the Rust detection of a rule (`use_rust_rules`: CP01,
+  CP03, CP04 in 4.4.0). The harness cannot show that it ran. It finds only
+  the warning `falling back to Python` (no Rust parse arena). The oracles set
+  the same config.
+- The oracles add the 2 keys under the config of the test. The adapter adds
+  them over the config files of the case, and gives `error` if the case sets
+  one of them. No 4.4.0 case sets them, so the 2 configs are equal.

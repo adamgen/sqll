@@ -88,9 +88,14 @@ class ToolNotInstalled(Exception):
 
 
 class Adapter(ABC):
-    """Runs one tool through its binary. Never through function calls."""
+    """Runs one tool through its binary. Never through function calls.
+
+    config_layer is the config that the adapter adds to each case, in the
+    sqlfluff config structure. The report shows it.
+    """
 
     name: str
+    config_layer: dict[str, Any] | None = None
 
     @abstractmethod
     def version(self) -> str:

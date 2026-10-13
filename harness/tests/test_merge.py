@@ -20,7 +20,9 @@ def _report(
     ]
     run_shard = (k, n) if k else None
     scope = report.scope([suite], [tool], flt, run_shard)
-    return report.build(ref, {tool: "1.0"}, results, {tool: Outcome()}, scope)
+    return report.build(
+        ref, {tool: report.tool_entry("1.0")}, results, {tool: Outcome()}, scope
+    )
 
 
 def _shards(n, ids=IDS, **kw):
@@ -85,7 +87,13 @@ def test_new_failure_and_listed_failure_in_shards(tmp_path):
         reports.append(
             (
                 f"s{k}",
-                report.build("r1", {"t": "1.0"}, results, {"t": Outcome()}, scope),
+                report.build(
+                    "r1",
+                    {"t": report.tool_entry("1.0")},
+                    results,
+                    {"t": Outcome()},
+                    scope,
+                ),
             )
         )
     known = _known(tmp_path, IDS[0])
@@ -122,6 +130,27 @@ def test_different_refs_and_versions_are_errors(tmp_path):
     b[1]["tools"]["t"]["version"] = "2.0"
     with pytest.raises(merge.MergeError, match="version 2.0 differs"):
         merge.merge([a, b], tmp_path, SUITES)
+
+
+def test_different_tool_config_is_an_error(tmp_path):
+    a, b = _shards(2)
+    b[1]["tools"]["t"]["config"] = {"core": {"use_rust_parser": True}}
+    with pytest.raises(merge.MergeError, match="t config or preflight differs"):
+        merge.merge([a, b], tmp_path, SUITES)
+
+
+def test_tool_config_and_preflight_are_kept(tmp_path):
+    entry = report.tool_entry("1.0", {"core": {"x": True}}, {"check": True})
+    assert entry == {
+        "version": "1.0",
+        "config": {"core": {"x": True}},
+        "preflight": {"check": True},
+    }
+    assert report.tool_entry("1.0", None, {}) == {"version": "1.0"}
+    a, b = _shards(2)
+    a[1]["tools"]["t"] = b[1]["tools"]["t"] = entry
+    rep, _ = merge.merge([a, b], tmp_path, SUITES)
+    assert rep["tools"] == {"t": entry}
 
 
 def test_duplicate_case_is_an_error(tmp_path):

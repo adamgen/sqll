@@ -56,4 +56,5 @@ The Python dependencies of each tool are in `tools/<tool>/uv.lock`.
 
 The oracle scripts (`scripts/sqlfluff-*-oracle`) run the pinned sqlfluff with
 pytest 9.1.1 (PyPI `pytest`, MIT), pinned in `tools/sqlfluff-oracle/uv.lock`.
-The harness does not use it.
+With `--rust` they run the pinned `sqlfluff[rs]` and pytest of
+`tools/sqlfluff-rs-oracle/uv.lock`. The harness does not use them.
