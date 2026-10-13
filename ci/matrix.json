@@ -1,4 +1,5 @@
 [
  {"suite": "dialects", "tool": "sqlfluff", "shards": 6},
- {"suite": "rules", "tool": "sqlfluff", "shards": 8}
+ {"suite": "rules", "tool": "sqlfluff", "shards": 8},
+ {"suite": "autofix", "tool": "sqlfluff", "shards": 1}
 ]

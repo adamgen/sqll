@@ -31,7 +31,8 @@ setting. Needs: uv, Python 3.13 with a shared libpython, and cargo.
 | `sqlfluff-rs` | `tools/sqlfluff-rs/uv.lock` | `<dir>/sqlfluff-rs` (venv with `sqlfluffrs`) |
 | `sqruff` | `tools/sqruff/uv.lock` | `<dir>/sqruff/bin/sqruff` and `<dir>/sqruff/python` |
 
-It also installs `<dir>/sqlfluff-oracle` for `scripts/sqlfluff-rule-oracle`.
+It also installs `<dir>/sqlfluff-oracle` for the oracle scripts
+(`scripts/sqlfluff-rule-oracle`, `scripts/sqlfluff-autofix-oracle`).
 
 `tools/sqruff/install.sh` builds sqruff with `cargo install --locked
 --features parser,python`. The `parser` feature adds the `parse` command. The
@@ -57,12 +58,13 @@ CI (`.github/workflows/ci.yml`):
 
 1. `image`: `ci/image_tag.py` hashes all inputs of `ci/Dockerfile`. If
    `ghcr.io/adamgen/sqll-ci:<hash>` does not exist, CI builds and pushes it.
-2. `lint`: `sqll-harness tools`, ruff, the unit tests, and the oracle on the
-   harness rule fixtures, in the image.
+2. `lint`: `sqll-harness tools`, ruff, the unit tests, and the oracles on
+   the harness rule and autofix fixtures, in the image.
 3. `test`: one job for each suite, tool, and shard in `ci/matrix.json`.
 4. `report`: `sqll-harness merge --expect ci/matrix.json`, then
-   `scripts/sqlfluff-rule-oracle` on the merged report. It uploads
-   `out/report.json` and `out/oracle.jsonl`.
+   `scripts/sqlfluff-rule-oracle` and `scripts/sqlfluff-autofix-oracle` on
+   the merged report. It uploads `out/report.json`, `out/oracle.jsonl`, and
+   `out/autofix-oracle.jsonl`.
 
 To add a suite or a tool to CI, add an entry to `ci/matrix.json`.
 
@@ -72,6 +74,7 @@ To add a suite or a tool to CI, add an entry to `ci/matrix.json`.
 |---|---|---|
 | `dialects` | `test/fixtures/dialects/<d>/*.sql` with `.yml` or `_nc.yml` | `exact`, `no_unparsable` |
 | `rules` | each case key in `test/fixtures/rules/std_rule_cases/*.yml` | `pass_str`, `fail_str`, `fix`, `after_fix` |
+| `autofix` | each entry `test/fixtures/linter/autofix/<d>/<case>` | `tree`, `non_linting`, `violations`, `fix` |
 
 Dialect case id: `dialects/<dialect>/<stem>` (`<stem>_nc` for `_nc.yml`).
 
@@ -84,8 +87,8 @@ Dialect case id: `dialects/<dialect>/<stem>` (`<stem>_nc` for `_nc.yml`).
 
 A case passes only if all its checks pass.
 
-The sqlfluff adapter uses `--templater raw`, because the sqlfluff test does not
-use a templater. Extra config goes in a temporary file named `pyproject.toml`,
+In this suite the sqlfluff adapter uses `--templater raw`, because the sqlfluff
+test does not use a templater. Extra config goes in a temporary file named `pyproject.toml`,
 because sqlfluff reads a config file as TOML only with that name. It also uses
 `--ignore-local-config`, because the sqlfluff test reads no config file. Without
 it the CLI reads the `.sqlfluff` files in `test/fixtures/dialects/<d>/`.
@@ -97,6 +100,14 @@ checks, the lists of violations that each check uses, and the comparison with
 the sqlfluff test (`scripts/sqlfluff-rule-oracle`).
 [not-reproduced.md](not-reproduced.md) gives the checks of the sqlfluff tests
 that the harness does not reproduce.
+
+## Autofix cases
+
+Autofix case id: `autofix/<dialect>/<case>`. [autofix.md](autofix.md) gives
+the checks and the comparison with the sqlfluff test
+(`scripts/sqlfluff-autofix-oracle`). In this suite the tool reads the config
+files of the case as for a user, with the sqlfluff root as the current
+folder.
 
 ## Report: `out/report.json`
 

@@ -58,6 +58,33 @@ class FixResult:
     stderr: str = ""
 
 
+@dataclass
+class FileFixResult:
+    """The result of one fix of a SQL file with the config files of the user.
+
+    violations: the violations that the tool found in fix mode, with no
+    ignored or noqa-masked ones. Each is a dict with the keys code,
+    start_line_no, start_line_pos, and warning. None if the run does not
+    show them.
+    linted: True if the tool linted the file, None if the run does not show
+    it.
+    unparsable_gate: the tool did not apply fixes because the file has a
+    templating or parse error. The tool counts also ignored and noqa-masked
+    errors for this.
+    critical: as for FixResult.
+    errors: why the run gave no usable result. Then the other fields are not
+    known.
+    """
+
+    violations: list[dict[str, Any]] | None = None
+    linted: bool | None = None
+    unparsable_gate: bool = False
+    critical: list[str] = field(default_factory=list)
+    errors: list[str] = field(default_factory=list)
+    rc: int = 0
+    stderr: str = ""
+
+
 class ToolNotInstalled(Exception):
     """The tool binary is not installed."""
 
@@ -114,6 +141,31 @@ class Adapter(ABC):
         """Fix one SQL file in workdir with only these rules.
 
         The arguments are as for lint(). The tool can change the file.
+        """
+
+    @abstractmethod
+    def parse_file(self, sql_path: Path, dialect: str, cwd: Path) -> ParseResult:
+        """Parse one SQL file, as a user runs the tool in cwd.
+
+        The tool reads the config files of the user, as for fix_file(). tree
+        is None if the tool parsed the file but has no tree for it. errors
+        is not empty if the tool gave no usable output.
+        """
+
+    @abstractmethod
+    def fix_file(
+        self,
+        sql_path: Path,
+        rules: list[str] | None,
+        dialect: str,
+        cwd: Path,
+        show_violations: bool = False,
+    ) -> FileFixResult:
+        """Fix one SQL file in place, as a user runs the tool in cwd.
+
+        The tool reads the config files of the user: those near the file and
+        in cwd. rules None means the rules of the config. With
+        show_violations, the result has the violations and the linted flag.
         """
 
 

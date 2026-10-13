@@ -13,6 +13,11 @@ Test data that the harness reads:
 - `test/fixtures/dialects/`: SQL files and expected parse trees.
 - `test/fixtures/rules/std_rule_cases/`: rule cases (SQL, config, lint and
   fix results).
+- `test/fixtures/linter/autofix/`: autofix cases (SQL before and after the
+  fix, config, violations).
+
+`scripts/sqlfluff-autofix-oracle` imports and runs
+`test/rules/std_fix_auto_test.py` from the submodule. The harness does not.
 
 Ported code (MIT, attribution in each file header):
 
@@ -21,7 +26,8 @@ Ported code (MIT, attribution in each file header):
 | `harness/sqll_harness/compare.py` | `test/conftest.py` (`process_struct`, `load_yaml`), `test/dialects/dialects_test.py` (empty-tree rule) |
 | `harness/sqll_harness/suites/dialects.py` | `test/conftest.py` (`get_parse_fixtures`, `DEEP_PARSE_DEPTH_OVERRIDES`) |
 | `harness/sqll_harness/suites/rules.py` | `src/sqlfluff/utils/testing/rules.py` (`load_test_cases`, `_setup_config`, `assert_rule_fail_in_sql`, `assert_rule_pass_in_sql`, `prep_violations`, `rules__test_helper`) |
-| `scripts/sqlfluff-rule-oracle` | `test/conftest.py` (`fail_on_parse_error_after_fix`) |
+| `harness/sqll_harness/suites/autofix.py` | `test/rules/std_fix_auto_test.py` (`test_cases`, `auto_fix_test`) |
+| `scripts/sqlfluff_oracle.py` | `test/conftest.py` (`fail_on_parse_error_after_fix`) |
 
 ## Tools
 
@@ -39,6 +45,6 @@ repository. We do not distribute the tools in another way.
 
 The Python dependencies of each tool are in `tools/<tool>/uv.lock`.
 
-`scripts/sqlfluff-rule-oracle` runs the pinned sqlfluff with pytest 9.1.1
-(PyPI `pytest`, MIT), pinned in `tools/sqlfluff-oracle/uv.lock`. The harness
-does not use it.
+The oracle scripts (`scripts/sqlfluff-*-oracle`) run the pinned sqlfluff with
+pytest 9.1.1 (PyPI `pytest`, MIT), pinned in `tools/sqlfluff-oracle/uv.lock`.
+The harness does not use it.

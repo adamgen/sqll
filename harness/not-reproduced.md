@@ -1,7 +1,8 @@
 # Checks that the harness does not reproduce
 
 These checks of the sqlfluff tests exist only as Python internals, or the CLI
-cannot give the same input. See [README.md](README.md) and [rules.md](rules.md).
+cannot give the same input. See [README.md](README.md), [rules.md](rules.md),
+and [autofix.md](autofix.md).
 
 ## Rule cases
 
@@ -59,6 +60,32 @@ The T3 reviews found these false passes with fixtures that are not in sqlfluff
   With `violations` from fix mode, the harness gives `fail` and the test
   passes. 2 real cases have a template tag and `violations`, so the harness
   cannot fail closed.
+
+## Autofix cases
+
+- `sqlfluff fix` does not apply fixes to a file with a TMP or PRS violation,
+  also an ignored or noqa-masked one, if `fix_even_unparsable` is not set.
+  The test applies them. If `fix` reports this and the test does not stop at
+  `non_linting`, the status is `error`. No 4.4.0 case has this condition.
+- The test fails on conflicting fixes for one anchor
+  (`fail_on_parse_error_after_fix`). A rule exception only gives a lint
+  error. `sqlfluff fix` logs both as `CRITICAL`. If it logs one, the status
+  is `error`. No 4.4.0 case has this condition.
+- If the linter crashes on the file, the test fails (`LintedDir empty`).
+  `sqlfluff fix` logs a traceback, and the status is `error`. No 4.4.0 case
+  has this condition.
+- The text output of `fix` has no warning field. The harness finds a warning
+  by the prefix `WARNING: ` of its description. A violation that is not a
+  warning and has a description with this prefix is read as a warning. No
+  4.4.0 case config sets `warnings`, and the 61 cases show 490 violations
+  with no warning.
+- The test reads and writes the files with the locale encoding. The harness
+  uses UTF-8. All 4.4.0 autofix files are ASCII.
+- The harness writes the files in `<tmp>/fix/` and `<tmp>/show/`, the test in
+  `<tmp>/`. sqlfluff reads the config files of each parent folder. The
+  folder between them has no config file.
+- The test sets the `DEBUG` level of 2 loggers with `caplog`. This changes
+  only the log.
 
 ## Dialect cases
 

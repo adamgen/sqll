@@ -93,9 +93,13 @@ jobs:
           "$SQLL_TOOLS_DIR/sqruff/bin/sqruff" templaters
 
       - name: Lint
+        env:
+          ORACLES: >-
+            scripts/sqlfluff_oracle.py scripts/sqlfluff-rule-oracle
+            scripts/sqlfluff-autofix-oracle
         run: |
-          uv run --frozen --project harness ruff check harness ci scripts/sqlfluff-rule-oracle
-          uv run --frozen --project harness ruff format --check harness ci scripts/sqlfluff-rule-oracle
+          uv run --frozen --project harness ruff check harness ci $ORACLES
+          uv run --frozen --project harness ruff format --check harness ci $ORACLES
 
       - name: Unit tests
         env:
@@ -108,6 +112,13 @@ jobs:
         run: >-
           "$SQLL_TOOLS_DIR/sqlfluff-oracle/bin/python" scripts/sqlfluff-rule-oracle
           --cases 'harness/tests/fixtures/rules/*.yml' --check-prefixes
+
+      # The name prefix of each harness autofix fixture must agree with the
+      # sqlfluff test.
+      - name: Check the harness autofix fixtures with the sqlfluff test
+        run: >-
+          "$SQLL_TOOLS_DIR/sqlfluff-oracle/bin/python" scripts/sqlfluff-autofix-oracle
+          --root harness/tests/fixtures/autofix --check-prefixes
 
       - name: Check that the sqlfluff submodule is clean
         run: scripts/check-submodule "after the tests"
@@ -200,6 +211,14 @@ jobs:
             --out out/oracle.jsonl
           scripts/check-submodule "after the comparison"
 
+      # The sqlfluff test of each autofix case must give the same status.
+      - name: Compare the autofix results with the sqlfluff test
+        run: |
+          "$SQLL_TOOLS_DIR/sqlfluff-oracle/bin/python" \
+            scripts/sqlfluff-autofix-oracle --report out/report.json \
+            --out out/autofix-oracle.jsonl
+          scripts/check-submodule "after the comparison"
+
       - if: always()
         uses: actions/upload-artifact@v7
         with:
@@ -207,6 +226,7 @@ jobs:
           path: |
             out/report.json
             out/oracle.jsonl
+            out/autofix-oracle.jsonl
           if-no-files-found: error
 
       - name: Check test jobs

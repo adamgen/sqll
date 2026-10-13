@@ -14,6 +14,7 @@ from ..paths import tools_dir
 from .base import (
     Adapter,
     EmptyHome,
+    FileFixResult,
     FixResult,
     LintResult,
     ParseResult,
@@ -155,6 +156,53 @@ class SqlfluffAdapter(Adapter):
             fixed, errors, critical=critical, rc=proc.returncode, stderr=proc.stderr
         )
 
+    def parse_file(self, sql_path: Path, dialect: str, cwd: Path) -> ParseResult:
+        self._check()
+        cmd = [str(self.binary), "parse", "-f", "json", "--dialect", dialect]
+        cmd.append(str(sql_path))
+        proc = self._run(cmd, cwd)
+        return _parse_file_output(proc.stdout, proc.returncode, proc.stderr)
+
+    def fix_file(
+        self,
+        sql_path: Path,
+        rules: list[str] | None,
+        dialect: str,
+        cwd: Path,
+        show_violations: bool = False,
+    ) -> FileFixResult:
+        # No --ignore-local-config and no --config: the tool reads the config
+        # files near the file and in cwd. --nocolor only removes colors.
+        self._check()
+        cmd = [str(self.binary), "fix", "--nocolor", "--dialect", dialect]
+        if rules is not None:
+            cmd += ["--rules", ",".join(rules)]
+        if show_violations:
+            cmd.append("--show-lint-violations")
+        cmd.append(str(sql_path))
+        proc = self._run(cmd, cwd)
+        stdout = _ANSI.sub("", proc.stdout)
+        stderr = _ANSI.sub("", proc.stderr)
+        result = FileFixResult(
+            unparsable_gate=bool(_UNPARSABLE_GATE.search(stderr)),
+            critical=_critical_logs(stdout + "\n" + stderr),
+            rc=proc.returncode,
+            stderr=proc.stderr,
+        )
+        # Exit code 1 means that violations or parse errors remain.
+        if proc.returncode not in (0, 1):
+            result.errors.append(_exit_reason(proc.returncode, proc.stderr))
+        if _TRACEBACK in proc.stderr or _TRACEBACK in proc.stdout:
+            result.errors.append("the tool crashed")
+        if show_violations and not result.errors:
+            try:
+                result.violations, result.linted = fix_output_violations(
+                    stdout, str(sql_path)
+                )
+            except ValueError as exc:
+                result.errors.append(f"fix output: {exc}")
+        return result
+
     def _run(self, cmd: list[str], cwd: Path) -> subprocess.CompletedProcess:
         return subprocess.run(
             cmd,
@@ -170,6 +218,18 @@ _TRACEBACK = "Traceback (most recent call last)"
 _ANSI = re.compile(r"\x1b\[[0-9;]*m")
 # The log format of the CLI is "%(levelname)-10s %(message)s".
 _CRITICAL = re.compile(r"^CRITICAL\s+(.*)$", re.MULTILINE)
+# "sqlfluff fix" prints this on stderr if it does not apply fixes to a file
+# with a templating or parse error (also an ignored one), because
+# fix_even_unparsable is not set (_handle_unparsable).
+_UNPARSABLE_GATE = re.compile(r"^\s*\[\d+ templating/parsing errors found\]", re.M)
+# The text output of a violation (OutputStreamFormatter.format_violation):
+# "L:  <line> | P:  <pos> | <code> | <description>". A long description
+# continues on lines that start with 23 spaces and "| ".
+_VIOLATION = re.compile(r"^L:\s*(\d+|-) \| P:\s*(\d+|-) \| +(\S+) \| (.*)$")
+_CONTINUATION = re.compile(r"^ {23}\| ")
+_WARNING_PREFIX = "WARNING: "
+_FIX_START = "==== finding fixable violations ===="
+_UNFIXABLE_START = "==== lint for unfixable violations ===="
 
 
 def _exit_reason(rc: int, stderr: str) -> str:
@@ -187,6 +247,72 @@ def _exit_reason(rc: int, stderr: str) -> str:
 def _critical_logs(output: str) -> list[str]:
     """Return the first line of each CRITICAL log message in output."""
     return [m.strip() for m in _CRITICAL.findall(_ANSI.sub("", output))]
+
+
+def fix_output_violations(stdout: str, path: str) -> tuple[list[dict[str, Any]], bool]:
+    """Read the output of "sqlfluff fix --show-lint-violations --nocolor".
+
+    Return the violations of the file at path and True if the tool linted
+    the file. stdout must have no ANSI codes.
+
+    The first section has, for each file with violations, a line
+    "== [<path>] PASS|FAIL" and one line for each violation that is not
+    ignored or masked by noqa (get_violations with warnings). PASS means that
+    all of them are warnings. A line "== [<path>] FIXED|FAIL" with no
+    violation lines after it is the result of the fix. The last section has
+    a line "== [<path>] ..." for each file that the tool linted.
+    """
+    lines = stdout.splitlines()
+    if lines.count(_FIX_START) != 1 or lines.count(_UNFIXABLE_START) != 1:
+        raise ValueError("the fix output does not have the 2 sections")
+    split = lines.index(_UNFIXABLE_START)
+    if lines.index(_FIX_START) > split:
+        raise ValueError("the fix output sections are not in order")
+    header = re.compile(r"^== \[" + re.escape(path) + r"\] (\S+)$")
+    linted = any(header.match(line) for line in lines[split + 1 :])
+    violations: list[dict[str, Any]] = []
+    blocks = 0
+    i = 0
+    first = lines[:split]
+    while i < len(first):
+        m = header.match(first[i])
+        if not m or i + 1 >= len(first) or not _VIOLATION.match(first[i + 1]):
+            if _VIOLATION.match(first[i]):
+                raise ValueError(f"a violation line has no file line: {first[i]!r}")
+            i += 1
+            continue
+        blocks += 1
+        status = m.group(1)
+        block = []
+        i += 1
+        while i < len(first) and (
+            _VIOLATION.match(first[i]) or _CONTINUATION.match(first[i])
+        ):
+            v = _VIOLATION.match(first[i])
+            if v:
+                line_no, line_pos, code, desc = v.groups()
+                block.append(
+                    {
+                        "code": code,
+                        "start_line_no": None if line_no == "-" else int(line_no),
+                        "start_line_pos": None if line_pos == "-" else int(line_pos),
+                        "warning": desc.startswith(_WARNING_PREFIX),
+                    }
+                )
+            i += 1
+        fails = any(not v["warning"] for v in block)
+        if status != ("FAIL" if fails else "PASS"):
+            raise ValueError(
+                f"the file line says {status}, but the file has "
+                f"{sum(not v['warning'] for v in block)} violations that are "
+                "not warnings"
+            )
+        violations += block
+    if blocks > 1:
+        raise ValueError("the fix output has the violations of the file 2 times")
+    if violations and not linted:
+        raise ValueError("the fix output has violations but the file is not linted")
+    return violations, linted
 
 
 def _rule_args(
@@ -231,6 +357,34 @@ def _lint_output(
     if rc != 0:
         errors.append(_exit_reason(rc, stderr))
     return LintResult(violations, errors, rc, stderr)
+
+
+def _parse_file_output(stdout: str, rc: int, stderr: str) -> ParseResult:
+    """Read "parse -f json" output for one file.
+
+    "segments" is null if the root variant has no tree: the file did not
+    template or did not parse. A TMP, LXR, or PRS violation sets exit code 1.
+    """
+    errors: list[str] = []
+    tree = None
+    try:
+        records = json.loads(stdout)
+        if len(records) != 1:
+            raise ValueError(f"{len(records)} records")
+        tree = records[0]["segments"]
+    except (ValueError, IndexError, KeyError, TypeError):
+        errors.append("no JSON parse output for the file")
+    if rc not in (0, 1):
+        errors.append(_exit_reason(rc, stderr))
+    if _TRACEBACK in stderr or _TRACEBACK in stdout:
+        errors.append("the tool crashed")
+    return ParseResult(
+        tree=tree,
+        has_unparsable=has_node(tree, "unparsable"),
+        errors=errors,
+        rc=rc,
+        stderr=stderr,
+    )
 
 
 def _parse_output(stdout: str, rc: int, stderr: str) -> ParseResult:

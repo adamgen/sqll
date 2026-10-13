@@ -9,8 +9,8 @@
 |---|---|---|
 | T1 | Harness foundation: submodule, CI, `scripts/test`, sqlfluff parse adapter, dialect suite | Done (PR #3) |
 | T2 | CI image in GHCR, all 3 tools pinned, sharded CI matrix | Done (PR #4) |
-| T3 | Rule case suite (`std_rule_cases`), sqlfluff lint and fix | In review |
-| T4 | Autofix suite (`linter/autofix`) for sqlfluff | Open |
+| T3 | Rule case suite (`std_rule_cases`), sqlfluff lint and fix | Done (PR #5) |
+| T4 | Autofix suite (`linter/autofix`) for sqlfluff | In review |
 | T5 | Templater suite for sqlfluff | Open |
 | T6 | `sqlfluff[rs]` adapter on all 4 suites, results recorded | Open |
 | T7 | sqruff adapter on all 4 suites, results recorded | Open |
@@ -27,9 +27,11 @@ sqlfluff 4.4.0, `sqlfluff[rs]` 4.4.0 with sqlfluffrs 4.4.0, sqruff 0.41.0
 |---|---|---|---|---|---|
 | dialects | sqlfluff 4.4.0 | 2306 | 2306 | 0 | exact 2306, no_unparsable 2306 |
 | rules | sqlfluff 4.4.0 | 2527 | 2527 | 0 | after_fix 851, fail_str 1193, fix 1193, pass_str 1332 |
+| autofix | sqlfluff 4.4.0 | 61 | 61 | 0 | fix 61, non_linting 61, tree 61, violations 1 |
 
-The sqlfluff rule test passes the same 2527 rule cases
-(`scripts/sqlfluff-rule-oracle`: 0 differences; CI checks this).
+The sqlfluff tests pass the same cases, with 0 differences
+(`scripts/sqlfluff-rule-oracle`: 2527 rule cases;
+`scripts/sqlfluff-autofix-oracle`: 61 autofix cases). CI checks this.
 
 ## Known failures
 
