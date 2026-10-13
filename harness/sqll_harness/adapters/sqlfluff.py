@@ -186,8 +186,6 @@ class SqlfluffAdapter(Adapter):
         result = FileFixResult(
             unparsable_gate=bool(_UNPARSABLE_GATE.search(stderr)),
             critical=_critical_logs(stdout + "\n" + stderr),
-            rc=proc.returncode,
-            stderr=proc.stderr,
         )
         # Exit code 1 means that violations or parse errors remain.
         if proc.returncode not in (0, 1):

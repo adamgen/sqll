@@ -1,3 +1,4 @@
+import dataclasses
 import json
 import shutil
 import tempfile
@@ -13,7 +14,7 @@ from sqll_harness.adapters.sqlfluff import (
     fix_output_violations,
 )
 from sqll_harness.cases import ERROR, FAIL, PASS
-from sqll_harness.paths import SQLFLUFF_ROOT
+from sqll_harness.paths import REPO_ROOT, SQLFLUFF_ROOT
 from sqll_harness.suites import autofix
 
 FIXTURES = Path(__file__).parent / "fixtures" / "autofix"
@@ -268,13 +269,16 @@ class FakeAdapter:
         self.result = kw
         self.calls = []
         self.files = []
+        self.paths = []
 
     def parse_file(self, sql_path, dialect, cwd):
         self.calls.append(("parse", sql_path.name, dialect, cwd))
+        self.paths.append(sql_path)
         return ParseResult(tree=self.tree, has_unparsable=False)
 
     def fix_file(self, sql_path, rules, dialect, cwd, show_violations=False):
         self.calls.append(("fix", sql_path.name, rules, dialect, cwd, show_violations))
+        self.paths.append(sql_path)
         self.files.append(
             {p.name: p.read_bytes() for p in sorted(sql_path.parent.iterdir())}
         )
@@ -305,6 +309,26 @@ def test_run_calls_and_checks(tmp_path):
         "testing.sql": b"SELECT a  +  b\n",
     }
     assert adapter.files == [want, want]
+
+
+def test_run_uses_2_copies_as_autofix_md_says(tmp_path):
+    # harness/autofix.md: parse and fix in <tmp>/fix/, and
+    # fix --show-lint-violations in <tmp>/show/.
+    adapter = FakeAdapter()
+    autofix.run(adapter, _case(tmp_path, {}), SQLFLUFF_ROOT)
+    parse, fix, show = adapter.paths
+    assert parse == fix
+    assert fix.parent.name == "fix"
+    assert show.parent.name == "show"
+    assert show.parent.parent == fix.parent.parent
+    doc = (REPO_ROOT / "harness" / "autofix.md").read_text()
+    assert "3 commands on 2 copies" in doc
+    assert "each on a new copy" not in doc
+
+
+def test_file_fix_result_docstring_describes_each_field():
+    for f in dataclasses.fields(FileFixResult):
+        assert f"{f.name}:" in FileFixResult.__doc__, f.name
 
 
 def test_run_with_all_rules_gives_no_rules(tmp_path):

@@ -32,7 +32,9 @@ for the test, because a case config can load macros with a path relative to
 it. The tool reads the config files as for a user. The harness gives only
 `--dialect <dialect>` and `--rules`.
 
-The sqlfluff adapter runs 3 commands, each on a new copy of the files:
+The sqlfluff adapter runs 3 commands on 2 copies of the files: `parse` and
+`fix` in `<tmp>/fix/`, and `fix --show-lint-violations` in `<tmp>/show/`.
+`parse` does not change the files.
 
 1. `parse -f json`: `"segments"` is null if the file has no parse tree.
 2. `fix`: this gives the fixed file. If `fix` does not apply fixes because

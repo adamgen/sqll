@@ -142,10 +142,11 @@ def run(adapter: Adapter, case: AutofixCase, sqlfluff_root: Path) -> CaseResult:
     """Run one case as auto_fix_test in sqlfluff does.
 
     The current folder of the tool is the sqlfluff root, as for the test: a
-    case config can load macros with a path relative to it. The harness
-    parses the file, then runs "fix" 2 times, each on a new copy: one run
-    gives the fixed file and tells if the tool did not fix because of a
-    parse error; one run shows the violations.
+    case config can load macros with a path relative to it. There are 2
+    copies of the files. In <tmp>/fix/ the harness parses the file (parse
+    does not change it), then runs "fix": this gives the fixed file and
+    tells if the tool did not fix because of a parse error. In <tmp>/show/
+    it runs "fix" that shows the violations.
     """
     # The test reads these files. If one is missing or not valid, it fails.
     try:

@@ -81,8 +81,6 @@ class FileFixResult:
     unparsable_gate: bool = False
     critical: list[str] = field(default_factory=list)
     errors: list[str] = field(default_factory=list)
-    rc: int = 0
-    stderr: str = ""
 
 
 class ToolNotInstalled(Exception):
