@@ -140,3 +140,31 @@ causes.
 - The oracles add the 2 keys under the config of the test. The adapter adds
   them over the config files of the case, and gives `error` if the case sets
   one of them. No 4.4.0 case sets them, so the 2 configs are equal.
+
+## sqruff
+
+No sqlfluff test runs sqruff, so the harness compares the sqruff output with
+the data of the fixture. See [sqruff.md](sqruff.md). Limits:
+
+- The code-only filter decides "code" by the segment type. The `code_only`
+  suite proves it on the sqlfluff trees of all 2306 dialect cases. A sqruff
+  segment that is code but has the type of a sqlfluff non-code segment (for
+  example `comment`) is removed. A sqruff segment that is not code and has
+  another type stays, and the tree differs. No 4.4.0 case shows this.
+- The rule suite does not use `fix_not_shown` for sqruff: the lint output
+  has no `fixes` field. The `fix` check compares the file that `sqruff fix`
+  wrote. If a TMP or PRS that `ignore` hides stops the fix, and the case has
+  no `fix_str`, the check passes. No 4.4.0 rule case sets `ignore`.
+- In `fix_file`, the harness finds that sqruff did not write the file only
+  from a TMP or PRS in the `fix -f json` output. A TMP or PRS that `ignore`
+  hides is not in the output. Then the `fix` check compares the file. The
+  4.4.0 autofix case with `ignore = templating` sets `fix_even_unparsable`.
+- "unsupported" follows the sqruff documentation. sqruff 0.41.0 reads some
+  settings that its documentation does not have (these cases fail with
+  `unsupported: setting`). It does not read the documented
+  `templater.jinja.library_path` (it reads `library_paths`); these cases run
+  and fail.
+- sqruff and sqlfluff convert an INI value in the same way (int, float,
+  bool, none, else text). A YAML string such as `"5"` becomes the int 5.
+  A list in the template variables is written as Python text; the templater
+  reads it with `ast.literal_eval`.

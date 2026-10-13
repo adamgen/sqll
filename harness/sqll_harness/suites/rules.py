@@ -18,7 +18,7 @@ from typing import Any
 import yaml
 
 from ..adapters import Adapter
-from ..adapters.base import LintResult
+from ..adapters.base import LintResult, Unsupported
 from ..cases import ERROR, FAIL, PASS, SKIP, CaseResult
 
 NAME = "rules"
@@ -391,6 +391,7 @@ def run(adapter: Adapter, case: RuleCase, sqlfluff_root: Path) -> CaseResult:
         return CaseResult(
             case.id, NAME, adapter.name, ERROR, reason=INLINE_CONFIG_REASON
         )
+    check_fields(adapter, case)
     codes = rule_codes(case.rule)
     dialect = default_dialect(case.configs)
     checks: dict[str, bool] = {}
@@ -510,6 +511,24 @@ def run(adapter: Adapter, case: RuleCase, sqlfluff_root: Path) -> CaseResult:
         checks=checks,
         reason="; ".join(reasons + unknown),
     )
+
+
+def check_fields(adapter: Adapter, case: RuleCase) -> None:
+    """Raise Unsupported if the case compares a violation field that the
+    lint output of the tool does not have."""
+    fields = getattr(adapter, "lint_fields", None)
+    if fields is None:
+        return
+    for name in ("violations", "violations_after_fix"):
+        expected = getattr(case, name) or []
+        # prep_violations gives a code to a violation that has none.
+        missing = {k for v in expected for k in v if k != "code"}
+        missing -= fields
+        if missing:
+            raise Unsupported(
+                f"output field {', '.join(sorted(missing))} (the case "
+                f"compares '{name}'; the lint output has no such field)"
+            )
 
 
 def noqa_mask_active(lints: list[LintResult], paths: list[Path]) -> bool:

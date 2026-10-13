@@ -215,7 +215,9 @@ def run(adapter: Adapter, case: AutofixCase, sqlfluff_root: Path) -> CaseResult:
     checks: dict[str, bool] = {"tree": True}
     reasons: list[str] = []
     unknown: list[str] = []
-    shown = [v for v in show_run.violations or [] if not v["warning"]]
+    # A tool with no warning field (sqruff) gives no "warning" key; the
+    # adapter fails the case if the config sets warnings.
+    shown = [v for v in show_run.violations or [] if not v.get("warning")]
     non_lint = [v for v in shown if v["code"] in NON_LINT_CODES]
     raises = bool(test_config.raise_on_non_linting_violations) and bool(non_lint)
     if test_config.raise_on_non_linting_violations:

@@ -11,6 +11,7 @@ from pathlib import Path
 from . import known_failures, report
 from .cases import CaseResult
 from .known_failures import Outcome
+from .suites import SUITES, runs_for
 
 
 class MergeError(Exception):
@@ -78,9 +79,10 @@ def merge(
 ) -> tuple[dict, dict[str, Outcome]]:
     """Merge (name, report) pairs. Return the report and the outcome of each tool.
 
-    all_suites are the suites that the harness has. If each of them ran
-    completely for a tool, each listed id of that tool that did not run is
-    not found, also when its suite is not known.
+    all_suites are the suites that the harness has. If each of them that
+    runs for a tool (suites.runs_for) ran completely for it, each listed id
+    of that tool that did not run is not found, also when its suite is not
+    known.
     """
     if not reports:
         raise MergeError("no reports to merge")
@@ -120,11 +122,14 @@ def merge(
     outcomes = {}
     for tool in tools:
         complete = {s for (s, t), g in groups.items() if t == tool and not g.filter}
+        tool_suites = {
+            s for s in all_suites if s not in SUITES or runs_for(SUITES[s], tool)
+        }
         outcomes[tool] = known_failures.evaluate(
             [r for r in results if r.tool == tool],
             known_failures.load(known_dir, tool),
             complete,
-            every_case_ran=set(all_suites) <= complete,
+            every_case_ran=tool_suites <= complete,
         )
     rep = report.build(refs.pop(), tool_infos, results, outcomes, None)
     rep["parts"] = sorted(

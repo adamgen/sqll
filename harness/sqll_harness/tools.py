@@ -22,6 +22,7 @@ from typing import Any
 from .adapters.base import EmptyHome, isolated_env
 from .adapters.sqlfluff import CONFIG_NAME, sqlfluff_toml
 from .adapters.sqlfluff_rs import FALLBACK_WARNING, RUST_CONFIG
+from .adapters.sqruff import sqruff_env
 from .paths import TOOL_SPECS_DIR, tools_dir
 
 TIMEOUT_S = 120
@@ -64,18 +65,6 @@ def lock_version(project: Path, package: str) -> str:
     if len(found) != 1:
         raise ValueError(f"{project}/uv.lock: {len(found)} versions of {package}")
     return found.pop()
-
-
-def sqruff_env(root: Path | None = None) -> dict[str, str]:
-    """Return the environment to run the sqruff binary in.
-
-    The Python interpreter in sqruff finds its venv through the first
-    python3 on PATH. The venv holds the Python templaters (jinja, python).
-    """
-    env = isolated_env(EmptyHome.path())
-    python_bin = (root or tools_dir()) / "sqruff" / "python" / "bin"
-    env["PATH"] = f"{python_bin}:{env.get('PATH', '')}"
-    return env
 
 
 def _run(cmd: list[str | Path], env: dict[str, str] | None = None, **kwargs):
