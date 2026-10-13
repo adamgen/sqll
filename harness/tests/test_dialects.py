@@ -6,8 +6,9 @@ from conftest import needs
 from sqll_harness.adapters.sqlfluff import SqlfluffAdapter
 from sqll_harness.adapters.sqlfluff_rs import SqlfluffRsAdapter
 from sqll_harness.cases import FAIL, PASS
-from sqll_harness.paths import SQLFLUFF_ROOT
+from sqll_harness.paths import REPO_ROOT, SQLFLUFF_ROOT
 from sqll_harness.suites import dialects
+from sqll_harness.suites.rules import has_inline_config
 
 
 def test_discovery_count():
@@ -29,6 +30,21 @@ def test_depth_override():
     cases = {c.id: c for c in dialects.discover(SQLFLUFF_ROOT)}
     case = cases["dialects/ansi/expression_recursion"]
     assert case.extra_config == {"core": {"max_parse_depth": 2000}}
+
+
+def test_in_file_config_lines_are_recorded():
+    # The CLI applies in-file config lines and the sqlfluff test does not.
+    # harness/not-reproduced.md records the only pinned file with one; this
+    # test fails if the pinned fixtures change.
+    found = {}
+    for case in dialects.discover(SQLFLUFF_ROOT):
+        sql = (SQLFLUFF_ROOT / case.sql).read_text(encoding="utf-8")
+        if has_inline_config(sql):
+            lines = [line for line in sql.splitlines() if has_inline_config(line)]
+            found[f"{case.dialect}/{case.sql.name}"] = lines
+    assert found == {"clickhouse/create_user.sql": ["-- sqlfluff:dialect:clickhouse"]}
+    record = (REPO_ROOT / "harness" / "not-reproduced.md").read_text(encoding="utf-8")
+    assert "`clickhouse/create_user.sql`" in record
 
 
 def test_nc_yml_gives_full_tree_case(tmp_path):

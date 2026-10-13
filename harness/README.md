@@ -33,8 +33,8 @@ setting. Needs: uv, Python 3.13 with a shared libpython, and cargo.
 
 It also installs `<dir>/sqlfluff-oracle` for the oracle scripts
 (`scripts/sqlfluff-dialect-oracle`, `scripts/sqlfluff-rule-oracle`,
-`scripts/sqlfluff-autofix-oracle`, `scripts/sqlfluff-templater-oracle`), and `<dir>/sqlfluff-rs-oracle` for the
-same scripts with `--rust`.
+`scripts/sqlfluff-autofix-oracle`, `scripts/sqlfluff-templater-oracle`), and
+`<dir>/sqlfluff-rs-oracle` for the same scripts with `--rust`.
 
 `tools/sqruff/install.sh` builds sqruff with `cargo install --locked
 --features parser,python`. The `parser` feature adds the `parse` command. The
@@ -103,11 +103,14 @@ same cases and compares the status with the report.
 
 A case passes only if all its checks pass.
 
-In the dialects suite the sqlfluff adapter uses `--templater raw`, because the sqlfluff
-test does not use a templater. Extra config goes in a temporary file named `pyproject.toml`,
-because sqlfluff reads a config file as TOML only with that name. It also uses
-`--ignore-local-config`, because the sqlfluff test reads no config file. Without
-it the CLI reads the `.sqlfluff` files in `test/fixtures/dialects/<d>/`.
+In the dialects suite the sqlfluff adapter uses `--templater raw`, because
+the sqlfluff test does not use a templater. Extra config goes in a temporary
+file named `pyproject.toml`, because sqlfluff reads a config file as TOML only
+with that name. It also uses `--ignore-local-config`, because the sqlfluff test
+reads no config file. Without it the CLI reads the `.sqlfluff` files in
+`test/fixtures/dialects/<d>/`. The CLI also applies the in-file config lines
+(`-- sqlfluff:...`) of the SQL file, and the test does not.
+[not-reproduced.md](not-reproduced.md) records this difference.
 
 ## Rule cases
 

@@ -111,10 +111,21 @@ The T3 reviews found these false passes with fixtures that are not in sqlfluff
 - `validate_segment_with_reparse` in `test__dialect__base_file_parse`.
 - The `_hash` field of the dialect YAML files. It only makes contributors use
   the generator script. The tree check is sufficient.
-
-`scripts/sqlfluff-dialect-oracle` runs these 2 checks. If one fails on a case
-that the harness passes, the CI comparison fails.
 - `test__dialect__base_broad_fix`. It has no expected result in data.
+- `sqlfluff parse` applies the in-file config lines (`-- sqlfluff:...`) of the
+  SQL file. They have priority over `--dialect` and `--ignore-local-config`.
+  The test (`parse_example_file`, `lex_and_parse`) does not apply them. A line
+  that changes a setting can give a false pass or a false fail. The harness
+  does not fail closed for it. In sqlfluff 4.4.0 only
+  `clickhouse/create_user.sql` has such a line
+  (`-- sqlfluff:dialect:clickhouse`). It sets the dialect of its folder, so it
+  has no effect.
+
+`scripts/sqlfluff-dialect-oracle` runs the 2 tests that have the first 2
+checks (`test__dialect__base_file_parse`, `test__dialect__base_parse_struct`)
+on the same cases. If a test fails on a case that the harness passes, the CI
+comparison fails. This also shows a difference that an in-file config line
+causes.
 
 ## sqlfluff-rs
 
