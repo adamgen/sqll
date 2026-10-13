@@ -96,7 +96,7 @@ jobs:
         env:
           ORACLES: >-
             scripts/sqlfluff_oracle.py scripts/sqlfluff-rule-oracle
-            scripts/sqlfluff-autofix-oracle
+            scripts/sqlfluff-autofix-oracle scripts/sqlfluff-templater-oracle
         run: |
           uv run --frozen --project harness ruff check harness ci $ORACLES
           uv run --frozen --project harness ruff format --check harness ci $ORACLES
@@ -119,6 +119,13 @@ jobs:
         run: >-
           "$SQLL_TOOLS_DIR/sqlfluff-oracle/bin/python" scripts/sqlfluff-autofix-oracle
           --root harness/tests/fixtures/autofix --check-prefixes
+
+      # The subpath prefix of each harness templater fixture must agree with
+      # the sqlfluff test.
+      - name: Check the harness templater fixtures with the sqlfluff test
+        run: >-
+          "$SQLL_TOOLS_DIR/sqlfluff-oracle/bin/python" scripts/sqlfluff-templater-oracle
+          --root harness/tests/fixtures/templater --check-prefixes
 
       - name: Check that the sqlfluff submodule is clean
         run: scripts/check-submodule "after the tests"
@@ -219,6 +226,14 @@ jobs:
             --out out/autofix-oracle.jsonl
           scripts/check-submodule "after the comparison"
 
+      # The sqlfluff test of each templater case must give the same status.
+      - name: Compare the templater results with the sqlfluff test
+        run: |
+          "$SQLL_TOOLS_DIR/sqlfluff-oracle/bin/python" \
+            scripts/sqlfluff-templater-oracle --report out/report.json \
+            --out out/templater-oracle.jsonl
+          scripts/check-submodule "after the comparison"
+
       - if: always()
         uses: actions/upload-artifact@v7
         with:
@@ -227,6 +242,7 @@ jobs:
             out/report.json
             out/oracle.jsonl
             out/autofix-oracle.jsonl
+            out/templater-oracle.jsonl
           if-no-files-found: error
 
       - name: Check test jobs

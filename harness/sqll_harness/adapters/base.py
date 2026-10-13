@@ -142,12 +142,21 @@ class Adapter(ABC):
         """
 
     @abstractmethod
-    def parse_file(self, sql_path: Path, dialect: str, cwd: Path) -> ParseResult:
+    def parse_file(
+        self,
+        sql_path: Path,
+        dialect: str | None,
+        cwd: Path,
+        code_only: bool = False,
+        include_meta: bool = False,
+    ) -> ParseResult:
         """Parse one SQL file, as a user runs the tool in cwd.
 
-        The tool reads the config files of the user, as for fix_file(). tree
-        is None if the tool parsed the file but has no tree for it. errors
-        is not empty if the tool gave no usable output.
+        The tool reads the config files of the user, as for fix_file(). If
+        dialect is None, the config files set it. tree is None if the tool
+        parsed the file but has no tree for it. errors is not empty if the
+        tool gave no usable output. With include_meta, the tree has the meta
+        segments, and can have the position of each segment.
         """
 
     @abstractmethod
@@ -168,7 +177,11 @@ class Adapter(ABC):
 
 
 def isolated_env(home: Path) -> dict[str, str]:
-    """Return an environment that does not leak user config into a tool."""
+    """Return an environment that does not leak user config into a tool.
+
+    The tool must not write bytecode files: a jinja library_path imports
+    Python modules from the fixture folders in the sqlfluff submodule.
+    """
     env = {
         k: v
         for k, v in os.environ.items()
@@ -176,6 +189,7 @@ def isolated_env(home: Path) -> dict[str, str]:
     }
     env["HOME"] = str(home)
     env["XDG_CONFIG_HOME"] = str(home)
+    env["PYTHONDONTWRITEBYTECODE"] = "1"
     return env
 
 

@@ -2,7 +2,7 @@
 
 These checks of the sqlfluff tests exist only as Python internals, or the CLI
 cannot give the same input. See [README.md](README.md), [rules.md](rules.md),
-and [autofix.md](autofix.md).
+[autofix.md](autofix.md), and [templater.md](templater.md).
 
 ## Rule cases
 
@@ -84,6 +84,24 @@ The T3 reviews found these false passes with fixtures that are not in sqlfluff
 - The harness writes the files in `<tmp>/fix/` and `<tmp>/show/`, the test in
   `<tmp>/`. sqlfluff reads the config files of each parent folder. The
   folder between them has no config file.
+- The test sets the `DEBUG` level of 2 loggers with `caplog`. This changes
+  only the log.
+
+## Templater cases
+
+- The test finds an unparsable segment by the `type` of each segment
+  (`type_set`). The harness finds the record key, which is `get_type()`. For
+  a raw segment with instance types, `get_type()` is the first instance
+  type. In sqlfluff 4.4.0 only `UnparsableSegment` has the type
+  `unparsable`, and its `get_type()` is the same. A raw segment with the
+  instance type `unparsable` gives `fail` where the test passes.
+- The test uses the home folder of the user, and the harness an empty one.
+  A sqlfluff config file in the home folder changes only the test.
+- The test always uses the `jinja` templater. The CLI uses the templater of
+  the config in home, in the folders after the common path of home and the
+  current folder, and in the current folder (the sqlfluff root). If this
+  config sets another templater, the status is `error`. The config
+  files in the 4.4.0 sqlfluff root have no sqlfluff section.
 - The test sets the `DEBUG` level of 2 loggers with `caplog`. This changes
   only the log.
 

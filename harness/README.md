@@ -32,7 +32,8 @@ setting. Needs: uv, Python 3.13 with a shared libpython, and cargo.
 | `sqruff` | `tools/sqruff/uv.lock` | `<dir>/sqruff/bin/sqruff` and `<dir>/sqruff/python` |
 
 It also installs `<dir>/sqlfluff-oracle` for the oracle scripts
-(`scripts/sqlfluff-rule-oracle`, `scripts/sqlfluff-autofix-oracle`).
+(`scripts/sqlfluff-rule-oracle`, `scripts/sqlfluff-autofix-oracle`,
+`scripts/sqlfluff-templater-oracle`).
 
 `tools/sqruff/install.sh` builds sqruff with `cargo install --locked
 --features parser,python`. The `parser` feature adds the `parse` command. The
@@ -59,12 +60,12 @@ CI (`.github/workflows/ci.yml`):
 1. `image`: `ci/image_tag.py` hashes all inputs of `ci/Dockerfile`. If
    `ghcr.io/adamgen/sqll-ci:<hash>` does not exist, CI builds and pushes it.
 2. `lint`: `sqll-harness tools`, ruff, the unit tests, and the oracles on
-   the harness rule and autofix fixtures, in the image.
+   the harness rule, autofix, and templater fixtures, in the image.
 3. `test`: one job for each suite, tool, and shard in `ci/matrix.json`.
-4. `report`: `sqll-harness merge --expect ci/matrix.json`, then
-   `scripts/sqlfluff-rule-oracle` and `scripts/sqlfluff-autofix-oracle` on
-   the merged report. It uploads `out/report.json`, `out/oracle.jsonl`, and
-   `out/autofix-oracle.jsonl`.
+4. `report`: `sqll-harness merge --expect ci/matrix.json`, then the 3
+   oracle scripts on the merged report. It uploads `out/report.json`,
+   `out/oracle.jsonl`, `out/autofix-oracle.jsonl`, and
+   `out/templater-oracle.jsonl`.
 
 To add a suite or a tool to CI, add an entry to `ci/matrix.json`.
 
@@ -75,6 +76,7 @@ To add a suite or a tool to CI, add an entry to `ci/matrix.json`.
 | `dialects` | `test/fixtures/dialects/<d>/*.sql` with `.yml` or `_nc.yml` | `exact`, `no_unparsable` |
 | `rules` | each case key in `test/fixtures/rules/std_rule_cases/*.yml` | `pass_str`, `fail_str`, `fix`, `after_fix` |
 | `autofix` | each entry `test/fixtures/linter/autofix/<d>/<case>` | `tree`, `non_linting`, `violations`, `fix` |
+| `templater` | each row of `test__templater_full` (`test/fixtures/templater/<subpath>.sql`) | `exact`, `no_unparsable` |
 
 Dialect case id: `dialects/<dialect>/<stem>` (`<stem>_nc` for `_nc.yml`).
 
@@ -109,6 +111,15 @@ the checks and the comparison with the sqlfluff test
 files of the case as for a user, with the sqlfluff root as the current
 folder.
 
+## Templater cases
+
+Templater case id: `templater/<subpath>`. [templater.md](templater.md)
+gives the checks, the `needs_python` tag, the fixture files that are not
+cases, and the comparison with the sqlfluff test
+(`scripts/sqlfluff-templater-oracle`). As in the autofix suite, the tool
+reads the config files as for a user, with the sqlfluff root as the current
+folder.
+
 ## Report: `out/report.json`
 
 ```json
@@ -120,7 +131,8 @@ folder.
     "total": 0, "passed": 0, "failed": 0, "skipped": 0, "<check>": 0}}},
   "known_failures": {"<tool>": {"new_failures": [], "unexpected_passes": []}},
   "cases": [{"id": "", "suite": "", "tool": "", "status": "pass|fail|error|skip",
-             "checks": {"<check>": true}, "reason": "", "duration_ms": 0}]
+             "checks": {"<check>": true}, "reason": "", "duration_ms": 0,
+             "tags": []}]
 }
 ```
 
@@ -130,4 +142,6 @@ of cases where that check is true. A case has only the checks that apply to
 it. `failed` counts `fail` and `error`. `error` means that the case did not
 complete, or that the harness cannot know the result of a check. `skip`
 means that the fixture skips the case; a skipped case must not be in
-`known_failures/`.
+`known_failures/`. `tags` give facts about a case that are not results:
+`needs_python` (templater suite) means that the case needs a Python
+runtime.

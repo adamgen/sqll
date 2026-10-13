@@ -15,9 +15,16 @@ Test data that the harness reads:
   fix results).
 - `test/fixtures/linter/autofix/`: autofix cases (SQL before and after the
   fix, config, violations).
+- `test/fixtures/templater/`: templater cases (SQL, config, macros,
+  libraries, parse trees).
+- `test/core/templaters/jinja_test.py`: the case table of
+  `test__templater_full`. The harness reads only its literal list.
 
 `scripts/sqlfluff-autofix-oracle` imports and runs
-`test/rules/std_fix_auto_test.py` from the submodule. The harness does not.
+`test/rules/std_fix_auto_test.py` from the submodule.
+`scripts/sqlfluff-templater-oracle` imports and runs
+`test/core/templaters/jinja_test.py` and `test/conftest.py` from the
+submodule. The harness does not.
 
 Ported code (MIT, attribution in each file header):
 
@@ -27,6 +34,7 @@ Ported code (MIT, attribution in each file header):
 | `harness/sqll_harness/suites/dialects.py` | `test/conftest.py` (`get_parse_fixtures`, `DEEP_PARSE_DEPTH_OVERRIDES`) |
 | `harness/sqll_harness/suites/rules.py` | `src/sqlfluff/utils/testing/rules.py` (`load_test_cases`, `_setup_config`, `assert_rule_fail_in_sql`, `assert_rule_pass_in_sql`, `prep_violations`, `rules__test_helper`) |
 | `harness/sqll_harness/suites/autofix.py` | `test/rules/std_fix_auto_test.py` (`test_cases`, `auto_fix_test`) |
+| `harness/sqll_harness/suites/templater.py` | `test/core/templaters/jinja_test.py` (`get_parsed`, `assert_structure`, `test__templater_full`) |
 | `scripts/sqlfluff_oracle.py` | `test/conftest.py` (`fail_on_parse_error_after_fix`) |
 | `scripts/sqlfluff-autofix-oracle` | `test/rules/std_fix_auto_test.py` (`test_cases`) |
 

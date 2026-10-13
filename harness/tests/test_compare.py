@@ -4,7 +4,9 @@ from sqll_harness.compare import (
     has_node,
     load_yaml,
     process_struct,
+    record_to_test_tuple,
     record_to_tuple,
+    strip_positions,
     trees_match,
 )
 from sqll_harness.paths import SQLFLUFF_ROOT
@@ -79,10 +81,75 @@ def test_safe_loader_gives_the_same_data_as_sqlfluff_loader():
     import yaml
 
     from sqll_harness.compare import _Loader
-    from sqll_harness.suites import dialects
+    from sqll_harness.suites import dialects, templater
 
     assert _Loader is yaml.CSafeLoader
-    cases = dialects.discover(SQLFLUFF_ROOT)
-    for path in sorted({SQLFLUFF_ROOT / c.yml for c in cases}):
+    paths = {SQLFLUFF_ROOT / c.yml for c in dialects.discover(SQLFLUFF_ROOT)}
+    paths |= {SQLFLUFF_ROOT / c.yml for c in templater.discover(SQLFLUFF_ROOT)}
+    assert len(paths) == 2306 + 43
+    for path in sorted(paths):
         text = path.read_text(encoding="utf8")
         assert yaml.load(text, Loader=_Loader) == yaml.load(text, Loader=yaml.CLoader)
+
+
+POS = {
+    "start_line_no": 1,
+    "start_line_pos": 1,
+    "start_file_pos": 0,
+    "end_line_no": 2,
+    "end_line_pos": 1,
+    "end_file_pos": 9,
+}
+
+
+def test_strip_positions_of_each_record_form():
+    # Many children: a list of dicts. One child: its keys are in the dict of
+    # the parent. The root record also has the keys.
+    record = {
+        **POS,
+        "file": [
+            {**POS, "statement": {**POS, "keyword": "SELECT"}},
+            {**POS, "newline": "\n"},
+            {**POS, "statement": None},
+        ],
+    }
+    assert strip_positions(record) == {
+        "file": [
+            {"statement": {"keyword": "SELECT"}},
+            {"newline": "\n"},
+            {"statement": None},
+        ]
+    }
+
+
+def test_strip_positions_rejects_a_position_key_that_is_not_an_int():
+    for value in ("x", None, {"a": "b"}, ["c"], True, 1.5):
+        with pytest.raises(ValueError, match="position key 'end_file_pos'"):
+            strip_positions({"file": {"end_file_pos": value}})
+
+
+def test_record_to_test_tuple_makes_null_an_empty_tuple():
+    assert record_to_test_tuple({"file": None}) == ("file", ())
+    assert record_to_test_tuple({"file": {"statement": None, "x": ""}}) == (
+        "file",
+        (("statement", ()), ("x", "")),
+    )
+    assert record_to_test_tuple({"file": [{"a": None}, {"a": "1"}]}) == (
+        "file",
+        (("a", ()), ("a", "1")),
+    )
+
+
+@pytest.mark.parametrize("record", [{}, {"a": "1", "b": "2"}, None, []])
+def test_record_to_test_tuple_needs_one_root(record):
+    with pytest.raises(ValueError):
+        record_to_test_tuple(record)
+
+
+def test_test_tuple_and_yaml_null(tmp_path):
+    p = tmp_path / "x.yml"
+    p.write_text("file:\n")
+    assert load_yaml(p)[1] == ("file", None)
+    assert load_yaml(p)[1] != record_to_test_tuple({"file": None})
+    p.write_text("file: []\n")
+    assert load_yaml(p)[1] == record_to_test_tuple({"file": None})

@@ -9,6 +9,7 @@ harness must never do this. Run them with the Python of tools/sqlfluff-oracle.
 """
 
 import json
+import logging
 from collections import Counter
 from pathlib import Path
 
@@ -22,6 +23,23 @@ SQLFLUFF_ROOT = ROOT / "third_party" / "sqlfluff"
 Results = dict[str, tuple[str, str]]
 
 PREFIXES = {"expect_pass_": "pass", "expect_fail_": "fail"}
+
+
+class CapLog:
+    """The part of the pytest caplog fixture that the sqlfluff tests use."""
+
+    def __init__(self) -> None:
+        self._levels: dict[str, int] = {}
+
+    def set_level(self, level: int, logger: str | None = None) -> None:
+        log = logging.getLogger(logger)
+        self._levels.setdefault(logger or "", log.level)
+        log.setLevel(level)
+
+    def restore(self) -> None:
+        for name, level in self._levels.items():
+            logging.getLogger(name or None).setLevel(level)
+        self._levels.clear()
 
 
 def fail_on_parse_error_after_fix() -> None:
