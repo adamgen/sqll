@@ -535,6 +535,104 @@ def test_run_fix_not_shown_gives_error():
     assert result.checks == {"fail_str": False}
 
 
+@pytest.mark.parametrize(
+    ("sql", "configs", "found"),
+    [
+        ("SELECT 1 -- noqa\n", None, False),
+        ("SELECT {{ x }}\n", None, True),
+        ("SELECT 1 {% if x %}, 2{% endif %}\n", None, True),
+        ("SELECT 1 {# c #}\n", None, True),
+        ("SELECT :x\n", {"core": {"templater": "placeholder"}}, True),
+        ("SELECT 1\n", {"core": {"templater": "jinja"}}, True),
+        ("SELECT {{ x }}\n", {"core": {"templater": "raw"}}, True),
+        ("SELECT 1\n", {"core": {"templater": "raw"}}, False),
+        ("SELECT 1\n", {"core": {"dialect": "ansi"}}, False),
+    ],
+)
+def test_can_template(sql, configs, found):
+    assert rules.can_template(sql, configs) is found
+
+
+class MaskAdapter(FakeAdapter):
+    """With noqa on, the lint hides the PRS of the files in masked."""
+
+    def __init__(self, masked, **kwargs):
+        super().__init__(**kwargs)
+        self.masked = masked
+
+    def lint(self, sql_paths, rules_, dialect, config, workdir):
+        result = super().lint(sql_paths, rules_, dialect, config, workdir)
+        core = (config or {}).get("core", {})
+        if not core.get("disable_noqa"):
+            for p in sql_paths:
+                if p.name in self.masked:
+                    result.violations[p] = [
+                        v for v in result.violations[p] if v["code"] != "PRS"
+                    ]
+        return result
+
+
+def test_templated_string_lints_with_disable_noqa():
+    # No "noqa" text and no "ignore": a string that can be templated still
+    # gets a lint with disable_noqa, because templating can make a noqa.
+    case = rules.RuleCase(id="rules/x/y", rule="LT01", pass_str="SELECT {{ x }}\n")
+    adapter = FakeAdapter()
+    assert rules.run(adapter, case, SQLFLUFF_ROOT).status == PASS
+    assert adapter.configs == [None, {"core": {"disable_noqa": True}}]
+    # A placeholder templater in the config also needs it.
+    configs = {"core": {"templater": "placeholder"}}
+    case = rules.RuleCase(
+        id="rules/x/y", rule="LT01", pass_str="SELECT :x\n", configs=configs
+    )
+    adapter = FakeAdapter()
+    assert rules.run(adapter, case, SQLFLUFF_ROOT).status == PASS
+    assert adapter.configs == [
+        configs,
+        {"core": {"templater": "placeholder", "disable_noqa": True}},
+    ]
+
+
+@pytest.mark.parametrize("field", ["pass_str", "fail_str", "fix_str"])
+def test_templated_noqa_mask_is_an_error(field):
+    strings = {"fail_str": "f\n", "fix_str": "g\n", field: "SELECT {{ x }}\n"}
+    names = {"pass_str": "pass.sql", "fail_str": "fail.sql", "fix_str": "fixed.sql"}
+    lint = {
+        "fail.sql": [_v("LT01", 1, 1)],
+        names[field]: [_v("PRS", 2, 1)],
+    }
+    case = rules.RuleCase(id="rules/x/y", rule="LT01", **strings)
+    adapter = MaskAdapter({names[field]}, lint=lint, fixed="g\n")
+    result = rules.run(adapter, case, SQLFLUFF_ROOT)
+    assert result.status == ERROR, result.reason
+    assert result.reason == rules.TEMPLATED_NOQA_REASON
+    assert result.checks == {}
+    assert [c[0] for c in adapter.calls] == ["lint", "lint"]
+
+
+def test_noqa_mask_without_templating_is_not_an_error():
+    # The mask of a literal noqa comment is known: compose() uses the lint
+    # with disable_noqa for the parse-stage violations.
+    case = rules.RuleCase(id="rules/x/y", rule="LT01", pass_str="foo -- noqa\n")
+    adapter = MaskAdapter({"pass.sql"}, lint={"pass.sql": [_v("PRS", 1, 1)]})
+    result = rules.run(adapter, case, SQLFLUFF_ROOT)
+    assert result.status == FAIL
+    assert result.reason.startswith("pass_str: PRS")
+
+
+def test_noqa_mask_active():
+    a, b = Path("a.sql"), Path("b.sql")
+    same = LintResult({a: [_v("LT01", 1, 1)], b: []})
+    other = LintResult({a: [_v("LT01", 1, 1)], b: [_v("PRS", 1, 1)]})
+    assert not rules.noqa_mask_active([same], [a, b])
+    assert not rules.noqa_mask_active([same, same, same], [a, b])
+    assert rules.noqa_mask_active([same, same, other], [a, b])
+    # Only the paths that can be templated count.
+    assert not rules.noqa_mask_active([same, same, other], [a])
+    # A lint that did not run gives no result; the checks then fail.
+    broken = LintResult(None, errors=["x"])
+    assert not rules.noqa_mask_active([same, same, broken], [a, b])
+
+
 def test_run_with_empty_strings_checks_nothing():
     # sqlfluff tests the strings for truth, so an empty string is no string.
     case = rules.RuleCase(id="rules/x/y", rule="LT01", pass_str="", fail_str="")
@@ -596,6 +694,8 @@ def test_cases_the_cli_cannot_show_give_error(case_id):
     assert result.status == ERROR, (result.status, result.reason)
     if "_directive_" in case_id:
         assert result.reason == rules.INLINE_CONFIG_REASON
+    elif "_templated_" in case_id or "_variant" in case_id:
+        assert result.reason == rules.TEMPLATED_NOQA_REASON
     else:
         assert result.checks == {"fail_str": True}
         assert result.reason == (

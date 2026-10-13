@@ -29,3 +29,16 @@ expect_fail_hidden_prs_no_fix_str:
 
 expect_fail_noqa_prs_no_fix_str:
   fail_str: "SELECT a  +  b FROM t;\nfoo bar baz; -- noqa: PRS\n"
+
+# The templater makes a noqa comment that hides a PRS. The source has no
+# "noqa" text.
+expect_fail_templated_noqa_prs_pass_str:
+  pass_str: "SELECT 1;\nfoo bar; -- {{ 'no' ~ 'qa' }}\n"
+
+expect_fail_templated_noqa_prs_no_fix_str:
+  fail_str: "SELECT a  +  b FROM t;\nfoo bar; -- {{ 'no' ~ 'qa' }}\n"
+
+# The tool applies the noqa comment of the root variant to the lint errors of
+# the other variant. The test does not.
+expect_fail_noqa_in_one_variant:
+  pass_str: "SELECT\n{% if x %}a  +  b -- noqa: LT01{% else %}c  +  d{% endif %}\nFROM t\n"

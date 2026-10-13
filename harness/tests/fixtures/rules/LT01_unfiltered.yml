@@ -80,3 +80,11 @@ expect_pass_bad_noqa_pass_str:
 expect_fail_bad_noqa_fail_str:
   fail_str: "SELECT a  +  b FROM t -- noqa LT01\n"
   fix_str: "SELECT a + b FROM t -- noqa LT01\n"
+
+# A string that can be templated, with no noqa comment: the harness lints
+# with disable_noqa too, and the outputs are equal.
+expect_fail_templated_variant_no_noqa:
+  pass_str: "SELECT\n{% if x %}a + b{% else %}c  +  d{% endif %}\nFROM t\n"
+
+expect_pass_templated_variant_no_noqa:
+  pass_str: "SELECT\n{% if x %}a + b{% else %}c + d{% endif %}\nFROM t\n"

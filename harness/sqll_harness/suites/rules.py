@@ -58,6 +58,13 @@ INLINE_CONFIG_REASON = (
     "the config file, so the harness cannot get the violation lists with no "
     "filter"
 )
+# A SQL string with one of these can give other text after templating.
+TEMPLATE_TAGS = ("{{", "{%", "{#")
+TEMPLATED_NOQA_REASON = (
+    "a SQL string can be templated and a noqa comment changes the lint "
+    "output; the tool applies the noqa comments of the root variant to all "
+    "variants, so the harness cannot get the violation lists of the test"
+)
 # The rank of each violation type in the list of the test before its sort by
 # line and position: templating, lexing, parsing, bad noqa, lint errors.
 _STAGE_RANK = {"TMP": 0, "LXR": 1, "PRS": 2}
@@ -269,6 +276,18 @@ def has_inline_config(sql: str) -> bool:
     return any(line.startswith(INLINE_CONFIG_PREFIXES) for line in sql.splitlines())
 
 
+def can_template(sql: str, configs: dict[str, Any] | None) -> bool:
+    """Return True if templating can make text that is not in sql.
+
+    Then a noqa comment can be in the rendered SQL and not in sql, and a
+    template can have more than one variant.
+    """
+    if any(tag in sql for tag in TEMPLATE_TAGS):
+        return True
+    core = configs.get("core") if configs else None
+    return isinstance(core, dict) and core.get("templater", "raw") != "raw"
+
+
 def fix_not_shown(
     found: Found, lists: list[list[dict]], configs: dict[str, Any] | None
 ) -> str | None:
@@ -359,9 +378,16 @@ def run(adapter: Adapter, case: RuleCase, sqlfluff_root: Path) -> CaseResult:
         paths = {k: work / f"{k}.sql" for k, text in sql.items() if text}
         for k, path in paths.items():
             path.write_bytes(sql[k].encode("utf8"))
+        templated = [p for k, p in paths.items() if can_template(sql[k], case.configs)]
         lints: list[LintResult] = []
         if paths:
-            lints = _lint_all(adapter, list(paths.values()), codes, dialect, case, work)
+            lints = _lint_all(
+                adapter, list(paths.values()), templated, codes, dialect, case, work
+            )
+        if noqa_mask_active(lints, templated):
+            return CaseResult(
+                case.id, NAME, adapter.name, ERROR, reason=TEMPLATED_NOQA_REASON
+            )
 
         def outputs(k: str) -> list[list[dict]] | None:
             if not lints or any(r.violations is None or r.errors for r in lints):
@@ -445,31 +471,47 @@ def run(adapter: Adapter, case: RuleCase, sqlfluff_root: Path) -> CaseResult:
     )
 
 
+def noqa_mask_active(lints: list[LintResult], paths: list[Path]) -> bool:
+    """Return True if a noqa comment changes the lint output of a path.
+
+    lints is the result of _lint_all. The lint with no "ignore" and the lint
+    with disable_noqa are equal if no noqa comment has an effect.
+    """
+    if len(lints) != 3 or any(r.violations is None or r.errors for r in lints):
+        return False
+    _, unignored, no_noqa = lints
+    return any(unignored.violations[p] != no_noqa.violations[p] for p in paths)
+
+
 def _lint_all(
     adapter: Adapter,
     paths: list[Path],
+    templated: list[Path],
     codes: list[str],
     dialect: str | None,
     case: RuleCase,
     work: Path,
 ) -> list[LintResult]:
-    """Lint the files of a case. Return 1 result, or 3 if a filter applies.
+    """Lint the files of a case. Return 1 result, or 3 if a filter can apply.
 
     "lint -f json" applies the core "ignore" config and the noqa comments.
     The test uses lists with no filter for some checks. Thus if the config
-    has "ignore" or a SQL string has "noqa", lint again with no "ignore",
-    then also with disable_noqa. See compose().
+    has "ignore", lint again with no "ignore". If a SQL string has "noqa" or
+    can be templated (templating can make a noqa comment), also lint with
+    disable_noqa. See compose() and noqa_mask_active().
     """
     filtered = adapter.lint(paths, codes, dialect, case.configs, work)
     unignored_config = config_without_ignore(case.configs)
-    has_noqa = any("noqa" in p.read_text(encoding="utf8") for p in paths)
-    if unignored_config is None and not has_noqa:
+    noqa_can_apply = bool(templated) or any(
+        "noqa" in p.read_text(encoding="utf8") for p in paths
+    )
+    if unignored_config is None and not noqa_can_apply:
         return [filtered]
     unignored = filtered
     if unignored_config is not None:
         unignored = adapter.lint(paths, codes, dialect, unignored_config, work)
     no_noqa = unignored
-    if has_noqa:
+    if noqa_can_apply:
         no_noqa = adapter.lint(
             paths, codes, dialect, config_without_noqa(case.configs), work
         )

@@ -28,13 +28,25 @@ cannot give the same input. See [README.md](README.md) and [rules.md](rules.md).
 - In a templated file with more than one variant, the test removes the lint
   errors of an other variant with the noqa comments of that variant.
   `lint -f json` also applies the noqa comments of the root variant to them.
-  No 4.4.0 case with a noqa comment has a template tag.
+  If a SQL string can be templated and a noqa comment has an effect, the
+  status is `error`. No 4.4.0 case has this condition.
 - If `sqlfluff fix` does not write the file, the fixes that the test
   applies. The `fix` check is not known and the status is `error`. No 4.4.0
   case has this condition.
 - A SQL string with an in-file config line. The status is `error`. No 4.4.0
   case has one.
 - The test uses `caplog` to show the debug log. It is not a check.
+
+### False passes with mutated fixtures
+
+The T3 reviews found these false passes with fixtures that are not in sqlfluff
+4.4.0. They are not fixed and no check fails closed for them:
+
+- `JJ01/test_fail_templated_segment_contains_leading_literal` with
+  `violations` from lint mode: the harness gives `pass`, the test fails.
+  With `violations` from fix mode, the harness gives `fail` and the test
+  passes. 2 real cases have a template tag and `violations`, so the harness
+  cannot fail closed.
 
 ## Dialect cases
 
