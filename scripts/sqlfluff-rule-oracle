@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# fail_on_parse_error_after_fix is a port of sqlfluff 4.4.0 code:
+# test/conftest.py. Copyright (c) 2018-2026 Alan Cruickshank. MIT License.
+# See THIRD_PARTY.md.
 """Run the sqlfluff rule test on rule case files, and compare with a report.
 
 This is the reference for the "rules" suite. It calls rules__test_helper of
@@ -33,10 +36,32 @@ from glob import glob
 from pathlib import Path
 
 import pytest
+from sqlfluff.core import Linter
+from sqlfluff.core.parser.segments.base import BaseSegment
 from sqlfluff.utils.testing.rules import load_test_cases, rules__test_helper
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CASES = "third_party/sqlfluff/test/fixtures/rules/std_rule_cases/*.yml"
+
+
+def fail_on_parse_error_after_fix() -> None:
+    """Make 2 log functions raise ValueError, as sqlfluff test/conftest.py does.
+
+    The autouse fixture of the same name sets this for each sqlfluff test.
+    """
+
+    def raise_error_apply_fixes_check_issue(message, *args):
+        raise ValueError(message % args)
+
+    def raise_error_conflicting_fixes_same_anchor(message: str):
+        raise ValueError(message)
+
+    BaseSegment._log_apply_fixes_check_issue = staticmethod(
+        raise_error_apply_fixes_check_issue
+    )
+    Linter._report_conflicting_fixes_same_anchor = staticmethod(
+        raise_error_conflicting_fixes_same_anchor
+    )
 
 
 def run_cases(pattern: str) -> dict[str, tuple[str, str]]:
@@ -92,6 +117,7 @@ def main() -> int:
     parser.add_argument("--check-prefixes", action="store_true")
     args = parser.parse_args()
 
+    fail_on_parse_error_after_fix()
     oracle = run_cases(args.cases)
     lines = [
         json.dumps({"id": case_id, "status": status, "reason": reason}) + "\n"

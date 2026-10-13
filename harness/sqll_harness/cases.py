@@ -12,7 +12,8 @@ SKIP = "skip"
 class CaseResult:
     """status is "pass" only if all checks are true.
 
-    "error" means that the harness or the tool did not complete the case.
+    "error" means that the harness or the tool did not complete the case,
+    or that the harness cannot know the result of a check.
     "skip" means that the fixture tells the test to skip the case.
     """
 

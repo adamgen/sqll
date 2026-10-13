@@ -42,3 +42,29 @@ expect_fail_templated_noqa_prs_no_fix_str:
 # the other variant. The test does not.
 expect_fail_noqa_in_one_variant:
   pass_str: "SELECT\n{% if x %}a  +  b -- noqa: LT01{% else %}c  +  d{% endif %}\nFROM t\n"
+
+# The case config sets other jinja start strings. The strings in the SQL are
+# jinja tags.
+expect_fail_templated_variable_delim_noqa_prs_pass_str:
+  pass_str: "SELECT 1;\nfoo bar; -- << 'no' ~ 'qa' >>\n"
+  configs:
+    templater:
+      jinja:
+        variable_start_string: "<<"
+        variable_end_string: ">>"
+
+expect_fail_templated_variable_delim_noqa_prs_no_fix_str:
+  fail_str: "SELECT a  +  b FROM t;\nfoo bar; -- << 'no' ~ 'qa' >>\n"
+  configs:
+    templater:
+      jinja:
+        variable_start_string: "<<"
+        variable_end_string: ">>"
+
+expect_fail_noqa_in_one_variant_block_delim:
+  pass_str: "SELECT\n<% if x %>a  +  b -- noqa: LT01<% else %>c  +  d<% endif %>\nFROM t\n"
+  configs:
+    templater:
+      jinja:
+        block_start_string: "<%"
+        block_end_string: "%>"

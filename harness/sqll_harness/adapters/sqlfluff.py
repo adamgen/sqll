@@ -1,6 +1,7 @@
 """Adapter for the sqlfluff binary."""
 
 import json
+import re
 import subprocess
 import tempfile
 from pathlib import Path
@@ -145,11 +146,14 @@ class SqlfluffAdapter(Adapter):
         errors = []
         # Exit code 1 means that violations or parse errors remain.
         if proc.returncode not in (0, 1):
-            errors.append(f"exit code {proc.returncode}")
+            errors.append(_exit_reason(proc.returncode, proc.stderr))
         if _TRACEBACK in proc.stderr or _TRACEBACK in proc.stdout:
             errors.append("the tool crashed")
         fixed = None if errors else sql_path.read_bytes().decode("utf8")
-        return FixResult(fixed, errors, proc.returncode, proc.stderr)
+        critical = _critical_logs(proc.stdout + "\n" + proc.stderr)
+        return FixResult(
+            fixed, errors, critical=critical, rc=proc.returncode, stderr=proc.stderr
+        )
 
     def _run(self, cmd: list[str], cwd: Path) -> subprocess.CompletedProcess:
         return subprocess.run(
@@ -163,6 +167,26 @@ class SqlfluffAdapter(Adapter):
 
 
 _TRACEBACK = "Traceback (most recent call last)"
+_ANSI = re.compile(r"\x1b\[[0-9;]*m")
+# The log format of the CLI is "%(levelname)-10s %(message)s".
+_CRITICAL = re.compile(r"^CRITICAL\s+(.*)$", re.MULTILINE)
+
+
+def _exit_reason(rc: int, stderr: str) -> str:
+    """Return "exit code N" and the first line of stderr, if there is one.
+
+    For a Python traceback, the line is the last one: the exception.
+    """
+    lines = [line.strip() for line in stderr.splitlines() if line.strip()]
+    if not lines:
+        return f"exit code {rc}"
+    line = lines[-1] if lines[0].startswith(_TRACEBACK) else lines[0]
+    return f"exit code {rc}: {line}"
+
+
+def _critical_logs(output: str) -> list[str]:
+    """Return the first line of each CRITICAL log message in output."""
+    return [m.strip() for m in _CRITICAL.findall(_ANSI.sub("", output))]
 
 
 def _rule_args(
@@ -194,12 +218,18 @@ def _lint_output(
     violations: dict[Path, list[dict[str, Any]]] | None = None
     try:
         records = {r["filepath"]: r["violations"] for r in json.loads(stdout)}
-        violations = {path: records[name] for name, path in names.items()}
     except (ValueError, KeyError, TypeError):
         errors.append("no JSON lint output")
+    else:
+        missing = [name for name in names if name not in records]
+        if missing:
+            # For example, a file larger than large_file_skip_byte_limit.
+            errors.append(f"no lint output for {', '.join(missing)}")
+        else:
+            violations = {path: records[name] for name, path in names.items()}
     # With --nofail the exit code is 0 unless the tool fails.
     if rc != 0:
-        errors.append(f"exit code {rc}")
+        errors.append(_exit_reason(rc, stderr))
     return LintResult(violations, errors, rc, stderr)
 
 

@@ -1,6 +1,15 @@
+import json
+from pathlib import Path
+
 import pytest
 
-from sqll_harness.adapters.sqlfluff import SqlfluffAdapter, _parse_output
+from sqll_harness.adapters.sqlfluff import (
+    SqlfluffAdapter,
+    _critical_logs,
+    _exit_reason,
+    _lint_output,
+    _parse_output,
+)
 from sqll_harness.paths import SQLFLUFF_ROOT
 
 
@@ -23,6 +32,48 @@ def test_parse_output_with_no_json():
     r = _parse_output("Traceback ...", 2, "boom")
     assert r.tree is None
     assert r.errors == ["no JSON parse output", "exit code 2"]
+
+
+def test_lint_output():
+    names = {"a.sql": Path("/w/a.sql"), "b.sql": Path("/w/b.sql")}
+    out = json.dumps(
+        [
+            {"filepath": "a.sql", "violations": []},
+            {"filepath": "b.sql", "violations": [{"code": "LT01"}]},
+        ]
+    )
+    r = _lint_output(out, 0, "", names)
+    assert not r.errors
+    assert r.violations == {Path("/w/a.sql"): [], Path("/w/b.sql"): [{"code": "LT01"}]}
+    # The tool skips a file, for example over large_file_skip_byte_limit.
+    r = _lint_output('[{"filepath": "a.sql", "violations": []}]', 0, "", names)
+    assert r.violations is None
+    assert r.errors == ["no lint output for b.sql"]
+    r = _lint_output("", 2, "\nUser Error: bad config\nmore\n", names)
+    assert r.violations is None
+    assert r.errors == ["no JSON lint output", "exit code 2: User Error: bad config"]
+
+
+def test_exit_reason():
+    assert _exit_reason(2, "") == "exit code 2"
+    assert _exit_reason(2, "  \nUser Error: x\ny\n") == "exit code 2: User Error: x"
+    traceback = "Traceback (most recent call last):\n  File \"x\"\nKeyError: 'd'\n"
+    assert _exit_reason(1, traceback) == "exit code 1: KeyError: 'd'"
+
+
+def test_critical_logs():
+    out = (
+        "==== finding fixable violations ====\n"
+        "\x1b[0mWARNING    \x1b[31mOne fix for LT01 not applied\x1b[0m \n"
+        "\x1b[0mCRITICAL   \x1b[31mRule LT01 returned conflicting fixes with the "
+        "same anchor.\n0x1:\n    fix\x1b[0m \n"
+        "CRITICAL   Applying rule AL01 to 'x.sql' threw an Exception: boom\n"
+    )
+    assert _critical_logs(out) == [
+        "Rule LT01 returned conflicting fixes with the same anchor.",
+        "Applying rule AL01 to 'x.sql' threw an Exception: boom",
+    ]
+    assert _critical_logs("WARNING    x\nFIXED\n") == []
 
 
 adapter = SqlfluffAdapter()

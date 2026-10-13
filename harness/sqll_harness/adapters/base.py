@@ -46,11 +46,14 @@ class FixResult:
     """The result of one fix through a tool binary.
 
     fixed is the content of the file after the fix. It is None if the tool
-    did not complete.
+    did not complete. critical holds the first line of each CRITICAL log
+    message of the tool. The sqlfluff test fails for these messages (a rule
+    exception, or conflicting fixes), but the CLI only logs them.
     """
 
     fixed: str | None
     errors: list[str] = field(default_factory=list)
+    critical: list[str] = field(default_factory=list)
     rc: int = 0
     stderr: str = ""
 

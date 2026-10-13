@@ -355,7 +355,7 @@ def test_fix_not_shown():
     # Only hidden violations have fixes.
     found = rules.Found(filtered=[plain], raw=[plain, lt01], parse_stage=[])
     why = rules.fix_not_shown(found, [[plain], [plain, lt01]], None)
-    assert "only hidden violations have fixes" in why
+    assert "only hidden violations (ignore, noqa, or templated areas)" in why
 
 
 def test_fail_problems_compare_all_violations():
@@ -547,6 +547,43 @@ def test_run_fix_not_shown_gives_error():
         ("SELECT {{ x }}\n", {"core": {"templater": "raw"}}, True),
         ("SELECT 1\n", {"core": {"templater": "raw"}}, False),
         ("SELECT 1\n", {"core": {"dialect": "ansi"}}, False),
+        # The templater.jinja section can set other start strings.
+        ("SELECT << x >>\n", None, False),
+        (
+            "SELECT << x >>\n",
+            {"templater": {"jinja": {"variable_start_string": "<<"}}},
+            True,
+        ),
+        (
+            "SELECT <% if x %>1<% endif %>\n",
+            {"templater": {"jinja": {"block_start_string": "<%"}}},
+            True,
+        ),
+        (
+            "SELECT 1 <# c #>\n",
+            {"templater": {"jinja": {"comment_start_string": "<#"}}},
+            True,
+        ),
+        (
+            "SELECT 1\n",
+            {"templater": {"jinja": {"variable_start_string": "<<"}}},
+            False,
+        ),
+        # The default start strings stay tags.
+        (
+            "SELECT {{ x }}\n",
+            {"templater": {"jinja": {"variable_start_string": "<<"}}},
+            True,
+        ),
+        # An end string alone starts no tag.
+        (
+            "SELECT >> x\n",
+            {"templater": {"jinja": {"variable_end_string": ">>"}}},
+            False,
+        ),
+        # A start string that is not a string: fail closed.
+        ("SELECT 1\n", {"templater": {"jinja": {"block_start_string": 7}}}, True),
+        ("SELECT 1\n", {"templater": {"jinja": {"block_start_string": ""}}}, True),
     ],
 )
 def test_can_template(sql, configs, found):
@@ -606,7 +643,7 @@ def test_templated_noqa_mask_is_an_error(field):
     assert result.status == ERROR, result.reason
     assert result.reason == rules.TEMPLATED_NOQA_REASON
     assert result.checks == {}
-    assert [c[0] for c in adapter.calls] == ["lint", "lint"]
+    assert {c[0] for c in adapter.calls} == {"lint"}
 
 
 def test_noqa_mask_without_templating_is_not_an_error():
@@ -631,6 +668,132 @@ def test_noqa_mask_active():
     # A lint that did not run gives no result; the checks then fail.
     broken = LintResult(None, errors=["x"])
     assert not rules.noqa_mask_active([same, same, broken], [a, b])
+
+
+def test_templated_area_config():
+    assert rules.templated_area_config(None) == {
+        "core": {"ignore_templated_areas": False}
+    }
+    configs = {"core": {"ignore": "parsing", "dialect": "tsql"}, "rules": {"x": 1}}
+    assert rules.templated_area_config(configs) == {
+        "core": {"dialect": "tsql", "ignore_templated_areas": False},
+        "rules": {"x": 1},
+    }
+    # The case config is not changed.
+    assert configs["core"]["ignore"] == "parsing"
+
+
+class TemplatedAreaAdapter(FakeAdapter):
+    """With ignore_templated_areas off, the lint shows more violations."""
+
+    def __init__(self, area, **kwargs):
+        super().__init__(**kwargs)
+        self.area = area
+
+    def lint(self, sql_paths, rules_, dialect, config, workdir):
+        result = super().lint(sql_paths, rules_, dialect, config, workdir)
+        core = (config or {}).get("core", {})
+        if core.get("ignore_templated_areas") is False:
+            for p in sql_paths:
+                result.violations[p] = result.violations[p] + self.area
+        return result
+
+
+def test_fix_in_templated_area_gives_error():
+    al03 = _v("AL03", 1, 8)
+    lt09 = _v("LT09", 1, 1, fixes=_fixes())
+    sql = 'SELECT RO(), {{ "t" }}.func()\n'
+    case = rules.RuleCase(id="rules/x/y", rule="AL03,LT09", fail_str=sql)
+    adapter = TemplatedAreaAdapter([lt09], lint={"fail.sql": [al03]})
+    result = rules.run(adapter, case, SQLFLUFF_ROOT)
+    assert result.status == ERROR, result.reason
+    assert result.checks == {"fail_str": True}
+    assert result.reason == HIDDEN_FIX_REASON
+    assert adapter.calls[2] == ("lint", ["fail.sql"], ["AL03", "LT09"], "ansi")
+    assert adapter.configs[2] == {"core": {"ignore_templated_areas": False}}
+    # A shown violation with fixes: the tool writes the file. Compare it.
+    shown = _v("AL03", 1, 8, fixes=_fixes())
+    adapter = TemplatedAreaAdapter([lt09], lint={"fail.sql": [shown]}, fixed=sql)
+    result = rules.run(adapter, case, SQLFLUFF_ROOT)
+    assert result.status == PASS, result.reason
+
+
+def test_no_templated_area_lint_for_plain_sql():
+    case = rules.RuleCase(id="rules/x/y", rule="LT01", fail_str="SELECT 1\n")
+    adapter = TemplatedAreaAdapter([], lint={"fail.sql": [_v("LT01", 1, 1)]})
+    assert rules.run(adapter, case, SQLFLUFF_ROOT).status == PASS
+    assert adapter.configs == [None]
+
+
+class BrokenLintAdapter(FakeAdapter):
+    """The lint with the config in broken gives no usable output."""
+
+    def __init__(self, broken, **kwargs):
+        super().__init__(**kwargs)
+        self.broken = broken
+
+    def lint(self, sql_paths, rules_, dialect, config, workdir):
+        result = super().lint(sql_paths, rules_, dialect, config, workdir)
+        if config == self.broken:
+            return LintResult(None, errors=["exit code 2: User Error: x"], rc=2)
+        return result
+
+
+@pytest.mark.parametrize(
+    ("configs", "broken"),
+    [
+        (None, None),
+        ({"core": {"ignore": "parsing"}}, {"core": {}}),
+        (None, {"core": {"ignore_templated_areas": False}}),
+    ],
+)
+def test_lint_with_no_usable_output_gives_error(configs, broken):
+    case = rules.RuleCase(
+        id="rules/x/y", rule="LT01", fail_str="SELECT {{ x }}\n", configs=configs
+    )
+    adapter = BrokenLintAdapter(broken, lint={"fail.sql": [_v("LT01", 1, 1)]})
+    result = rules.run(adapter, case, SQLFLUFF_ROOT)
+    assert result.status == ERROR
+    assert result.reason == "lint: exit code 2: User Error: x"
+    assert result.checks == {}
+
+
+def test_fix_tool_failure_gives_error():
+    class Adapter(FakeAdapter):
+        def fix(self, sql_path, rules_, dialect, config, workdir):
+            return FixResult(None, errors=["exit code 2: boom"], rc=2)
+
+    case = rules.RuleCase(id="rules/x/y", rule="LT01", fail_str="f")
+    result = rules.run(
+        Adapter(lint={"fail.sql": [_v("LT01", 1, 1)]}), case, SQLFLUFF_ROOT
+    )
+    assert result.status == ERROR
+    assert result.checks == {"fail_str": True}
+    assert result.reason == "fix: tool: exit code 2: boom"
+    # A check that fails gives "fail": the test stops there.
+    case = dataclasses.replace(case, line_numbers=[3])
+    result = rules.run(
+        Adapter(lint={"fail.sql": [_v("LT01", 1, 1)]}), case, SQLFLUFF_ROOT
+    )
+    assert result.status == FAIL
+
+
+def test_critical_log_in_fix_gives_error():
+    message = "Rule LT01 returned conflicting fixes with the same anchor."
+
+    class Adapter(FakeAdapter):
+        def fix(self, sql_path, rules_, dialect, config, workdir):
+            return FixResult("f", critical=[message])
+
+    case = rules.RuleCase(id="rules/x/y", rule="LT01", fail_str="f")
+    result = rules.run(
+        Adapter(lint={"fail.sql": [_v("LT01", 1, 1)]}), case, SQLFLUFF_ROOT
+    )
+    assert result.status == ERROR
+    assert result.checks == {"fail_str": True}
+    assert result.reason == (
+        f"fix: the tool logged CRITICAL '{message}'; the test can fail there"
+    )
 
 
 def test_run_with_empty_strings_checks_nothing():
@@ -681,7 +844,20 @@ def test_ignore_and_noqa_do_not_hide_violations(case_id):
     assert result.status == want, result.reason
 
 
-FAIL_CLOSED = {c.id: c for c in rules.load_file(FIXTURES / "LT01_fail_closed.yml")}
+FAIL_CLOSED = {
+    c.id: c
+    for name in (
+        "LT01_fail_closed.yml",
+        "AL03_LT09_fail_closed.yml",
+        "LT08_ST03_fail_closed.yml",
+    )
+    for c in rules.load_file(FIXTURES / name)
+}
+HIDDEN_FIX_REASON = (
+    "fix: 'sqlfluff fix' does not write a file when only hidden violations "
+    "(ignore, noqa, or templated areas) have fixes, but the test applies the "
+    "fixes"
+)
 
 
 @needs_sqlfluff
@@ -692,7 +868,11 @@ def test_cases_the_cli_cannot_show_give_error(case_id):
     assert case_id.split("/")[-1].startswith("expect_fail_")
     result = rules.run(SqlfluffAdapter(), FAIL_CLOSED[case_id], SQLFLUFF_ROOT)
     assert result.status == ERROR, (result.status, result.reason)
-    if "_directive_" in case_id:
+    if not case_id.startswith("rules/LT01_fail_closed/"):
+        # A fix of a lint error in a templated area.
+        assert result.checks == {"fail_str": True}
+        assert result.reason == HIDDEN_FIX_REASON
+    elif "_directive_" in case_id:
         assert result.reason == rules.INLINE_CONFIG_REASON
     elif "_templated_" in case_id or "_variant" in case_id:
         assert result.reason == rules.TEMPLATED_NOQA_REASON
@@ -745,6 +925,29 @@ def test_config_changes_the_result():
         id=case.id, rule=case.rule, pass_str=case.fail_str, configs=off
     )
     assert rules.run(SqlfluffAdapter(), changed, SQLFLUFF_ROOT).status == PASS
+
+
+@needs_sqlfluff
+def test_file_over_the_byte_limit_gives_error():
+    # The test does not use large_file_skip_byte_limit; the CLI skips the file.
+    configs = {"core": {"large_file_skip_byte_limit": 5}}
+    case = rules.RuleCase(
+        id="rules/x/y", rule="LT01", pass_str="SELECT 1\n", configs=configs
+    )
+    result = rules.run(SqlfluffAdapter(), case, SQLFLUFF_ROOT)
+    assert result.status == ERROR
+    assert result.reason == "lint: no lint output for pass.sql"
+
+
+@needs_sqlfluff
+def test_lint_failure_reason_has_the_tool_message():
+    configs = {"core": {"dialect": "nosuch"}}
+    case = rules.RuleCase(
+        id="rules/x/y", rule="LT01", pass_str="SELECT 1\n", configs=configs
+    )
+    result = rules.run(SqlfluffAdapter(), case, SQLFLUFF_ROOT)
+    assert result.status == ERROR
+    assert "Unknown dialect" in result.reason
 
 
 @needs_sqlfluff

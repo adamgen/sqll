@@ -58,8 +58,13 @@ INLINE_CONFIG_REASON = (
     "the config file, so the harness cannot get the violation lists with no "
     "filter"
 )
-# A SQL string with one of these can give other text after templating.
-TEMPLATE_TAGS = ("{{", "{%", "{#")
+# The jinja templater (the default) starts a tag with one of these strings.
+# The case config can change them in the templater.jinja section.
+JINJA_START_STRINGS = {
+    "variable_start_string": "{{",
+    "block_start_string": "{%",
+    "comment_start_string": "{#",
+}
 TEMPLATED_NOQA_REASON = (
     "a SQL string can be templated and a noqa comment changes the lint "
     "output; the tool applies the noqa comments of the root variant to all "
@@ -279,13 +284,25 @@ def has_inline_config(sql: str) -> bool:
 def can_template(sql: str, configs: dict[str, Any] | None) -> bool:
     """Return True if templating can make text that is not in sql.
 
-    Then a noqa comment can be in the rendered SQL and not in sql, and a
-    template can have more than one variant.
+    Then a noqa comment can be in the rendered SQL and not in sql, a
+    template can have more than one variant, and a lint error can be in a
+    templated area. The tags are the default jinja start strings and the
+    start strings that the case config sets.
     """
-    if any(tag in sql for tag in TEMPLATE_TAGS):
-        return True
     core = configs.get("core") if configs else None
-    return isinstance(core, dict) and core.get("templater", "raw") != "raw"
+    if isinstance(core, dict) and core.get("templater", "raw") != "raw":
+        return True
+    templater = configs.get("templater") if configs else None
+    jinja = templater.get("jinja") if isinstance(templater, dict) else None
+    tags = list(JINJA_START_STRINGS.values())
+    if isinstance(jinja, dict):
+        for key in JINJA_START_STRINGS:
+            if key not in jinja:
+                continue
+            if not isinstance(jinja[key], str) or not jinja[key]:
+                return True
+            tags.append(jinja[key])
+    return any(tag in sql for tag in tags)
 
 
 def fix_not_shown(
@@ -298,7 +315,8 @@ def fix_not_shown(
     fix_even_unparsable is set (Linter.lint_paths). It also writes the file
     only if a violation in the filtered list has fixes (persist_tree). If it
     does not write the file and a rule gave fixes, the result of the test is
-    not known. lists are all lint outputs of the file.
+    not known. lists are all lint outputs of the file, also the lint that
+    keeps the lint errors in templated areas (see templated_area_config).
     """
     if not any(v.get("fixes") for violations in lists for v in violations):
         return None
@@ -313,7 +331,8 @@ def fix_not_shown(
     if not any(v.get("fixes") for v in found.filtered):
         return (
             "'sqlfluff fix' does not write a file when only hidden violations "
-            "have fixes, but the test applies the fixes"
+            "(ignore, noqa, or templated areas) have fixes, but the test "
+            "applies the fixes"
         )
     return None
 
@@ -336,8 +355,24 @@ def config_without_noqa(configs: dict[str, Any] | None) -> dict[str, Any]:
     return {**(configs or {}), "core": core}
 
 
+def templated_area_config(configs: dict[str, Any] | None) -> dict[str, Any]:
+    """Return the config with no core "ignore" and ignore_templated_areas off.
+
+    In fix mode the test applies the fixes of a lint error in a templated
+    area. remove_templated_errors removes the lint error only after the fix
+    loop. Thus "lint -f json" with the case config does not show these fixes.
+    """
+    configs = config_without_ignore(configs) or configs or {}
+    core = configs.get("core")
+    core = dict(core) if isinstance(core, dict) else {}
+    core["ignore_templated_areas"] = False
+    return {**configs, "core": core}
+
+
 def _lint_problems(lints: list[LintResult]) -> list[str]:
-    return [f"lint: {e}" for lint in lints for e in lint.errors]
+    # _lint_all can give the same result 2 times.
+    unique = {id(lint): lint for lint in lints}.values()
+    return [f"lint: {e}" for lint in unique for e in lint.errors]
 
 
 def run(adapter: Adapter, case: RuleCase, sqlfluff_root: Path) -> CaseResult:
@@ -384,38 +419,42 @@ def run(adapter: Adapter, case: RuleCase, sqlfluff_root: Path) -> CaseResult:
             lints = _lint_all(
                 adapter, list(paths.values()), templated, codes, dialect, case, work
             )
+        # In fix mode the test applies the fixes of the lint errors in
+        # templated areas. Only a lint that keeps these errors shows them.
+        templated_area: LintResult | None = None
+        if "fail" in paths and paths["fail"] in templated:
+            area_config = templated_area_config(case.configs)
+            templated_area = adapter.lint(
+                [paths["fail"]], codes, dialect, area_config, work
+            )
+        problems = _lint_problems(lints + ([templated_area] if templated_area else []))
+        if problems:
+            # The tool gave no usable output: the result is not known.
+            return CaseResult(
+                case.id, NAME, adapter.name, ERROR, reason="; ".join(problems)
+            )
         if noqa_mask_active(lints, templated):
             return CaseResult(
                 case.id, NAME, adapter.name, ERROR, reason=TEMPLATED_NOQA_REASON
             )
 
-        def outputs(k: str) -> list[list[dict]] | None:
-            if not lints or any(r.violations is None or r.errors for r in lints):
-                return None
+        def outputs(k: str) -> list[list[dict]]:
             return [r.violations[paths[k]] for r in lints]
 
-        def found(k: str) -> Found | None:
+        def found(k: str) -> Found:
             lists = outputs(k)
-            if lists is None:
-                return None
             if len(lists) == 1:
                 return Found.from_one(lists[0])
             return compose(*lists)
 
         if case.pass_str:
-            got = found("pass")
-            check(
-                "pass_str",
-                _lint_problems(lints) if got is None else pass_problems(got, codes),
-            )
+            check("pass_str", pass_problems(found("pass"), codes))
 
         if case.fail_str:
             failed = found("fail")
             check(
                 "fail_str",
-                _lint_problems(lints)
-                if failed is None
-                else fail_problems(
+                fail_problems(
                     failed, codes, case.line_numbers, case.violations, case.rule
                 ),
             )
@@ -423,13 +462,17 @@ def run(adapter: Adapter, case: RuleCase, sqlfluff_root: Path) -> CaseResult:
             fix_path.write_bytes(case.fail_str.encode("utf8"))
             fix = adapter.fix(fix_path, codes, dialect, case.configs, work)
             want = case.fix_str if case.fix_str else case.fail_str
-            not_shown = (
-                None
-                if failed is None
-                else fix_not_shown(failed, outputs("fail"), case.configs)
-            )
+            lists = outputs("fail")
+            if templated_area is not None:
+                lists.append(templated_area.violations[paths["fail"]])
+            not_shown = fix_not_shown(failed, lists, case.configs)
             if fix.fixed is None:
-                check("fix", [f"tool: {e}" for e in fix.errors])
+                unknown.extend(f"fix: tool: {e}" for e in fix.errors)
+            elif fix.critical:
+                unknown.append(
+                    f"fix: the tool logged CRITICAL '{fix.critical[0]}'; the "
+                    "test can fail there"
+                )
             elif not_shown:
                 unknown.append(f"fix: {not_shown}")
             else:
@@ -439,9 +482,7 @@ def run(adapter: Adapter, case: RuleCase, sqlfluff_root: Path) -> CaseResult:
 
             if case.fix_str:
                 got = found("fixed")
-                if got is None:
-                    problems = _lint_problems(lints)
-                elif case.violations_after_fix:
+                if case.violations_after_fix:
                     problems = fail_problems(
                         got,
                         codes,

@@ -1,0 +1,16 @@
+# Harness test cases. They are not sqlfluff fixtures.
+# The sqlfluff test fails on each case (key prefix expect_fail_). The harness
+# must give status "error", not "pass".
+rule: LT08,ST03
+
+# The fail_str of ST03/test_fail_query_uses_templating with LT08 too. In fix
+# mode the test applies a fix of an error in a templated area, but
+# "sqlfluff fix" does not write the file.
+expect_fail_templated_area_fix_no_fix_str:
+  fail_str: |
+    WITH
+    random_gibberish AS (
+        SELECT 1
+    )
+    SELECT var_bar
+    FROM {{ ref('issue_2235') }}

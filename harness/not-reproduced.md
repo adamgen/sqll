@@ -20,7 +20,9 @@ cannot give the same input. See [README.md](README.md) and [rules.md](rules.md).
   `CP02_LT01/test_fail_fix_cp02_lt01_with_templating_6678`. Their codes,
   lines, and start positions do not change, and they have no `violations` or
   `line_numbers`. With 2 rules, an `Unexpected exception` of the second rule
-  can also occur in only one of the 2 modes.
+  can also occur in only one of the 2 modes. In fix mode, `sqlfluff fix` logs
+  it as `CRITICAL`, and the status is `error`. In lint mode only, the status
+  is `fail` and the test passes.
 - In a templated file with more than one variant, the test puts the lint
   errors of the other variants after those of the root variant at the same
   line and position. `lint -f json` does not show the variant of a
@@ -30,9 +32,19 @@ cannot give the same input. See [README.md](README.md) and [rules.md](rules.md).
   `lint -f json` also applies the noqa comments of the root variant to them.
   If a SQL string can be templated and a noqa comment has an effect, the
   status is `error`. No 4.4.0 case has this condition.
-- If `sqlfluff fix` does not write the file, the fixes that the test
-  applies. The `fix` check is not known and the status is `error`. No 4.4.0
-  case has this condition.
+- The fixes that the test applies when `sqlfluff fix` does not write the
+  file. `sqlfluff fix` does not write the file if a TMP or PRS blocks the
+  fix, or if no shown violation has fixes. The test also applies the fixes of
+  violations that `ignore` or `remove_templated_errors` (a lint error in a
+  templated area) removes. If a lint output has a violation with fixes and
+  the tool does not write the file, the `fix` check is not known and the
+  status is `error`. No 4.4.0 case has this condition.
+- The autouse fixture `fail_on_parse_error_after_fix` of `test/conftest.py`
+  makes the test fail on conflicting fixes for one anchor. `sqlfluff fix`
+  only logs a `CRITICAL` message. If it logs one, the status is `error`.
+- The test does not apply `large_file_skip_byte_limit`. `sqlfluff lint` skips
+  a larger file and gives no output for it. The status is `error`. No 4.4.0
+  SQL string is longer than 1252 bytes.
 - A SQL string with an in-file config line. The status is `error`. No 4.4.0
   case has one.
 - The test uses `caplog` to show the debug log. It is not a check.
