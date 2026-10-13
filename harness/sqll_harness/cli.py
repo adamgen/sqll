@@ -114,6 +114,7 @@ def _run_one(suite, adapter: Adapter, case, root: Path) -> CaseResult:
         if os.environ.get("SQLL_HARNESS_DEBUG"):
             traceback.print_exc()
     result.duration_ms = int((time.monotonic() - t0) * 1000)
+    result.tags = list(getattr(case, "tags", ()))
     return result
 
 

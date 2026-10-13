@@ -122,7 +122,9 @@ def test_cli_passes_with_empty_list(tmp_path, capsys):
         "checks",
         "reason",
         "duration_ms",
+        "tags",
     }
+    assert case["tags"] == []
 
 
 class _EmptySuite:

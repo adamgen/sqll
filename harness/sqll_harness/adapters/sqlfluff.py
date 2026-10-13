@@ -156,9 +156,24 @@ class SqlfluffAdapter(Adapter):
             fixed, errors, critical=critical, rc=proc.returncode, stderr=proc.stderr
         )
 
-    def parse_file(self, sql_path: Path, dialect: str, cwd: Path) -> ParseResult:
+    def parse_file(
+        self,
+        sql_path: Path,
+        dialect: str | None,
+        cwd: Path,
+        code_only: bool = False,
+        include_meta: bool = False,
+    ) -> ParseResult:
+        # With -m the JSON output also has the source position of each
+        # segment (include_position=include_meta in the parse command).
         self._check()
-        cmd = [str(self.binary), "parse", "-f", "json", "--dialect", dialect]
+        cmd = [str(self.binary), "parse", "-f", "json"]
+        if code_only:
+            cmd.append("-c")
+        if include_meta:
+            cmd.append("-m")
+        if dialect is not None:
+            cmd += ["--dialect", dialect]
         cmd.append(str(sql_path))
         proc = self._run(cmd, cwd)
         return _parse_file_output(proc.stdout, proc.returncode, proc.stderr)

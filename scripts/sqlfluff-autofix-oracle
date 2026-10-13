@@ -38,7 +38,6 @@ import contextlib
 import importlib.util
 import io
 import json
-import logging
 import os
 import sys
 import tempfile
@@ -47,6 +46,7 @@ from pathlib import Path
 import pytest
 from sqlfluff_oracle import (
     SQLFLUFF_ROOT,
+    CapLog,
     Results,
     check_prefixes,
     compare_with_report,
@@ -56,23 +56,6 @@ from sqlfluff_oracle import (
 )
 
 TEST_FILE = SQLFLUFF_ROOT / "test" / "rules" / "std_fix_auto_test.py"
-
-
-class CapLog:
-    """The part of the pytest caplog fixture that auto_fix_test uses."""
-
-    def __init__(self) -> None:
-        self._levels: dict[str, int] = {}
-
-    def set_level(self, level: int, logger: str | None = None) -> None:
-        log = logging.getLogger(logger)
-        self._levels.setdefault(logger or "", log.level)
-        log.setLevel(level)
-
-    def restore(self) -> None:
-        for name, level in self._levels.items():
-            logging.getLogger(name or None).setLevel(level)
-        self._levels.clear()
 
 
 def load_test_module():

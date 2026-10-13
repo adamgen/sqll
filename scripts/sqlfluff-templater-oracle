@@ -1,0 +1,145 @@
+#!/usr/bin/env python3
+"""Run the sqlfluff templater test on templater cases, and compare with a report.
+
+This is the reference for the "templater" suite. It calls
+test__templater_full of test/core/templaters/jinja_test.py in the sqlfluff
+submodule through Python, with the parameters that pytest gives it and with
+load_yaml of test/conftest.py as yaml_loader. The harness must never do this;
+only this check does.
+
+Run it with the pinned sqlfluff and pytest that scripts/setup installs
+(tools/sqlfluff-oracle):
+
+  .tools/sqlfluff-oracle/bin/python scripts/sqlfluff-templater-oracle \\
+      [--root DIR] [--report out/report.json] [--out out/templater-oracle.jsonl]
+      [--check-prefixes]
+
+The current folder of the test is --root, because the test uses paths
+relative to it: test/fixtures/templater/<subpath>.sql. The default is the
+sqlfluff root. With another root, the case table is the parametrize list of
+test__templater_full in <root>/test/core/templaters/jinja_test.py, and the
+test function is still the one of the pinned sqlfluff. The case id is
+templater/<subpath>.
+
+It writes one JSON line for each case to --out (default: stdout): {"id",
+"status", "reason"}. With --report, it compares the status of each case with
+the "templater" results of --tool in that report, and prints the totals and
+each difference. The exit code is 1 if there is a difference or a case is
+only in one of the two.
+
+With --check-prefixes, a case whose last subpath part starts with
+"expect_pass_" or "expect_fail_" must have that status. The harness test
+fixtures use these prefixes. The exit code is 1 if a status is different or
+no case has a prefix.
+"""
+
+import argparse
+import contextlib
+import importlib.util
+import io
+import json
+import os
+import sys
+from pathlib import Path
+
+import pytest
+from sqlfluff_oracle import (
+    SQLFLUFF_ROOT,
+    CapLog,
+    Results,
+    check_prefixes,
+    compare_with_report,
+    fail_on_parse_error_after_fix,
+    failure_reason,
+    write_results,
+)
+
+TEST_FILE = Path("test") / "core" / "templaters" / "jinja_test.py"
+CONFTEST = SQLFLUFF_ROOT / "test" / "conftest.py"
+TEST_NAME = "test__templater_full"
+
+
+def load_module(name: str, path: Path):
+    """Import a Python file. Python must not write a bytecode file."""
+    sys.dont_write_bytecode = True
+    spec = importlib.util.spec_from_file_location(name, path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def case_table(module) -> list[tuple[str, bool, bool]]:
+    """Return the parameters that pytest gives to test__templater_full."""
+    marks = [
+        m for m in getattr(module, TEST_NAME).pytestmark if m.name == "parametrize"
+    ]
+    if len(marks) != 1:
+        raise ValueError(f"{TEST_NAME} has {len(marks)} parametrize marks")
+    argnames, values = marks[0].args[:2]
+    if argnames != "subpath,code_only,include_meta" or marks[0].kwargs:
+        raise ValueError(f"{TEST_NAME} has other parameters: {marks[0]}")
+    return [tuple(v) for v in values]
+
+
+def run_cases(test, yaml_loader, table: list[tuple[str, bool, bool]]) -> Results:
+    """Return {harness case id: (status, reason)}."""
+    results = {}
+    caplog = CapLog()
+    for subpath, code_only, include_meta in table:
+        case_id = f"templater/{subpath}"
+        if case_id in results:
+            raise ValueError(f"two rows give the case id {case_id}")
+        try:
+            # The test prints the tree when it is unparsable. Do not show it.
+            with contextlib.redirect_stdout(io.StringIO()):
+                test(
+                    subpath=subpath,
+                    code_only=code_only,
+                    include_meta=include_meta,
+                    yaml_loader=yaml_loader,
+                    caplog=caplog,
+                )
+            results[case_id] = ("pass", "")
+        except pytest.skip.Exception as e:
+            results[case_id] = ("skip", str(e))
+        except (pytest.fail.Exception, Exception) as e:
+            results[case_id] = ("fail", failure_reason(e))
+        finally:
+            caplog.restore()
+    return results
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument("--root", type=Path)
+    parser.add_argument("--report", type=Path)
+    parser.add_argument("--tool", default="sqlfluff")
+    parser.add_argument("--out", type=Path)
+    parser.add_argument("--check-prefixes", action="store_true")
+    args = parser.parse_args()
+    # The paths of the arguments are relative to the folder of the caller.
+    root, report, out = (
+        p.resolve() if p else None for p in (args.root, args.report, args.out)
+    )
+
+    fail_on_parse_error_after_fix()
+    module = load_module("jinja_test", SQLFLUFF_ROOT / TEST_FILE)
+    conftest = load_module("sqlfluff_test_conftest", CONFTEST)
+    table_module = module if root is None else load_module("table", root / TEST_FILE)
+    table = case_table(table_module)
+    os.chdir(root or SQLFLUFF_ROOT)
+    oracle = run_cases(getattr(module, TEST_NAME), conftest.load_yaml, table)
+
+    if out:
+        write_results(oracle, out)
+    elif not args.check_prefixes:
+        for case_id, (status, reason) in oracle.items():
+            print(json.dumps({"id": case_id, "status": status, "reason": reason}))
+    status = check_prefixes(oracle) if args.check_prefixes else 0
+    if report is None:
+        return status
+    return compare_with_report(oracle, report, "templater", args.tool) or status
+
+
+if __name__ == "__main__":
+    sys.exit(main())

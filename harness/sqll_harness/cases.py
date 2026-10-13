@@ -15,6 +15,8 @@ class CaseResult:
     "error" means that the harness or the tool did not complete the case,
     or that the harness cannot know the result of a check.
     "skip" means that the fixture tells the test to skip the case.
+    tags give facts about the case that are not results, for example
+    "needs_python".
     """
 
     id: str
@@ -24,6 +26,7 @@ class CaseResult:
     checks: dict[str, bool] = field(default_factory=dict)
     reason: str = ""
     duration_ms: int = 0
+    tags: list[str] = field(default_factory=list)
 
     @property
     def passed(self) -> bool:

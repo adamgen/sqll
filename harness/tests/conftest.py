@@ -11,6 +11,10 @@ import pytest
 
 from sqll_harness.paths import tools_dir
 
+# The fixtures have Python files that are not tests, for example the case
+# table of the templater fixtures (test/core/templaters/jinja_test.py).
+collect_ignore_glob = ["fixtures/*"]
+
 
 def needs(*relative_paths: str) -> pytest.MarkDecorator:
     """Skip the test if a path in the tools folder does not exist."""

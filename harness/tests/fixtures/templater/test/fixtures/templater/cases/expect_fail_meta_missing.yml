@@ -1,0 +1,11 @@
+file:
+- newline: "\n"
+- statement:
+  - select_statement:
+    - select_clause:
+      - keyword: SELECT
+      - whitespace: ' '
+      - select_clause_element:
+        - numeric_literal: '1'
+- newline: "\n"
+- newline: "\n"

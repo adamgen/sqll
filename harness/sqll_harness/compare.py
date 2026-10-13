@@ -78,6 +78,64 @@ def trees_match(expected: tuple | None, actual: tuple | None) -> bool:
     return True
 
 
+# The keys of the source position that "sqlfluff parse -m" adds to each
+# segment record (TemplatedFile.source_position_dict_from_slice).
+POSITION_KEYS = frozenset(
+    {
+        "start_line_no",
+        "start_line_pos",
+        "start_file_pos",
+        "end_line_no",
+        "end_line_pos",
+        "end_file_pos",
+    }
+)
+
+
+def strip_positions(record: Any) -> Any:
+    """Return a parse record with no position keys.
+
+    With -m, "sqlfluff parse" adds the source position of each segment to
+    its record, and to the record of its parent if it is the only child.
+    The value of a position key is an int. The value of a segment is a
+    string, a dict, a list, or null. A position key with another value is
+    an error, because the harness cannot know if it is a segment.
+    """
+    if isinstance(record, dict):
+        out = {}
+        for key, value in record.items():
+            if key in POSITION_KEYS:
+                if type(value) is not int:
+                    raise ValueError(f"position key {key!r} has the value {value!r}")
+                continue
+            out[key] = strip_positions(value)
+        return out
+    if isinstance(record, list):
+        return [strip_positions(item) for item in record]
+    return record
+
+
+def record_to_test_tuple(record: Any) -> tuple:
+    """Return the root tuple of a parse record, as BaseSegment.to_tuple gives it.
+
+    The parse record of the CLI (as_record) has null for a segment with no
+    children to show. to_tuple has an empty tuple for it, and never None.
+    Thus null becomes an empty tuple. A raw segment has a string, also an
+    empty string.
+    """
+    if not isinstance(record, dict) or len(record) != 1:
+        raise ValueError("the root record does not have exactly one segment")
+    return process_struct(_nulls_to_lists(record))[0]
+
+
+def _nulls_to_lists(record: Any) -> Any:
+    if isinstance(record, dict):
+        return {k: [] if v is None else _nulls_to_lists(v) for k, v in record.items()}
+    if isinstance(record, list):
+        return [_nulls_to_lists(item) for item in record]
+    return record
+
+
 def has_node(record: Any, name: str) -> bool:
     """Return True if a node with this name is in the parse record."""
     stack = [record]
