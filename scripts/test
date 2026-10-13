@@ -22,5 +22,11 @@ uv run --quiet --frozen --project harness sqll-harness tools > out/tools.json ||
     cat out/tools.json
     exit 1
 }
+
+scripts/check-submodule "before the tests"
+
 SQLL_REQUIRE_TOOLS=1 uv run --quiet --frozen --project harness pytest -q harness/tests
-uv run --quiet --frozen --project harness sqll-harness run "$@"
+status=0
+uv run --quiet --frozen --project harness sqll-harness run "$@" || status=$?
+scripts/check-submodule "after the run"
+exit "$status"

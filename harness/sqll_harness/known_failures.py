@@ -82,9 +82,10 @@ def evaluate(
     for r in results:
         seen.add(r.id)
         listed = r.id in known
-        if r.passed and listed:
+        # A skipped case did not fail, so it must not be in the list.
+        if (r.passed or r.skipped) and listed:
             outcome.unexpected_passes.append(r.id)
-        elif not r.passed and not listed:
+        elif not (r.passed or r.skipped) and not listed:
             outcome.new_failures.append(r)
     for case_id in known:
         if case_id in seen or not shards.contains(shard, case_id):

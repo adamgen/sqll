@@ -1,0 +1,70 @@
+# Harness test cases. They are not sqlfluff fixtures.
+# The sqlfluff test fails on each case. The CLI cannot show this result, so
+# the harness must give status "error", not "pass". The key prefix gives the
+# result of the sqlfluff test (scripts/sqlfluff-rule-oracle).
+rule: LT01
+
+# An in-file config directive overrides the config file. Thus the harness
+# cannot get the violation lists with no "ignore" filter.
+expect_fail_directive_ignore_parsing_pass_str:
+  pass_str: "-- sqlfluff:ignore:parsing\nSELECT a FROM t WHERE (\n"
+
+expect_fail_directive_ignore_linting_pass_str:
+  pass_str: "-- sqlfluff:ignore:linting\nSELECT a  +  b FROM t\n"
+
+expect_fail_directive_ignore_parsing_fail_str:
+  fail_str: "-- sqlfluff:ignore:parsing\nSELECT a  +  b FROM t;\nfoo bar baz;\n"
+  fix_str: "-- sqlfluff:ignore:parsing\nSELECT a + b FROM t;\nfoo bar baz;\n"
+  configs:
+    core:
+      fix_even_unparsable: true
+
+# "sqlfluff fix" does not write a file with a TMP or PRS violation, also if
+# "ignore" or noqa hides it. The test applies the fixes.
+expect_fail_hidden_prs_no_fix_str:
+  fail_str: "SELECT a  +  b FROM t;\nfoo bar baz;\n"
+  configs:
+    core:
+      ignore: parsing
+
+expect_fail_noqa_prs_no_fix_str:
+  fail_str: "SELECT a  +  b FROM t;\nfoo bar baz; -- noqa: PRS\n"
+
+# The templater makes a noqa comment that hides a PRS. The source has no
+# "noqa" text.
+expect_fail_templated_noqa_prs_pass_str:
+  pass_str: "SELECT 1;\nfoo bar; -- {{ 'no' ~ 'qa' }}\n"
+
+expect_fail_templated_noqa_prs_no_fix_str:
+  fail_str: "SELECT a  +  b FROM t;\nfoo bar; -- {{ 'no' ~ 'qa' }}\n"
+
+# The tool applies the noqa comment of the root variant to the lint errors of
+# the other variant. The test does not.
+expect_fail_noqa_in_one_variant:
+  pass_str: "SELECT\n{% if x %}a  +  b -- noqa: LT01{% else %}c  +  d{% endif %}\nFROM t\n"
+
+# The case config sets other jinja start strings. The strings in the SQL are
+# jinja tags.
+expect_fail_templated_variable_delim_noqa_prs_pass_str:
+  pass_str: "SELECT 1;\nfoo bar; -- << 'no' ~ 'qa' >>\n"
+  configs:
+    templater:
+      jinja:
+        variable_start_string: "<<"
+        variable_end_string: ">>"
+
+expect_fail_templated_variable_delim_noqa_prs_no_fix_str:
+  fail_str: "SELECT a  +  b FROM t;\nfoo bar; -- << 'no' ~ 'qa' >>\n"
+  configs:
+    templater:
+      jinja:
+        variable_start_string: "<<"
+        variable_end_string: ">>"
+
+expect_fail_noqa_in_one_variant_block_delim:
+  pass_str: "SELECT\n<% if x %>a  +  b -- noqa: LT01<% else %>c  +  d<% endif %>\nFROM t\n"
+  configs:
+    templater:
+      jinja:
+        block_start_string: "<%"
+        block_end_string: "%>"

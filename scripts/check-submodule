@@ -1,0 +1,20 @@
+#!/bin/sh
+# Fail if third_party/sqlfluff has a change, or an untracked or ignored file.
+# The tests and the suites must not change the submodule.
+# Usage: scripts/check-submodule [WHEN]   (WHEN is for the message only)
+set -eu
+
+root=$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)
+sub="$root/third_party/sqlfluff"
+# Without a checkout, "git -C" finds the parent repository instead.
+if [ ! -e "$sub/.git" ]; then
+    echo "error: third_party/sqlfluff is not checked out${1:+ $1}." \
+        "Run: git submodule update --init" >&2
+    exit 1
+fi
+changes=$(git -C "$sub" status --porcelain --ignored)
+if [ -n "$changes" ]; then
+    echo "error: third_party/sqlfluff is not clean${1:+ $1}:" >&2
+    echo "$changes" >&2
+    exit 1
+fi

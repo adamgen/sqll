@@ -1,0 +1,16 @@
+# Harness test cases. They are not sqlfluff fixtures.
+rule: LT01
+
+test_wrong_fix_str:
+  # sqlfluff fixes this to "SELECT a + b FROM t". This fix_str is wrong on
+  # purpose, but it has no LT01 violation.
+  fail_str: "SELECT a  +  b FROM t\n"
+  fix_str: "SELECT a + c FROM t\n"
+
+test_right_fix_str:
+  fail_str: "SELECT a  +  b FROM t\n"
+  fix_str: "SELECT a + b FROM t\n"
+
+test_skip:
+  skip: The harness must not run this case.
+  pass_str: "SELECT 1\n"

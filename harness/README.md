@@ -15,6 +15,9 @@ scripts/test --filter dialects/ansi/   # only ids that start with this text
 `scripts/test` runs `scripts/setup`, writes `out/tools.json` with
 `sqll-harness tools`, runs `pytest harness/tests`, then runs the suites. The
 exit code is not 0 if a result is different from `known_failures/<tool>.txt`.
+`scripts/check-submodule` fails if `third_party/sqlfluff` has a change or an
+untracked or ignored file. `scripts/test` runs it before the tests and after
+the run. CI runs it after the tests and after each shard.
 
 ## Tools
 
@@ -27,6 +30,8 @@ setting. Needs: uv, Python 3.13 with a shared libpython, and cargo.
 | `sqlfluff` | `tools/sqlfluff/uv.lock` | `<dir>/sqlfluff` (venv) |
 | `sqlfluff-rs` | `tools/sqlfluff-rs/uv.lock` | `<dir>/sqlfluff-rs` (venv with `sqlfluffrs`) |
 | `sqruff` | `tools/sqruff/uv.lock` | `<dir>/sqruff/bin/sqruff` and `<dir>/sqruff/python` |
+
+It also installs `<dir>/sqlfluff-oracle` for `scripts/sqlfluff-rule-oracle`.
 
 `tools/sqruff/install.sh` builds sqruff with `cargo install --locked
 --features parser,python`. The `parser` feature adds the `parse` command. The
@@ -52,10 +57,12 @@ CI (`.github/workflows/ci.yml`):
 
 1. `image`: `ci/image_tag.py` hashes all inputs of `ci/Dockerfile`. If
    `ghcr.io/adamgen/sqll-ci:<hash>` does not exist, CI builds and pushes it.
-2. `lint`: `sqll-harness tools`, ruff, and the unit tests, in the image.
+2. `lint`: `sqll-harness tools`, ruff, the unit tests, and the oracle on the
+   harness rule fixtures, in the image.
 3. `test`: one job for each suite, tool, and shard in `ci/matrix.json`.
-4. `report`: `sqll-harness merge --expect ci/matrix.json`. It uploads
-   `out/report.json`.
+4. `report`: `sqll-harness merge --expect ci/matrix.json`, then
+   `scripts/sqlfluff-rule-oracle` on the merged report. It uploads
+   `out/report.json` and `out/oracle.jsonl`.
 
 To add a suite or a tool to CI, add an entry to `ci/matrix.json`.
 
@@ -64,6 +71,7 @@ To add a suite or a tool to CI, add an entry to `ci/matrix.json`.
 | Suite | Fixtures | Checks |
 |---|---|---|
 | `dialects` | `test/fixtures/dialects/<d>/*.sql` with `.yml` or `_nc.yml` | `exact`, `no_unparsable` |
+| `rules` | each case key in `test/fixtures/rules/std_rule_cases/*.yml` | `pass_str`, `fail_str`, `fix`, `after_fix` |
 
 Dialect case id: `dialects/<dialect>/<stem>` (`<stem>_nc` for `_nc.yml`).
 
@@ -82,14 +90,13 @@ because sqlfluff reads a config file as TOML only with that name. It also uses
 `--ignore-local-config`, because the sqlfluff test reads no config file. Without
 it the CLI reads the `.sqlfluff` files in `test/fixtures/dialects/<d>/`.
 
-## Checks that are not reproduced
+## Rule cases
 
-These checks exist only as Python internals:
-
-- `validate_segment_with_reparse` in `test__dialect__base_file_parse`.
-- The `_hash` field of the dialect YAML files. It only makes contributors use
-  the generator script. The tree check is sufficient.
-- `test__dialect__base_broad_fix`. It has no expected result in data.
+Rule case id: `rules/<file stem>/<key>`. [rules.md](rules.md) gives the
+checks, the lists of violations that each check uses, and the comparison with
+the sqlfluff test (`scripts/sqlfluff-rule-oracle`).
+[not-reproduced.md](not-reproduced.md) gives the checks of the sqlfluff tests
+that the harness does not reproduce.
 
 ## Report: `out/report.json`
 
@@ -99,15 +106,17 @@ These checks exist only as Python internals:
   "scope": {"suites": [], "tools": [], "filter": null, "shard": "K/N"},
   "tools": {"<tool>": {"version": "<version>"}},
   "summary": {"<suite>": {"<tool>": {
-    "total": 0, "passed": 0, "failed": 0, "<check>": 0}}},
+    "total": 0, "passed": 0, "failed": 0, "skipped": 0, "<check>": 0}}},
   "known_failures": {"<tool>": {"new_failures": [], "unexpected_passes": []}},
-  "cases": [{"id": "", "suite": "", "tool": "", "status": "pass|fail|error",
+  "cases": [{"id": "", "suite": "", "tool": "", "status": "pass|fail|error|skip",
              "checks": {"<check>": true}, "reason": "", "duration_ms": 0}]
 }
 ```
 
 `scope` is what the run tried to run. A merged report has `"scope": null` and
 a `parts` list with the scope of each merged report. `<check>` is the number
-of cases where that check is true. For `dialects`, the
-checks are `exact` and `no_unparsable`. `error` means that the case did not
-complete.
+of cases where that check is true. A case has only the checks that apply to
+it. `failed` counts `fail` and `error`. `error` means that the case did not
+complete, or that the harness cannot know the result of a check. `skip`
+means that the fixture skips the case; a skipped case must not be in
+`known_failures/`.

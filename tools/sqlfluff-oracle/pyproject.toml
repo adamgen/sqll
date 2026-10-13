@@ -1,0 +1,9 @@
+[project]
+name = "sqll-sqlfluff-oracle"
+version = "0.0.0"
+description = "Pinned sqlfluff and pytest for scripts/sqlfluff-rule-oracle. Not a harness tool."
+requires-python = ">=3.13,<3.14"
+dependencies = ["sqlfluff==4.4.0", "pytest==9.1.1"]
+
+[tool.uv]
+package = false

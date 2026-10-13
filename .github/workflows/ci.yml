@@ -94,13 +94,23 @@ jobs:
 
       - name: Lint
         run: |
-          uv run --frozen --project harness ruff check harness ci
-          uv run --frozen --project harness ruff format --check harness ci
+          uv run --frozen --project harness ruff check harness ci scripts/sqlfluff-rule-oracle
+          uv run --frozen --project harness ruff format --check harness ci scripts/sqlfluff-rule-oracle
 
       - name: Unit tests
         env:
           SQLL_REQUIRE_TOOLS: "1"
         run: uv run --frozen --project harness pytest -q harness/tests
+
+      # The key prefix of each harness rule fixture must agree with the
+      # sqlfluff test.
+      - name: Check the harness rule fixtures with the sqlfluff test
+        run: >-
+          "$SQLL_TOOLS_DIR/sqlfluff-oracle/bin/python" scripts/sqlfluff-rule-oracle
+          --cases 'harness/tests/fixtures/rules/*.yml' --check-prefixes
+
+      - name: Check that the sqlfluff submodule is clean
+        run: scripts/check-submodule "after the tests"
 
   test:
     needs: image
@@ -132,6 +142,9 @@ jobs:
           --suite ${{ matrix.suite }} --tool ${{ matrix.tool }}
           --shard ${{ matrix.shard }} --out out/shards/${{ matrix.name }}.json
 
+      - name: Check that the sqlfluff submodule is clean
+        run: scripts/check-submodule "after the run"
+
       - if: always()
         uses: actions/upload-artifact@v7
         with:
@@ -155,6 +168,8 @@ jobs:
         password: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v7
+        with:
+          submodules: true
 
       # The runner user owns the workspace, not the container user.
       - run: git config --global --add safe.directory '*'
@@ -177,11 +192,21 @@ jobs:
           echo "submodule: $want, report: $got"
           test "$want" = "$got"
 
+      # The sqlfluff test of each rule case must give the same status.
+      - name: Compare the rule results with the sqlfluff test
+        run: |
+          "$SQLL_TOOLS_DIR/sqlfluff-oracle/bin/python" \
+            scripts/sqlfluff-rule-oracle --report out/report.json \
+            --out out/oracle.jsonl
+          scripts/check-submodule "after the comparison"
+
       - if: always()
         uses: actions/upload-artifact@v7
         with:
           name: report
-          path: out/report.json
+          path: |
+            out/report.json
+            out/oracle.jsonl
           if-no-files-found: error
 
       - name: Check test jobs

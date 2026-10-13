@@ -2,10 +2,11 @@
 
 from types import ModuleType
 
-from . import dialects
+from . import dialects, rules
 
 SUITES: dict[str, ModuleType] = {
     dialects.NAME: dialects,
+    rules.NAME: rules,
 }
 
 __all__ = ["SUITES"]
