@@ -1,0 +1,227 @@
+#!/usr/bin/env python3
+"""Run the sqlfluff dialect tests on dialect cases, and compare with a report.
+
+This is the reference for the "dialects" suite. It calls tests of the
+sqlfluff submodule through Python, with the parameters that pytest gives
+them. The harness must never do this; only this check does. Each case has
+these parts. The status is "pass" only if all parts pass:
+
+  tree    test__dialect__base_parse_struct (test/dialects/dialects_test.py),
+          with load_yaml of test/conftest.py as yaml_loader.
+  parse   test__dialect__base_file_parse (test/dialects/dialects_test.py)
+          for the SQL file of the case.
+  parity  only with --rust: test__parity__dialect_fixture_corpus
+          (test/core/parser/parity/corpus_test.py) for the SQL file of the
+          case. The Python Parser and the 2 build paths of RustParser must
+          give the same tree.
+
+Run it with the pinned sqlfluff and pytest that scripts/setup installs
+(tools/sqlfluff-oracle). With --rust, use tools/sqlfluff-rs-oracle: sqlfluff
+then uses the Rust parser and rules, as the sqlfluff-rs adapter does, and the
+default --tool is sqlfluff-rs. The "tree" part then uses RustParser in place
+of the Python Parser of parse_example_file (test/conftest.py), because that
+function always uses the Python Parser. The exit code is 1 if the Python
+parser runs in the "tree" or "parse" part.
+
+  .tools/sqlfluff-oracle/bin/python scripts/sqlfluff-dialect-oracle \\
+      [--root DIR] [--report out/report.json] [--out out/dialect-oracle.jsonl]
+      [--check-prefixes] [--rust] [--tool TOOL]
+
+The current folder of the test is --root, because the test finds the cases
+in test/fixtures/dialects/<dialect>/ relative to it. The default is the
+sqlfluff root. The test functions are always the ones of the pinned sqlfluff.
+The case id is dialects/<dialect>/<YAML file name without .yml>.
+
+It writes one JSON line for each case to --out (default: stdout): {"id",
+"status", "reason"}. With --report, it compares the status of each case with
+the "dialects" results of --tool in that report, and prints the totals and
+each difference. The exit code is 1 if there is a difference or a case is
+only in one of the two.
+
+With --check-prefixes, a case whose YAML file name starts with "expect_pass_"
+or "expect_fail_" must have that status. The harness test fixtures use these
+prefixes. The exit code is 1 if a status is different or no case has a
+prefix.
+"""
+
+import argparse
+import contextlib
+import importlib
+import importlib.util
+import io
+import json
+import os
+import sys
+import traceback
+from collections import Counter
+from pathlib import Path
+
+import pytest
+from sqlfluff_oracle import (
+    SQLFLUFF_ROOT,
+    Results,
+    add_tool_arguments,
+    check_prefixes,
+    check_rust_runs,
+    compare_with_report,
+    failure_reason,
+    setup_tool,
+    write_results,
+)
+
+# The tests use relative imports. Import them in a package with this name, so
+# that the name does not hide the "test" package of Python.
+PACKAGE = "sqlfluff_tests"
+
+
+def import_tests():
+    """Import test/ of the pinned sqlfluff as PACKAGE. Python must not write
+    a bytecode file."""
+    sys.dont_write_bytecode = True
+    test_dir = SQLFLUFF_ROOT / "test"
+    spec = importlib.util.spec_from_file_location(
+        PACKAGE, test_dir / "__init__.py", submodule_search_locations=[str(test_dir)]
+    )
+    package = importlib.util.module_from_spec(spec)
+    sys.modules[PACKAGE] = package
+    spec.loader.exec_module(package)
+
+
+def run_part(test, kwargs: dict) -> tuple[str, str]:
+    """Run one test function. Return (status, reason)."""
+    try:
+        # The tests print debug text for pytest. Do not show it.
+        with contextlib.redirect_stdout(io.StringIO()):
+            test(**kwargs)
+        return "pass", ""
+    except pytest.skip.Exception as e:
+        return "skip", str(e)
+    except (pytest.fail.Exception, Exception) as e:
+        reason = failure_reason(e)
+        if reason.endswith(": "):
+            # An assert with no message: give its source line.
+            reason += traceback.extract_tb(e.__traceback__)[-1].line or ""
+        return "fail", reason
+
+
+def case_id(dialect: str, yamlfile: str) -> str:
+    return f"dialects/{dialect}/{yamlfile.removesuffix('.yml')}"
+
+
+def run_struct(module, yaml_loader, examples) -> Results:
+    """Return {harness case id: (status, reason)} of the tree test."""
+    results = {}
+    for dialect, sqlfile, code_only, yamlfile in examples:
+        cid = case_id(dialect, yamlfile)
+        if cid in results:
+            raise ValueError(f"two examples give the case id {cid}")
+        results[cid] = run_part(
+            module.test__dialect__base_parse_struct,
+            dict(
+                dialect=dialect,
+                sqlfile=sqlfile,
+                code_only=code_only,
+                yamlfile=yamlfile,
+                yaml_loader=yaml_loader,
+            ),
+        )
+    return results
+
+
+def run_per_file(test, examples, sql_argument) -> Results:
+    """Run test once for the SQL file of each case.
+
+    sql_argument gives the arguments of test for (dialect, sqlfile). Return
+    {harness case id: (status, reason)}.
+    """
+    results = {}
+    done: dict[tuple[str, str], tuple[str, str]] = {}
+    for dialect, sqlfile, _, yamlfile in examples:
+        if (dialect, sqlfile) not in done:
+            done[dialect, sqlfile] = run_part(test, sql_argument(dialect, sqlfile))
+        results[case_id(dialect, yamlfile)] = done[dialect, sqlfile]
+    return results
+
+
+def combine(parts: dict[str, Results]) -> Results:
+    """The status of a case is "pass" only if all parts pass. The reason
+    names each part that does not pass."""
+    results = {}
+    for cid in next(iter(parts.values())):
+        bad = {
+            name: part[cid] for name, part in parts.items() if part[cid][0] != "pass"
+        }
+        if not bad:
+            results[cid] = ("pass", "")
+            continue
+        status = "fail" if any(s == "fail" for s, _ in bad.values()) else "skip"
+        results[cid] = (status, "; ".join(f"{n}: {r}" for n, (_, r) in bad.items()))
+    return results
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument("--root", type=Path)
+    parser.add_argument("--report", type=Path)
+    add_tool_arguments(parser)
+    parser.add_argument("--out", type=Path)
+    parser.add_argument("--check-prefixes", action="store_true")
+    args = parser.parse_args()
+    runs = setup_tool(args)
+    # The paths of the arguments are relative to the folder of the caller.
+    root, report, out = (
+        p.resolve() if p else None for p in (args.root, args.report, args.out)
+    )
+
+    # The test module finds the cases when Python imports it.
+    os.chdir(root or SQLFLUFF_ROOT)
+    import_tests()
+    module = importlib.import_module(f"{PACKAGE}.dialects.dialects_test")
+    conftest = sys.modules[f"{PACKAGE}.conftest"]
+    examples = module.parse_structure_examples
+    if runs is not None:
+        from sqlfluff.core.parser.rust_parser import RustParser
+
+        conftest.Parser = RustParser
+    parts = {
+        "tree": run_struct(module, conftest.load_yaml, examples),
+        "parse": run_per_file(
+            module.test__dialect__base_file_parse,
+            examples,
+            lambda dialect, sqlfile: dict(dialect=dialect, file=sqlfile),
+        ),
+    }
+    status = check_rust_runs(runs)
+    if runs is not None:
+        before = Counter(runs)
+        parity = importlib.import_module(f"{PACKAGE}.core.parser.parity.corpus_test")
+        parts["parity"] = run_per_file(
+            parity.test__parity__dialect_fixture_corpus,
+            examples,
+            lambda dialect, sqlfile: dict(
+                sqlfile=Path("test", "fixtures", "dialects", dialect, sqlfile).resolve()
+            ),
+        )
+        runs.subtract(before)
+        print(
+            f"parity parse runs: RustParser {runs['RustParser']}, "
+            f"Parser {runs['Parser']}",
+            file=sys.stderr,
+        )
+    oracle = combine(parts)
+    oracle = dict(sorted(oracle.items()))
+
+    if out:
+        write_results(oracle, out)
+    elif not args.check_prefixes:
+        for cid, (s, reason) in oracle.items():
+            print(json.dumps({"id": cid, "status": s, "reason": reason}))
+    if args.check_prefixes:
+        status = check_prefixes(oracle) or status
+    if report is None:
+        return status
+    return compare_with_report(oracle, report, "dialects", args.tool) or status
+
+
+if __name__ == "__main__":
+    sys.exit(main())

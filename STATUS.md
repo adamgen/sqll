@@ -35,10 +35,12 @@ sqlfluff 4.4.0, `sqlfluff[rs]` 4.4.0 with sqlfluffrs 4.4.0, sqruff 0.41.0
 | templater | sqlfluff-rs 4.4.0 | 43 | 43 | 0 | exact 43, no_unparsable 43 |
 
 The sqlfluff tests pass the same cases, with 0 differences
-(`scripts/sqlfluff-rule-oracle`: 2527 rule cases;
+(`scripts/sqlfluff-dialect-oracle`: 2306 dialect cases;
+`scripts/sqlfluff-rule-oracle`: 2527 rule cases;
 `scripts/sqlfluff-autofix-oracle`: 61 autofix cases;
 `scripts/sqlfluff-templater-oracle`: 43 templater cases). With `--rust` the
-same is true for sqlfluff-rs. CI checks this. sqlfluff-rs is sqlfluff with
+same is true for sqlfluff-rs; for dialects this includes the sqlfluff
+Python-vs-Rust parity test. CI checks this. sqlfluff-rs is sqlfluff with
 `use_rust_parser` and `use_rust_rules` set to true (see
 `harness/sqlfluff-rs.md`).
 3 templater cases need a Python runtime (`needs_python`, see

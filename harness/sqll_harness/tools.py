@@ -184,7 +184,12 @@ def _check_rust_parser(info: ToolInfo) -> None:
             else f"no '{RUST_PARSER_LOG}' log, exit code {on.returncode}"
         )
         info.errors.append(f"the Rust parser does not run: {why}")
-    if off.returncode != 0 or RUST_PARSER_LOG in off.stderr:
+    if off.returncode != 0:
+        info.errors.append(
+            "the Rust parser check is not valid: the parse with "
+            f"use_rust_parser False gives exit code {off.returncode}"
+        )
+    if RUST_PARSER_LOG in off.stderr:
         info.errors.append(
             f"the Rust parser check is not valid: the '{RUST_PARSER_LOG}' log "
             "is also there with use_rust_parser False"

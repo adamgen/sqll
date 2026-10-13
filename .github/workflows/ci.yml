@@ -97,6 +97,7 @@ jobs:
           ORACLES: >-
             scripts/sqlfluff_oracle.py scripts/sqlfluff-rule-oracle
             scripts/sqlfluff-autofix-oracle scripts/sqlfluff-templater-oracle
+            scripts/sqlfluff-dialect-oracle
         run: |
           uv run --frozen --project harness ruff check harness ci $ORACLES
           uv run --frozen --project harness ruff format --check harness ci $ORACLES
@@ -127,11 +128,20 @@ jobs:
           "$SQLL_TOOLS_DIR/sqlfluff-oracle/bin/python" scripts/sqlfluff-templater-oracle
           --root harness/tests/fixtures/templater --check-prefixes
 
+      # The name prefix of each harness dialect fixture must agree with the
+      # sqlfluff tests.
+      - name: Check the harness dialect fixtures with the sqlfluff tests
+        run: >-
+          "$SQLL_TOOLS_DIR/sqlfluff-oracle/bin/python" scripts/sqlfluff-dialect-oracle
+          --root harness/tests/fixtures/dialects --check-prefixes
+
       # The same checks with the Rust parser and rules (--rust), as the
       # sqlfluff-rs adapter uses them.
       - name: Check the harness fixtures with the sqlfluff test and --rust
         run: |
           py="$SQLL_TOOLS_DIR/sqlfluff-rs-oracle/bin/python"
+          "$py" scripts/sqlfluff-dialect-oracle --rust \
+            --root harness/tests/fixtures/dialects --check-prefixes
           "$py" scripts/sqlfluff-rule-oracle --rust \
             --cases 'harness/tests/fixtures/rules/*.yml' --check-prefixes
           "$py" scripts/sqlfluff-autofix-oracle --rust \
@@ -278,3 +288,56 @@ jobs:
         run: |
           echo "A test job did not succeed: ${{ needs.test.result }}"
           exit 1
+
+  # The sqlfluff dialect tests of each dialect case must give the same status
+  # as the merged report. They take some minutes, thus each tool has a job.
+  dialect-oracle:
+    needs: [image, report]
+    name: dialect-oracle (${{ matrix.tool }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - tool: sqlfluff
+            venv: sqlfluff-oracle
+            args: ""
+          - tool: sqlfluff-rs
+            venv: sqlfluff-rs-oracle
+            args: --rust
+    container:
+      image: ${{ needs.image.outputs.image }}
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: true
+
+      # The runner user owns the workspace, not the container user.
+      - run: git config --global --add safe.directory '*'
+
+      - uses: actions/download-artifact@v7
+        with:
+          name: report
+          path: out
+
+      - name: Compare the dialect results with the sqlfluff tests
+        run: |
+          "$SQLL_TOOLS_DIR/${{ matrix.venv }}/bin/python" \
+            scripts/sqlfluff-dialect-oracle ${{ matrix.args }} \
+            --report out/report.json \
+            --out out/dialect-oracle-${{ matrix.tool }}.jsonl
+          scripts/check-submodule "after the comparison"
+
+      - if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: dialect-oracle-${{ matrix.tool }}
+          path: out/dialect-oracle-${{ matrix.tool }}.jsonl
+          if-no-files-found: error

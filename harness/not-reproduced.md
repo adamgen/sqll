@@ -111,13 +111,17 @@ The T3 reviews found these false passes with fixtures that are not in sqlfluff
 - `validate_segment_with_reparse` in `test__dialect__base_file_parse`.
 - The `_hash` field of the dialect YAML files. It only makes contributors use
   the generator script. The tree check is sufficient.
+
+`scripts/sqlfluff-dialect-oracle` runs these 2 checks. If one fails on a case
+that the harness passes, the CI comparison fails.
 - `test__dialect__base_broad_fix`. It has no expected result in data.
 
 ## sqlfluff-rs
 
 - No sqlfluff test compares a tree of the Rust parser with a dialect YAML
   file: `test__dialect__base_parse_struct` always uses the Python `Parser`.
-  Thus the `dialects` suite has no oracle for `sqlfluff-rs`.
+  The dialect oracle with `--rust` runs it with `RustParser`, and also runs
+  `test__parity__dialect_fixture_corpus` (Python and Rust trees are equal).
 - sqlfluff does not log the Rust detection of a rule (`use_rust_rules`: CP01,
   CP03, CP04 in 4.4.0). The harness cannot show that it ran. It finds only
   the warning `falling back to Python` (no Rust parse arena). The oracles set

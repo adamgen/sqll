@@ -57,7 +57,8 @@ less. No 4.4.0 fixture has these keys.
   log.
 - The report has `tools.sqlfluff-rs.config` (the layer) and
   `tools.sqlfluff-rs.preflight` (`rust_parser` and `rust_iteration_limit`).
-- The oracles with `--rust` count 0 runs of the Python parser.
+- The oracles with `--rust` count 0 runs of the Python parser (the dialect
+  oracle: outside the parity test).
 
 ## Oracle
 
@@ -68,10 +69,19 @@ keys under the config of the test, and the default `--tool` is
 Python `Parser`. The exit code is 1 if the Python parser runs or the Rust
 parser does not.
 
-The `dialects` suite has no oracle. `test__dialect__base_parse_struct` makes
-its tree with the Python `Parser` class (`parse_example_file` in
-`test/conftest.py`), also when the config sets `use_rust_parser`. Thus no
-sqlfluff test compares a tree of the Rust parser with the YAML.
+`scripts/sqlfluff-dialect-oracle --rust` is the oracle of the `dialects`
+suite. A case passes only if 3 sqlfluff tests pass:
+
+- `test__dialect__base_parse_struct`, with `RustParser` in place of the
+  Python `Parser` of `parse_example_file` (`test/conftest.py`). That function
+  always uses the Python `Parser`, also with `use_rust_parser`.
+- `test__dialect__base_file_parse` (the `Linter` uses `RustParser`).
+- `test__parity__dialect_fixture_corpus`
+  (`test/core/parser/parity/corpus_test.py`): the Python `Parser`, the
+  legacy `RustParser`, and the native `RustParser` give the same tree at full
+  strictness. `_KNOWN_PYTHON_RUST_DIVERGENCES` is empty in 4.4.0.
+
+The Python parser runs only in the parity test.
 
 ## Results
 
@@ -85,4 +95,5 @@ sqlfluff-rs passes all 4937 cases, as sqlfluff does:
 | templater | 43 | 43 | exact 43, no_unparsable 43 |
 
 `known_failures/sqlfluff-rs.txt` is empty. The oracles with `--rust` give
-the same status for all 2527 rule, 61 autofix, and 43 templater cases.
+the same status for all 2306 dialect, 2527 rule, 61 autofix, and 43
+templater cases.

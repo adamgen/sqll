@@ -218,6 +218,20 @@ def test_sqlfluff_rs_must_use_the_rust_parser(tmp_path):
     ]
 
 
+def test_rust_parser_control_that_fails_has_its_own_message(tmp_path):
+    # The control parse fails with no "Using Rust parser" log.
+    fails = RUST_PARSE + "grep -q 'use_rust_parser = false' pyproject.toml && exit 3\n"
+    _fake_sqlfluff(tmp_path, "sqlfluff-rs", "4.4.0", "echo 4.4.0\n", fails)
+    info = tools.check_sqlfluff_rs(tmp_path, TOOL_SPECS_DIR)
+    assert info.details["rust_parser"] is True
+    assert info.errors == [
+        "the Rust parser check is not valid: the parse with use_rust_parser "
+        "False gives exit code 3",
+        "the Rust parser check is not valid: the Python parser gives no tree "
+        "with rust_parser_max_iterations = 1",
+    ]
+
+
 def _no_sqlfluffrs(tmp_path):
     """Return a tools folder where sqlfluff-rs is the sqlfluff venv. It has
     sqlfluff 4.4.0 but no sqlfluffrs."""

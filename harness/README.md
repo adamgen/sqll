@@ -32,8 +32,8 @@ setting. Needs: uv, Python 3.13 with a shared libpython, and cargo.
 | `sqruff` | `tools/sqruff/uv.lock` | `<dir>/sqruff/bin/sqruff` and `<dir>/sqruff/python` |
 
 It also installs `<dir>/sqlfluff-oracle` for the oracle scripts
-(`scripts/sqlfluff-rule-oracle`, `scripts/sqlfluff-autofix-oracle`,
-`scripts/sqlfluff-templater-oracle`), and `<dir>/sqlfluff-rs-oracle` for the
+(`scripts/sqlfluff-dialect-oracle`, `scripts/sqlfluff-rule-oracle`,
+`scripts/sqlfluff-autofix-oracle`, `scripts/sqlfluff-templater-oracle`), and `<dir>/sqlfluff-rs-oracle` for the
 same scripts with `--rust`.
 
 `tools/sqruff/install.sh` builds sqruff with `cargo install --locked
@@ -67,13 +67,16 @@ CI (`.github/workflows/ci.yml`):
 1. `image`: `ci/image_tag.py` hashes all inputs of `ci/Dockerfile`. If
    `ghcr.io/adamgen/sqll-ci:<hash>` does not exist, CI builds and pushes it.
 2. `lint`: `sqll-harness tools`, ruff, the unit tests, and the oracles on
-   the harness rule, autofix, and templater fixtures (also with `--rust`), in
-   the image.
+   the harness dialect, rule, autofix, and templater fixtures (also with
+   `--rust`), in the image.
 3. `test`: one job for each suite, tool, and shard in `ci/matrix.json`.
-4. `report`: `sqll-harness merge --expect ci/matrix.json`, then the 3
-   oracle scripts on the merged report for `sqlfluff`, and again with
-   `--rust` for `sqlfluff-rs`. It uploads `out/report.json` and the
-   `out/*oracle.jsonl` files.
+4. `report`: `sqll-harness merge --expect ci/matrix.json`, then the rule,
+   autofix, and templater oracles on the merged report for `sqlfluff`, and
+   again with `--rust` for `sqlfluff-rs`. It uploads `out/report.json` and
+   the `out/*oracle.jsonl` files.
+5. `dialect-oracle`: `scripts/sqlfluff-dialect-oracle` on the merged report,
+   one job for `sqlfluff` and one for `sqlfluff-rs` (`--rust`). It takes some
+   minutes.
 
 To add a suite or a tool to CI, add an entry to `ci/matrix.json`.
 
@@ -87,6 +90,9 @@ To add a suite or a tool to CI, add an entry to `ci/matrix.json`.
 | `templater` | each row of `test__templater_full` (`test/fixtures/templater/<subpath>.sql`) | `exact`, `no_unparsable` |
 
 Dialect case id: `dialects/<dialect>/<stem>` (`<stem>_nc` for `_nc.yml`).
+`scripts/sqlfluff-dialect-oracle` runs the sqlfluff dialect tests
+(`test__dialect__base_parse_struct`, `test__dialect__base_file_parse`) on the
+same cases and compares the status with the report.
 
 - `exact`: the tree is equal to the YAML tree, with the sqlfluff rules
   (`process_struct`). Two trees with no children are equal. Parity uses this
