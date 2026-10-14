@@ -106,6 +106,25 @@ def test_template_variables_can_be_nested_and_lists():
         ),
         ({"other": {"x": 1}}, "other.x"),
         ({"x": 1}, "x"),
+        # In the sqruff documentation, but the sqruff source does not read it.
+        (
+            {"indentation": {"template_blocks_indent": True}},
+            "indentation.template_blocks_indent",
+        ),
+        (
+            {"rules": {"capitalisation.types": {"ignore_words": "int"}}},
+            "rules.capitalisation.types.ignore_words",
+        ),
+        (
+            {"rules": {"capitalisation.types": {"ignore_words_regex": "^i"}}},
+            "rules.capitalisation.types.ignore_words_regex",
+        ),
+        ({"core": {"output_line_length": 80}}, "core.output_line_length"),
+        (
+            {"templater": {"jinja": {"library_path": "x"}}},
+            "templater.jinja.library_path",
+        ),
+        ({"templater": {"dbt": {"profile": "p"}}}, "templater.dbt.profile"),
     ],
 )
 def test_an_unsupported_setting_is_named(config, item):
@@ -129,7 +148,7 @@ def test_all_unsupported_settings_are_named_sorted():
         ("indentation", "implicit_indents"),
         ("layout", "type", "any_type", "keyword_line_position_exclusions"),
         ("rules", "references.quoting", "case_sensitive"),
-        ("templater", "jinja", "library_path"),
+        ("rules", "capitalisation.keywords", "ignore_words"),
         ("templater", "jinja", "context", "a", "b", "c"),
         ("templater", "placeholder", "any_param"),
     ],
@@ -150,6 +169,26 @@ def test_upper_case_key_is_unsupported():
 def test_multi_line_value_is_unsupported():
     config = {"templater": {"jinja": {"context": {"a": "x\ny"}}}}
     with pytest.raises(Unsupported, match="multi-line value of templater.jinja"):
+        translate(config)
+
+
+@pytest.mark.parametrize(
+    "config, where",
+    [
+        (
+            {"rules": {"references.special_chars": {"ignore_words_regex": "hash#$"}}},
+            "rules.references.special_chars.ignore_words_regex",
+        ),
+        ({"core": {"dialect": "ansi;x"}}, "core.dialect"),
+        ({"templater": {"jinja": {"context": {"a": ["x#y"]}}}}, "templater.jinja"),
+        ({"templater": {"jinja": {"context": {"a#b": "x"}}}}, "templater.jinja"),
+        ({"templater": {"placeholder": {"a;b": "x"}}}, "templater.placeholder"),
+        ({"layout": {"type": {"a#b": {"spacing_before": "touch"}}}}, "layout.type"),
+    ],
+)
+def test_ini_comment_character_is_unsupported(config, where):
+    # sqruff (configparser Ini::new) cuts an INI line at "#" or ";".
+    with pytest.raises(Unsupported, match=f"^comment character '[#;]' in {where}"):
         translate(config)
 
 

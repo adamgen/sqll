@@ -513,17 +513,27 @@ def run(adapter: Adapter, case: RuleCase, sqlfluff_root: Path) -> CaseResult:
     )
 
 
+# The keys that SQLBaseError.to_dict() always gives. Subclasses add more.
+TO_DICT_KEYS = frozenset(
+    {"start_line_no", "start_line_pos", "code", "description", "name", "warning"}
+)
+
+
 def check_fields(adapter: Adapter, case: RuleCase) -> None:
     """Raise Unsupported if the case compares a violation field that the
-    lint output of the tool does not have."""
+    lint output of the tool does not have.
+
+    The test compares each violation with to_dict(), so it always compares
+    TO_DICT_KEYS, also when the expected dict does not have one of them.
+    """
     fields = getattr(adapter, "lint_fields", None)
     if fields is None:
         return
     for name in ("violations", "violations_after_fix"):
         expected = getattr(case, name) or []
-        # prep_violations gives a code to a violation that has none.
-        missing = {k for v in expected for k in v if k != "code"}
-        missing -= fields
+        if not expected:
+            continue
+        missing = (TO_DICT_KEYS | {k for v in expected for k in v}) - fields
         if missing:
             raise Unsupported(
                 f"output field {', '.join(sorted(missing))} (the case "

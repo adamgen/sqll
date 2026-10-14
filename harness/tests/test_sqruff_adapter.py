@@ -18,7 +18,7 @@ from sqll_harness.adapters.sqruff import (
     to_violation,
 )
 from sqll_harness.adapters.sqruff_config import SQLFLUFF_DEFAULTS
-from sqll_harness.cases import ERROR, FAIL, PASS
+from sqll_harness.cases import ERROR, FAIL
 from sqll_harness.paths import SQLFLUFF_ROOT
 from sqll_harness.suites import autofix, dialects, rules, templater
 
@@ -153,8 +153,19 @@ def test_inline_config_with_an_unsupported_setting(tmp_path):
     sql.write_text("-- sqlfluff:rules:tab_space_size:2\nselect 1\n")
     with pytest.raises(Unsupported, match="setting rules.tab_space_size"):
         check_inline_config(sql)
-    sql.write_text("-- sqlfluff: indentation: template_blocks_indent: force\n-- noqa\n")
+    sql.write_text("-- sqlfluff: indentation: template_blocks_indent: force\n")
+    with pytest.raises(Unsupported, match="indentation.template_blocks_indent"):
+        check_inline_config(sql)
+    sql.write_text("-- sqlfluff: indentation: tab_space_size: 2\n-- noqa\n")
     check_inline_config(sql)
+
+
+def test_inline_config_with_warnings(tmp_path):
+    # sqruff gives no warning field, so the violation is counted.
+    sql = tmp_path / "a.sql"
+    sql.write_text("-- sqlfluff:warnings:LT01\nselect a  from b\n")
+    with pytest.raises(Unsupported, match="^output field warning"):
+        check_inline_config(sql)
 
 
 # sqlfluff config files (no tool)
@@ -362,8 +373,11 @@ def test_violation_fields_that_sqruff_does_not_give_fail():
     )
     result = _run_case(rules, case, SQLFLUFF_ROOT)
     assert result.status == FAIL
-    assert result.reason.startswith("unsupported: output field end_line_no ")
-    ok = rules.RuleCase(
+    assert result.reason.startswith("unsupported: output field end_line_no, ")
+    # The test compares each violation with to_dict(), which always has
+    # "name" and "warning". Thus a dict with only the fields of sqruff never
+    # passes the test.
+    partial = rules.RuleCase(
         id="rules/LT01/y",
         rule="LT01",
         fail_str="select a  from t\n",
@@ -376,7 +390,12 @@ def test_violation_fields_that_sqruff_does_not_give_fail():
             }
         ],
     )
-    assert _run_case(rules, ok, SQLFLUFF_ROOT).status == PASS
+    result = _run_case(rules, partial, SQLFLUFF_ROOT)
+    assert (result.status, result.reason) == (
+        FAIL,
+        "unsupported: output field name, warning (the case compares "
+        "'violations'; the lint output has no such field)",
+    )
 
 
 @needs_sqruff
@@ -400,17 +419,21 @@ def test_user_config(tmp_path):
     (root / "case" / "macros").mkdir(parents=True)
     (root / ".sqlfluff").write_text("[sqlfluff]\ndialect = ansi\n")
     (root / "case" / ".sqlfluff").write_text(
-        "[sqlfluff]\ntemplater = placeholder\n[sqlfluff:templater:jinja]\n"
-        "load_macros_from_path = macros\nlibrary_path = other\n"
+        "[sqlfluff]\ntemplater = placeholder\nlibrary_path = other\n"
+        "[sqlfluff:templater:jinja]\nload_macros_from_path = macros\n"
     )
     (root / "case" / "a.sql").write_text("select 1\n")
     got = SqruffAdapter().user_config(Path("case/a.sql"), "tsql", root, ["LT01"])
-    assert got["core"] == {"templater": "jinja", "rules": "LT01", "dialect": "tsql"}
-    jinja = got["templater"]["jinja"]
-    assert jinja["load_macros_from_path"] == str(root / "case" / "macros")
     # sqlfluff keeps a path that it does not find; the templater uses it
     # from the current folder.
-    assert jinja["library_path"] == str(root / "other")
+    assert got["core"] == {
+        "templater": "jinja",
+        "library_path": str(root / "other"),
+        "rules": "LT01",
+        "dialect": "tsql",
+    }
+    jinja = got["templater"]["jinja"]
+    assert jinja["load_macros_from_path"] == str(root / "case" / "macros")
 
 
 # Never "pass" for a harness fixture where the sqlfluff test fails.
@@ -441,3 +464,25 @@ def _harness_cases():
 def test_expect_fail_fixture_never_passes(suite, case, root):
     result = _run_case(suite, case, root)
     assert result.status in (FAIL, ERROR), result.reason
+
+
+@pytest.mark.parametrize(
+    "violations, missing",
+    [
+        ([{"code": "LT01", "start_line_no": 1, "start_line_pos": 9}], "name, warning"),
+        (
+            [{"start_line_no": 1, "start_line_pos": 9, "end_line_no": 1}],
+            "end_line_no, name, warning",
+        ),
+    ],
+)
+def test_check_fields_needs_all_to_dict_keys(violations, missing):
+    adapter = SqruffAdapter(Path("/nonexistent"))
+    for name in ("violations", "violations_after_fix"):
+        case = rules.RuleCase(
+            id="rules/LT01/x", rule="LT01", fail_str="x\n", **{name: violations}
+        )
+        with pytest.raises(Unsupported, match=f"^output field {missing} "):
+            rules.check_fields(adapter, case)
+    # An empty list compares nothing.
+    rules.check_fields(adapter, rules.RuleCase(id="r", rule="LT01", violations=[]))

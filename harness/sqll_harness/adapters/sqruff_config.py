@@ -7,10 +7,11 @@
 
 The input is a config in the sqlfluff structure, for example
 {"core": {"dialect": "ansi"}, "rules": {"capitalisation.keywords": {...}}}.
-A setting is supported only if the sqruff documentation has it. For another
-setting, translate() raises Unsupported, and the case fails with a reason
-that starts with "unsupported:". sqruff can read some settings that its
-documentation does not have; the harness does not use them.
+A setting is supported only if the sqruff documentation has it and the
+sqruff 0.41.0 source reads it (NOT_READ). For another setting, translate()
+raises Unsupported, and the case fails with a reason that starts with
+"unsupported:". sqruff can read some settings that its documentation does
+not have; the harness does not use them.
 """
 
 import ast
@@ -151,6 +152,20 @@ RULES: dict[str, frozenset[str]] = {
     }.items()
 }
 TEMPLATER_ROOT = frozenset({"unwrap_wrapped_queries"})
+# Documented settings that the sqruff 0.41.0 source does not read. sqruff
+# reads templater.jinja.library_paths, not library_path.
+NOT_READ = frozenset(
+    {
+        ("core", "output_line_length"),
+        ("indentation", "template_blocks_indent"),
+        ("rules", "capitalisation.types", "ignore_words"),
+        ("rules", "capitalisation.types", "ignore_words_regex"),
+        ("templater", "jinja", "library_path"),
+        ("templater", "dbt", "profile"),
+    }
+)
+# configparser (Ini::new) cuts an INI line at the first of these characters.
+INI_COMMENT_CHARS = "#;"
 # templaters.md. A section in OPEN_SECTIONS takes any key: template variables
 # or placeholder parameters.
 TEMPLATERS: dict[str, frozenset[str]] = {
@@ -231,7 +246,10 @@ def _open_section(path: tuple[str, ...]) -> tuple[str, ...] | None:
 
 
 def is_supported(path: tuple[str, ...]) -> bool:
-    """Return True if the sqruff documentation has this setting."""
+    """Return True if the sqruff documentation has this setting and sqruff
+    reads it."""
+    if path in NOT_READ:
+        return False
     match path:
         case ("core", key):
             return key in CORE
@@ -255,7 +273,7 @@ def is_supported(path: tuple[str, ...]) -> bool:
 
 
 def unsupported_settings(config: dict[str, Any] | None) -> list[str]:
-    """Return the settings of config that sqruff does not document, sorted."""
+    """Return the settings of config that sqruff does not support, sorted."""
     return sorted(
         ".".join(path) for path, _ in flatten(config or {}) if not is_supported(path)
     )
@@ -263,7 +281,7 @@ def unsupported_settings(config: dict[str, Any] | None) -> list[str]:
 
 def check(config: dict[str, Any] | None) -> None:
     """Raise Unsupported if config has a setting that sqruff does not
-    document."""
+    support."""
     bad = unsupported_settings(config)
     if bad:
         raise Unsupported("setting " + ", ".join(bad))
@@ -276,6 +294,12 @@ def _ini_value(path: tuple[str, ...], value: Any) -> str:
     None ("none"), or else a string, as sqlfluff does. A list is only a
     template variable: the templater reads the text with ast.literal_eval.
     """
+    text = _ini_text(path, value)
+    _no_comment_char(".".join(path), text)
+    return text
+
+
+def _ini_text(path: tuple[str, ...], value: Any) -> str:
     where = ".".join(path)
     if isinstance(value, bool):
         return "True" if value else "False"
@@ -299,19 +323,29 @@ def _ini_value(path: tuple[str, ...], value: Any) -> str:
     return value
 
 
+def _no_comment_char(where: str, text: str) -> None:
+    found = [c for c in INI_COMMENT_CHARS if c in text]
+    if found:
+        raise Unsupported(
+            f"comment character {found[0]!r} in {where} (sqruff reads the rest "
+            "of an INI line as a comment)"
+        )
+
+
 def _ini_key(path: tuple[str, ...], key: str) -> str:
     where = ".".join(path)
     if key != key.lower():
         raise Unsupported(f"upper-case key {where} (sqruff makes INI keys lower case)")
-    if any(c in key for c in "=:[]") or key.startswith(("#", ";")) or not key:
+    if any(c in key for c in "=:[]") or not key:
         raise NotRepresentable(f"{where}: the key cannot be an INI key")
+    _no_comment_char(where, key)
     return key
 
 
 def translate(config: dict[str, Any] | None) -> str:
     """Return the text of a .sqruff file for a config in the sqlfluff
     structure. Raise Unsupported for a setting that sqruff does not
-    document, or for a key or value that sqruff reads in another way."""
+    support, or for a key or value that sqruff reads in another way."""
     config = config or {}
     check(config)
     sections: dict[str, list[str]] = {}
@@ -327,6 +361,8 @@ def translate(config: dict[str, Any] | None) -> str:
             key = ".".join(key_parts)
         else:
             section_path, key = path[:-1], _ini_key(path, path[-1])
+        for part in section_path:
+            _no_comment_char(".".join(path), part)
         name = (
             "sqruff"
             if section_path == ("core",)

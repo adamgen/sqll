@@ -55,13 +55,14 @@ sqruff does not support. It never passes. The items:
 
 | Reason prefix | When |
 |---|---|
-| `unsupported: setting` | A setting that the sqruff 0.41.0 documentation does not have: `default_config.cfg` (the full list of settings), `docs/usage/configuration.md`, and `docs/reference/templaters.md`. sqruff can read some of these settings, for example `rules.references.consistent.single_table_references`; the harness does not give them. |
+| `unsupported: setting` | A setting that the sqruff 0.41.0 documentation does not have: `default_config.cfg` (the full list of settings), `docs/usage/configuration.md`, and `docs/reference/templaters.md`. sqruff can read some of these settings, for example `rules.references.consistent.single_table_references`; the harness does not give them. Also a documented setting that the sqruff source does not read (`NOT_READ` in `sqruff_config.py`): `core.output_line_length`, `indentation.template_blocks_indent`, `capitalisation.types` `ignore_words` and `ignore_words_regex`, `templater.jinja.library_path`, and `templater.dbt.profile`. A rule section with a rule code as its name (for example `rules.AL03`) is also in this group. sqlfluff 4.4.0 ignores such a section with a warning, so the case fails also where sqlfluff passes it. |
 | `unsupported: rule` | A rule code that `sqruff rules` does not list (`CV13`, `TQ01`). |
 | `unsupported: dialect` | A dialect that `sqruff dialects` does not list (`soql`). |
 | `unsupported: templater` | A templater that `sqruff templaters` does not list. |
-| `unsupported: output field` | The case compares `violations` or `violations_after_fix`, and a violation has a field that `sqruff lint -f json` does not give. sqruff gives the code, the message, and the start line and position. It gives no `name`, `warning`, `fixes`, `start_file_pos`, or end position. Also: the config sets `warnings` (the output has no warning field). |
+| `unsupported: output field` | The case compares a `violations` or `violations_after_fix` list that is not empty. The test compares each violation with `to_dict()`, which always has `name` and `warning`. `sqruff lint -f json` gives only the code, the message, and the start line and position. It gives no `name`, `warning`, `fixes`, `start_file_pos`, or end position. Also: the config or an in-file config line sets `warnings` (the output has no warning field). |
 | `unsupported: upper-case key` | A config key with an upper-case letter. sqruff makes INI keys and section names lower case. sqlfluff keeps the case. |
 | `unsupported: multi-line value` | A value with a new line. sqruff reads an INI value on one line. |
+| `unsupported: comment character` | A key, section name, or value with `#` or `;`. sqruff (configparser `Ini::new`) cuts an INI line at the first `#` or `;`. |
 | `unsupported: layout type` | sqruff stops (`not implemented: <type>`) on a layout type in the config. |
 | `unsupported: in-file config line` | sqlfluff and sqruff do not read the same in-file config lines: sqruff reads `-- sqlfluff:` or `-- sqruff:` after leading spaces; sqlfluff reads `-- sqlfluff` or `--sqlfluff` at the line start. |
 
@@ -109,11 +110,11 @@ tuple). It runs only for `sqlfluff`, in CI (8 shards). Result: 2306 of 2306.
 | Suite | Total | Passed | Failed | Checks |
 |---|---|---|---|---|
 | dialects | 2306 | 1548 | 758 | exact 1548, no_unparsable 2164 |
-| rules | 2527 | 2188 | 339 | after_fix 758, fail_str 1046, fix 1002, pass_str 1209 |
-| autofix | 61 | 45 | 16 | fix 45, non_linting 55, tree 55, violations 1 |
+| rules | 2527 | 2185 | 342 | after_fix 758, fail_str 1044, fix 1001, pass_str 1207 |
+| autofix | 61 | 45 | 16 | fix 45, non_linting 54, tree 54, violations 1 |
 | templater | 43 | 28 | 15 | exact 28, no_unparsable 33 |
 
-`known_failures/sqruff.txt` lists the 1128 failed cases with their reasons.
+`known_failures/sqruff.txt` lists the 1131 failed cases with their reasons.
 `sqll-harness known-failures REPORT --tool sqruff` writes this file from a
 report, and `--counts` gives the counts for each reason prefix (see
 STATUS.md). No sqlfluff test can run sqruff, so there is no oracle.

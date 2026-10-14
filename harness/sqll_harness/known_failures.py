@@ -4,6 +4,7 @@ Format: one case id on each line, sorted, with no duplicates. Text after
 "#" is the reason. Blank lines are ignored.
 """
 
+import re
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -98,6 +99,7 @@ def evaluate(
 # The kinds of unsupported items (adapters.base.Unsupported), longest first.
 _UNSUPPORTED_KINDS = (
     "in-file config line",
+    "comment character",
     "multi-line value",
     "upper-case key",
     "output field",
@@ -108,6 +110,12 @@ _UNSUPPORTED_KINDS = (
     "rule",
 )
 _REASON_LIMIT = 300
+# Text of a Rust panic message that changes between runs and machines: the
+# thread id, and the folder of the cargo registry.
+_VOLATILE = (
+    (re.compile(r"(thread '[^']*') \(\d+\)"), r"\1"),
+    (re.compile(r"\S*/registry/src/[^/\s]+/"), ""),
+)
 
 
 def reason_prefix(reason: str) -> str:
@@ -135,6 +143,8 @@ def render(results: list[CaseResult]) -> str:
         if r.passed or r.skipped:
             continue
         reason = " ".join(r.reason.split())
+        for pattern, repl in _VOLATILE:
+            reason = pattern.sub(repl, reason)
         if len(reason) > _REASON_LIMIT:
             reason = reason[: _REASON_LIMIT - 3] + "..."
         lines.append(f"{r.id}  # {reason}" if reason else r.id)

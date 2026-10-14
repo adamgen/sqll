@@ -4,14 +4,14 @@ autofix/ansi/019_trailing_comma_to_leading  # fix mismatch
 autofix/ansi/021_fix_respects_noqa  # fix mismatch
 autofix/ansi/024_remove_templated_errors  # unsupported: setting templater.jinja.macros.par_wrap
 autofix/ansi/028_leading_comma_with_jinja  # fix mismatch
-autofix/ansi/029_indentation_join_reorder_LT02_ST09  # unsupported: setting templater.jinja.macros.snapshot_date
+autofix/ansi/029_indentation_join_reorder_LT02_ST09  # unsupported: setting indentation.template_blocks_indent, templater.jinja.macros.snapshot_date
 autofix/ansi/macro_file_jinja_include_undefined_variable  # fix mismatch
 autofix/bigquery/002_templating  # fix mismatch
-autofix/bigquery/003_templating  # fix mismatch
+autofix/bigquery/003_templating  # unsupported: setting indentation.template_blocks_indent
 autofix/bigquery/004_templating  # fix mismatch
 autofix/bigquery/006_fix_ignore_templating  # the tool has no parse tree for the file; the test fails ('res.tree' is None)
 autofix/snowflake/001_semi_structured  # unsupported: setting rules.capitalisation.identifiers.capitalisation_policy
-autofix/snowflake/002_previously_parse_tree_damaging  # unsupported: setting rules.AL03.allow_scalar
+autofix/snowflake/002_previously_parse_tree_damaging  # unsupported: setting core.output_line_length, rules.AL03.allow_scalar
 autofix/snowflake/003_previously_parse_tree_damaging  # fix mismatch
 autofix/tsql/001_alias_aligning  # unsupported: setting layout.type.alias_operator.align_scope, layout.type.alias_operator.align_within
 dialects/ansi/alter_sequence  # tree differs
@@ -950,9 +950,10 @@ rules/LT02-indent/test_fail_tsql_else_if_successive  # fail_str: PRS: Unparsable
 rules/LT02-indent/test_fix_macro_indents_4367  # fail_str: no violation of LT02; fix mismatch
 rules/LT02-indent/test_indent_leading_segment_align_following_window_function  # unsupported: setting indentation.allow_implicit_indents
 rules/LT02-indent/test_jinja_nested_blocks  # fix mismatch
-rules/LT02-indent/test_jinja_value_error_6378  # pass_str: 4 violations of LT02 (lines [5, 7, 13, 14])
-rules/LT02-indent/test_pass_jinja_if_with_in_clause  # pass_str: 1 violations of LT02 (lines [5])
-rules/LT02-indent/test_pass_jinja_if_with_in_clause_multi_value  # pass_str: 1 violations of LT02 (lines [5])
+rules/LT02-indent/test_jinja_value_error_6378  # unsupported: setting indentation.template_blocks_indent
+rules/LT02-indent/test_pass_issue_7543_indentation  # unsupported: setting indentation.template_blocks_indent
+rules/LT02-indent/test_pass_jinja_if_with_in_clause  # unsupported: setting indentation.template_blocks_indent
+rules/LT02-indent/test_pass_jinja_if_with_in_clause_multi_value  # unsupported: setting indentation.template_blocks_indent
 rules/LT02-indent/test_pass_snowflake_exception_block_in_scripting_block  # pass_str: 3 violations of LT02 (lines [3, 4, 6])
 rules/LT02-indent/test_pass_snowflake_exception_block_multiple_when  # pass_str: 4 violations of LT02 (lines [3, 4, 7, 10])
 rules/LT02-indent/test_pass_snowflake_exception_block_standalone  # pass_str: 2 violations of LT02 (lines [3, 4])
@@ -970,7 +971,7 @@ rules/LT02-tab-space/spaces_fail_custom_tab_space_size  # unsupported: setting r
 rules/LT02-tab-space/tabs_fail_default_set_tab_space_size  # unsupported: setting rules.tab_space_size
 rules/LT02-tab-space/tabs_pass  # unsupported: setting rules.indent_unit
 rules/LT03/fails_templated_code_non_templated_newline  # fail_str: no violation of LT03
-rules/LT03/fixes_tuple_error_issue  # fix mismatch
+rules/LT03/fixes_tuple_error_issue  # unsupported: setting indentation.template_blocks_indent
 rules/LT04/trailing_comma_with_templated_column_2  # pass_str: 1 violations of LT04 (lines [3])
 rules/LT05/test_compute_line_length_before_template_expansion_2  # unsupported: output field end_file_pos, end_line_no, end_line_pos, fixes, name, start_file_pos, warning (the case compares 'violations_after_fix'; the lint output has no such field)
 rules/LT05/test_trailing_semicolon_moves  # unsupported: output field end_file_pos, end_line_no, end_line_pos, fixes, name, start_file_pos, warning (the case compares 'violations_after_fix'; the lint output has no such field)
@@ -981,10 +982,10 @@ rules/LT12/test_fail_templated_plus_raw_newlines_extra_newline  # fix mismatch
 rules/LT13/test_fail_leading_whitespace_jinja_comment  # fail_str: no violation of LT13; fix mismatch
 rules/LT13/test_fail_leading_whitespace_jinja_for  # fail_str: no violation of LT13; fix mismatch
 rules/LT13/test_fail_leading_whitespace_jinja_if  # fail_str: no violation of LT13; fix mismatch
-rules/LT14/test_fail_alone_window_function  # lint: no JSON lint output; lint: exit code 101: thread 'main' (26037) panicked at /root/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/sqruff-lib-0.41.0/src/utils/reflow/config.rs:457:18:
-rules/LT14/test_fail_leading_qualify  # lint: no JSON lint output; lint: exit code 101: thread 'main' (26040) panicked at /root/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/sqruff-lib-0.41.0/src/utils/reflow/config.rs:457:18:
-rules/LT14/test_fail_leading_window_function  # lint: no JSON lint output; lint: exit code 101: thread 'main' (26035) panicked at /root/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/sqruff-lib-0.41.0/src/utils/reflow/config.rs:457:18:
-rules/LT14/test_pass_none_where_clause  # lint: no JSON lint output; lint: exit code 101: thread 'main' (26049) panicked at /root/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/sqruff-lib-0.41.0/src/utils/reflow/config.rs:451:18:
+rules/LT14/test_fail_alone_window_function  # lint: no JSON lint output; lint: exit code 101: thread 'main' panicked at sqruff-lib-0.41.0/src/utils/reflow/config.rs:457:18:
+rules/LT14/test_fail_leading_qualify  # lint: no JSON lint output; lint: exit code 101: thread 'main' panicked at sqruff-lib-0.41.0/src/utils/reflow/config.rs:457:18:
+rules/LT14/test_fail_leading_window_function  # lint: no JSON lint output; lint: exit code 101: thread 'main' panicked at sqruff-lib-0.41.0/src/utils/reflow/config.rs:457:18:
+rules/LT14/test_pass_none_where_clause  # lint: no JSON lint output; lint: exit code 101: thread 'main' panicked at sqruff-lib-0.41.0/src/utils/reflow/config.rs:451:18:
 rules/LT15/test_fail_bad_edge_case  # unsupported: setting rules.layout.newlines.maximum_empty_lines_within_statements
 rules/LT15/test_fail_macros_with_newlines  # unsupported: setting templater.jinja.macros.a_macro_def
 rules/LT15/test_fail_maximum_reports_only_the_final_newline_of_a_whitespace_broken_run  # unsupported: setting rules.layout.newlines.minimum_empty_lines_between_statements
@@ -1043,12 +1044,12 @@ rules/RF01/test_trino_row_fields_in_bracketed_union  # pass_str: 2 violations of
 rules/RF01/test_trino_row_fields_in_union  # pass_str: 2 violations of RF01 (lines [1, 3])
 rules/RF01/test_trino_row_reference_with_multiple_tables  # pass_str: 1 violations of RF01 (lines [1])
 rules/RF01/test_trino_unknown_reference_in_joined_subquery_unaliased_parent  # fail_str: no violation of RF01; fail_str: line numbers [], expected [4]
-rules/RF02/test_arrow_with_non_parameter_left_operand_is_not_a_lambda  # lint: exit code 1: thread 'main' (26287) panicked at /root/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/sqruff-lib-core-0.41.0/src/utils/analysis/select.rs:509:13:
+rules/RF02/test_arrow_with_non_parameter_left_operand_is_not_a_lambda  # lint: exit code 1: thread 'main' panicked at sqruff-lib-core-0.41.0/src/utils/analysis/select.rs:509:13:
 rules/RF02/test_fail_tsql_bracketed_nested_join_target_unqualified_column  # unsupported: output field end_file_pos, end_line_no, end_line_pos, fixes, name, start_file_pos, warning (the case compares 'violations'; the lint output has no such field)
 rules/RF02/test_fail_tsql_containstable_reports_only_the_column_argument  # unsupported: output field end_file_pos, end_line_no, end_line_pos, fixes, name, start_file_pos, warning (the case compares 'violations'; the lint output has no such field)
 rules/RF02/test_json_arrow_on_plain_column_is_not_a_lambda_duckdb  # fail_str: no violation of RF02
 rules/RF02/test_json_arrow_on_plain_column_is_not_a_lambda_trino  # fail_str: PRS: Unparsable section
-rules/RF02/test_json_arrow_operator_is_not_a_lambda_duckdb  # lint: exit code 1: thread 'main' (26285) panicked at /root/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/sqruff-lib-core-0.41.0/src/utils/analysis/select.rs:509:13:
+rules/RF02/test_json_arrow_operator_is_not_a_lambda_duckdb  # lint: exit code 1: thread 'main' panicked at sqruff-lib-core-0.41.0/src/utils/analysis/select.rs:509:13:
 rules/RF02/test_json_arrow_operator_is_not_a_lambda_trino  # pass_str: PRS: Unparsable section
 rules/RF03/fail_but_dont_fix_templated_table_name_consistent  # fail_str: no violation of RF03
 rules/RF03/fail_but_dont_fix_templated_table_name_qualified  # unsupported: setting rules.references.consistent.single_table_references
@@ -1069,12 +1070,14 @@ rules/RF03/test_pass_postgres_whole_row_json_operator  # unsupported: setting ru
 rules/RF03/test_pass_subselect_qualified_reference_5599  # unsupported: setting rules.references.consistent.single_table_references
 rules/RF03/test_pass_subselect_unqualified_one_reference_3987  # unsupported: setting rules.references.consistent.single_table_references
 rules/RF03/test_pass_subselect_unqualified_two_references_3987  # unsupported: setting rules.references.consistent.single_table_references
+rules/RF05/test_fail_ignore_words_regex_quoted_mixed_case  # unsupported: comment character '#' in rules.references.special_chars.ignore_words_regex (sqruff reads the rest of an INI line as a comment)
 rules/RF05/test_fail_special_chars_create_table_hash_unquoted  # fail_str: no violation of RF05
 rules/RF05/test_fail_special_chars_unquoted_policy_aliases  # fail_str: no violation of RF05
 rules/RF05/test_fail_special_chars_unquoted_policy_column_aliases  # fail_str: no violation of RF05
-rules/RF05/test_pass_ignore_lists_quoted  # pass_str: 1 violations of RF05 (lines [1])
-rules/RF05/test_pass_ignore_lists_quoted_mixed_case  # pass_str: 1 violations of RF05 (lines [1])
-rules/RF05/test_pass_special_chars_quoted_policy_none  # lint: no JSON lint output; lint: exit code 101: thread 'main' (26493) panicked at /root/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/sqruff-lib-0.41.0/src/rules/references/rf05.rs:31:18:
+rules/RF05/test_pass_ignore_lists_quoted  # unsupported: comment character '#' in rules.references.special_chars.ignore_words (sqruff reads the rest of an INI line as a comment)
+rules/RF05/test_pass_ignore_lists_quoted_mixed_case  # unsupported: comment character '#' in rules.references.special_chars.ignore_words (sqruff reads the rest of an INI line as a comment)
+rules/RF05/test_pass_ignore_words_regex_quoted  # unsupported: comment character '#' in rules.references.special_chars.ignore_words_regex (sqruff reads the rest of an INI line as a comment)
+rules/RF05/test_pass_special_chars_quoted_policy_none  # lint: no JSON lint output; lint: exit code 101: thread 'main' panicked at sqruff-lib-0.41.0/src/rules/references/rf05.rs:31:18:
 rules/RF06/test_fail_column_reference_prefer_quoted_ansi  # fix mismatch
 rules/RF06/test_fail_column_reference_prefer_quoted_backticks  # fix mismatch
 rules/RF06/test_fail_multiple_references_prefer_quoted_ansi  # fix mismatch
@@ -1114,7 +1117,7 @@ rules/TQ01/test_pass_non_sp_prefix_4  # unsupported: rule TQ01
 templater/jinja_b/jinja  # unsupported: setting templater.jinja.macros.some_macro
 templater/jinja_f/jinja  # unsupported: upper-case key templater.jinja.context.NUM_EMBEDDING_COMPONENTS (sqruff makes INI keys lower case)
 templater/jinja_g_macros/jinja  # unsupported: upper-case key templater.jinja.context.NUM_EMBEDDING_COMPONENTS (sqruff makes INI keys lower case)
-templater/jinja_j_libraries/jinja  # no tree; the test fails ('tree' is None)
+templater/jinja_j_libraries/jinja  # unsupported: setting templater.jinja.library_path
 templater/jinja_k_config_override_path_macros/jinja  # unsupported: setting templater.jinja.macros.foo2_def, templater.jinja.macros.foo3_def
 templater/jinja_l_metas/001  # tree differs
 templater/jinja_l_metas/002  # tree differs
@@ -1124,5 +1127,5 @@ templater/jinja_l_metas/009  # tree differs
 templater/jinja_n_nested_macros/explicit_import  # unsupported: setting templater.jinja.macros.foo2_def, templater.jinja.macros.foo3_def
 templater/jinja_n_nested_macros/implicit_import  # unsupported: setting templater.jinja.macros.foo2_def, templater.jinja.macros.foo3_def
 templater/jinja_o_config_override_dbt_builtins/override_dbt_builtins  # unsupported: setting templater.jinja.macros.dbt_is_incremental
-templater/jinja_s_filters_in_library/jinja  # no tree; the test fails ('tree' is None)
+templater/jinja_s_filters_in_library/jinja  # unsupported: setting templater.jinja.library_path
 templater/jinja_t_loader_search_path/jinja  # no tree; the test fails ('tree' is None)

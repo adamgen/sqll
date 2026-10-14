@@ -86,7 +86,18 @@ def check_inline_config(sql_path: Path) -> None:
         if sqlfluff_reads and any(c in line for c in "{[\\"):
             # sqlfluff does not split some values with ":" (paths, JSON).
             raise ValueError(f"in-file config line with a complex value: {line!r}")
-    check(config_files.inline_config(sql))
+    check_settings(config_files.inline_config(sql))
+
+
+def check_settings(config: dict[str, Any]) -> None:
+    """Raise Unsupported for a setting that sqruff does not support, or for
+    "warnings" (the lint output of sqruff has no warning field)."""
+    if "warnings" in _core(config):
+        raise Unsupported(
+            "output field warning (the config sets warnings; sqruff lint "
+            "gives no warning field)"
+        )
+    check(config)
 
 
 def _path_keys_absolute(config: dict[str, Any], cwd: Path, prefix=()) -> None:
@@ -222,12 +233,7 @@ class SqruffAdapter(Adapter):
         templater = str(core.get("templater", "raw")).strip()
         if templater not in self.info["templaters"]:
             raise Unsupported(f"templater {templater}")
-        if "warnings" in core:
-            raise Unsupported(
-                "output field warning (the config sets warnings; sqruff lint "
-                "gives no warning field)"
-            )
-        check(config)
+        check_settings(config)
 
     def _config_args(
         self, config: dict[str, Any], dialect: str | None, tmp: Path

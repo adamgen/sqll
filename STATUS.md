@@ -34,8 +34,8 @@ sqlfluff 4.4.0, `sqlfluff[rs]` 4.4.0 with sqlfluffrs 4.4.0, sqruff 0.41.0
 | autofix | sqlfluff-rs 4.4.0 | 61 | 61 | 0 | fix 61, non_linting 61, tree 61, violations 1 |
 | templater | sqlfluff-rs 4.4.0 | 43 | 43 | 0 | exact 43, no_unparsable 43 |
 | dialects | sqruff 0.41.0 | 2306 | 1548 | 0 | exact 1548, no_unparsable 2164 |
-| rules | sqruff 0.41.0 | 2527 | 2188 | 0 | after_fix 758, fail_str 1046, fix 1002, pass_str 1209 |
-| autofix | sqruff 0.41.0 | 61 | 45 | 0 | fix 45, non_linting 55, tree 55, violations 1 |
+| rules | sqruff 0.41.0 | 2527 | 2185 | 0 | after_fix 758, fail_str 1044, fix 1001, pass_str 1207 |
+| autofix | sqruff 0.41.0 | 61 | 45 | 0 | fix 45, non_linting 54, tree 54, violations 1 |
 | templater | sqruff 0.41.0 | 43 | 28 | 0 | exact 28, no_unparsable 33 |
 
 The sqlfluff tests pass the same cases, with 0 differences
@@ -59,22 +59,23 @@ oracle.
 
 - sqlfluff: none.
 - sqlfluff-rs: none.
-- sqruff: 1128 cases in `known_failures/sqruff.txt` (7 `error`, all sqruff
+- sqruff: 1131 cases in `known_failures/sqruff.txt` (7 `error`, all sqruff
   panics; the others `fail`). Counts for each reason prefix:
 
 | Reason prefix | autofix | dialects | rules | templater |
 |---|---|---|---|---|
 | after_fix | 0 | 0 | 1 | 0 |
 | fail_str | 0 | 0 | 45 | 0 |
-| fix mismatch | 10 | 0 | 68 | 0 |
+| fix mismatch | 9 | 0 | 67 | 0 |
 | lint | 0 | 0 | 7 | 0 |
-| no tree | 0 | 0 | 0 | 3 |
-| pass_str | 0 | 0 | 62 | 0 |
+| no tree | 0 | 0 | 0 | 1 |
+| pass_str | 0 | 0 | 57 | 0 |
 | the tool has no parse tree for the file | 1 | 0 | 0 | 0 |
 | tree differs | 0 | 755 | 0 | 5 |
+| unsupported: comment character | 0 | 0 | 4 | 0 |
 | unsupported: dialect | 0 | 3 | 1 | 0 |
 | unsupported: layout type | 0 | 0 | 1 | 0 |
 | unsupported: output field | 0 | 0 | 21 | 0 |
 | unsupported: rule | 0 | 0 | 24 | 0 |
-| unsupported: setting | 5 | 0 | 104 | 5 |
+| unsupported: setting | 6 | 0 | 109 | 7 |
 | unsupported: upper-case key | 0 | 0 | 5 | 2 |

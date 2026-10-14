@@ -159,12 +159,18 @@ the data of the fixture. See [sqruff.md](sqruff.md). Limits:
   from a TMP or PRS in the `fix -f json` output. A TMP or PRS that `ignore`
   hides is not in the output. Then the `fix` check compares the file. The
   4.4.0 autofix case with `ignore = templating` sets `fix_even_unparsable`.
-- "unsupported" follows the sqruff documentation. sqruff 0.41.0 reads some
-  settings that its documentation does not have (these cases fail with
-  `unsupported: setting`). It does not read the documented
-  `templater.jinja.library_path` (it reads `library_paths`); these cases run
-  and fail.
+- "unsupported" follows the sqruff documentation and the sqruff 0.41.0
+  source. sqruff 0.41.0 reads some settings that its documentation does not
+  have (these cases fail with `unsupported: setting`). The documented
+  settings that the source does not read also give `unsupported: setting`
+  (see [sqruff.md](sqruff.md)). The harness found them with a search of the
+  source for each setting name. It does not run a check that sqruff uses
+  each setting.
 - sqruff and sqlfluff convert an INI value in the same way (int, float,
   bool, none, else text). A YAML string such as `"5"` becomes the int 5.
   A list in the template variables is written as Python text; the templater
-  reads it with `ast.literal_eval`.
+  reads it with `ast.literal_eval`. sqruff cuts an INI line at `#` or `;`,
+  so a value with one of them gives `unsupported: comment character`.
+- sqruff has no dialect oracle. Thus no check shows a difference that an
+  in-file config line causes in a dialect case. In 4.4.0 only
+  `clickhouse/create_user.sql` has one, and it has no effect.

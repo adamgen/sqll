@@ -208,6 +208,10 @@ def test_summary_check_order_does_not_depend_on_case_order():
         ("unsupported: dialect soql", "unsupported: dialect"),
         ("unsupported: output field end_line_no (x)", "unsupported: output field"),
         ("unsupported: upper-case key a.B (x)", "unsupported: upper-case key"),
+        (
+            "unsupported: comment character '#' in a.b (x)",
+            "unsupported: comment character",
+        ),
         ("unsupported: something new", "unsupported:"),
         ("tree differs; unparsable segment", "tree differs"),
         ("fail_str: no violation of LT01; fix mismatch", "fail_str"),
@@ -248,3 +252,16 @@ def test_render_and_counts():
         "fix mismatch": {"rules": 2},
         "no reason": {"rules": 1},
     }
+
+
+def test_render_removes_volatile_panic_text():
+    reason = (
+        "lint: exit code 101: thread 'main' (26037) panicked at /root/.cargo/"
+        "registry/src/index.crates.io-1949cf8c6b5b557f/sqruff-lib-0.41.0/src/"
+        "rules/references/rf05.rs:31:18:"
+    )
+    results = [CaseResult("rules/a/x", "rules", "t", ERROR, reason=reason)]
+    assert known_failures.render(results) == (
+        "rules/a/x  # lint: exit code 101: thread 'main' panicked at "
+        "sqruff-lib-0.41.0/src/rules/references/rf05.rs:31:18:\n"
+    )
