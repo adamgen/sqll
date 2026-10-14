@@ -12,7 +12,7 @@ See [README.md](README.md).
 | `parse`, `parse_file` | `sqruff parse -f json [--include-meta] [--dialect D] --config <tmp>/.sqruff FILE` |
 | `lint` | `sqruff lint -f json --parsing-errors [--dialect D] --config <tmp>/.sqruff FILES` |
 | `fix` | `sqruff fix [--dialect D] --config <tmp>/.sqruff FILE` |
-| `fix_file` | `sqruff fix [-f json] --dialect D --config <tmp>/.sqruff FILE` |
+| `fix_file` | `sqruff parse -f json --dialect D --config <tmp>/.sqruff FILE` (no `fix_even_unparsable`), then `sqruff fix -f json --dialect D --config <tmp>/.sqruff FILE` |
 
 With `--config`, sqruff reads only that file: no other config file of the
 user or of the folders.
@@ -83,9 +83,12 @@ No 4.4.0 case has one.
   `start_line_pos`. A parse error has no code; the adapter gives it `PRS`,
   as `sqruff parse` does.
 - Fix: the harness reads the file that `sqruff fix` wrote. The output has no
-  `fixes` field and no `CRITICAL` log, so the rule suite compares this file
-  in each case. With no `fix_even_unparsable`, `fix_file` finds that sqruff
-  did not write the file from a TMP or PRS in the `fix -f json` output, or
+  `fixes` field and no `CRITICAL` log. The rule suite compares this file,
+  but a TMP or PRS in a lint output (also a noqa-masked one) with no
+  `fix_even_unparsable` gives `error` for the `fix` check: sqruff does not
+  write the file, and the fixes of the test are not known. With no
+  `fix_even_unparsable`, `fix_file` finds that sqruff did not write the
+  file from a TMP or PRS in the `fix -f json` output, or
   from `sqruff parse` before the fix (no tree, an `unparsable` segment, or
   exit code 1). The output does not show a noqa-masked error; the parse tree
   keeps its `unparsable` segment.
@@ -112,7 +115,7 @@ tuple). It runs only for `sqlfluff`, in CI (8 shards). Result: 2306 of 2306.
 | Suite | Total | Passed | Failed | Checks |
 |---|---|---|---|---|
 | dialects | 2306 | 1548 | 758 | exact 1548, no_unparsable 2164 |
-| rules | 2527 | 2185 | 342 | after_fix 758, fail_str 1044, fix 1001, pass_str 1207 |
+| rules | 2527 | 2185 | 342 | after_fix 758, fail_str 1044, fix 997, pass_str 1207 |
 | autofix | 61 | 45 | 16 | fix 45, non_linting 54, tree 54, violations 1 |
 | templater | 43 | 28 | 15 | exact 28, no_unparsable 33 |
 

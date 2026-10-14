@@ -30,6 +30,11 @@ expect_fail_hidden_prs_no_fix_str:
 expect_fail_noqa_prs_no_fix_str:
   fail_str: "SELECT a  +  b FROM t;\nfoo bar baz; -- noqa: PRS\n"
 
+# A tool with no fixes field in its lint output (sqruff) must also find the
+# masked PRS.
+expect_fail_noqa_masked_prs_no_fix_str:
+  fail_str: "SELECT a  FROM b;\nSELECT 1 +; -- noqa\n"
+
 # The templater makes a noqa comment that hides a PRS. The source has no
 # "noqa" text.
 expect_fail_templated_noqa_prs_pass_str:

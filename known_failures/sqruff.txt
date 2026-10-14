@@ -805,9 +805,9 @@ rules/AL08/test_fail_locs  # unsupported: output field end_file_pos, end_line_no
 rules/AL09/test_fail_different_case  # unsupported: output field end_file_pos, end_line_no, end_line_pos, fixes, name, start_file_pos, warning (the case compares 'violations'; the lint output has no such field)
 rules/AM02/test_fail_mixed_case_union_preserves_case  # fix mismatch
 rules/AM04/test_fail_exasol_invalid_foreign_key_from  # fail_str: no violation of AM04
-rules/AM04/test_fail_jinja_templated_table_reference  # fail_str: no violation of AM04
-rules/AM04/test_fail_jinja_templated_table_reference_unqualified_wildcard  # fail_str: no violation of AM04
-rules/AM04/test_fail_jinja_templated_wildcard_qualifier  # fail_str: no violation of AM04
+rules/AM04/test_fail_jinja_templated_table_reference  # fail_str: no violation of AM04; fix: the tool shows no violation, so it does not write a file, but a hidden violation (ignore, noqa, or templated areas) can have fixes that the test applies
+rules/AM04/test_fail_jinja_templated_table_reference_unqualified_wildcard  # fail_str: no violation of AM04; fix: the tool shows no violation, so it does not write a file, but a hidden violation (ignore, noqa, or templated areas) can have fixes that the test applies
+rules/AM04/test_fail_jinja_templated_wildcard_qualifier  # fail_str: no violation of AM04; fix: the tool shows no violation, so it does not write a file, but a hidden violation (ignore, noqa, or templated areas) can have fixes that the test applies
 rules/AM04/test_fail_placeholder_templater_qualified_wildcard  # unsupported: upper-case key templater.placeholder.CATALOG (sqruff makes INI keys lower case)
 rules/AM04/test_fail_placeholder_templater_unqualified_wildcard  # unsupported: upper-case key templater.placeholder.CATALOG (sqruff makes INI keys lower case)
 rules/AM04/test_pass_cte_no_select_final_statement  # pass_str: PRS: Unparsable section
@@ -828,8 +828,8 @@ rules/CP02/test_policy_unquoted_identifiers_aliases_6  # unsupported: setting ru
 rules/CP02/test_policy_unquoted_identifiers_aliases_7  # unsupported: setting rules.capitalisation.identifiers.unquoted_identifiers_policy
 rules/CP02/test_policy_unquoted_identifiers_aliases_8  # unsupported: setting rules.capitalisation.identifiers.unquoted_identifiers_policy
 rules/CP02/test_policy_unquoted_identifiers_column_aliases_1  # unsupported: setting rules.capitalisation.identifiers.unquoted_identifiers_policy
-rules/CV01/test_fail_ansi_not_equal_to_tsql  # fail_str: PRS: Unparsable section; fail_str: no violation of CV01; fix mismatch; after_fix: PRS: Unparsable section
-rules/CV01/test_fail_c_style_not_equal_to_tsql  # fail_str: PRS: Unparsable section; fail_str: no violation of CV01; fix mismatch; after_fix: PRS: Unparsable section
+rules/CV01/test_fail_ansi_not_equal_to_tsql  # fail_str: PRS: Unparsable section; fail_str: no violation of CV01; after_fix: PRS: Unparsable section; fix: the tool does not write a file with a PRS violation, and its lint output has no fixes field: the test can apply fixes
+rules/CV01/test_fail_c_style_not_equal_to_tsql  # fail_str: PRS: Unparsable section; fail_str: no violation of CV01; after_fix: PRS: Unparsable section; fix: the tool does not write a file with a PRS violation, and its lint output has no fixes field: the test can apply fixes
 rules/CV01/test_pass_ansi_not_equal_to_tsql  # pass_str: PRS: Unparsable section
 rules/CV01/test_pass_c_style_not_equal_to_tsql  # pass_str: PRS: Unparsable section
 rules/CV01/test_pass_consistent_ansi_not_equal_to_tsql  # pass_str: PRS: Unparsable section
@@ -920,8 +920,8 @@ rules/LT01-alignment/test_skip_alias_with_align_alias  # unsupported: setting la
 rules/LT01-brackets/test_fail_parenthesis_block_not_isolated_templated  # fail_str: no violation of LT01
 rules/LT01-commas/test_fail_whitespace_before_comma_template  # fail_str: no violation of LT01
 rules/LT01-excessive/test_basic_fail_template  # fail_str: no violation of LT01
-rules/LT01-excessive/test_comparison_operator_fix  # fail_str: PRS: Unparsable section; fail_str: no violation of LT01; fix mismatch
-rules/LT01-excessive/test_fix_tsql_spaced_chars  # fail_str: PRS: Unparsable section; fail_str: no violation of LT01; fix mismatch
+rules/LT01-excessive/test_comparison_operator_fix  # fail_str: PRS: Unparsable section; fail_str: no violation of LT01; fix: the tool does not write a file with a PRS violation, and its lint output has no fixes field: the test can apply fixes
+rules/LT01-excessive/test_fix_tsql_spaced_chars  # fail_str: PRS: Unparsable section; fail_str: no violation of LT01; fix: the tool does not write a file with a PRS violation, and its lint output has no fixes field: the test can apply fixes
 rules/LT01-literals/test_fail_old_python_test  # unsupported: output field end_file_pos, end_line_no, end_line_pos, fixes, name, start_file_pos, warning (the case compares 'violations'; the lint output has no such field)
 rules/LT01-literals/test_fail_tsql_unicode_single_quote  # fix mismatch; after_fix: 2 violations of LT01 (lines [1])
 rules/LT01-literals/test_pass_tsql_unicode_single_quote  # pass_str: 2 violations of LT01 (lines [1])
@@ -937,17 +937,17 @@ rules/LT01-operators/pass_consecutive_sign_indicators  # pass_str: 1 violations 
 rules/LT02-indent/test_fail_consuming_whitespace_a  # fix mismatch
 rules/LT02-indent/test_fail_consuming_whitespace_b  # fix mismatch
 rules/LT02-indent/test_fail_fix_beside_templated  # fix mismatch
-rules/LT02-indent/test_fail_fix_template_indentation_1  # fail_str: no violation of LT02; fix mismatch
-rules/LT02-indent/test_fail_fix_template_indentation_2  # fail_str: no violation of LT02; fix mismatch
+rules/LT02-indent/test_fail_fix_template_indentation_1  # fail_str: no violation of LT02; fix: the tool shows no violation, so it does not write a file, but a hidden violation (ignore, noqa, or templated areas) can have fixes that the test applies
+rules/LT02-indent/test_fail_fix_template_indentation_2  # fail_str: no violation of LT02; fix: the tool shows no violation, so it does not write a file, but a hidden violation (ignore, noqa, or templated areas) can have fixes that the test applies
 rules/LT02-indent/test_fail_hard_templated_indents  # fix mismatch
 rules/LT02-indent/test_fail_indented_joins_true_fix  # unsupported: output field end_file_pos, end_line_no, end_line_pos, fixes, name, start_file_pos, warning (the case compares 'violations'; the lint output has no such field)
 rules/LT02-indent/test_fail_issue_4680  # fix mismatch
 rules/LT02-indent/test_fail_reindent_first_line_1  # unsupported: output field end_file_pos, end_line_no, end_line_pos, fixes, name, start_file_pos, warning (the case compares 'violations'; the lint output has no such field)
 rules/LT02-indent/test_fail_snowflake_exception_block_nested  # fix mismatch; after_fix: 6 violations of LT02 (lines [5, 6, 8, 9, 11, 12])
 rules/LT02-indent/test_fail_tab_indentation  # unsupported: output field end_file_pos, end_line_no, end_line_pos, fixes, name, start_file_pos, warning (the case compares 'violations'; the lint output has no such field)
-rules/LT02-indent/test_fail_tsql_else_if  # fail_str: PRS: Unparsable section; fix mismatch; after_fix: PRS: Unparsable section; after_fix: 4 violations of LT02 (lines [2, 4, 6, 8])
-rules/LT02-indent/test_fail_tsql_else_if_successive  # fail_str: PRS: Unparsable section; fix mismatch; after_fix: PRS: Unparsable section; after_fix: 4 violations of LT02 (lines [2, 4, 6, 8])
-rules/LT02-indent/test_fix_macro_indents_4367  # fail_str: no violation of LT02; fix mismatch
+rules/LT02-indent/test_fail_tsql_else_if  # fail_str: PRS: Unparsable section; after_fix: PRS: Unparsable section; after_fix: 4 violations of LT02 (lines [2, 4, 6, 8]); fix: the tool does not write a file with a PRS violation, and its lint output has no fixes field: the test can apply fixes
+rules/LT02-indent/test_fail_tsql_else_if_successive  # fail_str: PRS: Unparsable section; after_fix: PRS: Unparsable section; after_fix: 4 violations of LT02 (lines [2, 4, 6, 8]); fix: the tool does not write a file with a PRS violation, and its lint output has no fixes field: the test can apply fixes
+rules/LT02-indent/test_fix_macro_indents_4367  # fail_str: no violation of LT02; fix: the tool shows no violation, so it does not write a file, but a hidden violation (ignore, noqa, or templated areas) can have fixes that the test applies
 rules/LT02-indent/test_indent_leading_segment_align_following_window_function  # unsupported: setting indentation.allow_implicit_indents
 rules/LT02-indent/test_jinja_nested_blocks  # fix mismatch
 rules/LT02-indent/test_jinja_value_error_6378  # unsupported: setting indentation.template_blocks_indent
@@ -979,9 +979,9 @@ rules/LT09/test_single_select_with_comment_after_select  # fix mismatch
 rules/LT12/test_fail_templated_no_newline  # fix mismatch
 rules/LT12/test_fail_templated_plus_raw_newlines  # fix mismatch
 rules/LT12/test_fail_templated_plus_raw_newlines_extra_newline  # fix mismatch
-rules/LT13/test_fail_leading_whitespace_jinja_comment  # fail_str: no violation of LT13; fix mismatch
-rules/LT13/test_fail_leading_whitespace_jinja_for  # fail_str: no violation of LT13; fix mismatch
-rules/LT13/test_fail_leading_whitespace_jinja_if  # fail_str: no violation of LT13; fix mismatch
+rules/LT13/test_fail_leading_whitespace_jinja_comment  # fail_str: no violation of LT13; fix: the tool shows no violation, so it does not write a file, but a hidden violation (ignore, noqa, or templated areas) can have fixes that the test applies
+rules/LT13/test_fail_leading_whitespace_jinja_for  # fail_str: no violation of LT13; fix: the tool shows no violation, so it does not write a file, but a hidden violation (ignore, noqa, or templated areas) can have fixes that the test applies
+rules/LT13/test_fail_leading_whitespace_jinja_if  # fail_str: no violation of LT13; fix: the tool shows no violation, so it does not write a file, but a hidden violation (ignore, noqa, or templated areas) can have fixes that the test applies
 rules/LT14/test_fail_alone_window_function  # lint: no JSON lint output; lint: exit code 101: thread 'main' panicked at sqruff-lib-0.41.0/src/utils/reflow/config.rs:457:18:
 rules/LT14/test_fail_leading_qualify  # lint: no JSON lint output; lint: exit code 101: thread 'main' panicked at sqruff-lib-0.41.0/src/utils/reflow/config.rs:457:18:
 rules/LT14/test_fail_leading_window_function  # lint: no JSON lint output; lint: exit code 101: thread 'main' panicked at sqruff-lib-0.41.0/src/utils/reflow/config.rs:457:18:
@@ -1048,7 +1048,7 @@ rules/RF02/test_arrow_with_non_parameter_left_operand_is_not_a_lambda  # lint: e
 rules/RF02/test_fail_tsql_bracketed_nested_join_target_unqualified_column  # unsupported: output field end_file_pos, end_line_no, end_line_pos, fixes, name, start_file_pos, warning (the case compares 'violations'; the lint output has no such field)
 rules/RF02/test_fail_tsql_containstable_reports_only_the_column_argument  # unsupported: output field end_file_pos, end_line_no, end_line_pos, fixes, name, start_file_pos, warning (the case compares 'violations'; the lint output has no such field)
 rules/RF02/test_json_arrow_on_plain_column_is_not_a_lambda_duckdb  # fail_str: no violation of RF02
-rules/RF02/test_json_arrow_on_plain_column_is_not_a_lambda_trino  # fail_str: PRS: Unparsable section
+rules/RF02/test_json_arrow_on_plain_column_is_not_a_lambda_trino  # fail_str: PRS: Unparsable section; fix: the tool does not write a file with a PRS violation, and its lint output has no fixes field: the test can apply fixes
 rules/RF02/test_json_arrow_operator_is_not_a_lambda_duckdb  # lint: exit code 1: thread 'main' panicked at sqruff-lib-core-0.41.0/src/utils/analysis/select.rs:509:13:
 rules/RF02/test_json_arrow_operator_is_not_a_lambda_trino  # pass_str: PRS: Unparsable section
 rules/RF03/fail_but_dont_fix_templated_table_name_consistent  # fail_str: no violation of RF03

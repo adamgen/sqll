@@ -151,10 +151,18 @@ the data of the fixture. See [sqruff.md](sqruff.md). Limits:
   segment that is code but has the type of a sqlfluff non-code segment (for
   example `comment`) is removed. A sqruff segment that is not code and has
   another type stays, and the tree differs. No 4.4.0 case shows this.
-- The rule suite does not use `fix_not_shown` for sqruff: the lint output
-  has no `fixes` field. The `fix` check compares the file that `sqruff fix`
-  wrote. If a TMP or PRS that `ignore` hides stops the fix, and the case has
-  no `fix_str`, the check passes. No 4.4.0 rule case sets `ignore`.
+- The lint output of sqruff has no `fixes` field. Thus in the rule suite,
+  `fix_not_shown` thinks that each violation can have fixes. With no
+  `fix_even_unparsable`, a TMP or PRS in a lint output (also one that a
+  noqa comment hides) gives `error` for the `fix` check: `sqruff fix` does
+  not write the file (`has_parse_or_templating_errors` is set before the
+  noqa mask), but the test applies the fixes. A case where no rule gives
+  fixes then also gives `error`. If sqruff shows no violation and a lint
+  with less filter shows one, the `fix` check also gives `error`: sqruff
+  writes the file only if it shows a violation that is not a warning
+  (`commands_fix.rs`). Else the `fix` check compares the file that
+  `sqruff fix` wrote. In 4.4.0, 7 rule cases have the TMP or PRS and 9
+  have only hidden violations; all 16 fail at `fail_str`.
 - In `fix_file`, the harness finds that sqruff does not write the file (no
   `fix_even_unparsable`) from a TMP or PRS in the `fix -f json` output, or
   from `sqruff parse` of the file before the fix: no tree, an `unparsable`

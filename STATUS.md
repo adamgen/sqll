@@ -34,7 +34,7 @@ sqlfluff 4.4.0, `sqlfluff[rs]` 4.4.0 with sqlfluffrs 4.4.0, sqruff 0.41.0
 | autofix | sqlfluff-rs 4.4.0 | 61 | 61 | 0 | fix 61, non_linting 61, tree 61, violations 1 |
 | templater | sqlfluff-rs 4.4.0 | 43 | 43 | 0 | exact 43, no_unparsable 43 |
 | dialects | sqruff 0.41.0 | 2306 | 1548 | 0 | exact 1548, no_unparsable 2164 |
-| rules | sqruff 0.41.0 | 2527 | 2185 | 0 | after_fix 758, fail_str 1044, fix 1001, pass_str 1207 |
+| rules | sqruff 0.41.0 | 2527 | 2185 | 0 | after_fix 758, fail_str 1044, fix 997, pass_str 1207 |
 | autofix | sqruff 0.41.0 | 61 | 45 | 0 | fix 45, non_linting 54, tree 54, violations 1 |
 | templater | sqruff 0.41.0 | 43 | 28 | 0 | exact 28, no_unparsable 33 |
 

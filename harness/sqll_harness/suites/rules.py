@@ -306,7 +306,10 @@ def can_template(sql: str, configs: dict[str, Any] | None) -> bool:
 
 
 def fix_not_shown(
-    found: Found, lists: list[list[dict]], configs: dict[str, Any] | None
+    found: Found,
+    lists: list[list[dict]],
+    configs: dict[str, Any] | None,
+    fixes_known: bool = True,
 ) -> str | None:
     """Return why the fixed file can be different from the test, or None.
 
@@ -317,24 +320,51 @@ def fix_not_shown(
     does not write the file and a rule gave fixes, the result of the test is
     not known. lists are all lint outputs of the file, also the lint that
     keeps the lint errors in templated areas (see templated_area_config).
+
+    fixes_known is False if the lint output has no "fixes" field. Then each
+    violation can have fixes, and the TMP and PRS check always applies.
     """
-    if not any(v.get("fixes") for violations in lists for v in violations):
+    if fixes_known:
+        if not any(v.get("fixes") for violations in lists for v in violations):
+            return None
+    elif not any(lists):
         return None
     core = configs.get("core") if configs else None
     even = isinstance(core, dict) and core.get("fix_even_unparsable") is True
     blocking = [v for v in found.raw if v.get("code") in FAIL_STR_ERROR_CODES]
     if blocking and not even:
+        if not fixes_known:
+            return (
+                f"the tool does not write a file with a {blocking[0]['code']} "
+                "violation, and its lint output has no fixes field: the test "
+                "can apply fixes"
+            )
         return (
             f"'sqlfluff fix' does not write a file with a {blocking[0]['code']} "
             "violation, but the test applies the fixes"
         )
-    if not any(v.get("fixes") for v in found.filtered):
+    if fixes_known:
+        shown = any(v.get("fixes") for v in found.filtered)
+    else:
+        # The tool can write the file only if it shows a violation.
+        shown = any(not v.get("warning") for v in found.filtered)
+    if not shown:
         return (
             "'sqlfluff fix' does not write a file when only hidden violations "
             "(ignore, noqa, or templated areas) have fixes, but the test "
             "applies the fixes"
+            if fixes_known
+            else "the tool shows no violation, so it does not write a file, "
+            "but a hidden violation (ignore, noqa, or templated areas) can "
+            "have fixes that the test applies"
         )
     return None
+
+
+def lint_has_fixes(adapter: Adapter) -> bool:
+    """Return True if the lint output of the adapter has the fixes field."""
+    fields = getattr(adapter, "lint_fields", None)
+    return fields is None or "fixes" in fields
 
 
 def config_without_ignore(configs: dict[str, Any] | None) -> dict[str, Any] | None:
@@ -466,7 +496,9 @@ def run(adapter: Adapter, case: RuleCase, sqlfluff_root: Path) -> CaseResult:
             lists = outputs("fail")
             if templated_area is not None:
                 lists.append(templated_area.violations[paths["fail"]])
-            not_shown = fix_not_shown(failed, lists, case.configs)
+            not_shown = fix_not_shown(
+                failed, lists, case.configs, lint_has_fixes(adapter)
+            )
             if fix.fixed is None:
                 unknown.extend(f"fix: tool: {e}" for e in fix.errors)
             elif fix.critical:

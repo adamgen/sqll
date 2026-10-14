@@ -407,7 +407,6 @@ class SqruffAdapter(Adapter):
             result.errors.append(_exit_reason(proc.returncode, proc.stderr))
             return result
         lint = lint_output(proc, {str(sql_path): sql_path})
-        violations = None
         if lint.violations is None:
             linted = str(sql_path) in _json_keys(proc.stdout)
             if linted:
