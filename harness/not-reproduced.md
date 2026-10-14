@@ -155,10 +155,14 @@ the data of the fixture. See [sqruff.md](sqruff.md). Limits:
   has no `fixes` field. The `fix` check compares the file that `sqruff fix`
   wrote. If a TMP or PRS that `ignore` hides stops the fix, and the case has
   no `fix_str`, the check passes. No 4.4.0 rule case sets `ignore`.
-- In `fix_file`, the harness finds that sqruff did not write the file only
-  from a TMP or PRS in the `fix -f json` output. A TMP or PRS that `ignore`
-  hides is not in the output. Then the `fix` check compares the file. The
-  4.4.0 autofix case with `ignore = templating` sets `fix_even_unparsable`.
+- In `fix_file`, the harness finds that sqruff does not write the file (no
+  `fix_even_unparsable`) from a TMP or PRS in the `fix -f json` output, or
+  from `sqruff parse` of the file before the fix: no tree, an `unparsable`
+  segment, or exit code 1. It does this in each of the 2 autofix runs. A
+  noqa-masked TMP in a file that has a tree is not found. Then the `fix`
+  check compares the file. No 4.4.0 autofix case has a noqa-masked TMP.
+- sqruff 0.41.0 reads only the `core.ignore` value `templating`. Each other
+  value gives `unsupported: setting core.ignore=<value>`.
 - "unsupported" follows the sqruff documentation and the sqruff 0.41.0
   source. sqruff 0.41.0 reads some settings that its documentation does not
   have (these cases fail with `unsupported: setting`). The documented
@@ -167,7 +171,9 @@ the data of the fixture. See [sqruff.md](sqruff.md). Limits:
   source for each setting name. It does not run a check that sqruff uses
   each setting.
 - sqruff and sqlfluff convert an INI value in the same way (int, float,
-  bool, none, else text). A YAML string such as `"5"` becomes the int 5.
+  bool, none, else text). A YAML string such as `"5"` becomes the int 5,
+  and the YAML string `none` or `None` becomes None. For 5 rule cases sqruff
+  then panics (`error`).
   A list in the template variables is written as Python text; the templater
   reads it with `ast.literal_eval`. sqruff cuts an INI line at `#` or `;`,
   so a value with one of them gives `unsupported: comment character`.

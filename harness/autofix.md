@@ -68,7 +68,8 @@ If a check fails, the status is `fail`. Else, if the result is not known,
 the status is `error`. The result is not known if:
 
 - `fix` did not apply fixes because of a TMP or PRS violation, and the test
-  does not stop at `non_linting`. The test applies the fixes.
+  does not stop at `non_linting`. The test applies the fixes. One of the 2
+  `fix` runs is sufficient to show this.
 - The 2 `fix` runs give different files.
 - The tool logged `CRITICAL`. The test fails on conflicting fixes, but not on
   a rule exception.

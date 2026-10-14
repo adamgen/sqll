@@ -436,6 +436,37 @@ def test_user_config(tmp_path):
     assert jinja["load_macros_from_path"] == str(root / "case" / "macros")
 
 
+@needs_sqruff
+@pytest.mark.parametrize("show", [False, True])
+@pytest.mark.parametrize(
+    "sql",
+    [
+        "SELECT a  FROM b;\nSELECT 1 +;\n",
+        # The output does not show the masked parse error.
+        "SELECT a  FROM b;\nSELECT 1 +;  -- noqa\n",
+    ],
+)
+def test_fix_file_finds_the_gate_in_each_run(tmp_path, sql, show):
+    path = tmp_path / "a.sql"
+    path.write_text(sql)
+    result = SqruffAdapter().fix_file(path, ["LT01"], "ansi", tmp_path, show)
+    assert result.errors == []
+    assert result.unparsable_gate is True
+    assert path.read_text() == sql
+    assert (result.violations is not None) is show
+
+
+@needs_sqruff
+def test_fix_file_with_fix_even_unparsable_has_no_gate(tmp_path):
+    path = tmp_path / "a.sql"
+    path.write_text("SELECT a  FROM b;\nSELECT 1 +;\n")
+    (tmp_path / ".sqlfluff").write_text("[sqlfluff]\nfix_even_unparsable = True\n")
+    result = SqruffAdapter().fix_file(path, ["LT01"], "ansi", tmp_path, False)
+    assert result.errors == []
+    assert result.unparsable_gate is False
+    assert path.read_text() == "SELECT a FROM b;\nSELECT 1 +;\n"
+
+
 # Never "pass" for a harness fixture where the sqlfluff test fails.
 
 

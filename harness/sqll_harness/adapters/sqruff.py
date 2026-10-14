@@ -386,33 +386,47 @@ class SqruffAdapter(Adapter):
         if rules is not None:
             self.check_rules(rules)
         config = self.user_config(sql_path, dialect, cwd, rules)
+        result = FileFixResult()
+        even = _is_true(_core(config).get("fix_even_unparsable"))
+        if not even:
+            # Before the fix: the gate reads the file that sqruff fixes.
+            parsed = self._parse(sql_path, dialect, config, cwd, False, False)
+            if parsed.errors:
+                result.errors += [f"parse: {e}" for e in parsed.errors]
+                return result
+            result.unparsable_gate = (
+                parsed.tree is None or parsed.has_unparsable or parsed.rc != 0
+            )
         with tempfile.TemporaryDirectory(prefix="sqll-sqruff-") as tmp:
-            args = ["fix", "-f", "json"] if show_violations else ["fix"]
+            # The output format does not change the file that sqruff writes.
+            args = ["fix", "-f", "json"]
             args += self._config_args(config, dialect, Path(tmp))
             proc = self._run([*args, str(sql_path)], cwd)
-        result = FileFixResult()
         # Exit code 1 means that violations that it cannot fix remain.
         if proc.returncode not in (0, 1) or _panicked(proc):
             result.errors.append(_exit_reason(proc.returncode, proc.stderr))
             return result
-        if not show_violations:
-            return result
         lint = lint_output(proc, {str(sql_path): sql_path})
+        violations = None
         if lint.violations is None:
-            result.linted = str(sql_path) in _json_keys(proc.stdout)
-            if result.linted:
+            linted = str(sql_path) in _json_keys(proc.stdout)
+            if linted:
                 result.errors += lint.errors
-            else:
-                result.violations = []
-            return result
-        result.linted = True
-        result.violations = lint.violations[sql_path]
-        # sqruff fix does not write a file with a TMP or PRS violation if
-        # fix_even_unparsable is not set (run_fix).
-        even = _is_true(_core(config).get("fix_even_unparsable"))
-        result.unparsable_gate = not even and any(
-            v["code"] in FIX_GATE_CODES for v in result.violations
+                return result
+            violations = []
+        else:
+            linted = True
+            violations = lint.violations[sql_path]
+        # sqruff fix does not write a file with a templating or parse error if
+        # fix_even_unparsable is not set (run_fix, has_parse_or_templating_errors).
+        # The output does not show a noqa-masked error, but the parse tree
+        # keeps its unparsable segment.
+        result.unparsable_gate = result.unparsable_gate or (
+            not even and any(v["code"] in FIX_GATE_CODES for v in violations)
         )
+        if show_violations:
+            result.linted = linted
+            result.violations = violations
         return result
 
 

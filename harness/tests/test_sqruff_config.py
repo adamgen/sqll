@@ -133,6 +133,32 @@ def test_an_unsupported_setting_is_named(config, item):
         translate(config)
 
 
+@pytest.mark.parametrize(
+    "value, bad",
+    [
+        ("templating", []),
+        (None, []),
+        ("None", []),
+        ("parsing", ["core.ignore=parsing"]),
+        ("parsing, templating", ["core.ignore=parsing"]),
+        (
+            ["lexing", "templating", "linting"],
+            ["core.ignore=lexing", "core.ignore=linting"],
+        ),
+    ],
+)
+def test_ignore_values_that_sqruff_does_not_read(value, bad):
+    # sqruff reads only "templating"; "ignore = parsing" has no effect.
+    config = {"core": {"ignore": value}}
+    assert unsupported_settings(config) == bad
+    if bad:
+        with pytest.raises(Unsupported) as exc:
+            translate(config)
+        assert exc.value.item == "setting " + ", ".join(bad)
+    else:
+        translate(config)
+
+
 def test_all_unsupported_settings_are_named_sorted():
     config = {"rules": {"tab_space_size": 2, "indent_unit": "tab"}, "core": {"x": 1}}
     with pytest.raises(Unsupported) as exc:

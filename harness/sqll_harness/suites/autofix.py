@@ -242,7 +242,9 @@ def run(adapter: Adapter, case: AutofixCase, sqlfluff_root: Path) -> CaseResult:
                     f"violations: missing {sorted(want - got, key=str)}, "
                     f"extra {sorted(got - want, key=str)}"
                 )
-    if fix_run.unparsable_gate:
+    # The 2 runs fix the same file with the same config. A tool can find the
+    # gate only in one of them (for example, only from shown violations).
+    if fix_run.unparsable_gate or show_run.unparsable_gate:
         if not raises:
             unknown.append(GATE_REASON)
     elif fixed[0] != fixed[1]:

@@ -60,7 +60,9 @@ oracle.
 - sqlfluff: none.
 - sqlfluff-rs: none.
 - sqruff: 1131 cases in `known_failures/sqruff.txt` (7 `error`, all sqruff
-  panics; the others `fail`). Counts for each reason prefix:
+  panics; the others `fail`). In 5 of the 7, the case sets the YAML string
+  `none` or `None`, which the INI file gives to sqruff as None. Counts for
+  each reason prefix:
 
 | Reason prefix | autofix | dialects | rules | templater |
 |---|---|---|---|---|

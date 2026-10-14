@@ -12,6 +12,9 @@ scripts/test --tool sqlfluff --suite dialects --jobs 8
 scripts/test --filter dialects/ansi/   # only ids that start with this text
 ```
 
+Use a checkout with no sqlfluff config file in its parent folders. The tools
+read the config files in each folder above a case, as sqlfluff does.
+
 `scripts/test` runs `scripts/setup`, writes `out/tools.json` with
 `sqll-harness tools`, runs `pytest harness/tests`, then runs the suites. The
 exit code is not 0 if a result is different from `known_failures/<tool>.txt`.

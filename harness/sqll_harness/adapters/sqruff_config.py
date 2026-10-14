@@ -164,6 +164,10 @@ NOT_READ = frozenset(
         ("templater", "dbt", "profile"),
     }
 )
+# The only core.ignore value that sqruff 0.41.0 reads: it gives it to its
+# Python templaters (templaters/python_shared.rs). The linter does not read
+# core.ignore, so "parsing" and the other values have no effect.
+IGNORE_VALUES_READ = frozenset({"templating"})
 # configparser (Ini::new) cuts an INI line at the first of these characters.
 INI_COMMENT_CHARS = "#;"
 # templaters.md. A section in OPEN_SECTIONS takes any key: template variables
@@ -272,11 +276,28 @@ def is_supported(path: tuple[str, ...]) -> bool:
     return section in CONTEXT_SECTIONS or len(path) == len(section) + 1
 
 
+def _ignore_values(value: Any) -> list[str]:
+    if value is None:
+        return []
+    items = value if isinstance(value, list) else str(value).split(",")
+    return [str(i).strip() for i in items if str(i).strip()]
+
+
 def unsupported_settings(config: dict[str, Any] | None) -> list[str]:
-    """Return the settings of config that sqruff does not support, sorted."""
-    return sorted(
-        ".".join(path) for path, _ in flatten(config or {}) if not is_supported(path)
-    )
+    """Return the settings of config that sqruff does not support, sorted.
+    A supported setting with a value that sqruff does not read is
+    "<setting>=<value>"."""
+    bad = []
+    for path, value in flatten(config or {}):
+        if not is_supported(path):
+            bad.append(".".join(path))
+        elif path == ("core", "ignore"):
+            bad += [
+                f"core.ignore={v}"
+                for v in _ignore_values(value)
+                if v not in IGNORE_VALUES_READ and v.lower() != "none"
+            ]
+    return sorted(bad)
 
 
 def check(config: dict[str, Any] | None) -> None:

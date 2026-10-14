@@ -55,7 +55,7 @@ sqruff does not support. It never passes. The items:
 
 | Reason prefix | When |
 |---|---|
-| `unsupported: setting` | A setting that the sqruff 0.41.0 documentation does not have: `default_config.cfg` (the full list of settings), `docs/usage/configuration.md`, and `docs/reference/templaters.md`. sqruff can read some of these settings, for example `rules.references.consistent.single_table_references`; the harness does not give them. Also a documented setting that the sqruff source does not read (`NOT_READ` in `sqruff_config.py`): `core.output_line_length`, `indentation.template_blocks_indent`, `capitalisation.types` `ignore_words` and `ignore_words_regex`, `templater.jinja.library_path`, and `templater.dbt.profile`. A rule section with a rule code as its name (for example `rules.AL03`) is also in this group. sqlfluff 4.4.0 ignores such a section with a warning, so the case fails also where sqlfluff passes it. |
+| `unsupported: setting` | A setting that the sqruff 0.41.0 documentation does not have: `default_config.cfg` (the full list of settings), `docs/usage/configuration.md`, and `docs/reference/templaters.md`. sqruff can read some of these settings, for example `rules.references.consistent.single_table_references`; the harness does not give them. Also a documented setting that the sqruff source does not read (`NOT_READ` in `sqruff_config.py`): `core.output_line_length`, `indentation.template_blocks_indent`, `capitalisation.types` `ignore_words` and `ignore_words_regex`, `templater.jinja.library_path`, and `templater.dbt.profile`. Also a `core.ignore` value other than `templating` (`core.ignore=parsing`): sqruff gives only `templating` to its Python templaters, and its linter does not read `core.ignore`. A rule section with a rule code as its name (for example `rules.AL03`) is also in this group. sqlfluff 4.4.0 ignores such a section with a warning, so the case fails also where sqlfluff passes it. |
 | `unsupported: rule` | A rule code that `sqruff rules` does not list (`CV13`, `TQ01`). |
 | `unsupported: dialect` | A dialect that `sqruff dialects` does not list (`soql`). |
 | `unsupported: templater` | A templater that `sqruff templaters` does not list. |
@@ -84,9 +84,11 @@ No 4.4.0 case has one.
   as `sqruff parse` does.
 - Fix: the harness reads the file that `sqruff fix` wrote. The output has no
   `fixes` field and no `CRITICAL` log, so the rule suite compares this file
-  in each case. In `fix_file`, a TMP or PRS in the violations of `fix -f
-  json` with no `fix_even_unparsable` means that sqruff did not write the
-  file.
+  in each case. With no `fix_even_unparsable`, `fix_file` finds that sqruff
+  did not write the file from a TMP or PRS in the `fix -f json` output, or
+  from `sqruff parse` before the fix (no tree, an `unparsable` segment, or
+  exit code 1). The output does not show a noqa-masked error; the parse tree
+  keeps its `unparsable` segment.
 - A panic (`panicked at`) or another exit code than 0 or 1 is an error.
 
 ## Code-only filter
