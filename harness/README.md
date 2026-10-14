@@ -208,8 +208,9 @@ The summary has `sqlfluff_ref`, the record of each tool from the report
   number of cases and of passed cases (`tags`; `needs_python` is always
   there).
 
-The file in the repository is the summary of the CI report. To record new
-results, copy `out/summary.json` from the `report` artifact of CI.
+To record new results, copy `out/summary.json` from the `report` artifact of
+CI. `harness/tests/test_recorded_summary.py` checks that the recorded
+summary, `known_failures/`, and the tables in STATUS.md agree.
 
 ## Case counts
 

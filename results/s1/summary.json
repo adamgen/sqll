@@ -1,0 +1,340 @@
+{
+ "format": 1,
+ "sqlfluff_ref": "0348222a3bcdb0226563f7349c5a39beb0641955",
+ "tools": {
+  "sqlfluff": {
+   "version": "4.4.0"
+  },
+  "sqlfluff-rs": {
+   "version": "4.4.0",
+   "config": {
+    "core": {
+     "use_rust_parser": true,
+     "use_rust_rules": true
+    }
+   },
+   "preflight": {
+    "sqlfluffrs": "4.4.0",
+    "rust_parser": true,
+    "rust_iteration_limit": true
+   }
+  },
+  "sqruff": {
+   "version": "0.41.0",
+   "config": {
+    "core": {
+     "templater": "jinja",
+     "rules": "all"
+    },
+    "layout": {
+     "type": {
+      "match_condition": {
+       "spacing_within": "touch:inline"
+      }
+     }
+    }
+   },
+   "preflight": {
+    "sqruff": "0.41.0",
+    "templaters": [
+     "raw",
+     "placeholder",
+     "python",
+     "jinja",
+     "dbt",
+     "sqlmesh"
+    ],
+    "parse": true,
+    "jinja": true
+   }
+  }
+ },
+ "results": {
+  "sqlfluff": {
+   "parity": {
+    "suites": [
+     "dialects",
+     "rules",
+     "autofix",
+     "templater"
+    ],
+    "total": 4937,
+    "passed": 4937
+   },
+   "known_failures_check": {
+    "new_failures": 0,
+    "unexpected_passes": 0
+   },
+   "suites": {
+    "autofix": {
+     "total": 61,
+     "passed": 61,
+     "failed": 0,
+     "error": 0,
+     "skipped": 0,
+     "checks": {
+      "fix": 61,
+      "non_linting": 61,
+      "tree": 61,
+      "violations": 1
+     },
+     "tags": {
+      "needs_python": {
+       "total": 0,
+       "passed": 0
+      }
+     }
+    },
+    "code_only": {
+     "total": 2306,
+     "passed": 2306,
+     "failed": 0,
+     "error": 0,
+     "skipped": 0,
+     "checks": {
+      "filter": 2306
+     },
+     "tags": {
+      "needs_python": {
+       "total": 0,
+       "passed": 0
+      }
+     }
+    },
+    "dialects": {
+     "total": 2306,
+     "passed": 2306,
+     "failed": 0,
+     "error": 0,
+     "skipped": 0,
+     "checks": {
+      "exact": 2306,
+      "no_unparsable": 2306
+     },
+     "tags": {
+      "needs_python": {
+       "total": 0,
+       "passed": 0
+      }
+     }
+    },
+    "rules": {
+     "total": 2527,
+     "passed": 2527,
+     "failed": 0,
+     "error": 0,
+     "skipped": 0,
+     "checks": {
+      "after_fix": 851,
+      "fail_str": 1193,
+      "fix": 1193,
+      "pass_str": 1332
+     },
+     "tags": {
+      "needs_python": {
+       "total": 0,
+       "passed": 0
+      }
+     }
+    },
+    "templater": {
+     "total": 43,
+     "passed": 43,
+     "failed": 0,
+     "error": 0,
+     "skipped": 0,
+     "checks": {
+      "exact": 43,
+      "no_unparsable": 43
+     },
+     "tags": {
+      "needs_python": {
+       "total": 3,
+       "passed": 3
+      }
+     }
+    }
+   }
+  },
+  "sqlfluff-rs": {
+   "parity": {
+    "suites": [
+     "dialects",
+     "rules",
+     "autofix",
+     "templater"
+    ],
+    "total": 4937,
+    "passed": 4937
+   },
+   "known_failures_check": {
+    "new_failures": 0,
+    "unexpected_passes": 0
+   },
+   "suites": {
+    "autofix": {
+     "total": 61,
+     "passed": 61,
+     "failed": 0,
+     "error": 0,
+     "skipped": 0,
+     "checks": {
+      "fix": 61,
+      "non_linting": 61,
+      "tree": 61,
+      "violations": 1
+     },
+     "tags": {
+      "needs_python": {
+       "total": 0,
+       "passed": 0
+      }
+     }
+    },
+    "dialects": {
+     "total": 2306,
+     "passed": 2306,
+     "failed": 0,
+     "error": 0,
+     "skipped": 0,
+     "checks": {
+      "exact": 2306,
+      "no_unparsable": 2306
+     },
+     "tags": {
+      "needs_python": {
+       "total": 0,
+       "passed": 0
+      }
+     }
+    },
+    "rules": {
+     "total": 2527,
+     "passed": 2527,
+     "failed": 0,
+     "error": 0,
+     "skipped": 0,
+     "checks": {
+      "after_fix": 851,
+      "fail_str": 1193,
+      "fix": 1193,
+      "pass_str": 1332
+     },
+     "tags": {
+      "needs_python": {
+       "total": 0,
+       "passed": 0
+      }
+     }
+    },
+    "templater": {
+     "total": 43,
+     "passed": 43,
+     "failed": 0,
+     "error": 0,
+     "skipped": 0,
+     "checks": {
+      "exact": 43,
+      "no_unparsable": 43
+     },
+     "tags": {
+      "needs_python": {
+       "total": 3,
+       "passed": 3
+      }
+     }
+    }
+   }
+  },
+  "sqruff": {
+   "parity": {
+    "suites": [
+     "dialects",
+     "rules",
+     "autofix",
+     "templater"
+    ],
+    "total": 4937,
+    "passed": 3806
+   },
+   "known_failures_check": {
+    "new_failures": 0,
+    "unexpected_passes": 0
+   },
+   "suites": {
+    "autofix": {
+     "total": 61,
+     "passed": 45,
+     "failed": 16,
+     "error": 0,
+     "skipped": 0,
+     "checks": {
+      "fix": 45,
+      "non_linting": 54,
+      "tree": 54,
+      "violations": 1
+     },
+     "tags": {
+      "needs_python": {
+       "total": 0,
+       "passed": 0
+      }
+     }
+    },
+    "dialects": {
+     "total": 2306,
+     "passed": 1548,
+     "failed": 758,
+     "error": 0,
+     "skipped": 0,
+     "checks": {
+      "exact": 1548,
+      "no_unparsable": 2164
+     },
+     "tags": {
+      "needs_python": {
+       "total": 0,
+       "passed": 0
+      }
+     }
+    },
+    "rules": {
+     "total": 2527,
+     "passed": 2185,
+     "failed": 335,
+     "error": 7,
+     "skipped": 0,
+     "checks": {
+      "after_fix": 758,
+      "fail_str": 1044,
+      "fix": 997,
+      "pass_str": 1207
+     },
+     "tags": {
+      "needs_python": {
+       "total": 0,
+       "passed": 0
+      }
+     }
+    },
+    "templater": {
+     "total": 43,
+     "passed": 28,
+     "failed": 15,
+     "error": 0,
+     "skipped": 0,
+     "checks": {
+      "exact": 28,
+      "no_unparsable": 33
+     },
+     "tags": {
+      "needs_python": {
+       "total": 3,
+       "passed": 1
+      }
+     }
+    }
+   }
+  }
+ }
+}
