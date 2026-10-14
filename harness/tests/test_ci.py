@@ -9,7 +9,7 @@ import pytest
 
 from sqll_harness.adapters import ADAPTERS
 from sqll_harness.paths import REPO_ROOT
-from sqll_harness.suites import SUITES
+from sqll_harness.suites import SUITES, runs_for
 
 
 def _load(name):
@@ -161,8 +161,17 @@ def test_ci_matrix_names_real_suites_and_tools():
     assert matrix.expand(entries)["include"]
 
 
-def test_ci_matrix_runs_sqlfluff_rs_on_each_suite():
+def test_ci_matrix_runs_each_suite_for_each_tool():
     entries = json.loads((REPO_ROOT / "ci" / "matrix.json").read_text())
     shards = {(e["suite"], e["tool"]): e["shards"] for e in entries}
-    for suite in SUITES:
-        assert shards[(suite, "sqlfluff-rs")] == shards[(suite, "sqlfluff")]
+    want = {
+        (name, tool)
+        for name, suite in SUITES.items()
+        for tool in ADAPTERS
+        if runs_for(suite, tool)
+    }
+    assert set(shards) == want
+    for name, suite in SUITES.items():
+        if runs_for(suite, "sqlfluff-rs"):
+            assert shards[(name, "sqlfluff-rs")] == shards[(name, "sqlfluff")]
+    assert ("code_only", "sqlfluff") in shards

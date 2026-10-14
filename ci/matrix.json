@@ -3,8 +3,13 @@
  {"suite": "rules", "tool": "sqlfluff", "shards": 8},
  {"suite": "autofix", "tool": "sqlfluff", "shards": 1},
  {"suite": "templater", "tool": "sqlfluff", "shards": 1},
+ {"suite": "code_only", "tool": "sqlfluff", "shards": 8},
  {"suite": "dialects", "tool": "sqlfluff-rs", "shards": 6},
  {"suite": "rules", "tool": "sqlfluff-rs", "shards": 8},
  {"suite": "autofix", "tool": "sqlfluff-rs", "shards": 1},
- {"suite": "templater", "tool": "sqlfluff-rs", "shards": 1}
+ {"suite": "templater", "tool": "sqlfluff-rs", "shards": 1},
+ {"suite": "dialects", "tool": "sqruff", "shards": 2},
+ {"suite": "rules", "tool": "sqruff", "shards": 4},
+ {"suite": "autofix", "tool": "sqruff", "shards": 1},
+ {"suite": "templater", "tool": "sqruff", "shards": 1}
 ]

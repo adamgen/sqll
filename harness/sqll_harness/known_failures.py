@@ -4,11 +4,12 @@ Format: one case id on each line, sorted, with no duplicates. Text after
 "#" is the reason. Blank lines are ignored.
 """
 
+import re
 from dataclasses import dataclass, field
 from pathlib import Path
 
 from . import shard as shards
-from .cases import CaseResult
+from .cases import UNSUPPORTED, CaseResult
 
 
 class KnownFailuresError(Exception):
@@ -93,3 +94,69 @@ def evaluate(
         if every_case_ran or case_id.split("/", 1)[0] in complete_suites:
             outcome.not_found.append(case_id)
     return outcome
+
+
+# The kinds of unsupported items (adapters.base.Unsupported), longest first.
+_UNSUPPORTED_KINDS = (
+    "in-file config line",
+    "comment character",
+    "multi-line value",
+    "upper-case key",
+    "output field",
+    "layout type",
+    "templater",
+    "dialect",
+    "setting",
+    "rule",
+)
+_REASON_LIMIT = 300
+# Text of a Rust panic message that changes between runs and machines: the
+# thread id, and the folder of the cargo registry.
+_VOLATILE = (
+    (re.compile(r"(thread '[^']*') \(\d+\)"), r"\1"),
+    (re.compile(r"\S*/registry/src/[^/\s]+/"), ""),
+)
+
+
+def reason_prefix(reason: str) -> str:
+    """Return the group of a failure reason.
+
+    "unsupported: <kind>" for an item that the tool does not support. Else
+    the text of the first reason before ":" or ";", for example
+    "tree differs", "fail_str", or "fix mismatch".
+    """
+    if reason.startswith(UNSUPPORTED):
+        rest = reason[len(UNSUPPORTED) :]
+        for kind in _UNSUPPORTED_KINDS:
+            if rest.startswith(kind):
+                return UNSUPPORTED + kind
+        return UNSUPPORTED.rstrip()
+    first = reason.split(";", 1)[0].split(":", 1)[0]
+    return " ".join(first.split()) or "no reason"
+
+
+def render(results: list[CaseResult]) -> str:
+    """Return the known-failures file of the failed results of one tool:
+    sorted ids, each with its reason on one line."""
+    lines = []
+    for r in sorted(results, key=lambda r: r.id):
+        if r.passed or r.skipped:
+            continue
+        reason = " ".join(r.reason.split())
+        for pattern, repl in _VOLATILE:
+            reason = pattern.sub(repl, reason)
+        if len(reason) > _REASON_LIMIT:
+            reason = reason[: _REASON_LIMIT - 3] + "..."
+        lines.append(f"{r.id}  # {reason}" if reason else r.id)
+    return "".join(line + "\n" for line in lines)
+
+
+def prefix_counts(results: list[CaseResult]) -> dict[str, dict[str, int]]:
+    """Return {reason prefix: {suite: count}} of the failed results."""
+    out: dict[str, dict[str, int]] = {}
+    for r in results:
+        if r.passed or r.skipped:
+            continue
+        by_suite = out.setdefault(reason_prefix(r.reason), {})
+        by_suite[r.suite] = by_suite.get(r.suite, 0) + 1
+    return dict(sorted(out.items()))

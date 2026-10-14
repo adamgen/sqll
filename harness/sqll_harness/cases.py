@@ -6,6 +6,8 @@ PASS = "pass"
 FAIL = "fail"
 ERROR = "error"
 SKIP = "skip"
+# The reason of a case that uses an item that the tool does not support.
+UNSUPPORTED = "unsupported: "
 
 
 @dataclass

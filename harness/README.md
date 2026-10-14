@@ -12,6 +12,9 @@ scripts/test --tool sqlfluff --suite dialects --jobs 8
 scripts/test --filter dialects/ansi/   # only ids that start with this text
 ```
 
+Use a checkout with no sqlfluff config file in its parent folders. The tools
+read the config files in each folder above a case, as sqlfluff does.
+
 `scripts/test` runs `scripts/setup`, writes `out/tools.json` with
 `sqll-harness tools`, runs `pytest harness/tests`, then runs the suites. The
 exit code is not 0 if a result is different from `known_failures/<tool>.txt`.
@@ -51,7 +54,10 @@ parser, or if `sqruff parse` or its jinja templater does not work.
 the first case.
 
 The `sqlfluff-rs` adapter is the `sqlfluff` adapter with the Rust parser and
-rules forced on. See [sqlfluff-rs.md](sqlfluff-rs.md).
+rules forced on. See [sqlfluff-rs.md](sqlfluff-rs.md). The `sqruff` adapter
+gives each config to sqruff as one translated `.sqruff` file. A case that
+uses an item that sqruff does not support fails with the reason
+`unsupported: <item>`. See [sqruff.md](sqruff.md).
 
 ## Shards and CI
 
@@ -80,6 +86,10 @@ CI (`.github/workflows/ci.yml`):
 
 To add a suite or a tool to CI, add an entry to `ci/matrix.json`.
 
+`sqll-harness known-failures REPORT --tool T` prints the known-failures file
+of a tool from a report (sorted ids, one reason each). With `--counts` it
+prints the number of failures for each reason prefix and suite.
+
 ## Suites
 
 | Suite | Fixtures | Checks |
@@ -88,6 +98,12 @@ To add a suite or a tool to CI, add an entry to `ci/matrix.json`.
 | `rules` | each case key in `test/fixtures/rules/std_rule_cases/*.yml` | `pass_str`, `fail_str`, `fix`, `after_fix` |
 | `autofix` | each entry `test/fixtures/linter/autofix/<d>/<case>` | `tree`, `non_linting`, `violations`, `fix` |
 | `templater` | each row of `test__templater_full` (`test/fixtures/templater/<subpath>.sql`) | `exact`, `no_unparsable` |
+| `code_only` | the dialect cases; only for `sqlfluff` | `filter` |
+
+`code_only` is a check of the harness, not a parity suite: the code-only
+filter that the sqruff adapter uses must give the `parse -c` tree of
+sqlfluff from its full tree (see [sqruff.md](sqruff.md)). A suite with
+`TOOLS` runs only for those tools.
 
 Dialect case id: `dialects/<dialect>/<stem>` (`<stem>_nc` for `_nc.yml`).
 `scripts/sqlfluff-dialect-oracle` runs the sqlfluff dialect tests
@@ -159,7 +175,9 @@ not empty. `scope` is what the run tried to run. A merged report has `"scope": n
 a `parts` list with the scope of each merged report. `<check>` is the number
 of cases where that check is true. A case has only the checks that apply to
 it. `failed` counts `fail` and `error`. `error` means that the case did not
-complete, or that the harness cannot know the result of a check. `skip`
+complete, or that the harness cannot know the result of a check. A `fail`
+with a reason that starts with `unsupported: ` means that the tool does not
+support an item of the case (see [sqruff.md](sqruff.md)). `skip`
 means that the fixture skips the case; a skipped case must not be in
 `known_failures/`. `tags` give facts about a case that are not results:
 `needs_python` (templater suite) means that the case needs a Python

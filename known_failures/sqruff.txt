@@ -1,0 +1,1131 @@
+autofix/ansi/011_indentation  # fix mismatch
+autofix/ansi/018_LT02_indent_templated_code  # fix mismatch
+autofix/ansi/019_trailing_comma_to_leading  # fix mismatch
+autofix/ansi/021_fix_respects_noqa  # fix mismatch
+autofix/ansi/024_remove_templated_errors  # unsupported: setting templater.jinja.macros.par_wrap
+autofix/ansi/028_leading_comma_with_jinja  # fix mismatch
+autofix/ansi/029_indentation_join_reorder_LT02_ST09  # unsupported: setting indentation.template_blocks_indent, templater.jinja.macros.snapshot_date
+autofix/ansi/macro_file_jinja_include_undefined_variable  # fix mismatch
+autofix/bigquery/002_templating  # fix mismatch
+autofix/bigquery/003_templating  # unsupported: setting indentation.template_blocks_indent
+autofix/bigquery/004_templating  # fix mismatch
+autofix/bigquery/006_fix_ignore_templating  # the tool has no parse tree for the file; the test fails ('res.tree' is None)
+autofix/snowflake/001_semi_structured  # unsupported: setting rules.capitalisation.identifiers.capitalisation_policy
+autofix/snowflake/002_previously_parse_tree_damaging  # unsupported: setting core.output_line_length, rules.AL03.allow_scalar
+autofix/snowflake/003_previously_parse_tree_damaging  # fix mismatch
+autofix/tsql/001_alias_aligning  # unsupported: setting layout.type.alias_operator.align_scope, layout.type.alias_operator.align_within
+dialects/ansi/alter_sequence  # tree differs
+dialects/ansi/arithmetic_a  # tree differs
+dialects/ansi/create_index_if_not_exists  # tree differs
+dialects/ansi/create_index_simple  # tree differs
+dialects/ansi/create_schema_a  # tree differs
+dialects/ansi/create_schema_if_not_exists  # tree differs
+dialects/ansi/create_sequence  # tree differs
+dialects/ansi/create_table_a_column_constraints  # tree differs
+dialects/ansi/create_table_a_pk_unique_fk_constraints  # tree differs
+dialects/ansi/create_table_constraint_reference_option  # tree differs
+dialects/ansi/create_trigger  # tree differs
+dialects/ansi/drop_index_if_exists  # tree differs
+dialects/ansi/drop_index_simple  # tree differs
+dialects/ansi/drop_model  # tree differs
+dialects/ansi/drop_schema  # tree differs
+dialects/ansi/drop_sequence  # tree differs
+dialects/ansi/drop_trigger  # tree differs
+dialects/ansi/like_operators  # tree differs
+dialects/ansi/merge_into  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/ansi/select_bitwise_operators  # tree differs
+dialects/ansi/select_many_join  # tree differs
+dialects/ansi/select_nested_join  # tree differs
+dialects/ansi/select_with_brackets  # tree differs
+dialects/ansi/set_schema_a  # tree differs
+dialects/ansi/truncate_a  # tree differs
+dialects/ansi/truncate_table_a  # tree differs
+dialects/ansi/with_insert_bracketed_with_statement  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/ansi/with_insert_statement_a  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/ansi/with_insert_statement_b  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/ansi/with_insert_with_statement  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/ansi/with_update_statement  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/athena/cast_map_round_brackets  # tree differs
+dialects/athena/create_array_table  # tree differs
+dialects/athena/create_external_table_struct  # tree differs
+dialects/athena/listagg  # tree differs
+dialects/athena/select_cast_array_type  # tree differs
+dialects/athena/select_group_by  # tree differs
+dialects/athena/select_row  # tree differs
+dialects/athena/using_external_function  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/bigquery/array_agg  # tree differs
+dialects/bigquery/array_concat_agg  # tree differs
+dialects/bigquery/begin  # tree differs
+dialects/bigquery/create_index  # tree differs
+dialects/bigquery/create_procedure  # tree differs
+dialects/bigquery/create_table_keys  # tree differs
+dialects/bigquery/drop_schema  # tree differs
+dialects/bigquery/drop_various_resources  # tree differs
+dialects/bigquery/select  # tree differs
+dialects/bigquery/select_function_parameter_order_by_multiple_columns  # tree differs
+dialects/bigquery/select_group_by  # tree differs
+dialects/bigquery/select_ml_predict_with_select  # tree differs
+dialects/bigquery/select_ml_weights  # tree differs
+dialects/bigquery/select_struct  # tree differs
+dialects/bigquery/string_agg  # tree differs
+dialects/clickhouse/alter_table  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/clickhouse/create_table  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/clickhouse/create_view  # tree differs
+dialects/clickhouse/cte  # tree differs
+dialects/clickhouse/decimal_support  # tree differs
+dialects/clickhouse/drop_statement  # tree differs
+dialects/clickhouse/format  # tree differs
+dialects/clickhouse/grant  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/clickhouse/into_outfile  # tree differs
+dialects/clickhouse/is_not_distinct_from_operator  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/clickhouse/join  # tree differs
+dialects/clickhouse/limit_by  # tree differs
+dialects/clickhouse/limit_delimited  # tree differs
+dialects/clickhouse/numeric_literals  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/clickhouse/order_by_with_fill  # tree differs
+dialects/clickhouse/parametric_aggregate_functions  # tree differs
+dialects/clickhouse/prewhere  # tree differs
+dialects/clickhouse/qualify  # tree differs
+dialects/clickhouse/select_nested_join  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/clickhouse/select_set_operators  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/clickhouse/select_union_member_clauses  # tree differs
+dialects/clickhouse/select_union_with_settings  # tree differs
+dialects/clickhouse/ternary_operator  # tree differs
+dialects/clickhouse/tuple_element_access  # tree differs
+dialects/clickhouse/with_cte_as_materialized  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/databricks/alter_catalog  # tree differs
+dialects/databricks/alter_database  # tree differs
+dialects/databricks/alter_table  # tree differs
+dialects/databricks/alter_view  # tree differs
+dialects/databricks/alter_volume  # tree differs
+dialects/databricks/bare_magic_first_line  # tree differs
+dialects/databricks/bare_magic_line  # tree differs
+dialects/databricks/bare_magic_modulo  # tree differs
+dialects/databricks/bare_magic_sql  # tree differs
+dialects/databricks/bare_magic_sql_notebook_start  # tree differs
+dialects/databricks/command_terminator  # tree differs
+dialects/databricks/comment_on  # tree differs
+dialects/databricks/create_catalog  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/databricks/create_database  # tree differs
+dialects/databricks/create_flow_and_private_streaming_table  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/databricks/create_flow_auto_cdc_into  # tree differs
+dialects/databricks/create_function  # tree differs
+dialects/databricks/create_function_set_operators  # tree differs
+dialects/databricks/create_materialized_view  # tree differs
+dialects/databricks/create_materialized_view_expectations  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/databricks/create_table  # tree differs
+dialects/databricks/create_table_clone  # tree differs
+dialects/databricks/create_view  # tree differs
+dialects/databricks/create_volume  # tree differs
+dialects/databricks/databricks_dlt_apply_changes_into  # tree differs
+dialects/databricks/date_functions  # tree differs
+dialects/databricks/declare_or_replace_variable  # tree differs
+dialects/databricks/describe_volume  # tree differs
+dialects/databricks/drop_catalog  # tree differs
+dialects/databricks/drop_volume  # tree differs
+dialects/databricks/grant_permissions  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/databricks/magic_line  # tree differs
+dialects/databricks/magic_single_line  # tree differs
+dialects/databricks/magic_single_line_with_body  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/databricks/merge_into  # tree differs
+dialects/databricks/named_argument  # tree differs
+dialects/databricks/named_parameters  # tree differs
+dialects/databricks/pipeline_parameters  # tree differs
+dialects/databricks/pivot  # tree differs
+dialects/databricks/revoke_permissions  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/databricks/select  # tree differs
+dialects/databricks/select_from_lateral_view  # tree differs
+dialects/databricks/select_from_read_file  # tree differs
+dialects/databricks/select_group_by  # tree differs
+dialects/databricks/select_percentile  # tree differs
+dialects/databricks/select_window  # tree differs
+dialects/databricks/set_tags  # tree differs
+dialects/databricks/set_time_zone  # tree differs
+dialects/databricks/show_databases  # tree differs
+dialects/databricks/show_functions  # tree differs
+dialects/databricks/show_tables  # tree differs
+dialects/databricks/show_views  # tree differs
+dialects/databricks/show_volumes  # tree differs
+dialects/databricks/try_cast_operator  # tree differs
+dialects/databricks/unpivot  # tree differs
+dialects/databricks/use_catalog  # tree differs
+dialects/databricks/use_database  # tree differs
+dialects/db2/comment_on  # tree differs
+dialects/db2/create_index  # tree differs
+dialects/db2/create_view  # tree differs
+dialects/db2/declare_global_temporary_table  # tree differs
+dialects/db2/grant  # tree differs
+dialects/doris/create_table_aggregate_with_default_comment  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/doris/create_table_with_index  # tree differs
+dialects/duckdb/asof_join  # tree differs
+dialects/duckdb/create_table  # tree differs
+dialects/duckdb/install_and_load  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/duckdb/interval  # tree differs
+dialects/duckdb/interval_plural_forms  # tree differs
+dialects/duckdb/list_comprehension  # tree differs
+dialects/duckdb/star_expression  # tree differs
+dialects/duckdb/unpivot  # tree differs
+dialects/duckdb/using_sample  # tree differs
+dialects/exasol/alter_schema_statement  # tree differs
+dialects/exasol/alter_user  # tree differs
+dialects/exasol/alter_virtual_schema_statement  # tree differs
+dialects/exasol/create_adapter_script_statement  # tree differs
+dialects/exasol/create_function_statement  # tree differs
+dialects/exasol/create_lua_script_bracket  # tree differs
+dialects/exasol/create_python_scalar_script  # tree differs
+dialects/exasol/create_schema  # tree differs
+dialects/exasol/create_scripting_lua_script_statement1  # tree differs
+dialects/exasol/create_scripting_lua_script_statement2  # tree differs
+dialects/exasol/create_scripting_lua_script_statement3  # tree differs
+dialects/exasol/create_udfscript_dot_syntax  # tree differs
+dialects/exasol/create_udfscript_statement1  # tree differs
+dialects/exasol/create_udfscript_statement2  # tree differs
+dialects/exasol/create_udfscript_statement3  # tree differs
+dialects/exasol/create_udfscript_statement4  # tree differs
+dialects/exasol/create_udfscript_statement5  # tree differs
+dialects/exasol/create_view_statement  # tree differs
+dialects/exasol/create_virtual_schema_statement  # tree differs
+dialects/exasol/drop_cascade_restrict_statement  # tree differs
+dialects/exasol/drop_schema_statement  # tree differs
+dialects/exasol/drop_script_statement  # tree differs
+dialects/exasol/execute_script  # tree differs
+dialects/exasol/insert_statement  # tree differs
+dialects/exasol/merge_statement  # tree differs
+dialects/exasol/open_close_schema  # tree differs
+dialects/exasol/preload_statement  # tree differs
+dialects/exasol/select_statement  # tree differs
+dialects/exasol/values_in_subquery  # tree differs
+dialects/greenplum/analize  # tree differs
+dialects/greenplum/copy  # tree differs
+dialects/greenplum/create_table  # tree differs
+dialects/greenplum/declare  # tree differs
+dialects/greenplum/fetch  # tree differs
+dialects/hive/create_table_as_select  # tree differs
+dialects/hive/create_table_constraints  # tree differs
+dialects/hive/create_table_datatypes  # tree differs
+dialects/hive/create_table_row_format_delimited  # tree differs
+dialects/hive/create_table_row_format_serde  # tree differs
+dialects/hive/grouping_sets_trailing  # tree differs
+dialects/hive/null_safe_equal  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/hive/quoted_literal  # tree differs
+dialects/hive/select_cast  # tree differs
+dialects/hive/select_cluster_distribute_sort_by  # tree differs
+dialects/hive/select_nested_join  # tree differs
+dialects/hive/truncate_table  # tree differs
+dialects/impala/null_safe_equal  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/mariadb/alter_table  # tree differs
+dialects/mariadb/alter_table_index_if_exists  # tree differs
+dialects/mariadb/alter_view  # tree differs
+dialects/mariadb/create_index  # tree differs
+dialects/mariadb/create_table_constraint_unique  # tree differs
+dialects/mariadb/create_table_index  # tree differs
+dialects/mariadb/create_table_primary_foreign_keys  # tree differs
+dialects/mariadb/create_trigger  # tree differs
+dialects/mariadb/create_view  # tree differs
+dialects/mariadb/create_view_if_not_exists  # tree differs
+dialects/mariadb/declare_default_numeric  # tree differs
+dialects/mariadb/declare_default_quotedliteral  # tree differs
+dialects/mariadb/delete_multitable  # tree differs
+dialects/mariadb/drop_index  # tree differs
+dialects/mariadb/drop_index_if_exists  # tree differs
+dialects/mariadb/drop_index_with_algorithm  # tree differs
+dialects/mariadb/drop_index_with_lock  # tree differs
+dialects/mariadb/drop_trigger  # tree differs
+dialects/mariadb/grant  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/mariadb/if  # tree differs
+dialects/mariadb/if_else  # tree differs
+dialects/mariadb/if_elseif  # tree differs
+dialects/mariadb/if_multiple_expression  # tree differs
+dialects/mariadb/if_nested  # tree differs
+dialects/mariadb/if_session_variable  # tree differs
+dialects/mariadb/if_subquery_expression  # tree differs
+dialects/mariadb/select_into_multiple_variable  # tree differs
+dialects/mariadb/sequence_if_exists  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/mariadb/sequence_value_for  # tree differs
+dialects/materialize/create_cluster_replica_statements  # tree differs
+dialects/materialize/create_connection_statement  # tree differs
+dialects/materialize/create_sink_statements  # tree differs
+dialects/materialize/create_source_statements  # tree differs
+dialects/materialize/create_views  # tree differs
+dialects/materialize/drop_statements  # tree differs
+dialects/materialize/subscribe_fetch_statements  # tree differs
+dialects/mysql/alter_event  # tree differs
+dialects/mysql/alter_table  # tree differs
+dialects/mysql/alter_view  # tree differs
+dialects/mysql/call_no_parentheses  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/mysql/call_qualified_no_parentheses  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/mysql/create_event_do_statement  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/mysql/create_index  # tree differs
+dialects/mysql/create_table_constraint_unique  # tree differs
+dialects/mysql/create_table_index  # tree differs
+dialects/mysql/create_table_primary_foreign_keys  # tree differs
+dialects/mysql/create_trigger  # tree differs
+dialects/mysql/create_view  # tree differs
+dialects/mysql/declare_default_expression  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/mysql/declare_default_function  # tree differs
+dialects/mysql/declare_default_negative  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/mysql/declare_default_null  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/mysql/declare_default_numeric  # tree differs
+dialects/mysql/declare_default_quotedliteral  # tree differs
+dialects/mysql/declare_multiple_variables  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/mysql/declare_multiple_variables_default  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/mysql/delete_multitable  # tree differs
+dialects/mysql/do_statement  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/mysql/drop_index  # tree differs
+dialects/mysql/drop_index_with_algorithm  # tree differs
+dialects/mysql/drop_index_with_lock  # tree differs
+dialects/mysql/drop_trigger  # tree differs
+dialects/mysql/grant  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/mysql/if  # tree differs
+dialects/mysql/if_else  # tree differs
+dialects/mysql/if_elseif  # tree differs
+dialects/mysql/if_multiple_expression  # tree differs
+dialects/mysql/if_nested  # tree differs
+dialects/mysql/if_session_variable  # tree differs
+dialects/mysql/if_subquery_expression  # tree differs
+dialects/mysql/select_into_multiple_variable  # tree differs
+dialects/oracle/alter_database_link  # tree differs
+dialects/oracle/alter_function  # tree differs
+dialects/oracle/alter_index  # tree differs
+dialects/oracle/alter_package  # tree differs
+dialects/oracle/alter_session  # tree differs
+dialects/oracle/alter_synonym  # tree differs
+dialects/oracle/alter_table  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/oracle/alter_trigger  # tree differs
+dialects/oracle/assignment  # tree differs
+dialects/oracle/at_signs  # tree differs
+dialects/oracle/bare_functions  # tree differs
+dialects/oracle/bind_variables  # tree differs
+dialects/oracle/bulk_collect_into  # tree differs
+dialects/oracle/case_expressions  # tree differs
+dialects/oracle/cast_interval  # tree differs
+dialects/oracle/cast_timestamp_with_local_time_zone  # tree differs
+dialects/oracle/collections  # tree differs
+dialects/oracle/column_type  # tree differs
+dialects/oracle/column_value  # tree differs
+dialects/oracle/comment  # tree differs
+dialects/oracle/comparison_operators_with_space  # tree differs
+dialects/oracle/constraint_modifiers  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/oracle/continue  # tree differs
+dialects/oracle/create_database_link  # tree differs
+dialects/oracle/create_function  # tree differs
+dialects/oracle/create_index  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/oracle/create_package  # tree differs
+dialects/oracle/create_package_body  # tree differs
+dialects/oracle/create_procedure  # tree differs
+dialects/oracle/create_sequence  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/oracle/create_synonym  # tree differs
+dialects/oracle/create_table  # tree differs
+dialects/oracle/create_trigger  # tree differs
+dialects/oracle/create_type  # tree differs
+dialects/oracle/create_type_body  # tree differs
+dialects/oracle/create_user  # tree differs
+dialects/oracle/create_view  # tree differs
+dialects/oracle/cursor  # tree differs
+dialects/oracle/database_link  # tree differs
+dialects/oracle/delete  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/oracle/drop_cluster  # tree differs
+dialects/oracle/drop_database_link  # tree differs
+dialects/oracle/drop_package  # tree differs
+dialects/oracle/drop_procedure  # tree differs
+dialects/oracle/drop_profile  # tree differs
+dialects/oracle/drop_synonym  # tree differs
+dialects/oracle/drop_table  # tree differs
+dialects/oracle/drop_type  # tree differs
+dialects/oracle/drop_user  # tree differs
+dialects/oracle/exception_indentation  # tree differs
+dialects/oracle/execute_immediate_patterns  # tree differs
+dialects/oracle/exit  # tree differs
+dialects/oracle/fetch  # tree differs
+dialects/oracle/fetch_first_row_only  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/oracle/for_loop  # tree differs
+dialects/oracle/forall  # tree differs
+dialects/oracle/grant  # tree differs
+dialects/oracle/hierarchical_queries  # tree differs
+dialects/oracle/if  # tree differs
+dialects/oracle/insert  # tree differs
+dialects/oracle/interval_operations  # tree differs
+dialects/oracle/join_types  # tree differs
+dialects/oracle/json_object  # tree differs
+dialects/oracle/json_table  # tree differs
+dialects/oracle/keep_clause  # tree differs
+dialects/oracle/lateral  # tree differs
+dialects/oracle/multiset_operators  # tree differs
+dialects/oracle/named_argument  # tree differs
+dialects/oracle/non_ansi_joins  # tree differs
+dialects/oracle/open_for  # tree differs
+dialects/oracle/oracle_operators  # tree differs
+dialects/oracle/oracle_plus_join_operator  # tree differs
+dialects/oracle/pivot_unpivot  # tree differs
+dialects/oracle/pragma_restrict_references_default  # tree differs
+dialects/oracle/procedure_call  # tree differs
+dialects/oracle/prompt  # tree differs
+dialects/oracle/pseudorecords  # tree differs
+dialects/oracle/quoted_slash  # tree differs
+dialects/oracle/raise  # tree differs
+dialects/oracle/record_type  # tree differs
+dialects/oracle/return  # tree differs
+dialects/oracle/returning_into  # tree differs
+dialects/oracle/revoke  # tree differs
+dialects/oracle/rowtype  # tree differs
+dialects/oracle/select  # tree differs
+dialects/oracle/select_for_update  # tree differs
+dialects/oracle/select_into_record_fields  # tree differs
+dialects/oracle/select_natural_join  # tree differs
+dialects/oracle/select_utf8  # tree differs
+dialects/oracle/show  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/oracle/size_suffix_storage  # tree differs
+dialects/oracle/slash_batch_delimiter  # tree differs
+dialects/oracle/slash_buffer_executor_examples  # tree differs
+dialects/oracle/space_between_alias_and_column  # tree differs
+dialects/oracle/sqlplus_commands  # tree differs
+dialects/oracle/substitution_variable  # tree differs
+dialects/oracle/temporary_table  # tree differs
+dialects/oracle/trailing_decimal_numeric  # tree differs
+dialects/oracle/trigger_if  # tree differs
+dialects/oracle/using_index  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/oracle/while_loop  # tree differs
+dialects/oracle/within_group  # tree differs
+dialects/oracle/xmlattributes  # tree differs
+dialects/postgres/alter_aggregate  # tree differs
+dialects/postgres/alter_default_privileges  # tree differs
+dialects/postgres/alter_extension  # tree differs
+dialects/postgres/alter_index  # tree differs
+dialects/postgres/alter_materialized_view  # tree differs
+dialects/postgres/alter_procedure  # tree differs
+dialects/postgres/alter_publication  # tree differs
+dialects/postgres/alter_schema  # tree differs
+dialects/postgres/alter_sequence  # tree differs
+dialects/postgres/alter_statistics  # tree differs
+dialects/postgres/alter_table  # tree differs
+dialects/postgres/alter_table_set_access_method  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/postgres/alter_type  # tree differs
+dialects/postgres/alter_view  # tree differs
+dialects/postgres/cluster  # tree differs
+dialects/postgres/comment_on  # tree differs
+dialects/postgres/composite_types  # tree differs
+dialects/postgres/copy  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/postgres/copy_from_stdin_data_block  # tree differs
+dialects/postgres/create_aggregate  # tree differs
+dialects/postgres/create_domain  # tree differs
+dialects/postgres/create_extension  # tree differs
+dialects/postgres/create_foreign_table  # tree differs
+dialects/postgres/create_function  # tree differs
+dialects/postgres/create_index  # tree differs
+dialects/postgres/create_publication  # tree differs
+dialects/postgres/create_schema  # tree differs
+dialects/postgres/create_sequence  # tree differs
+dialects/postgres/create_server  # tree differs
+dialects/postgres/create_statistics  # tree differs
+dialects/postgres/create_table  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/postgres/create_trigger  # tree differs
+dialects/postgres/create_type  # tree differs
+dialects/postgres/create_user_mapping  # tree differs
+dialects/postgres/datetime_units  # tree differs
+dialects/postgres/drop_index  # tree differs
+dialects/postgres/drop_sequence  # tree differs
+dialects/postgres/drop_statistics  # tree differs
+dialects/postgres/drop_trigger  # tree differs
+dialects/postgres/group_by  # tree differs
+dialects/postgres/import_foreign_schema  # tree differs
+dialects/postgres/json_value  # tree differs
+dialects/postgres/merge_returning  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/postgres/overlaps  # tree differs
+dialects/postgres/pg_trgm  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/postgres/pgvector  # tree differs
+dialects/postgres/postgres_postgis_operators  # tree differs
+dialects/postgres/range_operators  # tree differs
+dialects/postgres/reindex  # tree differs
+dialects/postgres/select  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/postgres/substring  # tree differs
+dialects/postgres/truncate  # tree differs
+dialects/redshift/alter_datashare  # tree differs
+dialects/redshift/alter_default_privileges  # tree differs
+dialects/redshift/alter_schema  # tree differs
+dialects/redshift/create_external_schema  # tree differs
+dialects/redshift/create_schema  # tree differs
+dialects/redshift/grant  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/redshift/select_exclude  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/redshift/select_keywords  # tree differs
+dialects/redshift/super_array_accessor_from  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/snowflake/alter_account  # tree differs
+dialects/snowflake/alter_alert  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/snowflake/alter_dynamic_table  # tree differs
+dialects/snowflake/alter_dynamic_table_column_actions  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/snowflake/alter_masking_policy  # tree differs
+dialects/snowflake/alter_network_policy  # tree differs
+dialects/snowflake/alter_procedure_extra  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/snowflake/alter_resource_monitor  # tree differs
+dialects/snowflake/alter_schema  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/snowflake/alter_sequence  # tree differs
+dialects/snowflake/alter_session_policy  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/snowflake/alter_share  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/snowflake/alter_stage  # tree differs
+dialects/snowflake/alter_table  # tree differs
+dialects/snowflake/alter_table_governance_policies  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/snowflake/alter_user_policy  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/snowflake/alter_user_set_values  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/snowflake/alter_user_workload_identity  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/snowflake/alter_view_governance  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/snowflake/alter_warehouse  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/snowflake/copy_into_location  # tree differs
+dialects/snowflake/copy_into_location_Amazon_SC3  # tree differs
+dialects/snowflake/copy_into_location_Azure  # tree differs
+dialects/snowflake/copy_into_location_GoogleCloud  # tree differs
+dialects/snowflake/create_alert  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/snowflake/create_alert_all_options  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/snowflake/create_alert_condition_variants  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/snowflake/create_data_metric_function  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/snowflake/create_dynamic_table_custom_incremental  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/snowflake/create_dynamic_table_governance  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/snowflake/create_event_table  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/snowflake/create_external_table  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/snowflake/create_function  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/snowflake/create_mcp_server  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/snowflake/create_or_alter_share  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/snowflake/create_procedure  # tree differs
+dialects/snowflake/create_procedure_extra  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/snowflake/create_resource_monitor  # tree differs
+dialects/snowflake/create_schema  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/snowflake/create_sequence  # tree differs
+dialects/snowflake/create_session_policy  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/snowflake/create_stage  # tree differs
+dialects/snowflake/create_stream  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/snowflake/create_table_governance_policies  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/snowflake/create_view_governance  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/snowflake/create_warehouse  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/snowflake/define_file_format  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/snowflake/define_pipe  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/snowflake/define_schema  # tree differs
+dialects/snowflake/define_stage  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/snowflake/describe_statements  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/snowflake/drop_alert  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/snowflake/drop_resource_monitor  # tree differs
+dialects/snowflake/drop_statements  # tree differs
+dialects/snowflake/exception  # tree differs
+dialects/snowflake/execute_dbt_project  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/snowflake/execute_immediate  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/snowflake/grant_create_privileges  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/snowflake/grant_revoke  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/snowflake/grant_revoke_inherited  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/snowflake/identifier_pseudo_function  # tree differs
+dialects/snowflake/if_statement_case_expression  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/snowflake/match_recognize  # tree differs
+dialects/snowflake/pivot  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/snowflake/raise_statement  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/snowflake/scripting_control_flow  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/snowflake/select_asof_join  # tree differs
+dialects/snowflake/select_group_by_cube_rollup  # tree differs
+dialects/snowflake/select_group_by_grouping_sets_mixed  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/snowflake/select_grouping_sets  # tree differs
+dialects/snowflake/select_nested_join  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/snowflake/semantic_view  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/snowflake/show  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/snowflake/truncate_table  # tree differs
+dialects/snowflake/undrop  # tree differs
+dialects/snowflake/use  # tree differs
+dialects/soql/date_literals  # unsupported: dialect soql
+dialects/soql/select_where_date_literals  # unsupported: dialect soql
+dialects/soql/select_where_date_n_literals  # unsupported: dialect soql
+dialects/sparksql/delta_describe_as_relation  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/sparksql/delta_describe_detail  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/sparksql/delta_describe_history  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/sparksql/drop_schema  # tree differs
+dialects/sparksql/explain  # tree differs
+dialects/sparksql/select_from_lateral_view  # tree differs
+dialects/sparksql/select_group_by  # tree differs
+dialects/sparksql/select_lateral_view_supported_tvf  # tree differs
+dialects/sparksql/select_nested_join  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/sparksql/set_variable  # tree differs
+dialects/sparksql/truncate_table  # tree differs
+dialects/sparksql/window_functions  # tree differs
+dialects/sqlite/admin_statements  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/sqlite/arithmetric_a  # tree differs
+dialects/sqlite/blob_literal  # tree differs
+dialects/sqlite/create_index  # tree differs
+dialects/sqlite/create_table_deferrable  # tree differs
+dialects/sqlite/create_trigger  # tree differs
+dialects/sqlite/delete  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/sqlite/drop_trigger  # tree differs
+dialects/sqlite/insert  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/sqlite/json_operators  # tree differs
+dialects/sqlite/quoted_identifiers  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/sqlite/raise_function  # tree differs
+dialects/sqlite/update  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/sqlite/upsert  # tree differs
+dialects/starrocks/create_external_table  # tree differs
+dialects/starrocks/create_primary_key_table  # tree differs
+dialects/starrocks/create_table_aggregate_key  # tree differs
+dialects/starrocks/create_table_complex_types  # tree differs
+dialects/starrocks/create_table_duplicate_key  # tree differs
+dialects/starrocks/create_table_dynamic_partition  # tree differs
+dialects/starrocks/create_table_generated_column  # tree differs
+dialects/starrocks/create_table_list_partition  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/teradata/comparison_operators  # tree differs
+dialects/teradata/create_table  # tree differs
+dialects/teradata/create_view  # tree differs
+dialects/teradata/data_type_attribute  # tree differs
+dialects/teradata/delete  # tree differs
+dialects/teradata/qualify  # tree differs
+dialects/teradata/select  # tree differs
+dialects/teradata/select_overlaps  # tree differs
+dialects/teradata/update_from  # tree differs
+dialects/trino/analyze  # tree differs
+dialects/trino/comment_on  # tree differs
+dialects/trino/create_table  # tree differs
+dialects/trino/describe  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/trino/explain  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/trino/grouping_sets  # tree differs
+dialects/trino/row_datatype  # tree differs
+dialects/trino/select_set_operators  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/trino/show  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/trino/unnest_with_ordinality  # tree differs
+dialects/trino/within_group  # tree differs
+dialects/tsql/add_index  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/tsql/alter_and_drop  # tree differs
+dialects/tsql/alter_fulltext_index  # tree differs
+dialects/tsql/alter_index  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/tsql/alter_table  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/tsql/alter_table_enable_disable_trigger  # tree differs
+dialects/tsql/alter_table_switch  # tree differs
+dialects/tsql/any_all_operators  # tree differs
+dialects/tsql/arithmetic_operations  # tree differs
+dialects/tsql/begin_end  # tree differs
+dialects/tsql/begin_end_nested  # tree differs
+dialects/tsql/begin_end_no_semicolon  # tree differs
+dialects/tsql/binary_constants_functions  # tree differs
+dialects/tsql/binary_constants_variables  # tree differs
+dialects/tsql/bulk_insert  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/tsql/cast_variable  # tree differs
+dialects/tsql/collate  # tree differs
+dialects/tsql/comment_blocks  # tree differs
+dialects/tsql/containstable  # tree differs
+dialects/tsql/convert  # tree differs
+dialects/tsql/copy  # tree differs
+dialects/tsql/create_columnstore_index  # tree differs
+dialects/tsql/create_credential  # tree differs
+dialects/tsql/create_database  # tree differs
+dialects/tsql/create_external_data_source  # tree differs
+dialects/tsql/create_external_table  # tree differs
+dialects/tsql/create_external_table_as_select  # tree differs
+dialects/tsql/create_fulltext_catalog  # tree differs
+dialects/tsql/create_fulltext_index  # tree differs
+dialects/tsql/create_function  # tree differs
+dialects/tsql/create_login  # tree differs
+dialects/tsql/create_partition_function  # tree differs
+dialects/tsql/create_procedure  # tree differs
+dialects/tsql/create_role  # tree differs
+dialects/tsql/create_schema  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/tsql/create_table  # tree differs
+dialects/tsql/create_table_as_select  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/tsql/create_table_constraints  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/tsql/create_table_filtered_index  # tree differs
+dialects/tsql/create_table_graph  # tree differs
+dialects/tsql/create_table_on_filegroup  # tree differs
+dialects/tsql/create_table_with_distribution  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/tsql/create_table_with_sequence  # tree differs
+dialects/tsql/create_table_with_sequence_bracketed  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/tsql/create_table_with_table_option_segment  # tree differs
+dialects/tsql/create_table_with_trailing_comma  # tree differs
+dialects/tsql/create_type  # tree differs
+dialects/tsql/create_view  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/tsql/create_view_with_columns  # tree differs
+dialects/tsql/create_view_with_cte  # tree differs
+dialects/tsql/create_view_with_pivot  # tree differs
+dialects/tsql/create_view_with_set_statements  # tree differs
+dialects/tsql/create_view_with_unpivot  # tree differs
+dialects/tsql/cte_s  # tree differs
+dialects/tsql/cursor  # tree differs
+dialects/tsql/data_types  # tree differs
+dialects/tsql/datatype_methods  # tree differs
+dialects/tsql/date_functions  # tree differs
+dialects/tsql/datepart  # tree differs
+dialects/tsql/datetrunc  # tree differs
+dialects/tsql/dbcc  # tree differs
+dialects/tsql/declare_table_type  # tree differs
+dialects/tsql/declare_with_following_statements  # tree differs
+dialects/tsql/delete  # tree differs
+dialects/tsql/delete_azure_synapse_analytics  # tree differs
+dialects/tsql/dml_as_derived_table  # tree differs
+dialects/tsql/drop_external_table  # tree differs
+dialects/tsql/drop_fulltext_index  # tree differs
+dialects/tsql/drop_function  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/tsql/drop_sequence  # tree differs
+dialects/tsql/drop_table  # tree differs
+dialects/tsql/drop_view  # tree differs
+dialects/tsql/execute  # tree differs
+dialects/tsql/fetch_cursor_statement  # tree differs
+dialects/tsql/function_default_params  # tree differs
+dialects/tsql/function_no_return  # tree differs
+dialects/tsql/function_with_variable  # tree differs
+dialects/tsql/functions_a  # tree differs
+dialects/tsql/functions_agg  # tree differs
+dialects/tsql/go_delimiters  # tree differs
+dialects/tsql/goto_statement  # tree differs
+dialects/tsql/group_by  # tree differs
+dialects/tsql/group_by_termination  # tree differs
+dialects/tsql/hints  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/tsql/identifier_special_chars  # tree differs
+dialects/tsql/if_else  # tree differs
+dialects/tsql/if_else_begin_end  # tree differs
+dialects/tsql/ignore_nulls  # tree differs
+dialects/tsql/index_hints  # tree differs
+dialects/tsql/insert_default  # tree differs
+dialects/tsql/insert_statement  # tree differs
+dialects/tsql/insert_with_identity_insert  # tree differs
+dialects/tsql/join_hints  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/tsql/json_aggregate_functions  # tree differs
+dialects/tsql/json_functions  # tree differs
+dialects/tsql/json_scalar_functions  # tree differs
+dialects/tsql/keyword_identifier_usage  # tree differs
+dialects/tsql/merge  # tree differs
+dialects/tsql/minimal_function  # tree differs
+dialects/tsql/minimal_function_no_alter  # tree differs
+dialects/tsql/multi_statement  # tree differs
+dialects/tsql/multi_statement_without_semicolon  # tree differs
+dialects/tsql/multiple_semicolons  # tree differs
+dialects/tsql/nested_joins  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/tsql/next_value_for_over  # tree differs
+dialects/tsql/offset  # tree differs
+dialects/tsql/open_symmetric_key  # tree differs
+dialects/tsql/openjson  # tree differs
+dialects/tsql/openquery  # tree differs
+dialects/tsql/openrowset  # tree differs
+dialects/tsql/openxml  # tree differs
+dialects/tsql/outer_apply  # tree differs
+dialects/tsql/output_clause  # tree differs
+dialects/tsql/predict  # tree differs
+dialects/tsql/print  # tree differs
+dialects/tsql/raiserror  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/tsql/rename_table  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/tsql/replicate  # tree differs
+dialects/tsql/restore_database  # tree differs
+dialects/tsql/select  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/tsql/select_assign_parameter  # tree differs
+dialects/tsql/select_cross_apply  # tree differs
+dialects/tsql/select_date_functions  # tree differs
+dialects/tsql/select_for  # tree differs
+dialects/tsql/select_into  # tree differs
+dialects/tsql/select_label_no_semicolon  # tree differs
+dialects/tsql/select_named_window  # tree differs
+dialects/tsql/select_natural_join  # tree differs
+dialects/tsql/select_pivot  # tree differs
+dialects/tsql/select_top  # tree differs
+dialects/tsql/sequence  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/tsql/set_context_info  # tree differs
+dialects/tsql/set_dateformat  # tree differs
+dialects/tsql/set_local_variable  # tree differs
+dialects/tsql/set_statements  # tree differs
+dialects/tsql/stored_procedure_begin_end  # tree differs
+dialects/tsql/stored_procedure_single_statement  # tree differs
+dialects/tsql/stored_procedured_mixed_statements  # tree differs
+dialects/tsql/synonym  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/tsql/system-variables  # tree differs
+dialects/tsql/table_variables  # tree differs
+dialects/tsql/tablesample  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/tsql/temp_tables  # tree differs
+dialects/tsql/temporal_tables  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/tsql/transaction  # tree differs
+dialects/tsql/triggers  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/tsql/try_catch  # tree differs
+dialects/tsql/unicode_parameter_names  # tree differs
+dialects/tsql/update  # tree differs
+dialects/tsql/waitfor  # tree differs
+dialects/tsql/while_statement  # tree differs; unparsable segment; exit code 1: PRS: Unparsable section
+dialects/tsql/window_functions  # tree differs
+dialects/tsql/xml_schema_collection  # tree differs
+dialects/vertica/alter_schema  # tree differs
+dialects/vertica/alter_table  # tree differs
+dialects/vertica/alter_view  # tree differs
+dialects/vertica/array  # tree differs
+dialects/vertica/bare_functions  # tree differs
+dialects/vertica/cast_with_whitespaces  # tree differs
+dialects/vertica/comment_on  # tree differs
+dialects/vertica/copy  # tree differs
+dialects/vertica/create_projection  # tree differs
+dialects/vertica/create_schema  # tree differs
+dialects/vertica/create_table  # tree differs
+dialects/vertica/create_table_as  # tree differs
+dialects/vertica/create_view  # tree differs
+dialects/vertica/datatypes  # tree differs
+dialects/vertica/datetime_units  # tree differs
+dialects/vertica/delete  # tree differs
+dialects/vertica/escape  # tree differs
+dialects/vertica/flex_functions  # tree differs
+dialects/vertica/group_by  # tree differs
+dialects/vertica/insert  # tree differs
+dialects/vertica/join_no_space  # tree differs
+dialects/vertica/join_types  # tree differs
+dialects/vertica/json_operators  # tree differs
+dialects/vertica/lambda_functions  # tree differs
+dialects/vertica/limit_clause  # tree differs
+dialects/vertica/null_cast_with_whitespaces  # tree differs
+dialects/vertica/null_filters  # tree differs
+dialects/vertica/position  # tree differs
+dialects/vertica/select  # tree differs
+dialects/vertica/select_case_cast  # tree differs
+dialects/vertica/select_case_null_cast  # tree differs
+dialects/vertica/select_frame_clause  # tree differs
+dialects/vertica/single_quote  # tree differs
+dialects/vertica/subquery  # tree differs
+dialects/vertica/update_table  # tree differs
+dialects/vertica/utf8  # tree differs
+dialects/vertica/with  # tree differs
+dialects/vertica/within_group  # tree differs
+rules/AL02_LT01/test_alias_expression_align_4515_1  # unsupported: setting layout.type.alias_expression.align_scope, layout.type.alias_expression.align_within
+rules/AL02_LT01/test_alias_expression_align_4515_2  # unsupported: setting layout.type.alias_expression.align_scope, layout.type.alias_expression.align_within
+rules/AL02_LT01/test_alias_expression_align_4515_3  # unsupported: setting layout.type.alias_expression.align_scope, layout.type.alias_expression.align_within
+rules/AL05/test_fail_clickhouse_naked_select_quoted_table_cs  # fail_str: no violation of AL05; fix mismatch
+rules/AL05/test_pass_bigquery_quoted_escapes  # pass_str: PRS: Unparsable section
+rules/AL05/test_pass_clickhouse_naked_select_quoted_table  # pass_str: 2 violations of AL05 (lines [2, 3])
+rules/AL05/test_pass_clickhouse_quoted_escapes  # pass_str: PRS: Unparsable section; pass_str: 1 violations of AL05 (lines [2])
+rules/AL05/test_pass_clickhouse_quoted_select_naked_table  # pass_str: 2 violations of AL05 (lines [2, 3])
+rules/AL05/test_pass_clickhouse_quoted_select_naked_table_cs  # fail_str: no violation of AL05; fix mismatch
+rules/AL05/test_pass_duckdb_quoted_select_naked_table  # pass_str: 1 violations of AL05 (lines [2])
+rules/AL05/test_pass_duckdb_quoted_select_single_quote_table  # pass_str: PRS: Unparsable section; pass_str: 1 violations of AL05 (lines [2])
+rules/AL05/test_pass_hive_quoted_select_naked_table  # pass_str: 1 violations of AL05 (lines [2])
+rules/AL05/test_pass_mysql_naked_select_quoted_table  # pass_str: 1 violations of AL05 (lines [2])
+rules/AL05/test_pass_mysql_quoted_select_naked_table  # pass_str: 1 violations of AL05 (lines [2])
+rules/AL05/test_pass_postgres_quoted_select_single_quote_table  # pass_str: PRS: Unparsable section
+rules/AL05/test_pass_redshift_quoted_select_single_quote_table  # pass_str: PRS: Unparsable section
+rules/AL05/test_pass_sparksql_quoted_select_naked_table  # pass_str: 1 violations of AL05 (lines [2])
+rules/AL05/test_pass_sqlite_different_escaped_quotes  # pass_str: PRS: Unparsable section; pass_str: 1 violations of AL05 (lines [4])
+rules/AL05/test_pass_sqlite_naked_select_quoted_table  # pass_str: 1 violations of AL05 (lines [2])
+rules/AL05/test_pass_sqlite_naked_select_quoted_table_subquery  # pass_str: 1 violations of AL05 (lines [2])
+rules/AL05/test_pass_sqlite_quoted_select_naked_table  # pass_str: 1 violations of AL05 (lines [2])
+rules/AL05/test_pass_sqlite_quoted_select_naked_table_subquery  # pass_str: 1 violations of AL05 (lines [2])
+rules/AL05/test_pass_teradata_quoted_select_naked_table  # pass_str: 1 violations of AL05 (lines [2])
+rules/AL05/test_pass_trino_quoted_select_naked_table  # pass_str: 1 violations of AL05 (lines [2])
+rules/AL05/test_pass_tsql_naked_select_quoted_table  # pass_str: 1 violations of AL05 (lines [2])
+rules/AL05/test_pass_tsql_quoted_select_naked_table  # pass_str: 1 violations of AL05 (lines [2])
+rules/AL05/test_pass_vertica_quoted_select_naked_table  # pass_str: 1 violations of AL05 (lines [2])
+rules/AL07/test_fail_no_copy_code_out_of_template  # fix mismatch
+rules/AL07/test_violation_locations  # unsupported: output field end_file_pos, end_line_no, end_line_pos, fixes, name, start_file_pos, warning (the case compares 'violations'; the lint output has no such field)
+rules/AL08/test_fail_locs  # unsupported: output field end_file_pos, end_line_no, end_line_pos, fixes, name, start_file_pos, warning (the case compares 'violations'; the lint output has no such field)
+rules/AL09/test_fail_different_case  # unsupported: output field end_file_pos, end_line_no, end_line_pos, fixes, name, start_file_pos, warning (the case compares 'violations'; the lint output has no such field)
+rules/AM02/test_fail_mixed_case_union_preserves_case  # fix mismatch
+rules/AM04/test_fail_exasol_invalid_foreign_key_from  # fail_str: no violation of AM04
+rules/AM04/test_fail_jinja_templated_table_reference  # fail_str: no violation of AM04; fix: the tool shows no violation, so it does not write a file, but a hidden violation (ignore, noqa, or templated areas) can have fixes that the test applies
+rules/AM04/test_fail_jinja_templated_table_reference_unqualified_wildcard  # fail_str: no violation of AM04; fix: the tool shows no violation, so it does not write a file, but a hidden violation (ignore, noqa, or templated areas) can have fixes that the test applies
+rules/AM04/test_fail_jinja_templated_wildcard_qualifier  # fail_str: no violation of AM04; fix: the tool shows no violation, so it does not write a file, but a hidden violation (ignore, noqa, or templated areas) can have fixes that the test applies
+rules/AM04/test_fail_placeholder_templater_qualified_wildcard  # unsupported: upper-case key templater.placeholder.CATALOG (sqruff makes INI keys lower case)
+rules/AM04/test_fail_placeholder_templater_unqualified_wildcard  # unsupported: upper-case key templater.placeholder.CATALOG (sqruff makes INI keys lower case)
+rules/AM04/test_pass_cte_no_select_final_statement  # pass_str: PRS: Unparsable section
+rules/AM04/test_pass_placeholder_templater_explicit_columns  # unsupported: upper-case key templater.placeholder.CATALOG (sqruff makes INI keys lower case)
+rules/AM04/test_pass_wholly_templated_query  # unsupported: setting templater.jinja.macros.my_macro
+rules/AM07/test_fail_placeholder_templater_set_columns  # unsupported: upper-case key templater.placeholder.CATALOG (sqruff makes INI keys lower case)
+rules/AM07/test_pass_cte_no_select_final_statement  # pass_str: PRS: Unparsable section
+rules/CP01/test_fail_select_lower_keyword_functions  # fail_str: no violation of CP01; fix mismatch
+rules/CP02/test_pass_databricks_case_sensitive_property  # pass_str: 1 violations of CP02 (lines [1])
+rules/CP02/test_pass_ignore_word  # unsupported: setting rules.capitalisation.identifiers.capitalisation_policy
+rules/CP02/test_pass_policy_unquoted_identifiers_aliases_1  # unsupported: setting rules.capitalisation.identifiers.unquoted_identifiers_policy
+rules/CP02/test_pass_policy_unquoted_identifiers_aliases_2  # unsupported: setting rules.capitalisation.identifiers.unquoted_identifiers_policy
+rules/CP02/test_pass_policy_unquoted_identifiers_aliases_3  # unsupported: setting rules.capitalisation.identifiers.unquoted_identifiers_policy
+rules/CP02/test_pass_policy_unquoted_identifiers_aliases_4  # unsupported: setting rules.capitalisation.identifiers.unquoted_identifiers_policy
+rules/CP02/test_policy_unquoted_identifiers_aliases_2  # unsupported: setting rules.capitalisation.identifiers.unquoted_identifiers_policy
+rules/CP02/test_policy_unquoted_identifiers_aliases_5  # unsupported: setting rules.capitalisation.identifiers.unquoted_identifiers_policy
+rules/CP02/test_policy_unquoted_identifiers_aliases_6  # unsupported: setting rules.capitalisation.identifiers.unquoted_identifiers_policy
+rules/CP02/test_policy_unquoted_identifiers_aliases_7  # unsupported: setting rules.capitalisation.identifiers.unquoted_identifiers_policy
+rules/CP02/test_policy_unquoted_identifiers_aliases_8  # unsupported: setting rules.capitalisation.identifiers.unquoted_identifiers_policy
+rules/CP02/test_policy_unquoted_identifiers_column_aliases_1  # unsupported: setting rules.capitalisation.identifiers.unquoted_identifiers_policy
+rules/CV01/test_fail_ansi_not_equal_to_tsql  # fail_str: PRS: Unparsable section; fail_str: no violation of CV01; after_fix: PRS: Unparsable section; fix: the tool does not write a file with a PRS violation, and its lint output has no fixes field: the test can apply fixes
+rules/CV01/test_fail_c_style_not_equal_to_tsql  # fail_str: PRS: Unparsable section; fail_str: no violation of CV01; after_fix: PRS: Unparsable section; fix: the tool does not write a file with a PRS violation, and its lint output has no fixes field: the test can apply fixes
+rules/CV01/test_pass_ansi_not_equal_to_tsql  # pass_str: PRS: Unparsable section
+rules/CV01/test_pass_c_style_not_equal_to_tsql  # pass_str: PRS: Unparsable section
+rules/CV01/test_pass_consistent_ansi_not_equal_to_tsql  # pass_str: PRS: Unparsable section
+rules/CV01/test_pass_consistent_c_style_not_equal_to_tsql  # pass_str: PRS: Unparsable section
+rules/CV03/test_fail_templated  # unsupported: output field end_file_pos, end_line_no, end_line_pos, fixes, name, start_file_pos, warning (the case compares 'violations_after_fix'; the lint output has no such field)
+rules/CV06/test_fail_templated_fix_crosses_block_boundary  # fail_str: no violation of CV06
+rules/CV09/test_fail_match_source1  # fail_str: no violation of CV09
+rules/CV10/test_fail_backslash_escaped_quote_still_converts  # fail_str: no violation of CV10; fix mismatch
+rules/CV10/test_fail_partially_templated_quoted_literals_complex  # fix mismatch
+rules/CV10/test_fail_partially_templated_quoted_literals_inside_blocks  # fix mismatch
+rules/CV10/test_fail_partially_templated_quoted_literals_simple  # fix mismatch
+rules/CV10/test_fail_partially_templated_quoted_literals_with_multiple_templates  # fix mismatch
+rules/CV10/test_fail_result_of_fix_is_valid_mysql  # fail_str: no violation of CV10; fix mismatch
+rules/CV11/test_fail_doris_convert_is_fixed_to_cast  # fix mismatch
+rules/CV11/test_fail_inconsistent_type_casting_3_arguments_convert_when_config_cast  # unsupported: output field end_file_pos, end_line_no, end_line_pos, fixes, name, start_file_pos, warning (the case compares 'violations_after_fix'; the lint output has no such field)
+rules/CV11/test_fail_inconsistent_type_casting_3_arguments_convert_when_config_shorthand  # unsupported: output field end_file_pos, end_line_no, end_line_pos, fixes, name, start_file_pos, warning (the case compares 'violations_after_fix'; the lint output has no such field)
+rules/CV11/test_fail_mariadb_convert_is_fixed_to_cast  # fix mismatch
+rules/CV11/test_fail_mariadb_convert_target_is_fixed  # fix mismatch
+rules/CV11/test_fail_mysql_chained_shorthand_target_convert  # fix mismatch
+rules/CV11/test_fail_mysql_consistent_cast_first  # fix mismatch
+rules/CV11/test_fail_mysql_consistent_convert_first  # fix mismatch
+rules/CV11/test_fail_mysql_consistent_shorthand_first  # fix mismatch
+rules/CV11/test_fail_mysql_convert_is_fixed_to_cast  # fix mismatch
+rules/CV11/test_fail_mysql_convert_is_fixed_to_shorthand  # fix mismatch
+rules/CV11/test_fail_mysql_convert_target_is_fixed  # fix mismatch
+rules/CV11/test_fail_shorthand_array_subscript_to_cast_consistent  # fix mismatch
+rules/CV11/test_fail_shorthand_array_subscript_to_convert  # fix mismatch
+rules/CV11/test_fail_shorthand_array_subscript_to_convert_consistent  # fix mismatch
+rules/CV11/test_fail_shorthand_nested_array_subscript_to_convert  # fix mismatch
+rules/CV11/test_fail_snowflake_semi_structured_cast_4453  # after_fix: 1 violations of CV11 (lines [1])
+rules/CV11/test_fail_starrocks_convert_is_fixed_to_cast  # fix mismatch
+rules/CV11/test_fail_starrocks_convert_target_is_fixed  # fix mismatch
+rules/CV11/test_pass_mysql_convert_using_is_left_alone  # pass_str: 1 violations of CV11 (lines [1])
+rules/CV12/test_fail_ansi_full_outer_join_without_fix  # fix mismatch
+rules/CV12/test_fail_ansi_left_join_without_fix  # fix mismatch
+rules/CV12/test_fail_ansi_right_join_without_fix  # fix mismatch
+rules/CV12/test_fail_cross_join_mixed_with_later_outer_join  # fix mismatch
+rules/CV12/test_fail_join_with_bracketed_join  # fix mismatch
+rules/CV12/test_fail_natural_join_mixed_with_later_outer_join  # fix mismatch
+rules/CV12/test_fail_sqlite_left_join_without_fix  # fix mismatch
+rules/CV13/test_fail_cte_explicit_columns  # unsupported: rule CV13
+rules/CV13/test_fail_only_last_statement  # unsupported: rule CV13
+rules/CV13/test_fail_select_distinct_star  # unsupported: rule CV13
+rules/CV13/test_fail_select_star_no_from  # unsupported: rule CV13
+rules/CV13/test_fail_select_star_with_group_by  # unsupported: rule CV13
+rules/CV13/test_fail_select_star_with_order_by_limit  # unsupported: rule CV13
+rules/CV13/test_fail_select_star_with_where  # unsupported: rule CV13
+rules/CV13/test_fail_set_expression  # unsupported: rule CV13
+rules/CV13/test_fail_star_with_extra_column  # unsupported: rule CV13
+rules/CV13/test_pass_cte_qualified_star  # unsupported: rule CV13
+rules/CV13/test_pass_cte_select_star  # unsupported: rule CV13
+rules/CV13/test_pass_disabled_by_default  # unsupported: rule CV13
+rules/CV13/test_pass_last_statement_not_a_query  # unsupported: rule CV13
+rules/CV13/test_pass_multiple_ctes  # unsupported: rule CV13
+rules/CV13/test_pass_no_statements  # unsupported: rule CV13
+rules/CV13/test_pass_plain_select_out_of_scope  # unsupported: rule CV13
+rules/CV13/test_pass_plain_select_star_out_of_scope  # unsupported: rule CV13
+rules/LT01-alignment/test_align_alias_boundary  # unsupported: setting layout.type.alias_expression.align_scope, layout.type.alias_expression.align_within
+rules/LT01-alignment/test_align_alias_boundary_tsql  # unsupported: setting layout.type.alias_operator.align_scope, layout.type.alias_operator.align_within
+rules/LT01-alignment/test_align_alias_inline_fail  # unsupported: setting layout.type.alias_expression.align_scope, layout.type.alias_expression.align_within
+rules/LT01-alignment/test_align_alias_inline_fail_tsql  # unsupported: setting layout.type.alias_operator.align_scope, layout.type.alias_operator.align_within
+rules/LT01-alignment/test_align_alias_inline_pass  # unsupported: setting layout.type.alias_expression.align_scope, layout.type.alias_expression.align_within
+rules/LT01-alignment/test_align_alias_inline_pass_tsql  # unsupported: setting layout.type.alias_operator.align_scope, layout.type.alias_operator.align_within
+rules/LT01-alignment/test_align_alias_sparksql_mixed_struct_and_plain  # unsupported: setting layout.type.alias_expression.align_scope, layout.type.alias_expression.align_within
+rules/LT01-alignment/test_align_alias_sparksql_named_struct  # unsupported: setting layout.type.alias_expression.align_scope, layout.type.alias_expression.align_within
+rules/LT01-alignment/test_align_alias_sparksql_struct_access  # unsupported: setting layout.type.alias_expression.align_scope, layout.type.alias_expression.align_within
+rules/LT01-alignment/test_align_alias_sparksql_struct_access_pass  # unsupported: setting layout.type.alias_expression.align_scope, layout.type.alias_expression.align_within
+rules/LT01-alignment/test_align_alias_with_jinja_both_lines_templated  # unsupported: setting layout.type.alias_expression.align_scope, layout.type.alias_expression.align_within
+rules/LT01-alignment/test_align_alias_with_jinja_source_positions  # unsupported: setting layout.type.alias_expression.align_scope, layout.type.alias_expression.align_within
+rules/LT01-alignment/test_align_alias_with_jinja_statement_scope  # unsupported: setting layout.type.alias_expression.align_scope, layout.type.alias_expression.align_within
+rules/LT01-alignment/test_align_alias_with_tabs  # unsupported: setting layout.type.alias_expression.align_scope, layout.type.alias_expression.align_within
+rules/LT01-alignment/test_align_alias_with_tabs_custom_tab_size  # unsupported: setting layout.type.alias_expression.align_scope, layout.type.alias_expression.align_within
+rules/LT01-alignment/test_align_alias_with_tabs_different_lengths  # unsupported: setting layout.type.alias_expression.align_scope, layout.type.alias_expression.align_within
+rules/LT01-alignment/test_align_multiple_a  # unsupported: setting layout.type.column_constraint_segment.align_within, layout.type.data_type.align_within
+rules/LT01-alignment/test_align_multiple_all  # unsupported: setting layout.type.column_constraint_segment.align_within, layout.type.data_type.align_within
+rules/LT01-alignment/test_align_multiple_b  # unsupported: setting layout.type.column_constraint_segment.align_within, layout.type.data_type.align_within
+rules/LT01-alignment/test_align_multiple_multiple_lines_a  # unsupported: setting layout.type.column_constraint_segment.align_within, layout.type.data_type.align_within
+rules/LT01-alignment/test_align_multiple_multiple_lines_b  # unsupported: setting layout.type.column_constraint_segment.align_within, layout.type.data_type.align_within
+rules/LT01-alignment/test_align_multiple_operators  # unsupported: setting layout.type.binary_operator.align_within
+rules/LT01-alignment/test_excess_space_with_align_alias  # unsupported: setting layout.type.alias_expression.align_scope, layout.type.alias_expression.align_within
+rules/LT01-alignment/test_excess_space_with_align_alias_tsql  # unsupported: setting layout.type.alias_operator.align_scope, layout.type.alias_operator.align_within
+rules/LT01-alignment/test_excess_space_with_align_alias_tsql_mixed  # unsupported: setting layout.type.alias_operator.align_scope, layout.type.alias_operator.align_within
+rules/LT01-alignment/test_excess_space_with_align_alias_wider  # unsupported: setting layout.type.alias_expression.align_scope, layout.type.alias_expression.align_within
+rules/LT01-alignment/test_excess_space_with_align_alias_wider_tsql  # unsupported: setting layout.type.alias_operator.align_scope, layout.type.alias_operator.align_within
+rules/LT01-alignment/test_missing_keyword_with_align_alias  # unsupported: setting layout.type.alias_expression.align_scope, layout.type.alias_expression.align_within
+rules/LT01-alignment/test_missing_keyword_with_align_alias_tsql  # unsupported: setting layout.type.alias_operator.align_scope, layout.type.alias_operator.align_within
+rules/LT01-alignment/test_skip_alias_with_align_alias  # unsupported: setting layout.type.alias_expression.align_scope, layout.type.alias_expression.align_within
+rules/LT01-brackets/test_fail_parenthesis_block_not_isolated_templated  # fail_str: no violation of LT01
+rules/LT01-commas/test_fail_whitespace_before_comma_template  # fail_str: no violation of LT01
+rules/LT01-excessive/test_basic_fail_template  # fail_str: no violation of LT01
+rules/LT01-excessive/test_comparison_operator_fix  # fail_str: PRS: Unparsable section; fail_str: no violation of LT01; fix: the tool does not write a file with a PRS violation, and its lint output has no fixes field: the test can apply fixes
+rules/LT01-excessive/test_fix_tsql_spaced_chars  # fail_str: PRS: Unparsable section; fail_str: no violation of LT01; fix: the tool does not write a file with a PRS violation, and its lint output has no fixes field: the test can apply fixes
+rules/LT01-literals/test_fail_old_python_test  # unsupported: output field end_file_pos, end_line_no, end_line_pos, fixes, name, start_file_pos, warning (the case compares 'violations'; the lint output has no such field)
+rules/LT01-literals/test_fail_tsql_unicode_single_quote  # fix mismatch; after_fix: 2 violations of LT01 (lines [1])
+rules/LT01-literals/test_pass_tsql_unicode_single_quote  # pass_str: 2 violations of LT01 (lines [1])
+rules/LT01-missing/test_fail_tsql_table_alias_column_list_spaced  # fail_str: no violation of LT01; fix mismatch; after_fix: 1 violations of LT01 (lines [1])
+rules/LT01-missing/test_fail_tsql_values_alias_columns_excess_space  # fix mismatch; after_fix: 1 violations of LT01 (lines [1])
+rules/LT01-missing/test_pass_tsql_table_alias_column_list_spacing_override  # unsupported: layout type alias_column_list (sqruff stops on it)
+rules/LT01-missing/test_pass_tsql_table_alias_column_list_touching  # pass_str: 3 violations of LT01 (lines [3, 4, 5])
+rules/LT01-missing/test_pass_tsql_values_alias_columns  # pass_str: 1 violations of LT01 (lines [1])
+rules/LT01-operators/fail_consecutive_sign_indicators_across_a_newline  # fix mismatch; after_fix: 1 violations of LT01 (lines [1])
+rules/LT01-operators/fail_consecutive_sign_indicators_outer_spacing  # fix mismatch; after_fix: 2 violations of LT01 (lines [1])
+rules/LT01-operators/fail_consecutive_sign_indicators_trailing_code  # fix mismatch; after_fix: 1 violations of LT01 (lines [1])
+rules/LT01-operators/pass_consecutive_sign_indicators  # pass_str: 1 violations of LT01 (lines [1])
+rules/LT02-indent/test_fail_consuming_whitespace_a  # fix mismatch
+rules/LT02-indent/test_fail_consuming_whitespace_b  # fix mismatch
+rules/LT02-indent/test_fail_fix_beside_templated  # fix mismatch
+rules/LT02-indent/test_fail_fix_template_indentation_1  # fail_str: no violation of LT02; fix: the tool shows no violation, so it does not write a file, but a hidden violation (ignore, noqa, or templated areas) can have fixes that the test applies
+rules/LT02-indent/test_fail_fix_template_indentation_2  # fail_str: no violation of LT02; fix: the tool shows no violation, so it does not write a file, but a hidden violation (ignore, noqa, or templated areas) can have fixes that the test applies
+rules/LT02-indent/test_fail_hard_templated_indents  # fix mismatch
+rules/LT02-indent/test_fail_indented_joins_true_fix  # unsupported: output field end_file_pos, end_line_no, end_line_pos, fixes, name, start_file_pos, warning (the case compares 'violations'; the lint output has no such field)
+rules/LT02-indent/test_fail_issue_4680  # fix mismatch
+rules/LT02-indent/test_fail_reindent_first_line_1  # unsupported: output field end_file_pos, end_line_no, end_line_pos, fixes, name, start_file_pos, warning (the case compares 'violations'; the lint output has no such field)
+rules/LT02-indent/test_fail_snowflake_exception_block_nested  # fix mismatch; after_fix: 6 violations of LT02 (lines [5, 6, 8, 9, 11, 12])
+rules/LT02-indent/test_fail_tab_indentation  # unsupported: output field end_file_pos, end_line_no, end_line_pos, fixes, name, start_file_pos, warning (the case compares 'violations'; the lint output has no such field)
+rules/LT02-indent/test_fail_tsql_else_if  # fail_str: PRS: Unparsable section; after_fix: PRS: Unparsable section; after_fix: 4 violations of LT02 (lines [2, 4, 6, 8]); fix: the tool does not write a file with a PRS violation, and its lint output has no fixes field: the test can apply fixes
+rules/LT02-indent/test_fail_tsql_else_if_successive  # fail_str: PRS: Unparsable section; after_fix: PRS: Unparsable section; after_fix: 4 violations of LT02 (lines [2, 4, 6, 8]); fix: the tool does not write a file with a PRS violation, and its lint output has no fixes field: the test can apply fixes
+rules/LT02-indent/test_fix_macro_indents_4367  # fail_str: no violation of LT02; fix: the tool shows no violation, so it does not write a file, but a hidden violation (ignore, noqa, or templated areas) can have fixes that the test applies
+rules/LT02-indent/test_indent_leading_segment_align_following_window_function  # unsupported: setting indentation.allow_implicit_indents
+rules/LT02-indent/test_jinja_nested_blocks  # fix mismatch
+rules/LT02-indent/test_jinja_value_error_6378  # unsupported: setting indentation.template_blocks_indent
+rules/LT02-indent/test_pass_issue_7543_indentation  # unsupported: setting indentation.template_blocks_indent
+rules/LT02-indent/test_pass_jinja_if_with_in_clause  # unsupported: setting indentation.template_blocks_indent
+rules/LT02-indent/test_pass_jinja_if_with_in_clause_multi_value  # unsupported: setting indentation.template_blocks_indent
+rules/LT02-indent/test_pass_snowflake_exception_block_in_scripting_block  # pass_str: 3 violations of LT02 (lines [3, 4, 6])
+rules/LT02-indent/test_pass_snowflake_exception_block_multiple_when  # pass_str: 4 violations of LT02 (lines [3, 4, 7, 10])
+rules/LT02-indent/test_pass_snowflake_exception_block_standalone  # pass_str: 2 violations of LT02 (lines [3, 4])
+rules/LT02-indent/test_pass_tsql_declare_indent  # fix mismatch; after_fix: 4 violations of LT02 (lines [2, 3, 4, 5])
+rules/LT02-indent/test_pass_tsql_else_if  # pass_str: PRS: Unparsable section; pass_str: 4 violations of LT02 (lines [2, 4, 6, 8])
+rules/LT02-indent/test_pass_tsql_if_indent  # pass_str: 3 violations of LT02 (lines [2, 3, 4])
+rules/LT02-indent/test_pass_tsql_index_indent  # pass_str: 1 violations of LT02 (lines [2])
+rules/LT02-indent/test_pass_tsql_statistics_indent  # pass_str: PRS: Unparsable section; pass_str: 1 violations of LT02 (lines [2])
+rules/LT02-indent/test_tsql_function  # fix mismatch; after_fix: 5 violations of LT02 (lines [12, 13, 14, 15, 21])
+rules/LT02-indent/test_tsql_nested_join  # fail_str: no violation of LT02; fix mismatch; after_fix: 2 violations of LT02 (lines [6, 7])
+rules/LT02-indent/test_whitespace_control_issue_5277  # fail_str: no violation of LT02; fix mismatch
+rules/LT02-tab-space/indented_comments_tab_config  # unsupported: setting rules.indent_unit
+rules/LT02-tab-space/spaces_fail  # unsupported: setting rules.indent_unit
+rules/LT02-tab-space/spaces_fail_custom_tab_space_size  # unsupported: setting rules.indent_unit, rules.tab_space_size
+rules/LT02-tab-space/tabs_fail_default_set_tab_space_size  # unsupported: setting rules.tab_space_size
+rules/LT02-tab-space/tabs_pass  # unsupported: setting rules.indent_unit
+rules/LT03/fails_templated_code_non_templated_newline  # fail_str: no violation of LT03
+rules/LT03/fixes_tuple_error_issue  # unsupported: setting indentation.template_blocks_indent
+rules/LT04/trailing_comma_with_templated_column_2  # pass_str: 1 violations of LT04 (lines [3])
+rules/LT05/test_compute_line_length_before_template_expansion_2  # unsupported: output field end_file_pos, end_line_no, end_line_pos, fixes, name, start_file_pos, warning (the case compares 'violations_after_fix'; the lint output has no such field)
+rules/LT05/test_trailing_semicolon_moves  # unsupported: output field end_file_pos, end_line_no, end_line_pos, fixes, name, start_file_pos, warning (the case compares 'violations_after_fix'; the lint output has no such field)
+rules/LT09/test_single_select_with_comment_after_select  # fix mismatch
+rules/LT12/test_fail_templated_no_newline  # fix mismatch
+rules/LT12/test_fail_templated_plus_raw_newlines  # fix mismatch
+rules/LT12/test_fail_templated_plus_raw_newlines_extra_newline  # fix mismatch
+rules/LT13/test_fail_leading_whitespace_jinja_comment  # fail_str: no violation of LT13; fix: the tool shows no violation, so it does not write a file, but a hidden violation (ignore, noqa, or templated areas) can have fixes that the test applies
+rules/LT13/test_fail_leading_whitespace_jinja_for  # fail_str: no violation of LT13; fix: the tool shows no violation, so it does not write a file, but a hidden violation (ignore, noqa, or templated areas) can have fixes that the test applies
+rules/LT13/test_fail_leading_whitespace_jinja_if  # fail_str: no violation of LT13; fix: the tool shows no violation, so it does not write a file, but a hidden violation (ignore, noqa, or templated areas) can have fixes that the test applies
+rules/LT14/test_fail_alone_window_function  # lint: no JSON lint output; lint: exit code 101: thread 'main' panicked at sqruff-lib-0.41.0/src/utils/reflow/config.rs:457:18:
+rules/LT14/test_fail_leading_qualify  # lint: no JSON lint output; lint: exit code 101: thread 'main' panicked at sqruff-lib-0.41.0/src/utils/reflow/config.rs:457:18:
+rules/LT14/test_fail_leading_window_function  # lint: no JSON lint output; lint: exit code 101: thread 'main' panicked at sqruff-lib-0.41.0/src/utils/reflow/config.rs:457:18:
+rules/LT14/test_pass_none_where_clause  # lint: no JSON lint output; lint: exit code 101: thread 'main' panicked at sqruff-lib-0.41.0/src/utils/reflow/config.rs:451:18:
+rules/LT15/test_fail_bad_edge_case  # unsupported: setting rules.layout.newlines.maximum_empty_lines_within_statements
+rules/LT15/test_fail_macros_with_newlines  # unsupported: setting templater.jinja.macros.a_macro_def
+rules/LT15/test_fail_maximum_reports_only_the_final_newline_of_a_whitespace_broken_run  # unsupported: setting rules.layout.newlines.minimum_empty_lines_between_statements
+rules/LT15/test_fail_minimum_above_maximum_is_capped_not_oscillating  # unsupported: setting rules.layout.newlines.minimum_empty_lines_between_statements
+rules/LT15/test_fail_minimum_applies_between_statements_inside_a_batch_oracle  # unsupported: setting rules.layout.newlines.minimum_empty_lines_between_statements
+rules/LT15/test_fail_minimum_applies_between_statements_inside_a_batch_tsql  # unsupported: setting rules.layout.newlines.minimum_empty_lines_between_statements
+rules/LT15/test_fail_minimum_blank_lines_between_statements  # unsupported: setting rules.layout.newlines.minimum_empty_lines_between_statements
+rules/LT15/test_fail_minimum_equal_to_maximum_is_satisfiable  # unsupported: setting rules.layout.newlines.minimum_empty_lines_between_statements
+rules/LT15/test_fail_minimum_ignores_blank_lines_internal_to_a_multiline_comment  # unsupported: setting rules.layout.newlines.minimum_empty_lines_between_statements
+rules/LT15/test_fail_minimum_of_two_blank_lines  # unsupported: setting rules.layout.newlines.minimum_empty_lines_between_statements
+rules/LT15/test_fail_minimum_pads_a_comment_separated_gap_once  # unsupported: setting rules.layout.newlines.minimum_empty_lines_between_statements
+rules/LT15/test_fail_minimum_pads_a_whitespace_only_gap  # unsupported: setting rules.layout.newlines.minimum_empty_lines_between_statements
+rules/LT15/test_fail_minimum_statements_sharing_a_line  # unsupported: setting rules.layout.newlines.minimum_empty_lines_between_statements
+rules/LT15/test_fail_minimum_two_statements_sharing_a_line_higher_minimum  # unsupported: setting rules.layout.newlines.minimum_empty_lines_between_statements
+rules/LT15/test_fail_oracle_file_level_gap_uses_the_between_batches_maximum  # fail_str: no violation of LT15; fix mismatch
+rules/LT15/test_pass_macros_with_embedded_newlines  # unsupported: setting templater.jinja.macros.a_macro_def
+rules/LT15/test_pass_minimum_already_satisfied  # unsupported: setting rules.layout.newlines.minimum_empty_lines_between_statements
+rules/LT15/test_pass_minimum_counts_a_blank_line_after_an_intervening_comment  # unsupported: setting rules.layout.newlines.minimum_empty_lines_between_statements
+rules/LT15/test_pass_minimum_counts_a_blank_line_before_an_intervening_comment  # unsupported: setting rules.layout.newlines.minimum_empty_lines_between_statements
+rules/LT15/test_pass_minimum_counts_a_whitespace_only_line_as_blank  # unsupported: setting rules.layout.newlines.minimum_empty_lines_between_statements
+rules/LT15/test_pass_minimum_does_not_apply_between_batches_oracle  # unsupported: setting rules.layout.newlines.minimum_empty_lines_between_statements
+rules/LT15/test_pass_minimum_does_not_apply_between_batches_tsql  # unsupported: setting rules.layout.newlines.minimum_empty_lines_between_statements
+rules/LT15/test_pass_minimum_ignores_a_template_tag_between_same_line_statements  # unsupported: setting rules.layout.newlines.minimum_empty_lines_between_statements
+rules/LT15/test_pass_minimum_ignores_a_templated_anchor_newline  # unsupported: setting rules.layout.newlines.minimum_empty_lines_between_statements
+rules/LT15/test_pass_minimum_ignores_end_of_file  # unsupported: setting rules.layout.newlines.minimum_empty_lines_between_statements
+rules/LT15/test_pass_minimum_ignores_leading_blank_line  # unsupported: setting rules.layout.newlines.minimum_empty_lines_between_statements
+rules/LT15/test_pass_minimum_ignores_leading_comment  # unsupported: setting rules.layout.newlines.minimum_empty_lines_between_statements
+rules/LT15/test_pass_minimum_ignores_semicolons_inside_a_compound_statement  # unsupported: setting rules.layout.newlines.minimum_empty_lines_between_statements
+rules/LT15/test_pass_minimum_ignores_template_block_tags  # unsupported: setting rules.layout.newlines.minimum_empty_lines_between_statements
+rules/LT15/test_pass_minimum_ignores_templated_newlines_in_the_run  # unsupported: setting rules.layout.newlines.minimum_empty_lines_between_statements
+rules/LT15/test_pass_minimum_ignores_templated_terminator  # unsupported: setting rules.layout.newlines.minimum_empty_lines_between_statements
+rules/LT15/test_pass_minimum_still_counts_a_blank_line_before_a_multiline_comment  # unsupported: setting rules.layout.newlines.minimum_empty_lines_between_statements
+rules/LT15/test_pass_minimum_still_counts_a_blank_line_between_two_separate_comments  # unsupported: setting rules.layout.newlines.minimum_empty_lines_between_statements
+rules/LT15/test_pass_minimum_trailing_comment_does_not_hide_the_newline  # unsupported: setting rules.layout.newlines.minimum_empty_lines_between_statements
+rules/LT15/test_pass_minimum_trailing_terminator_at_end_of_file  # unsupported: setting rules.layout.newlines.minimum_empty_lines_between_statements
+rules/LT15/test_pass_minimum_zero_leaves_shared_line_alone  # unsupported: setting rules.layout.newlines.minimum_empty_lines_between_statements
+rules/RF01/test_fail_redundantly_bracketed_join_target_unknown_table  # unsupported: output field end_file_pos, end_line_no, end_line_pos, fixes, name, start_file_pos, warning (the case compares 'violations'; the lint output has no such field)
+rules/RF01/test_fail_redundantly_bracketed_join_target_unknown_table_snowflake  # unsupported: output field end_file_pos, end_line_no, end_line_pos, fixes, name, start_file_pos, warning (the case compares 'violations'; the lint output has no such field)
+rules/RF01/test_fail_redundantly_bracketed_join_target_unknown_table_tsql  # unsupported: output field end_file_pos, end_line_no, end_line_pos, fixes, name, start_file_pos, warning (the case compares 'violations'; the lint output has no such field)
+rules/RF01/test_fail_snowflake_semantic_view_outer_join_reference  # fail_str: line numbers [3, 4, 7], expected [7]
+rules/RF01/test_fail_snowflake_semantic_view_outer_select_reference  # fail_str: line numbers [1, 3, 4], expected [1]
+rules/RF01/test_fail_snowflake_semantic_view_outer_where_reference  # fail_str: line numbers [3, 4, 6], expected [6]
+rules/RF01/test_nested_join_clause_does_not_flag  # pass_str: PRS: Unparsable section
+rules/RF01/test_nested_join_clauses_do_not_flag  # pass_str: PRS: Unparsable section
+rules/RF01/test_pass_redundantly_bracketed_join_target_alias  # pass_str: 2 violations of RF01 (lines [5, 6])
+rules/RF01/test_pass_redundantly_bracketed_join_target_alias_snowflake  # pass_str: PRS: Unparsable section
+rules/RF01/test_pass_redundantly_bracketed_join_target_alias_tsql  # pass_str: 1 violations of RF01 (lines [1])
+rules/RF01/test_pass_snowflake_semantic_view_facts  # pass_str: 3 violations of RF01 (lines [3, 4, 5])
+rules/RF01/test_pass_snowflake_semantic_view_references  # pass_str: PRS: Unparsable section
+rules/RF01/test_soql_ignore_rule  # unsupported: dialect soql
+rules/RF01/test_trino_correlated_nested_row_reference_quoted_alias  # pass_str: 1 violations of RF01 (lines [5])
+rules/RF01/test_trino_correlated_row_reference_in_joined_subquery  # pass_str: 1 violations of RF01 (lines [5])
+rules/RF01/test_trino_row_fields_from_single_aliased_table  # pass_str: 2 violations of RF01 (lines [1])
+rules/RF01/test_trino_row_fields_from_single_quoted_aliased_table  # pass_str: 1 violations of RF01 (lines [1])
+rules/RF01/test_trino_row_fields_in_bracketed_union  # pass_str: 2 violations of RF01 (lines [1, 3])
+rules/RF01/test_trino_row_fields_in_union  # pass_str: 2 violations of RF01 (lines [1, 3])
+rules/RF01/test_trino_row_reference_with_multiple_tables  # pass_str: 1 violations of RF01 (lines [1])
+rules/RF01/test_trino_unknown_reference_in_joined_subquery_unaliased_parent  # fail_str: no violation of RF01; fail_str: line numbers [], expected [4]
+rules/RF02/test_arrow_with_non_parameter_left_operand_is_not_a_lambda  # lint: exit code 1: thread 'main' panicked at sqruff-lib-core-0.41.0/src/utils/analysis/select.rs:509:13:
+rules/RF02/test_fail_tsql_bracketed_nested_join_target_unqualified_column  # unsupported: output field end_file_pos, end_line_no, end_line_pos, fixes, name, start_file_pos, warning (the case compares 'violations'; the lint output has no such field)
+rules/RF02/test_fail_tsql_containstable_reports_only_the_column_argument  # unsupported: output field end_file_pos, end_line_no, end_line_pos, fixes, name, start_file_pos, warning (the case compares 'violations'; the lint output has no such field)
+rules/RF02/test_json_arrow_on_plain_column_is_not_a_lambda_duckdb  # fail_str: no violation of RF02
+rules/RF02/test_json_arrow_on_plain_column_is_not_a_lambda_trino  # fail_str: PRS: Unparsable section; fix: the tool does not write a file with a PRS violation, and its lint output has no fixes field: the test can apply fixes
+rules/RF02/test_json_arrow_operator_is_not_a_lambda_duckdb  # lint: exit code 1: thread 'main' panicked at sqruff-lib-core-0.41.0/src/utils/analysis/select.rs:509:13:
+rules/RF02/test_json_arrow_operator_is_not_a_lambda_trino  # pass_str: PRS: Unparsable section
+rules/RF03/fail_but_dont_fix_templated_table_name_consistent  # fail_str: no violation of RF03
+rules/RF03/fail_but_dont_fix_templated_table_name_qualified  # unsupported: setting rules.references.consistent.single_table_references
+rules/RF03/passes_tql_table_variable  # unsupported: setting rules.references.consistent.single_table_references
+rules/RF03/test_fail_athena_struct_field_access_genuine_inconsistency  # unsupported: setting rules.references.consistent.single_table_references
+rules/RF03/test_fail_athena_struct_field_access_qualified_config  # unsupported: setting rules.references.consistent.single_table_references
+rules/RF03/test_fail_cte_qualified_to_unqualified_6014  # unsupported: setting rules.references.consistent.single_table_references
+rules/RF03/test_fail_cte_unqualified_to_qualified_6014  # unsupported: setting rules.references.consistent.single_table_references
+rules/RF03/test_fail_select_alias_in_where_clause_5  # unsupported: setting rules.references.consistent.single_table_references
+rules/RF03/test_fail_single_table_reference_when_qualified_config  # unsupported: setting rules.references.consistent.single_table_references
+rules/RF03/test_fail_single_table_reference_when_unqualified_config  # unsupported: setting rules.references.consistent.single_table_references
+rules/RF03/test_object_references_1c  # unsupported: setting rules.references.consistent.single_table_references
+rules/RF03/test_pass_athena_struct_disabled_by_default  # unsupported: setting rules.references.consistent.single_table_references
+rules/RF03/test_pass_athena_struct_field_access_consistent  # unsupported: setting rules.references.consistent.single_table_references
+rules/RF03/test_pass_databricks_struct_function_aliases_qualified  # unsupported: setting rules.references.consistent.single_table_references
+rules/RF03/test_pass_postgres_quoted_whole_row_json_operator  # unsupported: setting rules.references.consistent.single_table_references
+rules/RF03/test_pass_postgres_whole_row_json_operator  # unsupported: setting rules.references.consistent.single_table_references
+rules/RF03/test_pass_subselect_qualified_reference_5599  # unsupported: setting rules.references.consistent.single_table_references
+rules/RF03/test_pass_subselect_unqualified_one_reference_3987  # unsupported: setting rules.references.consistent.single_table_references
+rules/RF03/test_pass_subselect_unqualified_two_references_3987  # unsupported: setting rules.references.consistent.single_table_references
+rules/RF05/test_fail_ignore_words_regex_quoted_mixed_case  # unsupported: comment character '#' in rules.references.special_chars.ignore_words_regex (sqruff reads the rest of an INI line as a comment)
+rules/RF05/test_fail_special_chars_create_table_hash_unquoted  # fail_str: no violation of RF05
+rules/RF05/test_fail_special_chars_unquoted_policy_aliases  # fail_str: no violation of RF05
+rules/RF05/test_fail_special_chars_unquoted_policy_column_aliases  # fail_str: no violation of RF05
+rules/RF05/test_pass_ignore_lists_quoted  # unsupported: comment character '#' in rules.references.special_chars.ignore_words (sqruff reads the rest of an INI line as a comment)
+rules/RF05/test_pass_ignore_lists_quoted_mixed_case  # unsupported: comment character '#' in rules.references.special_chars.ignore_words (sqruff reads the rest of an INI line as a comment)
+rules/RF05/test_pass_ignore_words_regex_quoted  # unsupported: comment character '#' in rules.references.special_chars.ignore_words_regex (sqruff reads the rest of an INI line as a comment)
+rules/RF05/test_pass_special_chars_quoted_policy_none  # lint: no JSON lint output; lint: exit code 101: thread 'main' panicked at sqruff-lib-0.41.0/src/rules/references/rf05.rs:31:18:
+rules/RF06/test_fail_column_reference_prefer_quoted_ansi  # fix mismatch
+rules/RF06/test_fail_column_reference_prefer_quoted_backticks  # fix mismatch
+rules/RF06/test_fail_multiple_references_prefer_quoted_ansi  # fix mismatch
+rules/RF06/test_fail_multiple_references_prefer_quoted_backticks  # fix mismatch
+rules/RF06/test_fail_multiple_references_prefer_quoted_tsql  # fix mismatch
+rules/RF06/test_fail_prefer_quoted_identifiers_sqlite_no_fix  # fix mismatch
+rules/RF06/test_fail_table_reference_prefer_quoted_ansi  # fix mismatch
+rules/RF06/test_fail_table_reference_prefer_quoted_backticks  # fix mismatch
+rules/RF06/test_fail_table_reference_prefer_quoted_tsql  # fix mismatch
+rules/ST02/test_fail_no_copy_code_out_of_template  # fail_str: no violation of ST02
+rules/ST04/test_fail_nested_end_on_same_line  # fix mismatch
+rules/ST04/test_fail_no_copy_code_out_of_template  # fail_str: no violation of ST04
+rules/ST05/double_nested_fail_2  # unsupported: output field end_file_pos, end_line_no, end_line_pos, fixes, name, start_file_pos, warning (the case compares 'violations_after_fix'; the lint output has no such field)
+rules/ST05/issue_3617_parentheses_around_ctas_select  # fix mismatch
+rules/ST05/test_fail_order_5265  # unsupported: output field end_file_pos, end_line_no, end_line_pos, fixes, name, start_file_pos, warning (the case compares 'violations_after_fix'; the lint output has no such field)
+rules/ST05/unfixable_cte_clash  # unsupported: output field end_file_pos, end_line_no, end_line_pos, fixes, name, start_file_pos, warning (the case compares 'violations_after_fix'; the lint output has no such field)
+rules/ST05/uses_templating  # fail_str: no violation of ST05
+rules/ST06/test_fail_no_fix_block_comment_before_final_comma  # fix mismatch
+rules/ST06/test_fail_no_fix_block_comment_between_unchanged_and_moved_targets  # fix mismatch
+rules/ST06/test_fail_no_fix_comment_before_final_comma  # fix mismatch
+rules/ST06/test_fail_no_fix_leading_comment_on_moved_target  # fix mismatch
+rules/ST06/test_fail_no_fix_standalone_block_comment_after_moved_target  # fix mismatch
+rules/ST06/test_fail_no_fix_standalone_comment_after_moved_target  # fix mismatch
+rules/ST06/test_fail_no_fix_trailing_comment_inside_cte  # fail_str: no violation of ST06; fail_str: line numbers [], expected [2]
+rules/ST06/test_fail_no_fix_trailing_comment_on_final_target  # fix mismatch
+rules/ST06/test_fail_no_fix_trailing_inline_comments  # fix mismatch
+rules/ST07/fail_but_dont_fix_templated_table_names  # fix mismatch
+rules/ST07/test_partial_fixed_up_to_2nd_join  # unsupported: output field end_file_pos, end_line_no, end_line_pos, fixes, name, start_file_pos, warning (the case compares 'violations_after_fix'; the lint output has no such field)
+rules/ST11/test_fail_placeholder_templater_unused_join  # unsupported: upper-case key templater.placeholder.CATALOG (sqruff makes INI keys lower case)
+rules/TQ01/test_fail_sp_prefix_1  # unsupported: rule TQ01
+rules/TQ01/test_fail_sp_prefix_2  # unsupported: rule TQ01
+rules/TQ01/test_fail_sp_prefix_3  # unsupported: rule TQ01
+rules/TQ01/test_pass_non_sp_prefix_1  # unsupported: rule TQ01
+rules/TQ01/test_pass_non_sp_prefix_2  # unsupported: rule TQ01
+rules/TQ01/test_pass_non_sp_prefix_3  # unsupported: rule TQ01
+rules/TQ01/test_pass_non_sp_prefix_4  # unsupported: rule TQ01
+templater/jinja_b/jinja  # unsupported: setting templater.jinja.macros.some_macro
+templater/jinja_f/jinja  # unsupported: upper-case key templater.jinja.context.NUM_EMBEDDING_COMPONENTS (sqruff makes INI keys lower case)
+templater/jinja_g_macros/jinja  # unsupported: upper-case key templater.jinja.context.NUM_EMBEDDING_COMPONENTS (sqruff makes INI keys lower case)
+templater/jinja_j_libraries/jinja  # unsupported: setting templater.jinja.library_path
+templater/jinja_k_config_override_path_macros/jinja  # unsupported: setting templater.jinja.macros.foo2_def, templater.jinja.macros.foo3_def
+templater/jinja_l_metas/001  # tree differs
+templater/jinja_l_metas/002  # tree differs
+templater/jinja_l_metas/007  # tree differs
+templater/jinja_l_metas/008  # tree differs
+templater/jinja_l_metas/009  # tree differs
+templater/jinja_n_nested_macros/explicit_import  # unsupported: setting templater.jinja.macros.foo2_def, templater.jinja.macros.foo3_def
+templater/jinja_n_nested_macros/implicit_import  # unsupported: setting templater.jinja.macros.foo2_def, templater.jinja.macros.foo3_def
+templater/jinja_o_config_override_dbt_builtins/override_dbt_builtins  # unsupported: setting templater.jinja.macros.dbt_is_incremental
+templater/jinja_s_filters_in_library/jinja  # unsupported: setting templater.jinja.library_path
+templater/jinja_t_loader_search_path/jinja  # no tree; the test fails ('tree' is None)

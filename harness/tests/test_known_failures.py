@@ -198,3 +198,70 @@ def test_summary_check_order_does_not_depend_on_case_order():
             "fix",
             "pass_str",
         ]
+
+
+@pytest.mark.parametrize(
+    "reason, prefix",
+    [
+        ("unsupported: setting rules.indent_unit", "unsupported: setting"),
+        ("unsupported: rule CV13", "unsupported: rule"),
+        ("unsupported: dialect soql", "unsupported: dialect"),
+        ("unsupported: output field end_line_no (x)", "unsupported: output field"),
+        ("unsupported: upper-case key a.B (x)", "unsupported: upper-case key"),
+        (
+            "unsupported: comment character '#' in a.b (x)",
+            "unsupported: comment character",
+        ),
+        ("unsupported: something new", "unsupported:"),
+        ("tree differs; unparsable segment", "tree differs"),
+        ("fail_str: no violation of LT01; fix mismatch", "fail_str"),
+        ("parse: exit code 1: x", "parse"),
+        ("", "no reason"),
+    ],
+)
+def test_reason_prefix(reason, prefix):
+    assert known_failures.reason_prefix(reason) == prefix
+
+
+def test_render_and_counts():
+    results = [
+        CaseResult("rules/b/x", "rules", "t", FAIL, reason="fix mismatch"),
+        CaseResult(
+            "dialects/a/x", "dialects", "t", ERROR, reason="a\nb  c: " + "x" * 400
+        ),
+        CaseResult("dialects/a/y", "dialects", "t", PASS),
+        CaseResult("dialects/a/z", "dialects", "t", SKIP),
+        CaseResult("rules/a/x", "rules", "t", FAIL, reason="fix mismatch; b"),
+        CaseResult("rules/c/x", "rules", "t", FAIL),
+    ]
+    text = known_failures.render(results)
+    lines = text.splitlines()
+    assert [line.split()[0] for line in lines] == [
+        "dialects/a/x",
+        "rules/a/x",
+        "rules/b/x",
+        "rules/c/x",
+    ]
+    assert lines[0].startswith("dialects/a/x  # a b c: xxx")
+    assert lines[0].endswith("...") and len(lines[0]) < 330
+    assert lines[3] == "rules/c/x"
+    # The file is valid.
+    assert list(known_failures.parse(text)) == [line.split()[0] for line in lines]
+    assert known_failures.prefix_counts(results) == {
+        "a b c": {"dialects": 1},
+        "fix mismatch": {"rules": 2},
+        "no reason": {"rules": 1},
+    }
+
+
+def test_render_removes_volatile_panic_text():
+    reason = (
+        "lint: exit code 101: thread 'main' (26037) panicked at /root/.cargo/"
+        "registry/src/index.crates.io-1949cf8c6b5b557f/sqruff-lib-0.41.0/src/"
+        "rules/references/rf05.rs:31:18:"
+    )
+    results = [CaseResult("rules/a/x", "rules", "t", ERROR, reason=reason)]
+    assert known_failures.render(results) == (
+        "rules/a/x  # lint: exit code 101: thread 'main' panicked at "
+        "sqruff-lib-0.41.0/src/rules/references/rf05.rs:31:18:\n"
+    )

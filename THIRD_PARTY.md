@@ -38,8 +38,19 @@ Ported code (MIT, attribution in each file header):
 | `harness/sqll_harness/suites/rules.py` | `src/sqlfluff/utils/testing/rules.py` (`load_test_cases`, `_setup_config`, `assert_rule_fail_in_sql`, `assert_rule_pass_in_sql`, `prep_violations`, `rules__test_helper`) |
 | `harness/sqll_harness/suites/autofix.py` | `test/rules/std_fix_auto_test.py` (`test_cases`, `auto_fix_test`) |
 | `harness/sqll_harness/suites/templater.py` | `test/core/templaters/jinja_test.py` (`get_parsed`, `assert_structure`, `test__templater_full`) |
+| `harness/sqll_harness/code_only.py` | `src/sqlfluff/core/parser/segments/base.py` (`to_tuple`, `structural_simplify`, `is_code`), and the `is_code` and `is_meta` values of the segment classes |
+| `harness/sqll_harness/adapters/config_files.py` | `src/sqlfluff/core/config/` (`load_config_up_to_path`, `load_config_at_path`, `_resolve_paths_in_config`, `load_ini_string`), `src/sqlfluff/core/helpers/file.py` (`iter_intermediate_paths`) |
 | `scripts/sqlfluff_oracle.py` | `test/conftest.py` (`fail_on_parse_error_after_fix`) |
 | `scripts/sqlfluff-autofix-oracle` | `test/rules/std_fix_auto_test.py` (`test_cases`) |
+
+## sqruff
+
+- Source: https://github.com/quarylabs/sqruff, version `0.41.0`.
+- License: Apache-2.0.
+- `harness/sqll_harness/adapters/sqruff_config.py` has the names of the
+  documented sqruff settings, from `crates/lib/src/core/default_config.cfg`,
+  `docs/usage/configuration.md`, and `docs/reference/templaters.md` of that
+  version. No sqruff code is copied.
 
 ## Tools
 

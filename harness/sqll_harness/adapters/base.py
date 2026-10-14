@@ -87,15 +87,32 @@ class ToolNotInstalled(Exception):
     """The tool binary is not installed."""
 
 
+class Unsupported(Exception):
+    """The case uses an item that the tool does not support: a setting, a
+    rule, a dialect, a templater, or an output field that a check reads.
+
+    The case status is "fail" with the reason "unsupported: <item>". It is
+    never "pass".
+    """
+
+    def __init__(self, item: str) -> None:
+        super().__init__(item)
+        self.item = item
+
+
 class Adapter(ABC):
     """Runs one tool through its binary. Never through function calls.
 
     config_layer is the config that the adapter adds to each case, in the
     sqlfluff config structure. The report shows it.
+    An adapter raises Unsupported for an item that the tool does not support.
     """
 
     name: str
     config_layer: dict[str, Any] | None = None
+    # The violation keys that lint() gives. None: all keys of
+    # "sqlfluff lint -f json".
+    lint_fields: frozenset[str] | None = None
 
     @abstractmethod
     def version(self) -> str:

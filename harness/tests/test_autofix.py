@@ -442,6 +442,25 @@ def test_run_unparsable_gate_gives_error(tmp_path):
     assert result.reason == "non_linting: PRS at line 2, position 1"
 
 
+class ShowGateAdapter(FakeAdapter):
+    """Finds the gate only in the run that shows the violations."""
+
+    def fix_file(self, sql_path, rules, dialect, cwd, show_violations=False):
+        result = super().fix_file(sql_path, rules, dialect, cwd, show_violations)
+        result.unparsable_gate = show_violations
+        return result
+
+
+def test_run_gate_of_one_fix_run_gives_error(tmp_path):
+    # The tool does not change the file. The test applies the fixes.
+    adapter = ShowGateAdapter(fixed="SELECT a  +  b\n")
+    config = "test-config:\n  rules: [LT01]\n  raise_on_non_linting_violations: false\n"
+    case = _case(tmp_path, {"test-config.yml": config, "after.sql": "SELECT a  +  b\n"})
+    result = autofix.run(adapter, case, SQLFLUFF_ROOT)
+    assert result.status == ERROR
+    assert result.reason == autofix.GATE_REASON
+
+
 def test_run_with_no_tree_fails(tmp_path):
     result = autofix.run(FakeAdapter(tree=None), _case(tmp_path, {}), SQLFLUFF_ROOT)
     assert result.status == FAIL
@@ -491,7 +510,9 @@ HARNESS_STATUS = {
     "autofix/ansi/expect_fail_ignored_parse_error": ERROR,
     "autofix/ansi/expect_fail_no_rules": FAIL,
     "autofix/ansi/expect_fail_no_tree_ignored": FAIL,
+    "autofix/ansi/expect_fail_noqa_masked_gate": ERROR,
     "autofix/ansi/expect_fail_parse_error": FAIL,
+    "autofix/ansi/expect_fail_raise_off_gate": ERROR,
     "autofix/ansi/expect_fail_warning_violations": FAIL,
     "autofix/ansi/expect_fail_wrong_after": FAIL,
     "autofix/ansi/expect_pass_empty_violations": PASS,

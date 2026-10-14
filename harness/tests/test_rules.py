@@ -358,6 +358,34 @@ def test_fix_not_shown():
     assert "only hidden violations (ignore, noqa, or templated areas)" in why
 
 
+def test_fix_not_shown_with_no_fixes_field():
+    # The lint output has no fixes field (sqruff): each violation can have
+    # fixes.
+    lt01 = _v("LT01", 1, 5)
+    prs = _v("PRS", 2, 1)
+    unknown = {"fixes_known": False}
+    assert rules.fix_not_shown(_one(lt01), [[lt01]], None, **unknown) is None
+    assert rules.fix_not_shown(_one(), [[]], None, **unknown) is None
+    # A noqa-masked PRS stops the fix.
+    found = rules.Found(filtered=[lt01], raw=[lt01, prs], parse_stage=[prs])
+    lists = [[lt01], [lt01], [lt01, prs]]
+    why = rules.fix_not_shown(found, lists, None, **unknown)
+    assert why.startswith("the tool does not write a file with a PRS violation")
+    # With a fixes field and no fixes, the TMP and PRS check does not apply.
+    assert rules.fix_not_shown(found, lists, None) is None
+    even = {"core": {"fix_even_unparsable": True}}
+    assert rules.fix_not_shown(found, lists, even, **unknown) is None
+    # Only hidden violations.
+    found = rules.Found(filtered=[], raw=[lt01], parse_stage=[])
+    why = rules.fix_not_shown(found, [[], [lt01]], None, **unknown)
+    assert why.startswith("the tool shows no violation")
+
+
+def test_lint_has_fixes():
+    assert rules.lint_has_fixes(FakeAdapter())
+    assert not rules.lint_has_fixes(NoFixesAdapter())
+
+
 def test_fail_problems_compare_all_violations():
     found = _one(_v("LT01", 1, 1), _v("LT01", 2, 1, warning=True))
     assert rules.fail_problems(found, ["LT01"], [], found.raw, "LT01") == []
@@ -386,6 +414,12 @@ class FakeAdapter:
         self.calls.append(("fix", sql_path.name, rules_, dialect))
         text = sql_path.read_text()
         return FixResult(self.fixed if self.fixed is not None else text)
+
+
+class NoFixesAdapter(FakeAdapter):
+    """A lint output with no fixes field, as sqruff."""
+
+    lint_fields = frozenset({"code", "description", "start_line_no", "start_line_pos"})
 
 
 def test_skip_runs_no_tool():
@@ -533,6 +567,21 @@ def test_run_fix_not_shown_gives_error():
     result = rules.run(Adapter(lint={"fail.sql": [lt01]}), case, SQLFLUFF_ROOT)
     assert result.status == FAIL
     assert result.checks == {"fail_str": False}
+
+
+@pytest.mark.parametrize("fixed", [None, "x"])
+def test_run_noqa_masked_prs_with_no_fixes_field_gives_error(fixed):
+    # A noqa comment hides the PRS that stops the fix. The tool does not
+    # write the file, and its output does not show the fixes of the test.
+    lt01 = _v("LT01", 1, 1)
+    prs = _v("PRS", 2, 1)
+    case = rules.RuleCase(id="rules/x/y", rule="LT01", fail_str="f -- noqa\n")
+    adapter = MaskAdapter({"fail.sql"}, lint={"fail.sql": [lt01, prs]}, fixed=fixed)
+    adapter.lint_fields = NoFixesAdapter.lint_fields
+    result = rules.run(adapter, case, SQLFLUFF_ROOT)
+    assert result.status == ERROR
+    assert result.checks == {"fail_str": True}
+    assert result.reason.startswith("fix: the tool does not write a file with a PRS")
 
 
 @pytest.mark.parametrize(

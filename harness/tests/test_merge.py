@@ -66,6 +66,19 @@ def test_listed_id_with_unknown_suite_is_reported_when_all_suites_ran(tmp_path):
     assert outcomes["t"].ok
 
 
+def test_a_suite_that_does_not_run_for_the_tool_is_not_needed(tmp_path):
+    # code_only runs only for sqlfluff (suites.runs_for). Thus all suites
+    # ran for the tool "t" with only dialects.
+    known = _known(tmp_path, "fake_case")
+    _, outcomes = merge.merge(_shards(2), known, SUITES + ["code_only"])
+    assert outcomes["t"].not_found == ["fake_case"]
+    known = _known(tmp_path, "fake_case", tool="sqlfluff")
+    _, outcomes = merge.merge(
+        _shards(2, tool="sqlfluff"), known, SUITES + ["code_only"]
+    )
+    assert outcomes["sqlfluff"].ok
+
+
 def test_case_outside_the_scope_is_an_error(tmp_path):
     a, b = _shards(2)
     b[1]["cases"][0]["tool"] = "other"

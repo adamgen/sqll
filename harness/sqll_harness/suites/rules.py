@@ -18,7 +18,7 @@ from typing import Any
 import yaml
 
 from ..adapters import Adapter
-from ..adapters.base import LintResult
+from ..adapters.base import LintResult, Unsupported
 from ..cases import ERROR, FAIL, PASS, SKIP, CaseResult
 
 NAME = "rules"
@@ -306,7 +306,10 @@ def can_template(sql: str, configs: dict[str, Any] | None) -> bool:
 
 
 def fix_not_shown(
-    found: Found, lists: list[list[dict]], configs: dict[str, Any] | None
+    found: Found,
+    lists: list[list[dict]],
+    configs: dict[str, Any] | None,
+    fixes_known: bool = True,
 ) -> str | None:
     """Return why the fixed file can be different from the test, or None.
 
@@ -317,24 +320,51 @@ def fix_not_shown(
     does not write the file and a rule gave fixes, the result of the test is
     not known. lists are all lint outputs of the file, also the lint that
     keeps the lint errors in templated areas (see templated_area_config).
+
+    fixes_known is False if the lint output has no "fixes" field. Then each
+    violation can have fixes, and the TMP and PRS check always applies.
     """
-    if not any(v.get("fixes") for violations in lists for v in violations):
+    if fixes_known:
+        if not any(v.get("fixes") for violations in lists for v in violations):
+            return None
+    elif not any(lists):
         return None
     core = configs.get("core") if configs else None
     even = isinstance(core, dict) and core.get("fix_even_unparsable") is True
     blocking = [v for v in found.raw if v.get("code") in FAIL_STR_ERROR_CODES]
     if blocking and not even:
+        if not fixes_known:
+            return (
+                f"the tool does not write a file with a {blocking[0]['code']} "
+                "violation, and its lint output has no fixes field: the test "
+                "can apply fixes"
+            )
         return (
             f"'sqlfluff fix' does not write a file with a {blocking[0]['code']} "
             "violation, but the test applies the fixes"
         )
-    if not any(v.get("fixes") for v in found.filtered):
+    if fixes_known:
+        shown = any(v.get("fixes") for v in found.filtered)
+    else:
+        # The tool can write the file only if it shows a violation.
+        shown = any(not v.get("warning") for v in found.filtered)
+    if not shown:
         return (
             "'sqlfluff fix' does not write a file when only hidden violations "
             "(ignore, noqa, or templated areas) have fixes, but the test "
             "applies the fixes"
+            if fixes_known
+            else "the tool shows no violation, so it does not write a file, "
+            "but a hidden violation (ignore, noqa, or templated areas) can "
+            "have fixes that the test applies"
         )
     return None
+
+
+def lint_has_fixes(adapter: Adapter) -> bool:
+    """Return True if the lint output of the adapter has the fixes field."""
+    fields = getattr(adapter, "lint_fields", None)
+    return fields is None or "fixes" in fields
 
 
 def config_without_ignore(configs: dict[str, Any] | None) -> dict[str, Any] | None:
@@ -391,6 +421,7 @@ def run(adapter: Adapter, case: RuleCase, sqlfluff_root: Path) -> CaseResult:
         return CaseResult(
             case.id, NAME, adapter.name, ERROR, reason=INLINE_CONFIG_REASON
         )
+    check_fields(adapter, case)
     codes = rule_codes(case.rule)
     dialect = default_dialect(case.configs)
     checks: dict[str, bool] = {}
@@ -465,7 +496,9 @@ def run(adapter: Adapter, case: RuleCase, sqlfluff_root: Path) -> CaseResult:
             lists = outputs("fail")
             if templated_area is not None:
                 lists.append(templated_area.violations[paths["fail"]])
-            not_shown = fix_not_shown(failed, lists, case.configs)
+            not_shown = fix_not_shown(
+                failed, lists, case.configs, lint_has_fixes(adapter)
+            )
             if fix.fixed is None:
                 unknown.extend(f"fix: tool: {e}" for e in fix.errors)
             elif fix.critical:
@@ -510,6 +543,34 @@ def run(adapter: Adapter, case: RuleCase, sqlfluff_root: Path) -> CaseResult:
         checks=checks,
         reason="; ".join(reasons + unknown),
     )
+
+
+# The keys that SQLBaseError.to_dict() always gives. Subclasses add more.
+TO_DICT_KEYS = frozenset(
+    {"start_line_no", "start_line_pos", "code", "description", "name", "warning"}
+)
+
+
+def check_fields(adapter: Adapter, case: RuleCase) -> None:
+    """Raise Unsupported if the case compares a violation field that the
+    lint output of the tool does not have.
+
+    The test compares each violation with to_dict(), so it always compares
+    TO_DICT_KEYS, also when the expected dict does not have one of them.
+    """
+    fields = getattr(adapter, "lint_fields", None)
+    if fields is None:
+        return
+    for name in ("violations", "violations_after_fix"):
+        expected = getattr(case, name) or []
+        if not expected:
+            continue
+        missing = (TO_DICT_KEYS | {k for v in expected for k in v}) - fields
+        if missing:
+            raise Unsupported(
+                f"output field {', '.join(sorted(missing))} (the case "
+                f"compares '{name}'; the lint output has no such field)"
+            )
 
 
 def noqa_mask_active(lints: list[LintResult], paths: list[Path]) -> bool:

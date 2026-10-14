@@ -215,7 +215,9 @@ def run(adapter: Adapter, case: AutofixCase, sqlfluff_root: Path) -> CaseResult:
     checks: dict[str, bool] = {"tree": True}
     reasons: list[str] = []
     unknown: list[str] = []
-    shown = [v for v in show_run.violations or [] if not v["warning"]]
+    # A tool with no warning field (sqruff) gives no "warning" key; the
+    # adapter fails the case if the config sets warnings.
+    shown = [v for v in show_run.violations or [] if not v.get("warning")]
     non_lint = [v for v in shown if v["code"] in NON_LINT_CODES]
     raises = bool(test_config.raise_on_non_linting_violations) and bool(non_lint)
     if test_config.raise_on_non_linting_violations:
@@ -240,7 +242,9 @@ def run(adapter: Adapter, case: AutofixCase, sqlfluff_root: Path) -> CaseResult:
                     f"violations: missing {sorted(want - got, key=str)}, "
                     f"extra {sorted(got - want, key=str)}"
                 )
-    if fix_run.unparsable_gate:
+    # The 2 runs fix the same file with the same config. A tool can find the
+    # gate only in one of them (for example, only from shown violations).
+    if fix_run.unparsable_gate or show_run.unparsable_gate:
         if not raises:
             unknown.append(GATE_REASON)
     elif fixed[0] != fixed[1]:

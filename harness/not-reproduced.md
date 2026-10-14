@@ -140,3 +140,51 @@ causes.
 - The oracles add the 2 keys under the config of the test. The adapter adds
   them over the config files of the case, and gives `error` if the case sets
   one of them. No 4.4.0 case sets them, so the 2 configs are equal.
+
+## sqruff
+
+No sqlfluff test runs sqruff, so the harness compares the sqruff output with
+the data of the fixture. See [sqruff.md](sqruff.md). Limits:
+
+- The code-only filter decides "code" by the segment type. The `code_only`
+  suite proves it on the sqlfluff trees of all 2306 dialect cases. A sqruff
+  segment that is code but has the type of a sqlfluff non-code segment (for
+  example `comment`) is removed. A sqruff segment that is not code and has
+  another type stays, and the tree differs. No 4.4.0 case shows this.
+- The lint output of sqruff has no `fixes` field. Thus in the rule suite,
+  `fix_not_shown` thinks that each violation can have fixes. With no
+  `fix_even_unparsable`, a TMP or PRS in a lint output (also one that a
+  noqa comment hides) gives `error` for the `fix` check: `sqruff fix` does
+  not write the file (`has_parse_or_templating_errors` is set before the
+  noqa mask), but the test applies the fixes. A case where no rule gives
+  fixes then also gives `error`. If sqruff shows no violation and a lint
+  with less filter shows one, the `fix` check also gives `error`: sqruff
+  writes the file only if it shows a violation that is not a warning
+  (`commands_fix.rs`). Else the `fix` check compares the file that
+  `sqruff fix` wrote. In 4.4.0, 7 rule cases have the TMP or PRS and 9
+  have only hidden violations; all 16 fail at `fail_str`.
+- In `fix_file`, the harness finds that sqruff does not write the file (no
+  `fix_even_unparsable`) from a TMP or PRS in the `fix -f json` output, or
+  from `sqruff parse` of the file before the fix: no tree, an `unparsable`
+  segment, or exit code 1. It does this in each of the 2 autofix runs. A
+  noqa-masked TMP in a file that has a tree is not found. Then the `fix`
+  check compares the file. No 4.4.0 autofix case has a noqa-masked TMP.
+- sqruff 0.41.0 reads only the `core.ignore` value `templating`. Each other
+  value gives `unsupported: setting core.ignore=<value>`.
+- "unsupported" follows the sqruff documentation and the sqruff 0.41.0
+  source. sqruff 0.41.0 reads some settings that its documentation does not
+  have (these cases fail with `unsupported: setting`). The documented
+  settings that the source does not read also give `unsupported: setting`
+  (see [sqruff.md](sqruff.md)). The harness found them with a search of the
+  source for each setting name. It does not run a check that sqruff uses
+  each setting.
+- sqruff and sqlfluff convert an INI value in the same way (int, float,
+  bool, none, else text). A YAML string such as `"5"` becomes the int 5,
+  and the YAML string `none` or `None` becomes None. For 5 rule cases sqruff
+  then panics (`error`).
+  A list in the template variables is written as Python text; the templater
+  reads it with `ast.literal_eval`. sqruff cuts an INI line at `#` or `;`,
+  so a value with one of them gives `unsupported: comment character`.
+- sqruff has no dialect oracle. Thus no check shows a difference that an
+  in-file config line causes in a dialect case. In 4.4.0 only
+  `clickhouse/create_user.sql` has one, and it has no effect.

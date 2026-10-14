@@ -1,4 +1,7 @@
-"""Command line: sqll-harness run | merge | tools. See harness/README.md."""
+"""Command line: sqll-harness run | merge | tools | known-failures.
+
+See harness/README.md.
+"""
 
 import argparse
 import json
@@ -12,10 +15,11 @@ from pathlib import Path
 
 from . import known_failures, merge, report, shard, tools
 from .adapters import ADAPTERS, Adapter
-from .cases import ERROR, CaseResult
+from .adapters.base import Unsupported
+from .cases import ERROR, FAIL, UNSUPPORTED, CaseResult
 from .known_failures import Outcome
 from .paths import DEFAULT_REPORT, KNOWN_FAILURES_DIR, SQLFLUFF_ROOT
-from .suites import SUITES
+from .suites import SUITES, runs_for
 
 
 def _shard(text: str) -> shard.Shard:
@@ -74,6 +78,18 @@ def _parser() -> argparse.ArgumentParser:
         help='JSON list of {"suite", "tool", "shards"}. Each must be in the reports.',
     )
 
+    kfs = sub.add_parser(
+        "known-failures",
+        help="Print the known-failures file of a tool from a report.",
+    )
+    kfs.add_argument("report", type=Path)
+    kfs.add_argument("--tool", required=True)
+    kfs.add_argument(
+        "--counts",
+        action="store_true",
+        help="Print the number of failures for each reason prefix and suite.",
+    )
+
     tls = sub.add_parser(
         "tools",
         help="Print the installed tools as JSON. Fail if a tool is not as pinned.",
@@ -103,6 +119,14 @@ def _run_one(suite, adapter: Adapter, case, root: Path) -> CaseResult:
     t0 = time.monotonic()
     try:
         result = suite.run(adapter, case, root)
+    except Unsupported as exc:
+        result = CaseResult(
+            id=case.id,
+            suite=suite.NAME,
+            tool=adapter.name,
+            status=FAIL,
+            reason=f"{UNSUPPORTED}{exc.item}",
+        )
     except Exception as exc:  # noqa: BLE001 - one bad case must not stop the run.
         result = CaseResult(
             id=case.id,
@@ -165,7 +189,8 @@ def run(args: argparse.Namespace) -> int:
             cases = [c for c in cases if c.id.startswith(args.filter)]
         cases = [c for c in cases if shard.contains(args.shard, c.id)]
         for adapter in adapters.values():
-            jobs += [(suite, adapter, c) for c in cases]
+            if runs_for(suite, adapter.name):
+                jobs += [(suite, adapter, c) for c in cases]
 
     print(f"running {len(jobs)} cases with {args.jobs} jobs", file=sys.stderr)
     results: list[CaseResult] = []
@@ -210,6 +235,22 @@ def merge_reports(args: argparse.Namespace) -> int:
     return _finish(rep, args.out, outcomes)
 
 
+def show_known_failures(args: argparse.Namespace) -> int:
+    rep = json.loads(args.report.read_text(encoding="utf8"))
+    results = [CaseResult(**c) for c in rep["cases"] if c["tool"] == args.tool]
+    if not args.counts:
+        sys.stdout.write(known_failures.render(results))
+        return 0
+    counts = known_failures.prefix_counts(results)
+    suites = sorted({s for by_suite in counts.values() for s in by_suite})
+    print("| Reason prefix | " + " | ".join(suites) + " |")
+    print("|---|" + "---|" * len(suites))
+    for prefix, by_suite in counts.items():
+        cells = " | ".join(str(by_suite.get(s, 0)) for s in suites)
+        print(f"| {prefix} | {cells} |")
+    return 0
+
+
 def show_tools(args: argparse.Namespace) -> int:
     infos = tools.check(args.tool)
     out = {
@@ -228,6 +269,8 @@ def main(argv: list[str] | None = None) -> int:
         return merge_reports(args)
     if args.command == "tools":
         return show_tools(args)
+    if args.command == "known-failures":
+        return show_known_failures(args)
     return 2
 
 
