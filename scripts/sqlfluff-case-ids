@@ -1,0 +1,111 @@
+#!/usr/bin/env python3
+"""Print the parameter ids that the sqlfluff tests of each suite collect.
+
+The harness unit test harness/tests/test_case_counts.py compares them with
+the cases that the harness finds. Thus the case counts of the harness are the
+counts of the sqlfluff tests, from the pinned test code and not from a copy.
+
+It runs "pytest --collect-only" in this process on one test function for
+each suite, in the pinned sqlfluff submodule:
+
+  dialects   test/dialects/dialects_test.py::test__dialect__base_parse_struct
+  rules      test/rules/yaml_test_cases_test.py::test__rule_test_case
+  autofix    test/rules/std_fix_auto_test.py::test__std_fix_auto
+  templater  test/core/templaters/jinja_test.py::test__templater_full
+
+Run it with the pinned sqlfluff and pytest that scripts/setup installs
+(tools/sqlfluff-oracle):
+
+  .tools/sqlfluff-oracle/bin/python scripts/sqlfluff-case-ids
+
+It writes JSON to stdout: {"sqlfluff": "<version>", "suites": {"<suite>":
+{"test": "<node id>", "ids": ["<parameter id>", ...]}}}. The pytest output
+goes to stderr. The exit code is 1 if pytest does not collect a test
+function, or if a parameter id is in the list 2 times.
+"""
+
+import contextlib
+import json
+import os
+import sys
+from collections import Counter
+from pathlib import Path
+
+# Python and pytest must not write a bytecode file or a cache in the
+# submodule.
+sys.dont_write_bytecode = True
+
+import pytest  # noqa: E402
+import sqlfluff  # noqa: E402
+
+SQLFLUFF_ROOT = Path(__file__).resolve().parents[1] / "third_party" / "sqlfluff"
+
+TESTS = {
+    "dialects": "test/dialects/dialects_test.py::test__dialect__base_parse_struct",
+    "rules": "test/rules/yaml_test_cases_test.py::test__rule_test_case",
+    "autofix": "test/rules/std_fix_auto_test.py::test__std_fix_auto",
+    "templater": "test/core/templaters/jinja_test.py::test__templater_full",
+}
+
+
+class Collector:
+    """A pytest plugin that keeps the collected items."""
+
+    def __init__(self) -> None:
+        self.items: list = []
+
+    def pytest_collection_finish(self, session) -> None:
+        self.items = list(session.items)
+
+
+@contextlib.contextmanager
+def stdout_to_stderr():
+    """Send file descriptor 1 to stderr. pytest writes to the descriptor."""
+    sys.stdout.flush()
+    saved = os.dup(1)
+    os.dup2(2, 1)
+    try:
+        yield
+    finally:
+        sys.stdout.flush()
+        os.dup2(saved, 1)
+        os.close(saved)
+
+
+def collect() -> tuple[int, dict[str, list[str]]]:
+    """Return the pytest exit code and {node id of a test: [parameter ids]}."""
+    collector = Collector()
+    # The tests find their fixtures with paths relative to the sqlfluff root.
+    os.chdir(SQLFLUFF_ROOT)
+    args = ["--collect-only", "-q", "-p", "no:cacheprovider", *TESTS.values()]
+    with stdout_to_stderr():
+        code = pytest.main(args, plugins=[collector])
+    found: dict[str, list[str]] = {test: [] for test in TESTS.values()}
+    for item in collector.items:
+        test, _, param = item.nodeid.partition("[")
+        if test in found:
+            found[test].append(param.removesuffix("]"))
+    return int(code), found
+
+
+def main() -> int:
+    code, found = collect()
+    status = 0 if code == 0 else 1
+    out = {"sqlfluff": sqlfluff.__version__, "suites": {}}
+    for suite, test in TESTS.items():
+        ids = found[test]
+        if not ids:
+            print(f"error: pytest collected no case of {test}", file=sys.stderr)
+            status = 1
+        twice = sorted(i for i, n in Counter(ids).items() if n > 1)
+        if twice:
+            print(f"error: {test}: ids in the list 2 times: {twice}", file=sys.stderr)
+            status = 1
+        out["suites"][suite] = {"test": test, "ids": ids}
+        print(f"{suite}: {len(ids)} ({test})", file=sys.stderr)
+    print(json.dumps(out, indent=1))
+    return status
+
+
+if __name__ == "__main__":
+    sys.exit(main())

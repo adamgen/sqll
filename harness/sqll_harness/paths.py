@@ -8,6 +8,7 @@ SQLFLUFF_ROOT = REPO_ROOT / "third_party" / "sqlfluff"
 TOOL_SPECS_DIR = REPO_ROOT / "tools"
 KNOWN_FAILURES_DIR = REPO_ROOT / "known_failures"
 DEFAULT_REPORT = REPO_ROOT / "out" / "report.json"
+DEFAULT_SUMMARY = REPO_ROOT / "results" / "s1" / "summary.json"
 
 
 def tools_dir() -> Path:

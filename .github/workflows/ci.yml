@@ -97,7 +97,7 @@ jobs:
           ORACLES: >-
             scripts/sqlfluff_oracle.py scripts/sqlfluff-rule-oracle
             scripts/sqlfluff-autofix-oracle scripts/sqlfluff-templater-oracle
-            scripts/sqlfluff-dialect-oracle
+            scripts/sqlfluff-dialect-oracle scripts/sqlfluff-case-ids
         run: |
           uv run --frozen --project harness ruff check harness ci $ORACLES
           uv run --frozen --project harness ruff format --check harness ci $ORACLES
@@ -232,6 +232,12 @@ jobs:
           echo "submodule: $want, report: $got"
           test "$want" = "$got"
 
+      - name: Summary
+        run: |
+          uv run --frozen --project harness sqll-harness summarize \
+            out/report.json --out out/summary.json
+          cat out/summary.json
+
       # The sqlfluff test of each rule case must give the same status.
       - name: Compare the rule results with the sqlfluff test
         run: |
@@ -269,12 +275,21 @@ jobs:
             --report out/report.json --out out/rs-templater-oracle.jsonl
           scripts/check-submodule "after the comparison"
 
+      # The recorded summary must be the summary of this run. To record a new
+      # one, copy out/summary.json of the report artifact.
+      - name: Check the recorded summary
+        run: >-
+          uv run --frozen --project harness sqll-harness summarize
+          out/report.json --out out/summary.json
+          --check results/s1/summary.json
+
       - if: always()
         uses: actions/upload-artifact@v7
         with:
           name: report
           path: |
             out/report.json
+            out/summary.json
             out/oracle.jsonl
             out/autofix-oracle.jsonl
             out/templater-oracle.jsonl
