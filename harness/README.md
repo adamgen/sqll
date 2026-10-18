@@ -22,6 +22,13 @@ exit code is not 0 if a result is different from `known_failures/<tool>.txt`.
 untracked or ignored file. `scripts/test` runs it before the tests and after
 the run. CI runs it after the tests and after each shard.
 
+`scripts/verify [--jobs N] [--quick]` runs each CI check locally: the lint job,
+one unsharded run of all tools and suites, and the report and dialect-oracle
+checks. Exit code 0 only if all pass; details in `out/verify.json` and
+`out/verify/*.log`. `--quick` (fast checks only) is not the full verification.
+CI-only steps (checkout, image, artifacts, shard merge) are in `CI_ONLY` in
+`sqll_harness/verify.py`; `tests/test_verify.py` fails if a CI step is in no list.
+
 ## Tools
 
 `scripts/setup` installs the pinned tools in `SQLL_TOOLS_DIR` (default
