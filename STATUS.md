@@ -27,6 +27,10 @@ it cannot drift. CI for PR #10 did not run yet: since 2026-10-14 10:30 UTC
 each CI job fails before a runner starts (also on `main`). A human must
 make CI run, see PR #10.
 
+CI is blocked by account billing. Thus the S1 proof is local:
+`scripts/verify` runs each CI check. On commit `b57d1e4` it passed 23 of
+23 checks (exit code 0, 4779 s, 4 jobs).
+
 | Criterion (STONES.md) | Proof |
 |---|---|
 | Submodule at tag `4.4.0` | `third_party/sqlfluff` at the commit above; `scripts/check-submodule` in CI: no change |
