@@ -1,9 +1,12 @@
 """Benchmark definitions: harness/sqll_harness/bench/definitions.json.
 
-The definitions are data with no tool entry. They give each benchmark id
-and the bytes, lines, and sha256 of each built input. render() makes them
-from a build; check() compares a build with the recorded definitions, so a
-change of a fixture, of the exclusion list, or of the builder fails closed.
+The definitions are data with no tool entry. They give each benchmark id,
+the bytes, lines, and sha256 of each built input, and the sqlfluff reference
+of each input (the lint rule codes, and if fix changes the file; made by
+"sqll-harness bench reference"). make() makes them from a build; check()
+compares a build with the recorded definitions, so a change of a fixture, of
+the exclusion list, or of the builder fails closed. check_reference() finds
+a missing reference or a reference of another input.
 """
 
 import json
@@ -19,7 +22,9 @@ from .inputs import (
 )
 
 DEFINITIONS = Path(__file__).with_name("definitions.json")
-FORMAT = 1
+FORMAT = 2
+REFERENCE_TOOL = "sqlfluff"
+REFERENCE_FIELDS = ("sha256", "lint_codes", "fix_changes")
 COMMANDS = ("parse", "lint", "fix")
 
 
@@ -50,8 +55,9 @@ def benchmarks(dialects: list[str]) -> list[dict]:
     return out
 
 
-def make(result: Build) -> dict:
-    """Return the definitions of a build."""
+def make(result: Build, reference: dict | None = None) -> dict:
+    """Return the definitions of a build, with this reference
+    ({"sqlfluff_version", "inputs"}; None: an empty one)."""
     sel = result.selection
     used = [p for pieces in sel.pieces.values() for p in pieces]
     return {
@@ -69,6 +75,7 @@ def make(result: Build) -> dict:
             name: {"bytes": len(i.data), "lines": i.lines, "sha256": i.sha256}
             for name, i in result.inputs.items()
         },
+        "reference": reference or {"sqlfluff_version": None, "inputs": {}},
         "benchmarks": benchmarks(result.dialects),
     }
 
@@ -85,6 +92,14 @@ def render(defs: dict) -> str:
     lines.append(' "inputs": {')
     items = [f"  {json.dumps(k)}: {one(v)}" for k, v in defs["inputs"].items()]
     lines.append(",\n".join(items))
+    lines.append(" },")
+    ref = defs["reference"]
+    lines.append(' "reference": {')
+    lines.append(f'  "sqlfluff_version": {one(ref["sqlfluff_version"])},')
+    lines.append('  "inputs": {')
+    items = [f"   {json.dumps(k)}: {one(v)}" for k, v in ref["inputs"].items()]
+    lines.append(",\n".join(items))
+    lines.append("  }")
     lines.append(" },")
     lines.append(' "benchmarks": [')
     lines.append(",\n".join(f"  {one(b)}" for b in defs["benchmarks"]))
@@ -127,3 +142,39 @@ def check(recorded: dict, result: Build) -> list[str]:
             )
         )
     return errors
+
+
+def check_reference(defs: dict) -> list[str]:
+    """Return each error of the sqlfluff reference of the definitions: each
+    input (not start) needs an entry for its sha256."""
+    ref = defs.get("reference")
+    if not isinstance(ref, dict) or set(ref) != {"sqlfluff_version", "inputs"}:
+        return ["reference: not an object with sqlfluff_version and inputs"]
+    errors = []
+    if not isinstance(ref["sqlfluff_version"], str) or not ref["sqlfluff_version"]:
+        errors.append("reference: no sqlfluff_version")
+    entries = ref.get("inputs") or {}
+    names = [n for n in defs["inputs"] if n != START]
+    for name in names:
+        entry = entries.get(name)
+        if entry is None:
+            errors.append(f"reference {name}: missing")
+        elif not isinstance(entry, dict) or tuple(entry) != REFERENCE_FIELDS:
+            errors.append(f"reference {name}: the fields are not {REFERENCE_FIELDS}")
+        elif entry["sha256"] != defs["inputs"][name]["sha256"]:
+            errors.append(f"reference {name}: made for another input (sha256)")
+        elif not _good_entry(entry):
+            errors.append(f"reference {name}: bad value {entry}")
+    for name in sorted(set(entries) - set(names)):
+        errors.append(f"reference {name}: not an input")
+    return errors
+
+
+def _good_entry(entry: dict) -> bool:
+    codes = entry["lint_codes"]
+    return (
+        isinstance(entry["fix_changes"], bool)
+        and isinstance(codes, list)
+        and all(isinstance(c, str) for c in codes)
+        and codes == sorted(set(codes))
+    )

@@ -33,6 +33,17 @@ needs_all_tools = needs(
 )
 
 
+@pytest.fixture(scope="session")
+def bench_inputs_dir(tmp_path_factory):
+    """The benchmark inputs of the definitions, built in a temp folder."""
+    from sqll_harness.bench import inputs
+    from sqll_harness.paths import SQLFLUFF_ROOT
+
+    out = tmp_path_factory.mktemp("bench") / "inputs"
+    inputs.write(inputs.build(SQLFLUFF_ROOT), out)
+    return out
+
+
 @pytest.hookimpl(wrapper=True)
 def pytest_runtest_makereport(item, call):
     rep = yield

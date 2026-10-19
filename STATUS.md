@@ -13,8 +13,8 @@
 |---|---|---|
 | T1 | S2 design record (`harness/bench.md`) and STATUS update | Merged (PR #12) |
 | T2 | Benchmark definitions and deterministic input builder | Merged (PR #13) |
-| T3 | Measurement core and the benchmark report schema | In review (PR #14) |
-| T4 | Benchmark adapters for sqlfluff, `sqlfluff[rs]`, and sqruff with validity checks | Open |
+| T3 | Measurement core and the benchmark report schema | Merged (PR #14) |
+| T4 | Benchmark adapters for sqlfluff, `sqlfluff[rs]`, and sqruff with validity checks | In review (PR #15) |
 | T5 | `sqll-harness bench run` and `scripts/bench`: one command, one machine-readable report | Open |
 | T6 | CI benchmark jobs and `scripts/verify` drift coverage | Open |
 | T7 | Slowdown detection: `sqll-harness bench compare` and the change-record rule | Open |
@@ -23,8 +23,11 @@
 Benchmark definitions (`harness/sqll_harness/bench/definitions.json`): 280
 benchmarks (28 dialect folders, also soql; `start` and 3 sizes of `parse`,
 `lint`, `fix`) on 85 inputs (84 and `start`). The inputs use 2161 of 2306
-dialect fixture files; 140 are in the frozen exclusion list. T4 adds the
-sqlfluff reference (the `lint` rule codes, and if `fix` changes the file).
+dialect fixture files; 140 are in the frozen exclusion list. The
+definitions also store the sqlfluff 4.4.0 reference of the 84 inputs
+(`sqll-harness bench reference`): the `lint` rule codes (1 to 29 codes for
+each input), and if `fix` changes the file (82 of 84; not `flink/small` and
+`vertica/small`).
 
 Measurement core (`harness/sqll_harness/bench/timer.py`, `report.py`): the
 timer, the profiles (`full`: 3 to 20 timed runs, 2 s budget; `smoke`: 1
@@ -32,6 +35,16 @@ timed run; 120 s timeout), and the schema check of `out/bench.json`
 (`harness/README.md`). Unit tests use test doubles only; no tool runs yet.
 Measured: `/bin/sleep 0.2` median 0.202 s (10 runs), timer overhead
 (`/bin/true`) median 1.4 ms.
+
+Benchmark adapters (`harness/sqll_harness/bench/adapter.py`, `tools.py`,
+`registry.py`): sqlfluff, `sqlfluff[rs]`, and sqruff, with the validity
+checks of `harness/bench.md`. Tests with the real tools: on the small inputs
+of ansi, bigquery, and tsql, each command of each tool is valid; sqruff on
+soql is `unsupported: dialect soql`; with the default size limit, an input
+of 20466 bytes is invalid (a skip with exit code 0) for each tool and
+command that has the limit; an unparsable input is invalid for `parse`,
+`lint`, and `fix`. A test-double tool runs all 280 benchmarks through the
+registry, valid. No timing is recorded yet (T5).
 
 ## S1 exit evidence (approved)
 

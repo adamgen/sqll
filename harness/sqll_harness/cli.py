@@ -7,6 +7,7 @@ import argparse
 import json
 import os
 import sys
+import tempfile
 import time
 import traceback
 from concurrent.futures import ThreadPoolExecutor
@@ -17,6 +18,9 @@ from .adapters import ADAPTERS, Adapter
 from .adapters.base import Unsupported
 from .bench import definitions as bench_definitions
 from .bench import inputs as bench_inputs
+from .bench import reference as bench_reference
+from .bench import registry as bench_registry
+from .bench.adapter import ConfigAbove
 from .cases import ERROR, FAIL, UNSUPPORTED, CaseResult
 from .known_failures import Outcome
 from .paths import (
@@ -147,7 +151,26 @@ def _parser() -> argparse.ArgumentParser:
         "--write-definitions",
         action="store_true",
         help="Write the definitions of this build to the --definitions file "
-        "instead of a check.",
+        "instead of a check. The sqlfluff reference stays.",
+    )
+    bref = bench_sub.add_parser(
+        "reference",
+        help="Make the sqlfluff reference of the inputs (lint rule codes, and "
+        "if fix changes the file). Fail if it is not the reference of the "
+        "definitions.",
+    )
+    bref.add_argument("--sqlfluff-root", type=Path, default=SQLFLUFF_ROOT)
+    bref.add_argument("--definitions", type=Path, default=bench_definitions.DEFINITIONS)
+    bref.add_argument(
+        "--jobs",
+        type=int,
+        default=os.process_cpu_count() or 1,
+        help="Number of inputs to do in parallel. Default: CPUs this process can use.",
+    )
+    bref.add_argument(
+        "--write",
+        action="store_true",
+        help="Write the new reference to the --definitions file instead of a check.",
     )
     return p
 
@@ -349,23 +372,76 @@ def bench_inputs_command(args: argparse.Namespace) -> int:
         f"{len(result.inputs)} inputs in {args.out} "
         f"({sel['used']} of {sel['files']} fixture files)"
     )
-    new = bench_definitions.make(result)
-    if args.write_definitions:
-        args.definitions.write_text(bench_definitions.render(new), encoding="utf8")
-        print(f"definitions: {args.definitions}")
-        return 0
     try:
         recorded = bench_definitions.load(args.definitions)
     except (OSError, ValueError) as exc:
-        print(f"error: {args.definitions}: {exc}", file=sys.stderr)
-        return 2
+        if not args.write_definitions:
+            print(f"error: {args.definitions}: {exc}", file=sys.stderr)
+            return 2
+        recorded = {}
+    if args.write_definitions:
+        new = bench_definitions.make(result, recorded.get("reference"))
+        args.definitions.write_text(bench_definitions.render(new), encoding="utf8")
+        print(f"definitions: {args.definitions}")
+        for line in bench_definitions.check_reference(new):
+            print(f"warning: {line}")
+        return 0
     errors = bench_definitions.check(recorded, result)
+    errors += bench_definitions.check_reference(recorded)
     for line in errors:
         print(line)
     if errors:
         print(f"FAIL: the inputs are not as in {args.definitions}.")
         return 1
     print(f"The inputs are as in {args.definitions}.")
+    return 0
+
+
+def bench_reference_command(args: argparse.Namespace) -> int:
+    root: Path = args.sqlfluff_root.resolve()
+    try:
+        defs = bench_definitions.load(args.definitions)
+        result = bench_inputs.build(root)
+    except (OSError, ValueError, bench_inputs.BuildError) as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
+    errors = bench_definitions.check(defs, result)
+    if errors:
+        for line in errors:
+            print(line, file=sys.stderr)
+        print(
+            "error: the inputs are not those of the definitions. Run: "
+            "sqll-harness bench inputs --write-definitions",
+            file=sys.stderr,
+        )
+        return 2
+    adapter = bench_registry.get(bench_definitions.REFERENCE_TOOL)
+    with tempfile.TemporaryDirectory(prefix="sqll-bench-reference-") as tmp:
+        bench_inputs.write(result, Path(tmp) / "inputs")
+        try:
+            new, failed = bench_reference.make(
+                adapter, defs, Path(tmp) / "inputs", Path(tmp) / "work", args.jobs
+            )
+        except ConfigAbove as exc:
+            print(f"error: {exc}", file=sys.stderr)
+            return 2
+    for line in failed:
+        print(f"invalid: {line}")
+    if failed:
+        print(f"FAIL: {len(failed)} inputs have no valid {adapter.name} run.")
+        return 1
+    diffs = bench_reference.differences(defs.get("reference"), new)
+    if args.write:
+        defs["reference"] = new
+        args.definitions.write_text(bench_definitions.render(defs), encoding="utf8")
+        print(f"reference of {len(new['inputs'])} inputs: {args.definitions}")
+        return 0
+    for line in diffs:
+        print(line)
+    if diffs:
+        print(f"FAIL: the reference is not that of {args.definitions}.")
+        return 1
+    print(f"The reference is that of {args.definitions}.")
     return 0
 
 
@@ -383,6 +459,8 @@ def main(argv: list[str] | None = None) -> int:
         return summarize(args)
     if args.command == "bench" and args.bench_command == "inputs":
         return bench_inputs_command(args)
+    if args.command == "bench" and args.bench_command == "reference":
+        return bench_reference_command(args)
     return 2
 
 
