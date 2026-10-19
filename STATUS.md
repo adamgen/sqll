@@ -1,9 +1,8 @@
 # sqll Status
 
-- Current stone: S1. The full local run shows that all exit criteria are
-  true. **S1 is awaiting human approval.** CI cannot run (account billing),
-  so the proof is the full local `scripts/verify` run below. Do not start S2
-  before the approval.
+- Current stone: S1. CI and the full local run show that all exit criteria
+  are true. **S1 is awaiting human approval.** Do not start S2 before the
+  approval.
 - sqlfluff reference: tag `4.4.0`, commit `0348222a3bcdb0226563f7349c5a39beb0641955`.
 
 ## S1 tasks
@@ -17,20 +16,21 @@
 | T5 | Templater suite (`test__templater_full`) for sqlfluff | Done (PR #7) |
 | T6 | `sqlfluff[rs]` adapter on all 4 suites, results recorded | Done (PR #8) |
 | T7 | sqruff adapter on all 4 suites, results recorded | Done (PR #9) |
-| T8 | S1 exit: full run, recorded baseline, status | In review (PR #10) |
+| T8 | S1 exit: full run, recorded baseline, status | Done (PR #10) |
+| T9 | Process and CI housekeeping | In review |
 
 ## S1 exit evidence
 
 Proof: [`results/s1/summary.json`](results/s1/summary.json), the summary of
 a full local run of all tools and suites (`sqll-harness run`, exit code 0).
 The CI `report` job fails if this file is not the summary of the CI run, so
-it cannot drift. CI did not run on PR #10: since 2026-10-14 each CI job
-stops before a runner starts, because of account billing.
+it cannot drift. CI passed on PR #10 (run 39217728740, head `b470bf9`, 53 of
+53 jobs).
 
-Thus the S1 proof is local. `scripts/verify` runs each CI check; a unit test
-fails if its commands are not the CI commands. On commit `2a19de6` (the last
-code change; fresh clone, clean worktree) it passed 23 of 23 checks: exit
-code 0, 4104 s, 4 jobs.
+`scripts/verify` runs each CI check locally; a unit test fails if its
+commands are not the CI commands. On commit `2a19de6` (the last code change
+of PR #10; fresh clone, clean worktree) it passed 23 of 23 checks: exit code
+0, 4104 s, 4 jobs.
 
 | Criterion (STONES.md) | Proof |
 |---|---|
@@ -85,11 +85,17 @@ check passes 2306 of 2306.
   autofix 16, templater 15. 7 are `error` (sqruff panics). The reasons are in
   `harness/sqruff.md`.
 
-## Open question for a human
+## Decisions
 
-sqlfluff 4.4.0 has `test/fixtures/parity/` (3 YAML files for
-`test/core/parser/parity/cases_test.py`). These cases have no expected
-output: they compare the Python and the Rust engines of sqlfluff. S1 names 4
-other fixture types, so the harness does not use them. Must the harness
-add them (for example as a check of `sqlfluff[rs]` against sqlfluff), or
-stay without them?
+- Owner decision: sqlfluff `test/fixtures/parity/` is not part of the parity
+  target. Its 29 cases (3 YAML files; 73 tests of
+  `test/core/parser/parity/cases_test.py`) compare the Python and the Rust
+  engines of sqlfluff and have no expected output. They compare engine
+  internals that no CLI shows. The harness already compares sqlfluff and
+  `sqlfluff[rs]` on all 4937 cases.
+
+## Next
+
+- From S3: a result cache with a key of tool version, fixtures, and harness
+  code can let CI run again only the tool that changed (sqll). Do not make
+  it now.

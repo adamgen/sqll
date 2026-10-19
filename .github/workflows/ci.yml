@@ -9,14 +9,35 @@ on:
 permissions:
   contents: read
 
+# One group for each workflow and ref. A new pull request run stops the old
+# one. A push to main does not stop a run that has started.
 concurrency:
-  group: ci-${{ github.event.pull_request.number || github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
   IMAGE_REPO: ghcr.io/adamgen/sqll-ci
 
 jobs:
+  # If the change has only documents (ci/changes.py), the test, report, and
+  # dialect-oracle jobs do not run. The image and lint jobs always run.
+  changes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      full: ${{ steps.changes.outputs.full }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Changed files
+        id: changes
+        env:
+          EVENT: ${{ github.event_name }}
+          BEFORE: ${{ github.event.before }}
+        run: python3 ci/changes.py "$EVENT" "$BEFORE"
+
   # The image tag is a hash of all image inputs (ci/image_tag.py). Build and
   # push the image only if the registry does not have that tag.
   image:
@@ -153,7 +174,8 @@ jobs:
         run: scripts/check-submodule "after the tests"
 
   test:
-    needs: image
+    needs: [changes, image]
+    if: needs.changes.outputs.full == 'true'
     name: test (${{ matrix.name }})
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -194,8 +216,10 @@ jobs:
 
   # Merge the shard reports and check the known failures over the full run.
   report:
-    needs: [image, test]
-    if: always() && needs.image.result == 'success'
+    needs: [changes, image, test]
+    if: >-
+      always() && needs.changes.outputs.full == 'true' &&
+      needs.image.result == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:

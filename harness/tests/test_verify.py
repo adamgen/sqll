@@ -113,6 +113,18 @@ CI_CHANGES = {
     "job defaults": lambda d: d["jobs"]["lint"].update(
         defaults={"run": {"shell": "bash {0}"}}
     ),
+    "if on the lint job": lambda d: d["jobs"]["lint"].update(
+        {"if": "needs.changes.outputs.full == 'true'"}
+    ),
+    "if on the image job": lambda d: d["jobs"]["image"].update({"if": "false"}),
+    "changed test job if": lambda d: d["jobs"]["test"].update({"if": "false"}),
+    "removed report job if": lambda d: d["jobs"]["report"].pop("if"),
+    "changed changes command": lambda d: _step(d, "changes", "Changed files").update(
+        run="python3 ci/changes.py pull_request"
+    ),
+    "changed changes env": lambda d: _step(d, "changes", "Changed files")["env"].update(
+        BEFORE="x"
+    ),
     "ruff check --check": lambda d: _step(d, "lint", "Lint").update(
         run=_step(d, "lint", "Lint")["run"].replace(
             "ruff check harness", "ruff check --check harness"
