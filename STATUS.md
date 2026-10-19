@@ -1,25 +1,26 @@
 # sqll Status
 
-- Current stone: S1. CI and the full local run show that all exit criteria
-  are true. **S1 is awaiting human approval.** Do not start S2 before the
-  approval.
+- Current stone: **S2** (benchmarks). Design: [harness/bench.md](harness/bench.md).
+- S1 is complete. The human owner approved it on 2026-10-19 (owner
+  statement in the S2 plan). S1 tasks T1 to T9 are merged (PRs #3 to #11).
+  CI on main passed after the last merge (run 39235508233, head `016a5e1`,
+  54 of 54 jobs).
 - sqlfluff reference: tag `4.4.0`, commit `0348222a3bcdb0226563f7349c5a39beb0641955`.
 
-## S1 tasks
+## S2 tasks
 
 | Task | Description | State |
 |---|---|---|
-| T1 | Harness foundation: submodule, CI, `scripts/test`, sqlfluff parse adapter, dialect suite | Done (PR #3) |
-| T2 | CI image in GHCR, all 3 tools pinned, sharded CI matrix | Done (PR #4) |
-| T3 | Rule case suite (`std_rule_cases`), sqlfluff lint and fix | Done (PR #5) |
-| T4 | Autofix suite (`linter/autofix`) for sqlfluff | Done (PR #6) |
-| T5 | Templater suite (`test__templater_full`) for sqlfluff | Done (PR #7) |
-| T6 | `sqlfluff[rs]` adapter on all 4 suites, results recorded | Done (PR #8) |
-| T7 | sqruff adapter on all 4 suites, results recorded | Done (PR #9) |
-| T8 | S1 exit: full run, recorded baseline, status | Done (PR #10) |
-| T9 | Process and CI housekeeping | In review (PR #11) |
+| T1 | S2 design record (`harness/bench.md`) and STATUS update | In review (PR #12) |
+| T2 | Benchmark definitions and deterministic input builder | Open |
+| T3 | Measurement core and the benchmark report schema | Open |
+| T4 | Benchmark adapters for sqlfluff, `sqlfluff[rs]`, and sqruff with validity checks | Open |
+| T5 | `sqll-harness bench run` and `scripts/bench`: one command, one machine-readable report | Open |
+| T6 | CI benchmark jobs and `scripts/verify` drift coverage | Open |
+| T7 | Slowdown detection: `sqll-harness bench compare` and the change-record rule | Open |
+| T8 | S2 exit: recorded baseline, exact drift checks, and STATUS | Open |
 
-## S1 exit evidence
+## S1 exit evidence (approved)
 
 Proof: [`results/s1/summary.json`](results/s1/summary.json), the summary of
 a full local run of all tools and suites (`sqll-harness run`, exit code 0).
