@@ -4,7 +4,8 @@
 # Usage: scripts/verify [--jobs N] [--quick] [--list]
 # Output: one line for each check, out/verify.json and out/verify/*.log
 # (--quick: out/verify-quick.json and out/verify-quick/*.log).
-# It stops first if a parent folder has a sqlfluff config file (preflight).
+# It stops first if a folder above the checkout or the temp folder has a
+# sqlfluff config file (preflight).
 # The checks are in harness/sqll_harness/verify.py.
 set -eu
 

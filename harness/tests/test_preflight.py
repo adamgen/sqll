@@ -1,5 +1,6 @@
 """The preflight check finds sqlfluff config files above the repository."""
 
+import tempfile
 from pathlib import Path
 
 import pytest
@@ -90,8 +91,46 @@ def test_message_names_each_file(tree, capsys):
     err = capsys.readouterr().err
     assert f"{top / 'pyproject.toml'}: a [tool.sqlfluff] table" in err
     assert "parent folder of the repository" in err
+    assert "temp folder" in err
+
+
+@pytest.fixture
+def temp(tree, monkeypatch):
+    top, root = tree
+    folder = top / "t" / "tmp"
+    folder.mkdir(parents=True)
+    monkeypatch.setattr(tempfile, "tempdir", str(folder))
+    return folder
+
+
+@pytest.mark.parametrize("where", ["t/tmp", "t"])
+def test_finds_a_config_file_in_or_above_the_temp_folder(tree, temp, where):
+    # The autofix suite runs each case in a folder in the temp folder.
+    top, root = tree
+    (top / where / ".sqlfluff").write_text("[sqlfluff]\nexclude_rules = LT01\n")
+    found = [(str(p.relative_to(top)), r) for p, r in preflight.find(root)]
+    assert found == [(f"{where}/.sqlfluff", "a .sqlfluff file")]
+    assert _found(root, top) == []
+    assert preflight.check(root) == 2
+
+
+def test_finds_config_above_a_symlinked_temp_folder(tree, monkeypatch):
+    top, root = tree
+    (top / "real").mkdir()
+    (top / "real" / "tmp").mkdir()
+    (top / "real" / ".sqlfluff").write_text("")
+    (top / "link").mkdir()
+    (top / "link" / "tmp").symlink_to(top / "real" / "tmp")
+    monkeypatch.setattr(tempfile, "tempdir", str(top / "link" / "tmp"))
+    assert top / "real" / ".sqlfluff" in [p for p, _ in preflight.temp_configs()]
+
+
+def test_a_file_in_both_lists_is_named_one_time(tree, temp):
+    top, root = tree
+    (top / ".sqlfluff").write_text("")
+    assert [p for p, _ in preflight.find(root)].count(top / ".sqlfluff") == 1
 
 
 def test_the_repository_has_no_config_file_above_it():
-    # Fails in a checkout that gives other results than CI.
-    assert preflight.parent_configs(preflight.REPO_ROOT) == []
+    # Fails in a checkout or TMPDIR that gives other results than CI.
+    assert preflight.find(preflight.REPO_ROOT) == []
