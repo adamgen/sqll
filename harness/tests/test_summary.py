@@ -5,7 +5,7 @@ import pytest
 from sqll_harness import cli, merge, report, shard, summary
 from sqll_harness.cases import ERROR, FAIL, PASS, SKIP, CaseResult
 from sqll_harness.known_failures import Outcome
-from sqll_harness.paths import DEFAULT_SUMMARY, REPO_ROOT
+from sqll_harness.paths import DEFAULT_SUMMARY, RECORDED_SUMMARY, REPO_ROOT
 
 PAIRS = {("dialects", "t"), ("templater", "t"), ("code_only", "t")}
 
@@ -215,5 +215,80 @@ def test_cli_refuses_a_partial_report(tmp_path, capsys, monkeypatch):
     assert "filter" in capsys.readouterr().err
 
 
-def test_default_out_is_the_recorded_s1_summary():
-    assert DEFAULT_SUMMARY == REPO_ROOT / "results" / "s1" / "summary.json"
+def test_default_out_is_not_the_recorded_s1_summary():
+    assert DEFAULT_SUMMARY == REPO_ROOT / "out" / "summary.json"
+    assert RECORDED_SUMMARY == REPO_ROOT / "results" / "s1" / "summary.json"
+
+
+def test_cli_check_does_not_read_the_new_summary(tmp_path, capsys, monkeypatch):
+    # A bad report must not write the recorded file and then compare it with
+    # itself.
+    monkeypatch.setattr(summary, "full_run_pairs", lambda: PAIRS)
+    good = _write_report(tmp_path, _report())
+    recorded = tmp_path / "recorded.json"
+    assert cli.main(["summarize", str(good), "--out", str(recorded)]) == 0
+    before = recorded.read_text()
+    results = _results()
+    results[0] = CaseResult("dialects/a", "dialects", "t", SKIP, {})
+    bad = tmp_path / "bad" / "report.json"
+    report.write(_report(results), bad)
+    capsys.readouterr()
+
+    out = tmp_path / "out.json"
+    args = ["summarize", str(bad), "--out", str(out), "--check", str(recorded)]
+    assert cli.main(args) == 1
+    assert "FAIL" in capsys.readouterr().out
+    assert recorded.read_text() == before
+    assert out.read_text() != before
+
+    for same in (recorded, tmp_path / "x" / ".." / "recorded.json"):
+        args = ["summarize", str(bad), "--out", str(same), "--check", str(recorded)]
+        assert cli.main(args) == 2
+        assert "same file" in capsys.readouterr().err
+        assert recorded.read_text() == before
+    link = tmp_path / "link.json"
+    link.symlink_to(recorded)
+    args = ["summarize", str(bad), "--out", str(link), "--check", str(recorded)]
+    assert cli.main(args) == 2
+    assert recorded.read_text() == before
+
+
+def test_cli_default_out_is_not_the_check_file(tmp_path, capsys, monkeypatch):
+    monkeypatch.setattr(summary, "full_run_pairs", lambda: PAIRS)
+    default = tmp_path / "out" / "summary.json"
+    monkeypatch.setattr(cli, "DEFAULT_SUMMARY", default)
+    rep = _write_report(tmp_path, _report())
+    recorded = tmp_path / "recorded.json"
+    summary.write(summary.summarize(_report(), PAIRS), recorded)
+    assert cli.main(["summarize", str(rep), "--check", str(recorded)]) == 0
+    assert "is equal to the summary" in capsys.readouterr().out
+    assert default.read_text() == recorded.read_text()
+
+
+def test_known_failure_check_result_is_required():
+    rep = _report()
+    rep["known_failures"] = {}
+    with pytest.raises(summary.SummaryError, match="no known-failure check result"):
+        summary.summarize(rep, PAIRS)
+    rep = _report()
+    del rep["known_failures"]
+    with pytest.raises(summary.SummaryError, match="no known-failure check result"):
+        summary.summarize(rep, PAIRS)
+    for key in summary.KNOWN_FAILURE_KEYS:
+        rep = _report()
+        del rep["known_failures"]["t"][key]
+        with pytest.raises(summary.SummaryError, match=f"no {key} list"):
+            summary.summarize(rep, PAIRS)
+
+
+def test_cli_refuses_a_report_without_known_failure_results(
+    tmp_path, capsys, monkeypatch
+):
+    monkeypatch.setattr(summary, "full_run_pairs", lambda: PAIRS)
+    rep = _report()
+    rep["known_failures"] = {}
+    path = _write_report(tmp_path, rep)
+    out = tmp_path / "summary.json"
+    assert cli.main(["summarize", str(path), "--out", str(out)]) == 2
+    assert not out.exists()
+    assert "known-failure" in capsys.readouterr().err

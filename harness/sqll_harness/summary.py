@@ -19,6 +19,7 @@ PARITY_SUITES = ("dialects", "rules", "autofix", "templater")
 # Tags that each suite entry has, also with the count 0.
 TAGS = ("needs_python",)
 STATUS_KEYS = {PASS: "passed", FAIL: "failed", ERROR: "error", SKIP: "skipped"}
+KNOWN_FAILURE_KEYS = ("new_failures", "unexpected_passes")
 
 
 class SummaryError(Exception):
@@ -65,6 +66,21 @@ def _suite_entry(cases: list[dict]) -> dict:
     entry["checks"] = dict(sorted(checks.items()))
     entry["tags"] = dict(sorted(tags.items()))
     return entry
+
+
+def _known_failures_outcome(report: dict, tool: str) -> dict:
+    """Return the known-failure check result of a tool in the report.
+
+    Raise SummaryError if the result or one of its lists is missing: then the
+    report does not show that the check ran.
+    """
+    outcome = report.get("known_failures", {}).get(tool)
+    if not isinstance(outcome, dict):
+        raise SummaryError(f"the report has no known-failure check result for {tool}")
+    for key in KNOWN_FAILURE_KEYS:
+        if not isinstance(outcome.get(key), list):
+            raise SummaryError(f"known-failure check result of {tool}: no {key} list")
+    return outcome
 
 
 def full_run_pairs() -> set[tuple[str, str]]:
@@ -115,7 +131,7 @@ def summarize(report: dict, pairs: set[tuple[str, str]] | None = None) -> dict:
     for tool in sorted(by_tool):
         suites = {s: _suite_entry(c) for s, c in sorted(by_tool[tool].items())}
         parity = [suites[s] for s in PARITY_SUITES if s in suites]
-        outcome = report["known_failures"].get(tool, {})
+        outcome = _known_failures_outcome(report, tool)
         results[tool] = {
             "parity": {
                 "suites": [s for s in PARITY_SUITES if s in suites],
@@ -123,8 +139,7 @@ def summarize(report: dict, pairs: set[tuple[str, str]] | None = None) -> dict:
                 "passed": sum(e["passed"] for e in parity),
             },
             "known_failures_check": {
-                "new_failures": len(outcome.get("new_failures", [])),
-                "unexpected_passes": len(outcome.get("unexpected_passes", [])),
+                key: len(outcome[key]) for key in KNOWN_FAILURE_KEYS
             },
             "suites": suites,
         }

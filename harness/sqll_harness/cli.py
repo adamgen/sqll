@@ -96,12 +96,18 @@ def _parser() -> argparse.ArgumentParser:
         "with a recorded summary.",
     )
     smr.add_argument("report", type=Path)
-    smr.add_argument("--out", type=Path, default=DEFAULT_SUMMARY)
+    smr.add_argument(
+        "--out",
+        type=Path,
+        default=DEFAULT_SUMMARY,
+        help="File for the new summary. Default: out/summary.json.",
+    )
     smr.add_argument(
         "--check",
         type=Path,
         metavar="SUMMARY",
-        help="Fail if this file is not equal to the new summary.",
+        help="Fail if this file is not equal to the new summary. It must not "
+        "be the --out file.",
     )
 
     tls = sub.add_parser(
@@ -265,6 +271,12 @@ def show_known_failures(args: argparse.Namespace) -> int:
     return 0
 
 
+def _same_file(a: Path, b: Path) -> bool:
+    if a.resolve() == b.resolve():
+        return True
+    return a.exists() and b.exists() and os.path.samefile(a, b)
+
+
 def summarize(args: argparse.Namespace) -> int:
     try:
         rep = json.loads(args.report.read_text(encoding="utf8"))
@@ -272,11 +284,19 @@ def summarize(args: argparse.Namespace) -> int:
     except (OSError, ValueError, KeyError, TypeError, summary.SummaryError) as exc:
         print(f"error: {args.report}: {exc!r}", file=sys.stderr)
         return 2
+    if args.check is not None and _same_file(args.out, args.check):
+        print(
+            f"error: --out and --check are the same file ({args.check}). "
+            "Write the summary to a different file.",
+            file=sys.stderr,
+        )
+        return 2
+    # Compare before the write, so that the check never reads the new file.
+    lines = None if args.check is None else summary.diff(result, args.check)
     summary.write(result, args.out)
     print(f"summary: {args.out}")
-    if args.check is None:
+    if lines is None:
         return 0
-    lines = summary.diff(result, args.check)
     if lines:
         sys.stdout.writelines(lines)
         print(f"\nFAIL: {args.check} is not the summary of {args.report}.")

@@ -12,11 +12,11 @@ import pytest
 from test_case_counts import COUNTS
 
 from sqll_harness import known_failures, summary
-from sqll_harness.paths import DEFAULT_SUMMARY, KNOWN_FAILURES_DIR, REPO_ROOT
+from sqll_harness.paths import KNOWN_FAILURES_DIR, RECORDED_SUMMARY, REPO_ROOT
 
 TOOLS = ("sqlfluff", "sqlfluff-rs", "sqruff")
 VERSIONS = {"sqlfluff": "4.4.0", "sqlfluff-rs": "4.4.0", "sqruff": "0.41.0"}
-RECORDED = json.loads(DEFAULT_SUMMARY.read_text(encoding="utf8"))
+RECORDED = json.loads(RECORDED_SUMMARY.read_text(encoding="utf8"))
 RESULTS = RECORDED["results"]
 
 
