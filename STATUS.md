@@ -11,14 +11,20 @@
 
 | Task | Description | State |
 |---|---|---|
-| T1 | S2 design record (`harness/bench.md`) and STATUS update | In review (PR #12) |
-| T2 | Benchmark definitions and deterministic input builder | Open |
+| T1 | S2 design record (`harness/bench.md`) and STATUS update | Merged (PR #12) |
+| T2 | Benchmark definitions and deterministic input builder | In review (PR #13) |
 | T3 | Measurement core and the benchmark report schema | Open |
 | T4 | Benchmark adapters for sqlfluff, `sqlfluff[rs]`, and sqruff with validity checks | Open |
 | T5 | `sqll-harness bench run` and `scripts/bench`: one command, one machine-readable report | Open |
 | T6 | CI benchmark jobs and `scripts/verify` drift coverage | Open |
 | T7 | Slowdown detection: `sqll-harness bench compare` and the change-record rule | Open |
 | T8 | S2 exit: recorded baseline, exact drift checks, and STATUS | Open |
+
+Benchmark definitions (`harness/sqll_harness/bench/definitions.json`): 280
+benchmarks (28 dialect folders, also soql; `start` and 3 sizes of `parse`,
+`lint`, `fix`) on 85 inputs (84 and `start`). The inputs use 2161 of 2306
+dialect fixture files; 140 are in the frozen exclusion list. T4 adds the
+sqlfluff reference (the `lint` rule codes, and if `fix` changes the file).
 
 ## S1 exit evidence (approved)
 

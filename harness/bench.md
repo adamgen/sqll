@@ -30,10 +30,10 @@ run time; the repository has no copy. External corpora are S9.
    same settings (measured: 1 file, `clickhouse/create_user.sql`).
 3. The sqlfluff test gives it no config override (`ansi/expression_recursion`,
    `DEEP_PARSE_DEPTH_OVERRIDES`).
-4. It is not in the frozen exclusion list (a reason for each file): the
-   139 dialect cases with `unparsable segment` in `known_failures/sqruff.txt`
-   (sqlfluff and `sqlfluff[rs]` have none), and `ansi/bracket_in_comment`
-   ("Join"). A new tool does not change the list.
+4. It is not in the frozen list `sqll_harness/bench/exclusions.txt` (a
+   reason for each file): the 139 dialect cases with `unparsable segment` in
+   `known_failures/sqruff.txt` (sqlfluff and `sqlfluff[rs]` have none), and
+   `ansi/bracket_in_comment` ("Join"). A new tool does not change the list.
 5. The tree has a leaf. Measured: 3 files have none (`ansi/comments`,
    `ansi/empty_file`, `sqlite/block_comment_end_of_input`). The last is an
    unclosed comment: without this rule, 86% of sqlite large is comment.
@@ -55,13 +55,15 @@ a terminator (`statement_terminator`, `function_script_terminator`, or
 
 **Fill.** Targets: small 1024, medium 4096, large 16384 bytes. In sorted
 path order, the builder adds each file that keeps the input at or below the
-target. It does this again until a pass adds no file, so a dialect with few
-bytes repeats its files. Measured sizes: small 985 to 1024, medium 4017 to
-4096, large 16350 to 16383 bytes.
+target. It does this again until a pass adds no file. Thus files repeat in
+34 of 84 inputs: each input whose target is more than the bytes of all used
+files of its dialect, and some others. Measured sizes: small 985 to 1024,
+medium 4017 to 4096, large 16350 to 16383 bytes.
 Large is below the 20000-byte default skip limit of sqlfluff and sqruff;
 larger inputs make a full run too long ("Time budget"). The definitions
-store for each input its sha256 and the sqlfluff reference (G1): the rule
-codes of `lint`, and if `fix` changes the file.
+(`definitions.json`, same folder) store for each input its bytes, lines,
+and sha256, and (from T4) the sqlfluff reference (G1): the rule codes of
+`lint`, and if `fix` changes the file.
 
 ## Settings
 

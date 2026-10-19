@@ -274,3 +274,34 @@ one for each dialect SQL file. In 4.4.0 the rule test gives 3 ids to 2 cases
 each (`LT01-literals.yml` and `LT01-operators.yml` have the same keys);
 pytest adds `0` and `1` to them. The harness ids have the file name, so they
 are unique.
+
+## Benchmark inputs
+
+[bench.md](bench.md) gives the S2 design.
+`sqll-harness bench inputs [--out DIR]` builds the benchmark inputs from the
+dialect fixtures (read in place) and writes `DIR/start.sql`,
+`DIR/<dialect>/<small|medium|large>.sql`, and `DIR/manifest.json`. The
+default `DIR` is `out/bench/inputs`. It refuses a folder in the repository
+that is not below `out/`, and a folder that is not empty and has no earlier
+build (exit code 2). It replaces an earlier build. The exit code is 1 if a
+build is not equal to the definitions.
+
+- `sqll_harness/bench/exclusions.txt`: the frozen list of fixture files that
+  the inputs do not use, with a reason for each (the format of
+  `known_failures/`).
+- `sqll_harness/bench/definitions.json`: the definitions. They have no tool
+  entry. `format`, `sqlfluff_ref`, `sizes` (target bytes), `selection`
+  (file counts for each skip reason, and the number of added terminators
+  and new lines), `inputs` (`bytes`, `lines`, `sha256` of each input), and
+  `benchmarks` (`id`, `command`, `dialect`, `size`, `input`). A `start`
+  benchmark runs the `parse` command of the tool on the `start` input
+  (`SELECT 1;`).
+- `manifest.json`: the same data for each input, plus `files` (the fixture
+  files in input order, with repeats), `passes`, and `repeats`, and the
+  skipped and changed files of the selection.
+
+A dialect that has no input stops the build (exit code 2). After a change
+to the builder, the exclusion list, or the fixtures, the unit tests fail
+until `sqll-harness bench inputs --write-definitions` writes new
+definitions. A change of the fixtures needs a human approval (a new sqlfluff
+pin).
