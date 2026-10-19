@@ -287,7 +287,7 @@ def check_out_dir(out: Path, sqlfluff_root: Path) -> str | None:
     """Return why the inputs must not go to out, or None if they can."""
     out = out.resolve()
     if _inside(out, sqlfluff_root.resolve()):
-        return f"{out} is in the sqlfluff fixtures"
+        return f"{out} is in the sqlfluff checkout"
     out_root = OUT_DIR.resolve()
     if _inside(out, REPO_ROOT.resolve()) and not (
         out != out_root and _inside(out, out_root)
