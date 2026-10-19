@@ -11,8 +11,10 @@
 Test data that the harness reads:
 
 - `test/fixtures/dialects/`: SQL files and expected parse trees. The S2
-  benchmarks also build their inputs from these SQL files at run time
-  (`harness/bench.md`); the repository has no copy.
+  benchmark inputs are made from these SQL files (MIT) at run time
+  (`sqll-harness bench inputs`, `harness/bench.md`); the repository has no
+  copy. `harness/sqll_harness/bench/` stores only their fixture paths and
+  the sha256, bytes, and lines of each input.
 - `test/fixtures/rules/std_rule_cases/`: rule cases (SQL, config, lint and
   fix results).
 - `test/fixtures/linter/autofix/`: autofix cases (SQL before and after the

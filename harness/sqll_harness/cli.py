@@ -1,4 +1,4 @@
-"""Command line: sqll-harness run | merge | tools | known-failures | summarize.
+"""Command line: sqll-harness run | merge | tools | known-failures | summarize | bench.
 
 See harness/README.md.
 """
@@ -6,7 +6,6 @@ See harness/README.md.
 import argparse
 import json
 import os
-import subprocess
 import sys
 import time
 import traceback
@@ -16,9 +15,17 @@ from pathlib import Path
 from . import known_failures, merge, report, shard, summary, tools
 from .adapters import ADAPTERS, Adapter
 from .adapters.base import Unsupported
+from .bench import definitions as bench_definitions
+from .bench import inputs as bench_inputs
 from .cases import ERROR, FAIL, UNSUPPORTED, CaseResult
 from .known_failures import Outcome
-from .paths import DEFAULT_REPORT, DEFAULT_SUMMARY, KNOWN_FAILURES_DIR, SQLFLUFF_ROOT
+from .paths import (
+    DEFAULT_REPORT,
+    DEFAULT_SUMMARY,
+    KNOWN_FAILURES_DIR,
+    SQLFLUFF_ROOT,
+    sqlfluff_ref,
+)
 from .suites import SUITES, runs_for
 
 
@@ -120,19 +127,29 @@ def _parser() -> argparse.ArgumentParser:
         choices=sorted(tools.CHECKS),
         help="Tool to check. Repeat for more tools. Default: all tools.",
     )
+    bench = sub.add_parser("bench", help="S2 benchmarks. See harness/bench.md.")
+    bench_sub = bench.add_subparsers(dest="bench_command", required=True)
+    binp = bench_sub.add_parser(
+        "inputs",
+        help="Build the benchmark inputs and a manifest. Fail if an input is "
+        "not as in the definitions.",
+    )
+    binp.add_argument(
+        "--out",
+        type=Path,
+        default=bench_inputs.DEFAULT_OUT,
+        help="Folder for the inputs. Not in the repository, except below out/. "
+        "Default: out/bench/inputs.",
+    )
+    binp.add_argument("--sqlfluff-root", type=Path, default=SQLFLUFF_ROOT)
+    binp.add_argument("--definitions", type=Path, default=bench_definitions.DEFINITIONS)
+    binp.add_argument(
+        "--write-definitions",
+        action="store_true",
+        help="Write the definitions of this build to the --definitions file "
+        "instead of a check.",
+    )
     return p
-
-
-def _sqlfluff_ref(root: Path) -> str:
-    try:
-        return subprocess.run(
-            ["git", "-C", str(root), "rev-parse", "HEAD"],
-            capture_output=True,
-            text=True,
-            check=True,
-        ).stdout.strip()
-    except (OSError, subprocess.CalledProcessError):
-        return "unknown"
 
 
 def _run_one(suite, adapter: Adapter, case, root: Path) -> CaseResult:
@@ -237,7 +254,7 @@ def run(args: argparse.Namespace) -> int:
         )
 
     scope = report.scope(suites, tool_names, args.filter, args.shard)
-    rep = report.build(_sqlfluff_ref(root), tool_infos, results, outcomes, scope)
+    rep = report.build(sqlfluff_ref(root), tool_infos, results, outcomes, scope)
     return _finish(rep, args.out, outcomes)
 
 
@@ -315,6 +332,43 @@ def show_tools(args: argparse.Namespace) -> int:
     return 0 if all(i.ok for i in infos) else 1
 
 
+def bench_inputs_command(args: argparse.Namespace) -> int:
+    root: Path = args.sqlfluff_root.resolve()
+    problem = bench_inputs.check_out_dir(args.out, root)
+    if problem:
+        print(f"error: {problem}", file=sys.stderr)
+        return 2
+    try:
+        result = bench_inputs.build(root)
+    except bench_inputs.BuildError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
+    bench_inputs.write(result, args.out)
+    sel = bench_inputs.manifest(result)["selection"]
+    print(
+        f"{len(result.inputs)} inputs in {args.out} "
+        f"({sel['used']} of {sel['files']} fixture files)"
+    )
+    new = bench_definitions.make(result)
+    if args.write_definitions:
+        args.definitions.write_text(bench_definitions.render(new), encoding="utf8")
+        print(f"definitions: {args.definitions}")
+        return 0
+    try:
+        recorded = bench_definitions.load(args.definitions)
+    except (OSError, ValueError) as exc:
+        print(f"error: {args.definitions}: {exc}", file=sys.stderr)
+        return 2
+    errors = bench_definitions.check(recorded, result)
+    for line in errors:
+        print(line)
+    if errors:
+        print(f"FAIL: the inputs are not as in {args.definitions}.")
+        return 1
+    print(f"The inputs are as in {args.definitions}.")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     args = _parser().parse_args(argv)
     if args.command == "run":
@@ -327,6 +381,8 @@ def main(argv: list[str] | None = None) -> int:
         return show_known_failures(args)
     if args.command == "summarize":
         return summarize(args)
+    if args.command == "bench" and args.bench_command == "inputs":
+        return bench_inputs_command(args)
     return 2
 
 

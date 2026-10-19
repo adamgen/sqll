@@ -1,6 +1,7 @@
 """Paths in the sqll repository."""
 
 import os
+import subprocess
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -10,6 +11,20 @@ KNOWN_FAILURES_DIR = REPO_ROOT / "known_failures"
 DEFAULT_REPORT = REPO_ROOT / "out" / "report.json"
 DEFAULT_SUMMARY = REPO_ROOT / "out" / "summary.json"
 RECORDED_SUMMARY = REPO_ROOT / "results" / "s1" / "summary.json"
+OUT_DIR = REPO_ROOT / "out"
+
+
+def sqlfluff_ref(root: Path) -> str:
+    """Return the commit of the sqlfluff checkout at root, or "unknown"."""
+    try:
+        return subprocess.run(
+            ["git", "-C", str(root), "rev-parse", "HEAD"],
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout.strip()
+    except (OSError, subprocess.CalledProcessError):
+        return "unknown"
 
 
 def tools_dir() -> Path:
