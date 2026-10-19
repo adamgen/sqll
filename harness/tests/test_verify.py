@@ -1,7 +1,8 @@
 """scripts/verify must run each check of CI (harness/sqll_harness/verify.py).
 
 If CI gets a new step, add a check for it to verify.checks(), or add it to
-verify.CI_ONLY if it is CI mechanics only.
+verify.CI_ONLY if it is CI mechanics only (with its run text in
+verify.CI_ONLY_RUN).
 """
 
 import copy
@@ -79,6 +80,39 @@ CI_CHANGES = {
     "new dialect-oracle tool": lambda d: d["jobs"]["dialect-oracle"]["strategy"][
         "matrix"
     ]["include"].append({"tool": "x", "venv": "x", "args": ""}),
+    "--strict on the CI_ONLY merge": lambda d: _step(d, "report", "Merge").update(
+        run=_step(d, "report", "Merge")["run"] + " --strict"
+    ),
+    "new line in a CI_ONLY step": lambda d: _step(
+        d, "report", "Check test jobs"
+    ).update(run="true\n" + _step(d, "report", "Check test jobs")["run"]),
+    "changed expression in a CI_ONLY step": lambda d: _step(
+        d, "report", "Check test jobs"
+    ).update(
+        run=_step(d, "report", "Check test jobs")["run"].replace(
+            "needs.test.result", "needs.image.result"
+        )
+    ),
+    "env on a CI_ONLY step": lambda d: _step(d, "report", "Merge").update(
+        env={"SQLL_X": "1"}
+    ),
+    "changed env of a CI_ONLY step": lambda d: next(
+        s for s in d["jobs"]["image"]["steps"] if s.get("id") == "find"
+    )["env"].update(IMAGE="x"),
+    "new line in safe.directory": lambda d: d["jobs"]["lint"]["steps"][1].update(
+        run=d["jobs"]["lint"]["steps"][1]["run"] + "\ngit config x y"
+    ),
+    "working-directory": lambda d: _unit(d).update({"working-directory": "harness"}),
+    "shell": lambda d: _step(d, "lint", "Tools").update(shell="bash {0}"),
+    "continue-on-error": lambda d: _step(d, "report", "Merge").update(
+        {"continue-on-error": True}
+    ),
+    "workflow defaults": lambda d: d.update(
+        defaults={"run": {"working-directory": "harness"}}
+    ),
+    "job defaults": lambda d: d["jobs"]["lint"].update(
+        defaults={"run": {"shell": "bash {0}"}}
+    ),
     "ruff check --check": lambda d: _step(d, "lint", "Lint").update(
         run=_step(d, "lint", "Lint")["run"].replace(
             "ruff check harness", "ruff check --check harness"
@@ -113,6 +147,21 @@ def test_drift_finds_a_local_change(name):
         for c in CHECKS
     ]
     assert verify.drift(changed, CI)
+
+
+def test_ci_only_run_names_only_ci_only_steps_with_run():
+    with_run = {k for k, step, _ in verify.ci_steps(CI) if "run" in step}
+    assert set(verify.CI_ONLY_RUN) == with_run & set(verify.CI_ONLY)
+    assert set(verify.CI_ONLY_RUN_ENV) <= set(verify.CI_ONLY_RUN)
+
+
+def test_drift_finds_a_stale_ci_only_run_entry(monkeypatch):
+    monkeypatch.setitem(verify.CI_ONLY_RUN, "report: actions/checkout", "x")
+    monkeypatch.setitem(verify.CI_ONLY_RUN, "lint: Tools", "x")
+    assert verify.drift(CHECKS, CI) == [
+        "report: actions/checkout: CI_ONLY_RUN has a run text, but the step has none",
+        "CI_ONLY_RUN 'lint: Tools': not a CI_ONLY step",
+    ]
 
 
 def test_drift_finds_a_weak_local_only_check():

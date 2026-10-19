@@ -3,8 +3,9 @@
 scripts/verify runs this module with the Python of the harness venv. Each
 check is a shell command, run with "sh -ec" from the repository root. Each
 command is a copy of a CI step. harness/tests/test_verify.py fails (drift())
-if a CI step is not in checks() or in CI_ONLY, or if a command line of a CI
-step, with its env, is not the same as the local command lines.
+if a CI step is not in checks() or in CI_ONLY, if a command line of a CI
+step, with its env, is not the same as the local command lines, or if the
+run text of a CI_ONLY step is not the text in CI_ONLY_RUN.
 
 Output: one line for each check, a log for each check in out/verify/, and
 out/verify.json. With --quick: out/verify-quick/ and out/verify-quick.json,
@@ -64,6 +65,43 @@ CI_ONLY = {
     "dialect-oracle: actions/download-artifact": "artifact download",
     "dialect-oracle: actions/upload-artifact": "artifact upload",
 }
+
+_SAFE_DIRECTORY = "git config --global --add safe.directory '*'"
+
+# The run text (and step env) of each CI_ONLY step that has "run". drift()
+# fails if CI changes it, because these commands can also check something
+# (for example the shard merge).
+CI_ONLY_RUN = {
+    "image: tag": (
+        'echo "image=$IMAGE_REPO:$(python3 ci/image_tag.py)" >> "$GITHUB_OUTPUT"\n'
+        'echo "matrix=$(python3 ci/matrix.py)" >> "$GITHUB_OUTPUT"'
+    ),
+    "image: find": (
+        'if docker buildx imagetools inspect "$IMAGE" > /dev/null 2>&1; then\n'
+        'echo "Image $IMAGE exists. The build is not necessary."\n'
+        'echo "exists=true" >> "$GITHUB_OUTPUT"\n'
+        "else\n"
+        'echo "Image $IMAGE does not exist. Build and push it."\n'
+        'echo "exists=false" >> "$GITHUB_OUTPUT"\n'
+        "fi"
+    ),
+    **{
+        f"{job}: {_SAFE_DIRECTORY}": _SAFE_DIRECTORY
+        for job in ("lint", "test", "report", "dialect-oracle")
+    },
+    "report: Merge": (
+        "uv run --frozen --project harness sqll-harness merge"
+        " --expect ci/matrix.json out/shards/*.json"
+    ),
+    "report: Check test jobs": (
+        'echo "A test job did not succeed: ${{ needs.test.result }}"\nexit 1'
+    ),
+}
+CI_ONLY_RUN_ENV = {"image: find": {"IMAGE": "${{ steps.tag.outputs.image }}"}}
+
+# The step keys that drift() knows. Another key (for example shell or
+# working-directory) can change what a command does, so drift() fails on it.
+STEP_KEYS = {"name", "id", "uses", "with", "run", "env", "if"}
 
 # Workflow, job, or step env that the local commands do not need.
 CI_ONLY_ENV = {"IMAGE_REPO": "image registry name; only the image job uses it"}
@@ -407,21 +445,49 @@ def weak_parts(command: str) -> list[str]:
     return sorted(found)
 
 
+def _ci_only_run_drift(key: str, step: dict) -> list[str]:
+    """Return the differences of a CI_ONLY step from CI_ONLY_RUN."""
+    if "run" not in step:
+        if key in CI_ONLY_RUN:
+            return [f"{key}: CI_ONLY_RUN has a run text, but the step has none"]
+        return []
+    if key not in CI_ONLY_RUN:
+        return [f"{key}: add its run text to CI_ONLY_RUN"]
+    problems = []
+    want, got = lines(CI_ONLY_RUN[key]), lines(step["run"])
+    if want != got:
+        problems.append(f"{key}:\n  CI:          {got}\n  CI_ONLY_RUN: {want}")
+    env = {k: str(v) for k, v in (step.get("env") or {}).items()}
+    if env != CI_ONLY_RUN_ENV.get(key, {}):
+        problems.append(f"{key}: step env {env} is not CI_ONLY_RUN_ENV")
+    return problems
+
+
 def drift(selected: list[Check], data: dict | None = None) -> list[str]:
     """Return each difference between the CI file and the local checks.
 
     For each CI step that is not in CI_ONLY, the command lines of all its
     matrix entries, in order, must be the same as the command lines of its
-    local checks, in order. A word cannot move between commands.
+    local checks, in order. A word cannot move between commands. The run
+    text of each CI_ONLY step must be the text in CI_ONLY_RUN. A step key
+    that is not in STEP_KEYS, or "defaults", is a difference.
     """
     data = load_ci() if data is None else data
     steps = ci_steps(data)
     problems = []
+    for where, block in [("workflow", data), *data["jobs"].items()]:
+        if "defaults" in block:
+            problems.append(f"{where}: 'defaults' is not supported by drift()")
     for key, step, job in steps:
+        problems += [
+            f"{key}: step key {k!r} is not supported by drift()"
+            for k in sorted(set(step) - STEP_KEYS)
+        ]
         local = [c for c in selected if key in c.ci]
         if key in CI_ONLY:
             if local:
                 problems.append(f"{key}: in CI_ONLY and in a check")
+            problems += _ci_only_run_drift(key, step)
             continue
         if not local:
             problems.append(f"{key}: add a check to checks() or the step to CI_ONLY")
@@ -438,6 +504,11 @@ def drift(selected: list[Check], data: dict | None = None) -> list[str]:
             problems.append(f"{key}:\n  CI:    {want}\n  local: {got}")
     keys = {key for key, _, _ in steps}
     problems += [f"CI_ONLY {k!r}: no such CI step" for k in set(CI_ONLY) - keys]
+    problems += [
+        f"CI_ONLY_RUN {k!r}: not a CI_ONLY step"
+        for k in sorted(set(CI_ONLY_RUN) | set(CI_ONLY_RUN_ENV))
+        if k not in CI_ONLY
+    ]
     problems += [
         f"{c.name}: no CI step {k!r}" for c in selected for k in c.ci if k not in keys
     ]

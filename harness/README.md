@@ -12,14 +12,15 @@ scripts/test --tool sqlfluff --suite dialects --jobs 8
 scripts/test --filter dialects/ansi/   # only ids that start with this text
 ```
 
-Use a checkout with no sqlfluff config file in its parent folders. The tools
-read the config files in each folder above a case, as sqlfluff does. Thus
-`scripts/test` and `scripts/verify` first run `sqll_harness/preflight.py`. It
-stops with exit code 2 and names the file if a parent folder of the
-repository has `.sqlfluff`, `pyproject.toml` with `[tool.sqlfluff]`, or
-`setup.cfg`, `tox.ini`, or `pep8.ini` with a `[sqlfluff]` section. Example: a
-`pyproject.toml` with `[tool.sqlfluff]` above the checkout gave 73 false sqruff
-failures.
+Use a checkout with no sqlfluff config file in its parent folders, and a
+temp folder (`TMPDIR`) with no such file in it or in its parent folders. The
+tools read the config files in each folder above a case, as sqlfluff does,
+and the autofix suite runs its cases in the temp folder. Thus `scripts/test`
+and `scripts/verify` first run `sqll_harness/preflight.py`. It stops with
+exit code 2 and names the file if one of these folders has `.sqlfluff`,
+`pyproject.toml` with `[tool.sqlfluff]`, or `setup.cfg`, `tox.ini`, or
+`pep8.ini` with a `[sqlfluff]` section. Example: a `pyproject.toml` with
+`[tool.sqlfluff]` above the checkout gave 73 false sqruff failures.
 
 `scripts/test` runs `scripts/setup`, writes `out/tools.json` with
 `sqll-harness tools`, runs `pytest harness/tests`, then runs the suites. The
@@ -37,8 +38,11 @@ at a time can use a checkout. A warning line shows a worktree with changes.
 CI-only steps (checkout, image, artifacts, shard merge) are in `CI_ONLY` in
 `sqll_harness/verify.py`. `tests/test_verify.py` fails if a CI step is in no
 list, or if the command lines of a CI step (with its env and matrix values)
-are not the same as those of its local checks. No local command can have
-`||`, `true`, `--filter`, or other words that can hide a failure.
+are not the same as those of its local checks. It also fails if the run text
+or env of a CI-only step is not the text in `CI_ONLY_RUN`, or if CI uses a
+step key that it does not know (for example `shell` or `working-directory`)
+or `defaults`. No local command can have `||`, `true`, `--filter`, or other
+words that can hide a failure.
 
 ## Tools
 
@@ -208,10 +212,17 @@ runtime.
 ## Summary: `results/s1/summary.json`
 
 `sqll-harness summarize out/report.json` writes the summary of a full-run
-report to `results/s1/summary.json` (or `--out`). With `--check FILE`, the
-exit code is 1 if FILE does not have the same text. It refuses a report with
-a filter, a single shard, a repeated case, or a missing or extra suite or
-tool (exit code 2).
+report to `out/summary.json` (or `--out`). With `--check FILE`, the exit
+code is 1 if FILE does not have the same text as the new summary. The
+command compares before it writes, and FILE must not be the `--out` file
+(exit code 2). It refuses a report with a filter, a single shard, a repeated
+case, a missing or extra suite or tool, or no known-failure check result for
+a tool (exit code 2).
+
+The summary has only counts. Thus `--check` finds a change of a count, but
+not a swap of status between 2 cases or a changed case id. The run (and
+`merge`) checks each case id against `known_failures/`, and the oracles
+check each case id of sqlfluff and `sqlfluff-rs`.
 
 The summary has `sqlfluff_ref`, the record of each tool from the report
 (`version`, `config`, `preflight`), and for each tool:
