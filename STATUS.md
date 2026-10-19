@@ -1,8 +1,9 @@
 # sqll Status
 
 - Current stone: S1. The full local run shows that all exit criteria are
-  true. **S1 is awaiting human approval** after CI passes on PR #10. Do not
-  start S2 before the approval.
+  true. **S1 is awaiting human approval.** CI cannot run (account billing),
+  so the proof is the full local `scripts/verify` run below. Do not start S2
+  before the approval.
 - sqlfluff reference: tag `4.4.0`, commit `0348222a3bcdb0226563f7349c5a39beb0641955`.
 
 ## S1 tasks
@@ -23,13 +24,12 @@
 Proof: [`results/s1/summary.json`](results/s1/summary.json), the summary of
 a full local run of all tools and suites (`sqll-harness run`, exit code 0).
 The CI `report` job fails if this file is not the summary of the CI run, so
-it cannot drift. CI for PR #10 did not run yet: since 2026-10-14 10:30 UTC
-each CI job fails before a runner starts (also on `main`). A human must
-make CI run, see PR #10.
+it cannot drift. CI did not run on PR #10: since 2026-10-14 each CI job
+stops before a runner starts, because of account billing.
 
-CI is blocked by account billing. Thus the S1 proof is local:
-`scripts/verify` runs each CI check. On commit `b57d1e4` it passed 23 of
-23 checks (exit code 0, 4779 s, 4 jobs).
+Thus the S1 proof is local. `scripts/verify` runs each CI check; a unit test
+fails if its commands are not the CI commands. On commit `35c906a` (clean
+worktree) it passed 23 of 23 checks: exit code 0, 3889 s, 4 jobs.
 
 | Criterion (STONES.md) | Proof |
 |---|---|
