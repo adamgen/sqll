@@ -110,7 +110,7 @@ class Context:
 
     record_reference: the lint and fix checks do not compare with the
     reference. Only "sqll-harness bench reference" uses it, to make the
-    reference from sqlfluff.
+    sqlfluff reference.
     """
 
     def __init__(

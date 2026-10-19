@@ -27,10 +27,13 @@ from .adapter import FIX, LINT, PARSE, BenchAdapter
 from .inputs import START
 
 TIMEOUT_S = 120
-# Prints the dialect names (labels) of the sqlfluff in the venv. The output
-# of "sqlfluff dialects" wraps a long name, so the adapter does not read it.
+# Prints the dialect names (labels) of the package argv[1] in the venv, as
+# tools._IMPORT_CHECK does. The output of "sqlfluff dialects" wraps a long
+# name, so the adapter does not read it.
 _LIST_DIALECTS = (
-    "import sqlfluff; print(' '.join(d.label for d in sqlfluff.list_dialects()))"
+    "import importlib, sys;"
+    "m = importlib.import_module(sys.argv[1]);"
+    "print(' '.join(d.label for d in m.list_dialects()))"
 )
 
 
@@ -72,7 +75,7 @@ class SqlfluffBench(BenchAdapter):
         python = self.s1.venv / "bin" / "python"
         with tempfile.TemporaryDirectory(prefix="sqll-bench-") as tmp:
             proc = subprocess.run(
-                [str(python), "-I", "-c", _LIST_DIALECTS],
+                [str(python), "-I", "-c", _LIST_DIALECTS, "sqlfluff"],
                 cwd=tmp,
                 capture_output=True,
                 text=True,
