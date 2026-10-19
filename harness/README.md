@@ -219,6 +219,70 @@ means that the fixture skips the case; a skipped case must not be in
 `needs_python` (templater suite) means that the case needs a Python
 runtime.
 
+## Benchmark report: `out/bench.json`
+
+The S2 report ([bench.md](bench.md)). `sqll_harness/bench/timer.py` measures,
+`sqll_harness/bench/report.py` builds and checks it.
+
+```json
+{
+  "kind": "sqll-bench-report",
+  "format": 1,
+  "sqlfluff_ref": "<commit of third_party/sqlfluff>",
+  "harness": {"commit": "<commit>", "clean": true},
+  "profile": "smoke|full",
+  "policy": {"warmup_runs": 1, "min_runs": 3, "max_runs": 20,
+             "budget_s": 2.0, "timeout_s": 120.0},
+  "machine": {"cpu_model": "", "cpu_count": 4, "memory_kib": 0, "os": "",
+              "kernel": "", "arch": "", "python": ""},
+  "timer": {"clock": "time.perf_counter_ns", "rusage": "os.wait4",
+            "overhead": {"argv": ["/bin/true"], "samples": [], "stats": {}}},
+  "scope": {"tools": [], "dialects": [], "commands": [], "sizes": [],
+            "shard": "K/N"},
+  "tools": {"<tool>": {"version": "", "settings": {}}},
+  "inputs": {"<input>": {"bytes": 0, "lines": 0, "sha256": ""}},
+  "results": [{"id": "", "command": "", "dialect": "", "size": "", "input": "",
+               "tool": "", "status": "valid|invalid|unsupported|error",
+               "reason": "", "runs": {"warmup": 1, "timed": 3}, "work": {},
+               "samples": [{"kind": "warmup|timed", "wall_s": 0.0,
+                            "user_s": 0.0, "sys_s": 0.0, "max_rss_kib": 0,
+                            "exit_code": 0, "timed_out": false}],
+               "stats": {"wall_s": {"n": 3, "median": 0.0, "min": 0.0,
+                                    "max": 0.0, "mad": 0.0},
+                         "cpu_s": {}}}],
+  "totals": {"<tool>": {"valid": 0, "invalid": 0, "unsupported": 0,
+                        "error": 0, "wall_s": 0.0, "cpu_s": 0.0}},
+  "pairs": [{"tools": ["<a>", "<b>"], "benchmarks": 0, "skipped": 0,
+             "wall_s": [0.0, 0.0], "cpu_s": [0.0, 0.0], "wall_ratio": 0.0}]
+}
+```
+
+- `harness.clean`: the worktree had no change. `policy`: the policy of the
+  profile. `memory_kib` can be null. `scope.shard` is null for a full run.
+- `id`, `command`, `dialect`, `size`, and `input` are those of the
+  definitions; `size` is null for `start`. `input` is a key of `inputs`.
+- Times are in seconds, `max_rss_kib` in KiB (`ru_maxrss`). CPU time
+  (`cpu_s`) is user and system time. A negative `exit_code` is a signal.
+- `status`: `valid` (the warmup run passed its check, and each timed run
+  has its exit code); `invalid` (a check failed, an exit code is wrong, or
+  a timeout; `reason` says which); `unsupported` (the tool does not
+  support the benchmark); `error` (the harness could not run it).
+- `stats` (n, median, min, max, MAD) are of the timed samples only, not of
+  the warmup. Only a `valid` result has `stats` and no `reason`. Other
+  results keep their samples (often only the warmup), with `stats` null.
+- `work`: null, or the facts that the validity check of the tool found
+  (T4).
+- `totals`: for each tool, the count of each status, and the sums of the
+  median times of its `valid` results. `pairs`: for each 2 tools, the sums
+  over the benchmarks where both are `valid`; `skipped` counts the other
+  benchmarks of the 2 tools. `wall_ratio` is the first sum divided by the
+  second (null if it is 0).
+
+`report.check()` refuses a missing or unknown field, an unknown status, a
+`valid` result with no stats, a number of timed runs outside the policy,
+and stats, totals, or pairs that are not those of the samples. `write()`
+writes only a report with no error.
+
 ## Summary: `results/s1/summary.json`
 
 `sqll-harness summarize out/report.json` writes the summary of a full-run
