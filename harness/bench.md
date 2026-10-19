@@ -15,8 +15,7 @@ CPUs); PR #12 has the commands and the output.
 benchmarks for each tool). Reason: STONES.md asks for 3 sizes of each
 command for each dialect; start time does not depend on the input size.
 `start` includes the config and dialect load, because a user feels it
-(G3.1). The report also has the `--version` time (measured: sqlfluff
-0.59 s, sqruff 0.012 s).
+(G3.1).
 
 ## Inputs
 
@@ -34,8 +33,7 @@ run time; the repository has no copy. External corpora are S9.
 4. It is not in the frozen exclusion list (a reason for each file): the
    139 dialect cases with `unparsable segment` in `known_failures/sqruff.txt`
    (sqlfluff and `sqlfluff[rs]` have none), and `ansi/bracket_in_comment`
-   ("Join"). A new tool does not change the list. soql (sqruff:
-   `unsupported`) is not in it.
+   ("Join"). A new tool does not change the list.
 5. The tree has a leaf. Measured: 3 files have none (`ansi/comments`,
    `ansi/empty_file`, `sqlite/block_comment_end_of_input`). The last is an
    unclosed comment: without this rule, 86% of sqlite large is comment.
@@ -51,8 +49,9 @@ a terminator (`statement_terminator`, `function_script_terminator`, or
 - Plain concatenation of ansi files (16374 bytes): `sqlfluff parse` gives 1
   unparsable node of 13977 bytes. Joined ansi large: none.
 - `;` after a `/` line is unparsable for all 3 tools (exasol, oracle).
-- `select a /* ) */ from b;`: only `sqlfluff[rs]` gives an unparsable `;`.
-  The fixture has no `;`, so S1 passes.
+- `ansi/bracket_in_comment` with `;` added (`)` on its own line in a block
+  comment): only `sqlfluff[rs]` gives an unparsable `;`. On one line, no
+  tool does. The fixture has no `;`, so S1 passes.
 
 **Fill.** Targets: small 1024, medium 4096, large 16384 bytes. In sorted
 path order, the builder adds each file that keeps the input at or below the
@@ -84,7 +83,7 @@ A timing is valid only if the warmup run passes the check of its command,
 and each timed run has the exit code of the warmup run:
 
 - All: no crash, traceback, or panic; no size-limit skip message; no
-  timeout (120 s; the slowest valid run took 34 s).
+  timeout (120 s; see "Time budget").
 - `parse`: exit code 0, a tree with no unparsable segment.
 - `lint` and `fix`: the `parse` check of the same tool on the same input
   passes; the output has no parse error (`PRS`, `Unparsable section`) and
@@ -92,8 +91,8 @@ and each timed run has the exit code of the warmup run:
 - `lint`: exit code 0 or 1, a result for the input file, and the set of
   rule codes of the sqlfluff reference.
 - `fix`: exit code 0 or 1, no `CRITICAL` log, a fresh copy of the input for
-  each run. The `lint` check of the same tool on the same input passes. The
-  file changes if, and only if, it changes in the reference.
+  each run. The `lint` check passes. The file changes if, and only if, it
+  changes in the reference.
 
 Else the status is `invalid`, `unsupported`, or `error`, with a reason. No
 comparison or total uses its samples. Reasons (measured): the skips above
@@ -101,17 +100,19 @@ have exit code 0. sqruff `lint` has `--parsing-errors` (as in S1): without
 it, an unparsable input gives exit code 0 and an empty result. A setting
 that a tool ignores gives less work. On ansi large, sqlfluff `lint` gives
 661 violations in 5.4 s; with `rules = LT01`, 85 in 1.9 s; with an unknown
-rule, only a warning, exit code 0, no violations. Limit: the `fix` check
-does not prove the same fixes; S1 parity measures that.
+rule, only a warning, exit code 0, no violations. Limit: the `parse`,
+`lint`, and `fix` checks do not prove the same tree, violations, or fixes;
+S1 parity measures that.
 
 Measured valid results (of 28 `start` and 84 for each command): sqlfluff
 and `sqlfluff[rs]` all; sqruff 27 `start`, 81 `parse`, 55 `lint`, 53 `fix`.
-sqruff: no soql dialect (panic, exit code 101); rule panics with exit code
-1 and an output (`lint` and `fix`: mysql large, oracle medium and large;
-`fix` only: tsql large); `fix` of ansi large did not stop in 902 s; on 23
-inputs, rule codes that are not those of sqlfluff (S1 rule differences)
-make `lint` and `fix` invalid. S3 compares only valid pairs. The inputs do
-not change for these rule bugs.
+Causes for sqruff: soql panics (exit code 101); rule panics, exit code 1
+(mysql large, oracle medium and large, `fix` of tsql large); `fix` of ansi
+large did not stop in 902 s; 23 inputs have rule codes that are not those
+of sqlfluff (S1 rule differences). The inputs stay the same. G3: an
+invalid or missing result of the tool under test fails its comparison;
+skip a pair only if the other tool is invalid. A total uses the same
+pairs for both tools.
 
 ## Time budget
 
@@ -143,7 +144,7 @@ of each run.
 ## Noise control
 
 - The baseline is a controlled run: the CI image in docker on one
-  machine, serial, no other load. The report has the machine record.
+  machine, serial, no other load.
 - The tools run in turn for each repeat, so drift has the same effect on
   each tool. Comparisons use ratios between tools of the same run.
 - CI gates only on data that does not change between runs (ids, input
@@ -156,15 +157,16 @@ of each run.
 level: `format`, `sqlfluff_ref`, `profile` (`smoke`, `full`), `machine`,
 `timer`, `tools`. One entry for each benchmark and tool: `id`, `tool`, `input` (bytes, sha256), `status`,
 `reason`, `work` (violation count and rule codes; sha256 of the fixed
-file), `samples` (wall, CPU, max RSS, exit code), and `stats`. The recorded baseline is
-`results/s2/baseline.json`, as `results/s1/summary.json` is for S1.
+file), `samples` (wall, CPU, max RSS, exit code), and `stats`. Baseline:
+`results/s2/baseline.json`.
 
 ## Add a tool
 
-The definitions do not name a tool. A tool is a benchmark adapter (command
-lines, settings translation, validity check) and a registry entry. sqll
-(S3) needs no change to the definitions. A test-double tool in the unit
-tests proves this.
+The definitions have no tool entry; they store the reference data of the
+pinned sqlfluff. A tool is a benchmark adapter (command lines, settings
+translation, validity check) and a registry entry. sqll (S3) needs no
+change to the definitions. A test-double tool in the unit tests proves
+this.
 
 ## CI and slowdowns
 
@@ -176,8 +178,8 @@ tests proves this.
 - `scripts/verify` runs the smoke profile; the drift test covers the new
   CI steps.
 - `sqll-harness bench compare OLD NEW` flags a benchmark that is slower by
-  more than a noise limit. It refuses reports with different inputs,
-  settings, or tool versions. PROCESS.md will require the reason of a
+  more than a noise limit, or a status change from `valid`. It refuses
+  reports with different inputs, settings, or tool versions. PROCESS.md will require the reason of a
   flagged slowdown in the pull request body (G3.6).
 - `scripts/bench` writes the full report for the 3 tools in one command
   (the S2 exit, G4.4).
