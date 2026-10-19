@@ -15,7 +15,8 @@ Each agent starts with new context. Use a Workflow script to run the cycle when 
 ## Cycle for each task
 
 1. The author opens a pull request.
-2. CI runs the tests and the benchmarks.
+2. CI runs the tests and the benchmarks. For a pull request that changes
+   only documents, CI runs only the image and lint jobs.
 3. A reviewer writes findings.
 4. If there are findings, the fixer changes the code. Then a new reviewer examines it.
    Do steps 3 and 4 again until a reviewer approves.

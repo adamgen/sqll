@@ -112,13 +112,15 @@ CI (`.github/workflows/ci.yml`):
 
 To add a suite or a tool to CI, add an entry to `ci/matrix.json`.
 
-The `changes` job runs `ci/changes.py` first. If each changed file is a
-document in its `DOCS` list (`*.md` and `harness/*.md`), CI does not run
-`test`, `report`, and `dialect-oracle`. The `image` job (a registry lookup,
-because no document is an image input) and `lint` always run: the unit tests
-read some documents, for example STATUS.md. Each other change, or a change
-that is not known, runs all jobs. A new pull request run stops the old run of
-the same pull request. A push to main does not stop a run that has started.
+The `changes` job runs `ci/changes.py` first. If each file that a pull
+request changes is a document in its `DOCS` list (`*.md` and `harness/*.md`;
+a `*` does not match `/`), CI does not run `test`, `report`, and
+`dialect-oracle`. The `image` job (a registry lookup, because no document is
+an image input) and `lint` always run: the unit tests read some documents,
+for example STATUS.md. Each other change, a change that is not known, and
+each push to main run all jobs. The full jobs run unless the `changes` job
+output is `full=false`. A new pull request run stops the old run of the same
+pull request. A push to main does not stop a run that has started.
 
 `sqll-harness known-failures REPORT --tool T` prints the known-failures file
 of a tool from a report (sorted ids, one reason each). With `--counts` it

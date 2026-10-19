@@ -123,7 +123,27 @@ CI_CHANGES = {
         run="python3 ci/changes.py pull_request"
     ),
     "changed changes env": lambda d: _step(d, "changes", "Changed files")["env"].update(
-        BEFORE="x"
+        EVENT="pull_request"
+    ),
+    "changes outputs full forced false": lambda d: d["jobs"]["changes"][
+        "outputs"
+    ].update(full="false"),
+    "changes outputs removed": lambda d: d["jobs"]["changes"].pop("outputs"),
+    "changes step id renamed": lambda d: _step(d, "changes", "Changed files").update(
+        id="files"
+    ),
+    "new step id": lambda d: _unit(d).update(id="unit"),
+    "image outputs changed": lambda d: d["jobs"]["image"]["outputs"].update(
+        matrix="{}"
+    ),
+    "test job if back to == 'true'": lambda d: d["jobs"]["test"].update(
+        {"if": "needs.changes.outputs.full == 'true'"}
+    ),
+    "test job continue-on-error": lambda d: d["jobs"]["test"].update(
+        {"continue-on-error": True}
+    ),
+    "report job services": lambda d: d["jobs"]["report"].update(
+        services={"db": {"image": "x"}}
     ),
     "ruff check --check": lambda d: _step(d, "lint", "Lint").update(
         run=_step(d, "lint", "Lint")["run"].replace(

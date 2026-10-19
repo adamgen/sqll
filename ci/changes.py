@@ -1,19 +1,21 @@
 #!/usr/bin/env python3
 """Tell if CI must run the full jobs: test shards, report, dialect oracles.
 
-If each changed file is a document in DOCS, CI skips the full jobs. The
-image and lint jobs always run: the unit tests read some documents (for
-example STATUS.md). Each other change runs all jobs. If the changed files
-are not known (git fails, a new branch, workflow_dispatch), CI runs all jobs.
+Only a pull request can skip the full jobs: if each file that the pull
+request changes is a document in DOCS. The image and lint jobs always run:
+the unit tests read some documents (for example STATUS.md). Each other
+change runs all jobs. A push or another event always runs all jobs. Thus
+each push to main gets a full run, also if GitHub cancels a pending run of
+an earlier push. If git fails, CI runs all jobs.
 
-Usage: ci/changes.py EVENT [BEFORE]
-EVENT is the GitHub event name. BEFORE is the commit before a push.
+Usage: ci/changes.py EVENT
+EVENT is the GitHub event name.
 Output: the changed files and the result, also in GITHUB_STEP_SUMMARY if
 set. With GITHUB_OUTPUT set, it adds "full=true" or "full=false" to it.
+CI runs the full jobs unless the output is "full=false".
 """
 
 import os
-import re
 import subprocess
 import sys
 from fnmatch import fnmatchcase
@@ -22,8 +24,6 @@ from fnmatch import fnmatchcase
 # that a harness, script, tool, or CI command reads, other than the unit
 # tests of the lint job.
 DOCS = ("*.md", "harness/*.md")
-
-_SHA = re.compile(r"[0-9a-f]{40}")
 
 
 def is_doc(path: str) -> bool:
@@ -50,39 +50,29 @@ def _git(*args: str, cwd: str | None = None) -> str | None:
     return out.stdout if out.returncode == 0 else None
 
 
-def base_commit(event: str, before: str = "", cwd: str | None = None) -> str | None:
-    """Return the commit to compare HEAD with, or None if it is not known.
+def changed_files(event: str, cwd: str | None = None) -> list[str] | None:
+    """Return the files that a pull request changes, or None.
 
-    pull_request: HEAD is the merge commit; its first parent is the base.
-    push: the commit before the push.
+    None: the event is not pull_request, or git fails. In a pull_request
+    run, HEAD is the merge commit; its first parent is the base.
     """
-    if event == "pull_request":
-        parents = (
-            _git("rev-list", "--parents", "-n", "1", "HEAD", cwd=cwd) or ""
-        ).split()
-        return parents[1] if len(parents) == 3 else None
-    if event == "push" and _SHA.fullmatch(before) and before != "0" * 40:
-        if _git("cat-file", "-e", f"{before}^{{commit}}", cwd=cwd) is not None:
-            return before
-    return None
-
-
-def changed_files(
-    event: str, before: str = "", cwd: str | None = None
-) -> list[str] | None:
-    base = base_commit(event, before, cwd)
-    if base is None:
+    if event != "pull_request":
         return None
-    out = _git("diff", "--no-renames", "--name-only", base, "HEAD", cwd=cwd)
+    parents = (_git("rev-list", "--parents", "-n", "1", "HEAD", cwd=cwd) or "").split()
+    if len(parents) != 3:
+        return None
+    out = _git("diff", "--no-renames", "--name-only", parents[1], "HEAD", cwd=cwd)
     return None if out is None else out.splitlines()
 
 
 def main(argv: list[str]) -> int:
-    event, before = (argv + [""])[:2]
-    paths = changed_files(event, before)
+    event = (argv + [""])[0]
+    paths = changed_files(event)
     full = full_run(paths)
-    if paths is None:
-        text = [f"Changed files: not known (event {event})."]
+    if event != "pull_request":
+        text = [f"Event {event}: not a pull request. CI does not compare files."]
+    elif paths is None:
+        text = ["Changed files: not known (git failed)."]
     else:
         text = [f"Changed files ({len(paths)}):"]
         text += [f"- {'doc' if is_doc(p) else 'code'}: {p}" for p in paths]

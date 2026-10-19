@@ -5,8 +5,9 @@ check is a shell command, run with "sh -ec" from the repository root. Each
 command is a copy of a CI step. harness/tests/test_verify.py fails (drift())
 if a CI step is not in checks() or in CI_ONLY, if a command line of a CI
 step, with its env, is not the same as the local command lines, if the
-run text of a CI_ONLY step is not the text in CI_ONLY_RUN, or if a job "if"
-is not the text in JOB_IF.
+run text of a CI_ONLY step is not the text in CI_ONLY_RUN, if a job "if"
+is not the text in JOB_IF, if job outputs or step ids are not JOB_OUTPUTS or
+STEP_IDS, or if a job or step key is not known.
 
 Output: one line for each check, a log for each check in out/verify/, and
 out/verify.json. With --quick: out/verify-quick/ and out/verify-quick.json,
@@ -75,7 +76,7 @@ _SAFE_DIRECTORY = "git config --global --add safe.directory '*'"
 # fails if CI changes it, because these commands can also check something
 # (for example the shard merge).
 CI_ONLY_RUN = {
-    "changes: Changed files": 'python3 ci/changes.py "$EVENT" "$BEFORE"',
+    "changes: Changed files": 'python3 ci/changes.py "$EVENT"',
     "image: tag": (
         'echo "image=$IMAGE_REPO:$(python3 ci/image_tag.py)" >> "$GITHUB_OUTPUT"\n'
         'echo "matrix=$(python3 ci/matrix.py)" >> "$GITHUB_OUTPUT"'
@@ -102,20 +103,51 @@ CI_ONLY_RUN = {
     ),
 }
 CI_ONLY_RUN_ENV = {
-    "changes: Changed files": {
-        "EVENT": "${{ github.event_name }}",
-        "BEFORE": "${{ github.event.before }}",
-    },
+    "changes: Changed files": {"EVENT": "${{ github.event_name }}"},
     "image: find": {"IMAGE": "${{ steps.tag.outputs.image }}"},
 }
 
 # The "if" of each CI job that has one. A job "if" can skip all checks of a
 # job, thus drift() fails if a job "if" is not this text. The lint job has
-# no "if": its unit tests read documents (for example STATUS.md).
-_FULL = "needs.changes.outputs.full == 'true'"
+# no "if": its unit tests read documents (for example STATUS.md). The test
+# and report jobs run unless "full" is 'false', so an empty output (for
+# example a broken outputs map) gives a full run.
+_FULL = "needs.changes.outputs.full != 'false'"
 JOB_IF = {
     "test": _FULL,
     "report": f"always() && {_FULL} && needs.image.result == 'success'",
+}
+
+# The outputs of each CI job that has outputs, and the id of each CI step
+# that has an id. The job "if" text uses them, thus drift() fails if they
+# change.
+JOB_OUTPUTS = {
+    "changes": {"full": "${{ steps.changes.outputs.full }}"},
+    "image": {
+        "image": "${{ steps.tag.outputs.image }}",
+        "matrix": "${{ steps.tag.outputs.matrix }}",
+    },
+}
+STEP_IDS = {
+    "changes: Changed files": "changes",
+    "image: tag": "tag",
+    "image: find": "find",
+}
+
+# The job keys that drift() knows. Another key (for example continue-on-error
+# or services) can change the result of a job, so drift() fails on it.
+JOB_KEYS = {
+    "needs",
+    "if",
+    "name",
+    "runs-on",
+    "timeout-minutes",
+    "permissions",
+    "outputs",
+    "strategy",
+    "container",
+    "steps",
+    "env",
 }
 
 # The step keys that drift() knows. Another key (for example shell or
@@ -488,9 +520,10 @@ def drift(selected: list[Check], data: dict | None = None) -> list[str]:
     For each CI step that is not in CI_ONLY, the command lines of all its
     matrix entries, in order, must be the same as the command lines of its
     local checks, in order. A word cannot move between commands. The run
-    text of each CI_ONLY step must be the text in CI_ONLY_RUN. A step key
-    that is not in STEP_KEYS, "defaults", or a job "if" that is not in
-    JOB_IF, is a difference.
+    text of each CI_ONLY step must be the text in CI_ONLY_RUN. A job key
+    that is not in JOB_KEYS, a step key that is not in STEP_KEYS,
+    "defaults", a job "if" that is not in JOB_IF, job outputs that are not
+    in JOB_OUTPUTS, or a step id that is not in STEP_IDS, is a difference.
     """
     data = load_ci() if data is None else data
     steps = ci_steps(data)
@@ -502,11 +535,20 @@ def drift(selected: list[Check], data: dict | None = None) -> list[str]:
         got_if = " ".join(str(job.get("if", "")).split()) or None
         if got_if != JOB_IF.get(job_id):
             problems.append(f"{job_id}: job if {got_if!r} is not JOB_IF")
+        outputs = job.get("outputs")
+        if outputs != JOB_OUTPUTS.get(job_id):
+            problems.append(f"{job_id}: job outputs {outputs!r} are not JOB_OUTPUTS")
+        problems += [
+            f"{job_id}: job key {k!r} is not supported by drift()"
+            for k in sorted(set(job) - JOB_KEYS - {"defaults"})
+        ]
     for key, step, job in steps:
         problems += [
             f"{key}: step key {k!r} is not supported by drift()"
             for k in sorted(set(step) - STEP_KEYS)
         ]
+        if step.get("id") != STEP_IDS.get(key):
+            problems.append(f"{key}: step id {step.get('id')!r} is not STEP_IDS")
         local = [c for c in selected if key in c.ci]
         if key in CI_ONLY:
             if local:
@@ -528,6 +570,7 @@ def drift(selected: list[Check], data: dict | None = None) -> list[str]:
             problems.append(f"{key}:\n  CI:    {want}\n  local: {got}")
     keys = {key for key, _, _ in steps}
     problems += [f"CI_ONLY {k!r}: no such CI step" for k in set(CI_ONLY) - keys]
+    problems += [f"STEP_IDS {k!r}: no such CI step" for k in set(STEP_IDS) - keys]
     problems += [
         f"CI_ONLY_RUN {k!r}: not a CI_ONLY step"
         for k in sorted(set(CI_ONLY_RUN) | set(CI_ONLY_RUN_ENV))

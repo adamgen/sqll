@@ -256,15 +256,22 @@ def repo(tmp_path):
     return tmp_path
 
 
-def test_push_compares_with_the_commit_before(repo):
-    before = _git(repo, "rev-parse", "HEAD")
-    _commit(repo, "STATUS.md", "b")
-    _commit(repo, "harness/README.md", "c")
-    files = changes.changed_files("push", before, cwd=str(repo))
-    assert sorted(files) == ["STATUS.md", "harness/README.md"]
-    assert not changes.full_run(files)
-    _commit(repo, "harness/x.py", "d")
-    assert changes.full_run(changes.changed_files("push", before, cwd=str(repo)))
+def test_push_is_always_a_full_run(repo, tmp_path, monkeypatch):
+    # Pushes A (code), B (code), C (docs only). GitHub can cancel the pending
+    # run of B; then the run of C has github.event.before = B. The run of C
+    # must not skip the full jobs.
+    _commit(repo, "harness/a.py", "A")
+    b = _commit(repo, "harness/x.py", "B")
+    _commit(repo, "STATUS.md", "C")
+    out = tmp_path / "out"
+    monkeypatch.setenv("GITHUB_OUTPUT", str(out))
+    monkeypatch.delenv("GITHUB_STEP_SUMMARY", raising=False)
+    monkeypatch.chdir(repo)
+    for argv in (["push", b], ["push"], ["workflow_dispatch"]):
+        assert changes.main(argv) == 0
+    assert out.read_text() == "full=true\n" * 3
+    for event in ("push", "workflow_dispatch", ""):
+        assert changes.changed_files(event, cwd=str(repo)) is None
 
 
 def test_pull_request_compares_the_merge_with_its_base(repo):
@@ -281,39 +288,47 @@ def test_pull_request_compares_the_merge_with_its_base(repo):
     assert changes.full_run(files)
 
 
+def _merge(repo, branch):
+    _git(repo, "checkout", "-q", "main")
+    _git(repo, "merge", "-q", "--no-ff", branch, "-m", "merge")
+
+
 def test_a_rename_shows_both_paths(repo):
-    before = _git(repo, "rev-parse", "HEAD")
+    _git(repo, "checkout", "-q", "-b", "pr")
     _git(repo, "mv", "STATUS.md", "x.py")
     _git(repo, "commit", "-qm", "mv")
-    files = changes.changed_files("push", before, cwd=str(repo))
+    _merge(repo, "pr")
+    files = changes.changed_files("pull_request", cwd=str(repo))
     assert sorted(files) == ["STATUS.md", "x.py"]
 
 
-@pytest.mark.parametrize(
-    "event, before",
-    [
-        ("push", "0" * 40),
-        ("push", "1" * 40),
-        ("push", ""),
-        ("push", "HEAD~1"),
-        ("pull_request", ""),
-        ("workflow_dispatch", ""),
-    ],
-)
-def test_unknown_base_is_a_full_run(repo, event, before):
+def test_docs_only_pull_request_skips(repo):
+    _git(repo, "checkout", "-q", "-b", "pr")
+    _commit(repo, "STATUS.md", "b")
+    _commit(repo, "harness/README.md", "c")
+    _merge(repo, "pr")
+    files = changes.changed_files("pull_request", cwd=str(repo))
+    assert sorted(files) == ["STATUS.md", "harness/README.md"]
+    assert not changes.full_run(files)
+
+
+def test_pull_request_without_a_merge_commit_is_a_full_run(repo):
     _commit(repo, "PROCESS.md", "b")
-    assert changes.changed_files(event, before, cwd=str(repo)) is None
+    assert changes.changed_files("pull_request", cwd=str(repo)) is None
 
 
 def test_main_writes_the_output(tmp_path, monkeypatch, capsys):
     out = tmp_path / "out"
     monkeypatch.setenv("GITHUB_OUTPUT", str(out))
     monkeypatch.delenv("GITHUB_STEP_SUMMARY", raising=False)
-    monkeypatch.setattr(changes, "changed_files", lambda e, b: ["STATUS.md"])
-    assert changes.main(["push", "x"]) == 0
-    monkeypatch.setattr(changes, "changed_files", lambda e, b: None)
-    assert changes.main(["workflow_dispatch"]) == 0
-    assert out.read_text() == "full=false\nfull=true\n"
+    monkeypatch.setattr(changes, "changed_files", lambda e: ["STATUS.md"])
+    assert changes.main(["pull_request"]) == 0
+    monkeypatch.setattr(changes, "changed_files", lambda e: None)
+    assert changes.main(["push"]) == 0
+    assert changes.main(["pull_request"]) == 0
+    assert out.read_text() == "full=false\nfull=true\nfull=true\n"
     text = capsys.readouterr().out
     assert "- doc: STATUS.md" in text
+    assert "Event push: not a pull request" in text
+    assert "not known (git failed)" in text
     assert "Result: full run" in text

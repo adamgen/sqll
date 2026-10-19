@@ -19,8 +19,10 @@ env:
   IMAGE_REPO: ghcr.io/adamgen/sqll-ci
 
 jobs:
-  # If the change has only documents (ci/changes.py), the test, report, and
-  # dialect-oracle jobs do not run. The image and lint jobs always run.
+  # If a pull request changes only documents (ci/changes.py), the test,
+  # report, and dialect-oracle jobs do not run. The image and lint jobs always
+  # run. A push always runs all jobs. The heavy jobs run unless full is
+  # 'false', so an empty output gives a full run.
   changes:
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -35,8 +37,7 @@ jobs:
         id: changes
         env:
           EVENT: ${{ github.event_name }}
-          BEFORE: ${{ github.event.before }}
-        run: python3 ci/changes.py "$EVENT" "$BEFORE"
+        run: python3 ci/changes.py "$EVENT"
 
   # The image tag is a hash of all image inputs (ci/image_tag.py). Build and
   # push the image only if the registry does not have that tag.
@@ -175,7 +176,7 @@ jobs:
 
   test:
     needs: [changes, image]
-    if: needs.changes.outputs.full == 'true'
+    if: needs.changes.outputs.full != 'false'
     name: test (${{ matrix.name }})
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -218,7 +219,7 @@ jobs:
   report:
     needs: [changes, image, test]
     if: >-
-      always() && needs.changes.outputs.full == 'true' &&
+      always() && needs.changes.outputs.full != 'false' &&
       needs.image.result == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 15
