@@ -131,17 +131,27 @@ Slowest valid run: `sqlfluff[rs] fix` of ansi large, 33.7 s. On 18431
 bytes of ansi, sqlfluff took 1.87 s (`parse`), 6.92 s (`lint`), and 41.7 s
 (`fix`). One serial run of all 840 benchmarks took 1626 s (with the
 timeout); `start` and `small` took 141 s. Thus a full run (1 warmup, at
-least 3 timed runs) takes about 2 hours.
+least 3 timed runs) takes about 2 hours, and the time budget of
+"Measurement" adds less than 28 min.
 
 ## Measurement
 
-A Python timer in the harness (`subprocess`, `os.wait4`) gives wall time,
-user and system CPU time, and max RSS. Each benchmark has 1 warmup run (the
-validity run), then timed runs with a minimum count and a time budget.
-Statistics: median, min, max, and MAD of wall and CPU time. The report
-records the timer overhead (measured: `/bin/true` 2.5 ms, median of 10).
-Not hyperfine: one more binary to pin, and it does not examine the output
-of each run.
+A Python timer in the harness (`sqll_harness/bench/timer.py`:
+`subprocess`, `os.wait4`) gives wall time, user and system CPU time, and
+max RSS. A prepare step (for `fix`: a fresh copy of the input) runs before
+each run, outside the timed part. Each benchmark has 1 warmup run (the
+validity run), then timed runs:
+
+- `full`: at least 3 and at most 20 timed runs. Between these limits, it
+  does more runs while their wall time is less than 2 s in total. Thus the
+  budget adds less than 2 s to each of the 840 series (a benchmark and
+  a tool).
+- `smoke`: 1 timed run.
+
+Statistics of the timed runs (not the warmup run): n, median, min, max, and
+MAD of wall and CPU (user and system) time. The report records the timer
+overhead: `/bin/true`, 10 runs (measured: median 1.4 ms). Not hyperfine:
+one more binary to pin, and it does not examine the output of each run.
 
 ## Noise control
 
@@ -155,12 +165,14 @@ of each run.
 
 ## Report
 
-`out/bench.json`; T3 documents the schema in `harness/README.md`. Top
-level: `format`, `sqlfluff_ref`, `profile` (`smoke`, `full`), `machine`,
-`timer`, `tools`. One entry for each benchmark and tool: `id`, `tool`, `input` (bytes, sha256), `status`,
-`reason`, `work` (violation count and rule codes; sha256 of the fixed
-file), `samples` (wall, CPU, max RSS, exit code), and `stats`. Baseline:
-`results/s2/baseline.json`.
+`out/bench.json`; `harness/README.md` has the schema. Top level: `kind`,
+`format`, `sqlfluff_ref`, `harness` (commit), `profile`, `policy`,
+`machine`, `timer`, `scope`, `tools` (version, settings), `inputs` (bytes,
+lines, sha256), `results`, `totals`, `pairs`. One result for each
+benchmark and tool: `id`, `command`, `dialect`, `size`, `input`, `tool`,
+`status`, `reason`, `runs`, `work` (from T4: violation count and rule
+codes; sha256 of the fixed file), `samples` (wall, CPU, max RSS, exit
+code), and `stats` (only if `valid`). Baseline: `results/s2/baseline.json`.
 
 ## Add a tool
 
@@ -173,7 +185,7 @@ this.
 ## CI and slowdowns
 
 - Pull request (not documents only): the smoke profile (`start` and
-  `small`, validity run only). Its stable data ("Noise control") must be
+  `small`, the validity run and 1 timed run; a valid result needs stats). Its stable data ("Noise control") must be
   equal to the baseline.
 - Push to main and `workflow_dispatch`: the full profile, sharded by
   dialect. The report goes to an artifact.

@@ -1,1 +1,1 @@
-"""S2 benchmarks: definitions and inputs. See harness/bench.md."""
+"""S2 benchmarks: definitions, inputs, timer, and report. See harness/bench.md."""

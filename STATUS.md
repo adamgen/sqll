@@ -12,8 +12,8 @@
 | Task | Description | State |
 |---|---|---|
 | T1 | S2 design record (`harness/bench.md`) and STATUS update | Merged (PR #12) |
-| T2 | Benchmark definitions and deterministic input builder | In review (PR #13) |
-| T3 | Measurement core and the benchmark report schema | Open |
+| T2 | Benchmark definitions and deterministic input builder | Merged (PR #13) |
+| T3 | Measurement core and the benchmark report schema | In review (PR #14) |
 | T4 | Benchmark adapters for sqlfluff, `sqlfluff[rs]`, and sqruff with validity checks | Open |
 | T5 | `sqll-harness bench run` and `scripts/bench`: one command, one machine-readable report | Open |
 | T6 | CI benchmark jobs and `scripts/verify` drift coverage | Open |
@@ -25,6 +25,13 @@ benchmarks (28 dialect folders, also soql; `start` and 3 sizes of `parse`,
 `lint`, `fix`) on 85 inputs (84 and `start`). The inputs use 2161 of 2306
 dialect fixture files; 140 are in the frozen exclusion list. T4 adds the
 sqlfluff reference (the `lint` rule codes, and if `fix` changes the file).
+
+Measurement core (`harness/sqll_harness/bench/timer.py`, `report.py`): the
+timer, the profiles (`full`: 3 to 20 timed runs, 2 s budget; `smoke`: 1
+timed run; 120 s timeout), and the schema check of `out/bench.json`
+(`harness/README.md`). Unit tests use test doubles only; no tool runs yet.
+Measured: `/bin/sleep 0.2` median 0.202 s (10 runs), timer overhead
+(`/bin/true`) median 1.4 ms.
 
 ## S1 exit evidence (approved)
 
