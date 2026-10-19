@@ -10,6 +10,7 @@ from pathlib import Path
 
 import pytest
 
+from sqll_harness import cli
 from sqll_harness.adapters.base import EmptyHome, isolated_env
 from sqll_harness.adapters.sqlfluff_rs import RUST_CONFIG
 from sqll_harness.adapters.sqruff_config import SQLFLUFF_DEFAULTS
@@ -646,3 +647,54 @@ def test_the_reference_is_made_from_valid_runs_only(tmp_path):
     ]
     with pytest.raises(ValueError, match="reference tool"):
         reference.make(DoubleBench(), defs, folder, tmp_path / "w3")
+
+
+def test_registry_get_refuses_an_entry_with_another_tool_name(monkeypatch):
+    monkeypatch.setattr(registry, "REGISTRY", {"other": DoubleBench})
+    with pytest.raises(ValueError, match="gives tool 'double'"):
+        registry.get("other")
+    with pytest.raises(KeyError):
+        registry.get("sqruff")
+
+
+def test_a_job_that_does_not_run_has_no_series(tmp_path):
+    defs, folder = custom(tmp_path, {"start": b"SELECT 1;\n"})
+    ctx = Context(defs, folder, tmp_path / "work")
+    bj = DoubleBench(no={"soql"}).job(bench("start", "start", "soql"), ctx)
+    with pytest.raises(ValueError, match="unsupported: dialect soql"):
+        bj.series(SMOKE)
+    with pytest.raises(ValueError, match="unknown command"):
+        DoubleBench().job(bench("format", "start"), ctx)
+
+
+def _bench_reference(*args) -> int:
+    return cli.main(["bench", "reference", *map(str, args)])
+
+
+def test_the_reference_command(tmp_path, monkeypatch, capsys):
+    recorded = definitions.load()
+    path = tmp_path / "definitions.json"
+    path.write_text(definitions.render(recorded), encoding="utf8")
+    made = {"ref": json.loads(json.dumps(recorded["reference"])), "failed": []}
+
+    def fake_make(adapter, defs, inputs_dir, work_root, jobs=1):
+        assert adapter.name == "sqlfluff"
+        assert (inputs_dir / "ansi" / "large.sql").is_file()
+        return made["ref"], made["failed"]
+
+    monkeypatch.setattr(reference, "make", fake_make)
+    assert _bench_reference("--definitions", path) == 0
+    assert "The reference is that of" in capsys.readouterr().out
+    made["ref"]["inputs"]["ansi/small"]["fix_changes"] = False
+    assert _bench_reference("--definitions", path) == 1
+    assert "ansi/small: recorded" in capsys.readouterr().out
+    assert _bench_reference("--definitions", path, "--write") == 0
+    assert definitions.load(path)["reference"] == made["ref"]
+    made["failed"] = ["tsql/large: exit code 2, expected 0, 1"]
+    assert _bench_reference("--definitions", path, "--write") == 1
+    assert "invalid: tsql/large" in capsys.readouterr().out
+    # Definitions that are not those of the build: exit code 2.
+    changed = definitions.load(path)
+    changed["inputs"]["ansi/small"]["sha256"] = "0" * 64
+    path.write_text(definitions.render(changed), encoding="utf8")
+    assert _bench_reference("--definitions", path) == 2
