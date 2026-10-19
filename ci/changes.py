@@ -8,6 +8,11 @@ change runs all jobs. A push or another event always runs all jobs. Thus
 each push to main gets a full run, also if GitHub cancels a pending run of
 an earlier push. If git fails, CI runs all jobs.
 
+A pull request that changes this file runs its own version of this file.
+The unit tests in harness/tests/test_ci.py examine it, but a pull request
+can also change them. Thus reviewers must examine each change to ci/ and
+to these tests carefully.
+
 Usage: ci/changes.py EVENT
 EVENT is the GitHub event name.
 Output: the changed files and the result, also in GITHUB_STEP_SUMMARY if

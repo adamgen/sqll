@@ -5,9 +5,11 @@ check is a shell command, run with "sh -ec" from the repository root. Each
 command is a copy of a CI step. harness/tests/test_verify.py fails (drift())
 if a CI step is not in checks() or in CI_ONLY, if a command line of a CI
 step, with its env, is not the same as the local command lines, if the
-run text of a CI_ONLY step is not the text in CI_ONLY_RUN, if a job "if"
-is not the text in JOB_IF, if job outputs or step ids are not JOB_OUTPUTS or
-STEP_IDS, or if a job or step key is not known.
+run text of a CI_ONLY step is not the text in CI_ONLY_RUN, if a job or
+step "if" is not the text in JOB_IF or STEP_IF, if job needs, job outputs,
+or step ids are not JOB_NEEDS, JOB_OUTPUTS, or STEP_IDS, if the workflow
+"on" or "concurrency" is not WORKFLOW_ON or WORKFLOW_CONCURRENCY, or if a
+workflow, job, or step key is not known.
 
 Output: one line for each check, a log for each check in out/verify/, and
 out/verify.json. With --quick: out/verify-quick/ and out/verify-quick.json,
@@ -118,6 +120,15 @@ JOB_IF = {
     "report": f"always() && {_FULL} && needs.image.result == 'success'",
 }
 
+# The needs of each CI job that has needs. A job "if" and the order of
+# jobs use them, thus drift() fails if they change.
+JOB_NEEDS = {
+    "lint": ["image"],
+    "test": ["changes", "image"],
+    "report": ["changes", "image", "test"],
+    "dialect-oracle": ["image", "report"],
+}
+
 # The outputs of each CI job that has outputs, and the id of each CI step
 # that has an id. The job "if" text uses them, thus drift() fails if they
 # change.
@@ -133,6 +144,35 @@ STEP_IDS = {
     "image: tag": "tag",
     "image: find": "find",
 }
+
+# The "if" of each CI step that has one. A step "if" can skip a check, thus
+# drift() fails if a step "if" is not this text.
+_NO_IMAGE = "steps.find.outputs.exists == 'false'"
+STEP_IF = {
+    "image: docker/setup-buildx-action": _NO_IMAGE,
+    "image: docker/build-push-action": _NO_IMAGE,
+    "test: actions/upload-artifact": "always()",
+    "report: actions/upload-artifact": "always()",
+    "report: Check test jobs": "needs.test.result != 'success'",
+    "dialect-oracle: actions/upload-artifact": "always()",
+}
+
+# The events and the concurrency of the workflow. An event filter (for
+# example paths-ignore) can skip all jobs, and cancel-in-progress on a push
+# to main can stop a full run. Thus drift() fails if they change. PyYAML
+# reads the key "on" as True.
+WORKFLOW_ON = {
+    "pull_request": None,
+    "push": {"branches": ["main"]},
+    "workflow_dispatch": None,
+}
+WORKFLOW_CONCURRENCY = {
+    "group": "${{ github.workflow }}-${{ github.ref }}",
+    "cancel-in-progress": "${{ github.event_name == 'pull_request' }}",
+}
+
+# The workflow keys that drift() knows.
+WORKFLOW_KEYS = {"name", "on", True, "permissions", "concurrency", "env", "jobs"}
 
 # The job keys that drift() knows. Another key (for example continue-on-error
 # or services) can change the result of a job, so drift() fails on it.
@@ -521,13 +561,28 @@ def drift(selected: list[Check], data: dict | None = None) -> list[str]:
     matrix entries, in order, must be the same as the command lines of its
     local checks, in order. A word cannot move between commands. The run
     text of each CI_ONLY step must be the text in CI_ONLY_RUN. A job key
-    that is not in JOB_KEYS, a step key that is not in STEP_KEYS,
-    "defaults", a job "if" that is not in JOB_IF, job outputs that are not
-    in JOB_OUTPUTS, or a step id that is not in STEP_IDS, is a difference.
+    that is not in JOB_KEYS, a step key that is not in STEP_KEYS, a
+    workflow key that is not in WORKFLOW_KEYS, "defaults", a job or step
+    "if" that is not in JOB_IF or STEP_IF, job needs or outputs that are not
+    in JOB_NEEDS or JOB_OUTPUTS, a step id that is not in STEP_IDS, or a
+    workflow "on" or "concurrency" that is not WORKFLOW_ON or
+    WORKFLOW_CONCURRENCY, is a difference.
     """
     data = load_ci() if data is None else data
     steps = ci_steps(data)
     problems = []
+    events = data.get(True, data.get("on"))
+    if events != WORKFLOW_ON or (True in data and "on" in data):
+        problems.append(f"workflow: on {events!r} is not WORKFLOW_ON")
+    if data.get("concurrency") != WORKFLOW_CONCURRENCY:
+        problems.append(
+            f"workflow: concurrency {data.get('concurrency')!r}"
+            " is not WORKFLOW_CONCURRENCY"
+        )
+    problems += [
+        f"workflow: key {k!r} is not supported by drift()"
+        for k in sorted(map(str, set(data) - WORKFLOW_KEYS - {"defaults"}))
+    ]
     for where, block in [("workflow", data), *data["jobs"].items()]:
         if "defaults" in block:
             problems.append(f"{where}: 'defaults' is not supported by drift()")
@@ -535,6 +590,10 @@ def drift(selected: list[Check], data: dict | None = None) -> list[str]:
         got_if = " ".join(str(job.get("if", "")).split()) or None
         if got_if != JOB_IF.get(job_id):
             problems.append(f"{job_id}: job if {got_if!r} is not JOB_IF")
+        needs = job.get("needs")
+        needs = [needs] if isinstance(needs, str) else needs
+        if needs != JOB_NEEDS.get(job_id):
+            problems.append(f"{job_id}: job needs {needs!r} are not JOB_NEEDS")
         outputs = job.get("outputs")
         if outputs != JOB_OUTPUTS.get(job_id):
             problems.append(f"{job_id}: job outputs {outputs!r} are not JOB_OUTPUTS")
@@ -549,6 +608,9 @@ def drift(selected: list[Check], data: dict | None = None) -> list[str]:
         ]
         if step.get("id") != STEP_IDS.get(key):
             problems.append(f"{key}: step id {step.get('id')!r} is not STEP_IDS")
+        step_if = " ".join(str(step.get("if", "")).split()) or None
+        if step_if != STEP_IF.get(key):
+            problems.append(f"{key}: step if {step_if!r} is not STEP_IF")
         local = [c for c in selected if key in c.ci]
         if key in CI_ONLY:
             if local:
@@ -571,6 +633,7 @@ def drift(selected: list[Check], data: dict | None = None) -> list[str]:
     keys = {key for key, _, _ in steps}
     problems += [f"CI_ONLY {k!r}: no such CI step" for k in set(CI_ONLY) - keys]
     problems += [f"STEP_IDS {k!r}: no such CI step" for k in set(STEP_IDS) - keys]
+    problems += [f"STEP_IF {k!r}: no such CI step" for k in set(STEP_IF) - keys]
     problems += [
         f"CI_ONLY_RUN {k!r}: not a CI_ONLY step"
         for k in sorted(set(CI_ONLY_RUN) | set(CI_ONLY_RUN_ENV))

@@ -16,7 +16,7 @@ Each agent starts with new context. Use a Workflow script to run the cycle when 
 
 1. The author opens a pull request.
 2. CI runs the tests and the benchmarks. For a pull request that changes
-   only documents, CI runs only the image and lint jobs.
+   only documents, CI runs only the changes, image, and lint jobs.
 3. A reviewer writes findings.
 4. If there are findings, the fixer changes the code. Then a new reviewer examines it.
    Do steps 3 and 4 again until a reviewer approves.
@@ -30,9 +30,11 @@ Each agent starts with new context. Use a Workflow script to run the cycle when 
 4. There is no limit on review rounds. The author, the reviewers, and the
    fixers continue until the work is correct and a reviewer approves. Use
    as little human supervision as possible. Ask a human only for: approval
-   of a stone, a change to CONSTITUTION.md, a change of the pinned sqlfluff
-   version, and a blocker that only a human can remove (for example an
-   account setting).
+   of a stone, approval of a decision that STONES.md gives to a human (for
+   example the S3 base), a change to CONSTITUTION.md, a change of the pinned
+   sqlfluff version, and a blocker that only a human can remove (for example
+   an account setting). Do not continue past such a decision before a human
+   approves it.
 5. Keep STATUS.md correct: the current stone, open tasks, parity numbers, and known failures.
 6. A human approves each completed stone before the next stone starts.
 7. A false pass that only a mutated or invented fixture shows (no fixture of

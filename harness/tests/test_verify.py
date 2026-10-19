@@ -145,6 +145,34 @@ CI_CHANGES = {
     "report job services": lambda d: d["jobs"]["report"].update(
         services={"db": {"image": "x"}}
     ),
+    "if on a check step": lambda d: _step(
+        d, "report", "Check the recorded summary"
+    ).update({"if": "false"}),
+    "if on a CI_ONLY step": lambda d: _step(d, "report", "Merge").update(
+        {"if": "false"}
+    ),
+    "changed step if": lambda d: _step(d, "report", "Check test jobs").update(
+        {"if": "false"}
+    ),
+    "removed step if": lambda d: d["jobs"]["test"]["steps"][-1].pop("if"),
+    "pull_request paths-ignore": lambda d: d[True].update(
+        pull_request={"paths-ignore": ["**.md"]}
+    ),
+    "push paths": lambda d: d[True]["push"].update(paths=["docs/**"]),
+    "push trigger removed": lambda d: d[True].pop("push"),
+    "cancel-in-progress on push": lambda d: d["concurrency"].update(
+        {"cancel-in-progress": True}
+    ),
+    "concurrency removed": lambda d: d.pop("concurrency"),
+    "new workflow key": lambda d: d.update({"run-name": "x"}),
+    "test needs only image": lambda d: d["jobs"]["test"].update(needs="image"),
+    "dialect-oracle needs only image": lambda d: d["jobs"]["dialect-oracle"].update(
+        needs=["image"]
+    ),
+    "lint needs changes": lambda d: d["jobs"]["lint"].update(
+        needs=["changes", "image"]
+    ),
+    "needs on the changes job": lambda d: d["jobs"]["changes"].update(needs="image"),
     "ruff check --check": lambda d: _step(d, "lint", "Lint").update(
         run=_step(d, "lint", "Lint")["run"].replace(
             "ruff check harness", "ruff check --check harness"
