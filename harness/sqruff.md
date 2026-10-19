@@ -119,8 +119,29 @@ tuple). It runs only for `sqlfluff`, in CI (8 shards). Result: 2306 of 2306.
 | autofix | 61 | 45 | 16 | fix 45, non_linting 54, tree 54, violations 1 |
 | templater | 43 | 28 | 15 | exact 28, no_unparsable 33 |
 
-`known_failures/sqruff.txt` lists the 1131 failed cases with their reasons.
-`sqll-harness known-failures REPORT --tool sqruff` writes this file from a
-report, and `--counts` gives the counts for each reason prefix (see
-STATUS.md). No sqlfluff test can run sqruff, so there is no oracle.
+`known_failures/sqruff.txt` lists the 1131 failed cases with their reasons
+(7 `error`, all sqruff panics; the others `fail`). In 5 of the 7, the case
+sets the YAML string `none` or `None`, which the INI file gives to sqruff as
+None. `sqll-harness known-failures REPORT --tool sqruff` writes this file
+from a report, and `--counts` gives the counts for each reason prefix:
+
+| Reason prefix | autofix | dialects | rules | templater |
+|---|---|---|---|---|
+| after_fix | 0 | 0 | 1 | 0 |
+| fail_str | 0 | 0 | 45 | 0 |
+| fix mismatch | 9 | 0 | 67 | 0 |
+| lint | 0 | 0 | 7 | 0 |
+| no tree | 0 | 0 | 0 | 1 |
+| pass_str | 0 | 0 | 57 | 0 |
+| the tool has no parse tree for the file | 1 | 0 | 0 | 0 |
+| tree differs | 0 | 755 | 0 | 5 |
+| unsupported: comment character | 0 | 0 | 4 | 0 |
+| unsupported: dialect | 0 | 3 | 1 | 0 |
+| unsupported: layout type | 0 | 0 | 1 | 0 |
+| unsupported: output field | 0 | 0 | 21 | 0 |
+| unsupported: rule | 0 | 0 | 24 | 0 |
+| unsupported: setting | 6 | 0 | 109 | 7 |
+| unsupported: upper-case key | 0 | 0 | 5 | 2 |
+
+No sqlfluff test can run sqruff, so there is no oracle.
 [not-reproduced.md](not-reproduced.md) gives the limits.

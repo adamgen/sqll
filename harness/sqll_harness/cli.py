@@ -1,4 +1,4 @@
-"""Command line: sqll-harness run | merge | tools | known-failures.
+"""Command line: sqll-harness run | merge | tools | known-failures | summarize.
 
 See harness/README.md.
 """
@@ -13,12 +13,12 @@ import traceback
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
-from . import known_failures, merge, report, shard, tools
+from . import known_failures, merge, report, shard, summary, tools
 from .adapters import ADAPTERS, Adapter
 from .adapters.base import Unsupported
 from .cases import ERROR, FAIL, UNSUPPORTED, CaseResult
 from .known_failures import Outcome
-from .paths import DEFAULT_REPORT, KNOWN_FAILURES_DIR, SQLFLUFF_ROOT
+from .paths import DEFAULT_REPORT, DEFAULT_SUMMARY, KNOWN_FAILURES_DIR, SQLFLUFF_ROOT
 from .suites import SUITES, runs_for
 
 
@@ -88,6 +88,26 @@ def _parser() -> argparse.ArgumentParser:
         "--counts",
         action="store_true",
         help="Print the number of failures for each reason prefix and suite.",
+    )
+
+    smr = sub.add_parser(
+        "summarize",
+        help="Write the summary of a full-run report. Optionally compare it "
+        "with a recorded summary.",
+    )
+    smr.add_argument("report", type=Path)
+    smr.add_argument(
+        "--out",
+        type=Path,
+        default=DEFAULT_SUMMARY,
+        help="File for the new summary. Default: out/summary.json.",
+    )
+    smr.add_argument(
+        "--check",
+        type=Path,
+        metavar="SUMMARY",
+        help="Fail if this file is not equal to the new summary. It must not "
+        "be the --out file.",
     )
 
     tls = sub.add_parser(
@@ -251,6 +271,40 @@ def show_known_failures(args: argparse.Namespace) -> int:
     return 0
 
 
+def _same_file(a: Path, b: Path) -> bool:
+    if a.resolve() == b.resolve():
+        return True
+    return a.exists() and b.exists() and os.path.samefile(a, b)
+
+
+def summarize(args: argparse.Namespace) -> int:
+    try:
+        rep = json.loads(args.report.read_text(encoding="utf8"))
+        result = summary.summarize(rep)
+    except (OSError, ValueError, KeyError, TypeError, summary.SummaryError) as exc:
+        print(f"error: {args.report}: {exc!r}", file=sys.stderr)
+        return 2
+    if args.check is not None and _same_file(args.out, args.check):
+        print(
+            f"error: --out and --check are the same file ({args.check}). "
+            "Write the summary to a different file.",
+            file=sys.stderr,
+        )
+        return 2
+    # Compare before the write, so that the check never reads the new file.
+    lines = None if args.check is None else summary.diff(result, args.check)
+    summary.write(result, args.out)
+    print(f"summary: {args.out}")
+    if lines is None:
+        return 0
+    if lines:
+        sys.stdout.writelines(lines)
+        print(f"\nFAIL: {args.check} is not the summary of {args.report}.")
+        return 1
+    print(f"{args.check} is equal to the summary.")
+    return 0
+
+
 def show_tools(args: argparse.Namespace) -> int:
     infos = tools.check(args.tool)
     out = {
@@ -271,6 +325,8 @@ def main(argv: list[str] | None = None) -> int:
         return show_tools(args)
     if args.command == "known-failures":
         return show_known_failures(args)
+    if args.command == "summarize":
+        return summarize(args)
     return 2
 
 

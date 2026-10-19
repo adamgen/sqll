@@ -1,6 +1,9 @@
 # sqll Status
 
-- Current stone: S1. In progress.
+- Current stone: S1. The full local run shows that all exit criteria are
+  true. **S1 is awaiting human approval.** CI cannot run (account billing),
+  so the proof is the full local `scripts/verify` run below. Do not start S2
+  before the approval.
 - sqlfluff reference: tag `4.4.0`, commit `0348222a3bcdb0226563f7349c5a39beb0641955`.
 
 ## S1 tasks
@@ -13,71 +16,80 @@
 | T4 | Autofix suite (`linter/autofix`) for sqlfluff | Done (PR #6) |
 | T5 | Templater suite (`test__templater_full`) for sqlfluff | Done (PR #7) |
 | T6 | `sqlfluff[rs]` adapter on all 4 suites, results recorded | Done (PR #8) |
-| T7 | sqruff adapter on all 4 suites, results recorded | In review |
-| T8 | S1 exit: full run, recorded baseline, status | Open |
+| T7 | sqruff adapter on all 4 suites, results recorded | Done (PR #9) |
+| T8 | S1 exit: full run, recorded baseline, status | In review (PR #10) |
 
-## Tools
+## S1 exit evidence
 
-sqlfluff 4.4.0, `sqlfluff[rs]` 4.4.0 with sqlfluffrs 4.4.0, sqruff 0.41.0
-(features `parser,python`). See `harness/README.md`.
+Proof: [`results/s1/summary.json`](results/s1/summary.json), the summary of
+a full local run of all tools and suites (`sqll-harness run`, exit code 0).
+The CI `report` job fails if this file is not the summary of the CI run, so
+it cannot drift. CI did not run on PR #10: since 2026-10-14 each CI job
+stops before a runner starts, because of account billing.
+
+Thus the S1 proof is local. `scripts/verify` runs each CI check; a unit test
+fails if its commands are not the CI commands. On commit `2a19de6` (the last
+code change; fresh clone, clean worktree) it passed 23 of 23 checks: exit
+code 0, 4104 s, 4 jobs.
+
+| Criterion (STONES.md) | Proof |
+|---|---|
+| Submodule at tag `4.4.0` | `third_party/sqlfluff` at the commit above; `scripts/check-submodule` in CI: no change |
+| Fixtures read in place | The suites read the submodule; check-submodule after each run |
+| 4 fixture types | Suites `dialects` 2306, `rules` 2527, `autofix` 61, `templater` 43 cases: the cases that the sqlfluff tests collect (`harness/tests/test_case_counts.py`, see "Case counts" in `harness/README.md`) |
+| Rule case is a YAML key | `harness/rules.md` |
+| Adapters: sqlfluff, `sqlfluff[rs]`, sqruff | Results below, for all 4937 cases |
+| 2 parse numbers | `exact` and `no_unparsable` in the summary; parity uses `exact` |
+| Exit: sqlfluff passes 100% | 4937 of 4937, `known_failures/sqlfluff.txt` is empty. The sqlfluff tests (oracles) give the same status for each case |
+| Exit: other tools recorded | `sqlfluff[rs]` and sqruff below |
 
 ## Parity
 
-| Suite | Tool | Total | Passed | Skipped | Checks |
-|---|---|---|---|---|---|
-| dialects | sqlfluff 4.4.0 | 2306 | 2306 | 0 | exact 2306, no_unparsable 2306 |
-| rules | sqlfluff 4.4.0 | 2527 | 2527 | 0 | after_fix 851, fail_str 1193, fix 1193, pass_str 1332 |
-| autofix | sqlfluff 4.4.0 | 61 | 61 | 0 | fix 61, non_linting 61, tree 61, violations 1 |
-| templater | sqlfluff 4.4.0 | 43 | 43 | 0 | exact 43, no_unparsable 43 |
-| dialects | sqlfluff-rs 4.4.0 | 2306 | 2306 | 0 | exact 2306, no_unparsable 2306 |
-| rules | sqlfluff-rs 4.4.0 | 2527 | 2527 | 0 | after_fix 851, fail_str 1193, fix 1193, pass_str 1332 |
-| autofix | sqlfluff-rs 4.4.0 | 61 | 61 | 0 | fix 61, non_linting 61, tree 61, violations 1 |
-| templater | sqlfluff-rs 4.4.0 | 43 | 43 | 0 | exact 43, no_unparsable 43 |
-| dialects | sqruff 0.41.0 | 2306 | 1548 | 0 | exact 1548, no_unparsable 2164 |
-| rules | sqruff 0.41.0 | 2527 | 2185 | 0 | after_fix 758, fail_str 1044, fix 997, pass_str 1207 |
-| autofix | sqruff 0.41.0 | 61 | 45 | 0 | fix 45, non_linting 54, tree 54, violations 1 |
-| templater | sqruff 0.41.0 | 43 | 28 | 0 | exact 28, no_unparsable 33 |
+From `results/s1/summary.json`. The 4 suites, 4937 cases:
 
-The sqlfluff tests pass the same cases, with 0 differences
-(`scripts/sqlfluff-dialect-oracle`: 2306 dialect cases;
-`scripts/sqlfluff-rule-oracle`: 2527 rule cases;
-`scripts/sqlfluff-autofix-oracle`: 61 autofix cases;
-`scripts/sqlfluff-templater-oracle`: 43 templater cases). With `--rust` the
-same is true for sqlfluff-rs; for dialects this includes the sqlfluff
-Python-vs-Rust parity test. CI checks this. sqlfluff-rs is sqlfluff with
-`use_rust_parser` and `use_rust_rules` set to true (see
-`harness/sqlfluff-rs.md`).
-3 templater cases need a Python runtime (`needs_python`, see
-`harness/templater.md`).
+| Tool | Parity cases | Passed | Percent |
+|---|---|---|---|
+| sqlfluff 4.4.0 | 4937 | 4937 | 100.00 |
+| sqlfluff-rs 4.4.0 | 4937 | 4937 | 100.00 |
+| sqruff 0.41.0 | 4937 | 3806 | 77.09 |
 
-sqruff has no code-only parse output. The harness filters its full tree.
-The `code_only` suite proves the filter with sqlfluff: 2306 of 2306 dialect
-cases (`harness/sqruff.md`). No sqlfluff test runs sqruff, so sqruff has no
-oracle.
+| Suite | Tool | Total | Passed | Failed | Error | Skipped | Checks |
+|---|---|---|---|---|---|---|---|
+| dialects | sqlfluff 4.4.0 | 2306 | 2306 | 0 | 0 | 0 | exact 2306, no_unparsable 2306 |
+| rules | sqlfluff 4.4.0 | 2527 | 2527 | 0 | 0 | 0 | after_fix 851, fail_str 1193, fix 1193, pass_str 1332 |
+| autofix | sqlfluff 4.4.0 | 61 | 61 | 0 | 0 | 0 | fix 61, non_linting 61, tree 61, violations 1 |
+| templater | sqlfluff 4.4.0 | 43 | 43 | 0 | 0 | 0 | exact 43, no_unparsable 43 |
+| dialects | sqlfluff-rs 4.4.0 | 2306 | 2306 | 0 | 0 | 0 | exact 2306, no_unparsable 2306 |
+| rules | sqlfluff-rs 4.4.0 | 2527 | 2527 | 0 | 0 | 0 | after_fix 851, fail_str 1193, fix 1193, pass_str 1332 |
+| autofix | sqlfluff-rs 4.4.0 | 61 | 61 | 0 | 0 | 0 | fix 61, non_linting 61, tree 61, violations 1 |
+| templater | sqlfluff-rs 4.4.0 | 43 | 43 | 0 | 0 | 0 | exact 43, no_unparsable 43 |
+| dialects | sqruff 0.41.0 | 2306 | 1548 | 758 | 0 | 0 | exact 1548, no_unparsable 2164 |
+| rules | sqruff 0.41.0 | 2527 | 2185 | 335 | 7 | 0 | after_fix 758, fail_str 1044, fix 997, pass_str 1207 |
+| autofix | sqruff 0.41.0 | 61 | 45 | 16 | 0 | 0 | fix 45, non_linting 54, tree 54, violations 1 |
+| templater | sqruff 0.41.0 | 43 | 28 | 15 | 0 | 0 | exact 28, no_unparsable 33 |
+
+The sqlfluff tests give the same status for each case of the local report
+(`scripts/sqlfluff-*-oracle`, also a CI step; with `--rust` for sqlfluff-rs,
+which also runs the sqlfluff Python-vs-Rust parity test on the dialect
+files). sqlfluff-rs is sqlfluff
+with `use_rust_parser` and `use_rust_rules` set (`harness/sqlfluff-rs.md`).
+sqruff has no oracle (`harness/sqruff.md`). 3 templater cases need a Python
+runtime (`needs_python`, `harness/templater.md`). The `code_only` harness
+check passes 2306 of 2306.
 
 ## Known failures
 
-- sqlfluff: none.
-- sqlfluff-rs: none.
-- sqruff: 1131 cases in `known_failures/sqruff.txt` (7 `error`, all sqruff
-  panics; the others `fail`). In 5 of the 7, the case sets the YAML string
-  `none` or `None`, which the INI file gives to sqruff as None. Counts for
-  each reason prefix:
+- sqlfluff: 0 (`known_failures/sqlfluff.txt` is empty).
+- sqlfluff-rs: 0 (`known_failures/sqlfluff-rs.txt` is empty).
+- sqruff: 1131 in `known_failures/sqruff.txt`: dialects 758, rules 342,
+  autofix 16, templater 15. 7 are `error` (sqruff panics). The reasons are in
+  `harness/sqruff.md`.
 
-| Reason prefix | autofix | dialects | rules | templater |
-|---|---|---|---|---|
-| after_fix | 0 | 0 | 1 | 0 |
-| fail_str | 0 | 0 | 45 | 0 |
-| fix mismatch | 9 | 0 | 67 | 0 |
-| lint | 0 | 0 | 7 | 0 |
-| no tree | 0 | 0 | 0 | 1 |
-| pass_str | 0 | 0 | 57 | 0 |
-| the tool has no parse tree for the file | 1 | 0 | 0 | 0 |
-| tree differs | 0 | 755 | 0 | 5 |
-| unsupported: comment character | 0 | 0 | 4 | 0 |
-| unsupported: dialect | 0 | 3 | 1 | 0 |
-| unsupported: layout type | 0 | 0 | 1 | 0 |
-| unsupported: output field | 0 | 0 | 21 | 0 |
-| unsupported: rule | 0 | 0 | 24 | 0 |
-| unsupported: setting | 6 | 0 | 109 | 7 |
-| unsupported: upper-case key | 0 | 0 | 5 | 2 |
+## Open question for a human
+
+sqlfluff 4.4.0 has `test/fixtures/parity/` (3 YAML files for
+`test/core/parser/parity/cases_test.py`). These cases have no expected
+output: they compare the Python and the Rust engines of sqlfluff. S1 names 4
+other fixture types, so the harness does not use them. Must the harness
+add them (for example as a check of `sqlfluff[rs]` against sqlfluff), or
+stay without them?

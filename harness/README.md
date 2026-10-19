@@ -12,8 +12,15 @@ scripts/test --tool sqlfluff --suite dialects --jobs 8
 scripts/test --filter dialects/ansi/   # only ids that start with this text
 ```
 
-Use a checkout with no sqlfluff config file in its parent folders. The tools
-read the config files in each folder above a case, as sqlfluff does.
+Use a checkout with no sqlfluff config file in its parent folders, and a
+temp folder (`TMPDIR`) with no such file in it or in its parent folders. The
+tools read the config files in each folder above a case, as sqlfluff does,
+and the autofix suite runs its cases in the temp folder. Thus `scripts/test`
+and `scripts/verify` first run `sqll_harness/preflight.py`. It stops with
+exit code 2 and names the file if one of these folders has `.sqlfluff`,
+`pyproject.toml` with `[tool.sqlfluff]`, or `setup.cfg`, `tox.ini`, or
+`pep8.ini` with a `[sqlfluff]` section. Example: a `pyproject.toml` with
+`[tool.sqlfluff]` above the checkout gave 73 false sqruff failures.
 
 `scripts/test` runs `scripts/setup`, writes `out/tools.json` with
 `sqll-harness tools`, runs `pytest harness/tests`, then runs the suites. The
@@ -21,6 +28,21 @@ exit code is not 0 if a result is different from `known_failures/<tool>.txt`.
 `scripts/check-submodule` fails if `third_party/sqlfluff` has a change or an
 untracked or ignored file. `scripts/test` runs it before the tests and after
 the run. CI runs it after the tests and after each shard.
+
+`scripts/verify [--jobs N] [--quick]` runs each CI check locally: the lint job,
+one unsharded run of all tools and suites, and the report and dialect-oracle
+checks. Exit code 0 only if all pass; details in `out/verify.json` and
+`out/verify/*.log`. `--quick` (fast checks only) is not the full verification;
+it writes `out/verify-quick.json` and `out/verify-quick/*.log`. Only one run
+at a time can use a checkout. A warning line shows a worktree with changes.
+CI-only steps (checkout, image, artifacts, shard merge) are in `CI_ONLY` in
+`sqll_harness/verify.py`. `tests/test_verify.py` fails if a CI step is in no
+list, or if the command lines of a CI step (with its env and matrix values)
+are not the same as those of its local checks. It also fails if the run text
+or env of a CI-only step is not the text in `CI_ONLY_RUN`, or if CI uses a
+step key that it does not know (for example `shell` or `working-directory`)
+or `defaults`. No local command can have `||`, `true`, `--filter`, or other
+words that can hide a failure.
 
 ## Tools
 
@@ -72,14 +94,18 @@ CI (`.github/workflows/ci.yml`):
 
 1. `image`: `ci/image_tag.py` hashes all inputs of `ci/Dockerfile`. If
    `ghcr.io/adamgen/sqll-ci:<hash>` does not exist, CI builds and pushes it.
-2. `lint`: `sqll-harness tools`, ruff, the unit tests, and the oracles on
-   the harness dialect, rule, autofix, and templater fixtures (also with
-   `--rust`), in the image.
+2. `lint`: `sqll-harness tools`, ruff, the unit tests (also the case-count
+   test, see [Case counts](#case-counts)), and the oracles on the harness
+   dialect, rule, autofix, and templater fixtures (also with `--rust`), in
+   the image.
 3. `test`: one job for each suite, tool, and shard in `ci/matrix.json`.
-4. `report`: `sqll-harness merge --expect ci/matrix.json`, then the rule,
-   autofix, and templater oracles on the merged report for `sqlfluff`, and
-   again with `--rust` for `sqlfluff-rs`. It uploads `out/report.json` and
-   the `out/*oracle.jsonl` files.
+4. `report`: `sqll-harness merge --expect ci/matrix.json`,
+   `sqll-harness summarize`, then the rule, autofix, and templater oracles
+   on the merged report for `sqlfluff`, and again with `--rust` for
+   `sqlfluff-rs`. Then it compares `results/s1/summary.json` with the
+   summary of the run (see [Summary](#summary-resultss1summaryjson)). It
+   uploads `out/report.json`, `out/summary.json`, and the
+   `out/*oracle.jsonl` files.
 5. `dialect-oracle`: `scripts/sqlfluff-dialect-oracle` on the merged report,
    one job for `sqlfluff` and one for `sqlfluff-rs` (`--rust`). It takes some
    minutes.
@@ -182,3 +208,57 @@ means that the fixture skips the case; a skipped case must not be in
 `known_failures/`. `tags` give facts about a case that are not results:
 `needs_python` (templater suite) means that the case needs a Python
 runtime.
+
+## Summary: `results/s1/summary.json`
+
+`sqll-harness summarize out/report.json` writes the summary of a full-run
+report to `out/summary.json` (or `--out`). With `--check FILE`, the exit
+code is 1 if FILE does not have the same text as the new summary. The
+command compares before it writes, and FILE must not be the `--out` file
+(exit code 2). It refuses a report with a filter, a single shard, a repeated
+case, a missing or extra suite or tool, or no known-failure check result for
+a tool (exit code 2).
+
+The summary has only counts. Thus `--check` finds a change of a count, but
+not a swap of status between 2 cases or a changed case id. The run (and
+`merge`) checks each case id against `known_failures/`, and the oracles
+check each case id of sqlfluff and `sqlfluff-rs`.
+
+The summary has `sqlfluff_ref`, the record of each tool from the report
+(`version`, `config`, `preflight`), and for each tool:
+
+- `parity`: `total` and `passed` over the 4 parity suites. `code_only` is a
+  check of the harness and is not in it.
+- `known_failures_check`: the number of new failures and unexpected passes
+  of the known-failure check.
+- `suites`: for each suite `total`, `passed`, `failed`, `error`, `skipped`
+  (their sum is `total`; here `failed` does not include `error`), the
+  number of cases where each check is true (`checks`), and for each tag the
+  number of cases and of passed cases (`tags`; `needs_python` is always
+  there).
+
+To record new results, copy `out/summary.json` from the `report` artifact of
+CI. `harness/tests/test_recorded_summary.py` checks that the recorded
+summary, `known_failures/`, and the tables in STATUS.md agree.
+
+## Case counts
+
+`harness/tests/test_case_counts.py` proves that the harness finds the cases
+that the pinned sqlfluff tests collect. `scripts/sqlfluff-case-ids` (run
+with the Python of `tools/sqlfluff-oracle`) runs `pytest --collect-only` on
+the sqlfluff submodule and prints the parameter id of each case of these
+tests. The unit test makes the same id from each harness case and compares
+the 2 lists, with repeats:
+
+| Suite | sqlfluff test | Cases in 4.4.0 |
+|---|---|---|
+| `dialects` | `test/dialects/dialects_test.py::test__dialect__base_parse_struct` | 2306 |
+| `rules` | `test/rules/yaml_test_cases_test.py::test__rule_test_case` | 2527 |
+| `autofix` | `test/rules/std_fix_auto_test.py::test__std_fix_auto` | 61 |
+| `templater` | `test/core/templaters/jinja_test.py::test__templater_full` | 43 |
+
+The total is 4937. `test__dialect__base_file_parse` also has 2306 cases,
+one for each dialect SQL file. In 4.4.0 the rule test gives 3 ids to 2 cases
+each (`LT01-literals.yml` and `LT01-operators.yml` have the same keys);
+pytest adds `0` and `1` to them. The harness ids have the file name, so they
+are unique.
