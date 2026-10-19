@@ -2,7 +2,7 @@
 
 - Current stone: **S2** (benchmarks). Design: [harness/bench.md](harness/bench.md).
 - S1 is complete. The human owner approved it on 2026-10-19 (owner
-  statement in the S2 plan). S1 tasks T1 to T9 are merged (PRs #3 to #11).
+  statement to the workflow). S1 tasks T1 to T9 are merged (PRs #3 to #11).
   CI on main passed after the last merge (run 39235508233, head `016a5e1`,
   54 of 54 jobs).
 - sqlfluff reference: tag `4.4.0`, commit `0348222a3bcdb0226563f7349c5a39beb0641955`.
