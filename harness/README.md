@@ -112,6 +112,16 @@ CI (`.github/workflows/ci.yml`):
 
 To add a suite or a tool to CI, add an entry to `ci/matrix.json`.
 
+The `changes` job runs `ci/changes.py` first. If each file that a pull
+request changes is a document in its `DOCS` list (`*.md` and `harness/*.md`;
+a `*` does not match `/`), CI does not run `test`, `report`, and
+`dialect-oracle`. The `image` job (a registry lookup, because no document is
+an image input) and `lint` always run: the unit tests read some documents,
+for example STATUS.md. Each other change, a change that is not known, and
+each push to main run all jobs. The full jobs run unless the `changes` job
+output is `full=false`. A new pull request run stops the old run of the same
+pull request. A push to main does not stop a run that has started.
+
 `sqll-harness known-failures REPORT --tool T` prints the known-failures file
 of a tool from a report (sorted ids, one reason each). With `--counts` it
 prints the number of failures for each reason prefix and suite.
@@ -237,9 +247,11 @@ The summary has `sqlfluff_ref`, the record of each tool from the report
   number of cases and of passed cases (`tags`; `needs_python` is always
   there).
 
-To record new results, copy `out/summary.json` from the `report` artifact of
-CI. `harness/tests/test_recorded_summary.py` checks that the recorded
-summary, `known_failures/`, and the tables in STATUS.md agree.
+To record new results, copy `out/summary.json` to
+`results/s1/summary.json`. Get it from the `report` artifact of CI or from a
+full local run (`scripts/verify`). `harness/tests/test_recorded_summary.py`
+checks that the recorded summary, `known_failures/`, and the tables in
+STATUS.md agree.
 
 ## Case counts
 

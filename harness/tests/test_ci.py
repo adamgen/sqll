@@ -4,6 +4,7 @@ import importlib.util
 import json
 import re
 import shlex
+import subprocess
 
 import pytest
 
@@ -175,3 +176,159 @@ def test_ci_matrix_runs_each_suite_for_each_tool():
         if runs_for(suite, "sqlfluff-rs"):
             assert shards[(name, "sqlfluff-rs")] == shards[(name, "sqlfluff")]
     assert ("code_only", "sqlfluff") in shards
+
+
+# ci/changes.py: the documents-only test
+
+changes = _load("changes")
+
+CODE_PATHS = (
+    ".github/workflows/ci.yml",
+    "third_party/sqlfluff",
+    "harness/sqll_harness/verify.py",
+    "harness/tests/test_ci.py",
+    "harness/tests/fixtures/dialects/README.md",
+    "harness/sqll_harness/x.md",
+    "scripts/verify",
+    "tools/sqruff/x.md",
+    "ci/x.md",
+    "known_failures/sqruff.txt",
+    "results/s1/summary.json",
+    "results/README.md",
+    "README.txt",
+    "md",
+)
+
+
+def test_documents_are_docs():
+    for path in ("STATUS.md", "PROCESS.md", "harness/README.md", "new.md"):
+        assert changes.is_doc(path), path
+    assert not changes.full_run(["STATUS.md", "harness/sqruff.md"])
+
+
+@pytest.mark.parametrize("path", CODE_PATHS)
+def test_other_paths_run_all_jobs(path):
+    assert not changes.is_doc(path)
+    assert changes.full_run(["STATUS.md", path])
+
+
+def test_unknown_or_empty_change_runs_all_jobs():
+    assert changes.full_run(None)
+    assert changes.full_run([])
+
+
+def test_tracked_docs_are_markdown_outside_the_code_folders():
+    files = subprocess.run(
+        ["git", "-C", str(REPO_ROOT), "ls-files"],
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout.splitlines()
+    docs = [f for f in files if changes.is_doc(f)]
+    assert "STATUS.md" in docs
+    for path in docs:
+        assert path.endswith(".md"), path
+        assert path.count("/") == 0 or path.startswith("harness/"), path
+        assert path.count("/") <= 1, path
+
+
+def _git(repo, *args):
+    return subprocess.run(
+        ["git", "-C", str(repo), "-c", "user.name=t", "-c", "user.email=t@t", *args],
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout.strip()
+
+
+def _commit(repo, path, text):
+    (repo / path).parent.mkdir(parents=True, exist_ok=True)
+    (repo / path).write_text(text)
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-qm", path)
+    return _git(repo, "rev-parse", "HEAD")
+
+
+@pytest.fixture
+def repo(tmp_path):
+    _git(tmp_path, "init", "-q", "-b", "main")
+    _commit(tmp_path, "STATUS.md", "a")
+    return tmp_path
+
+
+def test_push_is_always_a_full_run(repo, tmp_path, monkeypatch):
+    # Pushes A (code), B (code), C (docs only). GitHub can cancel the pending
+    # run of B; then the run of C has github.event.before = B. The run of C
+    # must not skip the full jobs.
+    _commit(repo, "harness/a.py", "A")
+    b = _commit(repo, "harness/x.py", "B")
+    _commit(repo, "STATUS.md", "C")
+    out = tmp_path / "out"
+    monkeypatch.setenv("GITHUB_OUTPUT", str(out))
+    monkeypatch.delenv("GITHUB_STEP_SUMMARY", raising=False)
+    monkeypatch.chdir(repo)
+    for argv in (["push", b], ["push"], ["workflow_dispatch"]):
+        assert changes.main(argv) == 0
+    assert out.read_text() == "full=true\n" * 3
+    for event in ("push", "workflow_dispatch", ""):
+        assert changes.changed_files(event, cwd=str(repo)) is None
+
+
+def test_pull_request_compares_the_merge_with_its_base(repo):
+    base = _git(repo, "rev-parse", "HEAD")
+    _git(repo, "checkout", "-q", "-b", "pr")
+    _commit(repo, "harness/x.py", "code")
+    _commit(repo, "STATUS.md", "doc")
+    _git(repo, "checkout", "-q", "main")
+    _commit(repo, "PROCESS.md", "main")
+    _git(repo, "merge", "-q", "--no-ff", "pr", "-m", "merge")
+    assert _git(repo, "rev-parse", "HEAD^1") != base
+    files = changes.changed_files("pull_request", cwd=str(repo))
+    assert sorted(files) == ["STATUS.md", "harness/x.py"]
+    assert changes.full_run(files)
+
+
+def _merge(repo, branch):
+    _git(repo, "checkout", "-q", "main")
+    _git(repo, "merge", "-q", "--no-ff", branch, "-m", "merge")
+
+
+def test_a_rename_shows_both_paths(repo):
+    _git(repo, "checkout", "-q", "-b", "pr")
+    _git(repo, "mv", "STATUS.md", "x.py")
+    _git(repo, "commit", "-qm", "mv")
+    _merge(repo, "pr")
+    files = changes.changed_files("pull_request", cwd=str(repo))
+    assert sorted(files) == ["STATUS.md", "x.py"]
+
+
+def test_docs_only_pull_request_skips(repo):
+    _git(repo, "checkout", "-q", "-b", "pr")
+    _commit(repo, "STATUS.md", "b")
+    _commit(repo, "harness/README.md", "c")
+    _merge(repo, "pr")
+    files = changes.changed_files("pull_request", cwd=str(repo))
+    assert sorted(files) == ["STATUS.md", "harness/README.md"]
+    assert not changes.full_run(files)
+
+
+def test_pull_request_without_a_merge_commit_is_a_full_run(repo):
+    _commit(repo, "PROCESS.md", "b")
+    assert changes.changed_files("pull_request", cwd=str(repo)) is None
+
+
+def test_main_writes_the_output(tmp_path, monkeypatch, capsys):
+    out = tmp_path / "out"
+    monkeypatch.setenv("GITHUB_OUTPUT", str(out))
+    monkeypatch.delenv("GITHUB_STEP_SUMMARY", raising=False)
+    monkeypatch.setattr(changes, "changed_files", lambda e: ["STATUS.md"])
+    assert changes.main(["pull_request"]) == 0
+    monkeypatch.setattr(changes, "changed_files", lambda e: None)
+    assert changes.main(["push"]) == 0
+    assert changes.main(["pull_request"]) == 0
+    assert out.read_text() == "full=false\nfull=true\nfull=true\n"
+    text = capsys.readouterr().out
+    assert "- doc: STATUS.md" in text
+    assert "Event push: not a pull request" in text
+    assert "not known (git failed)" in text
+    assert "Result: full run" in text
