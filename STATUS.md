@@ -17,7 +17,7 @@
 | T6 | `sqlfluff[rs]` adapter on all 4 suites, results recorded | Done (PR #8) |
 | T7 | sqruff adapter on all 4 suites, results recorded | Done (PR #9) |
 | T8 | S1 exit: full run, recorded baseline, status | Done (PR #10) |
-| T9 | Process and CI housekeeping | In review |
+| T9 | Process and CI housekeeping | In review (PR #11) |
 
 ## S1 exit evidence
 
