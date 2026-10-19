@@ -179,7 +179,7 @@ def test_each_tool_gets_the_same_settings_with_its_s1_layer(tmp_path):
         ("sqruff", "start", ["parse", "-f", "json"]),
         ("sqruff", "parse", ["parse", "-f", "json"]),
         ("sqruff", "lint", ["lint", "-f", "json", "--parsing-errors"]),
-        ("sqruff", "fix", ["fix"]),
+        ("sqruff", "fix", ["fix", "-f", "human"]),
     ],
 )
 def test_command_lines(tool, command, words):

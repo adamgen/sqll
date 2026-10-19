@@ -169,7 +169,9 @@ class SqruffBench(BenchAdapter):
         # As the S1 adapter: without --parsing-errors, an unparsable file
         # gives exit code 0 and no violation.
         LINT: ["lint", "-f", "json", "--parsing-errors"],
-        FIX: ["fix"],
+        # The default format of sqruff is github-annotation-native if
+        # GITHUB_ACTIONS is set (CI); that format prints no size-limit skip.
+        FIX: ["fix", "-f", "human"],
     }
 
     def __init__(self, root: Path | None = None) -> None:

@@ -385,7 +385,7 @@ the input. The input must have the sha256 of the definitions.
 | Tool | Command (`start` is `parse` of `start.sql`) |
 |---|---|
 | `sqlfluff`, `sqlfluff-rs` | `sqlfluff parse -f json`, `lint -f json`, or `fix`, then `--ignore-local-config --config config/pyproject.toml input.sql` |
-| `sqruff` | `sqruff parse -f json`, `lint -f json --parsing-errors`, or `fix`, then `--config config/.sqruff input.sql` |
+| `sqruff` | `sqruff parse -f json`, `lint -f json --parsing-errors`, or `fix -f human`, then `--config config/.sqruff input.sql` |
 
 The env is that of S1 (`isolated_env`, empty `HOME`; sqruff:
 `sqruff_env`). A config file that sqlfluff or sqruff can read in the work
