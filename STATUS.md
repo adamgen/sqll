@@ -28,8 +28,9 @@ it cannot drift. CI did not run on PR #10: since 2026-10-14 each CI job
 stops before a runner starts, because of account billing.
 
 Thus the S1 proof is local. `scripts/verify` runs each CI check; a unit test
-fails if its commands are not the CI commands. On commit `35c906a` (clean
-worktree) it passed 23 of 23 checks: exit code 0, 3889 s, 4 jobs.
+fails if its commands are not the CI commands. On commit `2a19de6` (the last
+code change; fresh clone, clean worktree) it passed 23 of 23 checks: exit
+code 0, 4104 s, 4 jobs.
 
 | Criterion (STONES.md) | Proof |
 |---|---|
