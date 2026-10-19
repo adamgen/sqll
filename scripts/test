@@ -12,6 +12,9 @@ if [ ! -d third_party/sqlfluff/test/fixtures ]; then
     exit 2
 fi
 
+# Stop if a parent folder has a sqlfluff config file: it changes the results.
+uv run --quiet --frozen --project harness python -m sqll_harness.preflight "$root"
+
 SQLL_TOOLS_DIR=${SQLL_TOOLS_DIR:-$root/.tools}
 export SQLL_TOOLS_DIR
 scripts/setup

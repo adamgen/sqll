@@ -13,7 +13,13 @@ scripts/test --filter dialects/ansi/   # only ids that start with this text
 ```
 
 Use a checkout with no sqlfluff config file in its parent folders. The tools
-read the config files in each folder above a case, as sqlfluff does.
+read the config files in each folder above a case, as sqlfluff does. Thus
+`scripts/test` and `scripts/verify` first run `sqll_harness/preflight.py`. It
+stops with exit code 2 and names the file if a parent folder of the
+repository has `.sqlfluff`, `pyproject.toml` with `[tool.sqlfluff]`, or
+`setup.cfg`, `tox.ini`, or `pep8.ini` with a `[sqlfluff]` section. Example: a
+`pyproject.toml` with `[tool.sqlfluff]` above the checkout gave 73 false sqruff
+failures.
 
 `scripts/test` runs `scripts/setup`, writes `out/tools.json` with
 `sqll-harness tools`, runs `pytest harness/tests`, then runs the suites. The
@@ -25,9 +31,14 @@ the run. CI runs it after the tests and after each shard.
 `scripts/verify [--jobs N] [--quick]` runs each CI check locally: the lint job,
 one unsharded run of all tools and suites, and the report and dialect-oracle
 checks. Exit code 0 only if all pass; details in `out/verify.json` and
-`out/verify/*.log`. `--quick` (fast checks only) is not the full verification.
+`out/verify/*.log`. `--quick` (fast checks only) is not the full verification;
+it writes `out/verify-quick.json` and `out/verify-quick/*.log`. Only one run
+at a time can use a checkout. A warning line shows a worktree with changes.
 CI-only steps (checkout, image, artifacts, shard merge) are in `CI_ONLY` in
-`sqll_harness/verify.py`; `tests/test_verify.py` fails if a CI step is in no list.
+`sqll_harness/verify.py`. `tests/test_verify.py` fails if a CI step is in no
+list, or if the command lines of a CI step (with its env and matrix values)
+are not the same as those of its local checks. No local command can have
+`||`, `true`, `--filter`, or other words that can hide a failure.
 
 ## Tools
 

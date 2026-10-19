@@ -2,7 +2,9 @@
 # Run locally each check that CI runs (.github/workflows/ci.yml), also the
 # full run of all tools and suites. The exit code is 0 only if all checks pass.
 # Usage: scripts/verify [--jobs N] [--quick] [--list]
-# Output: one line for each check, out/verify.json, and out/verify/*.log.
+# Output: one line for each check, out/verify.json and out/verify/*.log
+# (--quick: out/verify-quick.json and out/verify-quick/*.log).
+# It stops first if a parent folder has a sqlfluff config file (preflight).
 # The checks are in harness/sqll_harness/verify.py.
 set -eu
 
@@ -18,4 +20,5 @@ SQLL_TOOLS_DIR=${SQLL_TOOLS_DIR:-$root/.tools}
 export SQLL_TOOLS_DIR
 # Run the harness Python directly: "uv run" would change PATH for the checks.
 py=$(uv run --quiet --frozen --project harness python -c 'import sys; print(sys.executable)')
+"$py" -m sqll_harness.preflight "$root"
 exec "$py" -m sqll_harness.verify "$@"
