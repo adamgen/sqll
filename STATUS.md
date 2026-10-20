@@ -15,8 +15,8 @@
 | T2 | Benchmark definitions and deterministic input builder | Merged (PR #13) |
 | T3 | Measurement core and the benchmark report schema | Merged (PR #14) |
 | T4 | Benchmark adapters for sqlfluff, `sqlfluff[rs]`, and sqruff with validity checks | Merged (PR #15) |
-| T5 | `sqll-harness bench run` and `scripts/bench`: one command, one machine-readable report | In review (PR #16) |
-| T6 | CI benchmark jobs and `scripts/verify` drift coverage | Open |
+| T5 | `sqll-harness bench run` and `scripts/bench`: one command, one machine-readable report | Merged (PR #16) |
+| T6 | CI benchmark jobs and `scripts/verify` drift coverage | In review (PR #17) |
 | T7 | Slowdown detection: `sqll-harness bench compare` and the change-record rule | Open |
 | T8 | S2 exit: recorded baseline, exact drift checks, and STATUS | Open |
 
@@ -52,6 +52,18 @@ Benchmark runs (`harness/sqll_harness/bench/run.py`; `harness/README.md`,
 benchmarks, 3 tools) took 277 s, exit code 0. Valid: sqlfluff 112,
 `sqlfluff[rs]` 112, sqruff 102 (details in PR #16). No timing is a baseline
 yet (T8).
+
+CI benchmark jobs (`harness/README.md`, "Benchmarks in CI"): `bench-smoke`
+on each full CI run; `bench-full` (7 shards, by dialect) and `bench-merge`
+on push to main and `workflow_dispatch`. Each job uploads its report. CI
+gates on no timing. `scripts/verify` runs the smoke benchmark; the drift
+test covers the new jobs and steps. The local copy of the full CI benchmark
+is `scripts/bench`. A `workflow_dispatch` run on commit `128cd48` (run
+39374292833) merged 7 of 7 shards, 280 benchmarks for each tool. Valid:
+sqlfluff 280, `sqlfluff[rs]` 280, sqruff 216 (54 invalid, 10 unsupported).
+Slowest shard: 1041 s. On the same commit, `scripts/verify` passed 25 of 25
+checks (3779 s); its smoke benchmark: valid sqlfluff 112, `sqlfluff[rs]`
+112, sqruff 102.
 
 ## S1 exit evidence (approved)
 

@@ -44,7 +44,10 @@ def result_paths(quick: bool) -> tuple[Path, Path]:
     return OUT_DIR / f"{name}.json", OUT_DIR / name
 
 
-# CI steps that have no local check: CI mechanics only.
+UV = "uv run --frozen --project harness"
+
+# CI steps that have no local check: CI mechanics only, and the full
+# benchmark (its local copy is scripts/bench; see BENCH_LOCAL).
 CI_ONLY = {
     "changes: actions/checkout": "checkout",
     "changes: Changed files": "documents-only test; locally all checks run",
@@ -70,6 +73,21 @@ CI_ONLY = {
     "dialect-oracle: git config --global --add safe.directory '*'": "container user",
     "dialect-oracle: actions/download-artifact": "artifact download",
     "dialect-oracle: actions/upload-artifact": "artifact upload",
+    "bench-smoke: actions/checkout": "checkout",
+    "bench-smoke: git config --global --add safe.directory '*'": "container user",
+    "bench-smoke: actions/upload-artifact": "artifact upload",
+    "bench-full: actions/checkout": "checkout",
+    "bench-full: git config --global --add safe.directory '*'": "container user",
+    "bench-full: Run the benchmark shard": "full benchmark shard; locally"
+    " scripts/bench (BENCH_LOCAL, no shard)",
+    "bench-full: actions/upload-artifact": "artifact upload",
+    "bench-merge: actions/checkout": "checkout",
+    "bench-merge: actions/download-artifact": "artifact download",
+    "bench-merge: Merge": "merge of the full benchmark shards; locally"
+    " scripts/bench writes one report",
+    "bench-merge: Check the merged report": "check of the merged full report;"
+    " locally bench run checks its report",
+    "bench-merge: actions/upload-artifact": "artifact upload",
 }
 
 _SAFE_DIRECTORY = "git config --global --add safe.directory '*'"
@@ -81,7 +99,8 @@ CI_ONLY_RUN = {
     "changes: Changed files": 'python3 ci/changes.py "$EVENT"',
     "image: tag": (
         'echo "image=$IMAGE_REPO:$(python3 ci/image_tag.py)" >> "$GITHUB_OUTPUT"\n'
-        'echo "matrix=$(python3 ci/matrix.py)" >> "$GITHUB_OUTPUT"'
+        'echo "matrix=$(python3 ci/matrix.py)" >> "$GITHUB_OUTPUT"\n'
+        'echo "bench_matrix=$(python3 ci/bench_matrix.py)" >> "$GITHUB_OUTPUT"'
     ),
     "image: find": (
         'if docker buildx imagetools inspect "$IMAGE" > /dev/null 2>&1; then\n'
@@ -94,7 +113,14 @@ CI_ONLY_RUN = {
     ),
     **{
         f"{job}: {_SAFE_DIRECTORY}": _SAFE_DIRECTORY
-        for job in ("lint", "test", "report", "dialect-oracle")
+        for job in (
+            "lint",
+            "test",
+            "report",
+            "dialect-oracle",
+            "bench-smoke",
+            "bench-full",
+        )
     },
     "report: Merge": (
         "uv run --frozen --project harness sqll-harness merge"
@@ -102,6 +128,17 @@ CI_ONLY_RUN = {
     ),
     "report: Check test jobs": (
         'echo "A test job did not succeed: ${{ needs.test.result }}"\nexit 1'
+    ),
+    "bench-full: Run the benchmark shard": (
+        f"{UV} sqll-harness bench run --profile full"
+        " --shard ${{ matrix.shard }} --out out/bench-shards/${{ matrix.name }}.json"
+    ),
+    "bench-merge: Merge": (
+        f"{UV} sqll-harness bench merge --expect ci/bench-matrix.json"
+        " out/bench-shards/*.json --out out/bench.json"
+    ),
+    "bench-merge: Check the merged report": (
+        f"{UV} sqll-harness bench check out/bench.json"
     ),
 }
 CI_ONLY_RUN_ENV = {
@@ -115,9 +152,13 @@ CI_ONLY_RUN_ENV = {
 # and report jobs run unless "full" is 'false', so an empty output (for
 # example a broken outputs map) gives a full run.
 _FULL = "needs.changes.outputs.full != 'false'"
+_NOT_PR = "github.event_name != 'pull_request'"
 JOB_IF = {
     "test": _FULL,
     "report": f"always() && {_FULL} && needs.image.result == 'success'",
+    "bench-smoke": _FULL,
+    "bench-full": _NOT_PR,
+    "bench-merge": _NOT_PR,
 }
 
 # The needs of each CI job that has needs. A job "if" and the order of
@@ -127,6 +168,9 @@ JOB_NEEDS = {
     "test": ["changes", "image"],
     "report": ["changes", "image", "test"],
     "dialect-oracle": ["image", "report"],
+    "bench-smoke": ["changes", "image"],
+    "bench-full": ["image"],
+    "bench-merge": ["image", "bench-full"],
 }
 
 # The outputs of each CI job that has outputs, and the id of each CI step
@@ -137,6 +181,7 @@ JOB_OUTPUTS = {
     "image": {
         "image": "${{ steps.tag.outputs.image }}",
         "matrix": "${{ steps.tag.outputs.matrix }}",
+        "bench_matrix": "${{ steps.tag.outputs.bench_matrix }}",
     },
 }
 STEP_IDS = {
@@ -155,6 +200,9 @@ STEP_IF = {
     "report: actions/upload-artifact": "always()",
     "report: Check test jobs": "needs.test.result != 'success'",
     "dialect-oracle: actions/upload-artifact": "always()",
+    "bench-smoke: actions/upload-artifact": "always()",
+    "bench-full: actions/upload-artifact": "always()",
+    "bench-merge: actions/upload-artifact": "always()",
 }
 
 # The events and the concurrency of the workflow. An event filter (for
@@ -194,13 +242,34 @@ JOB_KEYS = {
 # working-directory) can change what a command does, so drift() fails on it.
 STEP_KEYS = {"name", "id", "uses", "with", "run", "env", "if"}
 
+# Each upload step must fail if a file is missing (for example out/bench.json).
+UPLOAD = "actions/upload-artifact@"
+
 # Workflow, job, or step env that the local commands do not need.
 CI_ONLY_ENV = {"IMAGE_REPO": "image registry name; only the image job uses it"}
 
 # Shell words and text that can hide a failure or skip a part of a check.
-# No local command can have them (test_verify.py).
+# No local command can have them (test_verify.py). No CI run text can have
+# WEAK_TEXT, CI_WEAK_WORDS, or an "exit" that is not "exit N" (N > 0).
 WEAK_WORDS = {"||", "true", ":", "--filter", "-k", "--deselect", "--lf", "exit"}
 WEAK_TEXT = ("||", "set +e")
+CI_WEAK_WORDS = {"||", "true", ":"}
+SHELL_OPERATORS = {"||", "&&", ";", "|", "&", ";;", "(", ")"}
+
+# The local copy of the full benchmark of CI is scripts/bench with no
+# argument: its "bench run" line, without --quiet and "$@", followed by
+# BENCH_SHARD_ARGS, must be the command of the CI shard step (drift()).
+# "bench run" with no --profile runs the full profile (test_verify.py).
+BENCH_LOCAL = "scripts/bench"
+BENCH_SHARD_STEP = "bench-full: Run the benchmark shard"
+BENCH_SHARD_ARGS = (
+    "--profile",
+    "full",
+    "--shard",
+    "{}",
+    "--out",
+    "out/bench-shards/{}.json",
+)
 
 SETUP = "setup"
 REPORT_FILE = "report"
@@ -228,7 +297,6 @@ ORACLES = (
     " scripts/sqlfluff-autofix-oracle scripts/sqlfluff-templater-oracle"
     " scripts/sqlfluff-dialect-oracle scripts/sqlfluff-case-ids"
 )
-UV = "uv run --frozen --project harness"
 ORACLE_PY = '"$SQLL_TOOLS_DIR/sqlfluff-oracle/bin/python"'
 RS_PY = '"$SQLL_TOOLS_DIR/sqlfluff-rs-oracle/bin/python"'
 LINT_SUBMODULE = "lint: Check that the sqlfluff submodule is clean"
@@ -441,6 +509,22 @@ def checks(jobs: int | None = None) -> list[Check]:
             ("dialect-oracle: Compare the dialect results with the sqlfluff tests",),
             needs=rep,
         ),
+        # The smoke benchmark. The full benchmark is BENCH_LOCAL.
+        Check(
+            "bench-smoke",
+            f"{UV} sqll-harness bench run --profile smoke --out out/bench.json",
+            ("bench-smoke: Run the smoke benchmark",),
+            needs=(SETUP,),
+            removes=("out/bench.json",),
+        ),
+        Check(
+            "submodule-after-bench",
+            'scripts/check-submodule "after the benchmarks"',
+            (
+                "bench-smoke: Check that the sqlfluff submodule is clean",
+                "bench-full: Check that the sqlfluff submodule is clean",
+            ),
+        ),
     ]
 
 
@@ -529,10 +613,19 @@ def lines(text: str) -> list[tuple[str, ...]]:
     return [tuple(shlex.split(line)) for line in text.splitlines() if line.strip()]
 
 
+def shell_tokens(line: str) -> list[str]:
+    """Return the words and the operators (for example "||" or ";") of one
+    command line."""
+    lex = shlex.shlex(line, posix=True, punctuation_chars=True)
+    lex.whitespace_split = True
+    return list(lex)
+
+
 def weak_parts(command: str) -> list[str]:
     """Return the parts of a command that can hide a failure (WEAK_*)."""
     found = {t for t in WEAK_TEXT if t in command}
-    found |= {w for line in lines(command) for w in line} & WEAK_WORDS
+    for line in command.replace("\\\n", " ").splitlines():
+        found |= set(shell_tokens(line)) & WEAK_WORDS
     return sorted(found)
 
 
@@ -554,7 +647,68 @@ def _ci_only_run_drift(key: str, step: dict) -> list[str]:
     return problems
 
 
-def drift(selected: list[Check], data: dict | None = None) -> list[str]:
+def ci_weak_parts(run: str) -> list[str]:
+    """Return the parts of a CI run text that can hide a failure: WEAK_TEXT,
+    CI_WEAK_WORDS, and an "exit" with no code or a code that is not a
+    positive number (for example "exit 0" or "exit $s")."""
+    text = run.replace("\\\n", " ")
+    found = {t for t in WEAK_TEXT if t in run}
+    for line in text.splitlines():
+        tokens = shell_tokens(line)
+        found |= set(tokens) & CI_WEAK_WORDS
+        for i, token in enumerate(tokens):
+            code = tokens[i + 1] if i + 1 < len(tokens) else ""
+            if token == "exit" and not (code.isdigit() and int(code) > 0):
+                found.add(f"exit {code}".strip())
+    return sorted(found)
+
+
+def bench_local_words(script: str) -> tuple[str, ...] | None:
+    """Return the words of the "sqll-harness bench run" command of
+    scripts/bench, without --quiet and "$@". None if there is not exactly one
+    such command, or if its last word is not "$@" (all arguments go to bench
+    run, and no other word)."""
+    text = script.replace("\\\n", " ")
+    run = ["sqll-harness", "bench", "run"]
+    found = []
+    for line in text.splitlines():
+        if line.lstrip().startswith("#"):
+            continue
+        command: list[str] = []
+        for token in shell_tokens(line) + [";"]:
+            if token not in SHELL_OPERATORS:
+                command.append(token)
+                continue
+            if any(command[i : i + 3] == run for i in range(len(command))):
+                found.append(command)
+            command = []
+    if len(found) != 1 or found[0][-1] != "$@":
+        return None
+    return tuple(w for w in found[0][:-1] if w != "--quiet")
+
+
+def bench_local_drift(data: dict, script: str | None = None) -> list[str]:
+    """Return the differences between the CI shard command of the full
+    benchmark and BENCH_LOCAL (see BENCH_SHARD_ARGS)."""
+    if script is None:
+        script = (REPO_ROOT / BENCH_LOCAL).read_text(encoding="utf8")
+    local = bench_local_words(script)
+    if local is None:
+        return [f'{BENCH_LOCAL}: no single "sqll-harness bench run ... "$@"" line']
+    steps = [(s, j) for k, s, j in ci_steps(data) if k == BENCH_SHARD_STEP]
+    if len(steps) != 1:
+        return [f"{BENCH_SHARD_STEP}: no such CI step"]
+    step, job = steps[0]
+    got = lines("\n".join(ci_commands(step, job, data.get("env"))))
+    want = [local + BENCH_SHARD_ARGS]
+    if got != want:
+        return [f"{BENCH_SHARD_STEP}:\n  CI:    {got}\n  {BENCH_LOCAL}: {want}"]
+    return []
+
+
+def drift(
+    selected: list[Check], data: dict | None = None, bench_script: str | None = None
+) -> list[str]:
     """Return each difference between the CI file and the local checks.
 
     For each CI step that is not in CI_ONLY, the command lines of all its
@@ -566,7 +720,11 @@ def drift(selected: list[Check], data: dict | None = None) -> list[str]:
     "if" that is not in JOB_IF or STEP_IF, job needs or outputs that are not
     in JOB_NEEDS or JOB_OUTPUTS, a step id that is not in STEP_IDS, or a
     workflow "on" or "concurrency" that is not WORKFLOW_ON or
-    WORKFLOW_CONCURRENCY, is a difference.
+    WORKFLOW_CONCURRENCY, is a difference. A CI run text that can hide a
+    failure (ci_weak_parts), an upload step without "if-no-files-found:
+    error", and a CI shard command of the full benchmark
+    that is not BENCH_LOCAL with BENCH_SHARD_ARGS (bench_script: the text of
+    scripts/bench), are differences too.
     """
     data = load_ci() if data is None else data
     steps = ci_steps(data)
@@ -606,6 +764,14 @@ def drift(selected: list[Check], data: dict | None = None) -> list[str]:
             f"{key}: step key {k!r} is not supported by drift()"
             for k in sorted(set(step) - STEP_KEYS)
         ]
+        problems += [
+            f"{key}: {w!r} in the CI run text can hide a failure"
+            for w in ci_weak_parts(str(step.get("run", "")))
+        ]
+        if str(step.get("uses", "")).startswith(UPLOAD) and (
+            (step.get("with") or {}).get("if-no-files-found") != "error"
+        ):
+            problems.append(f"{key}: an upload needs 'if-no-files-found: error'")
         if step.get("id") != STEP_IDS.get(key):
             problems.append(f"{key}: step id {step.get('id')!r} is not STEP_IDS")
         step_if = " ".join(str(step.get("if", "")).split()) or None
@@ -647,6 +813,7 @@ def drift(selected: list[Check], data: dict | None = None) -> list[str]:
         for c in selected
         for w in weak_parts(c.command)
     ]
+    problems += bench_local_drift(data, bench_script)
     return problems
 
 

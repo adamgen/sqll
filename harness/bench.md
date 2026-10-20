@@ -200,7 +200,8 @@ valid, and the definitions do not change.
 - Push to main and `workflow_dispatch`: the full profile, sharded by
   dialect. The report goes to an artifact.
 - `scripts/verify` runs the smoke profile; the drift test covers the new
-  CI steps.
+  CI steps. The local copy of the full CI benchmark is `scripts/bench`
+  with no arguments (one report, no shards).
 - `sqll-harness bench compare OLD NEW` flags a benchmark that is slower by
   more than a noise limit, or a status change from `valid`. It refuses
   reports with different inputs, settings, or tool versions. PROCESS.md

@@ -20,9 +20,9 @@ env:
 
 jobs:
   # If a pull request changes only documents (ci/changes.py), the test,
-  # report, and dialect-oracle jobs do not run. The image and lint jobs always
-  # run. A push always runs all jobs. The heavy jobs run unless full is
-  # 'false', so an empty output gives a full run.
+  # report, dialect-oracle, and bench-smoke jobs do not run. The image and
+  # lint jobs always run. A push always runs all jobs. The heavy jobs run
+  # unless full is 'false', so an empty output gives a full run.
   changes:
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -50,6 +50,7 @@ jobs:
     outputs:
       image: ${{ steps.tag.outputs.image }}
       matrix: ${{ steps.tag.outputs.matrix }}
+      bench_matrix: ${{ steps.tag.outputs.bench_matrix }}
     steps:
       - uses: actions/checkout@v7
 
@@ -57,6 +58,7 @@ jobs:
         run: |
           echo "image=$IMAGE_REPO:$(python3 ci/image_tag.py)" >> "$GITHUB_OUTPUT"
           echo "matrix=$(python3 ci/matrix.py)" >> "$GITHUB_OUTPUT"
+          echo "bench_matrix=$(python3 ci/bench_matrix.py)" >> "$GITHUB_OUTPUT"
 
       - uses: docker/login-action@v4
         with:
@@ -380,4 +382,126 @@ jobs:
         with:
           name: dialect-oracle-${{ matrix.tool }}
           path: out/dialect-oracle-${{ matrix.tool }}.jsonl
+          if-no-files-found: error
+
+  # The S2 smoke benchmark (harness/bench.md): start and small, all tools,
+  # 1 timed run. Locally: scripts/verify.
+  bench-smoke:
+    needs: [changes, image]
+    if: needs.changes.outputs.full != 'false'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: read
+    container:
+      image: ${{ needs.image.outputs.image }}
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: true
+
+      # The runner user owns the workspace, not the container user.
+      - run: git config --global --add safe.directory '*'
+
+      - name: Run the smoke benchmark
+        run: >-
+          uv run --frozen --project harness sqll-harness bench run
+          --profile smoke --out out/bench.json
+
+      - name: Check that the sqlfluff submodule is clean
+        run: scripts/check-submodule "after the benchmarks"
+
+      - if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: bench-smoke
+          path: out/bench.json
+          if-no-files-found: error
+
+  # The S2 full benchmark on a push to main and on workflow_dispatch, sharded
+  # by dialect (ci/bench-matrix.json). Locally: scripts/bench (no sharding).
+  bench-full:
+    needs: image
+    if: github.event_name != 'pull_request'
+    name: bench-full (${{ matrix.name }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    permissions:
+      contents: read
+      packages: read
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.image.outputs.bench_matrix) }}
+    container:
+      image: ${{ needs.image.outputs.image }}
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: true
+
+      # The runner user owns the workspace, not the container user.
+      - run: git config --global --add safe.directory '*'
+
+      - name: Run the benchmark shard
+        run: >-
+          uv run --frozen --project harness sqll-harness bench run
+          --profile full --shard ${{ matrix.shard }}
+          --out out/bench-shards/${{ matrix.name }}.json
+
+      - name: Check that the sqlfluff submodule is clean
+        run: scripts/check-submodule "after the benchmarks"
+
+      - if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: bench-shard-${{ matrix.name }}
+          path: out/bench-shards/${{ matrix.name }}.json
+          if-no-files-found: error
+
+  # Merge the shard reports of the full benchmark into one report.
+  bench-merge:
+    needs: [image, bench-full]
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      packages: read
+    container:
+      image: ${{ needs.image.outputs.image }}
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/download-artifact@v7
+        with:
+          pattern: bench-shard-*
+          path: out/bench-shards
+          merge-multiple: true
+
+      - name: Merge
+        run: >-
+          uv run --frozen --project harness sqll-harness bench merge
+          --expect ci/bench-matrix.json out/bench-shards/*.json
+          --out out/bench.json
+
+      - name: Check the merged report
+        run: >-
+          uv run --frozen --project harness sqll-harness bench check
+          out/bench.json
+
+      - if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: bench-full
+          path: out/bench.json
           if-no-files-found: error

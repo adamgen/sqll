@@ -9,6 +9,7 @@ input other than `start` is in one shard; `start` is in each shard that has
 a start benchmark, and merge() refuses 2 different records of it.
 """
 
+import json
 import sys
 from collections.abc import Callable, Mapping
 from pathlib import Path
@@ -286,10 +287,22 @@ def _scope_without_shard(scope: Mapping[str, Any]) -> dict:
     return {**scope, "shard": None}
 
 
-def merge(reports: list[tuple[str, dict]]) -> dict:
+def expected_shards(path: Path) -> int:
+    """Return the shard count of a CI benchmark matrix file
+    (ci/bench-matrix.json: {"shards": N}). ValueError if it is not one."""
+    data = json.loads(path.read_text(encoding="utf8"))
+    ok = isinstance(data, dict) and set(data) == {"shards"}
+    shards = data["shards"] if ok else None
+    if type(shards) is not int or shards < 1:
+        raise ValueError(f'{path}: must be {{"shards": N}} with N >= 1')
+    return shards
+
+
+def merge(reports: list[tuple[str, dict]], shards: int | None = None) -> dict:
     """Merge (name, report) pairs of the shard runs of one scope. MergeError
     if a report has a schema error or is not complete, if a shard is missing
-    or repeated, or if 2 reports have a different run record (sqlfluff ref,
+    or repeated, if the reports do not have the shard count `shards` (if it
+    is given), or if 2 reports have a different run record (sqlfluff ref,
     harness, profile, scope, a tool, or an input)."""
     if not reports:
         raise MergeError("no reports to merge")
@@ -315,18 +328,20 @@ def merge(reports: list[tuple[str, dict]]) -> dict:
             if record != first["tools"][tool]:
                 raise MergeError(f"{name}: the record of tool {tool} differs")
 
-    shards: dict[int, tuple[str, dict]] = {}
+    shards_seen: dict[int, tuple[str, dict]] = {}
     counts = set()
     for name, rep in reports:
         k, n = parse_shard(rep["scope"]["shard"]) or (1, 1)
         counts.add(n)
-        if k in shards:
-            raise MergeError(f"shard {k}/{n} is in {shards[k][0]} and {name}")
-        shards[k] = (name, rep)
+        if k in shards_seen:
+            raise MergeError(f"shard {k}/{n} is in {shards_seen[k][0]} and {name}")
+        shards_seen[k] = (name, rep)
     if len(counts) != 1:
         raise MergeError(f"the reports have different shard counts: {sorted(counts)}")
     n = counts.pop()
-    missing = [f"{k}/{n}" for k in range(1, n + 1) if k not in shards]
+    if shards is not None and n != shards:
+        raise MergeError(f"the reports have {n} shards, not the expected {shards}")
+    missing = [f"{k}/{n}" for k in range(1, n + 1) if k not in shards_seen]
     if missing:
         raise MergeError(f"no report for shard {', '.join(missing)}")
 
@@ -334,7 +349,7 @@ def merge(reports: list[tuple[str, dict]]) -> dict:
     results: list[dict] = []
     parts = []
     for k in range(1, n + 1):
-        name, rep = shards[k]
+        name, rep = shards_seen[k]
         for input_name, record in rep["inputs"].items():
             if inputs.setdefault(input_name, record) != record:
                 raise MergeError(f"{name}: the record of input {input_name} differs")
