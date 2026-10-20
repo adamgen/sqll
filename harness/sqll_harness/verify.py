@@ -518,6 +518,13 @@ def checks(jobs: int | None = None) -> list[Check]:
             removes=("out/bench.json",),
         ),
         Check(
+            "bench-baseline",
+            f"{UV} sqll-harness bench check out/bench.json"
+            " --baseline results/s2/baseline.json",
+            ("bench-smoke: Check the smoke report against the baseline",),
+            needs=(SETUP,),
+        ),
+        Check(
             "submodule-after-bench",
             'scripts/check-submodule "after the benchmarks"',
             (

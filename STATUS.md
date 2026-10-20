@@ -1,6 +1,8 @@
 # sqll Status
 
-- Current stone: **S2** (benchmarks). Design: [harness/bench.md](harness/bench.md).
+- Current stone: **S2** (benchmarks): **S2 awaiting human approval**.
+  Design: [harness/bench.md](harness/bench.md). Do not start S3 before
+  the approval.
 - S1 is complete. The human owner approved it on 2026-10-19 (owner
   statement to the workflow). S1 tasks T1 to T9 are merged (PRs #3 to #11).
   CI on main passed after the last merge (run 39235508233, head `016a5e1`,
@@ -17,64 +19,87 @@
 | T4 | Benchmark adapters for sqlfluff, `sqlfluff[rs]`, and sqruff with validity checks | Merged (PR #15) |
 | T5 | `sqll-harness bench run` and `scripts/bench`: one command, one machine-readable report | Merged (PR #16) |
 | T6 | CI benchmark jobs and `scripts/verify` drift coverage | Merged (PR #17) |
-| T7 | Slowdown detection: `sqll-harness bench compare` and the change-record rule | In review (PR #18) |
-| T8 | S2 exit: recorded baseline, exact drift checks, and STATUS | Open |
+| T7 | Slowdown detection: `sqll-harness bench compare` and the change-record rule | Merged (PR #18) |
+| T8 | S2 exit: recorded baseline, exact drift checks, and STATUS | In review (PR #19) |
 
-Benchmark definitions (`harness/sqll_harness/bench/definitions.json`): 280
-benchmarks (28 dialect folders, also soql; `start` and 3 sizes of `parse`,
-`lint`, `fix`) on 85 inputs (84 and `start`). The inputs use 2161 of 2306
-dialect fixture files; 140 are in the frozen exclusion list. The
-definitions also store the sqlfluff 4.4.0 reference of the 84 inputs
-(`sqll-harness bench reference`): the `lint` rule codes (1 to 29 codes for
-each input), and if `fix` changes the file (82 of 84; not `flink/small` and
-`vertica/small`).
+## S2 exit evidence (awaiting approval)
 
-Measurement core (`harness/sqll_harness/bench/timer.py`, `report.py`): the
-timer, the profiles (`full`: 3 to 20 timed runs, 2 s budget; `smoke`: 1
-timed run; 120 s timeout), and the schema check of `out/bench.json`
-(`harness/README.md`). Unit tests use test doubles only; no tool runs yet.
-Measured: `/bin/sleep 0.2` median 0.202 s (10 runs), timer overhead
-(`/bin/true`) median 1.4 ms.
+Proof: [`results/s2/baseline.json`](results/s2/baseline.json), the report
+of the one command `scripts/bench --profile full` (G4.4): exit code 0,
+6521 s, on 2026-10-20, harness commit `626f256` (clean worktree). It was a
+controlled run: the CI image, built from `ci/Dockerfile` on the local
+machine (Intel Xeon 2.10 GHz, 4 CPUs, 16 GiB), one container, serial, no
+other load (`harness/bench.md`, "Baseline"). The report has the machine
+record; timer overhead (`/bin/true`) median 1.5 ms.
 
-Benchmark adapters (`harness/sqll_harness/bench/adapter.py`, `tools.py`,
-`registry.py`): sqlfluff, `sqlfluff[rs]`, and sqruff, with the validity
-checks of `harness/bench.md`. Tests with the real tools: on the small inputs
-of ansi, bigquery, and tsql, each command of each tool is valid; sqruff on
-soql is `unsupported: dialect soql`; with the default size limit, an input
-of 20466 bytes is invalid (a skip with exit code 0) for each tool and
-command that has the limit; an unparsable input is invalid for `parse`,
-`lint`, and `fix`. A test-double tool runs all 280 benchmarks through the
-registry, valid.
+CI compares each smoke run with the baseline, fail closed (`sqll-harness
+bench check --baseline`): the sqlfluff ref, the tool versions and
+settings, the input sha256, and the status of each result. CI does not
+gate on timings. CI passed on PR #19 (run 39420092577, head `b122d0f`:
+55 jobs passed; `bench-full` and `bench-merge` run only on push to main
+and `workflow_dispatch`). On commit `b122d0f` (the last code change;
+fresh clone, clean worktree), `scripts/verify --jobs 4` passed 26 of 26
+checks: exit code 0, 4223 s; its smoke run agrees with the baseline.
 
-Benchmark runs (`harness/sqll_harness/bench/run.py`; `harness/README.md`,
-"Benchmark runs"): `sqll-harness bench run`, `merge`, `check`, and
-`scripts/bench`. On commit `b63cc7a`, `scripts/bench --profile smoke` (112
-benchmarks, 3 tools) took 277 s, exit code 0. Valid: sqlfluff 112,
-`sqlfluff[rs]` 112, sqruff 102 (details in PR #16). No timing is a baseline
-yet (T8).
+| Criterion (STONES.md) | Proof |
+|---|---|
+| A benchmark for each command: start, parse, lint, fix | 280 benchmarks in `harness/sqll_harness/bench/definitions.json`: `start/<dialect>`, and `<parse\|lint\|fix>/<dialect>/<size>` |
+| Small, medium, and large inputs for each dialect | 84 inputs of the 28 dialect folders (985 to 1024, 4017 to 4096, and 16350 to 16383 bytes), built from 2161 of the 2306 pinned dialect fixtures; their sha256 are in the definitions |
+| One command gives a machine-readable report for sqlfluff, `sqlfluff[rs]`, and sqruff | `scripts/bench` writes `out/bench.json` (schema in `harness/README.md`); `bench check` passes on the baseline |
+| The baseline is recorded | `results/s2/baseline.json`. `harness/tests/test_bench_baseline.py`: it passes the schema check; its benchmark ids and input sha256 are those of the definitions; it has one result for each benchmark and tool; the tables below are those of the file |
 
-CI benchmark jobs (`harness/README.md`, "Benchmarks in CI"): `bench-smoke`
-on each full CI run; `bench-full` (7 shards, by dialect) and `bench-merge`
-on push to main and `workflow_dispatch`. Each job uploads its report. CI
-gates on no timing. `scripts/verify` runs the smoke benchmark; the drift
-test covers the new jobs and steps. The local copy of the full CI benchmark
-is `scripts/bench`. A `workflow_dispatch` run on commit `128cd48` (run
-39374292833) merged 7 of 7 shards, 280 benchmarks for each tool. Valid:
-sqlfluff 280, `sqlfluff[rs]` 280, sqruff 216 (54 invalid, 10 unsupported).
-Slowest shard: 1041 s. On the same commit, `scripts/verify` passed 25 of 25
-checks (3779 s); its smoke benchmark: valid sqlfluff 112, `sqlfluff[rs]`
-112, sqruff 102.
+Other S2 parts: the validity checks of each run (`harness/bench.md`,
+"Validity"; T4), the CI jobs `bench-smoke`, `bench-full`, and
+`bench-merge` (T6), and `sqll-harness bench compare` for slowdowns (G3.6,
+PROCESS.md rule 8; T7). A test-double tool runs all 280 benchmarks
+through the registry with no change to the definitions (sqll in S3).
 
-Slowdown detection (`harness/sqll_harness/bench/compare.py`;
-`harness/bench.md`, "Slowdowns"): `sqll-harness bench compare BASE NEW`
-flags a benchmark as slower above the noise limit (wall time 25%, CPU time
-10%, or more for a large spread or a short run), fails on a change from
-`valid`, and refuses different inputs or settings (exit code 2). It also
-compares the tools of a report over the benchmarks that are valid for all
-of them. PROCESS.md rule 8: give the reason of a flagged slowdown in the
-pull request body. Measured on 3 full runs of postgres and tsql on the
-same commit: 0 of 60 slower in each of the 3 pairs. 2 smoke runs: 23 of
-336 slower (1 timed run is too noisy; compare gives a warning).
+## Baseline
+
+From `results/s2/baseline.json`. Times: the sum of the median times of the
+`valid` benchmarks of the tool and command. A tool with fewer valid
+benchmarks has a smaller sum, thus compare tools with the pair table.
+
+| Tool | Command | Valid | Invalid | Unsupported | Error | Wall time (s) | CPU time (s) |
+|---|---|---|---|---|---|---|---|
+| sqlfluff 4.4.0 | start | 28 | 0 | 0 | 0 | 14.5 | 13.4 |
+| sqlfluff 4.4.0 | parse | 84 | 0 | 0 | 0 | 76.6 | 71.8 |
+| sqlfluff 4.4.0 | lint | 84 | 0 | 0 | 0 | 165.3 | 157.0 |
+| sqlfluff 4.4.0 | fix | 84 | 0 | 0 | 0 | 514.3 | 490.0 |
+| sqlfluff-rs 4.4.0 | start | 28 | 0 | 0 | 0 | 13.5 | 12.6 |
+| sqlfluff-rs 4.4.0 | parse | 84 | 0 | 0 | 0 | 51.9 | 48.4 |
+| sqlfluff-rs 4.4.0 | lint | 84 | 0 | 0 | 0 | 145.1 | 136.6 |
+| sqlfluff-rs 4.4.0 | fix | 84 | 0 | 0 | 0 | 504.5 | 480.9 |
+| sqruff 0.41.0 | start | 27 | 0 | 1 | 0 | 0.5 | 0.4 |
+| sqruff 0.41.0 | parse | 81 | 0 | 3 | 0 | 3.4 | 3.1 |
+| sqruff 0.41.0 | lint | 55 | 26 | 3 | 0 | 6.2 | 5.8 |
+| sqruff 0.41.0 | fix | 53 | 28 | 3 | 0 | 13.4 | 12.7 |
+
+Pairs: the sums over the benchmarks where both tools are `valid`.
+
+| Tools | Benchmarks | Wall time (s) | Wall time ratio |
+|---|---|---|---|
+| sqlfluff 4.4.0 / sqlfluff-rs 4.4.0 | 280 | 770.8 / 714.9 | 1.078 |
+| sqlfluff 4.4.0 / sqruff 0.41.0 | 216 | 362.6 / 23.5 | 15.425 |
+| sqlfluff-rs 4.4.0 / sqruff 0.41.0 | 216 | 323.2 / 23.5 | 13.749 |
+
+Results that are not `valid` (no comparison or total uses them). The
+reason of each result has the text of the row:
+
+| Tool | Status | Reason (text) | Benchmarks |
+|---|---|---|---|
+| sqruff | invalid | the rule codes are not those of the sqlfluff reference | `fix/athena/large`, `fix/athena/medium`, `fix/athena/small`, `fix/databricks/large`, `fix/databricks/medium`, `fix/databricks/small`, `fix/duckdb/large`, `fix/greenplum/large`, `fix/hive/large`, `fix/impala/large`, `fix/impala/medium`, `fix/mariadb/large`, `fix/mysql/medium`, `fix/postgres/large`, `fix/redshift/large`, `fix/snowflake/large`, `fix/snowflake/medium`, `fix/sqlite/medium`, `fix/teradata/large`, `fix/trino/large`, `fix/trino/medium`, `fix/trino/small`, `fix/vertica/large` |
+| sqruff | invalid | the rule codes are not those of the sqlfluff reference | `lint/athena/large`, `lint/athena/medium`, `lint/athena/small`, `lint/databricks/large`, `lint/databricks/medium`, `lint/databricks/small`, `lint/duckdb/large`, `lint/greenplum/large`, `lint/hive/large`, `lint/impala/large`, `lint/impala/medium`, `lint/mariadb/large`, `lint/mysql/medium`, `lint/postgres/large`, `lint/redshift/large`, `lint/snowflake/large`, `lint/snowflake/medium`, `lint/sqlite/medium`, `lint/teradata/large`, `lint/trino/large`, `lint/trino/medium`, `lint/trino/small`, `lint/vertica/large` |
+| sqruff | invalid | the tool crashed (panic) | `fix/mysql/large`, `fix/oracle/large`, `fix/oracle/medium`, `fix/tsql/large`, `lint/mysql/large`, `lint/oracle/large`, `lint/oracle/medium` |
+| sqruff | invalid | timeout after 120.0 s | `fix/ansi/large` |
+| sqruff | unsupported | unsupported: dialect soql | `fix/soql/large`, `fix/soql/medium`, `fix/soql/small`, `lint/soql/large`, `lint/soql/medium`, `lint/soql/small`, `parse/soql/large`, `parse/soql/medium`, `parse/soql/small`, `start/soql` |
+
+For these inputs, sqruff gives other rule codes than the sqlfluff
+reference (rule differences, as in S1: `harness/sqruff.md`), or it
+panics. The `fix/ansi/large` run of sqruff did not stop in 120 s. sqruff
+has no soql dialect. sqlfluff and `sqlfluff[rs]` are valid on each
+benchmark. The CI full run on commit `128cd48` (run 39374292833) gave the
+same counts of each status.
 
 ## S1 exit evidence (approved)
 

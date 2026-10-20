@@ -412,6 +412,14 @@ jobs:
           uv run --frozen --project harness sqll-harness bench run
           --profile smoke --out out/bench.json
 
+      # The stable data of the smoke run (sqlfluff ref, tool versions and
+      # settings, inputs, and the status of each result) must be that of the
+      # recorded baseline. No timing is compared (harness/bench.md).
+      - name: Check the smoke report against the baseline
+        run: >-
+          uv run --frozen --project harness sqll-harness bench check
+          out/bench.json --baseline results/s2/baseline.json
+
       - name: Check that the sqlfluff submodule is clean
         run: scripts/check-submodule "after the benchmarks"
 

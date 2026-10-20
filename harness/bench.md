@@ -180,7 +180,25 @@ merged report). One result for each benchmark and tool: `id`, `command`,
 (`lint`: violation count and rule codes; `fix`: if the file changed, and
 its sha256), `samples` (wall, CPU, max RSS, exit code), `stats` (only if
 `valid`), and `ratio` (to `sqlfluff` on the same benchmark; only if both
-are `valid`). Baseline: `results/s2/baseline.json`.
+are `valid`).
+
+## Baseline
+
+`results/s2/baseline.json` is the report of one controlled run of
+`scripts/bench --profile full`, as recorded (the machine record and the
+harness commit are in it). CI compares the stable data of each smoke run
+with it, fail closed (`sqll-harness bench check --baseline`): the sqlfluff
+ref, the tool versions and settings, the input records, and the status of
+each result (and the `work` of a result that is `valid` in both). Not the
+timings, reasons, or machine. A new tool (sqll in S3) or tool version
+needs a new baseline.
+
+Controlled run (2026-10-20): the CI image, built from `ci/Dockerfile` on
+the local machine (4 CPUs, no other load), one container, serial. The
+egress proxy of that machine blocks `deb.debian.org` and the registry
+blobs, so the build used `PYTHON_IMAGE` `python:3.13.16-trixie` (the same
+Python, with git and gcc, thus no apt step) and the proxy CA. The tools
+have the pinned versions (`sqll-harness tools` passes).
 
 ## Add a tool
 
@@ -196,7 +214,8 @@ valid, and the definitions do not change.
 
 - Pull request (not documents only): the smoke profile (`start` and
   `small`, the validity run and 1 timed run; a valid result needs stats).
-  Its stable data ("Noise control") must be equal to the baseline.
+  Its stable data ("Noise control") must be equal to the baseline
+  ("Baseline").
 - Push to main and `workflow_dispatch`: the full profile, sharded by
   dialect. The report goes to an artifact.
 - `scripts/verify` runs the smoke profile; the drift test covers the new
