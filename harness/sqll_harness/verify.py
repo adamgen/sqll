@@ -247,7 +247,7 @@ CI_ONLY_ENV = {"IMAGE_REPO": "image registry name; only the image job uses it"}
 
 # Shell words and text that can hide a failure or skip a part of a check.
 # No local command can have them (test_verify.py). No CI run text can have
-# WEAK_TEXT or CI_WEAK_WORDS.
+# WEAK_TEXT, CI_WEAK_WORDS, or an "exit" that is not "exit N" (N > 0).
 WEAK_WORDS = {"||", "true", ":", "--filter", "-k", "--deselect", "--lf", "exit"}
 WEAK_TEXT = ("||", "set +e")
 CI_WEAK_WORDS = {"||", "true", ":"}
@@ -645,11 +645,18 @@ def _ci_only_run_drift(key: str, step: dict) -> list[str]:
 
 
 def ci_weak_parts(run: str) -> list[str]:
-    """Return the parts of a CI run text that can hide a failure."""
+    """Return the parts of a CI run text that can hide a failure: WEAK_TEXT,
+    CI_WEAK_WORDS, and an "exit" with no code or a code that is not a
+    positive number (for example "exit 0" or "exit $s")."""
     text = run.replace("\\\n", " ")
     found = {t for t in WEAK_TEXT if t in run}
     for line in text.splitlines():
-        found |= set(shell_tokens(line)) & CI_WEAK_WORDS
+        tokens = shell_tokens(line)
+        found |= set(tokens) & CI_WEAK_WORDS
+        for i, token in enumerate(tokens):
+            code = tokens[i + 1] if i + 1 < len(tokens) else ""
+            if token == "exit" and not (code.isdigit() and int(code) > 0):
+                found.add(f"exit {code}".strip())
     return sorted(found)
 
 

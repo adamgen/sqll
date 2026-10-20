@@ -9,6 +9,7 @@ import copy
 import dataclasses
 import fcntl
 import json
+import os
 import subprocess
 
 import pytest
@@ -376,6 +377,36 @@ def test_weak_words_after_an_operator_are_found():
     assert verify.ci_weak_parts("echo 'a || b'") == ["||"]
 
 
+@pytest.mark.parametrize(
+    "run, found",
+    [
+        ("exit 1", []),
+        ('echo "x"\nexit 2', []),
+        ("echo 'exit 0'", []),
+        ("exit 0", ["exit 0"]),
+        ("exit", ["exit"]),
+        ("a\nexit", ["exit"]),
+        ("a; exit 0", ["exit 0"]),
+        ('exit "$s"', ["exit $s"]),
+        ("exit -1", ["exit -1"]),
+    ],
+)
+def test_ci_exit_must_be_a_failure(run, found):
+    assert verify.ci_weak_parts(run) == found
+
+
+def test_drift_finds_an_exit_0_in_a_ci_step():
+    def change(d):
+        step = _step(d, "bench-merge", "Check the merged report")
+        step["run"] = "exit 0\n" + step["run"]
+
+    problems = _ci_change(change)
+    assert (
+        "bench-merge: Check the merged report: 'exit 0' in the CI run text"
+        " can hide a failure"
+    ) in problems
+
+
 def test_ci_only_run_names_only_ci_only_steps_with_run():
     with_run = {k for k, step, _ in verify.ci_steps(CI) if "run" in step}
     assert set(verify.CI_ONLY_RUN) == with_run & set(verify.CI_ONLY)
@@ -471,6 +502,13 @@ def root(tmp_path, monkeypatch):
     monkeypatch.setattr(verify, "REPORT", tmp_path / "out" / "report.json")
     monkeypatch.setattr(verify, "LOCK", tmp_path / "out" / "verify.lock")
     monkeypatch.setattr(verify.preflight, "check", lambda: 0)
+    # verify.main() sets SQLL_TOOLS_DIR if it is not set. The test must not
+    # give that value (a tmp_path folder) to the tests that run after it.
+    # setenv records the old state (also "not set"); the teardown restores it.
+    old = os.environ.get("SQLL_TOOLS_DIR")
+    monkeypatch.setenv("SQLL_TOOLS_DIR", old or "")
+    if old is None:
+        monkeypatch.delenv("SQLL_TOOLS_DIR")
     return tmp_path
 
 

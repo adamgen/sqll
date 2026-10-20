@@ -20,9 +20,9 @@ env:
 
 jobs:
   # If a pull request changes only documents (ci/changes.py), the test,
-  # report, dialect-oracle, and bench-smoke jobs do not run. The image and lint jobs always
-  # run. A push always runs all jobs. The heavy jobs run unless full is
-  # 'false', so an empty output gives a full run.
+  # report, dialect-oracle, and bench-smoke jobs do not run. The image and
+  # lint jobs always run. A push always runs all jobs. The heavy jobs run
+  # unless full is 'false', so an empty output gives a full run.
   changes:
     runs-on: ubuntu-latest
     timeout-minutes: 5

@@ -478,7 +478,16 @@ run ARGS`, and
 | `bench-merge` | after all `bench-full` jobs pass | `bench merge --expect ci/bench-matrix.json`, then `bench check` | `bench-full` (`out/bench.json`) |
 
 Each job runs in the CI image. `bench-smoke` and `bench-full` run
-`scripts/check-submodule` after the benchmarks. No job compares timings ("Noise control" in
-[bench.md](bench.md)). Locally, `scripts/verify` runs the smoke job, and
-`scripts/bench` (no arguments) is the full benchmark of all shards in one
-report.
+`scripts/check-submodule` after the benchmarks. No job compares timings
+("Noise control" in [bench.md](bench.md)). `ci/bench-matrix.json` has 7
+shards (4 dialects each).
+
+Job timeouts (measured on the CI runners, run 39358966536): the smoke
+benchmark step took 176 s (timeout 20 min); the slowest of the 7 shards took
+1105 s, the fastest 512 s (timeout 90 min); the merge took 1 s (timeout 10
+min). The margin is for slower runners and for runs that stop at the 120 s
+run timeout.
+
+Local copies: `scripts/verify` runs the `bench-smoke` job. The local copy of
+the full CI benchmark (`bench-full` and `bench-merge`) is `scripts/bench`
+with no arguments: all shards in one report, `out/bench.json`.
