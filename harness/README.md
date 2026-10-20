@@ -493,3 +493,88 @@ at the 120 s run timeout.
 Local copies: `scripts/verify` runs the `bench-smoke` job. The local copy of
 the full CI benchmark (`bench-full` and `bench-merge`) is `scripts/bench`
 with no arguments: all shards in one report, `out/bench.json`.
+
+## Benchmark compare
+
+```sh
+sqll-harness bench compare BASE NEW       # writes out/bench-compare.json
+sqll-harness bench compare NEW --tool sqlfluff --tool sqruff
+```
+
+`sqll-harness bench compare [BASE] NEW [--tool T] [--out FILE]` compares
+2 benchmark reports (G3.6) with the noise limit of [bench.md](bench.md)
+("Slowdowns"), and the tools of NEW (G3.4, G3.5). `--tool` (can repeat;
+default: all tools of the reports) sets the compared tools. With only NEW,
+it compares only the tools of NEW. It prints a summary and writes the
+output (default `out/bench-compare.json`).
+
+Exit code: 2, with no output (it deletes an old `--out` file), if a report
+has a schema error or is not complete for its scope, if no report has a
+`--tool`, or if an input of the 2 reports has a different record (`sha256`,
+`bytes`, `lines`) or a compared tool has different settings. 1 if a
+benchmark is `slower` or a `failure`. Else 0. A different tool version,
+sqlfluff ref, profile, or machine, a worktree with changes, or a report
+with 1 timed run for each benchmark (`smoke`) gives a warning.
+
+```json
+{
+  "kind": "sqll-bench-compare",
+  "format": 1,
+  "base": {"path": "", "commit": "", "clean": true, "profile": "",
+           "machine": {}},
+  "new": {"path": "", "commit": "", "clean": true, "profile": "",
+          "machine": {}},
+  "noise": {"wall_pct": 0.25, "cpu_pct": 0.1, "k": 3.0,
+            "min_diff_s": 0.005},
+  "tools": {"<tool>": {"base": "<version>", "new": "<version>"}},
+  "warnings": [""],
+  "benchmarks": [{"id": "", "tool": "", "base_status": "", "new_status": "",
+                  "reason": "",
+                  "change": "slower|faster|same|failure|status|not_valid",
+                  "wall": {"base": 0.0, "new": 0.0, "ratio": 0.0,
+                           "limit": 0.0, "change": "slower|faster|same"},
+                  "cpu": {}}],
+  "only_base": [{"id": "", "tool": ""}],
+  "only_new": [{"id": "", "tool": ""}],
+  "totals": {"<tool>": {"benchmarks": 0, "wall_s": [0.0, 0.0],
+                        "cpu_s": [0.0, 0.0], "wall_ratio": 0.0,
+                        "cpu_ratio": 0.0}},
+  "tool_totals": {"tools": [], "benchmarks": 0,
+                  "excluded": [{"id": "", "statuses": {"<tool>": ""}}],
+                  "wall_s": {"<tool>": 0.0}, "cpu_s": {"<tool>": 0.0},
+                  "pairs": [{"tools": ["<a>", "<b>"], "wall_ratio": 0.0,
+                             "cpu_ratio": 0.0, "first_slower": 0,
+                             "first_faster": 0}]},
+  "counts": {"compared": 0, "slower": 0, "faster": 0, "same": 0,
+             "failure": 0, "status": 0, "not_valid": 0},
+  "ok": true
+}
+```
+
+- `base`: null with only NEW; then `benchmarks`, `only_base`, `only_new`,
+  and `totals` are empty. A version is null if the report has no such tool.
+- `benchmarks`: one entry for each benchmark and compared tool that both
+  reports have, sorted by id and tool. `reason` is that of NEW.
+- `wall` and `cpu` (the median wall and CPU times): only if both results
+  are `valid`, else null. `ratio` is NEW / BASE. A metric is `slower` if
+  `ratio` > 1 + `limit`, and `faster` if `ratio` < 1 / (1 + `limit`). If the
+  BASE median is 0, `ratio` and `limit` are null, and the metric is `slower`
+  only if it is more than `min_diff_s` slower.
+- `change` of a benchmark: `slower` if a metric is slower, else `faster` if
+  a metric is faster, else `same`. `failure`: `valid` in BASE, not `valid`
+  in NEW. `status`: another status change. `not_valid`: the same status,
+  not `valid`.
+- `only_base`, `only_new`: results of a compared tool in one report only
+  (for example a new tool, or a smaller scope). They are not compared.
+- `totals`: for each tool in both reports, the sums of the medians
+  (`[BASE, NEW]`) over the benchmarks where the tool is `valid` in both.
+  A ratio is NEW / BASE (null if BASE is 0).
+- `tool_totals`: the compared tools of NEW. The sums use only the
+  benchmarks where each of these tools is `valid` (`benchmarks`).
+  `excluded` gives the other benchmarks, with the status of each tool that
+  has a result. A pair ratio is the sum of the first tool divided by the
+  sum of the second. `first_slower` and `first_faster` count the
+  benchmarks where the median wall time of the first tool is more or less
+  than that of the second. Thus all tools have the same benchmarks; the
+  `pairs` of a report use the benchmarks where 2 tools are `valid`.
+- `ok`: no `slower` and no `failure` (exit code 0).

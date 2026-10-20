@@ -43,3 +43,6 @@ Each agent starts with new context. Use a Workflow script to run the cycle when 
    It blocks a merge if a pinned fixture has the pattern or the oracle does
    not agree on a pinned case. A missing or false record, or a false claim
    in a document, also blocks a merge.
+8. If `sqll-harness bench compare` flags a benchmark of a change as slower,
+   the pull request body must give the reason (G3.6, `harness/bench.md`,
+   "Slowdowns").
