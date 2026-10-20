@@ -1,4 +1,5 @@
-"""Command line: sqll-harness run | merge | tools | known-failures | summarize | bench.
+"""Command line: sqll-harness run | merge | tools | known-failures | summarize |
+bench (inputs | reference | run | merge | check).
 
 See harness/README.md.
 """
@@ -20,7 +21,11 @@ from .bench import definitions as bench_definitions
 from .bench import inputs as bench_inputs
 from .bench import reference as bench_reference
 from .bench import registry as bench_registry
+from .bench import report as bench_report
+from .bench import run as bench_run
 from .bench.adapter import ConfigAbove
+from .bench.inputs import SIZES as BENCH_SIZES
+from .bench.timer import PROFILES as BENCH_PROFILES
 from .cases import ERROR, FAIL, UNSUPPORTED, CaseResult
 from .known_failures import Outcome
 from .paths import (
@@ -172,7 +177,72 @@ def _parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Write the new reference to the --definitions file instead of a check.",
     )
+    brun = bench_sub.add_parser(
+        "run",
+        help="Run the benchmarks and write the report. Fail if a tool check "
+        "fails or the report is not complete.",
+    )
+    brun.add_argument(
+        "--tool",
+        action="append",
+        choices=bench_registry.names(),
+        help="Tool to run. Repeat for more tools. Default: all tools.",
+    )
+    brun.add_argument(
+        "--dialect",
+        action="append",
+        help="Dialect to run. Repeat for more dialects. Default: all dialects.",
+    )
+    brun.add_argument(
+        "--command",
+        action="append",
+        dest="bench_commands",
+        choices=bench_report.ALL_COMMANDS,
+        help="Command to run. Repeat for more commands. Default: all commands.",
+    )
+    brun.add_argument(
+        "--size",
+        action="append",
+        choices=list(BENCH_SIZES),
+        help="Input size to run. Repeat for more sizes. Default: the sizes of "
+        "the profile.",
+    )
+    brun.add_argument(
+        "--profile",
+        choices=sorted(BENCH_PROFILES),
+        default="full",
+        help="smoke: start and small, 1 timed run. full (default): all sizes, "
+        "3 to 20 timed runs.",
+    )
+    brun.add_argument(
+        "--shard",
+        type=_bench_shard,
+        metavar="K/N",
+        help="Run only shard K of N. The dialects go to the shards in turn.",
+    )
+    brun.add_argument("--out", type=Path, default=bench_report.DEFAULT_REPORT)
+    brun.add_argument("--sqlfluff-root", type=Path, default=SQLFLUFF_ROOT)
+    brun.add_argument("--definitions", type=Path, default=bench_definitions.DEFINITIONS)
+    bmrg = bench_sub.add_parser(
+        "merge",
+        help="Merge the reports of the shards of one benchmark run.",
+    )
+    bmrg.add_argument("reports", nargs="+", type=Path)
+    bmrg.add_argument("--out", type=Path, default=bench_report.DEFAULT_REPORT)
+    bchk = bench_sub.add_parser(
+        "check",
+        help="Check the schema and the completeness of a benchmark report.",
+    )
+    bchk.add_argument("report", type=Path)
+    bchk.add_argument("--definitions", type=Path, default=bench_definitions.DEFINITIONS)
     return p
+
+
+def _bench_shard(text: str) -> tuple[int, int]:
+    try:
+        return bench_run.parse_shard(text)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError(str(exc)) from None
 
 
 def _run_one(suite, adapter: Adapter, case, root: Path) -> CaseResult:
@@ -445,6 +515,103 @@ def bench_reference_command(args: argparse.Namespace) -> int:
     return 0
 
 
+def _print_bench(rep: dict, out: Path) -> None:
+    for line in bench_run.summary_lines(rep):
+        print(line)
+    print(f"report: {out}")
+
+
+def bench_run_command(args: argparse.Namespace) -> int:
+    root: Path = args.sqlfluff_root.resolve()
+    names = sorted(set(args.tool or bench_registry.names()))
+    try:
+        defs = bench_definitions.load(args.definitions)
+        scope, benchmarks = bench_run.plan(
+            defs,
+            tools=names,
+            profile=args.profile,
+            dialects=args.dialect,
+            commands=args.bench_commands,
+            sizes=args.size,
+            shard=args.shard,
+        )
+    except (OSError, ValueError, bench_run.RunError) as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
+    errors = bench_run.check_tools(names)
+    for line in errors:
+        print(f"error: {line}", file=sys.stderr)
+    if errors:
+        print("error: the tool check failed. Run: scripts/setup", file=sys.stderr)
+        return 2
+    adapters = [bench_registry.get(n) for n in names]
+    print(
+        f"running {len(benchmarks)} benchmarks for {len(names)} tools "
+        f"({args.profile} profile)",
+        file=sys.stderr,
+    )
+    with tempfile.TemporaryDirectory(prefix="sqll-bench-") as tmp:
+        try:
+            rep = bench_run.run(
+                defs=defs,
+                adapters=adapters,
+                profile=args.profile,
+                scope=scope,
+                benchmarks=benchmarks,
+                sqlfluff_root=root,
+                work=Path(tmp),
+                progress=bench_run.progress_to_stderr,
+            )
+        except (bench_run.RunError, ConfigAbove) as exc:
+            print(f"error: {exc}", file=sys.stderr)
+            return 2
+    try:
+        bench_report.write(rep, args.out)
+    except bench_report.ReportError as exc:
+        print(f"error: the report has a schema error: {exc}", file=sys.stderr)
+        return 1
+    _print_bench(rep, args.out)
+    errors = bench_run.incomplete(rep, defs)
+    for line in errors:
+        print(line)
+    if errors:
+        print("FAIL: the report is not complete for the scope of the run.")
+        return 1
+    return 0
+
+
+def bench_merge_command(args: argparse.Namespace) -> int:
+    try:
+        reports = [(str(p), bench_report.load(p)) for p in args.reports]
+        rep = bench_run.merge(reports)
+    except (OSError, ValueError, bench_run.MergeError) as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
+    bench_report.write(rep, args.out)
+    print(f"merged {len(reports)} reports")
+    _print_bench(rep, args.out)
+    return 0
+
+
+def bench_check_command(args: argparse.Namespace) -> int:
+    try:
+        rep = bench_report.load(args.report)
+        defs = bench_definitions.load(args.definitions)
+    except (OSError, ValueError) as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
+    errors = bench_report.check(rep)
+    if not errors:
+        errors = bench_run.incomplete(rep, defs)
+    for line in errors:
+        print(line)
+    if errors:
+        print(f"FAIL: {args.report} has {len(errors)} errors.")
+        return 1
+    print(f"{args.report}: no schema error; complete for its scope.")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     args = _parser().parse_args(argv)
     if args.command == "run":
@@ -461,6 +628,12 @@ def main(argv: list[str] | None = None) -> int:
         return bench_inputs_command(args)
     if args.command == "bench" and args.bench_command == "reference":
         return bench_reference_command(args)
+    if args.command == "bench" and args.bench_command == "run":
+        return bench_run_command(args)
+    if args.command == "bench" and args.bench_command == "merge":
+        return bench_merge_command(args)
+    if args.command == "bench" and args.bench_command == "check":
+        return bench_check_command(args)
     return 2
 
 

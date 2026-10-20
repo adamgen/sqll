@@ -227,7 +227,7 @@ The S2 report ([bench.md](bench.md)). `sqll_harness/bench/timer.py` measures,
 ```json
 {
   "kind": "sqll-bench-report",
-  "format": 1,
+  "format": 2,
   "sqlfluff_ref": "<commit of third_party/sqlfluff>",
   "harness": {"commit": "<commit>", "clean": true},
   "profile": "smoke|full",
@@ -249,16 +249,19 @@ The S2 report ([bench.md](bench.md)). `sqll_harness/bench/timer.py` measures,
                             "exit_code": 0, "timed_out": false}],
                "stats": {"wall_s": {"n": 3, "median": 0.0, "min": 0.0,
                                     "max": 0.0, "mad": 0.0},
-                         "cpu_s": {}}}],
+                         "cpu_s": {}},
+               "ratio": {"wall": 0.0, "cpu": 0.0}}],
   "totals": {"<tool>": {"valid": 0, "invalid": 0, "unsupported": 0,
                         "error": 0, "wall_s": 0.0, "cpu_s": 0.0}},
   "pairs": [{"tools": ["<a>", "<b>"], "benchmarks": 0, "skipped": 0,
-             "wall_s": [0.0, 0.0], "cpu_s": [0.0, 0.0], "wall_ratio": 0.0}]
+             "wall_s": [0.0, 0.0], "cpu_s": [0.0, 0.0], "wall_ratio": 0.0}],
+  "parts": [{"shard": "K/N", "machine": {}, "timer": {}}]
 }
 ```
 
 - `harness.clean`: the worktree had no change. `policy`: the policy of the
-  profile. `memory_kib` can be null. `scope.shard` is null for a full run.
+  profile. `memory_kib` can be null. `scope` is what the run tried to run
+  (before the shard); `scope.shard` is null for a run of all shards.
 - `id`, `command`, `dialect`, `size`, and `input` are those of the
   definitions; `size` is null for `start`. `input` is a key of `inputs`.
 - Times are in seconds, `max_rss_kib` in KiB (`ru_maxrss`). CPU time
@@ -278,11 +281,18 @@ The S2 report ([bench.md](bench.md)). `sqll_harness/bench/timer.py` measures,
   over the benchmarks where both are `valid`; `skipped` counts the other
   benchmarks of the 2 tools. `wall_ratio` is the first sum divided by the
   second (null if it is 0).
+- `ratio`: the median wall and CPU times of the result divided by those of
+  the `sqlfluff` result of the same benchmark in the same report (null if
+  the divisor is 0). It is null for `sqlfluff`, and if the result or the
+  `sqlfluff` result is not `valid`.
+- `parts`: null for one run. A merged report has one part for each shard,
+  in order, and `scope.shard` null; its `machine` and `timer` are those of
+  part 1.
 
 `report.check()` refuses a missing or unknown field, an unknown status, a
 `valid` result with no stats, a number of timed runs outside the policy,
-and stats, totals, or pairs that are not those of the samples. `write()`
-writes only a report with no error.
+and stats, totals, pairs, or ratios that are not those of the samples.
+`write()` writes only a report with no error.
 
 ## Summary: `results/s1/summary.json`
 
@@ -401,3 +411,48 @@ fails (exit code 1) if they are not the recorded ones. A run that is not
 valid gives no reference (exit code 1). `bench inputs` fails if an input
 has no reference for its sha256.
 
+## Benchmark runs
+
+```sh
+scripts/bench                      # the full report of all tools: out/bench.json
+scripts/bench --profile smoke      # start and small, 1 timed run
+sqll-harness bench run --tool sqruff --dialect ansi --command lint --size large
+sqll-harness bench run --profile smoke --shard 2/4 --out out/bench-2.json
+sqll-harness bench merge out/bench-*.json --out out/bench.json
+sqll-harness bench check out/bench.json
+```
+
+`sqll-harness bench run [--tool T] [--dialect D] [--command C] [--size S]
+[--profile smoke|full] [--shard K/N] [--out FILE]` (each filter can repeat;
+the default is all) runs the benchmarks of the definitions and writes the
+report (default `out/bench.json`). The default profile is `full`; `smoke`
+has only `start` and `small`. First it runs the tool check of
+`sqll-harness tools`, then builds the inputs in a temp folder and compares
+them with the definitions. The benchmarks run one at a time. For each
+benchmark, each tool does its warmup run, then the tools do their timed
+runs in turn (sorted tool names). The shards divide the dialects of the
+scope (sorted; dialect `i` from 0 is in shard `i % N + 1`), so each input
+is in one shard. It prints one line for each benchmark on stderr, and a
+summary: the status counts of each tool, the median ratio to `sqlfluff` of
+each command, the pairs, and each result that is not `valid`.
+
+Exit code: 2 if the scope is bad, a tool check fails, the inputs are not
+those of the definitions, or a config file is above the work folder (no
+report); 1 if the report does not have exactly one result for each
+benchmark of its scope and each tool, and the inputs of the definitions.
+A result that is not `valid` does not change the exit code. This command
+does not compare the statuses with a baseline.
+
+`sqll-harness bench merge REPORT...` merges the reports of the shards of
+one run, as `sqll-harness merge` does for S1. It fails (exit code 2) if a
+report has a schema error or is not complete, if a shard is missing or in
+two reports, or if 2 reports have a different sqlfluff ref, harness,
+profile, scope (other than the shard), tool record, or input record.
+`sqll-harness bench check REPORT` runs the schema and completeness checks
+(exit code 1 on an error).
+
+`scripts/bench [ARGS]` is the one command of the S2 exit: the preflight,
+`scripts/setup`, `sqll-harness tools` (`out/tools.json`),
+`scripts/check-submodule`, `sqll-harness bench inputs` (the inputs and the
+definitions check), `sqll-harness bench run ARGS`, and
+`scripts/check-submodule` again. The exit code is not 0 if a step fails.

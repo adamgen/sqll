@@ -174,12 +174,13 @@ one more binary to pin, and it does not examine the output of each run.
 `out/bench.json`; `harness/README.md` has the schema. Top level: `kind`,
 `format`, `sqlfluff_ref`, `harness` (commit), `profile`, `policy`,
 `machine`, `timer`, `scope`, `tools` (version, settings), `inputs` (bytes,
-lines, sha256), `results`, `totals`, `pairs`. One result for each
-benchmark and tool: `id`, `command`, `dialect`, `size`, `input`, `tool`,
-`status`, `reason`, `runs`, `work` (`lint`: violation count and rule
-codes; `fix`: if the file changed, and its sha256), `samples` (wall, CPU,
-max RSS, exit code), and `stats` (only if `valid`). Baseline:
-`results/s2/baseline.json`.
+lines, sha256), `results`, `totals`, `pairs`, `parts` (the shards of a
+merged report). One result for each benchmark and tool: `id`, `command`,
+`dialect`, `size`, `input`, `tool`, `status`, `reason`, `runs`, `work`
+(`lint`: violation count and rule codes; `fix`: if the file changed, and
+its sha256), `samples` (wall, CPU, max RSS, exit code), `stats` (only if
+`valid`), and `ratio` (to `sqlfluff` on the same benchmark; only if both
+are `valid`). Baseline: `results/s2/baseline.json`.
 
 ## Add a tool
 

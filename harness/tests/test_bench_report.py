@@ -224,6 +224,69 @@ def test_stats_on_an_invalid_result_are_refused(good):
     ]
 
 
+# Ratios to sqlfluff: only valid results of the same report.
+
+
+@pytest.fixture
+def with_base() -> dict:
+    return make(
+        {
+            ("start/ansi", "sqlfluff"): valid(2.0, 4.0, 4.0),
+            ("start/ansi", "b"): valid(1.0, 1.0, 1.0),
+            ("start/ansi", "c"): invalid(0.1, 0.1),
+            ("parse/ansi/small", "sqlfluff"): invalid(1.0, 1.0),
+            ("parse/ansi/small", "b"): valid(0.5, 0.5, 0.5),
+        }
+    )
+
+
+def test_a_ratio_uses_only_valid_results(with_base):
+    assert report.check(with_base) == []
+    ratio = {(r["id"], r["tool"]): r["ratio"] for r in with_base["results"]}
+    assert ratio == {
+        # Median 1.0 / 4.0; CPU time is half the wall time in valid().
+        ("start/ansi", "b"): {"wall": 0.25, "cpu": 0.25},
+        # The tool result is not valid.
+        ("start/ansi", "c"): None,
+        # The base result is not valid.
+        ("parse/ansi/small", "b"): None,
+        # No ratio of the base to itself.
+        ("start/ansi", "sqlfluff"): None,
+        ("parse/ansi/small", "sqlfluff"): None,
+    }
+
+
+def test_a_ratio_with_no_base_result_is_null():
+    rep = make({("start/ansi", "b"): valid(1.0, 1.0, 1.0)})
+    assert report.check(rep) == []
+    assert rep["results"][0]["ratio"] is None
+
+
+@pytest.mark.parametrize(
+    "bid, tool, ratio",
+    [
+        ("start/ansi", "c", {"wall": 0.1, "cpu": 0.1}),
+        ("parse/ansi/small", "b", {"wall": 0.5, "cpu": 0.5}),
+        ("start/ansi", "sqlfluff", {"wall": 1.0, "cpu": 1.0}),
+        ("start/ansi", "b", {"wall": 0.5, "cpu": 0.25}),
+        ("start/ansi", "b", None),
+    ],
+)
+def test_a_ratio_that_is_not_that_of_the_valid_results_is_refused(
+    with_base, bid, tool, ratio
+):
+    result(with_base, bid, tool)["ratio"] = ratio
+    errors = report.check(with_base)
+    assert f"result {bid} ({tool}): ratio {ratio!r} is not" in " ".join(errors)
+
+
+def test_a_bad_ratio_value_is_refused(with_base):
+    result(with_base, "start/ansi", "b")["ratio"] = {"wall": -1, "cpu": 0.25}
+    assert any("bad ratio" in e for e in report.check(with_base))
+    result(with_base, "start/ansi", "b")["ratio"] = {"wall": 0.25}
+    assert any("missing field 'cpu'" in e for e in report.check(with_base))
+
+
 # The schema check refuses bad reports.
 
 
@@ -360,7 +423,8 @@ def test_a_result_that_is_not_valid_needs_a_reason(good, status):
     "change, error",
     [
         (lambda r: r.update(kind="sqll-harness-report"), "kind: "),
-        (lambda r: r.update(format=2), "format: "),
+        (lambda r: r.update(format=1), "format: "),
+        (lambda r: r.update(parts=[]), "parts: not null or a list"),
         (lambda r: r.update(format=True), "format: "),
         (lambda r: r["policy"].update(min_runs=3.0), "not the full policy"),
         (lambda r: r.update(profile="quick"), "unknown profile"),
@@ -372,6 +436,8 @@ def test_a_result_that_is_not_valid_needs_a_reason(good, status):
         (lambda r: r["scope"]["tools"].append("c"), "the tools of the scope"),
         (lambda r: r["scope"]["commands"].append("format"), "unknown commands"),
         (lambda r: r["scope"].update(shard="2"), "bad shard"),
+        (lambda r: r["scope"].update(shard="3/2"), "bad shard"),
+        (lambda r: r["scope"].update(shard="0/2"), "bad shard"),
         (lambda r: r["results"].reverse(), "not sorted by id and tool"),
         (lambda r: r["results"].append(r["results"][0]), "an id and tool are repeated"),
         (lambda r: r["timer"]["overhead"]["stats"]["wall_s"].update(n=5), "timer"),
@@ -422,4 +488,8 @@ def test_the_readme_has_each_field_of_the_schema():
     assert tuple(total) == report.TOTAL
     (pair,) = doc["pairs"]
     assert tuple(pair) == report.PAIR
+    assert tuple(res["ratio"]) == report.RATIO
+    (part,) = doc["parts"]
+    assert tuple(part) == report.PART
+    assert doc["format"] == report.FORMAT
     assert res["status"] == "|".join(timer.STATUSES)
