@@ -30,19 +30,25 @@ untracked or ignored file. `scripts/test` runs it before the tests and after
 the run. CI runs it after the tests and after each shard.
 
 `scripts/verify [--jobs N] [--quick]` runs each CI check locally: the lint job,
-one unsharded run of all tools and suites, and the report and dialect-oracle
-checks. Exit code 0 only if all pass; details in `out/verify.json` and
-`out/verify/*.log`. `--quick` (fast checks only) is not the full verification;
-it writes `out/verify-quick.json` and `out/verify-quick/*.log`. Only one run
-at a time can use a checkout. A warning line shows a worktree with changes.
-CI-only steps (checkout, image, artifacts, shard merge) are in `CI_ONLY` in
-`sqll_harness/verify.py`. `tests/test_verify.py` fails if a CI step is in no
-list, or if the command lines of a CI step (with its env and matrix values)
-are not the same as those of its local checks. It also fails if the run text
-or env of a CI-only step is not the text in `CI_ONLY_RUN`, or if CI uses a
-step key that it does not know (for example `shell` or `working-directory`)
-or `defaults`. No local command can have `||`, `true`, `--filter`, or other
-words that can hide a failure.
+one unsharded run of all tools and suites, the report and dialect-oracle
+checks, and the smoke benchmark (`out/bench.json`). Exit code 0 only if all
+pass; details in `out/verify.json` and `out/verify/*.log`. `--quick` (fast
+checks only) is not the full verification; it writes `out/verify-quick.json`
+and `out/verify-quick/*.log`. Only one run at a time can use a checkout. A
+warning line shows a worktree with changes.
+CI-only steps (checkout, image, artifacts, shard merges, the full benchmark)
+are in `CI_ONLY` in `sqll_harness/verify.py`. `tests/test_verify.py` fails if
+a CI step is in no list, or if the command lines of a CI step (with its env
+and matrix values) are not the same as those of its local checks. It also
+fails if the run text or env of a CI-only step is not the text in
+`CI_ONLY_RUN`, if a job `if`, `needs`, or `outputs`, or a step `if` or `id`,
+is not the recorded one, or if CI uses a key that it does not know (for
+example `shell`, `working-directory`, or `continue-on-error`) or
+`defaults`. No local command and no CI run text can have `||`, `true`, or
+`:`; no local command can have `--filter` or other words that can hide a
+failure. The local copy of the full CI benchmark is `scripts/bench` (see
+"Benchmark runs"); the test fails if its `bench run` command is not the CI
+shard command without `--profile full --shard K/N --out FILE`.
 
 ## Tools
 
@@ -446,11 +452,13 @@ the inputs of the definitions.
 A result that is not `valid` does not change the exit code. This command
 does not compare the statuses with a baseline.
 
-`sqll-harness bench merge REPORT...` merges the reports of the shards of
-one run, as `sqll-harness merge` does for S1. It fails (exit code 2) if a
-report has a schema error or is not complete, if a shard is missing or in
-two reports, or if 2 reports have a different sqlfluff ref, harness,
-profile, scope (other than the shard), tool record, or input record.
+`sqll-harness bench merge [--expect MATRIX_JSON] REPORT...` merges the
+reports of the shards of one run, as `sqll-harness merge` does for S1. It
+fails (exit code 2) if a report has a schema error or is not complete, if a
+shard is missing or in two reports, if 2 reports have a different sqlfluff
+ref, harness, profile, scope (other than the shard), tool record, or input
+record, or if the shard count is not the `shards` of `--expect`
+(`{"shards": N}`, as `ci/bench-matrix.json`).
 `sqll-harness bench check REPORT` runs the schema and completeness checks
 (exit code 1 on an error).
 
@@ -460,3 +468,17 @@ profile, scope (other than the shard), tool record, or input record.
 the inputs; `bench run` builds and checks them again), `sqll-harness bench
 run ARGS`, and
 `scripts/check-submodule` again. The exit code is not 0 if a step fails.
+
+### Benchmarks in CI
+
+| Job | When | Command | Artifact |
+|---|---|---|---|
+| `bench-smoke` | each full run (pull request with a code change, push to main, `workflow_dispatch`) | `bench run --profile smoke --out out/bench.json` | `bench-smoke` |
+| `bench-full` | push to main, `workflow_dispatch` | `bench run --profile full --shard K/N`, one job for each shard of `ci/bench-matrix.json` (`ci/bench_matrix.py`) | `bench-shard-K-of-N` |
+| `bench-merge` | after all `bench-full` jobs pass | `bench merge --expect ci/bench-matrix.json`, then `bench check` | `bench-full` (`out/bench.json`) |
+
+Each job runs in the CI image. `bench-smoke` and `bench-full` run
+`scripts/check-submodule` after the benchmarks. No job compares timings ("Noise control" in
+[bench.md](bench.md)). Locally, `scripts/verify` runs the smoke job, and
+`scripts/bench` (no arguments) is the full benchmark of all shards in one
+report.

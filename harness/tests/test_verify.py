@@ -13,7 +13,7 @@ import subprocess
 
 import pytest
 
-from sqll_harness import verify
+from sqll_harness import cli, verify
 
 CI = verify.load_ci()
 KEYS = [key for key, _, _ in verify.ci_steps(CI)]
@@ -46,6 +46,14 @@ def _rust(data):
     return _step(
         data, "lint", "Check the harness fixtures with the sqlfluff test and --rust"
     )
+
+
+def _bench_smoke(data):
+    return _step(data, "bench-smoke", "Run the smoke benchmark")
+
+
+def _bench_shard(data):
+    return _step(data, "bench-full", "Run the benchmark shard")
 
 
 CI_CHANGES = {
@@ -173,6 +181,85 @@ CI_CHANGES = {
         needs=["changes", "image"]
     ),
     "needs on the changes job": lambda d: d["jobs"]["changes"].update(needs="image"),
+    # The benchmark jobs.
+    "smoke benchmark with the full profile": lambda d: _bench_smoke(d).update(
+        run=_bench_smoke(d)["run"].replace("smoke", "full")
+    ),
+    "smoke benchmark of one dialect": lambda d: _bench_smoke(d).update(
+        run=_bench_smoke(d)["run"] + " --dialect ansi"
+    ),
+    "smoke benchmark || true": lambda d: _bench_smoke(d).update(
+        run=_bench_smoke(d)["run"] + " || true"
+    ),
+    "new benchmark step with no check": lambda d: d["jobs"]["bench-smoke"][
+        "steps"
+    ].insert(3, {"name": "Compare", "run": "uv run sqll-harness bench compare"}),
+    "new unnamed benchmark step": lambda d: d["jobs"]["bench-full"]["steps"].append(
+        {"run": "scripts/check-submodule x"}
+    ),
+    "submodule check removed from bench-full": lambda d: d["jobs"]["bench-full"][
+        "steps"
+    ].pop(3),
+    "smoke submodule check text": lambda d: _step(
+        d, "bench-smoke", "Check that the sqlfluff submodule is clean"
+    ).update(run='scripts/check-submodule "after the tests"'),
+    "bench-smoke runs on a docs-only pull request": lambda d: d["jobs"][
+        "bench-smoke"
+    ].pop("if"),
+    "bench-smoke needs only image": lambda d: d["jobs"]["bench-smoke"].update(
+        needs=["image"]
+    ),
+    "bench-full runs on each pull request": lambda d: d["jobs"]["bench-full"].pop("if"),
+    "bench-full only on push": lambda d: d["jobs"]["bench-full"].update(
+        {"if": "github.event_name == 'push'"}
+    ),
+    "bench-full needs changes": lambda d: d["jobs"]["bench-full"].update(
+        needs=["changes", "image"]
+    ),
+    "bench-full continue-on-error": lambda d: d["jobs"]["bench-full"].update(
+        {"continue-on-error": True}
+    ),
+    "bench-full shard of the smoke profile": lambda d: _bench_shard(d).update(
+        run=_bench_shard(d)["run"].replace("--profile full", "--profile smoke")
+    ),
+    "bench-full shard of one size": lambda d: _bench_shard(d).update(
+        run=_bench_shard(d)["run"] + " --size large"
+    ),
+    "bench-full shard with env": lambda d: _bench_shard(d).update(
+        env={"SQLL_TOOLS_DIR": "/x"}
+    ),
+    "bench-full shard step continue-on-error": lambda d: _bench_shard(d).update(
+        {"continue-on-error": True}
+    ),
+    "bench-full shard step if": lambda d: _bench_shard(d).update({"if": "false"}),
+    "bench-full upload if removed": lambda d: d["jobs"]["bench-full"]["steps"][-1].pop(
+        "if"
+    ),
+    "bench-merge does not need bench-full": lambda d: d["jobs"]["bench-merge"].update(
+        needs=["image"]
+    ),
+    "bench-merge always": lambda d: d["jobs"]["bench-merge"].update(
+        {"if": "always() && github.event_name != 'pull_request'"}
+    ),
+    "bench-merge without --expect": lambda d: _step(d, "bench-merge", "Merge").update(
+        run=_step(d, "bench-merge", "Merge")["run"].replace(
+            "--expect ci/bench-matrix.json ", ""
+        )
+    ),
+    "bench-merge check removed": lambda d: d["jobs"]["bench-merge"]["steps"].pop(3),
+    "bench-merge check || true": lambda d: _step(
+        d, "bench-merge", "Check the merged report"
+    ).update(run=_step(d, "bench-merge", "Check the merged report")["run"] + "||true"),
+    "bench_matrix output changed": lambda d: d["jobs"]["image"]["outputs"].update(
+        bench_matrix='{"include": [{"shard": "1/1", "name": "x"}]}'
+    ),
+    "bench_matrix line removed from the tag step": lambda d: next(
+        s for s in d["jobs"]["image"]["steps"] if s.get("id") == "tag"
+    ).update(
+        run=next(s for s in d["jobs"]["image"]["steps"] if s.get("id") == "tag")[
+            "run"
+        ].split('echo "bench_matrix')[0]
+    ),
     "ruff check --check": lambda d: _step(d, "lint", "Lint").update(
         run=_step(d, "lint", "Lint")["run"].replace(
             "ruff check harness", "ruff check --check harness"
@@ -196,6 +283,16 @@ LOCAL_CHANGES = {
     ),
     "set +e": ("summary", lambda c: "set +e\n" + c),
     "removed line": ("oracle-rules", lambda c: c.splitlines()[0]),
+    "smoke benchmark of one dialect": ("bench-smoke", lambda c: c + " --dialect ansi"),
+    "smoke benchmark || true": ("bench-smoke", lambda c: c + " || true"),
+    "smoke benchmark full profile": (
+        "bench-smoke",
+        lambda c: c.replace("--profile smoke", "--profile full"),
+    ),
+    "submodule check after the benchmarks": (
+        "submodule-after-bench",
+        lambda c: c.replace("benchmarks", "tests"),
+    ),
 }
 
 
@@ -207,6 +304,76 @@ def test_drift_finds_a_local_change(name):
         for c in CHECKS
     ]
     assert verify.drift(changed, CI)
+
+
+BENCH = (verify.REPO_ROOT / verify.BENCH_LOCAL).read_text()
+BENCH_RUN = 'uv run --quiet --frozen --project harness sqll-harness bench run "$@"'
+
+BENCH_CHANGES = {
+    "--size small": lambda t: t.replace(BENCH_RUN, BENCH_RUN + " --size small"),
+    "--profile smoke": lambda t: t.replace('run "$@"', 'run --profile smoke "$@"'),
+    "no $@": lambda t: t.replace('run "$@"', "run"),
+    "--tool sqruff": lambda t: t.replace("bench run", "bench run --tool sqruff"),
+    "a second bench run": lambda t: t + "\n" + BENCH_RUN + "\n",
+    "no bench run": lambda t: t.replace(BENCH_RUN, "true"),
+    "other project": lambda t: t.replace(
+        "--project harness sqll-harness bench run", "--project x sqll-harness bench run"
+    ),
+}
+
+
+def test_bench_has_the_expected_run_line():
+    assert BENCH.count(BENCH_RUN) == 1
+    assert verify.bench_local_drift(CI, BENCH) == []
+
+
+@pytest.mark.parametrize("name", BENCH_CHANGES)
+def test_drift_finds_a_change_of_the_local_full_benchmark(name):
+    changed = BENCH_CHANGES[name](BENCH)
+    assert changed != BENCH
+    assert verify.drift(CHECKS, CI, changed)
+
+
+def test_bench_local_words_ignore_comments():
+    text = "# don't run 'sqll-harness bench run' here\n" + BENCH_RUN + " || s=$?\n"
+    assert verify.bench_local_words(text) == tuple(
+        "uv run --frozen --project harness sqll-harness bench run".split()
+    )
+
+
+def test_the_local_full_benchmark_is_the_full_profile():
+    args = cli._parser().parse_args(["bench", "run"])
+    assert args.profile == "full"
+    assert args.tool is None and args.dialect is None and args.size is None
+    assert args.bench_commands is None and args.shard is None
+
+
+def test_no_ci_step_can_hide_a_failure():
+    text = verify.CI_FILE.read_text()
+    assert "continue-on-error" not in text
+    for key, step, _ in verify.ci_steps(CI):
+        assert verify.ci_weak_parts(step.get("run", "")) == [], key
+
+
+def test_drift_finds_weak_ci_text():
+    def change(d):
+        step = next(s for s in d["jobs"]["image"]["steps"] if s.get("id") == "find")
+        step["run"] = step["run"].replace("> /dev/null 2>&1", "|| :")
+        step["run"] = step["run"].replace(
+            '"$GITHUB_OUTPUT"\nfi', '"$GITHUB_OUTPUT"; true\nfi'
+        )
+
+    problems = _ci_change(change)
+    assert "image: find: '||' in the CI run text can hide a failure" in problems
+    assert "image: find: ':' in the CI run text can hide a failure" in problems
+    assert "image: find: 'true' in the CI run text can hide a failure" in problems
+
+
+def test_weak_words_after_an_operator_are_found():
+    assert verify.weak_parts("scripts/setup; true") == ["true"]
+    assert verify.weak_parts("scripts/setup &&:") == [":"]
+    assert verify.ci_weak_parts("a;true") == ["true"]
+    assert verify.ci_weak_parts("echo 'a || b'") == ["||"]
 
 
 def test_ci_only_run_names_only_ci_only_steps_with_run():

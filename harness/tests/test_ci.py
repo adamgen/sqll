@@ -178,6 +178,36 @@ def test_ci_matrix_runs_each_suite_for_each_tool():
     assert ("code_only", "sqlfluff") in shards
 
 
+bench_matrix = _load("bench_matrix")
+
+
+def test_bench_matrix_expansion():
+    assert bench_matrix.expand({"shards": 2}) == {
+        "include": [
+            {"shard": "1/2", "name": "1-of-2"},
+            {"shard": "2/2", "name": "2-of-2"},
+        ]
+    }
+
+
+@pytest.mark.parametrize(
+    "data",
+    [{"shards": 0}, {"shards": "2"}, {"shards": True}, {"shards": 2, "x": 1}, [2], {}],
+)
+def test_bench_matrix_rejects_bad_data(data):
+    with pytest.raises(ValueError):
+        bench_matrix.expand(data)
+
+
+def test_ci_bench_matrix_has_a_dialect_in_each_shard():
+    from sqll_harness.bench import definitions
+
+    data = json.loads((REPO_ROOT / "ci" / "bench-matrix.json").read_text())
+    dialects = {b["dialect"] for b in definitions.load()["benchmarks"]}
+    include = bench_matrix.expand(data)["include"]
+    assert 1 <= len(include) <= len(dialects)
+
+
 # ci/changes.py: the documents-only test
 
 changes = _load("changes")
@@ -332,3 +362,4 @@ def test_main_writes_the_output(tmp_path, monkeypatch, capsys):
     assert "Event push: not a pull request" in text
     assert "not known (git failed)" in text
     assert "Result: full run" in text
+    assert "the dialect oracles, and the smoke benchmark." in text

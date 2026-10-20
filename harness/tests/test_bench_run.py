@@ -10,7 +10,7 @@ import pytest
 from conftest import needs_all_tools
 from test_bench_adapters import DoubleBench
 
-from sqll_harness import cli
+from sqll_harness import cli, paths
 from sqll_harness import tools as s1_tools
 from sqll_harness.bench import definitions, registry, report
 from sqll_harness.bench import run as bench_run
@@ -405,6 +405,44 @@ def test_merge_refuses_a_missing_or_repeated_shard(parts, tmp_path, capsys):
     merged = bench_run.merge([("a", two), ("b", one)])
     assert [p["shard"] for p in merged["parts"]] == ["1/2", "2/2"]
     _merge_error([merged], "a merged report cannot be merged again")
+
+
+def test_merge_expect_refuses_another_shard_count(parts, tmp_path, capsys):
+    expect = tmp_path / "bench-matrix.json"
+    expect.write_text('{"shards": 3}')
+    out = tmp_path / "m.json"
+    assert bench("merge", *parts, "--expect", expect, "--out", out) == 2
+    assert "the reports have 2 shards, not the expected 3" in capsys.readouterr().err
+    assert not out.exists()
+    expect.write_text('{"shards": 2}')
+    assert bench("merge", *parts, "--expect", expect, "--out", out) == 0
+    assert out.exists()
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        '{"shards": 0}',
+        '{"shards": "2"}',
+        '{"shards": true}',
+        '{"shards": 2, "x": 1}',
+        "[2]",
+        "2",
+        "{",
+    ],
+)
+def test_merge_expect_refuses_a_bad_matrix_file(parts, tmp_path, capsys, text):
+    expect = tmp_path / "bench-matrix.json"
+    expect.write_text(text)
+    out = tmp_path / "m.json"
+    assert bench("merge", *parts, "--expect", expect, "--out", out) == 2
+    assert "error:" in capsys.readouterr().err
+    assert not out.exists()
+
+
+def test_the_ci_bench_matrix_is_a_matrix_file():
+    shards = bench_run.expected_shards(paths.REPO_ROOT / "ci" / "bench-matrix.json")
+    assert 1 <= shards <= len(DIALECTS)
 
 
 @pytest.mark.parametrize(

@@ -228,6 +228,13 @@ def _parser() -> argparse.ArgumentParser:
         help="Merge the reports of the shards of one benchmark run.",
     )
     bmrg.add_argument("reports", nargs="+", type=Path)
+    bmrg.add_argument(
+        "--expect",
+        type=Path,
+        metavar="MATRIX_JSON",
+        help="Fail if the reports do not have the shard count of this file "
+        '({"shards": N}, as ci/bench-matrix.json).',
+    )
     bmrg.add_argument("--out", type=Path, default=bench_report.DEFAULT_REPORT)
     bchk = bench_sub.add_parser(
         "check",
@@ -589,8 +596,9 @@ def bench_run_command(args: argparse.Namespace) -> int:
 
 def bench_merge_command(args: argparse.Namespace) -> int:
     try:
+        shards = bench_run.expected_shards(args.expect) if args.expect else None
         reports = [(str(p), bench_report.load(p)) for p in args.reports]
-        rep = bench_run.merge(reports)
+        rep = bench_run.merge(reports, shards)
     except (OSError, ValueError, bench_run.MergeError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2
