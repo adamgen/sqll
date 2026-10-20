@@ -50,6 +50,12 @@ Benchmark runs (`harness/sqll_harness/bench/run.py`; `harness/README.md`,
 "Benchmark runs"): `sqll-harness bench run`, `bench merge`, `bench check`,
 and `scripts/bench`. Report format 2 adds `ratio` (to sqlfluff, valid
 results of the same run only) and `parts` (the shards of a merged report).
+Measured on commit `b63cc7a` (clean checkout, 4 CPUs): `scripts/bench
+--profile smoke` (112 benchmarks, 3 tools) took 277 s, exit code 0. Valid:
+sqlfluff 112, `sqlfluff[rs]` 112, sqruff 102 (soql 4 `unsupported`; `lint`
+and `fix` of athena, databricks, and trino small `invalid`: rule codes that
+are not those of the sqlfluff reference). The merge of 3 shard runs has the
+same ids, statuses, and input hashes. No timing is a baseline yet (T8).
 
 ## S1 exit evidence (approved)
 
