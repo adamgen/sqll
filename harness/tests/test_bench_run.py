@@ -2,6 +2,8 @@
 runs"), with test-double tools. The real tools are in the last test."""
 
 import json
+import os
+import sys
 from pathlib import Path
 
 import pytest
@@ -256,9 +258,13 @@ def test_the_merged_shards_are_the_unsharded_run(smoke):
     assert merged["tools"] == full["tools"]
     assert [p["shard"] for p in merged["parts"]] == ["1/3", "2/3", "3/3"]
     assert merged["machine"] == shards[0]["machine"]
-    # The shards have no common dialect.
+    # The shards have no common dialect. Thus only the start input is in
+    # more than one shard (harness/README.md, "Benchmark runs").
     dialects = [{r["dialect"] for r in s["results"]} for s in shards]
     assert sum(len(d) for d in dialects) == len(set().union(*dialects)) == 28
+    assert all("start" in s["inputs"] for s in shards)
+    others = [name for s in shards for name in s["inputs"] if name != "start"]
+    assert len(others) == len(set(others)) == len(full["inputs"]) - 1
 
 
 # Exit codes.
@@ -291,6 +297,34 @@ def test_an_incomplete_report_fails(doubles, monkeypatch, tmp_path, capsys):
     # The report is written, with no schema error.
     assert report.check(report.load(out)) == []
     assert bench("check", out) == 1
+
+
+def test_a_report_with_a_schema_error_is_not_written(
+    doubles, monkeypatch, tmp_path, capsys
+):
+    real = bench_run.run
+
+    def bad_status(**kwargs):
+        rep = real(**kwargs)
+        rep["results"][0]["status"] = "passed"
+        return rep
+
+    monkeypatch.setattr(bench_run, "run", bad_status)
+    out = tmp_path / "b.json"
+    assert bench("run", "--dialect", "ansi", "--command", "start", "--out", out) == 1
+    assert "the report has a schema error" in capsys.readouterr().err
+    assert not out.exists()
+
+
+def test_a_closed_pipe_does_not_change_the_exit_code(parts, tmp_path, monkeypatch):
+    """The reader of the summary closes the pipe early, as "| head" does."""
+    read_end, write_end = os.pipe()
+    os.close(read_end)
+    with os.fdopen(write_end, "w") as closed:
+        monkeypatch.setattr(sys, "stdout", closed)
+        assert bench("merge", *parts, "--out", tmp_path / "m.json") == 0
+        monkeypatch.undo()
+    assert bench("check", tmp_path / "m.json") == 0
 
 
 def test_inputs_that_are_not_those_of_the_definitions_stop_the_run(
@@ -417,6 +451,23 @@ def test_the_parts_of_a_merged_report_are_checked(parts):
     bad = json.loads(json.dumps(merged))
     bad["parts"][0]["shard"] = "x"
     assert any("bad shard" in e for e in report.check(bad))
+
+
+def test_the_summary_lists_each_result_that_is_not_valid(parts):
+    rep = bench_run.merge([(str(p), report.load(p)) for p in parts])
+    by = {(r["id"], r["tool"]): r for r in rep["results"]}
+    assert by[("start/soql", "double-b")]["reason"] == "unsupported: dialect soql"
+    by[("start/ansi", "double-b")].update(
+        status=INVALID, reason="line one\n" + "x" * 300, stats=None, ratio=None
+    )
+    lines = bench_run.summary_lines(rep)
+    start = lines.index("not valid: 2")
+    assert lines[start + 1 :] == [
+        "  double-b start/ansi: "
+        + ("invalid: line one " + "x" * 300)[: bench_run.REASON_TEXT - 3]
+        + "...",
+        "  double-b start/soql: unsupported: dialect soql",
+    ]
 
 
 def test_check_finds_inputs_that_are_not_those_of_the_definitions(parts, capsys):

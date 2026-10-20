@@ -4,8 +4,9 @@ commands are in harness/README.md, "Benchmark runs").
 plan() gives the benchmarks of a scope, in the order of the definitions.
 run() runs them one at a time. For each benchmark, the tools run in turn
 for each repeat (timer.run_in_turn), so that drift has the same effect on
-each tool. All benchmarks of a dialect are in the same shard, so the
-validity checks of one input are done in one run.
+each tool. All benchmarks of a dialect are in the same shard. Thus each
+input other than `start` is in one shard; `start` is in each shard that has
+a start benchmark, and merge() refuses 2 different records of it.
 """
 
 import sys

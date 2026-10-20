@@ -431,15 +431,18 @@ has only `start` and `small`. First it runs the tool check of
 them with the definitions. The benchmarks run one at a time. For each
 benchmark, each tool does its warmup run, then the tools do their timed
 runs in turn (sorted tool names). The shards divide the dialects of the
-scope (sorted; dialect `i` from 0 is in shard `i % N + 1`), so each input
-is in one shard. It prints one line for each benchmark on stderr, and a
-summary: the status counts of each tool, the median ratio to `sqlfluff` of
-each command, the pairs, and each result that is not `valid`.
+scope (sorted; dialect `i` from 0 is in shard `i % N + 1`), so all
+benchmarks of a dialect are in one shard. Each input other than `start` is
+in one shard; `start` is in each shard that has a `start` benchmark. It
+prints one line for each benchmark on stderr, and a summary: the status
+counts of each tool, the median ratio to `sqlfluff` of each command, the
+pairs, and each result that is not `valid`.
 
 Exit code: 2 if the scope is bad, a tool check fails, the inputs are not
 those of the definitions, or a config file is above the work folder (no
-report); 1 if the report does not have exactly one result for each
-benchmark of its scope and each tool, and the inputs of the definitions.
+report); 1 if the report has a schema error (no report), or if it does not
+have exactly one result for each benchmark of its scope and each tool, and
+the inputs of the definitions.
 A result that is not `valid` does not change the exit code. This command
 does not compare the statuses with a baseline.
 
@@ -453,6 +456,7 @@ profile, scope (other than the shard), tool record, or input record.
 
 `scripts/bench [ARGS]` is the one command of the S2 exit: the preflight,
 `scripts/setup`, `sqll-harness tools` (`out/tools.json`),
-`scripts/check-submodule`, `sqll-harness bench inputs` (the inputs and the
-definitions check), `sqll-harness bench run ARGS`, and
+`scripts/check-submodule`, `sqll-harness bench inputs` (an early check of
+the inputs; `bench run` builds and checks them again), `sqll-harness bench
+run ARGS`, and
 `scripts/check-submodule` again. The exit code is not 0 if a step fails.

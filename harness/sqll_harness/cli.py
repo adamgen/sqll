@@ -515,10 +515,21 @@ def bench_reference_command(args: argparse.Namespace) -> int:
     return 0
 
 
-def _print_bench(rep: dict, out: Path) -> None:
-    for line in bench_run.summary_lines(rep):
-        print(line)
-    print(f"report: {out}")
+def _print_out(lines: list[str]) -> None:
+    """Print lines on stdout. If the reader closes the pipe early (for
+    example "| head"), discard the rest; the exit code does not change."""
+    try:
+        for line in lines:
+            print(line)
+        sys.stdout.flush()
+    except BrokenPipeError:
+        devnull = os.open(os.devnull, os.O_WRONLY)
+        os.dup2(devnull, sys.stdout.fileno())
+        os.close(devnull)
+
+
+def _bench_summary(rep: dict, out: Path) -> list[str]:
+    return [*bench_run.summary_lines(rep), f"report: {out}"]
 
 
 def bench_run_command(args: argparse.Namespace) -> int:
@@ -570,14 +581,10 @@ def bench_run_command(args: argparse.Namespace) -> int:
     except bench_report.ReportError as exc:
         print(f"error: the report has a schema error: {exc}", file=sys.stderr)
         return 1
-    _print_bench(rep, args.out)
     errors = bench_run.incomplete(rep, defs)
-    for line in errors:
-        print(line)
-    if errors:
-        print("FAIL: the report is not complete for the scope of the run.")
-        return 1
-    return 0
+    fail = ["FAIL: the report is not complete for the scope of the run."]
+    _print_out(_bench_summary(rep, args.out) + errors + (fail if errors else []))
+    return 1 if errors else 0
 
 
 def bench_merge_command(args: argparse.Namespace) -> int:
@@ -588,8 +595,7 @@ def bench_merge_command(args: argparse.Namespace) -> int:
         print(f"error: {exc}", file=sys.stderr)
         return 2
     bench_report.write(rep, args.out)
-    print(f"merged {len(reports)} reports")
-    _print_bench(rep, args.out)
+    _print_out([f"merged {len(reports)} reports", *_bench_summary(rep, args.out)])
     return 0
 
 

@@ -15,7 +15,7 @@
 | T2 | Benchmark definitions and deterministic input builder | Merged (PR #13) |
 | T3 | Measurement core and the benchmark report schema | Merged (PR #14) |
 | T4 | Benchmark adapters for sqlfluff, `sqlfluff[rs]`, and sqruff with validity checks | Merged (PR #15) |
-| T5 | `sqll-harness bench run` and `scripts/bench`: one command, one machine-readable report | In review |
+| T5 | `sqll-harness bench run` and `scripts/bench`: one command, one machine-readable report | In review (PR #16) |
 | T6 | CI benchmark jobs and `scripts/verify` drift coverage | Open |
 | T7 | Slowdown detection: `sqll-harness bench compare` and the change-record rule | Open |
 | T8 | S2 exit: recorded baseline, exact drift checks, and STATUS | Open |
@@ -47,15 +47,11 @@ command that has the limit; an unparsable input is invalid for `parse`,
 registry, valid.
 
 Benchmark runs (`harness/sqll_harness/bench/run.py`; `harness/README.md`,
-"Benchmark runs"): `sqll-harness bench run`, `bench merge`, `bench check`,
-and `scripts/bench`. Report format 2 adds `ratio` (to sqlfluff, valid
-results of the same run only) and `parts` (the shards of a merged report).
-Measured on commit `b63cc7a` (clean checkout, 4 CPUs): `scripts/bench
---profile smoke` (112 benchmarks, 3 tools) took 277 s, exit code 0. Valid:
-sqlfluff 112, `sqlfluff[rs]` 112, sqruff 102 (soql 4 `unsupported`; `lint`
-and `fix` of athena, databricks, and trino small `invalid`: rule codes that
-are not those of the sqlfluff reference). The merge of 3 shard runs has the
-same ids, statuses, and input hashes. No timing is a baseline yet (T8).
+"Benchmark runs"): `sqll-harness bench run`, `merge`, `check`, and
+`scripts/bench`. On commit `b63cc7a`, `scripts/bench --profile smoke` (112
+benchmarks, 3 tools) took 277 s, exit code 0. Valid: sqlfluff 112,
+`sqlfluff[rs]` 112, sqruff 102 (details in PR #16). No timing is a baseline
+yet (T8).
 
 ## S1 exit evidence (approved)
 
