@@ -20,7 +20,7 @@
 | T5 | `sqll-harness bench run` and `scripts/bench`: one command, one machine-readable report | Merged (PR #16) |
 | T6 | CI benchmark jobs and `scripts/verify` drift coverage | Merged (PR #17) |
 | T7 | Slowdown detection: `sqll-harness bench compare` and the change-record rule | Merged (PR #18) |
-| T8 | S2 exit: recorded baseline, exact drift checks, and STATUS | In review (PR #PRNUM) |
+| T8 | S2 exit: recorded baseline, exact drift checks, and STATUS | In review (PR #19) |
 
 ## S2 exit evidence (awaiting approval)
 
@@ -35,7 +35,11 @@ record; timer overhead (`/bin/true`) median 1.5 ms.
 CI compares each smoke run with the baseline, fail closed (`sqll-harness
 bench check --baseline`): the sqlfluff ref, the tool versions and
 settings, the input sha256, and the status of each result. CI does not
-gate on timings. CI_EVIDENCE VERIFY_EVIDENCE
+gate on timings. CI passed on PR #19 (run 39420092577, head `b122d0f`:
+55 jobs passed; `bench-full` and `bench-merge` run only on push to main
+and `workflow_dispatch`). On commit `b122d0f` (the last code change;
+fresh clone, clean worktree), `scripts/verify --jobs 4` passed 26 of 26
+checks: exit code 0, 4223 s; its smoke run agrees with the baseline.
 
 | Criterion (STONES.md) | Proof |
 |---|---|
