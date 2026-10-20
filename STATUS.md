@@ -58,10 +58,12 @@ on each full CI run; `bench-full` (7 shards, by dialect) and `bench-merge`
 on push to main and `workflow_dispatch`. Each job uploads its report. CI
 gates on no timing. `scripts/verify` runs the smoke benchmark; the drift
 test covers the new jobs and steps. The local copy of the full CI benchmark
-is `scripts/bench`. A `workflow_dispatch` run on commit `8969a4a` (run
-39358966536) merged 7 of 7 shards, 280 benchmarks for each tool. Valid:
+is `scripts/bench`. A `workflow_dispatch` run on commit `128cd48` (run
+39374292833) merged 7 of 7 shards, 280 benchmarks for each tool. Valid:
 sqlfluff 280, `sqlfluff[rs]` 280, sqruff 216 (54 invalid, 10 unsupported).
-Slowest shard: 1105 s.
+Slowest shard: 1041 s. On the same commit, `scripts/verify` passed 25 of 25
+checks (3779 s); its smoke benchmark: valid sqlfluff 112, `sqlfluff[rs]`
+112, sqruff 102.
 
 ## S1 exit evidence (approved)
 

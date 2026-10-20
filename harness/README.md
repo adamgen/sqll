@@ -484,11 +484,11 @@ Each job runs in the CI image. `bench-smoke` and `bench-full` run
 ("Noise control" in [bench.md](bench.md)). `ci/bench-matrix.json` has 7
 shards (4 dialects each).
 
-Job timeouts (measured on the CI runners, run 39358966536): the smoke
-benchmark step took 176 s (timeout 20 min); the slowest of the 7 shards took
-1105 s, the fastest 512 s (timeout 90 min); the merge took 1 s (timeout 10
-min). The margin is for slower runners and for runs that stop at the 120 s
-run timeout.
+Job timeouts (measured on the CI runners, runs 39358966536, 39374292833,
+and 39374294152): the smoke benchmark step took 146 to 260 s (timeout 20
+min); a shard took 512 to 1105 s (timeout 90 min); the merge took 1 s
+(timeout 10 min). The margin is for slower runners and for runs that stop
+at the 120 s run timeout.
 
 Local copies: `scripts/verify` runs the `bench-smoke` job. The local copy of
 the full CI benchmark (`bench-full` and `bench-merge`) is `scripts/bench`
