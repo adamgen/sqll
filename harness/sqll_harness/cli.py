@@ -1,5 +1,5 @@
 """Command line: sqll-harness run | merge | tools | known-failures | summarize |
-bench (inputs | reference | run | merge | check).
+bench (inputs | reference | run | merge | check | compare).
 
 See harness/README.md.
 """
@@ -17,6 +17,7 @@ from pathlib import Path
 from . import known_failures, merge, report, shard, summary, tools
 from .adapters import ADAPTERS, Adapter
 from .adapters.base import Unsupported
+from .bench import compare as bench_compare
 from .bench import definitions as bench_definitions
 from .bench import inputs as bench_inputs
 from .bench import reference as bench_reference
@@ -242,6 +243,25 @@ def _parser() -> argparse.ArgumentParser:
     )
     bchk.add_argument("report", type=Path)
     bchk.add_argument("--definitions", type=Path, default=bench_definitions.DEFINITIONS)
+    bcmp = bench_sub.add_parser(
+        "compare",
+        help="Compare 2 benchmark reports: flag each benchmark that is slower "
+        "than the noise limit, and each status change. Also compare the tools "
+        "of NEW. With one report, only compare its tools.",
+    )
+    bcmp.add_argument(
+        "reports",
+        nargs="+",
+        type=Path,
+        metavar="REPORT",
+        help="BASE NEW, or only NEW.",
+    )
+    bcmp.add_argument(
+        "--tool",
+        action="append",
+        help="Tool to compare. Repeat for more tools. Default: all tools.",
+    )
+    bcmp.add_argument("--out", type=Path, default=bench_compare.DEFAULT_OUT)
     return p
 
 
@@ -626,6 +646,34 @@ def bench_check_command(args: argparse.Namespace) -> int:
     return 0
 
 
+def bench_compare_command(args: argparse.Namespace) -> int:
+    if len(args.reports) > 2:
+        print("error: give BASE NEW, or only NEW", file=sys.stderr)
+        args.out.unlink(missing_ok=True)
+        return 2
+    try:
+        loaded = [(str(p), bench_report.load(p)) for p in args.reports]
+        result = bench_compare.compare(
+            loaded[-1], loaded[0] if len(loaded) == 2 else None, args.tool
+        )
+    except (OSError, ValueError, bench_compare.CompareError) as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        # No old output must look like the result of this run.
+        args.out.unlink(missing_ok=True)
+        return 2
+    bench_compare.write(result, args.out)
+    lines = [*bench_compare.summary_lines(result), f"compare: {args.out}"]
+    if not result["ok"]:
+        c = result["counts"]
+        lines.append(
+            f"FAIL: {c[bench_compare.SLOWER]} slower, {c[bench_compare.FAILURE]} "
+            "valid to not valid. Give the reason of each slowdown in the pull "
+            "request body (PROCESS.md)."
+        )
+    _print_out(lines)
+    return 0 if result["ok"] else 1
+
+
 def main(argv: list[str] | None = None) -> int:
     args = _parser().parse_args(argv)
     if args.command == "run":
@@ -648,6 +696,8 @@ def main(argv: list[str] | None = None) -> int:
         return bench_merge_command(args)
     if args.command == "bench" and args.bench_command == "check":
         return bench_check_command(args)
+    if args.command == "bench" and args.bench_command == "compare":
+        return bench_compare_command(args)
     return 2
 
 

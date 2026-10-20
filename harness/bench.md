@@ -202,10 +202,36 @@ valid, and the definitions do not change.
 - `scripts/verify` runs the smoke profile; the drift test covers the new
   CI steps. The local copy of the full CI benchmark is `scripts/bench`
   with no arguments (one report, no shards).
-- `sqll-harness bench compare OLD NEW` flags a benchmark that is slower by
-  more than a noise limit, or a status change from `valid`. It refuses
-  reports with different inputs, settings, or tool versions. PROCESS.md
-  will require the reason of a flagged slowdown in the pull request body
-  (G3.6).
+- CI does not run `sqll-harness bench compare` ("Slowdowns").
 - `scripts/bench` writes the full report for the 3 tools in one command
   (the S2 exit, G4.4).
+
+## Slowdowns
+
+`sqll-harness bench compare BASE NEW` (G3.6; output and exit codes in
+`harness/README.md`, "Benchmark compare") compares each benchmark and tool
+that both reports have. For the median wall time and the median CPU time,
+the ratio is NEW / BASE. A metric is slower if its ratio is more than 1 +
+the noise limit. The limit is the largest of: 25% for wall time and 10% for
+CPU time; 3 times the sum of the relative MADs (MAD / median) of the 2
+results; and 5 ms divided by the BASE median. A benchmark is slower if a
+metric is slower. PROCESS.md (rule 8): the pull request body must give the
+reason.
+
+Measured (2026-10-20, full profile, postgres and tsql, 3 runs of the same
+commit, serial, compared in 3 pairs): the wall time ratios were 0.82 to
+1.22, the CPU time ratios 0.90 to 1.09. With the limit, no benchmark is
+slower. With 10% for both, 1 to 3 of 57 were slower in each pair. The
+smoke profile (1 timed run) is not usable: 2 smoke runs in sequence gave
+wall time ratios 0.46 to 2.18, and 23 of 336 benchmarks slower. Thus
+compare 2 `full` reports from the same machine ("Noise control"); compare
+gives a warning for a report with 1 timed run.
+
+- It refuses (exit code 2) reports with a different input (`sha256`) or
+  different settings of a compared tool. A different tool version gives
+  only a warning: a new version of the tool under test is what it
+  measures.
+- A change from `valid` to another status is a failure (exit code 1).
+  Other status changes are listed.
+- It also compares the tools of NEW (G3.4, G3.5). The totals use only
+  the benchmarks that are valid for all compared tools.

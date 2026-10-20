@@ -16,8 +16,8 @@
 | T3 | Measurement core and the benchmark report schema | Merged (PR #14) |
 | T4 | Benchmark adapters for sqlfluff, `sqlfluff[rs]`, and sqruff with validity checks | Merged (PR #15) |
 | T5 | `sqll-harness bench run` and `scripts/bench`: one command, one machine-readable report | Merged (PR #16) |
-| T6 | CI benchmark jobs and `scripts/verify` drift coverage | In review (PR #17) |
-| T7 | Slowdown detection: `sqll-harness bench compare` and the change-record rule | Open |
+| T6 | CI benchmark jobs and `scripts/verify` drift coverage | Merged (PR #17) |
+| T7 | Slowdown detection: `sqll-harness bench compare` and the change-record rule | In review (PR #18) |
 | T8 | S2 exit: recorded baseline, exact drift checks, and STATUS | Open |
 
 Benchmark definitions (`harness/sqll_harness/bench/definitions.json`): 280
@@ -64,6 +64,17 @@ sqlfluff 280, `sqlfluff[rs]` 280, sqruff 216 (54 invalid, 10 unsupported).
 Slowest shard: 1041 s. On the same commit, `scripts/verify` passed 25 of 25
 checks (3779 s); its smoke benchmark: valid sqlfluff 112, `sqlfluff[rs]`
 112, sqruff 102.
+
+Slowdown detection (`harness/sqll_harness/bench/compare.py`;
+`harness/bench.md`, "Slowdowns"): `sqll-harness bench compare BASE NEW`
+flags a benchmark as slower above the noise limit (wall time 25%, CPU time
+10%, or more for a large spread or a short run), fails on a change from
+`valid`, and refuses different inputs or settings (exit code 2). It also
+compares the tools of a report over the benchmarks that are valid for all
+of them. PROCESS.md rule 8: give the reason of a flagged slowdown in the
+pull request body. Measured on 3 full runs of postgres and tsql on the
+same commit: 0 of 60 slower in each of the 3 pairs. 2 smoke runs: 23 of
+336 slower (1 timed run is too noisy; compare gives a warning).
 
 ## S1 exit evidence (approved)
 
