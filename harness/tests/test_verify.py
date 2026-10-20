@@ -57,7 +57,22 @@ def _bench_shard(data):
     return _step(data, "bench-full", "Run the benchmark shard")
 
 
+def _without_step(data, job: str, name: str) -> None:
+    steps = data["jobs"][job]["steps"]
+    steps.remove(_step(data, job, name))
+
+
+BASELINE_STEP = "Check the smoke report against the baseline"
+
 CI_CHANGES = {
+    "no baseline check step": lambda d: _without_step(d, "bench-smoke", BASELINE_STEP),
+    "baseline check of a smoke run without --baseline": lambda d: _step(
+        d, "bench-smoke", BASELINE_STEP
+    ).update(
+        run=_step(d, "bench-smoke", BASELINE_STEP)["run"].replace(
+            " --baseline results/s2/baseline.json", ""
+        )
+    ),
     "new step env": lambda d: _unit(d)["env"].update(SQLL_STRICT="1"),
     "changed step env": lambda d: _unit(d)["env"].update(SQLL_REQUIRE_TOOLS="0"),
     "job env": lambda d: d["jobs"]["lint"].update(env={"X": "1"}),
@@ -295,6 +310,14 @@ LOCAL_CHANGES = {
     "smoke benchmark full profile": (
         "bench-smoke",
         lambda c: c.replace("--profile smoke", "--profile full"),
+    ),
+    "baseline check of another file": (
+        "bench-baseline",
+        lambda c: c.replace("results/s2/baseline.json", "out/bench.json"),
+    ),
+    "no baseline check": (
+        "bench-baseline",
+        lambda c: c.replace(" --baseline results/s2/baseline.json", ""),
     ),
     "submodule check after the benchmarks": (
         "submodule-after-bench",

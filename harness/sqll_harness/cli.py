@@ -17,6 +17,7 @@ from pathlib import Path
 from . import known_failures, merge, report, shard, summary, tools
 from .adapters import ADAPTERS, Adapter
 from .adapters.base import Unsupported
+from .bench import baseline as bench_baseline
 from .bench import compare as bench_compare
 from .bench import definitions as bench_definitions
 from .bench import inputs as bench_inputs
@@ -243,6 +244,15 @@ def _parser() -> argparse.ArgumentParser:
     )
     bchk.add_argument("report", type=Path)
     bchk.add_argument("--definitions", type=Path, default=bench_definitions.DEFINITIONS)
+    bchk.add_argument(
+        "--baseline",
+        type=Path,
+        metavar="BASELINE_JSON",
+        help="Also fail if this file is not a full baseline, or if the stable "
+        "data of the report (sqlfluff ref, tool versions and settings, inputs, "
+        "and the status of each result) is not that of it. Timings are not "
+        "compared.",
+    )
     bcmp = bench_sub.add_parser(
         "compare",
         help="Compare 2 benchmark reports: flag each benchmark that is slower "
@@ -631,18 +641,28 @@ def bench_check_command(args: argparse.Namespace) -> int:
     try:
         rep = bench_report.load(args.report)
         defs = bench_definitions.load(args.definitions)
+        base = bench_report.load(args.baseline) if args.baseline else None
     except (OSError, ValueError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2
     errors = bench_report.check(rep)
     if not errors:
         errors = bench_run.incomplete(rep, defs)
+    if base is not None and not errors:
+        errors = [f"baseline: {e}" for e in bench_baseline.recorded(base, defs)]
+        if not errors:
+            errors = bench_baseline.drift(rep, base)
     for line in errors:
         print(line)
     if errors:
         print(f"FAIL: {args.report} has {len(errors)} errors.")
         return 1
     print(f"{args.report}: no schema error; complete for its scope.")
+    if base is not None:
+        print(
+            f"The stable data of {len(rep['results'])} results is that of the "
+            f"baseline {args.baseline}."
+        )
     return 0
 
 

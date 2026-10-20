@@ -12,7 +12,7 @@ from test_bench_adapters import DoubleBench
 
 from sqll_harness import cli, paths
 from sqll_harness import tools as s1_tools
-from sqll_harness.bench import definitions, registry, report
+from sqll_harness.bench import baseline, definitions, registry, report
 from sqll_harness.bench import run as bench_run
 from sqll_harness.bench.timer import INVALID, UNSUPPORTED, VALID
 from sqll_harness.tools import ToolInfo
@@ -535,6 +535,8 @@ def test_a_smoke_run_of_the_real_tools(tmp_path, capsys):
     }
     for r in rep["results"]:
         assert (r["ratio"] is None) == (r["tool"] == "sqlfluff")
+    # The stable data of the real tools is that of the recorded baseline.
+    assert baseline.drift(rep, report.load(baseline.BASELINE)) == []
     text = capsys.readouterr().out
     assert "profile smoke: 4 benchmarks, 3 tools, 1 dialects" in text
     assert f"report: {out}" in text
