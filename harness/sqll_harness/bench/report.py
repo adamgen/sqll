@@ -3,8 +3,8 @@
 build() makes a report, check() returns each schema error, and write()
 writes only a report with no error. A result that is not valid keeps its
 samples, but it has no stats, and totals and pairs use only valid results.
-check() computes the stats, totals, and pairs again from the samples, so a
-report cannot have other numbers.
+check() computes the stats, totals, pairs, and ratios again from the
+samples, so a report cannot have other numbers.
 """
 
 import json
@@ -32,7 +32,7 @@ from .timer import (
 )
 
 KIND = "sqll-bench-report"
-FORMAT = 1
+FORMAT = 2
 DEFAULT_REPORT = OUT_DIR / "bench.json"
 ALL_COMMANDS = (START, *COMMANDS)
 
@@ -51,6 +51,7 @@ TOP = (
     "results",
     "totals",
     "pairs",
+    "parts",
 )
 HARNESS = ("commit", "clean")
 MACHINE = ("cpu_model", "cpu_count", "memory_kib", "os", "kernel", "arch", "python")
@@ -72,12 +73,18 @@ RESULT = (
     "work",
     "samples",
     "stats",
+    "ratio",
 )
 RUNS = (WARMUP, TIMED)
 SAMPLE = ("kind", "wall_s", "user_s", "sys_s", "max_rss_kib", "exit_code", "timed_out")
 COUNTS = STATUSES
 TOTAL = (*COUNTS, "wall_s", "cpu_s")
 PAIR = ("tools", "benchmarks", "skipped", "wall_s", "cpu_s", "wall_ratio")
+PART = ("shard", "machine", "timer")
+RATIO = ("wall", "cpu")
+# The ratio of each result is to the result of this tool on the same benchmark.
+RATIO_BASE = "sqlfluff"
+SHARD = re.compile(r"(\d+)/(\d+)")
 SHA256 = re.compile(r"[0-9a-f]{64}")
 
 
@@ -172,6 +179,7 @@ def result_entry(
         "work": work,
         "samples": [s.as_dict() for s in m.samples],
         "stats": m.stats if m.status == VALID else None,
+        "ratio": None,
     }
 
 
@@ -225,6 +233,33 @@ def pairs(results: list[dict], tools: Iterable[str]) -> list[dict]:
     return out
 
 
+def _ratio(a: float, b: float) -> float | None:
+    return round(a / b, DIGITS) if b else None
+
+
+def ratios(results: list[dict]) -> dict[tuple[str, str], dict | None]:
+    """Return {(tool, id): ratio} for each result. The ratio is the median
+    wall and CPU time of the result divided by those of the RATIO_BASE result
+    of the same benchmark in the same report. It is None for the base tool,
+    and if the result or the base result is not valid."""
+    valid = _valid(results)
+    out = {}
+    for r in results:
+        key = (r["tool"], r["id"])
+        base = valid.get((RATIO_BASE, r["id"]))
+        if r["tool"] == RATIO_BASE or key not in valid or base is None:
+            out[key] = None
+            continue
+        out[key] = {
+            k: _ratio(
+                valid[key]["stats"][f"{k}_s"]["median"],
+                base["stats"][f"{k}_s"]["median"],
+            )
+            for k in RATIO
+        }
+    return out
+
+
 def build(
     *,
     sqlfluff_ref: str,
@@ -236,10 +271,15 @@ def build(
     tools: dict[str, dict],
     inputs: dict[str, dict],
     results: list[dict],
+    parts: list[dict] | None = None,
 ) -> dict:
     """Return the report. tools maps each tool to {version, settings};
-    inputs maps each input name to {bytes, lines, sha256}."""
-    ordered = sorted(results, key=lambda r: (r["id"], r["tool"]))
+    inputs maps each input name to {bytes, lines, sha256}. parts: only for a
+    merged report, the {shard, machine, timer} of each shard report."""
+    ordered = [dict(r) for r in sorted(results, key=lambda r: (r["id"], r["tool"]))]
+    want = ratios(ordered)
+    for r in ordered:
+        r["ratio"] = want[(r["tool"], r["id"])]
     return {
         "kind": KIND,
         "format": FORMAT,
@@ -255,6 +295,7 @@ def build(
         "results": ordered,
         "totals": totals(ordered, tools),
         "pairs": pairs(ordered, tools),
+        "parts": parts,
     }
 
 
@@ -390,6 +431,13 @@ def _check_result(c: _Checker, report: dict, r) -> None:
         where, size is None or size in names_of(scope, "sizes"), "size not in the scope"
     )
     c.want(where, r["work"] is None or isinstance(r["work"], dict), "bad work")
+    ratio = r["ratio"]
+    if ratio is not None and c.fields(f"{where} ratio", ratio, RATIO):
+        c.want(
+            where,
+            all(v is None or _is_number(v) for v in ratio.values()),
+            f"bad ratio {ratio!r}",
+        )
 
     status = r["status"]
     if status not in STATUSES:
@@ -426,6 +474,71 @@ def _check_result(c: _Checker, report: dict, r) -> None:
     _check_stats(c, where, r["stats"], timed)
 
 
+def _check_machine(c: _Checker, where: str, m) -> None:
+    if c.fields(where, m, MACHINE):
+        c.want(where, _is_int(m["cpu_count"]), "bad cpu_count")
+        c.want(where, m["memory_kib"] is None or _is_int(m["memory_kib"]), "bad memory")
+        for k in ("cpu_model", "os", "kernel", "arch", "python"):
+            c.want(where, isinstance(m[k], str), f"bad {k}")
+
+
+def _check_timer(c: _Checker, where: str, t) -> None:
+    if c.fields(where, t, TIMER) and c.fields(
+        f"{where}.overhead", t["overhead"], OVERHEAD
+    ):
+        o = t["overhead"]
+        samples = _samples(c, f"{where}.overhead", o["samples"])
+        if samples is not None:
+            c.want(
+                f"{where}.overhead",
+                all(s.kind == TIMED for s in samples),
+                "the samples must be timed",
+            )
+            _check_stats(c, f"{where}.overhead", o["stats"], samples)
+
+
+def _check_parts(c: _Checker, report: dict) -> None:
+    """parts is null, or a merged report has one part for each shard 1/N to
+    N/N, and the machine and timer of the report are those of part 1."""
+    parts = report["parts"]
+    if parts is None:
+        return
+    if not isinstance(parts, list) or not parts:
+        c.error("parts", "not null or a list of parts")
+        return
+    scope = report["scope"]
+    c.want(
+        "parts",
+        isinstance(scope, dict) and scope.get("shard") is None,
+        "a merged report must have scope.shard null",
+    )
+    shards = []
+    for i, p in enumerate(parts):
+        where = f"part {i}"
+        if not c.fields(where, p, PART):
+            return
+        m = SHARD.fullmatch(p["shard"]) if isinstance(p["shard"], str) else None
+        if m is None:
+            c.error(where, f"bad shard {p['shard']!r}")
+            return
+        shards.append((int(m[1]), int(m[2])))
+        _check_machine(c, f"{where}.machine", p["machine"])
+        _check_timer(c, f"{where}.timer", p["timer"])
+    n = len(parts)
+    c.want(
+        "parts",
+        shards == [(k, n) for k in range(1, n + 1)],
+        f"the shards are not 1/{n} to {n}/{n} in order: {shards}",
+    )
+    first = parts[0]
+    c.want(
+        "parts",
+        _same(report["machine"], first["machine"])
+        and _same(report["timer"], first["timer"]),
+        "the machine and timer of the report are not those of part 1",
+    )
+
+
 def check(report) -> list[str]:
     """Return each schema error of a report. No error: an empty list."""
     c = _Checker()
@@ -455,26 +568,9 @@ def _check(c: _Checker, report) -> None:
         c.want(
             "policy", _same(report["policy"], want), f"not the {profile} policy {want}"
         )
-    if c.fields("machine", report["machine"], MACHINE):
-        m = report["machine"]
-        c.want("machine", _is_int(m["cpu_count"]), "bad cpu_count")
-        c.want(
-            "machine", m["memory_kib"] is None or _is_int(m["memory_kib"]), "bad memory"
-        )
-        for k in ("cpu_model", "os", "kernel", "arch", "python"):
-            c.want("machine", isinstance(m[k], str), f"bad {k}")
-    if c.fields("timer", report["timer"], TIMER) and c.fields(
-        "timer.overhead", report["timer"]["overhead"], OVERHEAD
-    ):
-        o = report["timer"]["overhead"]
-        samples = _samples(c, "timer.overhead", o["samples"])
-        if samples is not None:
-            c.want(
-                "timer.overhead",
-                all(s.kind == TIMED for s in samples),
-                "the samples must be timed",
-            )
-            _check_stats(c, "timer.overhead", o["stats"], samples)
+    _check_machine(c, "machine", report["machine"])
+    _check_timer(c, "timer", report["timer"])
+    _check_parts(c, report)
     if c.fields("scope", report["scope"], SCOPE):
         s = report["scope"]
         lists = {}
@@ -486,9 +582,10 @@ def _check(c: _Checker, report) -> None:
         for k, names in known.items():
             unknown = sorted(lists[k] - set(names))
             c.want("scope", not unknown, f"unknown {k}: {unknown}")
+        m = SHARD.fullmatch(s["shard"]) if isinstance(s["shard"], str) else None
         c.want(
             "scope",
-            s["shard"] is None or bool(re.fullmatch(r"\d+/\d+", str(s["shard"]))),
+            s["shard"] is None or (m is not None and 1 <= int(m[1]) <= int(m[2])),
             "bad shard",
         )
         c.want(
@@ -534,5 +631,13 @@ def _check(c: _Checker, report) -> None:
         c.want("totals", _same(report["totals"], want_totals), f"not {want_totals}")
         want_pairs = pairs(results, tools)
         c.want("pairs", _same(report["pairs"], want_pairs), f"not {want_pairs}")
+        want_ratios = ratios(results)
+        for r in results:
+            want = want_ratios[(r["tool"], r["id"])]
+            c.want(
+                f"result {r['id']} ({r['tool']})",
+                _same(r["ratio"], want),
+                f"ratio {r['ratio']!r} is not {want!r}",
+            )
     else:
         c.error("totals", "not checked: the results or the tools have an error")

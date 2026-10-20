@@ -14,8 +14,8 @@
 | T1 | S2 design record (`harness/bench.md`) and STATUS update | Merged (PR #12) |
 | T2 | Benchmark definitions and deterministic input builder | Merged (PR #13) |
 | T3 | Measurement core and the benchmark report schema | Merged (PR #14) |
-| T4 | Benchmark adapters for sqlfluff, `sqlfluff[rs]`, and sqruff with validity checks | In review (PR #15) |
-| T5 | `sqll-harness bench run` and `scripts/bench`: one command, one machine-readable report | Open |
+| T4 | Benchmark adapters for sqlfluff, `sqlfluff[rs]`, and sqruff with validity checks | Merged (PR #15) |
+| T5 | `sqll-harness bench run` and `scripts/bench`: one command, one machine-readable report | In review (PR #16) |
 | T6 | CI benchmark jobs and `scripts/verify` drift coverage | Open |
 | T7 | Slowdown detection: `sqll-harness bench compare` and the change-record rule | Open |
 | T8 | S2 exit: recorded baseline, exact drift checks, and STATUS | Open |
@@ -44,7 +44,14 @@ soql is `unsupported: dialect soql`; with the default size limit, an input
 of 20466 bytes is invalid (a skip with exit code 0) for each tool and
 command that has the limit; an unparsable input is invalid for `parse`,
 `lint`, and `fix`. A test-double tool runs all 280 benchmarks through the
-registry, valid. No timing is recorded yet (T5).
+registry, valid.
+
+Benchmark runs (`harness/sqll_harness/bench/run.py`; `harness/README.md`,
+"Benchmark runs"): `sqll-harness bench run`, `merge`, `check`, and
+`scripts/bench`. On commit `b63cc7a`, `scripts/bench --profile smoke` (112
+benchmarks, 3 tools) took 277 s, exit code 0. Valid: sqlfluff 112,
+`sqlfluff[rs]` 112, sqruff 102 (details in PR #16). No timing is a baseline
+yet (T8).
 
 ## S1 exit evidence (approved)
 

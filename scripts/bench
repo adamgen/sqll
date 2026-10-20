@@ -1,0 +1,36 @@
+#!/bin/sh
+# Run the S2 benchmarks in one command: install and check the tools, build
+# and check the inputs, then run "sqll-harness bench run" with the arguments
+# (default: the full profile, all tools). Output: out/bench.json (and
+# out/tools.json). See harness/README.md, "Benchmark runs".
+set -eu
+
+root=$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)
+cd "$root"
+
+if [ ! -d third_party/sqlfluff/test/fixtures ]; then
+    echo "error: sqlfluff submodule is missing. Run: git submodule update --init" >&2
+    exit 2
+fi
+
+# Stop if a folder above the checkout or the temp folder has a sqlfluff config
+# file: it changes the results.
+uv run --quiet --frozen --project harness python -m sqll_harness.preflight "$root"
+
+SQLL_TOOLS_DIR=${SQLL_TOOLS_DIR:-$root/.tools}
+export SQLL_TOOLS_DIR
+scripts/setup
+
+uv sync --quiet --frozen --project harness
+mkdir -p out
+uv run --quiet --frozen --project harness sqll-harness tools > out/tools.json || {
+    cat out/tools.json
+    exit 1
+}
+
+scripts/check-submodule "before the benchmarks"
+uv run --quiet --frozen --project harness sqll-harness bench inputs
+status=0
+uv run --quiet --frozen --project harness sqll-harness bench run "$@" || status=$?
+scripts/check-submodule "after the benchmarks"
+exit "$status"
