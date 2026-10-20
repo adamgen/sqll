@@ -51,7 +51,7 @@ def test_two_builds_are_byte_identical(tmp_path):
 
 def test_the_recorded_definitions_are_those_of_the_build(pinned):
     assert definitions.check(RECORDED, pinned) == []
-    new = definitions.render(definitions.make(pinned))
+    new = definitions.render(definitions.make(pinned, RECORDED["reference"]))
     assert definitions.DEFINITIONS.read_text(encoding="utf8") == new, (
         "Run: sqll-harness bench inputs --write-definitions"
     )
@@ -260,6 +260,24 @@ def test_a_changed_definition_fails_the_check(tmp_path, pinned):
     path = tmp_path / "definitions.json"
     path.write_text(definitions.render(changed), encoding="utf8")
     assert _bench_inputs("--out", tmp_path / "o", "--definitions", path) == 1
+
+
+def test_a_missing_reference_fails_the_check(tmp_path, capsys):
+    changed = json.loads(json.dumps(RECORDED))
+    del changed["reference"]["inputs"]["tsql/large"]
+    path = tmp_path / "definitions.json"
+    path.write_text(definitions.render(changed), encoding="utf8")
+    assert _bench_inputs("--out", tmp_path / "o", "--definitions", path) == 1
+    assert "reference tsql/large: missing" in capsys.readouterr().out
+    # --write-definitions keeps the reference.
+    assert (
+        _bench_inputs(
+            "--out", tmp_path / "o", "--definitions", path, "--write-definitions"
+        )
+        == 0
+    )
+    assert definitions.load(path)["reference"] == changed["reference"]
+    assert "warning: reference tsql/large: missing" in capsys.readouterr().out
 
 
 # The output folder and the submodule.

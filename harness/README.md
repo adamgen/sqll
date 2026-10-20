@@ -270,8 +270,9 @@ The S2 report ([bench.md](bench.md)). `sqll_harness/bench/timer.py` measures,
 - `stats` (n, median, min, max, MAD) are of the timed samples only, not of
   the warmup. Only a `valid` result has `stats` and no `reason`. Other
   results keep their samples (often only the warmup), with `stats` null.
-- `work`: null, or the facts that the validity check of the tool found
-  (T4).
+- `work`: null, or the facts that the validity check of the tool found:
+  `lint` `{"violations": 0, "codes": []}`, `fix` `{"changed": true,
+  "fixed_sha256": ""}`.
 - `totals`: for each tool, the count of each status, and the sums of the
   median times of its `valid` results. `pairs`: for each 2 tools, the sums
   over the benchmarks where both are `valid`; `skipped` counts the other
@@ -356,8 +357,11 @@ build is not equal to the definitions.
 - `sqll_harness/bench/definitions.json`: the definitions. They have no tool
   entry. `format`, `sqlfluff_ref`, `sizes` (target bytes), `selection`
   (file counts for each skip reason, and the number of added terminators
-  and new lines), `inputs` (`bytes`, `lines`, `sha256` of each input), and
-  `benchmarks` (`id`, `command`, `dialect`, `size`, `input`). A `start`
+  and new lines), `inputs` (`bytes`, `lines`, `sha256` of each input),
+  `reference` (`sqlfluff_version`, and for each input except
+  `start`: `sha256`, `lint_codes`, `fix_changes`; see "Benchmark
+  adapters"), and `benchmarks` (`id`, `command`, `dialect`, `size`,
+  `input`). A `start`
   benchmark runs the `parse` command of the tool on the `start` input
   (`SELECT 1;`).
 - `manifest.json`: the same data for each input, plus `files` (the fixture
@@ -369,3 +373,31 @@ to the builder, the exclusion list, or the fixtures, the unit tests fail
 until `sqll-harness bench inputs --write-definitions` writes new
 definitions. A change of the fixtures needs a human approval (a new sqlfluff
 pin).
+
+## Benchmark adapters
+
+`sqll_harness/bench/adapter.py` has the validity checks of
+[bench.md](bench.md) and `BenchAdapter`; `tools.py` has the adapters, and
+`registry.py` the tools. Each job runs in `<work>/<tool>/<id>/`: `config/`
+has the config file, `runs/<warmup|1|2...>/` a fresh copy `input.sql` of
+the input. The input must have the sha256 of the definitions.
+
+| Tool | Command (`start` is `parse` of `start.sql`) |
+|---|---|
+| `sqlfluff`, `sqlfluff-rs` | `sqlfluff parse -f json`, `lint -f json`, or `fix`, then `--ignore-local-config --config config/pyproject.toml input.sql` |
+| `sqruff` | `sqruff parse -f json`, `lint -f json --parsing-errors`, or `fix -f human`, then `--config config/.sqruff input.sql` |
+
+The env is that of S1 (`isolated_env`, empty `HOME`; sqruff:
+`sqruff_env`). A config file that sqlfluff or sqruff can read in the work
+folder or above it stops the run (`ConfigAbove`). A dialect or setting that
+the tool does not support gives `unsupported: <item>` and no run (sqruff:
+`dialect soql`).
+
+`sqll-harness bench reference [--write] [--jobs N]` builds the inputs and
+runs sqlfluff `fix` (and thus `lint` and `parse`) on each input with the
+checks, but with no reference comparison. It writes the rule codes and the
+fix change of each input to `reference` in the definitions (`--write`), or
+fails (exit code 1) if they are not the recorded ones. A run that is not
+valid gives no reference (exit code 1). `bench inputs` fails if an input
+has no reference for its sha256.
+

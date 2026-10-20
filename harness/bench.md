@@ -62,17 +62,19 @@ medium 4017 to 4096, large 16350 to 16383 bytes.
 Large is below the 20000-byte default skip limit of sqlfluff and sqruff;
 larger inputs make a full run too long ("Time budget"). The definitions
 (`definitions.json`, same folder) store for each input its bytes, lines,
-and sha256, and (from T4) the sqlfluff reference (G1): the rule codes of
-`lint`, and if `fix` changes the file.
+and sha256, and the sqlfluff reference (G1): the rule codes of `lint`,
+and if `fix` changes the file. `sqll-harness bench reference` makes it with
+the sqlfluff adapter; each run must pass the checks of "Validity".
 
 ## Settings
 
 All tools get the same settings, in the sqlfluff config structure: the
 dialect, `templater = raw`, `rules = all` (the sqlfluff default), and
-`large_file_skip_byte_limit = 0` (other size limits off). The S1 adapters
-translate them (sqruff: one `.sqruff` file). An unsupported setting gives
-the status `unsupported`. Reason: the same input and work for each tool
-(G3.3).
+`large_file_skip_byte_limit = 0` and `large_file_skip_char_limit = 0` (no
+size limit). The S1 adapters translate them (`sqlfluff[rs]`: also
+`use_rust_parser` and `use_rust_rules`; sqruff: one `.sqruff` file). An
+unsupported setting gives the status `unsupported`. Reason: the same input
+and work for each tool (G3.3).
 
 Measured on 24575 bytes of ansi with the default limit (20000 bytes), all
 with exit code 0: sqlfluff `parse` and `lint` give `[]`, `fix` changes
@@ -85,11 +87,15 @@ A timing is valid only if the warmup run passes the check of its command,
 and each timed run has the exit code of the warmup run:
 
 - All: no crash, traceback, or panic; no size-limit skip message; no
-  timeout (120 s; see "Time budget").
-- `parse`: exit code 0, a tree with no unparsable segment.
+  unknown-rule message; no `CRITICAL` log; no timeout (120 s; see "Time
+  budget"). `sqlfluff[rs]`: no message that it used the Python parser.
+- `parse`: exit code 0, a tree with no unparsable segment, and the text of
+  its leaves is the input (measured: true for each tool on each of the 84
+  inputs that it parses with exit code 0).
 - `lint` and `fix`: the `parse` check of the same tool on the same input
-  passes; the output has no parse error (`PRS`, `Unparsable section`) and
-  no unknown-rule message.
+  passes; the output has no parse error (`PRS`, `Unparsable section`). If
+  no run checked the `parse` (or for `fix`, the `lint`) of the input, the
+  check does one run of it, not timed.
 - `lint`: exit code 0 or 1, a result for the input file, and the set of
   rule codes of the sqlfluff reference.
 - `fix`: exit code 0 or 1, no `CRITICAL` log, a fresh copy of the input for
@@ -170,30 +176,34 @@ one more binary to pin, and it does not examine the output of each run.
 `machine`, `timer`, `scope`, `tools` (version, settings), `inputs` (bytes,
 lines, sha256), `results`, `totals`, `pairs`. One result for each
 benchmark and tool: `id`, `command`, `dialect`, `size`, `input`, `tool`,
-`status`, `reason`, `runs`, `work` (from T4: violation count and rule
-codes; sha256 of the fixed file), `samples` (wall, CPU, max RSS, exit
-code), and `stats` (only if `valid`). Baseline: `results/s2/baseline.json`.
+`status`, `reason`, `runs`, `work` (`lint`: violation count and rule
+codes; `fix`: if the file changed, and its sha256), `samples` (wall, CPU,
+max RSS, exit code), and `stats` (only if `valid`). Baseline:
+`results/s2/baseline.json`.
 
 ## Add a tool
 
 The definitions have no tool entry; they store the reference data of the
-pinned sqlfluff. A tool is a benchmark adapter (command lines, settings
-translation, validity check) and a registry entry. sqll (S3) needs no
-change to the definitions. A test-double tool in the unit tests proves
-this.
+pinned sqlfluff. A tool is a benchmark adapter (`BenchAdapter`: config
+file, command lines, env, and the readers of its tree and lint output) and
+a registry entry (`sqll_harness/bench/registry.py`). The validity checks
+are the same for each tool. sqll (S3) needs no change to the definitions.
+Proof: through the registry, a test-double tool runs all 280 benchmarks,
+valid, and the definitions do not change.
 
 ## CI and slowdowns
 
 - Pull request (not documents only): the smoke profile (`start` and
-  `small`, the validity run and 1 timed run; a valid result needs stats). Its stable data ("Noise control") must be
-  equal to the baseline.
+  `small`, the validity run and 1 timed run; a valid result needs stats).
+  Its stable data ("Noise control") must be equal to the baseline.
 - Push to main and `workflow_dispatch`: the full profile, sharded by
   dialect. The report goes to an artifact.
 - `scripts/verify` runs the smoke profile; the drift test covers the new
   CI steps.
 - `sqll-harness bench compare OLD NEW` flags a benchmark that is slower by
   more than a noise limit, or a status change from `valid`. It refuses
-  reports with different inputs, settings, or tool versions. PROCESS.md will require the reason of a
-  flagged slowdown in the pull request body (G3.6).
+  reports with different inputs, settings, or tool versions. PROCESS.md
+  will require the reason of a flagged slowdown in the pull request body
+  (G3.6).
 - `scripts/bench` writes the full report for the 3 tools in one command
   (the S2 exit, G4.4).
