@@ -236,6 +236,12 @@ CI_CHANGES = {
     "bench-full upload if removed": lambda d: d["jobs"]["bench-full"]["steps"][-1].pop(
         "if"
     ),
+    "bench-smoke upload of no file is not an error": lambda d: d["jobs"]["bench-smoke"][
+        "steps"
+    ][-1]["with"].update({"if-no-files-found": "warn"}),
+    "bench-merge upload with no if-no-files-found": lambda d: d["jobs"]["bench-merge"][
+        "steps"
+    ][-1]["with"].pop("if-no-files-found"),
     "bench-merge does not need bench-full": lambda d: d["jobs"]["bench-merge"].update(
         needs=["image"]
     ),
@@ -393,6 +399,25 @@ def test_weak_words_after_an_operator_are_found():
 )
 def test_ci_exit_must_be_a_failure(run, found):
     assert verify.ci_weak_parts(run) == found
+
+
+def test_each_upload_fails_if_a_file_is_missing():
+    uploads = [
+        key
+        for key, step, _ in verify.ci_steps(CI)
+        if str(step.get("uses", "")).startswith(verify.UPLOAD)
+    ]
+    assert len(uploads) == 6
+    for job in ("bench-smoke", "bench-full", "bench-merge"):
+        assert f"{job}: actions/upload-artifact" in uploads
+
+    def change(d):
+        d["jobs"]["bench-full"]["steps"][-1]["with"]["if-no-files-found"] = "ignore"
+
+    assert _ci_change(change) == [
+        "bench-full: actions/upload-artifact: an upload needs"
+        " 'if-no-files-found: error'"
+    ]
 
 
 def test_drift_finds_an_exit_0_in_a_ci_step():

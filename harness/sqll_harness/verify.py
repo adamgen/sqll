@@ -242,6 +242,9 @@ JOB_KEYS = {
 # working-directory) can change what a command does, so drift() fails on it.
 STEP_KEYS = {"name", "id", "uses", "with", "run", "env", "if"}
 
+# Each upload step must fail if a file is missing (for example out/bench.json).
+UPLOAD = "actions/upload-artifact@"
+
 # Workflow, job, or step env that the local commands do not need.
 CI_ONLY_ENV = {"IMAGE_REPO": "image registry name; only the image job uses it"}
 
@@ -718,7 +721,8 @@ def drift(
     in JOB_NEEDS or JOB_OUTPUTS, a step id that is not in STEP_IDS, or a
     workflow "on" or "concurrency" that is not WORKFLOW_ON or
     WORKFLOW_CONCURRENCY, is a difference. A CI run text that can hide a
-    failure (ci_weak_parts), and a CI shard command of the full benchmark
+    failure (ci_weak_parts), an upload step without "if-no-files-found:
+    error", and a CI shard command of the full benchmark
     that is not BENCH_LOCAL with BENCH_SHARD_ARGS (bench_script: the text of
     scripts/bench), are differences too.
     """
@@ -764,6 +768,10 @@ def drift(
             f"{key}: {w!r} in the CI run text can hide a failure"
             for w in ci_weak_parts(str(step.get("run", "")))
         ]
+        if str(step.get("uses", "")).startswith(UPLOAD) and (
+            (step.get("with") or {}).get("if-no-files-found") != "error"
+        ):
+            problems.append(f"{key}: an upload needs 'if-no-files-found: error'")
         if step.get("id") != STEP_IDS.get(key):
             problems.append(f"{key}: step id {step.get('id')!r} is not STEP_IDS")
         step_if = " ".join(str(step.get("if", "")).split()) or None

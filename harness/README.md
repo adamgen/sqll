@@ -45,10 +45,12 @@ fails if the run text or env of a CI-only step is not the text in
 is not the recorded one, or if CI uses a key that it does not know (for
 example `shell`, `working-directory`, or `continue-on-error`) or
 `defaults`. No local command and no CI run text can have `||`, `true`, or
-`:`; no local command can have `--filter` or other words that can hide a
-failure. The local copy of the full CI benchmark is `scripts/bench` (see
-"Benchmark runs"); the test fails if its `bench run` command is not the CI
-shard command without `--profile full --shard K/N --out FILE`.
+`:`; no CI run text can have an `exit` with no positive code; no local
+command can have `--filter` or other words that can hide a failure. Each
+artifact upload must have `if-no-files-found: error`. The local copy of the
+full CI benchmark is `scripts/bench` (see "Benchmark runs"); the test fails
+if its `bench run` command is not the CI shard command without `--profile
+full --shard K/N --out FILE`.
 
 ## Tools
 
