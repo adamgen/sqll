@@ -2,7 +2,10 @@
 
 - Current stone: **S2** (benchmarks): **S2 awaiting human approval**.
   Design: [harness/bench.md](harness/bench.md). Do not start S3 before
-  the approval.
+  the approval. S2 tasks T1 to T8 are merged (PRs #12 to #19). CI on main
+  passed after the last merge (run 39433607769, head `382d444`, 63 of 63
+  jobs, with `bench-smoke` and its baseline check, `bench-full` 1 to 7 of
+  7, and `bench-merge`).
 - S1 is complete. The human owner approved it on 2026-10-19 (owner
   statement to the workflow). S1 tasks T1 to T9 are merged (PRs #3 to #11).
   CI on main passed after the last merge (run 39235508233, head `016a5e1`,
@@ -20,7 +23,7 @@
 | T5 | `sqll-harness bench run` and `scripts/bench`: one command, one machine-readable report | Merged (PR #16) |
 | T6 | CI benchmark jobs and `scripts/verify` drift coverage | Merged (PR #17) |
 | T7 | Slowdown detection: `sqll-harness bench compare` and the change-record rule | Merged (PR #18) |
-| T8 | S2 exit: recorded baseline, exact drift checks, and STATUS | In review (PR #19) |
+| T8 | S2 exit: recorded baseline, exact drift checks, and STATUS | Merged (PR #19) |
 
 ## S2 exit evidence (awaiting approval)
 
