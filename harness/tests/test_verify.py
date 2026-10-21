@@ -63,6 +63,13 @@ def _without_step(data, job: str, name: str) -> None:
 
 
 BASELINE_STEP = "Check the smoke report against the baseline"
+MERGE_CHECK = "Check the merged report against the baseline"
+
+
+def _merge_check_run(d, old: str, new: str):
+    step = _step(d, "bench-merge", MERGE_CHECK)
+    step["run"] = step["run"].replace(old, new)
+
 
 CI_CHANGES = {
     "no baseline check step": lambda d: _without_step(d, "bench-smoke", BASELINE_STEP),
@@ -269,9 +276,19 @@ CI_CHANGES = {
         )
     ),
     "bench-merge check removed": lambda d: d["jobs"]["bench-merge"]["steps"].pop(3),
-    "bench-merge check || true": lambda d: _step(
-        d, "bench-merge", "Check the merged report"
-    ).update(run=_step(d, "bench-merge", "Check the merged report")["run"] + "||true"),
+    "bench-merge check || true": lambda d: _step(d, "bench-merge", MERGE_CHECK).update(
+        run=_step(d, "bench-merge", MERGE_CHECK)["run"] + "||true"
+    ),
+    "bench-merge check without --baseline": lambda d: _merge_check_run(
+        d, " --baseline results/s2/baseline.json", ""
+    ),
+    "bench-merge check without --full": lambda d: _merge_check_run(d, " --full", ""),
+    "bench-merge check of another baseline": lambda d: _merge_check_run(
+        d, "results/s2/baseline.json", "out/bench.json"
+    ),
+    "bench-merge check of a shard": lambda d: _merge_check_run(
+        d, " out/bench.json ", " out/bench-shards/x.json "
+    ),
     "bench_matrix output changed": lambda d: d["jobs"]["image"]["outputs"].update(
         bench_matrix='{"include": [{"shard": "1/1", "name": "x"}]}'
     ),
@@ -321,6 +338,27 @@ LOCAL_CHANGES = {
     ),
     "submodule check after the benchmarks": (
         "submodule-after-bench",
+        lambda c: c.replace("benchmarks", "tests"),
+    ),
+    "full benchmark of one size": ("bench-full", lambda c: c + " --size large"),
+    "full benchmark with the smoke profile": (
+        "bench-full",
+        lambda c: c.replace("--profile full", "--profile smoke"),
+    ),
+    "full baseline check without --full": (
+        "bench-full-baseline",
+        lambda c: c.replace(" --full", ""),
+    ),
+    "full baseline check without --baseline": (
+        "bench-full-baseline",
+        lambda c: c.replace(" --baseline results/s2/baseline.json", ""),
+    ),
+    "full baseline check of the smoke report": (
+        "bench-full-baseline",
+        lambda c: c.replace("out/bench-full.json", "out/bench.json"),
+    ),
+    "submodule check after the full benchmark": (
+        "submodule-after-full-bench",
         lambda c: c.replace("benchmarks", "tests"),
     ),
 }
@@ -445,13 +483,12 @@ def test_each_upload_fails_if_a_file_is_missing():
 
 def test_drift_finds_an_exit_0_in_a_ci_step():
     def change(d):
-        step = _step(d, "bench-merge", "Check the merged report")
+        step = _step(d, "bench-merge", MERGE_CHECK)
         step["run"] = "exit 0\n" + step["run"]
 
     problems = _ci_change(change)
     assert (
-        "bench-merge: Check the merged report: 'exit 0' in the CI run text"
-        " can hide a failure"
+        f"bench-merge: {MERGE_CHECK}: 'exit 0' in the CI run text can hide a failure"
     ) in problems
 
 
@@ -516,8 +553,47 @@ def test_check_names_are_unique_and_local_only_checks_are_few():
     assert [c.name for c in CHECKS if not c.ci] == ["setup", "submodule-before"]
 
 
-def test_only_the_run_has_a_ci_diff():
-    assert [c.name for c in CHECKS if c.ci_diff] == ["run"]
+def test_only_the_unsharded_runs_have_a_ci_diff():
+    assert [c.name for c in CHECKS if c.ci_diff] == [
+        "run",
+        "bench-full",
+        "bench-full-baseline",
+    ]
+
+
+def test_the_full_benchmark_checks_are_last_and_only_in_full_bench():
+    full = [c.name for c in CHECKS if c.full_bench]
+    assert full == ["bench-full", "submodule-after-full-bench", "bench-full-baseline"]
+    assert [c.name for c in CHECKS[-3:]] == full
+    assert not any(c.quick for c in CHECKS if c.full_bench)
+
+
+def _listed(capsys, *args) -> list[str]:
+    assert verify.main(["--list", *args]) == 0
+    return [line.split(":")[0] for line in capsys.readouterr().out.splitlines()]
+
+
+def test_full_bench_adds_the_full_benchmark_to_the_full_verification(capsys):
+    names = [c.name for c in CHECKS]
+    assert _listed(capsys) == names[:-3]
+    assert _listed(capsys, "--full-bench") == names
+    assert _listed(capsys, "--quick") == [c.name for c in CHECKS if c.quick]
+
+
+def test_quick_and_full_bench_cannot_be_used_together(capsys):
+    with pytest.raises(SystemExit) as exc:
+        verify.main(["--quick", "--full-bench"])
+    assert exc.value.code == 2
+    assert "cannot be used together" in capsys.readouterr().err
+
+
+def test_the_reports_of_the_checks():
+    reports = {c.name: c.report for c in CHECKS if c.report}
+    assert reports == {
+        "run": "out/report.json",
+        "bench-smoke": "out/bench.json",
+        "bench-full": "out/bench-full.json",
+    }
 
 
 def test_each_report_check_also_needs_the_setup():
@@ -595,6 +671,23 @@ def test_the_run_deletes_an_old_report(root):
     ]
     result = verify.run_checks(selected, quick=False)
     assert [c["status"] for c in result["checks"]] == ["fail", "skip"]
+
+
+def test_full_bench_result_names_the_reports(root, capsys):
+    selected = [
+        verify.Check("run", "echo {} > out/report.json", report="out/report.json"),
+        verify.Check("smoke", "echo {} > out/bench.json", report="out/bench.json"),
+        verify.Check("full", "false", report="out/bench-full.json"),
+        verify.Check("check", "true"),
+    ]
+    (root / "out").mkdir()
+    assert verify._main(selected, quick=False, full_bench=True) == 1
+    result = json.loads((root / "out" / "verify-full-bench.json").read_text())
+    assert (result["mode"], result["full_benchmark"]) == ("full-bench", True)
+    assert result["full_verification"] is True
+    assert result["reports"] == {"run": "out/report.json", "smoke": "out/bench.json"}
+    assert (root / "out" / "verify-full-bench" / "full.log").exists()
+    assert not (root / "out" / "verify.json").exists()
 
 
 def test_quick_does_not_overwrite_the_full_result(root, capsys):

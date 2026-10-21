@@ -29,14 +29,21 @@ exit code is not 0 if a result is different from `known_failures/<tool>.txt`.
 untracked or ignored file. `scripts/test` runs it before the tests and after
 the run. CI runs it after the tests and after each shard.
 
-`scripts/verify [--jobs N] [--quick]` runs each CI check locally: the lint job,
-one unsharded run of all tools and suites, the report and dialect-oracle
-checks, and the smoke benchmark (`out/bench.json`) and its baseline check.
-Exit code 0 only if all pass; details in `out/verify.json` and
-`out/verify/*.log`. `--quick` (fast checks only) is not the full
-verification; it writes `out/verify-quick.json` and `out/verify-quick/*.log`. Only one run at a time can use a checkout. A
-warning line shows a worktree with changes.
-CI-only steps (checkout, image, artifacts, shard merges, the full benchmark)
+`scripts/verify [--jobs N] [--quick | --full-bench]` runs each CI check
+locally: the lint job, one unsharded run of all tools and suites, the
+report and dialect-oracle checks, and the smoke benchmark
+(`out/bench.json`) and its baseline check. Exit code 0 only if all pass;
+details in `out/verify.json` and `out/verify/*.log`. `--quick` (fast
+checks only) is not the full verification; it writes
+`out/verify-quick.json` and `out/verify-quick/*.log`. Only one run at a
+time can use a checkout. A warning line shows a worktree with changes.
+`scripts/verify --full-bench` is the one command of G4.4 (all tests and
+benchmarks): the full verification, then the full benchmark
+(`out/bench-full.json`, as the `bench-full` job) and its baseline check (as
+`bench-merge`). Its result, `out/verify-full-bench.json`, has `reports`:
+the path of each report (`out/report.json`, `out/bench.json`,
+`out/bench-full.json`).
+CI-only steps (checkout, image, artifacts, shard merges)
 are in `CI_ONLY` in `sqll_harness/verify.py`. `tests/test_verify.py` fails if
 a CI step is in no list, or if the command lines of a CI step (with its env
 and matrix values) are not the same as those of its local checks. It also
@@ -429,6 +436,7 @@ sqll-harness bench run --profile smoke --shard 2/4 --out out/bench-2.json
 sqll-harness bench merge out/bench-*.json --out out/bench.json
 sqll-harness bench check out/bench.json
 sqll-harness bench check out/bench.json --baseline results/s2/baseline.json
+sqll-harness bench check out/bench.json --baseline results/s2/baseline.json --full
 ```
 
 `sqll-harness bench run [--tool T] [--dialect D] [--command C] [--size S]
@@ -463,15 +471,17 @@ shard is missing or in two reports, if 2 reports have a different sqlfluff
 ref, harness, profile, scope (other than the shard), tool record, or input
 record, or if the shard count is not the `shards` of `--expect`
 (`{"shards": N}`, as `ci/bench-matrix.json`).
-`sqll-harness bench check REPORT [--baseline FILE]` runs the schema and
-completeness checks (exit code 1 on an error). With `--baseline`, it also
-fails (exit code 1) if FILE is not a full baseline (see "Benchmark
-baseline"), or if the stable data of REPORT is not that of FILE: the
-sqlfluff ref, the version and settings of each tool, the record of each
-input (`sha256`, `bytes`, `lines`), and for each result its benchmark and
-status (and its `work`, if both are `valid`). A tool, input, or result
-that FILE does not have is an error. It does not compare timings, reasons,
-or the machine. Exit code 2 if a file cannot be read.
+`sqll-harness bench check REPORT [--baseline FILE [--full]]` runs the
+schema and completeness checks (exit code 1 on an error). With
+`--baseline`, it also fails (exit code 1) if FILE is not a full baseline
+(see "Benchmark baseline"), or if the stable data of REPORT is not that of
+FILE: the sqlfluff ref, the version and settings of each tool, the record
+of each input (`sha256`, `bytes`, `lines`), and for each result its
+benchmark and status (and its `work`, if both are `valid`). A tool, input,
+or result that FILE does not have is an error. With `--full`, a result of
+FILE that REPORT does not have, or another profile, is also an error (a
+full run). It does not compare timings, reasons, or the machine. Exit code
+2 if a file cannot be read, or for `--full` with no `--baseline`.
 
 `scripts/bench [ARGS]` is the one command of the S2 exit: the preflight,
 `scripts/setup`, `sqll-harness tools` (`out/tools.json`),
@@ -486,7 +496,7 @@ run ARGS`, and
 |---|---|---|---|
 | `bench-smoke` | each full run (pull request with a code change, push to main, `workflow_dispatch`) | `bench run --profile smoke --out out/bench.json`, then `bench check out/bench.json --baseline results/s2/baseline.json` | `bench-smoke` |
 | `bench-full` | push to main, `workflow_dispatch` | `bench run --profile full --shard K/N`, one job for each shard of `ci/bench-matrix.json` (`ci/bench_matrix.py`) | `bench-shard-K-of-N` |
-| `bench-merge` | after all `bench-full` jobs pass | `bench merge --expect ci/bench-matrix.json`, then `bench check` | `bench-full` (`out/bench.json`) |
+| `bench-merge` | after all `bench-full` jobs pass | `bench merge --expect ci/bench-matrix.json`, then `bench check out/bench.json --baseline results/s2/baseline.json --full` | `bench-full` (`out/bench.json`) |
 
 Each job runs in the CI image. `bench-smoke` and `bench-full` run
 `scripts/check-submodule` after the benchmarks. No job compares timings
@@ -499,9 +509,11 @@ min); a shard took 512 to 1105 s (timeout 90 min); the merge took 1 s
 (timeout 10 min). The margin is for slower runners and for runs that stop
 at the 120 s run timeout.
 
-Local copies: `scripts/verify` runs the `bench-smoke` job. The local copy of
-the full CI benchmark (`bench-full` and `bench-merge`) is `scripts/bench`
-with no arguments: all shards in one report, `out/bench.json`.
+Local copies: `scripts/verify` runs the `bench-smoke` job.
+`scripts/verify --full-bench` also runs `bench-full` and `bench-merge`: all
+shards in one report, `out/bench-full.json`, and its baseline check.
+`scripts/bench` with no arguments runs the same full benchmark to
+`out/bench.json`.
 
 ## Benchmark baseline: `results/s2/baseline.json`
 
@@ -513,9 +525,11 @@ sqlfluff ref, a worktree with changes, a missing result or input, or a
 scope that is not all tools of the registry on all benchmarks of the
 definitions; `drift()` is the stable data check of `bench check
 --baseline`. The `bench-smoke` job and `scripts/verify` run it on each
-smoke run. `harness/tests/test_bench_baseline.py` checks the recorded
-file, the drift check, and that the S2 tables of STATUS.md are those of
-the file.
+smoke run; the `bench-merge` job and `scripts/verify --full-bench` run it
+with `--full` on each full run (`missing()`: the report must have the
+profile and each result of the baseline).
+`harness/tests/test_bench_baseline.py` checks the recorded file, the drift
+check, and that the S2 tables of STATUS.md are those of the file.
 
 A new tool (for example sqll in S3) or a new tool version makes the CI
 check fail until a new baseline is recorded: do the controlled run, copy

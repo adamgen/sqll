@@ -258,14 +258,14 @@ def incomplete(rep: Mapping[str, Any], defs: Mapping[str, Any] | None = None):
         missing = sorted(set(ids) - set(have))
         extra = sorted(set(have) - set(ids))
         if missing:
-            errors.append(f"{tool}: no result for {len(missing)}: {_few(missing)}")
+            errors.append(f"{tool}: no result for {len(missing)}: {few(missing)}")
         if extra:
-            errors.append(f"{tool}: results not in the scope: {_few(extra)}")
+            errors.append(f"{tool}: results not in the scope: {few(extra)}")
     used = {b["input"] for b in want}
     if set(rep["inputs"]) != used:
         errors.append(
-            f"inputs: missing {_few(sorted(used - set(rep['inputs'])))}, "
-            f"extra {_few(sorted(set(rep['inputs']) - used))}"
+            f"inputs: missing {few(sorted(used - set(rep['inputs'])))}, "
+            f"extra {few(sorted(set(rep['inputs']) - used))}"
         )
     if defs is not None:
         for name, entry in sorted(rep["inputs"].items()):
@@ -275,7 +275,7 @@ def incomplete(rep: Mapping[str, Any], defs: Mapping[str, Any] | None = None):
     return errors
 
 
-def _few(items: list[str], n: int = 5) -> str:
+def few(items: list[str], n: int = 5) -> str:
     text = ", ".join(items[:n])
     return text + (f" and {len(items) - n} more" if len(items) > n else "")
 

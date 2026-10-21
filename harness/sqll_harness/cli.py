@@ -253,6 +253,12 @@ def _parser() -> argparse.ArgumentParser:
         "and the status of each result) is not that of it. Timings are not "
         "compared.",
     )
+    bchk.add_argument(
+        "--full",
+        action="store_true",
+        help="With --baseline: also fail if the report does not have the profile "
+        "and each result of the baseline (a full run).",
+    )
     bcmp = bench_sub.add_parser(
         "compare",
         help="Compare 2 benchmark reports: flag each benchmark that is slower "
@@ -638,6 +644,9 @@ def bench_merge_command(args: argparse.Namespace) -> int:
 
 
 def bench_check_command(args: argparse.Namespace) -> int:
+    if args.full and args.baseline is None:
+        print("error: --full needs --baseline", file=sys.stderr)
+        return 2
     try:
         rep = bench_report.load(args.report)
         defs = bench_definitions.load(args.definitions)
@@ -652,6 +661,8 @@ def bench_check_command(args: argparse.Namespace) -> int:
         errors = [f"baseline: {e}" for e in bench_baseline.recorded(base, defs)]
         if not errors:
             errors = bench_baseline.drift(rep, base)
+            if args.full:
+                errors += bench_baseline.missing(rep, base)
     for line in errors:
         print(line)
     if errors:
@@ -663,6 +674,8 @@ def bench_check_command(args: argparse.Namespace) -> int:
             f"The stable data of {len(rep['results'])} results is that of the "
             f"baseline {args.baseline}."
         )
+    if args.full:
+        print("The report has the profile and each result of the baseline.")
     return 0
 
 

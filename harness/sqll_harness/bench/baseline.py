@@ -8,6 +8,8 @@ tool versions and settings, the input records, and for each result its
 benchmark and status (and, if both are valid, its work). It does not
 compare timings ("Noise control"). A result, tool, or input that the
 baseline does not have is a difference, so the check fails closed.
+missing() is the check of a full run (the CI job bench-merge): it must have
+the profile and each result of the baseline.
 """
 
 from collections.abc import Mapping
@@ -106,4 +108,21 @@ def drift(rep: Mapping[str, Any], base: Mapping[str, Any]) -> list[str]:
             )
         elif r["status"] == VALID and r["work"] != b["work"]:
             errors.append(f"{where}: work {r['work']}, baseline {b['work']}")
+    return errors
+
+
+def missing(rep: Mapping[str, Any], base: Mapping[str, Any]) -> list[str]:
+    """Return each reason why rep is not a run of all benchmarks of base:
+    another profile, or a result of base that rep does not have."""
+    errors = []
+    if rep["profile"] != base["profile"]:
+        errors.append(f"profile {rep['profile']}, baseline {base['profile']}")
+    have = {_key(r) for r in rep["results"]}
+    lost = sorted(
+        f"{t} {i}" for i, t in map(_key, base["results"]) if (i, t) not in have
+    )
+    if lost:
+        errors.append(
+            f"no result for {len(lost)} results of the baseline: {bench_run.few(lost)}"
+        )
     return errors

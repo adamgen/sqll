@@ -2,8 +2,9 @@
 
 - Current stone: **S2** (benchmarks): **S2 awaiting human approval**.
   Design: [harness/bench.md](harness/bench.md). Do not start S3 before
-  the approval. S2 tasks T1 to T8 are merged (PRs #12 to #19). CI on main
-  passed after the last merge (run 39433607769, head `382d444`, 63 of 63
+  the approval. S2 tasks T1 to T8 are merged (PRs #12 to #19). The audit
+  fixes S2-gap1 and S2-gap2 do not change the S2 results. CI on main passed
+  after the merge of PR #20 (run 39438414445, head `9b2f14a`, 63 of 63
   jobs, with `bench-smoke` and its baseline check, `bench-full` 1 to 7 of
   7, and `bench-merge`).
 - S1 is complete. The human owner approved it on 2026-10-19 (owner
@@ -24,11 +25,13 @@
 | T6 | CI benchmark jobs and `scripts/verify` drift coverage | Merged (PR #17) |
 | T7 | Slowdown detection: `sqll-harness bench compare` and the change-record rule | Merged (PR #18) |
 | T8 | S2 exit: recorded baseline, exact drift checks, and STATUS | Merged (PR #19) |
+| S2-gap1 | Audit: STATUS records the merge of T8 and CI on main | Merged (PR #20) |
+| S2-gap2 | Audit: `bench-merge` baseline check, `scripts/verify --full-bench` (G4.4), document fixes | PR #21 |
 
 ## S2 exit evidence (awaiting approval)
 
 Proof: [`results/s2/baseline.json`](results/s2/baseline.json), the report
-of the one command `scripts/bench --profile full` (G4.4): exit code 0,
+of the one command `scripts/bench --profile full` (the S2 exit): exit code 0,
 6521 s, on 2026-10-20, harness commit `626f256` (clean worktree). It was a
 controlled run: the CI image, built from `ci/Dockerfile` on the local
 machine (Intel Xeon 2.10 GHz, 4 CPUs, 16 GiB), one container, serial, no
@@ -37,12 +40,21 @@ record; timer overhead (`/bin/true`) median 1.5 ms.
 
 CI compares each smoke run with the baseline, fail closed (`sqll-harness
 bench check --baseline`): the sqlfluff ref, the tool versions and
-settings, the input sha256, and the status of each result. CI does not
-gate on timings. CI passed on PR #19 (run 39420092577, head `b122d0f`:
-55 jobs passed; `bench-full` and `bench-merge` run only on push to main
-and `workflow_dispatch`). On commit `b122d0f` (the last code change;
-fresh clone, clean worktree), `scripts/verify --jobs 4` passed 26 of 26
-checks: exit code 0, 4223 s; its smoke run agrees with the baseline.
+settings, the input sha256, and the status of each result. From S2-gap2,
+`bench-merge` does the same check on each full run, with `--full` (each
+result of the baseline must be in the report). The `workflow_dispatch` run
+39549949931 (head `87c971f`, 63 of 63 jobs) passed it on all 840 results.
+CI does not gate on timings. CI passed on PR #19 (run 39420092577, head
+`b122d0f`: 55 jobs passed; `bench-full` and `bench-merge` run only on push
+to main and `workflow_dispatch`). On commit `b122d0f` (the last code
+change of T8; fresh clone, clean worktree), `scripts/verify --jobs 4`
+passed 26 of 26 checks: exit code 0, 4223 s; its smoke run agrees with the
+baseline.
+
+G4.4 (all tests and benchmarks in one command, machine-readable output):
+`scripts/verify --full-bench` runs the full verification, the full
+benchmark, and its baseline check; `out/verify-full-bench.json` names the
+reports. No full local run of it is recorded; CI runs each of its checks.
 
 | Criterion (STONES.md) | Proof |
 |---|---|

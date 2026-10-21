@@ -1,9 +1,13 @@
 #!/bin/sh
 # Run locally each check that CI runs (.github/workflows/ci.yml), also the
 # full run of all tools and suites. The exit code is 0 only if all checks pass.
-# Usage: scripts/verify [--jobs N] [--quick] [--list]
+# Usage: scripts/verify [--jobs N] [--quick | --full-bench] [--list]
 # Output: one line for each check, out/verify.json and out/verify/*.log
 # (--quick: out/verify-quick.json and out/verify-quick/*.log).
+# --full-bench also runs the full benchmark and its baseline check: all
+# tests and benchmarks in one command (G4.4). Output:
+# out/verify-full-bench.json (its "reports" names each report) and
+# out/verify-full-bench/*.log.
 # It stops first if a folder above the checkout or the temp folder has a
 # sqlfluff config file (preflight).
 # The checks are in harness/sqll_harness/verify.py.

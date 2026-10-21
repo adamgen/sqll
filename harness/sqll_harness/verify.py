@@ -13,7 +13,11 @@ workflow, job, or step key is not known.
 
 Output: one line for each check, a log for each check in out/verify/, and
 out/verify.json. With --quick: out/verify-quick/ and out/verify-quick.json,
-so a quick run does not delete the result of a full run.
+so a quick run does not delete the result of a full run. With --full-bench
+(G4.4: all tests and all benchmarks in one command): also the full benchmark
+and its baseline check, as the CI jobs bench-full and bench-merge;
+out/verify-full-bench/ and out/verify-full-bench.json. The result names the
+reports of the checks ("reports").
 """
 
 import argparse
@@ -38,16 +42,24 @@ REPORT = OUT_DIR / "report.json"
 LOCK = OUT_DIR / "verify.lock"
 
 
-def result_paths(quick: bool) -> tuple[Path, Path]:
+def mode_name(quick: bool, full_bench: bool = False) -> str:
+    return "quick" if quick else "full-bench" if full_bench else "full"
+
+
+def result_paths(quick: bool, full_bench: bool = False) -> tuple[Path, Path]:
     """Return the result file and the log folder of a mode."""
-    name = "verify-quick" if quick else "verify"
-    return OUT_DIR / f"{name}.json", OUT_DIR / name
+    name = {
+        "quick": "verify-quick",
+        "full": "verify",
+        "full-bench": "verify-full-bench",
+    }
+    stem = name[mode_name(quick, full_bench)]
+    return OUT_DIR / f"{stem}.json", OUT_DIR / stem
 
 
 UV = "uv run --frozen --project harness"
 
-# CI steps that have no local check: CI mechanics only, and the full
-# benchmark (its local copy is scripts/bench; see BENCH_LOCAL).
+# CI steps that have no local check: CI mechanics only, and the shard merge.
 CI_ONLY = {
     "changes: actions/checkout": "checkout",
     "changes: Changed files": "documents-only test; locally all checks run",
@@ -78,15 +90,11 @@ CI_ONLY = {
     "bench-smoke: actions/upload-artifact": "artifact upload",
     "bench-full: actions/checkout": "checkout",
     "bench-full: git config --global --add safe.directory '*'": "container user",
-    "bench-full: Run the benchmark shard": "full benchmark shard; locally"
-    " scripts/bench (BENCH_LOCAL, no shard)",
     "bench-full: actions/upload-artifact": "artifact upload",
     "bench-merge: actions/checkout": "checkout",
     "bench-merge: actions/download-artifact": "artifact download",
     "bench-merge: Merge": "merge of the full benchmark shards; locally"
     " scripts/bench writes one report",
-    "bench-merge: Check the merged report": "check of the merged full report;"
-    " locally bench run checks its report",
     "bench-merge: actions/upload-artifact": "artifact upload",
 }
 
@@ -129,16 +137,9 @@ CI_ONLY_RUN = {
     "report: Check test jobs": (
         'echo "A test job did not succeed: ${{ needs.test.result }}"\nexit 1'
     ),
-    "bench-full: Run the benchmark shard": (
-        f"{UV} sqll-harness bench run --profile full"
-        " --shard ${{ matrix.shard }} --out out/bench-shards/${{ matrix.name }}.json"
-    ),
     "bench-merge: Merge": (
         f"{UV} sqll-harness bench merge --expect ci/bench-matrix.json"
         " out/bench-shards/*.json --out out/bench.json"
-    ),
-    "bench-merge: Check the merged report": (
-        f"{UV} sqll-harness bench check out/bench.json"
     ),
 }
 CI_ONLY_RUN_ENV = {
@@ -256,9 +257,10 @@ WEAK_TEXT = ("||", "set +e")
 CI_WEAK_WORDS = {"||", "true", ":"}
 SHELL_OPERATORS = {"||", "&&", ";", "|", "&", ";;", "(", ")"}
 
-# The local copy of the full benchmark of CI is scripts/bench with no
-# argument: its "bench run" line, without --quiet and "$@", followed by
-# BENCH_SHARD_ARGS, must be the command of the CI shard step (drift()).
+# scripts/bench with no argument is also a local copy of the full benchmark
+# of CI (the check "bench-full" is the other): its "bench run" line, without
+# --quiet and "$@", followed by BENCH_SHARD_ARGS, must be the command of the
+# CI shard step (drift()).
 # "bench run" with no --profile runs the full profile (test_verify.py).
 BENCH_LOCAL = "scripts/bench"
 BENCH_SHARD_STEP = "bench-full: Run the benchmark shard"
@@ -273,6 +275,7 @@ BENCH_SHARD_ARGS = (
 
 SETUP = "setup"
 REPORT_FILE = "report"
+BENCH_FULL = "out/bench-full.json"
 
 
 @dataclass(frozen=True)
@@ -287,6 +290,10 @@ class Check:
     needs: tuple[str, ...] = ()
     # Files to delete before the command runs.
     removes: tuple[str, ...] = ()
+    # The machine-readable report that the check writes (in "reports").
+    report: str | None = None
+    # Only with --full-bench.
+    full_bench: bool = False
     # (CI text, local text) replacements in the CI command before the drift
     # test compares it with the local command. Each CI text must occur.
     ci_diff: tuple[tuple[str, str], ...] = field(default=(), compare=False)
@@ -420,6 +427,7 @@ def checks(jobs: int | None = None) -> list[Check]:
             ("test: Run shard",),
             needs=(SETUP,),
             removes=("out/report.json",),
+            report="out/report.json",
             ci_diff=(
                 (
                     " --suite {} --tool {} --shard {} --out out/shards/{}.json",
@@ -509,13 +517,14 @@ def checks(jobs: int | None = None) -> list[Check]:
             ("dialect-oracle: Compare the dialect results with the sqlfluff tests",),
             needs=rep,
         ),
-        # The smoke benchmark. The full benchmark is BENCH_LOCAL.
+        # The smoke benchmark.
         Check(
             "bench-smoke",
             f"{UV} sqll-harness bench run --profile smoke --out out/bench.json",
             ("bench-smoke: Run the smoke benchmark",),
             needs=(SETUP,),
             removes=("out/bench.json",),
+            report="out/bench.json",
         ),
         Check(
             "bench-baseline",
@@ -527,10 +536,38 @@ def checks(jobs: int | None = None) -> list[Check]:
         Check(
             "submodule-after-bench",
             'scripts/check-submodule "after the benchmarks"',
-            (
-                "bench-smoke: Check that the sqlfluff submodule is clean",
-                "bench-full: Check that the sqlfluff submodule is clean",
+            ("bench-smoke: Check that the sqlfluff submodule is clean",),
+        ),
+        # The full benchmark (--full-bench): all shards in one report.
+        Check(
+            "bench-full",
+            f"{UV} sqll-harness bench run --profile full --out {BENCH_FULL}",
+            ("bench-full: Run the benchmark shard",),
+            needs=(SETUP,),
+            removes=(BENCH_FULL,),
+            report=BENCH_FULL,
+            full_bench=True,
+            ci_diff=(
+                (
+                    " --shard {} --out out/bench-shards/{}.json",
+                    f" --out {BENCH_FULL}",
+                ),
             ),
+        ),
+        Check(
+            "submodule-after-full-bench",
+            'scripts/check-submodule "after the benchmarks"',
+            ("bench-full: Check that the sqlfluff submodule is clean",),
+            full_bench=True,
+        ),
+        Check(
+            "bench-full-baseline",
+            f"{UV} sqll-harness bench check {BENCH_FULL}"
+            " --baseline results/s2/baseline.json --full",
+            ("bench-merge: Check the merged report against the baseline",),
+            needs=(SETUP,),
+            full_bench=True,
+            ci_diff=((" out/bench.json ", f" {BENCH_FULL} "),),
         ),
     ]
 
@@ -883,13 +920,14 @@ def _run(command: str, log) -> int:
             proc.wait()
 
 
-def run_checks(selected: list[Check], quick: bool) -> dict:
-    _, log_dir = result_paths(quick)
+def run_checks(selected: list[Check], quick: bool, full_bench: bool = False) -> dict:
+    _, log_dir = result_paths(quick, full_bench)
     log_dir.mkdir(parents=True, exist_ok=True)
     for old in log_dir.glob("*.log"):
         old.unlink()
     failed: set[str] = set()
     results = []
+    reports = {}
     start = time.monotonic()
     width = max(len(c.name) for c in selected)
     tty = sys.stdout.isatty()
@@ -941,6 +979,8 @@ def run_checks(selected: list[Check], quick: bool) -> dict:
             failed.add(check.name)
             print(f"    exit code {code}, log: {entry['log']}")
             print(_tail(log))
+        if check.report and (REPO_ROOT / check.report).exists():
+            reports[check.name] = check.report
         results.append(entry)
     end_commit, end_clean = worktree_state()
     if commit is None or end_commit != commit:
@@ -951,8 +991,9 @@ def run_checks(selected: list[Check], quick: bool) -> dict:
         clean = clean and end_clean
     ok = all(r["status"] == "pass" for r in results)
     return {
-        "mode": "quick" if quick else "full",
+        "mode": mode_name(quick, full_bench),
         "full_verification": not quick,
+        "full_benchmark": full_bench,
         "result": "pass" if ok else "fail",
         "commit": commit,
         "worktree_clean": clean,
@@ -960,6 +1001,7 @@ def run_checks(selected: list[Check], quick: bool) -> dict:
         "passed": sum(r["status"] == "pass" for r in results),
         "failed": sum(r["status"] == "fail" for r in results),
         "skipped": sum(r["status"] == "skip" for r in results),
+        "reports": reports,
         "checks": results,
     }
 
@@ -976,7 +1018,8 @@ def main(argv: list[str] | None = None) -> int:
         prog="scripts/verify",
         description="Run locally each check that CI runs. Writes out/verify.json"
         " and out/verify/*.log (--quick: out/verify-quick.json and"
-        " out/verify-quick/*.log).",
+        " out/verify-quick/*.log; --full-bench: out/verify-full-bench.json and"
+        " out/verify-full-bench/*.log).",
     )
     p.add_argument("--jobs", type=_positive, help="Jobs for the harness run.")
     p.add_argument(
@@ -984,10 +1027,23 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="Run only the fast checks. This is not the full verification.",
     )
+    p.add_argument(
+        "--full-bench",
+        action="store_true",
+        help="Also run the full benchmark (about 2 hours) and compare it with the"
+        " baseline, as the CI jobs bench-full and bench-merge. With the other"
+        " checks, this runs all tests and benchmarks (G4.4).",
+    )
     p.add_argument("--list", action="store_true", help="Print the checks and stop.")
     args = p.parse_args(argv)
+    if args.quick and args.full_bench:
+        p.error("--quick and --full-bench cannot be used together")
 
-    selected = [c for c in checks(args.jobs) if c.quick or not args.quick]
+    selected = [
+        c
+        for c in checks(args.jobs)
+        if (c.quick or not args.quick) and (args.full_bench or not c.full_bench)
+    ]
     if args.list:
         for c in selected:
             print(f"{c.name}: {', '.join(c.ci) or '(local only)'}")
@@ -1007,15 +1063,15 @@ def main(argv: list[str] | None = None) -> int:
                 file=sys.stderr,
             )
             return 2
-        return _main(selected, args.quick)
+        return _main(selected, args.quick, args.full_bench)
 
 
-def _main(selected: list[Check], quick: bool) -> int:
+def _main(selected: list[Check], quick: bool, full_bench: bool = False) -> int:
     quick_note = "QUICK: only the fast checks. This is NOT the full verification."
     if quick:
         print(quick_note)
-    result = run_checks(selected, quick)
-    path, _ = result_paths(quick)
+    result = run_checks(selected, quick, full_bench)
+    path, _ = result_paths(quick, full_bench)
     path.write_text(json.dumps(result, indent=1) + "\n", encoding="utf8")
     print(
         f"{result['result'].upper()}: {result['passed']} passed,"

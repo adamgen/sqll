@@ -113,14 +113,15 @@ rule, only a warning, exit code 0, no violations. Limit: the `parse`,
 S1 parity measures that.
 
 Measured valid results (of 28 `start` and 84 for each command): sqlfluff
-and `sqlfluff[rs]` all; sqruff 27 `start`, 81 `parse`, 55 `lint`, 53 `fix`.
-Causes for sqruff: soql panics (exit code 101); rule panics, exit code 1
-(mysql large, oracle medium and large, `fix` of tsql large); `fix` of ansi
-large did not stop in 902 s; 23 inputs have rule codes that are not those
-of sqlfluff (S1 rule differences). The inputs stay the same. G3: an
-invalid or missing result of the tool under test fails its comparison;
-skip a pair only if the other tool is invalid. A total uses the same
-pairs for both tools.
+and `sqlfluff[rs]` all; sqruff 27 `start`, 81 `parse`, 55 `lint`, 53
+`fix`. Causes for sqruff: soql is `unsupported` (`unsupported: dialect
+soql`; the adapter refuses the dialect, thus sqruff does not run); rule
+panics, exit code 1 (mysql large, oracle medium and large, `fix` of tsql
+large); `fix` of ansi large did not stop in 120 s (timeout); 23 inputs
+have rule codes that are not those of sqlfluff (S1 rule differences). The
+inputs stay the same. G3: an invalid or missing result of the tool under
+test fails its comparison; skip a pair only if the other tool is invalid.
+A total uses the same pairs for both tools.
 
 ## Time budget
 
@@ -187,11 +188,12 @@ are `valid`).
 `results/s2/baseline.json` is the report of one controlled run of
 `scripts/bench --profile full`, as recorded (the machine record and the
 harness commit are in it). CI compares the stable data of each smoke run
-with it, fail closed (`sqll-harness bench check --baseline`): the sqlfluff
-ref, the tool versions and settings, the input records, and the status of
-each result (and the `work` of a result that is `valid` in both). Not the
-timings, reasons, or machine. A new tool (sqll in S3) or tool version
-needs a new baseline.
+and each full run with it, fail closed (`sqll-harness bench check
+--baseline`; for a full run also `--full`: each result of the baseline
+must be in the report): the sqlfluff ref, the tool versions and settings,
+the input records, and the status of each result (and the `work` of a
+result that is `valid` in both). Not the timings, reasons, or machine. A
+new tool (sqll in S3) or tool version needs a new baseline.
 
 Controlled run (2026-10-20): the CI image, built from `ci/Dockerfile` on
 the local machine (4 CPUs, no other load), one container, serial. The
@@ -217,13 +219,15 @@ valid, and the definitions do not change.
   Its stable data ("Noise control") must be equal to the baseline
   ("Baseline").
 - Push to main and `workflow_dispatch`: the full profile, sharded by
-  dialect. The report goes to an artifact.
+  dialect. The merged report goes to an artifact. Its stable data must be
+  equal to the baseline, with each result of it.
 - `scripts/verify` runs the smoke profile; the drift test covers the new
-  CI steps. The local copy of the full CI benchmark is `scripts/bench`
-  with no arguments (one report, no shards).
+  CI steps. `scripts/verify --full-bench` also runs the full profile (one
+  report, no shards) and its baseline check.
 - CI does not run `sqll-harness bench compare` ("Slowdowns").
 - `scripts/bench` writes the full report for the 3 tools in one command
-  (the S2 exit, G4.4).
+  (the S2 exit). G4.4 (all tests and benchmarks in one command):
+  `scripts/verify --full-bench`.
 
 ## Slowdowns
 
