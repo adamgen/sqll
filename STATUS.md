@@ -26,7 +26,7 @@
 | T7 | Slowdown detection: `sqll-harness bench compare` and the change-record rule | Merged (PR #18) |
 | T8 | S2 exit: recorded baseline, exact drift checks, and STATUS | Merged (PR #19) |
 | S2-gap1 | Audit: STATUS records the merge of T8 and CI on main | Merged (PR #20) |
-| S2-gap2 | Audit: `bench-merge` baseline check, `scripts/verify --full-bench` (G4.4), document fixes | In review (PR #21) |
+| S2-gap2 | Audit: `bench-merge` baseline check, `scripts/verify --full-bench` (G4.4), document fixes | PR #21 |
 
 ## S2 exit evidence (awaiting approval)
 
@@ -42,13 +42,14 @@ CI compares each smoke run with the baseline, fail closed (`sqll-harness
 bench check --baseline`): the sqlfluff ref, the tool versions and
 settings, the input sha256, and the status of each result. From S2-gap2,
 `bench-merge` does the same check on each full run, with `--full` (each
-result of the baseline must be in the report). The `workflow_dispatch`
-run 39549949931 (head `87c971f`, 63 of 63 jobs) passed it on all 840
-results. CI does not gate on timings. CI passed on PR #19 (run 39420092577, head `b122d0f`: 55 jobs
-passed; `bench-full` and `bench-merge` run only on push to main and
-`workflow_dispatch`). On commit `b122d0f` (the last code change of T8;
-fresh clone, clean worktree), `scripts/verify --jobs 4` passed 26 of 26
-checks: exit code 0, 4223 s; its smoke run agrees with the baseline.
+result of the baseline must be in the report). The `workflow_dispatch` run
+39549949931 (head `87c971f`, 63 of 63 jobs) passed it on all 840 results.
+CI does not gate on timings. CI passed on PR #19 (run 39420092577, head
+`b122d0f`: 55 jobs passed; `bench-full` and `bench-merge` run only on push
+to main and `workflow_dispatch`). On commit `b122d0f` (the last code
+change of T8; fresh clone, clean worktree), `scripts/verify --jobs 4`
+passed 26 of 26 checks: exit code 0, 4223 s; its smoke run agrees with the
+baseline.
 
 G4.4 (all tests and benchmarks in one command, machine-readable output):
 `scripts/verify --full-bench` runs the full verification, the full

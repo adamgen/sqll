@@ -31,11 +31,12 @@ the run. CI runs it after the tests and after each shard.
 
 `scripts/verify [--jobs N] [--quick | --full-bench]` runs each CI check
 locally: the lint job, one unsharded run of all tools and suites, the
-report and dialect-oracle checks, and the smoke benchmark (`out/bench.json`) and its baseline check.
-Exit code 0 only if all pass; details in `out/verify.json` and
-`out/verify/*.log`. `--quick` (fast checks only) is not the full
-verification; it writes `out/verify-quick.json` and `out/verify-quick/*.log`. Only one run at a time can use a checkout. A
-warning line shows a worktree with changes.
+report and dialect-oracle checks, and the smoke benchmark
+(`out/bench.json`) and its baseline check. Exit code 0 only if all pass;
+details in `out/verify.json` and `out/verify/*.log`. `--quick` (fast
+checks only) is not the full verification; it writes
+`out/verify-quick.json` and `out/verify-quick/*.log`. Only one run at a
+time can use a checkout. A warning line shows a worktree with changes.
 `scripts/verify --full-bench` is the one command of G4.4 (all tests and
 benchmarks): the full verification, then the full benchmark
 (`out/bench-full.json`, as the `bench-full` job) and its baseline check (as
@@ -473,14 +474,14 @@ record, or if the shard count is not the `shards` of `--expect`
 `sqll-harness bench check REPORT [--baseline FILE [--full]]` runs the
 schema and completeness checks (exit code 1 on an error). With
 `--baseline`, it also fails (exit code 1) if FILE is not a full baseline
-(see "Benchmark baseline"), or if the stable data of REPORT is not that of FILE: the
-sqlfluff ref, the version and settings of each tool, the record of each
-input (`sha256`, `bytes`, `lines`), and for each result its benchmark and
-status (and its `work`, if both are `valid`). A tool, input, or result
-that FILE does not have is an error. With `--full`, a result of FILE that
-REPORT does not have, or another profile, is also an error (a full run).
-It does not compare timings, reasons, or the machine. Exit code 2 if a
-file cannot be read, or for `--full` with no `--baseline`.
+(see "Benchmark baseline"), or if the stable data of REPORT is not that of
+FILE: the sqlfluff ref, the version and settings of each tool, the record
+of each input (`sha256`, `bytes`, `lines`), and for each result its
+benchmark and status (and its `work`, if both are `valid`). A tool, input,
+or result that FILE does not have is an error. With `--full`, a result of
+FILE that REPORT does not have, or another profile, is also an error (a
+full run). It does not compare timings, reasons, or the machine. Exit code
+2 if a file cannot be read, or for `--full` with no `--baseline`.
 
 `scripts/bench [ARGS]` is the one command of the S2 exit: the preflight,
 `scripts/setup`, `sqll-harness tools` (`out/tools.json`),
