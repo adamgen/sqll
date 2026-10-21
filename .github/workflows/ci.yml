@@ -431,7 +431,8 @@ jobs:
           if-no-files-found: error
 
   # The S2 full benchmark on a push to main and on workflow_dispatch, sharded
-  # by dialect (ci/bench-matrix.json). Locally: scripts/bench (no sharding).
+  # by dialect (ci/bench-matrix.json). Locally: scripts/verify --full-bench
+  # or scripts/bench (no sharding).
   bench-full:
     needs: image
     if: github.event_name != 'pull_request'
@@ -473,7 +474,8 @@ jobs:
           path: out/bench-shards/${{ matrix.name }}.json
           if-no-files-found: error
 
-  # Merge the shard reports of the full benchmark into one report.
+  # Merge the shard reports of the full benchmark into one report, and
+  # compare it with the baseline.
   bench-merge:
     needs: [image, bench-full]
     if: github.event_name != 'pull_request'
@@ -502,10 +504,14 @@ jobs:
           --expect ci/bench-matrix.json out/bench-shards/*.json
           --out out/bench.json
 
-      - name: Check the merged report
+      # The stable data of the full run (sqlfluff ref, tool versions and
+      # settings, inputs, and the status of each result) must be that of the
+      # recorded baseline, with each result of it (--full). No timing is
+      # compared (harness/bench.md).
+      - name: Check the merged report against the baseline
         run: >-
           uv run --frozen --project harness sqll-harness bench check
-          out/bench.json
+          out/bench.json --baseline results/s2/baseline.json --full
 
       - if: always()
         uses: actions/upload-artifact@v7

@@ -375,3 +375,67 @@ def test_status_lists_each_result_that_is_not_valid_with_its_reason():
     assert len(listed) == len(set(listed))
     want = {(r["tool"], r["id"]) for r in BASE["results"] if r["status"] != VALID}
     assert set(listed) == want
+
+
+# "bench check REPORT --baseline FILE --full" (the CI step of bench-merge).
+
+
+def test_missing_finds_nothing_in_a_full_run():
+    assert baseline.missing(BASE, BASE) == []
+
+
+def test_missing_finds_each_result_that_a_run_does_not_have():
+    lost = sorted(
+        f"{r['tool']} {r['id']}"
+        for r in BASE["results"]
+        if r["size"] in ("medium", "large")
+    )
+    assert len(lost) == (280 - 112) * 3
+    assert baseline.missing(PART, BASE) == [
+        f"no result for {len(lost)} results of the baseline: "
+        f"{', '.join(lost[:5])} and {len(lost) - 5} more"
+    ]
+
+
+def test_missing_finds_another_profile():
+    rep = copy.deepcopy(BASE)
+    rep["profile"] = "smoke"
+    assert baseline.missing(rep, BASE) == ["profile smoke, baseline full"]
+
+
+def test_check_full_passes_on_a_full_run(tmp_path, capsys):
+    path = _write(tmp_path, BASE)
+    assert bench("check", path, "--baseline", baseline.BASELINE, "--full") == 0
+    out = capsys.readouterr().out
+    assert f"The stable data of {280 * 3} results is that of the baseline" in out
+    assert "The report has the profile and each result of the baseline." in out
+
+
+def test_check_full_fails_on_a_part_of_the_baseline(tmp_path, capsys):
+    path = _write(tmp_path, PART)
+    assert bench("check", path, "--baseline", baseline.BASELINE, "--full") == 1
+    out = capsys.readouterr().out
+    assert f"no result for {(280 - 112) * 3} results of the baseline" in out
+    assert "FAIL:" in out
+
+
+def test_check_full_fails_on_a_status_change_of_a_large_input(tmp_path, capsys):
+    rep = copy.deepcopy(BASE)
+    r = next(
+        x
+        for x in rep["results"]
+        if x["tool"] == "sqlfluff" and x["size"] == "large" and x["status"] == VALID
+    )
+    r.update(status=INVALID, reason="invalid: changed", stats=None, ratio=None)
+    rep = _rebuild(rep)
+    assert report.check(rep) == []
+    path = _write(tmp_path, rep)
+    assert bench("check", path, "--baseline", baseline.BASELINE, "--full") == 1
+    out = capsys.readouterr().out
+    assert f"sqlfluff {r['id']}: status invalid (invalid: changed)" in out
+
+
+def test_check_full_needs_a_baseline(tmp_path, capsys):
+    path = _write(tmp_path, BASE)
+    assert bench("check", path, "--full") == 2
+    assert "--full needs --baseline" in capsys.readouterr().err
