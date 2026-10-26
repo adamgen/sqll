@@ -8,12 +8,28 @@ check fails if the pull request changes a path that another track owns,
 unless the pull request has the label LABEL. With the label, the check
 passes and names the tracks that must review the pull request.
 
-The check fails closed: if git fails, if tracks.yml is not correct, or if
-two tracks have the branch, it fails.
+The rules come from the tracks.yml of the base commit (the first parent of
+the merge commit HEAD). Thus a pull request cannot give its track more
+paths: tracks.yml is a Core path. If the pull request changes tracks.yml,
+the check also uses the new tracks.yml, and both checks must pass. Only if
+the base has no tracks.yml (the pull request that adds it), the check uses
+the tracks.yml of the pull request.
+
+A pull request from a fork gets no track: each owned path that it changes
+needs the label. The check coordinates the tracks; it is not a security
+gate. As with ci/changes.py, a pull request that changes this file or
+ci/changes.py runs its own version of them. Thus reviewers must examine
+each change to ci/ and to harness/tests/test_ownership.py carefully.
+
+The check fails closed: if git fails, if a tracks.yml is not correct, if
+two tracks have the branch, or if PyYAML is not available, it fails. The
+workflow runs it with the python3 of the runner image (ubuntu-latest has
+PyYAML); the unit tests run it with the harness environment.
 
 Usage: ci/ownership.py EVENT
 EVENT is the GitHub event name. Only pull_request is checked. Env: BRANCH
-(the head branch) and LABELS (a JSON list of the label names).
+(the head branch), LABELS (a JSON list of the label names), REPO (this
+repository), and HEAD_REPO (the repository of the head branch).
 Output: the changed files with their owners and the result, also in
 GITHUB_STEP_SUMMARY if set. Exit code 0: pass, 1: fail.
 """
@@ -24,7 +40,7 @@ import sys
 from fnmatch import fnmatchcase
 from pathlib import Path
 
-from changes import changed_files
+from changes import _git, base_commit, changed_files
 
 ROOT = Path(__file__).resolve().parents[1]
 TRACKS_FILE = ROOT / "tracks.yml"
@@ -54,15 +70,59 @@ def matches(pattern: str, path: str) -> bool:
     return match(pattern.split("/"), path.split("/"))
 
 
-def load(path: Path = TRACKS_FILE) -> dict[str, dict]:
-    """Return {track: {"branches": [...], "paths": [...]}} from tracks.yml."""
-    import yaml
-
+def parse(text: str, source: str) -> dict[str, dict]:
+    """Return {track: {"branches": [...], "paths": [...]}} from the text of
+    a tracks.yml."""
     try:
-        data = yaml.safe_load(path.read_text(encoding="utf8"))
-    except (OSError, yaml.YAMLError) as exc:
-        raise TracksError(f"{path}: cannot read: {exc}") from None
+        import yaml
+    except ImportError:
+        raise TracksError("PyYAML is not available") from None
+    try:
+        data = yaml.safe_load(text)
+    except yaml.YAMLError as exc:
+        raise TracksError(f"{source}: cannot read: {exc}") from None
     return validate(data)
+
+
+def load(path: Path = TRACKS_FILE) -> dict[str, dict]:
+    """Return the tracks of a tracks.yml file."""
+    try:
+        text = path.read_text(encoding="utf8")
+    except OSError as exc:
+        raise TracksError(f"{path}: cannot read: {exc}") from None
+    return parse(text, str(path))
+
+
+def tracks_text(commit: str, cwd: str | None = None) -> str | None:
+    """Return the text of tracks.yml in a commit, or None if it has none."""
+    listed = _git(
+        "ls-tree", "--full-tree", "--name-only", commit, "--", "tracks.yml", cwd=cwd
+    )
+    text = _git("show", f"{commit}:tracks.yml", cwd=cwd) if listed else ""
+    if listed is None or text is None:
+        raise ValueError(f"cannot read the tracks.yml of {commit} (git failed)")
+    return text if listed.strip() else None
+
+
+def rule_sets(cwd: str | None = None) -> list[tuple[str, dict[str, dict]]]:
+    """Return the tracks.yml files that the check uses, with a name for each.
+
+    The tracks.yml of the base commit, and the tracks.yml of HEAD if it is
+    different. Only the tracks.yml of HEAD if the base has none."""
+    base = base_commit(cwd)
+    if base is None:
+        raise ValueError("the base commit is not known (git failed)")
+    base_text = tracks_text(base, cwd)
+    head_text = tracks_text("HEAD", cwd)
+    if head_text is None:
+        raise TracksError("the pull request has no tracks.yml")
+    head = ("the pull request", parse(head_text, "HEAD:tracks.yml"))
+    if base_text is None:
+        return [(f"{head[0]} (the base has no tracks.yml)", head[1])]
+    sets = [(f"the base {base[:12]}", parse(base_text, f"{base[:12]}:tracks.yml"))]
+    if head_text != base_text:
+        sets.append((f"{head[0]} (it changes tracks.yml)", head[1]))
+    return sets
 
 
 def validate(data: object) -> dict[str, dict]:
@@ -112,12 +172,23 @@ def owner(path: str, tracks: dict[str, dict]) -> str | None:
 
 
 def check(
-    branch: str, labels: list[str], paths: list[str], tracks: dict[str, dict]
+    branch: str,
+    labels: list[str],
+    paths: list[str],
+    tracks: dict[str, dict],
+    fork: bool = False,
 ) -> tuple[bool, list[str]]:
-    """Return True if the pull request can change these paths, and the text."""
-    track, known = track_of_branch(branch, tracks)
-    how = "" if known else " (no track has this branch: Core track rules)"
-    text = [f"Branch {branch}: track {track}{how}.", f"Changed files ({len(paths)}):"]
+    """Return True if the pull request can change these paths, and the text.
+
+    A pull request from a fork (fork=True) gets no track."""
+    if fork:
+        track = None
+        text = [f"Branch {branch} of a fork: no track."]
+    else:
+        track, known = track_of_branch(branch, tracks)
+        how = "" if known else " (no track has this branch: Core track rules)"
+        text = [f"Branch {branch}: track {track}{how}."]
+    text.append(f"Changed files ({len(paths)}):")
     others: dict[str, list[str]] = {}
     for path in paths:
         own = owner(path, tracks)
@@ -156,11 +227,18 @@ def main(argv: list[str]) -> int:
         branch = os.environ.get("BRANCH", "")
         if not branch:
             raise ValueError("BRANCH is not set")
+        repo = os.environ.get("REPO", "")
+        fork = bool(repo) and os.environ.get("HEAD_REPO", "") != repo
         paths = changed_files(event)
         if paths is None:
             raise ValueError("the changed files are not known (git failed)")
-        ok, text = check(branch, labels, paths, load())
-    except (TracksError, ValueError) as exc:
+        ok, text = True, []
+        for name, tracks in rule_sets():
+            one_ok, one_text = check(branch, labels, paths, tracks, fork)
+            ok = ok and one_ok
+            text += [f"Rules: the tracks.yml of {name}.", *one_text, ""]
+        text.append(f"Result: {'pass' if ok else 'fail'}.")
+    except (TracksError, ValueError, OSError) as exc:
         ok, text = False, [f"error: {exc}", "Result: fail."]
     print("\n".join(text))
     summary = os.environ.get("GITHUB_STEP_SUMMARY")

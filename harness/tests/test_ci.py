@@ -424,3 +424,11 @@ def test_main_writes_the_output(tmp_path, monkeypatch, capsys):
     assert "not known (git failed)" in text
     assert "Result: full run" in text
     assert "the dialect oracles, and the smoke benchmark." in text
+
+
+def test_a_non_ascii_path_is_not_quoted(repo):
+    _git(repo, "checkout", "-q", "-b", "pr")
+    _commit(repo, "corpus/é a.sql", "select 1")
+    _merge(repo, "pr")
+    files = changes.changed_files("pull_request", cwd=str(repo))
+    assert files == ["corpus/é a.sql"]

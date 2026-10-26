@@ -239,8 +239,11 @@ def test_a_track_cannot_change_core_files():
 
 def _main(monkeypatch, tmp_path, paths, branch="claude/s9", labels="[]"):
     monkeypatch.setattr(ownership, "changed_files", lambda event: paths)
+    monkeypatch.setattr(ownership, "rule_sets", lambda: [("a test", TRACKS)])
     monkeypatch.setenv("BRANCH", branch)
     monkeypatch.setenv("LABELS", labels)
+    monkeypatch.delenv("REPO", raising=False)
+    monkeypatch.delenv("HEAD_REPO", raising=False)
     summary = tmp_path / "summary.md"
     monkeypatch.setenv("GITHUB_STEP_SUMMARY", str(summary))
     code = ownership.main(["pull_request"])
@@ -286,6 +289,184 @@ def test_main_does_nothing_on_another_event(capsys):
     assert "not a pull request" in capsys.readouterr().out
 
 
+def test_a_fork_gets_no_track():
+    ok, text = ownership.check("claude/core", [], ["new/x"], TRACKS, fork=True)
+    assert ok
+    assert text[0] == "Branch claude/core of a fork: no track."
+    for path in ("PROCESS.md", "status/S9.md"):
+        ok, text = ownership.check("claude/core", [], [path], TRACKS, fork=True)
+        assert not ok, path
+    ok, _ = ownership.check(
+        "claude/core", ["cross-track"], ["PROCESS.md"], TRACKS, fork=True
+    )
+    assert ok
+
+
+def test_main_gives_a_fork_no_track(monkeypatch, tmp_path):
+    monkeypatch.setenv("REPO", "adamgen/sqll")
+    for head_repo, want in (("adamgen/sqll", 0), ("x/sqll", 1), ("", 1)):
+        monkeypatch.setattr(ownership, "changed_files", lambda event: ["PROCESS.md"])
+        monkeypatch.setattr(ownership, "rule_sets", lambda: [("a test", TRACKS)])
+        monkeypatch.setenv("BRANCH", "claude/core")
+        monkeypatch.setenv("LABELS", "[]")
+        monkeypatch.setenv("HEAD_REPO", head_repo)
+        monkeypatch.delenv("GITHUB_STEP_SUMMARY", raising=False)
+        assert ownership.main(["pull_request"]) == want, head_repo
+
+
+# The rules come from the tracks.yml of the base (a merge commit as on GitHub)
+
+
+def _git(repo, *args):
+    return subprocess.run(
+        ["git", "-C", str(repo), "-c", "user.name=t", "-c", "user.email=t@t", *args],
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout
+
+
+def _write(repo, files):
+    for path, text in files.items():
+        if text is None:
+            _git(repo, "rm", "-q", path)
+            continue
+        (repo / path).parent.mkdir(parents=True, exist_ok=True)
+        (repo / path).write_text(text, encoding="utf8")
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-qm", "c")
+
+
+TRACKS_TEXT = (REPO_ROOT / "tracks.yml").read_text(encoding="utf8")
+
+
+def _pull_request(tmp_path, monkeypatch, base, change, branch, labels="[]"):
+    """Make a merge commit of a pull request as GitHub does. base and
+    change: {path: text, or None to delete}. Return the code and the text
+    of main()."""
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    _git(repo, "init", "-q", "-b", "main")
+    _write(repo, {"README": "x", **base})
+    _git(repo, "checkout", "-q", "-b", "pr")
+    _write(repo, change)
+    _git(repo, "checkout", "-q", "main")
+    _git(repo, "merge", "-q", "--no-ff", "pr", "-m", "merge")
+    monkeypatch.chdir(repo)
+    monkeypatch.setenv("BRANCH", branch)
+    monkeypatch.setenv("LABELS", labels)
+    monkeypatch.delenv("REPO", raising=False)
+    monkeypatch.delenv("HEAD_REPO", raising=False)
+    summary = tmp_path / "summary.md"
+    monkeypatch.setenv("GITHUB_STEP_SUMMARY", str(summary))
+    code = ownership.main(["pull_request"])
+    return code, summary.read_text(encoding="utf8")
+
+
+def _grant_s9(paths):
+    """tracks.yml with more paths for the S9 track."""
+    old = "      - harness/tests/test_s9_*.py\n"
+    assert old in TRACKS_TEXT
+    return TRACKS_TEXT.replace(old, old + "".join(f"      - {p}\n" for p in paths))
+
+
+def test_a_pull_request_cannot_give_its_track_core_paths(tmp_path, monkeypatch):
+    grant = _grant_s9(["tracks.yml", ".github/**", "PROCESS.md"])
+    assert ownership.owner("PROCESS.md", ownership.parse(grant, "t")) == "S9"
+    code, text = _pull_request(
+        tmp_path,
+        monkeypatch,
+        {"tracks.yml": TRACKS_TEXT, "PROCESS.md": "a", ".github/workflows/ci.yml": ""},
+        {"tracks.yml": grant, "PROCESS.md": "b", ".github/workflows/ci.yml": "b"},
+        "claude/s9-z",
+    )
+    assert code == 1
+    assert "Rules: the tracks.yml of the base " in text
+    assert "- PROCESS.md: owned by core (another track)" in text
+    assert "- tracks.yml: owned by core (another track)" in text
+    assert "Rules: the tracks.yml of the pull request (it changes tracks.yml)" in text
+    assert text.rstrip().endswith("Result: fail.")
+
+
+def test_a_core_change_of_tracks_yml_uses_both_files(tmp_path, monkeypatch):
+    base = {"tracks.yml": TRACKS_TEXT, "harness/x.py": "a"}
+    grant = _grant_s9(["harness/x.py"])
+    # Core gives harness/x.py to S9 and does not change it: pass.
+    code, text = _pull_request(
+        tmp_path, monkeypatch, base, {"tracks.yml": grant}, "claude/core"
+    )
+    assert code == 0, text
+    assert text.count("Rules: ") == 2
+
+
+def test_a_core_change_of_a_path_that_it_gives_away_needs_the_label(
+    tmp_path, monkeypatch
+):
+    base = {"tracks.yml": TRACKS_TEXT, "harness/x.py": "a"}
+    change = {"tracks.yml": _grant_s9(["harness/x.py"]), "harness/x.py": "b"}
+    code, text = _pull_request(tmp_path, monkeypatch, base, change, "claude/core")
+    assert code == 1
+    assert "- harness/x.py: owned by S9 (another track)" in text
+
+
+def test_the_base_rules_apply_when_tracks_yml_does_not_change(tmp_path, monkeypatch):
+    base = {"tracks.yml": TRACKS_TEXT, "status/S3.md": "a"}
+    code, text = _pull_request(
+        tmp_path, monkeypatch, base, {"status/S3.md": "b"}, "claude/s9-z"
+    )
+    assert code == 1
+    assert text.count("Rules: ") == 1
+    (tmp_path / "s3").mkdir()
+    code, _ = _pull_request(
+        tmp_path / "s3", monkeypatch, base, {"status/S3.md": "b"}, "claude/s3-z"
+    )
+    assert code == 0
+
+
+def test_the_pull_request_that_adds_tracks_yml_uses_its_own(tmp_path, monkeypatch):
+    code, text = _pull_request(
+        tmp_path, monkeypatch, {}, {"tracks.yml": TRACKS_TEXT}, "claude/core"
+    )
+    assert code == 0, text
+    assert "Rules: the tracks.yml of the pull request (the base has no" in text
+
+
+def test_a_pull_request_that_deletes_tracks_yml_fails(tmp_path, monkeypatch):
+    code, text = _pull_request(
+        tmp_path,
+        monkeypatch,
+        {"tracks.yml": TRACKS_TEXT},
+        {"tracks.yml": None},
+        "claude/core",
+    )
+    assert code == 1
+    assert "error: the pull request has no tracks.yml" in text
+
+
+def test_a_bad_tracks_yml_in_the_pull_request_fails(tmp_path, monkeypatch):
+    code, text = _pull_request(
+        tmp_path,
+        monkeypatch,
+        {"tracks.yml": TRACKS_TEXT},
+        {"tracks.yml": "x: ["},
+        "claude/core",
+    )
+    assert code == 1
+    assert "error: HEAD:tracks.yml: cannot read" in text
+
+
+def test_a_non_ascii_path_has_its_owner(tmp_path, monkeypatch):
+    code, text = _pull_request(
+        tmp_path,
+        monkeypatch,
+        {"tracks.yml": TRACKS_TEXT},
+        {"corpus/\u00e9.sql": "select 1"},
+        "claude/s7-tests-q",
+    )
+    assert code == 1
+    assert "- corpus/\u00e9.sql: owned by S9 (another track)" in text
+
+
 # .github/workflows/ownership.yml
 
 
@@ -306,6 +487,8 @@ def test_the_workflow_runs_the_check_on_each_pull_request_change():
         "EVENT": "${{ github.event_name }}",
         "BRANCH": "${{ github.head_ref }}",
         "LABELS": "${{ toJSON(github.event.pull_request.labels.*.name) }}",
+        "REPO": "${{ github.repository }}",
+        "HEAD_REPO": "${{ github.event.pull_request.head.repo.full_name }}",
     }
     assert set(step) == {"name", "env", "run"}
     assert verify.ci_weak_parts(step["run"]) == []

@@ -22,9 +22,13 @@ jobs:
         with:
           fetch-depth: 0
 
+      # The python3 of ubuntu-latest has PyYAML. Without it, the check
+      # fails closed (ci/ownership.py).
       - name: Check the track ownership of the changed files
         env:
           EVENT: ${{ github.event_name }}
           BRANCH: ${{ github.head_ref }}
           LABELS: ${{ toJSON(github.event.pull_request.labels.*.name) }}
+          REPO: ${{ github.repository }}
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
         run: python3 ci/ownership.py "$EVENT"

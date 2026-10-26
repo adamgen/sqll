@@ -64,15 +64,17 @@ Stones that do not need each other run in parallel, one track for each.
    check fails a pull request that changes a path of another track, unless
    the pull request has the label `cross-track`. Then the owning track must
    review it. A branch that is not in `tracks.yml` gets the Core track rules.
+   The check uses the `tracks.yml` of the base branch.
 4. The Core track owns the shared tree and interfaces, the harness core,
    the CI workflow files, `ci/`, `scripts/`, and the protocol files
    (CONSTITUTION.md, PROCESS.md, STONES.md, STATUS.md, `tracks.yml`). Other
    tracks ask for a Core change with an issue.
 5. Hot files: STATUS.md is a short index. Each track writes only its own
-   status file `status/<track>.md` (for example `status/S9.md`; the Core
-   track: `status/S3b.md`), its CI matrix entries in
-   `ci/matrix.d/<track>.json`, and its results in `results/<track>/`. The
-   old `results/s1/` and `results/s2/` stay.
+   status file `status/<track>.md` (for example `status/S9.md`), its CI
+   matrix entries in `ci/matrix.d/<track>.json`, and its results in
+   `results/<track>/`. The Core track writes `status/S3b.md`,
+   `ci/matrix.d/core.json`, and `results/S3b/`. The old `results/s1/` and
+   `results/s2/` stay.
 6. Before a merge, merge the newest main into the branch, push, and wait
    for CI on that head. CI must pass on it.
 7. Do only one long local run at a time on a machine (for example a full

@@ -12,7 +12,13 @@
 # than core must not match the same path (harness/tests/test_ownership.py).
 #
 # Each track also owns its hot files: status/<track>.md,
-# ci/matrix.d/<track>.json, and results/<track>/.
+# ci/matrix.d/<track>.json, and results/<track>/. The hot files of the Core
+# track are status/S3b.md, ci/matrix.d/core.json, and results/S3b/.
+#
+# The ownership check uses the tracks.yml of the base of a pull request.
+# If the pull request changes this file, the check also uses the new file,
+# and both checks must pass. Thus a pull request cannot give its track more
+# paths.
 
 tracks:
   core:

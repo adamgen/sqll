@@ -56,19 +56,29 @@ def _git(*args: str, cwd: str | None = None) -> str | None:
     return out.stdout if out.returncode == 0 else None
 
 
+def base_commit(cwd: str | None = None) -> str | None:
+    """Return the base commit of a pull_request run, or None if git fails.
+
+    In a pull_request run, HEAD is the merge commit; its first parent is
+    the base.
+    """
+    parents = (_git("rev-list", "--parents", "-n", "1", "HEAD", cwd=cwd) or "").split()
+    return parents[1] if len(parents) == 3 else None
+
+
 def changed_files(event: str, cwd: str | None = None) -> list[str] | None:
     """Return the files that a pull request changes, or None.
 
-    None: the event is not pull_request, or git fails. In a pull_request
-    run, HEAD is the merge commit; its first parent is the base.
+    None: the event is not pull_request, or git fails. The paths are not
+    quoted: "-z" gives each path as it is, also with non-ASCII characters.
     """
     if event != "pull_request":
         return None
-    parents = (_git("rev-list", "--parents", "-n", "1", "HEAD", cwd=cwd) or "").split()
-    if len(parents) != 3:
+    base = base_commit(cwd)
+    if base is None:
         return None
-    out = _git("diff", "--no-renames", "--name-only", parents[1], "HEAD", cwd=cwd)
-    return None if out is None else out.splitlines()
+    out = _git("diff", "--no-renames", "--name-only", "-z", base, "HEAD", cwd=cwd)
+    return None if out is None else [p for p in out.split("\0") if p]
 
 
 def main(argv: list[str]) -> int:
