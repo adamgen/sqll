@@ -6,6 +6,7 @@ and the data agree with the T2 files and known_failures/sqruff.txt."""
 
 import copy
 import importlib.util
+import itertools
 import json
 from collections import Counter
 
@@ -163,6 +164,20 @@ def test_the_unparsable_key_has_the_dialect_and_the_failing_segment():
     }
 
 
+def test_an_unparsable_node_with_no_code_leaf_has_the_segment_dash():
+    def select(*middle):
+        return N("select_statement", L("keyword", "SELECT"), *middle, L("raw", "x"))
+
+    comment = L("comment", "/* c */")
+    e = N("file", N("statement", select(comment)))
+    a = N("file", N("statement", select(N("unparsable", comment))))
+    assert keys(e, a, "ansi") == ["unparsable: ansi: - in select_statement"]
+    # With no code node that holds it: the root.
+    e = N("file", N("statement", select()), comment)
+    a = N("file", N("statement", select()), N("unparsable", comment))
+    assert keys(e, a, "ansi") == ["unparsable: ansi: - in file"]
+
+
 def test_leaf_changes_show_moved_removed_and_added_leaves():
     e = N("file", N("s", N("x", L("keyword", "a")), L("keyword", "b")))
     a = N("file", N("s", L("keyword", "a"), L("word", "c")))
@@ -296,6 +311,18 @@ def test_the_top_group_shares_are_measured():
     assert OUT["groups"]["cases_with_a_unique_fix"] == sum(
         1 for r in rows if set(r[3]) & singles
     )
+    # The tie range: each order of the groups with equal counts.
+    for n in st.TOP:
+        size = groups[ranked[n - 1]]
+        above = {k for k in groups if groups[k] > size}
+        tied = sorted(k for k in groups if groups[k] == size)
+        values = {
+            sum(1 for r in rows if set(r[3]) <= above | set(pick))
+            for pick in itertools.combinations(tied, n - len(above))
+        }
+        got = OUT["groups"]["top"][str(n)]
+        assert got["tie_range"] == [min(values), max(values)]
+        assert min(values) <= got["cases"] <= max(values)
     assert [g[:2] for g in OUT["groups"]["top_50"]] == [
         [k, groups[k]] for k in ranked[:50]
     ]
@@ -341,7 +368,10 @@ def test_the_unparsable_key_sensitivity_is_measured():
 def test_the_hand_check_is_recorded():
     hc = OUT["hand_check"]
     assert hc["size"] == len(hc["cases"]) >= 60
-    assert hc["rule"] and hc["method"]
+    assert hc["method"]
+    rows = st.case_rows(HUNKS)
+    assert hc["rule"] == st.select_sample(rows)[1]
+    assert [c["id"] for c in hc["cases"]] == st.select_sample(rows)[0]
     assert hc["agree"] == sum(c["agree"] for c in hc["cases"])
     assert hc["rate"] == round(hc["agree"] / hc["size"], 4)
     dialects = {r[1] for r in OUT["cases"]}
@@ -369,6 +399,10 @@ def test_the_s3_status_file_and_the_decision_record_have_t3():
     top = OUT["groups"]["top"]
     for n in st.TOP:
         assert f"top {n} groups: {top[str(n)]['cases']}" in flat
+        low, high = top[str(n)]["tie_range"]
+        assert (
+            f"top {n}: {low} to {high}" if low < high else f"top {n}: {low}"
+        ) in flat
     assert f"{OUT['groups']['groups']} groups" in flat
     unique = OUT["groups"]["cases_with_a_unique_fix"]
     assert f"{unique} cases need a fix that no other case needs" in flat

@@ -131,9 +131,9 @@
   "key": "class and segment types, with no dialect (the unparsable keys have the dialect)",
   "groups": 593,
   "top": {
-   "10": {"cases": 162, "share": 0.2123, "touched": 355},
-   "20": {"cases": 188, "share": 0.2464, "touched": 412},
-   "50": {"cases": 265, "share": 0.3473, "touched": 461}
+   "10": {"cases": 162, "share": 0.2123, "touched": 355, "tie_range": [162, 166]},
+   "20": {"cases": 188, "share": 0.2464, "touched": 412, "tie_range": [188, 188]},
+   "50": {"cases": 265, "share": 0.3473, "touched": 461, "tie_range": [261, 268]}
   },
   "all": {"groups": 593, "cases": 763},
   "groups_with_one_case": 344,
@@ -143,16 +143,16 @@
    "key": "group key and dialect",
    "groups": 753,
    "top": {
-    "10": {"cases": 102, "share": 0.1337, "touched": 285},
-    "20": {"cases": 129, "share": 0.1691, "touched": 315},
-    "50": {"cases": 196, "share": 0.2569, "touched": 370}
+    "10": {"cases": 102, "share": 0.1337, "touched": 285, "tie_range": [102, 102]},
+    "20": {"cases": 129, "share": 0.1691, "touched": 315, "tie_range": [125, 129]},
+    "50": {"cases": 196, "share": 0.2569, "touched": 370, "tie_range": [192, 201]}
    },
    "all": {"groups": 753, "cases": 763},
    "groups_with_one_case": 472,
    "cases_with_a_unique_fix": 289,
    "cases_with_only_unique_fixes": 172
   },
-  "coverage_rule": "A case is covered by the top N groups if each of its group keys is in the top N. Groups are ranked by their count of cases, then by key. 'touched': the cases with at least one key in the top N. A unique fix: a group with only one case. 'unparsable_key_sensitivity': the same numbers with other group keys for the unparsable hunks.",
+  "coverage_rule": "A case is covered by the top N groups if each of its group keys is in the top N. Groups are ranked by their count of cases, then by key. 'tie_range': the minimum and the maximum of 'cases' for all orders of the groups that have equal counts. 'touched': the cases with at least one key in the top N. A unique fix: a group with only one case. 'unparsable_key_sensitivity': the same numbers with other group keys for the unparsable hunks.",
   "unparsable_key_sensitivity": {
    "used": {
     "unparsable_key": "dialect, sqlfluff segment of the first code leaf, sqlfluff statement",
@@ -235,7 +235,7 @@
  },
  "hand_check": {
   "size": 60,
-  "rule": "the case: each unparsable case needs its own fix",
+  "rule": "Order the cases by the sha256 of the case id. Take the first case of each dialect. Then, for each class, take the next cases that have the class until the sample has 3 cases with it (or no case is left). Then take the next cases until the sample has 60 cases.",
   "method": "The author of the classifier checked each case. For each case: read the output of 'sqruff_trees.py show ID' (another method than the classifier: the change of the ancestor types of each leaf), and where it was not clear, the unified diff of the 2 trees and the hunks. Then write the classes that the class definitions give. Limits: the checker also wrote the classifier, thus the check is not independent. The first check found hunks next to unparsable nodes that follow from the parse failure (for example impala/null_safe_equal and snowflake/create_stream gave nesting and wrapper hunks). The unparsable region rule and the meta key changed after that. The sample was selected again and checked on the final classifier.",
   "agree": 60,
   "rate": 1.0,

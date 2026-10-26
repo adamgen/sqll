@@ -40,6 +40,8 @@ import json
 import sys
 from bisect import bisect_left, bisect_right
 from collections import Counter
+from itertools import combinations
+from math import comb
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -75,6 +77,7 @@ NO_UNPARSABLE_FAILURES = 142
 TOP = (10, 20, 50)
 SAMPLE_SIZE = 60
 SAMPLE_PER_CLASS = 3
+TIE_ORDERS_LIMIT = 100_000
 
 COLLECT_COMMAND = (
     "uv run --frozen --project harness python scripts/s3/sqruff_trees.py collect"
@@ -810,6 +813,24 @@ def coverage(rows: list[dict], key_fn) -> dict:
     def covered(n: int) -> int:
         return sum(v for k, v in need.items() if k <= n)
 
+    def tie_range(n: int) -> list[int]:
+        """[min, max] of covered(n) for each order of the groups that have
+        the same count of cases as the group at rank n."""
+        if n >= len(ranked):
+            return [covered(n), covered(n)]
+        size = len(groups[ranked[n - 1]])
+        above = {k for k in ranked if len(groups[k]) > size}
+        tied = [k for k in ranked if len(groups[k]) == size]
+        places = n - len(above)
+        if comb(len(tied), places) > TIE_ORDERS_LIMIT:
+            raise DataError(f"too many tie orders at the top {n} groups")
+        sets = [set(ks) for ks in case_keys.values()]
+        values = [
+            sum(1 for ks in sets if ks <= above | set(pick))
+            for pick in combinations(tied, places)
+        ]
+        return [min(values), max(values)]
+
     singles = {k for k, v in groups.items() if len(v) == 1}
     return {
         "groups": len(groups),
@@ -818,6 +839,7 @@ def coverage(rows: list[dict], key_fn) -> dict:
                 "cases": covered(n),
                 "share": round(covered(n) / total, 4),
                 "touched": len(set().union(*(groups[k] for k in ranked[:n]))),
+                "tie_range": tie_range(n),
             }
             for n in TOP
         },
@@ -877,7 +899,7 @@ def build(
 
     # Hand check.
     hand = json.loads(handcheck_file.read_text("utf8"))
-    sample, rule = select_sample(rows)
+    sample, sample_rule = select_sample(rows)
     hand_ids = [c["id"] for c in hand["cases"]]
     if hand_ids != sample:
         errors.append(
@@ -940,7 +962,7 @@ def build(
         rows, lambda r: [f"{k} @ {r['dialect']}" for k in keys_of(r)]
     )
     sensitivity = {}
-    for name, rule, fn in UNPARSABLE_KEY_VARIANTS:
+    for name, key_rule, fn in UNPARSABLE_KEY_VARIANTS:
         c = coverage(
             rows,
             lambda r, fn=fn: sorted(
@@ -948,7 +970,7 @@ def build(
             ),
         )
         sensitivity[name] = {
-            "unparsable_key": rule,
+            "unparsable_key": key_rule,
             "groups": c["groups"],
             "top": {n: v["cases"] for n, v in c["top"].items()},
             "cases_with_a_unique_fix": c["cases_with_a_unique_fix"],
@@ -1051,7 +1073,10 @@ def build(
             "coverage_rule": (
                 "A case is covered by the top N groups if each of its group "
                 "keys is in the top N. Groups are ranked by their count of "
-                "cases, then by key. 'touched': the cases with at least one key in the top N. "
+                "cases, then by key. 'tie_range': the minimum and the maximum "
+                "of 'cases' for all orders of the groups that have equal "
+                "counts. 'touched': the cases with at least one key in the "
+                "top N. "
                 "A unique fix: a group with only one case. "
                 "'unparsable_key_sensitivity': the same numbers with other "
                 "group keys for the unparsable hunks."
@@ -1062,7 +1087,7 @@ def build(
         },
         "hand_check": {
             "size": len(checked),
-            "rule": rule,
+            "rule": sample_rule,
             "method": hand["method"],
             "agree": agree,
             "rate": round(agree / len(checked), 4),
