@@ -52,7 +52,7 @@ sizes. The record labels each such value as an estimate.
 | Criterion | Data | File | Task | Kind |
 |---|---|---|---|---|
 | C1 | S1 results of options 1 and 2 by suite and by dialect. sqruff: a new local run of the 4 suites (`results/s3/sqruff-cases.json`); sqlfluff-rs: `results/s1/summary.json` and the pinned fixtures | `results/s3/s1-by-base.json` | T2 | Measurement (options 1, 2); no data (option 3; T9 gives the estimate) |
-| C2 | Classes of the sqruff tree mismatches: count of cases and dialects for each class | `results/s3/sqruff-trees.json` | T3 | Measurement |
+| C2 | Classes of the sqruff tree mismatches: count of cases and dialects for each class; groups by segment type and the share of the top groups; hand check of a sample. Inputs: `results/s3/sqruff-tree-hunks.json` (a new sqruff run) and `results/s3/sqruff-tree-handcheck.json` | `results/s3/sqruff-tree-diffs.json` | T3 | Measurement |
 | C3 | Classes of the sqruff rule, autofix, and templater failures; for each rule, the tree types that it reads | `results/s3/sqruff-rules.json` | T4 | Measurement |
 | C4 | sqlfluffrs probe (`scripts/s3/`): build without Python, parse the dialect fixtures in a native binary, run the generator outside the submodule | `results/s3/sqlfluffrs-probe.json` | T5 | Measurement |
 | C5 | Times of the probe and of sqruff on the S2 inputs, in one session; the ratios to the G3 targets | `results/s3/speed.json` | T6 | Measurement (options 1, 2); estimate (option 3) |

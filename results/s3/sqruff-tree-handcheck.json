@@ -1,0 +1,463 @@
+{
+ "kind": "sqll-s3-sqruff-tree-handcheck",
+ "format": 1,
+ "method": "The author of the classifier checked each case. For each case: read the output of 'sqruff_trees.py show ID' (another method than the classifier: the change of the ancestor types of each leaf), and where it was not clear, the unified diff of the 2 trees and the hunks. Then write the classes that the class definitions give. Limits: the checker also wrote the classifier, thus the check is not independent. The first check found hunks next to unparsable nodes that follow from the parse failure (for example impala/null_safe_equal and snowflake/create_stream gave nesting and wrapper hunks). The unparsable region rule and the meta key changed after that. The sample was selected again and checked on the final classifier.",
+ "cases": [
+  {
+   "id": "dialects/ansi/select_many_join",
+   "classes": [
+    "missing_wrapper",
+    "extra_wrapper"
+   ],
+   "note": "from_expression_element moves inside the bracket; sqruff adds from_expression in it. No node crosses."
+  },
+  {
+   "id": "dialects/athena/listagg",
+   "classes": [
+    "missing_wrapper"
+   ],
+   "note": "No withingroup_clause and no listagg_overflow_clause."
+  },
+  {
+   "id": "dialects/bigquery/create_table_keys",
+   "classes": [
+    "extra_wrapper"
+   ],
+   "note": "Extra referenced_column_list."
+  },
+  {
+   "id": "dialects/clickhouse/into_outfile",
+   "classes": [
+    "missing_wrapper",
+    "leaf_type"
+   ],
+   "note": "No into_outfile_clause and format_clause; keyword becomes word."
+  },
+  {
+   "id": "dialects/clickhouse/numeric_literals",
+   "classes": [
+    "unparsable"
+   ],
+   "note": "Each change is in a statement with an unparsable node (numeric literal lexing)."
+  },
+  {
+   "id": "dialects/clickhouse/select_set_operators",
+   "classes": [
+    "unparsable"
+   ],
+   "note": "INTERSECT and EXCEPT forms are unparsable; the first SELECT is in the same statement."
+  },
+  {
+   "id": "dialects/databricks/alter_view",
+   "classes": [
+    "extra_wrapper"
+   ],
+   "note": "Extra object_reference in table_reference."
+  },
+  {
+   "id": "dialects/databricks/bare_magic_line",
+   "classes": [
+    "extra_wrapper"
+   ],
+   "note": "Extra object_reference in table_reference."
+  },
+  {
+   "id": "dialects/databricks/show_functions",
+   "classes": [
+    "renamed"
+   ],
+   "note": "database_reference is object_reference."
+  },
+  {
+   "id": "dialects/db2/create_view",
+   "classes": [
+    "extra_wrapper"
+   ],
+   "note": "create_view_statement in create_view_statement."
+  },
+  {
+   "id": "dialects/doris/create_table_aggregate_with_default_comment",
+   "classes": [
+    "unparsable"
+   ],
+   "note": "All changes are in the unparsable statement."
+  },
+  {
+   "id": "dialects/duckdb/interval_plural_forms",
+   "classes": [
+    "extra_wrapper"
+   ],
+   "note": "interval_expression in interval_expression."
+  },
+  {
+   "id": "dialects/exasol/create_function_statement",
+   "classes": [
+    "leaf_text",
+    "extra_wrapper"
+   ],
+   "note": "Terminator '/' is '/\\n' in sqruff; extra object_reference."
+  },
+  {
+   "id": "dialects/exasol/create_python_scalar_script",
+   "classes": [
+    "leaf_text",
+    "extra_wrapper"
+   ],
+   "note": "Terminator '/' is '/\\n' in sqruff; extra object_reference."
+  },
+  {
+   "id": "dialects/exasol/create_scripting_lua_script_statement1",
+   "classes": [
+    "leaf_text",
+    "extra_wrapper"
+   ],
+   "note": "Terminator '/' is '/\\n' in sqruff; extra object_reference."
+  },
+  {
+   "id": "dialects/greenplum/fetch",
+   "classes": [
+    "renamed"
+   ],
+   "note": "fetch_clause is fetch_statement."
+  },
+  {
+   "id": "dialects/hive/truncate_table",
+   "classes": [
+    "renamed"
+   ],
+   "note": "truncate_table is truncate_statement."
+  },
+  {
+   "id": "dialects/impala/null_safe_equal",
+   "classes": [
+    "unparsable"
+   ],
+   "note": "Each statement with <=> has an unparsable node; no change outside these statements."
+  },
+  {
+   "id": "dialects/mariadb/alter_table",
+   "classes": [
+    "missing_wrapper",
+    "renamed"
+   ],
+   "note": "index_reference is database_reference; no index_option."
+  },
+  {
+   "id": "dialects/mariadb/if",
+   "classes": [
+    "nesting",
+    "missing_wrapper",
+    "extra_wrapper"
+   ],
+   "note": "sqruff ends the IF after the first statement; the sqruff IF crosses if_statement_list."
+  },
+  {
+   "id": "dialects/mariadb/if_session_variable",
+   "classes": [
+    "nesting",
+    "missing_wrapper",
+    "extra_wrapper"
+   ],
+   "note": "As mariadb/if."
+  },
+  {
+   "id": "dialects/materialize/drop_statements",
+   "classes": [
+    "extra_wrapper",
+    "renamed",
+    "leaf_type"
+   ],
+   "note": "drop_*_statement is drop_statement; references are object_reference; data_type_identifier is naked_identifier; extra object_reference for DROP ROLE."
+  },
+  {
+   "id": "dialects/mysql/create_trigger",
+   "classes": [
+    "renamed"
+   ],
+   "note": "create_trigger is create_trigger_statement."
+  },
+  {
+   "id": "dialects/mysql/if_else",
+   "classes": [
+    "nesting",
+    "missing_wrapper",
+    "extra_wrapper"
+   ],
+   "note": "As mariadb/if."
+  },
+  {
+   "id": "dialects/oracle/create_table",
+   "classes": [
+    "missing_wrapper",
+    "extra_wrapper",
+    "renamed"
+   ],
+   "note": "oracle_* names; column_constraint_segment has another span (no crossing)."
+  },
+  {
+   "id": "dialects/oracle/non_ansi_joins",
+   "classes": [
+    "renamed"
+   ],
+   "note": "batch, table_reference, function_name have oracle_* names."
+  },
+  {
+   "id": "dialects/oracle/substitution_variable",
+   "classes": [
+    "extra_wrapper",
+    "renamed",
+    "leaf_type"
+   ],
+   "note": "grant_statement in grant_statement; oracle_* names; raw is positional_substitution_variable."
+  },
+  {
+   "id": "dialects/postgres/alter_type",
+   "classes": [
+    "extra_wrapper",
+    "renamed"
+   ],
+   "note": "schema_reference is table_reference with object_reference in it."
+  },
+  {
+   "id": "dialects/postgres/pgvector",
+   "classes": [
+    "keyword_vs_identifier"
+   ],
+   "note": "keyword is data_type_identifier."
+  },
+  {
+   "id": "dialects/redshift/alter_schema",
+   "classes": [
+    "extra_wrapper",
+    "renamed"
+   ],
+   "note": "schema_reference is table_reference with object_reference in it."
+  },
+  {
+   "id": "dialects/snowflake/alter_dynamic_table",
+   "classes": [
+    "renamed"
+   ],
+   "note": "column_reference is object_reference."
+  },
+  {
+   "id": "dialects/snowflake/create_dynamic_table_governance",
+   "classes": [
+    "unparsable"
+   ],
+   "note": "All changes are in the unparsable statements."
+  },
+  {
+   "id": "dialects/snowflake/create_procedure",
+   "classes": [
+    "extra_wrapper"
+   ],
+   "note": "Extra object_reference in bracketed."
+  },
+  {
+   "id": "dialects/snowflake/create_stage",
+   "classes": [
+    "renamed"
+   ],
+   "note": "stage_parameters has a name for each cloud."
+  },
+  {
+   "id": "dialects/snowflake/create_stream",
+   "classes": [
+    "unparsable"
+   ],
+   "note": "All changes are in the unparsable statement."
+  },
+  {
+   "id": "dialects/snowflake/execute_dbt_project",
+   "classes": [
+    "unparsable"
+   ],
+   "note": "All changes are in the unparsable statements."
+  },
+  {
+   "id": "dialects/snowflake/select_group_by_cube_rollup",
+   "classes": [
+    "missing_wrapper"
+   ],
+   "note": "No cube_rollup_clause and no grouping_expression_list."
+  },
+  {
+   "id": "dialects/snowflake/select_grouping_sets",
+   "classes": [
+    "missing_wrapper"
+   ],
+   "note": "No grouping_sets_clause."
+  },
+  {
+   "id": "dialects/soql/date_literals",
+   "classes": [
+    "unsupported_dialect"
+   ],
+   "note": "sqruff has no soql dialect."
+  },
+  {
+   "id": "dialects/soql/select_where_date_literals",
+   "classes": [
+    "unsupported_dialect"
+   ],
+   "note": "sqruff has no soql dialect."
+  },
+  {
+   "id": "dialects/soql/select_where_date_n_literals",
+   "classes": [
+    "unsupported_dialect"
+   ],
+   "note": "sqruff has no soql dialect."
+  },
+  {
+   "id": "dialects/sparksql/select_group_by",
+   "classes": [
+    "extra_wrapper"
+   ],
+   "note": "Extra expression in grouping_expression_list."
+  },
+  {
+   "id": "dialects/sqlite/create_index",
+   "classes": [
+    "renamed"
+   ],
+   "note": "index_reference is database_reference."
+  },
+  {
+   "id": "dialects/starrocks/create_primary_key_table",
+   "classes": [
+    "extra_wrapper"
+   ],
+   "note": "create_table_statement in create_table_statement."
+  },
+  {
+   "id": "dialects/teradata/delete",
+   "classes": [
+    "extra_wrapper"
+   ],
+   "note": "expression in expression."
+  },
+  {
+   "id": "dialects/trino/within_group",
+   "classes": [
+    "missing_wrapper"
+   ],
+   "note": "No withingroup_clause and no listagg_overflow_clause."
+  },
+  {
+   "id": "dialects/tsql/alter_table_switch",
+   "classes": [
+    "extra_wrapper"
+   ],
+   "note": "Extra table_reference."
+  },
+  {
+   "id": "dialects/tsql/bulk_insert",
+   "classes": [
+    "unparsable"
+   ],
+   "note": "All changes are in the unparsable statements."
+  },
+  {
+   "id": "dialects/tsql/create_login",
+   "classes": [
+    "token_split"
+   ],
+   "note": "N'...' is 2 tokens in sqruff."
+  },
+  {
+   "id": "dialects/tsql/if_else_begin_end",
+   "classes": [
+    "missing_wrapper",
+    "extra_wrapper"
+   ],
+   "note": "No if_then_statement, if_clause, begin_end_block; extra object_reference."
+  },
+  {
+   "id": "dialects/tsql/offset",
+   "classes": [
+    "extra_wrapper"
+   ],
+   "note": "Extra object_reference in table_reference."
+  },
+  {
+   "id": "dialects/tsql/print",
+   "classes": [
+    "missing_wrapper",
+    "extra_wrapper",
+    "renamed",
+    "keyword_vs_identifier",
+    "leaf_type"
+   ],
+   "note": "No declare_segment and print_statement; parameter is tsql_variable; = is assignment_operator; keyword is function_name_identifier; extra parameterized_expression."
+  },
+  {
+   "id": "dialects/tsql/replicate",
+   "classes": [
+    "missing_wrapper",
+    "extra_wrapper",
+    "keyword_vs_identifier",
+    "leaf_type"
+   ],
+   "note": "No declare_segment; parameter is tsql_variable; keyword is function_name_identifier; extra object_reference."
+  },
+  {
+   "id": "dialects/tsql/select_pivot",
+   "classes": [
+    "extra_wrapper"
+   ],
+   "note": "Extra object_reference in table_reference."
+  },
+  {
+   "id": "dialects/tsql/stored_procedured_mixed_statements",
+   "classes": [
+    "token_split",
+    "missing_wrapper",
+    "extra_wrapper",
+    "renamed",
+    "leaf_type"
+   ],
+   "note": "N'LOW' split; no declare_segment, begin_end_block, table_distribution_index_clause; create_table_as_select_statement is 2 create_table_statement nodes."
+  },
+  {
+   "id": "dialects/tsql/system-variables",
+   "classes": [
+    "token_split",
+    "missing_wrapper",
+    "extra_wrapper",
+    "leaf_type"
+   ],
+   "note": "N'...' split; no if_then_statement, if_clause, print_statement; system_variable is tsql_variable in parameterized_expression. The sqruff statements are in the sqlfluff IF statement (no crossing)."
+  },
+  {
+   "id": "dialects/vertica/flex_functions",
+   "classes": [
+    "extra_wrapper",
+    "renamed"
+   ],
+   "note": "select_statement and partitionby_clause in themselves; identifier_list is column_reference."
+  },
+  {
+   "id": "templater/jinja_l_metas/002",
+   "classes": [
+    "meta"
+   ],
+   "note": "indent is implicit in sqruff."
+  },
+  {
+   "id": "templater/jinja_l_metas/007",
+   "classes": [
+    "meta"
+   ],
+   "note": "indent is implicit in sqruff."
+  },
+  {
+   "id": "templater/jinja_l_metas/008",
+   "classes": [
+    "meta"
+   ],
+   "note": "indent is implicit in sqruff."
+  }
+ ]
+}
