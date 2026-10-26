@@ -78,7 +78,11 @@ SQRUFF_NOTE = (
     "Failure reasons: the reason prefixes of known_failures/sqruff.txt "
     "(sqll-harness known-failures --counts). 'no_result': the check applies "
     "to the case but has no result (an unsupported item, an earlier "
-    "failure, or an unknown result)."
+    "failure, or an unknown result). The build checks the suite totals, the "
+    "failed cases, and the failure reasons against other committed files. "
+    "No other committed file has the check values of each failed case, thus "
+    "the check values of each group come from this run only. The proof of "
+    "them is that a new run gives the same per-case file."
 )
 NEW_PARSER_NOTE = (
     "Option 3 has no implementation, thus it has no S1 data. The decision "
@@ -399,12 +403,11 @@ def build(cases_file: Path = CASES_FILE) -> dict:
     check_cases(record, fixtures, summary)
 
     errors = []
-    for tool in ("sqlfluff-rs",):
-        res = summary["results"][tool]
-        if known_failures.load(KNOWN_FAILURES, tool):
-            errors.append(f"known_failures/{tool}.txt is not empty")
-        if res["parity"]["passed"] != res["parity"]["total"]:
-            errors.append(f"{tool}: not all cases pass in the summary")
+    if known_failures.load(KNOWN_FAILURES, "sqlfluff-rs"):
+        errors.append("known_failures/sqlfluff-rs.txt is not empty")
+    parity = summary["results"]["sqlfluff-rs"]["parity"]
+    if parity["passed"] != parity["total"]:
+        errors.append("sqlfluff-rs: not all cases pass in the summary")
     rs = tables(_all_pass_cases(fixtures), fixtures)
     errors += check_tables("sqlfluff-rs", rs, summary)
     sq = tables(_sqruff_cases(record), fixtures)

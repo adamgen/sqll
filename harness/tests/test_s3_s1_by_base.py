@@ -292,7 +292,7 @@ def test_the_record_has_the_ref_versions_commit_and_commands():
 
 
 def test_status_has_the_t2_numbers():
-    status = (REPO_ROOT / "STATUS.md").read_text("utf8")
+    status = " ".join((REPO_ROOT / "STATUS.md").read_text("utf8").split())
     sq = OUT["bases"]["sqruff"]
     exact = {
         d: (r["checks"]["exact"]["pass"], r["total"]) for d, r in sq["dialects"].items()
@@ -300,9 +300,26 @@ def test_status_has_the_t2_numbers():
     assert exact["oracle"] == (0, 103) and exact["soql"] == (0, 3)
     assert exact["flink"] == (17, 17)
     assert (
-        "from 0 of 103 (oracle) and 0 of 3 (soql: no dialect)\n  to 17 of 17 (flink)"
+        "from 0 of 103 (oracle) and 0 of 3 (soql: no dialect) to 17 of 17 (flink)"
         in status
     )
     full = sum(r["pass"] == r["total"] for r in sq["rules"].values())
     assert f"{full} of {len(sq['rules'])} rule groups pass all their cases" in status
     assert f"harness commit `{OUT['harness']['commit'][:7]}`" in status
+
+
+def test_the_decision_record_gives_the_true_source_of_the_c1_data():
+    record = (REPO_ROOT / "docs" / "decisions" / "s3-base.md").read_text("utf8")
+    out = f"`{s1.OUT_FILE.relative_to(REPO_ROOT)}`"
+    # The C1 row of the Method table (the Criteria table also has a C1 row).
+    row = next(r for r in record.splitlines() if r.startswith("| C1 |") and out in r)
+    cells = [c.strip() for c in row.strip("|").split("|")]
+    data, file, task, kind = cells[1:]
+    assert file == out and task == "T2"
+    assert f"`{s1.CASES_FILE.relative_to(REPO_ROOT)}`" in data
+    assert "`results/s1/summary.json`" in data and "pinned fixtures" in data
+    assert "run reports" not in data
+    assert OUT["bases"]["new-parser"]["data"] is None
+    assert (
+        kind == "Measurement (options 1, 2); no data (option 3; T9 gives the estimate)"
+    )
