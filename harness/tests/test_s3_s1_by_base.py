@@ -149,6 +149,47 @@ def test_a_status_that_does_not_agree_with_the_checks_fails(tmp_path):
         s1.build(write_cases(tmp_path, record))
 
 
+@pytest.mark.parametrize(
+    "values", [[2, 1], [True, True], [1, True], ["1", 1], [1.0, 1]]
+)
+def test_a_check_value_that_is_not_0_1_or_null_fails(tmp_path, values):
+    record = copy.deepcopy(CASES)
+    case = _first(record, "dialects/", "pass")
+    _shift(record, case[0], "pass", values)
+    with pytest.raises(s1.DataError, match="bad row"):
+        s1.build(write_cases(tmp_path, record))
+
+
+@pytest.mark.parametrize("clean", [False, None, 1])
+def test_a_run_in_a_checkout_with_changes_fails(tmp_path, clean):
+    record = copy.deepcopy(CASES)
+    record["harness"]["clean"] = clean
+    with pytest.raises(s1.DataError, match="has changes"):
+        s1.build(write_cases(tmp_path, record))
+
+
+def test_the_note_on_failure_reasons_is_true(monkeypatch):
+    # The build does not compare the reasons with another file: it copies
+    # them from known_failures/sqruff.txt. The note must say that, and only
+    # the drift check finds a changed reason.
+    note = " ".join(OUT["bases"]["sqruff"]["note"].split())
+    assert "checks the suite totals and the failed cases against" in note
+    assert "failure reasons are the text of known_failures/sqruff.txt" in note
+    assert "extract checks that the run gives this text" in note
+    load = known_failures.load
+
+    def changed(directory, tool):
+        found = load(directory, tool)
+        if tool == "sqruff":
+            case = next(i for i, r in found.items() if i.startswith("dialects/"))
+            found[case] = "fix mismatch: changed"
+        return found
+
+    monkeypatch.setattr(s1.known_failures, "load", changed)
+    assert s1.text(s1.build()) != s1.OUT_FILE.read_text("utf8")
+    assert s1.main(["build", "--check"]) == 1
+
+
 def test_another_tool_record_fails(tmp_path):
     record = copy.deepcopy(CASES)
     record["record"]["version"] = "0.40.0"

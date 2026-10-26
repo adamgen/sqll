@@ -78,9 +78,10 @@ SQRUFF_NOTE = (
     "Failure reasons: the reason prefixes of known_failures/sqruff.txt "
     "(sqll-harness known-failures --counts). 'no_result': the check applies "
     "to the case but has no result (an unsupported item, an earlier "
-    "failure, or an unknown result). The build checks the suite totals, the "
-    "failed cases, and the failure reasons against other committed files. "
-    "No other committed file has the check values of each failed case, thus "
+    "failure, or an unknown result). The build checks the suite totals and "
+    "the failed cases against other committed files. The failure reasons are "
+    "the text of known_failures/sqruff.txt; extract checks that the run gives "
+    "this text. No other committed file has the check values of each failed case, thus "
     "the check values of each group come from this run only. The proof of "
     "them is that a new run gives the same per-case file."
 )
@@ -326,6 +327,8 @@ def check_cases(record: dict, fixtures: dict, summary: dict) -> None:
         errors.append("the sqruff record is not that of the summary")
     if record["checks"] != {s: list(c) for s, c in CHECKS.items()}:
         errors.append("the check names are not those of the script")
+    if record["harness"].get("clean") is not True:
+        errors.append("the checkout of the run has changes")
     ids = [row[0] for row in record["cases"]]
     if len(ids) != len(set(ids)):
         errors.append("repeated case ids")
@@ -341,7 +344,12 @@ def check_cases(record: dict, fixtures: dict, summary: dict) -> None:
         if fx is None:
             continue
         suite = fx["suite"]
-        if status not in STATUSES or len(values) != len(CHECKS[suite]):
+        if (
+            status not in STATUSES
+            or not isinstance(values, list)
+            or len(values) != len(CHECKS[suite])
+            or not all(_is_cell(v) for v in values)
+        ):
             errors.append(f"{case_id}: bad row")
             continue
         present = {
@@ -372,6 +380,11 @@ def check_cases(record: dict, fixtures: dict, summary: dict) -> None:
     errors = check_tables("sqruff", t, summary)
     if errors:
         raise DataError("; ".join(errors))
+
+
+def _is_cell(value) -> bool:
+    """A value cell is 0, 1, or null. bool is a subclass of int: refuse it."""
+    return value is None or (type(value) is int and value in (0, 1))
 
 
 def _sqruff_cases(record: dict):
