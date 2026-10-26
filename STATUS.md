@@ -20,8 +20,8 @@
 
 | Task | Description | State |
 |---|---|---|
-| T1 | STATUS and the method of the decision record | PR #22 |
-| T2 | S1 results by base, per suite and per dialect | Not started |
+| T1 | STATUS and the method of the decision record | Merged (PR #22) |
+| T2 | S1 results by base, per suite and per dialect | PR #23 |
 | T3 | Classes of the sqruff parse tree mismatches | Not started |
 | T4 | Classes of the sqruff rule, autofix, and templater failures; rule coupling to tree shapes | Not started |
 | T5 | sqlfluffrs standalone probe: build without Python, native parse, generator reuse | Not started |
@@ -29,6 +29,18 @@
 | T7 | License, attribution duties, code size, and structure of each base | Not started |
 | T8 | Capabilities for S6, S7, and G2 of each base | Not started |
 | T9 | Decision record: data, work estimates, recommendation, and STATUS | Not started |
+
+## S3 phase A data
+
+- T2: [`results/s3/s1-by-base.json`](results/s3/s1-by-base.json) (from
+  `scripts/s3/s1_by_base.py`): the S1 results of each base by suite,
+  dialect, rule, and case group. sqruff: a new local run of the 4 suites
+  (harness commit `f5841a3`, per-case list `results/s3/sqruff-cases.json`)
+  agrees with the S1 summary and `known_failures/sqruff.txt`. sqruff exact
+  trees by dialect: from 0 of 103 (oracle) and 0 of 3 (soql: no dialect)
+  to 17 of 17 (flink). 42 of 82 rule groups pass all their cases.
+  sqlfluff-rs passes all cases, but Python sqlfluff drives its generated
+  parser. Option 3 has no data.
 
 ## S2 tasks
 

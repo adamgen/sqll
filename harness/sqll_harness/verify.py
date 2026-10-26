@@ -358,13 +358,13 @@ def checks(jobs: int | None = None) -> list[Check]:
         ),
         Check(
             "ruff-check",
-            f"{UV} ruff check harness ci {ORACLES}",
+            f"{UV} ruff check harness ci scripts/s3 {ORACLES}",
             ("lint: Lint",),
             quick=True,
         ),
         Check(
             "ruff-format",
-            f"{UV} ruff format --check harness ci {ORACLES}",
+            f"{UV} ruff format --check harness ci scripts/s3 {ORACLES}",
             ("lint: Lint",),
             quick=True,
         ),
