@@ -30,7 +30,7 @@ PARSES = json.loads(sr.PARSES_FILE.read_text("utf8"))
 TYPES = json.loads(sr.TYPES_FILE.read_text("utf8"))
 OUT = json.loads(sr.OUT_FILE.read_text("utf8"))
 T3 = json.loads(sr.TREES_FILE.read_text("utf8"))
-HUNKS = json.loads(sr.HUNKS_FILE.read_text("utf8"))
+HUNKS = json.loads((sr.RESULTS / "sqruff-tree-hunks.json").read_text("utf8"))
 KNOWN = known_failures.load(KNOWN_FAILURES_DIR, "sqruff")
 
 
@@ -110,6 +110,28 @@ def test_rule_modules_follow_use_items_inside_the_helper_folders():
         "sqruff-lib/utils/reflow/config.rs",
         "sqruff-lib/utils/reflow/sequence.rs",
     ]
+
+
+def test_uses_module_follows_use_items():
+    lib = sr.Crate(
+        "sqruff-lib",
+        {
+            "rules/x/ab01.rs": "use crate::utils::h::f;",
+            "rules/x/ab02.rs": "SyntaxKind::A",
+            "utils/h.rs": "use sqruff_lib_core::parser::segments::ErasedSegment;",
+        },
+    )
+    core = sr.Crate("sqruff-lib-core", {"parser/segments.rs": "SyntaxKind::B"})
+    crates = {"sqruff-lib": lib, "sqruff-lib-core": core}
+    files = ["sqruff-lib/rules/x/ab01.rs", "sqruff-lib/utils/h.rs"]
+    assert sr.uses_module(crates, files, sr.BASE_MODULE)
+    assert not sr.uses_module(crates, files[:1], sr.BASE_MODULE)
+    assert not sr.uses_module(crates, ["sqruff-lib/rules/x/ab02.rs"], sr.BASE_MODULE)
+
+
+def test_the_sqruff_version_is_the_pin_of_install_sh():
+    lock = (REPO_ROOT / "tools" / "sqruff" / "uv.lock").read_text("utf8")
+    assert f'name = "sqruff"\nversion = "{sr.SQRUFF_VERSION}"' in lock
 
 
 def test_lock_checksums():
@@ -206,6 +228,69 @@ def test_classify_order_and_files():
         "parse_cause",
         "implicit indent name",
     )
+
+
+def test_a_panic_on_a_config_value_has_its_own_kind():
+    note = f"{sr.NO_RULE_CONFIG}: exit code 101: thread 'main' panicked at x"
+    reason = "lint: no JSON lint output; lint: exit code 101: panicked at x"
+    p = _parsed(fail=[sr.EQUAL_IMPLICIT, [], [], note], pass_=["equal", [], []])
+    p["files"]["pass"] = p["files"].pop("pass_")
+    assert sr.classify("rules", reason, p, [None] * 4)[:2] == (
+        "rule_logic",
+        sr.CONFIG_VALUE_PANIC,
+    )
+    p["files"]["fail"] = [sr.EQUAL_IMPLICIT, [], []]
+    assert sr.classify("rules", reason, p, [None] * 4)[:2] == ("rule_logic", "panic")
+
+
+def test_touch_estimate_branches():
+    types = {
+        "rules": {
+            "AB01": {"names": ["select_clause"], "modules": []},
+            "AB02": {"names": ["keyword"], "modules": ["m.rs"]},
+        },
+        "modules": {"m.rs": {"names": ["comma"]}},
+    }
+    reads = {
+        "a": ("AB01", ["unparsable: ansi: x in y"], "unparsable"),
+        "b": ("AB01", [], "no sqruff tree"),
+        "c": ("AB01", ["renamed: select_clause -> other"], "other tree shape"),
+        "d": ("AB02", ["leaf_type: comma -> symbol in s"], "other tree shape"),
+        "e": ("AB01", ["extra_wrapper: w in select_clause"], "other tree shape"),
+        "f": ("all", ["renamed: comma -> x"], "other tree shape"),
+    }
+    got = sr.touch_estimate(reads, types)
+    assert got["estimate"] is True
+    assert got["no tree or unparsable"] == 2
+    assert got["changes a type that the rule reads"] == 3
+    assert got["changes no type that the rule reads"] == 1
+
+
+def test_the_changed_names_have_the_meta_keys_of_the_t4_parses():
+    types = {
+        "rules": {
+            "AB01": {"names": ["dedent"], "modules": [], "base_module": False},
+            "AB02": {"names": ["comment"], "modules": [], "base_module": True},
+        },
+        "modules": {},
+        "base_module": {"file": sr.BASE_MODULE, "names": ["implicit"]},
+        "sqlfluff_types": ["dedent", "comment"],
+    }
+    trees = {"cases": [["dialects/ansi/a", "x", ["renamed"], ["renamed: a -> b"]]]}
+    parses = {
+        "cases": {
+            "rules/AB01/x": {
+                "files": {"fail": ["differs", ["meta"], ["meta: - -> dedent"]]}
+            }
+        }
+    }
+    got = sr.coupling(types, trees, parses)
+    assert [r["changed"] for r in got["rules"]] == [["dedent"], []]
+    assert got["summary"]["rules_that_see_no_changed_tree"] == ["AB02"]
+    assert got["summary"]["rules_with_a_non_code_or_meta_name"] == 2
+    base = got["sensitivity_base_module"]
+    assert base["rules_that_see_no_changed_tree"] == []
+    assert base["names_not_in_sqlfluff"] == ["implicit"]
 
 
 def test_an_unknown_unsupported_item_fails():
@@ -343,11 +428,16 @@ def test_the_types_file_has_only_names():
     assert len(TYPES["rules"]) == 77
     for code, row in TYPES["rules"].items():
         assert re.fullmatch(r"[A-Z]{2}\d{2}", code)
-        assert set(row) == {"name", "file", "names", "modules"}
+        assert set(row) == {"name", "file", "names", "modules", "base_module"}
+        assert type(row["base_module"]) is bool
         assert re.fullmatch(r"[a-z_.]+", row["name"])
         assert module.match(row["file"])
         assert all(name.match(n) for n in row["names"])
         assert all(m in TYPES["modules"] for m in row["modules"])
+    assert set(TYPES["base_module"]) == {"file", "names"}
+    assert TYPES["base_module"]["file"] == sr.BASE_MODULE
+    assert all(name.match(n) for n in TYPES["base_module"]["names"])
+    assert sr.BASE_MODULE not in TYPES["modules"]
     for mod, entry in TYPES["modules"].items():
         assert module.match(mod)
         assert set(entry) <= {"names", "layout_config"}
@@ -368,7 +458,9 @@ def test_the_coupling_rows():
         differ = set(r["not_in_sqlfluff"]) | set(r["renamed_in_t3"])
         assert r["differ"] == len(differ)
         assert r["differ_direct"] == len(differ & set(direct))
-        assert set(r["renamed_in_t3"]) <= set(r["changed_in_t3"]) | set(names)
+        assert set(r["renamed_in_t3"]) <= set(r["changed"])
+        assert set(r["not_in_sqlfluff"]) <= set(r["changed"]) <= set(names)
+        assert r["non_code_or_meta"] == sorted(set(names) & sr.NON_CODE_OR_META)
         assert 0 <= r["t3_cases"] <= 763
     summary = OUT["coupling"]["summary"]
     assert summary["rules"] == 77
@@ -387,6 +479,55 @@ def test_the_coupling_rows():
     }
     for r in rows:
         assert set(r["renamed_in_t3"]) == set(r["names"]) & renamed
+    # Each type that a group key of T3 or of the T4 parses changes, and that
+    # a rule reads, shows in its changed list.
+    changed = {n for row in T3["cases"] for k in row[3] for n in sr.key_types(k)[1]}
+    changed |= {
+        n
+        for case in PARSES["cases"].values()
+        for state in case["files"].values()
+        for k in state[2]
+        for n in sr.key_types(k)[1]
+    }
+    for r in rows:
+        assert set(r["names"]) & changed <= set(r["changed"])
+    # The T3 dialect trees are code_only: no meta or non-code type changes.
+    t3_changed = {n for row in T3["cases"] for k in row[3] for n in sr.key_types(k)[1]}
+    assert not (t3_changed & sr.NON_CODE_OR_META - {"implicit", "indent"})
+    assert "code_only" in OUT["coupling"]["method"]
+    assert sr.BASE_MODULE in OUT["coupling"]["method"]
+    assert sr.BASE_MODULE in TYPES["method"]
+
+
+def test_each_rules_and_autofix_row_has_the_rule_of_its_fixture():
+    rule_of = sr.case_rules()
+    for r in OUT["cases"]:
+        if r[1] == "templater":
+            assert r[2] == "-"
+        else:
+            assert r[2] != "-"
+            assert r[2] == rule_of[r[0]]
+    row = next(
+        r for r in OUT["cases"] if r[0] == "autofix/ansi/024_remove_templated_errors"
+    )
+    assert row[2] == "LT02,CP01,LT04,ST06"
+    codes = Counter(c for r in OUT["cases"] for c in r[2].split(","))
+    assert {k: sum(v.values()) for k, v in OUT["by_rule_code"].items()} == dict(codes)
+    assert "by_rule_code" in OUT["by_rule_note"]
+
+
+def test_the_config_value_panics():
+    got = sorted(r[0] for r in OUT["cases"] if r[4] == sr.CONFIG_VALUE_PANIC)
+    assert got == [
+        "rules/LT14/test_fail_alone_window_function",
+        "rules/LT14/test_fail_leading_qualify",
+        "rules/LT14/test_fail_leading_window_function",
+        "rules/LT14/test_pass_none_where_clause",
+        "rules/RF05/test_pass_special_chars_quoted_policy_none",
+    ]
+    sens = OUT["sensitivity"]["config_value_panic_as_unsupported"]
+    assert sens["unsupported_item"] == OUT["total"]["unsupported_item"] + 5
+    assert sens["rule_logic"] == OUT["total"]["rule_logic"] - 5
 
 
 def test_the_estimates_are_marked():
@@ -419,9 +560,15 @@ def test_the_s3_status_file_and_the_decision_record_have_t4():
     ) in status
     sens = OUT["sensitivity"]["implicit_differs"]
     assert f"{sens['parse_cause']} parse_cause" in flat
+    n = OUT["kinds"]["rules"][f"rule_logic: {sr.CONFIG_VALUE_PANIC}"]
+    assert f"{n} config value panics" in flat
     s = OUT["coupling"]["summary"]
     assert f"{s['rules_with_a_name_that_differs']} of 77 rules" in flat
     assert f"{s['rules_that_see_a_changed_tree']} of 77 rules" in flat
+    no_change = ", ".join(s["rules_that_see_no_changed_tree"])
+    assert f"(not {no_change})" in flat
+    assert f"{s['names_renamed_in_t3']} are in a T3 rename group" in flat
+    assert "upper bound" in flat and "code_only" in flat
     touch = OUT["touch"]
     assert f"{touch['changes a type that the rule reads']} change a type" in flat
     record = (REPO_ROOT / "docs" / "decisions" / "s3-base.md").read_text("utf8")

@@ -42,6 +42,7 @@ from sqll_harness.adapters.base import EmptyHome, Unsupported, isolated_env
 from sqll_harness.adapters.sqlfluff import SqlfluffAdapter, sqlfluff_toml
 from sqll_harness.adapters.sqlfluff import _parse_file_output as sqlfluff_output
 from sqll_harness.adapters.sqruff import SqruffAdapter
+from sqll_harness.code_only import META_TYPES, NON_CODE_TYPES
 from sqll_harness.compare import load_yaml, record_to_test_tuple, strip_positions
 from sqll_harness.paths import SQLFLUFF_ROOT, sqlfluff_ref, tools_dir
 from sqll_harness.suites import autofix, rules, templater
@@ -56,10 +57,21 @@ TYPES_FILE = RESULTS / "sqruff-rule-types.json"
 OUT_FILE = RESULTS / "sqruff-rule-diffs.json"
 CASES_FILE = RESULTS / "sqruff-cases.json"
 TREES_FILE = RESULTS / "sqruff-tree-diffs.json"
-HUNKS_FILE = RESULTS / "sqruff-tree-hunks.json"
 KNOWN_FAILURES = ROOT / "known_failures"
 
-SQRUFF_VERSION = "0.41.0"
+
+def _sqruff_version() -> str:
+    """The pinned sqruff version (tools/sqruff/uv.lock)."""
+    proc = subprocess.run(
+        ["sh", str(ROOT / "tools" / "sqruff" / "install.sh"), "--print-version"],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    return proc.stdout.strip()
+
+
+SQRUFF_VERSION = _sqruff_version()
 SUITES = ("rules", "autofix", "templater")
 FAILURES = {"rules": 342, "autofix": 16, "templater": 15}
 IMPLICIT = ("implicit", "indent")
@@ -86,6 +98,7 @@ BUILD_COMMAND = (
     "uv run --frozen --project harness python scripts/s3/sqruff_rules.py build"
 )
 
+CONFIG_VALUE_PANIC = "config value panic"
 CLASSES = {
     "unsupported_item": (
         "The case uses an item that sqruff does not support: a setting, a "
@@ -103,7 +116,12 @@ CLASSES = {
     "rule_logic": (
         "The SQL files that the failed checks read have the same tree in "
         "sqruff and in sqlfluff. Thus the rule, fix, or config logic of "
-        "sqruff gives another result (also a sqruff panic)."
+        "sqruff gives another result (also a sqruff panic). Kind "
+        f"'{CONFIG_VALUE_PANIC}': sqruff panics on a config value of the "
+        "case before a rule runs: the parse of the case SQL also panics with "
+        "the case config, and passes without the rules and layout sections. "
+        "These cases are near to an unsupported item (a setting value); "
+        "'sensitivity' gives the counts with them in unsupported_item."
     ),
 }
 # The groups of the unsupported items: the kind in the reason gives the group.
@@ -381,13 +399,14 @@ def collect(jobs: int = 4) -> dict:
 CRATES = ("sqruff", "sqruff-lib", "sqruff-lib-core")
 # The modules of a rule: its file, and the modules that its "use" items
 # name, again and again, inside these folders of the 2 crates. The base
-# segment module (parser/segments.rs), the linter, the config, and the
-# crawlers are not in them: each rule uses them in the same way.
+# segment module (BASE_MODULE), the linter, the config, and the crawlers are
+# not in them: each rule uses them in the same way.
 HELPER_FOLDERS = {
     "sqruff-lib": ("rules/", "utils/"),
     "sqruff-lib-core": ("utils/", "parser/segments/", "dialects/common.rs"),
 }
 EXCLUDED_MODULES = ("sqruff-lib-core/parser/segments/test_functions.rs",)
+BASE_MODULE = "sqruff-lib-core/parser/segments.rs"
 # reflow/config.rs maps the layout types of the config to spacing and line
 # positions. The names of these types are in default_config.cfg.
 LAYOUT_CONFIG_MODULE = "sqruff-lib/utils/reflow/config.rs"
@@ -606,6 +625,18 @@ def rule_modules(crates: dict[str, Crate], rel: str) -> list[str]:
     return sorted(f"{c}/{f}" for c, f in seen)
 
 
+def uses_module(crates: dict[str, Crate], files: list[str], module: str) -> bool:
+    """Return True if a "use" item of one of the files (crate/path) names
+    the module (crate/path)."""
+    for mod in files:
+        crate, file = mod.split("/", 1)
+        for path in use_paths(strip_rust(crates[crate].files[file])):
+            got = resolve(crates, crate, file, path)
+            if got and "/".join(got) == module:
+                return True
+    return False
+
+
 def type_names(code: str) -> list[str]:
     return sorted({snake_case(v) for v in SYNTAX_KIND.findall(code)})
 
@@ -778,7 +809,11 @@ def sources(cache: Path | None = None) -> dict:
             "file": f"sqruff-lib/{rel}",
             "names": type_names(strip_rust(lib.files[rel])),
             "modules": helpers,
+            "base_module": uses_module(
+                crates, [f"sqruff-lib/{rel}", *helpers], BASE_MODULE
+            ),
         }
+    base_crate, base_file = BASE_MODULE.split("/", 1)
     return {
         "kind": "sqll-s3-sqruff-rule-types",
         "format": 1,
@@ -797,7 +832,14 @@ def sources(cache: Path | None = None) -> dict:
             "of the rule file name, and again of those files, inside "
             f"{HELPER_FOLDERS}, without {list(EXCLUDED_MODULES)}. For "
             f"{LAYOUT_CONFIG_MODULE}: also the layout types of "
-            "sqruff-lib/src/core/default_config.cfg. The crates are those of "
+            "sqruff-lib/src/core/default_config.cfg. The base segment module "
+            f"{BASE_MODULE} is not a helper module: it has the segment type "
+            "and the generic methods that each rule uses (for example "
+            "is_whitespace, is_meta, is_comment), not the logic of one rule. "
+            "As a helper it would add the same names (base_module.names) to "
+            "most rules and hide the names that are specific to each rule. "
+            "base_module of a rule: true if a 'use' item of the rule file or "
+            "of a helper module names it. The crates are those of "
             "the cargo cache; their sha256 is the checksum in the Cargo.lock "
             "of the sqruff crate. sqlfluff_types: the types and class types "
             "of each segment class, parser, and lexer of the dialects of the "
@@ -805,6 +847,10 @@ def sources(cache: Path | None = None) -> dict:
         ),
         "rules": rows,
         "modules": dict(sorted(modules.items())),
+        "base_module": {
+            "file": BASE_MODULE,
+            "names": type_names(strip_rust(crates[base_crate].files[base_file])),
+        },
         "sqlfluff_types": sqlfluff_types(),
     }
 
@@ -814,6 +860,7 @@ def sources(cache: Path | None = None) -> dict:
 T3_RENAME_CLASSES = ("renamed", "leaf_type", "keyword_vs_identifier")
 NOT_TYPES = frozenset({"...", "-", "()"})
 TREE_STATES_EQUAL = ("equal", EQUAL_IMPLICIT)
+NON_CODE_OR_META = NON_CODE_TYPES | META_TYPES | {IMPLICIT[0]}
 
 
 def _sha256(path: Path) -> str:
@@ -858,23 +905,29 @@ def rule_names(types: dict, code: str) -> tuple[list[str], list[str]]:
     return row["names"], sorted(names)
 
 
-def coupling(types: dict, trees: dict) -> dict:
-    sqlfluff = set(types["sqlfluff_types"])
-    by_class = t3_types(trees)
-    renamed = set().union(*(by_class.get(c, set()) for c in T3_RENAME_CLASSES))
-    changed = set().union(*by_class.values())
+def parse_key_types(parses: dict) -> set[str]:
+    """Return the types that the group keys of PARSES_FILE change."""
+    out: set[str] = set()
+    for row in parses["cases"].values():
+        for state in row["files"].values():
+            for key in state[2]:
+                out |= key_types(key)[1]
+    return out
+
+
+def coupling_rows(
+    types: dict, sqlfluff: set[str], renamed: set[str], changed: set[str], base=False
+) -> list[dict]:
+    """Return a coupling row for each rule. base: add the names of the base
+    segment module to the rules that use it."""
     rows = []
     for code in sorted(types["rules"]):
         direct, names = rule_names(types, code)
+        if base and types["rules"][code]["base_module"]:
+            names = sorted(set(names) | set(types["base_module"]["names"]))
         missing = [n for n in names if n not in sqlfluff]
         ren = [n for n in names if n in renamed]
         differs = sorted(set(missing) | set(ren))
-        chg = sorted((set(names) & changed) | set(missing))
-        cases = sum(
-            1
-            for row in trees["cases"]
-            if any(key_types(k)[1] & set(names) for k in row[3])
-        )
         rows.append(
             {
                 "code": code,
@@ -884,58 +937,109 @@ def coupling(types: dict, trees: dict) -> dict:
                 "renamed_in_t3": ren,
                 "differ": len(differs),
                 "differ_direct": len(set(direct) & set(differs)),
-                "changed_in_t3": chg,
-                "t3_cases": cases,
+                "changed": sorted((set(names) & changed) | set(missing)),
+                "non_code_or_meta": sorted(set(names) & NON_CODE_OR_META),
             }
         )
+    return rows
+
+
+def coupling(types: dict, trees: dict, parses: dict) -> dict:
+    sqlfluff = set(types["sqlfluff_types"])
+    by_class = t3_types(trees)
+    renamed = set().union(*(by_class.get(c, set()) for c in T3_RENAME_CLASSES))
+    changed = set().union(*by_class.values()) | parse_key_types(parses)
+    rows = coupling_rows(types, sqlfluff, renamed, changed)
+    for r in rows:
+        names = set(r["names"])
+        r["t3_cases"] = sum(
+            1 for row in trees["cases"] if any(key_types(k)[1] & names for k in row[3])
+        )
     all_names = set().union(*(set(r["names"]) for r in rows))
+    base_rows = coupling_rows(types, sqlfluff, renamed, changed, base=True)
     return {
         "method": (
             "names: the segment types that a rule reads (TYPES_FILE: the "
             "SyntaxKind names of its file and of its helper modules, and the "
-            "layout config types for the reflow rules). direct: the count of "
+            "layout config types for the reflow rules). The base segment "
+            f"module {BASE_MODULE} is not a helper module (TYPES_FILE "
+            "'method'); 'sensitivity_base_module' gives the counts with its "
+            "names for the rules that use it. direct: the count of "
             "names in the rule file. not_in_sqlfluff: names that are not a "
             "type of the sqlfluff 4.4.0 grammar (TYPES_FILE sqlfluff_types). "
             "renamed_in_t3: names in a T3 group key of the classes "
             f"{list(T3_RENAME_CLASSES)} (sqruff gives another type than "
-            "sqlfluff at the same span). differ: the count of names in one of "
-            "the 2 lists; differ_direct: of these, the names in the rule file. "
-            "changed_in_t3: not_in_sqlfluff and the names that a T3 group key "
-            "of any class changes (not the parent type of the key, but the 2 "
-            "sqlfluff types of an unparsable key). If sqruff gave sqlfluff "
-            "trees, a rule with a name in changed_in_t3 sees a changed tree. "
-            "t3_cases: the T3 cases (of 763) with a group key that changes a "
-            "name of the rule. Limits: the names come from the source text, "
-            "not from the calls at run time; a helper module can name a type "
-            "for one caller and not for another; a rule also reads the "
-            "parent and child order of a segment, which a name does not "
-            "show."
+            "sqlfluff at the same span). A key gives the 2 sides of a rename, "
+            "and some are generic types (for example keyword, expression): "
+            "the renamed counts are upper bounds. differ: the count of names "
+            "in one of the 2 lists; differ_direct: of these, the names in the "
+            "rule file. changed: not_in_sqlfluff and the names that a group "
+            "key changes, of T3 (sqruff-tree-diffs.json) or of the T4 parses "
+            f"({PARSES_FILE.name}); not the parent type of a key, but the 2 "
+            "sqlfluff types of an unparsable key. If sqruff gave sqlfluff "
+            "trees, a rule with a name in changed sees a changed tree. "
+            "non_code_or_meta: the names of non-code and meta types "
+            "(whitespace, newline, comments, indent, dedent, implicit, and "
+            "others). The T3 dialect trees are code_only (the sqlfluff "
+            "dialect test compares to_tuple(code_only=True)), thus they show "
+            "no difference of these types. The T4 parses have them, but only "
+            "for the SQL of the failed rule, autofix, and templater cases. "
+            "Thus for these names, changed is a lower bound. t3_cases: the "
+            "T3 cases (of 763) with a group key that changes a name of the "
+            "rule. Limits: the names come from the source text, not from the "
+            "calls at run time; a helper module can name a type for one "
+            "caller and not for another; a rule also reads the parent and "
+            "child order of a segment, which a name does not show."
         ),
         "estimates": {
-            "fields": ["names", "differ", "changed_in_t3", "t3_cases"],
+            "fields": [
+                "names",
+                "renamed_in_t3",
+                "differ",
+                "changed",
+                "t3_cases",
+                "summary",
+                "sensitivity_base_module",
+            ],
             "note": (
                 "Estimates: the helper modules come from a static closure of "
-                "the 'use' items, not from the calls. direct, differ_direct, "
-                "and the rule file names are measurements of the source text."
+                "the 'use' items, not from the calls. The renamed counts are "
+                "upper bounds. For non-code and meta names, changed is a "
+                "lower bound: the rules that see no changed tree can see one "
+                "on other SQL. direct, differ_direct, and the rule file names "
+                "are measurements of the source text."
             ),
         },
         "row": list(rows[0]) if rows else [],
         "rules": rows,
-        "summary": {
-            "rules": len(rows),
-            "names": len(all_names),
-            "names_not_in_sqlfluff": sorted(n for n in all_names if n not in sqlfluff),
-            "names_renamed_in_t3": len(all_names & renamed),
-            "rules_with_a_name_that_differs": sum(1 for r in rows if r["differ"]),
-            "rules_with_a_name_that_differs_in_the_rule_file": sum(
-                1 for r in rows if r["differ_direct"]
-            ),
-            "rules_that_see_a_changed_tree": sum(1 for r in rows if r["changed_in_t3"]),
-            "rules_that_see_no_changed_tree": [
-                r["code"] for r in rows if not r["changed_in_t3"]
-            ],
-            "rules_with_no_name": [r["code"] for r in rows if not r["names"]],
-        },
+        "summary": coupling_summary(rows, all_names, sqlfluff, renamed),
+        "sensitivity_base_module": coupling_summary(
+            base_rows,
+            set().union(*(set(r["names"]) for r in base_rows)),
+            sqlfluff,
+            renamed,
+        ),
+    }
+
+
+def coupling_summary(
+    rows: list[dict], all_names: set[str], sqlfluff: set[str], renamed: set[str]
+) -> dict:
+    return {
+        "rules": len(rows),
+        "names": len(all_names),
+        "names_not_in_sqlfluff": sorted(n for n in all_names if n not in sqlfluff),
+        "names_renamed_in_t3": len(all_names & renamed),
+        "rules_with_a_name_that_differs": sum(1 for r in rows if r["differ"]),
+        "rules_with_a_name_that_differs_in_the_rule_file": sum(
+            1 for r in rows if r["differ_direct"]
+        ),
+        "rules_that_see_a_changed_tree": sum(1 for r in rows if r["changed"]),
+        "rules_that_see_no_changed_tree": [r["code"] for r in rows if not r["changed"]],
+        "rules_with_a_non_code_or_meta_name": sum(
+            1 for r in rows if r["non_code_or_meta"]
+        ),
+        "rules_with_no_name": [r["code"] for r in rows if not r["names"]],
     }
 
 
@@ -1001,8 +1105,10 @@ def parse_kind(states: list[list]) -> str:
     return "other tree shape"
 
 
-def logic_kind(suite: str, reason: str, failed: list[str]) -> str:
+def logic_kind(suite: str, reason: str, failed: list[str], states: list[list]) -> str:
     if "panicked at" in reason:
+        if any(s[3:] and s[3].startswith(NO_RULE_CONFIG) for s in states):
+            return CONFIG_VALUE_PANIC
         return "panic"
     if suite == "rules":
         return " and ".join(failed) if failed else "error"
@@ -1034,7 +1140,7 @@ def classify(
     differ = [s for s in states if s[0] not in equal]
     if differ:
         return "parse_cause", parse_kind(differ), names
-    return "rule_logic", logic_kind(suite, reason, failed), names
+    return "rule_logic", logic_kind(suite, reason, failed, states), names
 
 
 def build(parses_path: Path = PARSES_FILE, types_path: Path = TYPES_FILE) -> dict:
@@ -1049,27 +1155,34 @@ def build(parses_path: Path = PARSES_FILE, types_path: Path = TYPES_FILE) -> dic
     if errors:
         raise DataError("; ".join(errors[:10]))
     values = {r[0]: r[2] for r in cases_record["cases"]}
-    rule_of = {
-        c.id: ",".join(rules.rule_codes(c.rule)) for c in rules.discover(SQLFLUFF_ROOT)
-    }
+    rule_of = case_rules()
     rows = []
     counts = {s: Counter() for s in SUITES}
     kinds = {s: Counter() for s in SUITES}
     per_rule: dict[str, Counter] = {}
-    sens = {"implicit_differs": Counter(), "all_files": Counter()}
+    per_code: dict[str, Counter] = {}
+    sens = {
+        "implicit_differs": Counter(),
+        "all_files": Counter(),
+        "config_value_panic_as_unsupported": Counter(),
+    }
     reads = {}
     for suite in SUITES:
         for cid in sorted(scope[suite]):
             reason = scope[suite][cid]
             parsed = parses["cases"].get(cid)
             cls, kind, files = classify(suite, reason, parsed, values[cid])
-            if parsed:
-                rule = parsed["rule"]
-            else:
-                rule = rule_of.get(cid, "-")
+            rule = rule_of.get(cid, "-")
+            if parsed and parsed["rule"] != rule:
+                raise DataError(
+                    f"{cid}: rule {parsed['rule']} in {PARSES_FILE.name}, "
+                    f"{rule} in the fixture"
+                )
             counts[suite][cls] += 1
             kinds[suite][f"{cls}: {kind}"] += 1
             per_rule.setdefault(rule, Counter())[cls] += 1
+            for code in rule.split(","):
+                per_code.setdefault(code, Counter())[cls] += 1
             for name, flags in (
                 ("implicit_differs", {"implicit_differs": True}),
                 ("all_files", {"all_files": True}),
@@ -1077,6 +1190,9 @@ def build(parses_path: Path = PARSES_FILE, types_path: Path = TYPES_FILE) -> dic
                 sens[name][
                     classify(suite, reason, parsed, values[cid], **flags)[0]
                 ] += 1
+            sens["config_value_panic_as_unsupported"][
+                "unsupported_item" if kind == CONFIG_VALUE_PANIC else cls
+            ] += 1
             keys = (
                 sorted({k for f in files for k in parsed["files"][f][2]})
                 if parsed
@@ -1143,8 +1259,13 @@ def build(parses_path: Path = PARSES_FILE, types_path: Path = TYPES_FILE) -> dic
             "unsupported_item counts are measurements. The split between "
             "parse_cause and rule_logic depends on 2 choices (the meta name "
             "'implicit' and the files of the failed checks): 'sensitivity' "
-            "gives the counts with the other choices. That a tree difference "
-            "causes the failure is an estimate ('touch')."
+            "gives the counts with the other choices. The rule_logic cases of "
+            f"kind '{CONFIG_VALUE_PANIC}' fail on a config value, not in the "
+            "rule; they stay in rule_logic because the harness runs them "
+            "(they are not 'unsupported:' in known_failures/sqruff.txt). "
+            "'sensitivity' gives the counts with them in unsupported_item. "
+            "That a tree difference causes the failure is an estimate "
+            "('touch')."
         ),
         "counts": {s: {c: counts[s][c] for c in CLASSES} for s in SUITES},
         "total": total,
@@ -1154,14 +1275,26 @@ def build(parses_path: Path = PARSES_FILE, types_path: Path = TYPES_FILE) -> dic
                 "The class counts (all suites) with another rule. "
                 "implicit_differs: 'implicit' is a tree difference also for "
                 "rules and autofix. all_files: each file of a rule case, not "
-                "only the files of the failed checks. Estimates: they show "
-                "how much the counts depend on these choices."
+                "only the files of the failed checks. "
+                "config_value_panic_as_unsupported: the rule_logic cases of "
+                f"kind '{CONFIG_VALUE_PANIC}' are unsupported_item. Estimates: "
+                "they show how much the counts depend on these choices."
             ),
             **{k: {c: v[c] for c in CLASSES} for k, v in sens.items()},
         },
+        "by_rule_note": (
+            "by_rule: the key is the rule list of a case: rules: the rule "
+            "codes of the case (can be a list); autofix: the rules of "
+            "test-config.yml, or 'all'; templater: '-'. by_rule_code: for each "
+            "single code, the cases whose rule list has the code; a case with "
+            "N codes counts N times."
+        ),
         "by_rule": {r: {c: per_rule[r][c] for c in CLASSES} for r in sorted(per_rule)},
+        "by_rule_code": {
+            r: {c: per_code[r][c] for c in CLASSES} for r in sorted(per_code)
+        },
         "touch": estimate,
-        "coupling": coupling(types, trees),
+        "coupling": coupling(types, trees, parses),
         "row": [
             "id",
             "suite",
@@ -1173,6 +1306,19 @@ def build(parses_path: Path = PARSES_FILE, types_path: Path = TYPES_FILE) -> dic
         ],
         "cases": rows,
     }
+
+
+def case_rules() -> dict[str, str]:
+    """Return {case id: rule list} of the rules and autofix cases of the
+    pinned fixtures (autofix: the rules of test-config.yml, or 'all')."""
+    out = {
+        c.id: ",".join(rules.rule_codes(c.rule)) for c in rules.discover(SQLFLUFF_ROOT)
+    }
+    for c in autofix.discover(SQLFLUFF_ROOT):
+        out[c.id] = (
+            autofix.load_test_config(c.folder / "test-config.yml").rules or "all"
+        )
+    return out
 
 
 def touch_estimate(reads: dict, types: dict) -> dict:

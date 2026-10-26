@@ -36,6 +36,11 @@ submodule. `scripts/sqlfluff-case-ids` runs `pytest --collect-only` on
 `test/rules/std_fix_auto_test.py`, and `test/core/templaters/jinja_test.py`
 from the submodule. The harness does not.
 
+`results/s3/sqruff-rule-types.json` (`sqlfluff_types`) has the segment type
+names of the sqlfluff 4.4.0 dialects and segment classes.
+`scripts/s3/sqruff_rules.py` reads them from the installed sqlfluff package.
+No sqlfluff code is copied.
+
 Ported code (MIT, attribution in each file header):
 
 | sqll file | sqlfluff source |
@@ -60,11 +65,10 @@ Ported code (MIT, attribution in each file header):
   version. No sqruff code is copied.
 - `results/s3/sqruff-rule-types.json` has names from the crates.io crates
   `sqruff-lib` and `sqruff-lib-core` 0.41.0: the rule codes and names, the
-  paths of the rule and helper source files, the segment type names
-  (`SyntaxKind` variants) that they name, and the layout type names of
-  `default_config.cfg`. It also has the segment type names of the sqlfluff
-  4.4.0 dialects. `scripts/s3/sqruff_rules.py` reads the crates from the
-  cargo cache. No sqruff code is copied.
+  paths of the rule, helper, and base segment source files, the segment
+  type names (`SyntaxKind` variants) that they name, and the layout type
+  names of `default_config.cfg`. `scripts/s3/sqruff_rules.py` reads the
+  crates from the cargo cache. No sqruff code is copied.
 
 ## Tools
 
