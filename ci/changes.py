@@ -29,7 +29,7 @@ from fnmatch import fnmatchcase
 # The paths of the documents. A "*" does not match "/". Do not add a path
 # that a harness, script, tool, or CI command reads, other than the unit
 # tests of the lint job.
-DOCS = ("*.md", "harness/*.md")
+DOCS = ("*.md", "harness/*.md", "status/*.md")
 
 
 def is_doc(path: str) -> bool:

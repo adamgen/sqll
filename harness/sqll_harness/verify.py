@@ -132,7 +132,7 @@ CI_ONLY_RUN = {
     },
     "report: Merge": (
         "uv run --frozen --project harness sqll-harness merge"
-        " --expect ci/matrix.json out/shards/*.json"
+        " --expect ci/matrix.d out/shards/*.json"
     ),
     "report: Check test jobs": (
         'echo "A test job did not succeed: ${{ needs.test.result }}"\nexit 1'

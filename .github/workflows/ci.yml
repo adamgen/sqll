@@ -250,7 +250,7 @@ jobs:
       - name: Merge
         run: >-
           uv run --frozen --project harness sqll-harness merge
-          --expect ci/matrix.json out/shards/*.json
+          --expect ci/matrix.d out/shards/*.json
 
       - name: Check sqlfluff commit in the report
         run: |

@@ -1,0 +1,30 @@
+name: Ownership
+
+# The track ownership check (PROCESS.md, "Tracks"; ci/ownership.py). It is
+# not in ci.yml: a change of the labels must run it again, but not all of CI.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ownership:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Check the track ownership of the changed files
+        env:
+          EVENT: ${{ github.event_name }}
+          BRANCH: ${{ github.head_ref }}
+          LABELS: ${{ toJSON(github.event.pull_request.labels.*.name) }}
+        run: python3 ci/ownership.py "$EVENT"

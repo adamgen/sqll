@@ -93,7 +93,8 @@ def _parser() -> argparse.ArgumentParser:
     mrg.add_argument(
         "--expect",
         type=Path,
-        help='JSON list of {"suite", "tool", "shards"}. Each must be in the reports.',
+        help='JSON list of {"suite", "tool", "shards"}, or a folder of such files'
+        " (ci/matrix.d). Each must be in the reports.",
     )
 
     kfs = sub.add_parser(
