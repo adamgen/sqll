@@ -132,7 +132,7 @@ CI_ONLY_RUN = {
     },
     "report: Merge": (
         "uv run --frozen --project harness sqll-harness merge"
-        " --expect ci/matrix.json out/shards/*.json"
+        " --expect ci/matrix.d out/shards/*.json"
     ),
     "report: Check test jobs": (
         'echo "A test job did not succeed: ${{ needs.test.result }}"\nexit 1'
@@ -358,13 +358,13 @@ def checks(jobs: int | None = None) -> list[Check]:
         ),
         Check(
             "ruff-check",
-            f"{UV} ruff check harness ci scripts/s3 {ORACLES}",
+            f"{UV} ruff check harness ci {ORACLES}",
             ("lint: Lint",),
             quick=True,
         ),
         Check(
             "ruff-format",
-            f"{UV} ruff format --check harness ci scripts/s3 {ORACLES}",
+            f"{UV} ruff format --check harness ci {ORACLES}",
             ("lint: Lint",),
             quick=True,
         ),

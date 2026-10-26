@@ -7,6 +7,7 @@ import importlib.util
 import json
 import re
 import subprocess
+import sys
 from collections import Counter
 
 import pytest
@@ -332,8 +333,11 @@ def test_the_record_has_the_ref_versions_commit_and_commands():
     assert OUT["bases"]["new-parser"]["data"] is None
 
 
-def test_status_has_the_t2_numbers():
-    status = " ".join((REPO_ROOT / "STATUS.md").read_text("utf8").split())
+def test_the_s3_status_file_has_the_t2_numbers():
+    # The S3 track writes only status/S3.md (PROCESS.md, "Tracks").
+    status = (REPO_ROOT / "status" / "S3.md").read_text("utf8")
+    assert "| T2 | S1 results by base, per suite and per dialect | PR #23 |" in status
+    status = " ".join(status.split())
     sq = OUT["bases"]["sqruff"]
     exact = {
         d: (r["checks"]["exact"]["pass"], r["total"]) for d, r in sq["dialects"].items()
@@ -364,3 +368,18 @@ def test_the_decision_record_gives_the_true_source_of_the_c1_data():
     assert (
         kind == "Measurement (options 1, 2); no data (option 3; T9 gives the estimate)"
     )
+
+
+# Lint. CI and scripts/verify run ruff only on the Core paths; the S3 track
+# owns scripts/s3, so this test runs the same ruff commands on it.
+
+
+@pytest.mark.parametrize("command", [["check"], ["format", "--check"]])
+def test_ruff_passes_on_scripts_s3(command):
+    result = subprocess.run(
+        [sys.executable, "-m", "ruff", *command, "scripts/s3"],
+        cwd=REPO_ROOT,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr

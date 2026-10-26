@@ -1,6 +1,6 @@
 """The recorded S2 baseline (results/s2/baseline.json), the drift check of
 "sqll-harness bench check --baseline" (harness/bench.md, "Baseline"), and
-the agreement of STATUS.md with the baseline."""
+the agreement of status/S2.md with the baseline."""
 
 import copy
 import json
@@ -295,15 +295,16 @@ def test_check_refuses_a_missing_baseline(tmp_path, capsys):
     assert "error:" in capsys.readouterr().err
 
 
-# STATUS.md
+# status/S2.md and the STATUS.md index
 
 
-STATUS = (REPO_ROOT / "STATUS.md").read_text(encoding="utf8")
+INDEX = (REPO_ROOT / "STATUS.md").read_text(encoding="utf8")
+STATUS = (REPO_ROOT / "status" / "S2.md").read_text(encoding="utf8")
 COUNT_STATUSES = (VALID, INVALID, UNSUPPORTED, ERROR)
 
 
 def _rows(header: str) -> list[list[str]]:
-    """Return the cells of each row of the STATUS.md table with this header."""
+    """Return the cells of each row of the status/S2.md table with this header."""
     lines = STATUS.splitlines()
     start = lines.index(header)
     rows = []
@@ -319,7 +320,11 @@ def _name(tool: str) -> str:
 
 
 def test_status_says_s2_is_approved_and_names_the_baseline():
-    assert "Current stone: **S3** (choose the base), **S3 phase A**:" in STATUS
+    assert (
+        "| S2 | | Complete. The human owner approved it on 2026-10-26"
+        " | [status/S2.md](status/S2.md) |"
+    ) in INDEX
+    assert "| S3 | S3 | In work: " in INDEX
     assert "**S2 complete**: the human owner approved it on 2026-10-26" in STATUS
     assert f"`{BASE['harness']['commit'][:7]}`" in STATUS
     assert "results/s2/baseline.json" in STATUS

@@ -1,27 +1,23 @@
 """Tests for the CI scripts in ci/: the image tag and the test matrix."""
 
-import importlib.util
 import json
 import re
 import shlex
 import subprocess
 
 import pytest
+from conftest import ci_module
 
+from sqll_harness import merge
 from sqll_harness.adapters import ADAPTERS
 from sqll_harness.paths import REPO_ROOT
 from sqll_harness.suites import SUITES, runs_for
 
-
-def _load(name):
-    spec = importlib.util.spec_from_file_location(name, REPO_ROOT / "ci" / f"{name}.py")
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
-
-
+_load = ci_module
 image_tag = _load("image_tag")
 matrix = _load("matrix")
+ownership = _load("ownership")
+MATRIX_DIR = REPO_ROOT / "ci" / "matrix.d"
 
 
 def test_tag_is_stable_and_short():
@@ -153,8 +149,63 @@ def test_matrix_rejects_bad_entries(entries):
         matrix.expand(entries)
 
 
+def _fragment(folder, name, entries):
+    folder.mkdir(exist_ok=True)
+    (folder / name).write_text(json.dumps(entries))
+
+
+def test_matrix_merges_the_fragments_in_name_order(tmp_path, capsys):
+    folder = tmp_path / "matrix.d"
+    _fragment(folder, "b.json", [{"suite": "s", "tool": "b", "shards": 1}])
+    _fragment(folder, "a.json", [{"suite": "s", "tool": "a", "shards": 2}])
+    (folder / "README.txt").write_text("not a fragment")
+    assert [e["tool"] for e in matrix.load(folder)] == ["a", "b"]
+    assert matrix.main([str(folder)]) == 0
+    names = [e["name"] for e in json.loads(capsys.readouterr().out)["include"]]
+    assert names == ["s-a-1-of-2", "s-a-2-of-2", "s-b-1-of-1"]
+    assert merge.load_expected(folder) == [("s", "a", 2), ("s", "b", 1)]
+
+
+def test_matrix_rejects_an_entry_in_two_fragments(tmp_path):
+    folder = tmp_path / "matrix.d"
+    _fragment(folder, "a.json", [{"suite": "s", "tool": "t", "shards": 1}])
+    _fragment(folder, "b.json", [{"suite": "s", "tool": "t", "shards": 2}])
+    with pytest.raises(ValueError, match="two entries"):
+        matrix.expand(matrix.load(folder))
+    with pytest.raises(merge.MergeError, match="in two entries"):
+        merge.load_expected(folder)
+
+
+def test_matrix_rejects_an_empty_folder_or_a_bad_fragment(tmp_path):
+    folder = tmp_path / "matrix.d"
+    folder.mkdir()
+    with pytest.raises(ValueError, match="no"):
+        matrix.load(folder)
+    with pytest.raises(merge.MergeError):
+        merge.load_expected(folder)
+    _fragment(folder, "a.json", {"suite": "s"})
+    with pytest.raises(ValueError, match="not a list"):
+        matrix.load(folder)
+    with pytest.raises(merge.MergeError):
+        merge.load_expected(folder)
+
+
+def test_ci_matrix_fragments_are_of_tracks():
+    names = {p.stem for p in MATRIX_DIR.glob("*.json")}
+    assert "core" in names
+    assert names <= set(ownership.load())
+    assert not (REPO_ROOT / "ci" / "matrix.json").exists()
+
+
+def test_the_report_job_expects_the_matrix_of_the_test_jobs():
+    entries = matrix.load(MATRIX_DIR)
+    want = [(e["suite"], e["tool"], int(e["shards"])) for e in entries]
+    assert merge.load_expected(MATRIX_DIR) == want
+    assert matrix.DEFAULT == MATRIX_DIR
+
+
 def test_ci_matrix_names_real_suites_and_tools():
-    entries = json.loads((REPO_ROOT / "ci" / "matrix.json").read_text())
+    entries = matrix.load(MATRIX_DIR)
     assert entries
     for e in entries:
         assert e["suite"] in SUITES
@@ -163,7 +214,7 @@ def test_ci_matrix_names_real_suites_and_tools():
 
 
 def test_ci_matrix_runs_each_suite_for_each_tool():
-    entries = json.loads((REPO_ROOT / "ci" / "matrix.json").read_text())
+    entries = matrix.load(MATRIX_DIR)
     shards = {(e["suite"], e["tool"]): e["shards"] for e in entries}
     want = {
         (name, tool)
@@ -225,13 +276,22 @@ CODE_PATHS = (
     "known_failures/sqruff.txt",
     "results/s1/summary.json",
     "results/README.md",
+    "status/S1/x.md",
+    "status/x.json",
+    "tracks.yml",
     "README.txt",
     "md",
 )
 
 
 def test_documents_are_docs():
-    for path in ("STATUS.md", "PROCESS.md", "harness/README.md", "new.md"):
+    for path in (
+        "STATUS.md",
+        "PROCESS.md",
+        "harness/README.md",
+        "status/S1.md",
+        "new.md",
+    ):
         assert changes.is_doc(path), path
     assert not changes.full_run(["STATUS.md", "harness/sqruff.md"])
 
@@ -256,9 +316,10 @@ def test_tracked_docs_are_markdown_outside_the_code_folders():
     ).stdout.splitlines()
     docs = [f for f in files if changes.is_doc(f)]
     assert "STATUS.md" in docs
+    assert "status/S1.md" in docs
     for path in docs:
         assert path.endswith(".md"), path
-        assert path.count("/") == 0 or path.startswith("harness/"), path
+        assert path.count("/") == 0 or path.startswith(("harness/", "status/")), path
         assert path.count("/") <= 1, path
 
 
@@ -363,3 +424,11 @@ def test_main_writes_the_output(tmp_path, monkeypatch, capsys):
     assert "not known (git failed)" in text
     assert "Result: full run" in text
     assert "the dialect oracles, and the smoke benchmark." in text
+
+
+def test_a_non_ascii_path_is_not_quoted(repo):
+    _git(repo, "checkout", "-q", "-b", "pr")
+    _commit(repo, "corpus/é a.sql", "select 1")
+    _merge(repo, "pr")
+    files = changes.changed_files("pull_request", cwd=str(repo))
+    assert files == ["corpus/é a.sql"]

@@ -113,8 +113,9 @@ CI (`.github/workflows/ci.yml`):
    test, see [Case counts](#case-counts)), and the oracles on the harness
    dialect, rule, autofix, and templater fixtures (also with `--rust`), in
    the image.
-3. `test`: one job for each suite, tool, and shard in `ci/matrix.json`.
-4. `report`: `sqll-harness merge --expect ci/matrix.json`,
+3. `test`: one job for each suite, tool, and shard in `ci/matrix.d/*.json`
+   (one fragment for each track, `ci/matrix.py`).
+4. `report`: `sqll-harness merge --expect ci/matrix.d`,
    `sqll-harness summarize`, then the rule, autofix, and templater oracles
    on the merged report for `sqlfluff`, and again with `--rust` for
    `sqlfluff-rs`. Then it compares `results/s1/summary.json` with the
@@ -125,17 +126,25 @@ CI (`.github/workflows/ci.yml`):
    one job for `sqlfluff` and one for `sqlfluff-rs` (`--rust`). It takes some
    minutes.
 
-To add a suite or a tool to CI, add an entry to `ci/matrix.json`.
+To add a suite or a tool to CI, add an entry to the fragment of your track,
+`ci/matrix.d/<track>.json` (PROCESS.md, "Tracks").
 
 The `changes` job runs `ci/changes.py` first. If each file that a pull
-request changes is a document in its `DOCS` list (`*.md` and `harness/*.md`;
-a `*` does not match `/`), CI does not run `test`, `report`, and
+request changes is a document in its `DOCS` list (`*.md`, `harness/*.md`,
+and `status/*.md`; a `*` does not match `/`), CI does not run `test`, `report`, and
 `dialect-oracle`. The `image` job (a registry lookup, because no document is
 an image input) and `lint` always run: the unit tests read some documents,
 for example STATUS.md. Each other change, a change that is not known, and
 each push to main run all jobs. The full jobs run unless the `changes` job
 output is `full=false`. A new pull request run stops the old run of the same
 pull request. A push to main does not stop a run that has started.
+
+The `Ownership` workflow (`.github/workflows/ownership.yml`) runs
+`ci/ownership.py` on each pull request, also when its labels change. It
+fails if the pull request changes a path that another track owns in
+`tracks.yml` and has no `cross-track` label (PROCESS.md, "Tracks").
+`harness/tests/test_ownership.py` tests it. It has no local check in
+`scripts/verify`, because it needs a pull request.
 
 `sqll-harness known-failures REPORT --tool T` prints the known-failures file
 of a tool from a report (sorted ids, one reason each). With `--counts` it
@@ -341,7 +350,7 @@ To record new results, copy `out/summary.json` to
 `results/s1/summary.json`. Get it from the `report` artifact of CI or from a
 full local run (`scripts/verify`). `harness/tests/test_recorded_summary.py`
 checks that the recorded summary, `known_failures/`, and the tables in
-STATUS.md agree.
+`status/S1.md` agree.
 
 ## Case counts
 
@@ -529,11 +538,12 @@ smoke run; the `bench-merge` job and `scripts/verify --full-bench` run it
 with `--full` on each full run (`missing()`: the report must have the
 profile and each result of the baseline).
 `harness/tests/test_bench_baseline.py` checks the recorded file, the drift
-check, and that the S2 tables of STATUS.md are those of the file.
+check, and that the S2 tables of `status/S2.md` are those of the file.
 
 A new tool (for example sqll in S3) or a new tool version makes the CI
 check fail until a new baseline is recorded: do the controlled run, copy
-its `out/bench.json` to `results/s2/baseline.json`, and update STATUS.md.
+its `out/bench.json` to `results/s2/baseline.json`, and update
+`status/S2.md`.
 
 ## Benchmark compare
 

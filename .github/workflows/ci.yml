@@ -123,8 +123,8 @@ jobs:
             scripts/sqlfluff-autofix-oracle scripts/sqlfluff-templater-oracle
             scripts/sqlfluff-dialect-oracle scripts/sqlfluff-case-ids
         run: |
-          uv run --frozen --project harness ruff check harness ci scripts/s3 $ORACLES
-          uv run --frozen --project harness ruff format --check harness ci scripts/s3 $ORACLES
+          uv run --frozen --project harness ruff check harness ci $ORACLES
+          uv run --frozen --project harness ruff format --check harness ci $ORACLES
 
       - name: Unit tests
         env:
@@ -250,7 +250,7 @@ jobs:
       - name: Merge
         run: >-
           uv run --frozen --project harness sqll-harness merge
-          --expect ci/matrix.json out/shards/*.json
+          --expect ci/matrix.d out/shards/*.json
 
       - name: Check sqlfluff commit in the report
         run: |

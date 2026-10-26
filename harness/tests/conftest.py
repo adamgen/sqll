@@ -5,11 +5,13 @@ SQLL_REQUIRE_TOOLS=1 (scripts/test and CI) such a skip is a failure, so a
 missing tool cannot hide a test.
 """
 
+import importlib.util
 import os
+import sys
 
 import pytest
 
-from sqll_harness.paths import tools_dir
+from sqll_harness.paths import REPO_ROOT, tools_dir
 
 # The fixtures have Python files that are not tests, for example the case
 # table of the templater fixtures (test/core/templaters/jinja_test.py).
@@ -31,6 +33,18 @@ needs_all_tools = needs(
     "sqruff/bin/sqruff",
     "sqruff/python/bin/python3",
 )
+
+
+def ci_module(name: str):
+    """Load the CI script ci/<name>.py as a module. The ci folder goes on
+    sys.path, because ci/ownership.py imports ci/changes.py."""
+    ci = str(REPO_ROOT / "ci")
+    if ci not in sys.path:
+        sys.path.insert(0, ci)
+    spec = importlib.util.spec_from_file_location(name, REPO_ROOT / "ci" / f"{name}.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 
 @pytest.fixture(scope="session")

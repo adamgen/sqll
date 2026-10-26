@@ -1,0 +1,117 @@
+# Tracks and the paths that each track owns (PROCESS.md, "Tracks").
+# The Core track owns this file. ci/ownership.py reads it.
+#
+# branches: the pull request branches of the track (globs). A branch that
+#   no track has gets the rules of the Core track.
+# paths: the paths that the track owns (globs). "*" does not match "/".
+#   "**" matches zero or more folders.
+#
+# A path belongs to the one track other than core that matches it. If no
+# such track matches it, it belongs to core if a core pattern matches it.
+# Else no track owns it, and each track can change it. Two tracks other
+# than core must not match the same path (harness/tests/test_ownership.py).
+#
+# Each track also owns its hot files: status/<track>.md,
+# ci/matrix.d/<track>.json, and results/<track>/. The hot files of the Core
+# track are status/S3b.md, ci/matrix.d/core.json, and results/S3b/.
+#
+# The ownership check uses the tracks.yml of the base of a pull request.
+# If the pull request changes this file, the check also uses the new file,
+# and both checks must pass. Thus a pull request cannot give its track more
+# paths.
+
+tracks:
+  core:
+    stones: [S3b]
+    branches: [claude/core, claude/core-*, claude/s3b, claude/s3b-*]
+    paths:
+      - AGENTS.md
+      - CLAUDE.md
+      - CONSTITUTION.md
+      - PROCESS.md
+      - STONES.md
+      - STATUS.md
+      - THIRD_PARTY.md
+      - tracks.yml
+      - .github/**
+      - .gitignore
+      - .gitmodules
+      - .dockerignore
+      - ci/**
+      - scripts/**
+      - tools/**
+      - third_party/**
+      - harness/**
+      - known_failures/**
+      - results/s1/**
+      - results/s2/**
+      - status/S1.md
+      - status/S2.md
+      - status/S3b.md
+      - results/S3b/**
+
+  S3:
+    stones: [S3]
+    branches: [claude/s3, claude/s3-*, claude/laughing-clarke-jkf7w5]
+    paths:
+      - status/S3.md
+      - ci/matrix.d/S3.json
+      - results/S3/**
+      - results/s3/**
+      - scripts/s3/**
+      - docs/decisions/s3-*.md
+      - harness/tests/test_s3_*.py
+
+  S7-tests:
+    stones: [S7]
+    branches: [claude/s7-tests, claude/s7-tests-*]
+    paths:
+      - status/S7-tests.md
+      - ci/matrix.d/S7-tests.json
+      - results/S7-tests/**
+      - scripts/s7-tests/**
+      - docs/decisions/s7-tests-*.md
+      - harness/sqll_harness/s7_tests/**
+      - harness/tests/test_s7_tests_*.py
+      - harness/tests/fixtures/s7_tests/**
+
+  S9:
+    stones: [S9]
+    branches: [claude/s9, claude/s9-*]
+    paths:
+      - status/S9.md
+      - ci/matrix.d/S9.json
+      - results/S9/**
+      - scripts/s9/**
+      - docs/decisions/s9-*.md
+      - corpus/**
+      - harness/sqll_harness/corpus/**
+      - harness/tests/test_s9_*.py
+
+  # Placeholders. A track starts when each stone that its stone needs is
+  # approved (STONES.md). S3b adds the paths of the sqll packages that each
+  # track owns.
+  S4:
+    stones: [S4]
+    branches: [claude/s4, claude/s4-*]
+    paths: [status/S4.md, ci/matrix.d/S4.json, results/S4/**]
+  S5:
+    stones: [S5]
+    branches: [claude/s5, claude/s5-*]
+    paths: [status/S5.md, ci/matrix.d/S5.json, results/S5/**]
+  S6:
+    stones: [S6]
+    branches: [claude/s6, claude/s6-*]
+    paths: [status/S6.md, ci/matrix.d/S6.json, results/S6/**]
+  S7-sqll:
+    stones: [S7]
+    branches: [claude/s7-sqll, claude/s7-sqll-*]
+    paths: [status/S7-sqll.md, ci/matrix.d/S7-sqll.json, results/S7-sqll/**]
+  S8:
+    stones: [S8]
+    branches: [claude/s8, claude/s8-*]
+    paths: [status/S8.md, ci/matrix.d/S8.json, results/S8/**]
+  S10:
+    stones: [S10]
+    branches: [claude/s10, claude/s10-*]
+    paths: [status/S10.md, ci/matrix.d/S10.json, results/S10/**]
