@@ -1,17 +1,34 @@
 # sqll Status
 
-- Current stone: **S2** (benchmarks): **S2 awaiting human approval**.
-  Design: [harness/bench.md](harness/bench.md). Do not start S3 before
-  the approval. S2 tasks T1 to T8 are merged (PRs #12 to #19). The audit
-  fixes S2-gap1 and S2-gap2 do not change the S2 results. CI on main passed
-  after the merge of PR #20 (run 39438414445, head `9b2f14a`, 63 of 63
-  jobs, with `bench-smoke` and its baseline check, `bench-full` 1 to 7 of
-  7, and `bench-merge`).
+- Current stone: **S3** (choose the base), **S3 phase A**: base
+  comparison and recommendation. Decision record:
+  [docs/decisions/s3-base.md](docs/decisions/s3-base.md). Phase B (the sqll
+  binary) starts only after the human owner chooses the base.
+- **S2 complete**: the human owner approved it on 2026-10-26 (owner
+  statement to the workflow). S2 tasks T1 to T8 and the audit fixes
+  S2-gap1 and S2-gap2 are merged (PRs #12 to #21). The audit fixes do not
+  change the S2 results. CI on main passed after the merge of PR #21 (run
+  39562049065, head `fe15578`, 63 of 63 jobs, with `bench-smoke`,
+  `bench-full` 1 to 7 of 7, and `bench-merge` with its baseline check).
 - S1 is complete. The human owner approved it on 2026-10-19 (owner
   statement to the workflow). S1 tasks T1 to T9 are merged (PRs #3 to #11).
   CI on main passed after the last merge (run 39235508233, head `016a5e1`,
   54 of 54 jobs).
 - sqlfluff reference: tag `4.4.0`, commit `0348222a3bcdb0226563f7349c5a39beb0641955`.
+
+## S3 phase A tasks
+
+| Task | Description | State |
+|---|---|---|
+| T1 | STATUS and the method of the decision record | PR #22 |
+| T2 | S1 results by base, per suite and per dialect | Not started |
+| T3 | Classes of the sqruff parse tree mismatches | Not started |
+| T4 | Classes of the sqruff rule, autofix, and templater failures; rule coupling to tree shapes | Not started |
+| T5 | sqlfluffrs standalone probe: build without Python, native parse, generator reuse | Not started |
+| T6 | Speed by base and distance to the G3 targets (needs T5) | Not started |
+| T7 | License, attribution duties, code size, and structure of each base | Not started |
+| T8 | Capabilities for S6, S7, and G2 of each base | Not started |
+| T9 | Decision record: data, work estimates, recommendation, and STATUS | Not started |
 
 ## S2 tasks
 
@@ -26,9 +43,9 @@
 | T7 | Slowdown detection: `sqll-harness bench compare` and the change-record rule | Merged (PR #18) |
 | T8 | S2 exit: recorded baseline, exact drift checks, and STATUS | Merged (PR #19) |
 | S2-gap1 | Audit: STATUS records the merge of T8 and CI on main | Merged (PR #20) |
-| S2-gap2 | Audit: `bench-merge` baseline check, `scripts/verify --full-bench` (G4.4), document fixes | PR #21 |
+| S2-gap2 | Audit: `bench-merge` baseline check, `scripts/verify --full-bench` (G4.4), document fixes | Merged (PR #21) |
 
-## S2 exit evidence (awaiting approval)
+## S2 exit evidence (approved)
 
 Proof: [`results/s2/baseline.json`](results/s2/baseline.json), the report
 of the one command `scripts/bench --profile full` (the S2 exit): exit code 0,

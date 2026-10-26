@@ -318,8 +318,9 @@ def _name(tool: str) -> str:
     return f"{tool} {BASE['tools'][tool]['version']}"
 
 
-def test_status_says_s2_awaits_approval_and_names_the_baseline():
-    assert "**S2 awaiting human approval**" in STATUS
+def test_status_says_s2_is_approved_and_names_the_baseline():
+    assert "Current stone: **S3** (choose the base), **S3 phase A**:" in STATUS
+    assert "**S2 complete**: the human owner approved it on 2026-10-26" in STATUS
     assert f"`{BASE['harness']['commit'][:7]}`" in STATUS
     assert "results/s2/baseline.json" in STATUS
 
