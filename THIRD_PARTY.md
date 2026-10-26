@@ -58,6 +58,13 @@ Ported code (MIT, attribution in each file header):
   documented sqruff settings, from `crates/lib/src/core/default_config.cfg`,
   `docs/usage/configuration.md`, and `docs/reference/templaters.md` of that
   version. No sqruff code is copied.
+- `results/s3/sqruff-rule-types.json` has names from the crates.io crates
+  `sqruff-lib` and `sqruff-lib-core` 0.41.0: the rule codes and names, the
+  paths of the rule and helper source files, the segment type names
+  (`SyntaxKind` variants) that they name, and the layout type names of
+  `default_config.cfg`. It also has the segment type names of the sqlfluff
+  4.4.0 dialects. `scripts/s3/sqruff_rules.py` reads the crates from the
+  cargo cache. No sqruff code is copied.
 
 ## Tools
 
