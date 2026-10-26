@@ -23,10 +23,13 @@ same text. The script puts each node of the sqruff tree on the character
 positions of the fixture tree (difflib alignment of the leaf texts). Then it
 compares leaves by their span, and nodes by their code span (the span from
 the first to the last code leaf). Each difference is a hunk with one class
-(CLASSES) and one group key. The group key names the segment type and its
-parent type in the tree that has the node, thus the grammar rule that makes
-the difference. A sqruff "unparsable" node absorbs the other hunks in its
-region (CLASSES): they follow from the parse failure.
+(CLASSES) and one group key. The group key is the class and the segment
+types, thus the grammar rule that makes the difference. For wrapper,
+nesting, and leaf type hunks, it also names the parent type in the tree that
+has the node. For an unparsable node, it names the dialect, the sqlfluff
+segment of the first code leaf in the node, and the sqlfluff statement type.
+A sqruff "unparsable" node absorbs the other hunks in its region (CLASSES):
+they follow from the parse failure.
 """
 
 import argparse
@@ -319,10 +322,11 @@ def _crosses(span: tuple[int, int], others: list[tuple[int, int]]) -> bool:
     return any(o[0] < s < o[1] < e or s < o[0] < e < o[1] for o in others)
 
 
-def diff(expected: tuple, actual: tuple) -> dict:
+def diff(expected: tuple, actual: tuple, dialect: str = "-") -> dict:
     """Return {first_path, hunks} for 2 trees that are not equal. hunks: see
     merge_hunks. A sqlfluff path is the types from the root to the fixture
-    node of the hunk: the node itself, or the deepest node that holds it."""
+    node of the hunk: the node itself, or the deepest node that holds it.
+    dialect goes into the group key of an unparsable hunk."""
     ef, af = flatten(expected), flatten(actual)
     pmap = _PositionMap(ef.text, af.text)
     # Spans of the sqruff tree on the fixture positions.
@@ -353,9 +357,9 @@ def diff(expected: tuple, actual: tuple) -> dict:
     for i, it in enumerate(a_items):
         if it[2] == "unparsable" and not it[4]:
             span = a_code.get(i, (it[0], it[1]))
-            name, region = _unparsable_anchor(ef, span)
+            name, segment, region = _unparsable_anchor(ef, span)
             absorbed.append(region)
-            add("unparsable", f"in {name}", span)
+            add("unparsable", f"{dialect}: {segment} in {name}", span)
 
     def in_unparsable(span: tuple[int, int]) -> bool:
         """True if span is in a region, or crosses its edge."""
@@ -431,16 +435,18 @@ def diff(expected: tuple, actual: tuple) -> dict:
         a_idx = [i for sp, i in sorted(a_leaves.items()) if s <= sp[0] and sp[1] <= e]
         add("token_split", f"{_types(ef, e_idx)} -> {_types(af, a_idx)}", (s, e))
 
-    # Leaves with no text (meta leaves), by position.
+    # Leaves with no text (meta leaves), by position. A sqruff leaf with text
+    # that the fixture does not have maps to no width: it is not a meta leaf.
     e_meta: dict[int, list[str]] = {}
     a_meta: dict[int, list[str]] = {}
     e_at: dict[int, int] = {}
-    for items, meta in ((ef.items, e_meta), (a_items, a_meta)):
-        for i, it in enumerate(items):
-            if it[4] and it[0] == it[1]:
-                meta.setdefault(it[0], []).append(it[2])
-                if items is ef.items:
-                    e_at.setdefault(it[0], i)
+    for i, it in enumerate(ef.items):
+        if it[4] and it[0] == it[1]:
+            e_meta.setdefault(it[0], []).append(it[2])
+            e_at.setdefault(it[0], i)
+    for i, it in enumerate(a_items):
+        if it[4] and a_raw[i][0] == a_raw[i][1]:
+            a_meta.setdefault(it[0], []).append(it[2])
     for p in sorted(set(e_meta) | set(a_meta)):
         et, at = sorted(e_meta.get(p, [])), sorted(a_meta.get(p, []))
         if et != at and not in_unparsable((p, p)):
@@ -523,16 +529,20 @@ def merge_hunks(hunks: list[list]) -> list[list]:
     return sorted(rows.values(), key=lambda r: (r[4], r[:3]))
 
 
-def _unparsable_anchor(ef: Flat, span: tuple[int, int]) -> tuple[str, tuple[int, int]]:
-    """Return the sqlfluff segment where sqruff fails, and the region of the
-    unparsable node.
+def _unparsable_anchor(
+    ef: Flat, span: tuple[int, int]
+) -> tuple[str, str, tuple[int, int]]:
+    """Return the sqlfluff statement where sqruff fails, the sqlfluff
+    segment where it fails, and the region of the unparsable node.
 
-    The segment is the child of the nearest "statement" node above the first
-    fixture code leaf in the span. The region is the span of the node and the
-    code span of that segment: sqruff did not parse the statement. With no
-    such segment: the deepest fixture node that holds the span, and the span.
+    The segment is the parent of the first fixture code leaf in the span. The
+    statement is the child of the nearest "statement" node above that leaf.
+    The region is the span of the node and the code span of that statement:
+    sqruff did not parse the statement. With no such statement: the deepest
+    fixture node that holds the span, and the span. With no code leaf: "-".
     """
-    for i, it in enumerate(ef.items):
+    segment = "-"
+    for it in ef.items:
         if it[4] and it[0] >= span[0] and it[1] > it[0] and it[2] not in NON_CODE:
             if it[1] > span[1]:
                 break
@@ -541,19 +551,21 @@ def _unparsable_anchor(ef: Flat, span: tuple[int, int]) -> tuple[str, tuple[int,
             while j >= 0:
                 chain.append(j)
                 j = ef.items[j][3]
+            segment = ef.items[chain[0]][2] if chain else "-"
             for below, node in zip(chain, chain[1:], strict=False):
                 if ef.items[node][2] == "statement" and below in ef.code:
                     cs = ef.code[below]
-                    return ef.items[below][2], (
-                        min(cs[0], span[0]),
-                        max(cs[1], span[1]),
+                    return (
+                        ef.items[below][2],
+                        segment,
+                        (min(cs[0], span[0]), max(cs[1], span[1])),
                     )
             break
     best, depth = "file", -1
     for i, (s, e) in ef.code.items():
         if s <= span[0] and span[1] <= e and len(ef.path(i)) > depth:
             best, depth = ef.items[i][2], len(ef.path(i))
-    return best, span
+    return best, segment, span
 
 
 # collect: sqruff runs -> HUNKS_FILE
@@ -616,7 +628,7 @@ def collect_case(adapter: SqruffAdapter, case: Case) -> dict:
         }
     if actual is None:
         raise DataError(f"{case.id}: sqruff gives no tree")
-    return {"id": case.id, "dialect": dialect, **diff(expected, actual)}
+    return {"id": case.id, "dialect": dialect, **diff(expected, actual, dialect)}
 
 
 def collect(jobs: int = 4) -> dict:
@@ -707,6 +719,13 @@ def check_inputs(hunks: dict, cases_record: dict, by_base: dict) -> list[str]:
         if i.startswith("dialects/")
         or (i.startswith("templater/") and reason == TREE_DIFFERS)
     }
+    for i in sorted(want):
+        prefix = known_failures.reason_prefix(known[i])
+        if i.startswith("dialects/") and prefix not in (
+            TREE_DIFFERS,
+            UNSUPPORTED_DIALECT,
+        ):
+            errors.append(f"{i}: reason {known[i]!r}")
     if set(ids) != want:
         errors.append(
             f"the cases are not the dialect and templater tree failures of "
@@ -815,6 +834,36 @@ def coverage(rows: list[dict], key_fn) -> dict:
     }
 
 
+def _statement(key: str) -> str:
+    return key.rsplit(" in ", 1)[1]
+
+
+# Other group keys of the unparsable hunks, to show how the group numbers
+# depend on that key: (name, rule, function of the key and the case row).
+UNPARSABLE_KEY_VARIANTS = (
+    (
+        "used",
+        "dialect, sqlfluff segment of the first code leaf, sqlfluff statement",
+        lambda k, r: k,
+    ),
+    (
+        "dialect_and_statement",
+        "dialect and sqlfluff statement",
+        lambda k, r: f"unparsable: {r['dialect']}: in {_statement(k)}",
+    ),
+    (
+        "statement",
+        "sqlfluff statement only (this puts different causes in one group)",
+        lambda k, r: f"unparsable: in {_statement(k)}",
+    ),
+    (
+        "case",
+        "the case: each unparsable case needs its own fix",
+        lambda k, r: f"unparsable: {r['id']}",
+    ),
+)
+
+
 def build(
     hunks_file: Path = HUNKS_FILE,
     handcheck_file: Path = HANDCHECK_FILE,
@@ -890,6 +939,20 @@ def build(
     cov_dialect = coverage(
         rows, lambda r: [f"{k} @ {r['dialect']}" for k in keys_of(r)]
     )
+    sensitivity = {}
+    for name, rule, fn in UNPARSABLE_KEY_VARIANTS:
+        c = coverage(
+            rows,
+            lambda r, fn=fn: sorted(
+                {fn(k, r) if k.startswith("unparsable: ") else k for k in keys_of(r)}
+            ),
+        )
+        sensitivity[name] = {
+            "unparsable_key": rule,
+            "groups": c["groups"],
+            "top": {n: v["cases"] for n, v in c["top"].items()},
+            "cases_with_a_unique_fix": c["cases_with_a_unique_fix"],
+        }
     top_groups = []
     for k in cov["ranked"][:50]:
         members = cov["members"][k]
@@ -969,22 +1032,31 @@ def build(
             "and compares the tree with the fixture tree (scripts/s3/"
             "sqruff_trees.py, diff). Leaves are compared by span, nodes by code "
             "span. Each difference is a hunk with one class and one group key. "
-            "The group key is the class, the segment types, and the parent type "
-            "in the tree that has the node. A case has the classes and the keys "
+            "The group key is the class and the segment types; for wrapper, "
+            "nesting, and leaf type hunks also the parent type in the tree that "
+            "has the node; for unparsable hunks also the dialect, the sqlfluff "
+            "segment of the first code leaf in the unparsable node, and the "
+            "sqlfluff statement. A case has the classes and the keys "
             "of its hunks. Primary class: the first class of the case in the "
             "order of 'classes'."
         ),
         "classes": class_table,
         "groups": {
-            "key": "class and segment types, with no dialect",
+            "key": (
+                "class and segment types, with no dialect (the unparsable keys "
+                "have the dialect)"
+            ),
             **strip(cov),
             "by_dialect": {"key": "group key and dialect", **strip(cov_dialect)},
             "coverage_rule": (
                 "A case is covered by the top N groups if each of its group "
                 "keys is in the top N. Groups are ranked by their count of "
-                "cases. 'touched': the cases with at least one key in the top N. "
-                "A unique fix: a group with only one case."
+                "cases, then by key. 'touched': the cases with at least one key in the top N. "
+                "A unique fix: a group with only one case. "
+                "'unparsable_key_sensitivity': the same numbers with other "
+                "group keys for the unparsable hunks."
             ),
+            "unparsable_key_sensitivity": sensitivity,
             "top_50": top_groups,
             "top_50_row": "[group key, cases, dialects, hunks]",
         },

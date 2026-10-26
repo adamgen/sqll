@@ -139,7 +139,7 @@
    "dialect": "ansi",
    "first_path": "file/statement",
    "hunks": [
-    ["unparsable", "unparsable: in with_compound_statement", "file", 1, 394]
+    ["unparsable", "unparsable: ansi: with_compound_statement in with_compound_statement", "file", 1, 394]
    ]
   },
   "dialects/ansi/select_bitwise_operators": {
@@ -213,35 +213,35 @@
    "dialect": "ansi",
    "first_path": "file/statement",
    "hunks": [
-    ["unparsable", "unparsable: in with_compound_statement", "file", 1, 0]
+    ["unparsable", "unparsable: ansi: with_compound_statement in with_compound_statement", "file", 1, 0]
    ]
   },
   "dialects/ansi/with_insert_statement_a": {
    "dialect": "ansi",
    "first_path": "file/statement",
    "hunks": [
-    ["unparsable", "unparsable: in with_compound_statement", "file", 1, 0]
+    ["unparsable", "unparsable: ansi: with_compound_statement in with_compound_statement", "file", 1, 0]
    ]
   },
   "dialects/ansi/with_insert_statement_b": {
    "dialect": "ansi",
    "first_path": "file/statement",
    "hunks": [
-    ["unparsable", "unparsable: in with_compound_statement", "file", 1, 0]
+    ["unparsable", "unparsable: ansi: with_compound_statement in with_compound_statement", "file", 1, 0]
    ]
   },
   "dialects/ansi/with_insert_with_statement": {
    "dialect": "ansi",
    "first_path": "file/statement",
    "hunks": [
-    ["unparsable", "unparsable: in with_compound_statement", "file", 1, 0]
+    ["unparsable", "unparsable: ansi: with_compound_statement in with_compound_statement", "file", 1, 0]
    ]
   },
   "dialects/ansi/with_update_statement": {
    "dialect": "ansi",
    "first_path": "file/statement",
    "hunks": [
-    ["unparsable", "unparsable: in with_compound_statement", "file", 1, 0]
+    ["unparsable", "unparsable: ansi: with_compound_statement in with_compound_statement", "file", 1, 0]
    ]
   },
   "dialects/athena/cast_map_round_brackets": {
@@ -301,7 +301,7 @@
    "dialect": "athena",
    "first_path": "file/statement",
    "hunks": [
-    ["unparsable", "unparsable: in using_external_function_statement", "file", 1, 0]
+    ["unparsable", "unparsable: athena: using_external_function_statement in using_external_function_statement", "file", 1, 0]
    ]
   },
   "dialects/bigquery/array_agg": {
@@ -443,7 +443,7 @@
    "first_path": "file/statement/alter_table_statement/select_statement/limit_clause/limit_clause_component",
    "hunks": [
     ["missing_wrapper", "missing_wrapper: limit_clause_component in limit_clause", "file/statement/alter_table_statement/select_statement/limit_clause/limit_clause_component", 1, 3756],
-    ["unparsable", "unparsable: in alter_table_statement", "file", 1, 5016]
+    ["unparsable", "unparsable: clickhouse: alter_table_statement in alter_table_statement", "file", 1, 5016]
    ]
   },
   "dialects/clickhouse/create_table": {
@@ -456,7 +456,7 @@
     ["renamed", "renamed: object_reference -> data_type", "file/statement/create_table_statement/bracketed/table_constraint/object_reference", 1, 1401],
     ["extra_wrapper", "extra_wrapper: column_constraint_segment in column_definition", "file/statement/create_table_statement/bracketed/table_constraint", 1, 1418],
     ["missing_wrapper", "missing_wrapper: expression in table_constraint", "file/statement/create_table_statement/bracketed/table_constraint/expression", 1, 1423],
-    ["unparsable", "unparsable: in create_table_statement", "file", 1, 1758]
+    ["unparsable", "unparsable: clickhouse: create_table_statement in create_table_statement", "file", 1, 1758]
    ]
   },
   "dialects/clickhouse/create_view": {
@@ -504,7 +504,7 @@
     ["renamed", "renamed: object_reference -> access_object", "file/statement/access_statement/grant_statement/access_object/object_reference", 14, 13],
     ["extra_wrapper", "extra_wrapper: access_target in grant_statement", "file/statement/access_statement/grant_statement/access_target/role_reference", 15, 22],
     ["extra_wrapper", "extra_wrapper: access_object in grant_statement", "file/statement/access_statement/grant_statement/access_object/wildcard_identifier", 1, 45],
-    ["unparsable", "unparsable: in access_statement", "file", 1, 538]
+    ["unparsable", "unparsable: clickhouse: grant_statement in access_statement", "file", 1, 538]
    ]
   },
   "dialects/clickhouse/into_outfile": {
@@ -520,7 +520,7 @@
    "dialect": "clickhouse",
    "first_path": "file/statement/select_statement/select_clause/select_clause_element/expression",
    "hunks": [
-    ["unparsable", "unparsable: in select_statement", "file/statement/select_statement/select_clause", 1, 67]
+    ["unparsable", "unparsable: clickhouse: comparison_operator in select_statement", "file/statement/select_statement/select_clause", 1, 67]
    ]
   },
   "dialects/clickhouse/join": {
@@ -548,7 +548,7 @@
    "dialect": "clickhouse",
    "first_path": "file/statement/select_statement/select_clause/select_clause_element",
    "hunks": [
-    ["unparsable", "unparsable: in select_statement", "file/statement/select_statement/select_clause", 1, 51]
+    ["unparsable", "unparsable: clickhouse: select_clause_element in select_statement", "file/statement/select_statement/select_clause", 1, 51]
    ]
   },
   "dialects/clickhouse/order_by_with_fill": {
@@ -583,14 +583,14 @@
    "dialect": "clickhouse",
    "first_path": "file/statement/select_statement/from_clause/from_expression",
    "hunks": [
-    ["unparsable", "unparsable: in select_statement", "file/statement/select_statement/from_clause/from_expression/join_clause", 4, 12]
+    ["unparsable", "unparsable: clickhouse: join_clause in select_statement", "file/statement/select_statement/from_clause/from_expression/join_clause", 4, 12]
    ]
   },
   "dialects/clickhouse/select_set_operators": {
    "dialect": "clickhouse",
    "first_path": "file/statement/set_expression",
    "hunks": [
-    ["unparsable", "unparsable: in set_expression", "file", 1, 250]
+    ["unparsable", "unparsable: clickhouse: set_operator in set_expression", "file", 1, 250]
    ]
   },
   "dialects/clickhouse/select_union_member_clauses": {
@@ -640,7 +640,7 @@
    "dialect": "clickhouse",
    "first_path": "file/statement/with_compound_statement/common_table_expression/naked_identifier",
    "hunks": [
-    ["unparsable", "unparsable: in with_compound_statement", "file", 1, 31]
+    ["unparsable", "unparsable: clickhouse: select_clause in with_compound_statement", "file", 1, 31]
    ]
   },
   "dialects/databricks/alter_catalog": {
@@ -738,7 +738,7 @@
    "first_path": "file/statement/create_catalog_statement",
    "hunks": [
     ["missing_wrapper", "missing_wrapper: create_catalog_statement in statement", "file/statement/create_catalog_statement", 3, 0],
-    ["unparsable", "unparsable: in create_catalog_statement", "file", 1, 158]
+    ["unparsable", "unparsable: databricks: create_catalog_statement in create_catalog_statement", "file", 1, 158]
    ]
   },
   "dialects/databricks/create_database": {
@@ -752,7 +752,7 @@
    "dialect": "databricks",
    "first_path": "file/statement",
    "hunks": [
-    ["unparsable", "unparsable: in create_table_statement", "file", 1, 0]
+    ["unparsable", "unparsable: databricks: create_table_statement in create_table_statement", "file", 1, 0]
    ]
   },
   "dialects/databricks/create_flow_auto_cdc_into": {
@@ -795,7 +795,7 @@
    "dialect": "databricks",
    "first_path": "file/statement",
    "hunks": [
-    ["unparsable", "unparsable: in create_materialized_view_statement", "file", 1, 0]
+    ["unparsable", "unparsable: databricks: create_materialized_view_statement in create_materialized_view_statement", "file", 1, 0]
    ]
   },
   "dialects/databricks/create_table": {
@@ -882,7 +882,7 @@
    "dialect": "databricks",
    "first_path": "file/statement",
    "hunks": [
-    ["unparsable", "unparsable: in access_statement", "file", 1, 346]
+    ["unparsable", "unparsable: databricks: grant_statement in access_statement", "file", 1, 346]
    ]
   },
   "dialects/databricks/magic_line": {
@@ -903,7 +903,7 @@
    "dialect": "databricks",
    "first_path": "file/statement/magic_cell_segment",
    "hunks": [
-    ["unparsable", "unparsable: in magic_cell_segment", "file", 1, 29]
+    ["unparsable", "unparsable: databricks: magic_cell_segment in magic_cell_segment", "file", 1, 29]
    ]
   },
   "dialects/databricks/merge_into": {
@@ -970,7 +970,7 @@
    "dialect": "databricks",
    "first_path": "file/statement",
    "hunks": [
-    ["unparsable", "unparsable: in access_statement", "file", 1, 314]
+    ["unparsable", "unparsable: databricks: revoke_statement in access_statement", "file", 1, 314]
    ]
   },
   "dialects/databricks/select": {
@@ -1148,7 +1148,7 @@
    "dialect": "doris",
    "first_path": "file/statement",
    "hunks": [
-    ["unparsable", "unparsable: in create_table_statement", "file", 1, 0]
+    ["unparsable", "unparsable: doris: create_table_statement in create_table_statement", "file", 1, 0]
    ]
   },
   "dialects/doris/create_table_with_index": {
@@ -1177,7 +1177,7 @@
    "dialect": "duckdb",
    "first_path": "file/statement",
    "hunks": [
-    ["unparsable", "unparsable: in install_statement", "file", 1, 0]
+    ["unparsable", "unparsable: duckdb: install_statement in install_statement", "file", 1, 0]
    ]
   },
   "dialects/duckdb/interval": {
@@ -1561,10 +1561,10 @@
    "dialect": "hive",
    "first_path": "file/statement/select_statement/select_clause/select_clause_element/expression",
    "hunks": [
-    ["unparsable", "unparsable: in select_statement", "file/statement/select_statement/select_clause", 1, 7],
-    ["unparsable", "unparsable: in select_statement", "file/statement/select_statement/select_clause/select_clause_element/expression", 1, 40],
-    ["unparsable", "unparsable: in select_statement", "file/statement/select_statement/where_clause/expression", 2, 57],
-    ["unparsable", "unparsable: in select_statement", "file/statement/select_statement/from_clause/from_expression/join_clause/join_on_condition/expression", 1, 106]
+    ["unparsable", "unparsable: hive: comparison_operator in select_statement", "file/statement/select_statement/select_clause", 1, 7],
+    ["unparsable", "unparsable: hive: comparison_operator in select_statement", "file/statement/select_statement/select_clause/select_clause_element/expression", 1, 40],
+    ["unparsable", "unparsable: hive: comparison_operator in select_statement", "file/statement/select_statement/where_clause/expression", 2, 57],
+    ["unparsable", "unparsable: hive: comparison_operator in select_statement", "file/statement/select_statement/from_clause/from_expression/join_clause/join_on_condition/expression", 1, 106]
    ]
   },
   "dialects/hive/quoted_literal": {
@@ -1620,10 +1620,10 @@
    "dialect": "impala",
    "first_path": "file/statement/select_statement/select_clause/select_clause_element/expression",
    "hunks": [
-    ["unparsable", "unparsable: in select_statement", "file/statement/select_statement/select_clause", 1, 7],
-    ["unparsable", "unparsable: in select_statement", "file/statement/select_statement/select_clause/select_clause_element/expression", 1, 40],
-    ["unparsable", "unparsable: in select_statement", "file/statement/select_statement/where_clause/expression", 2, 57],
-    ["unparsable", "unparsable: in select_statement", "file/statement/select_statement/from_clause/from_expression/join_clause/join_on_condition/expression", 1, 106]
+    ["unparsable", "unparsable: impala: comparison_operator in select_statement", "file/statement/select_statement/select_clause", 1, 7],
+    ["unparsable", "unparsable: impala: comparison_operator in select_statement", "file/statement/select_statement/select_clause/select_clause_element/expression", 1, 40],
+    ["unparsable", "unparsable: impala: comparison_operator in select_statement", "file/statement/select_statement/where_clause/expression", 2, 57],
+    ["unparsable", "unparsable: impala: comparison_operator in select_statement", "file/statement/select_statement/from_clause/from_expression/join_clause/join_on_condition/expression", 1, 106]
    ]
   },
   "dialects/mariadb/alter_table": {
@@ -1769,7 +1769,7 @@
     ["extra_wrapper", "extra_wrapper: grant_statement in grant_statement", "file/statement/access_statement/grant_statement", 8, 0],
     ["extra_wrapper", "extra_wrapper: access_permission in access_permission", "file/statement/access_statement/grant_statement/access_permissions/access_permission", 40, 5],
     ["extra_wrapper", "extra_wrapper: access_object in grant_statement", "file/statement/access_statement/grant_statement/access_object/object_reference", 8, 45],
-    ["unparsable", "unparsable: in access_statement", "file", 1, 542]
+    ["unparsable", "unparsable: mariadb: grant_statement in access_statement", "file", 1, 542]
    ]
   },
   "dialects/mariadb/if": {
@@ -1881,7 +1881,7 @@
    "dialect": "mariadb",
    "first_path": "file/statement",
    "hunks": [
-    ["unparsable", "unparsable: in create_sequence_statement", "file", 1, 0]
+    ["unparsable", "unparsable: mariadb: create_sequence_statement in create_sequence_statement", "file", 1, 0]
    ]
   },
   "dialects/mariadb/sequence_value_for": {
@@ -1994,21 +1994,21 @@
    "dialect": "mysql",
    "first_path": "file/statement",
    "hunks": [
-    ["unparsable", "unparsable: in call_statement", "file", 1, 0]
+    ["unparsable", "unparsable: mysql: call_statement in call_statement", "file", 1, 0]
    ]
   },
   "dialects/mysql/call_qualified_no_parentheses": {
    "dialect": "mysql",
    "first_path": "file/statement",
    "hunks": [
-    ["unparsable", "unparsable: in call_statement", "file", 1, 0]
+    ["unparsable", "unparsable: mysql: call_statement in call_statement", "file", 1, 0]
    ]
   },
   "dialects/mysql/create_event_do_statement": {
    "dialect": "mysql",
    "first_path": "file/statement",
    "hunks": [
-    ["unparsable", "unparsable: in create_event_statement", "file", 1, 0]
+    ["unparsable", "unparsable: mysql: create_event_statement in create_event_statement", "file", 1, 0]
    ]
   },
   "dialects/mysql/create_index": {
@@ -2064,7 +2064,7 @@
    "dialect": "mysql",
    "first_path": "file/statement/declare_statement/expression",
    "hunks": [
-    ["unparsable", "unparsable: in declare_statement", "file", 1, 21]
+    ["unparsable", "unparsable: mysql: expression in declare_statement", "file", 1, 21]
    ]
   },
   "dialects/mysql/declare_default_function": {
@@ -2078,14 +2078,14 @@
    "dialect": "mysql",
    "first_path": "file/statement/declare_statement",
    "hunks": [
-    ["unparsable", "unparsable: in declare_statement", "file", 1, 13]
+    ["unparsable", "unparsable: mysql: declare_statement in declare_statement", "file", 1, 13]
    ]
   },
   "dialects/mysql/declare_default_null": {
    "dialect": "mysql",
    "first_path": "file/statement/declare_statement",
    "hunks": [
-    ["unparsable", "unparsable: in declare_statement", "file", 1, 13]
+    ["unparsable", "unparsable: mysql: declare_statement in declare_statement", "file", 1, 13]
    ]
   },
   "dialects/mysql/declare_default_numeric": {
@@ -2106,14 +2106,14 @@
    "dialect": "mysql",
    "first_path": "file/statement",
    "hunks": [
-    ["unparsable", "unparsable: in declare_statement", "file", 1, 0]
+    ["unparsable", "unparsable: mysql: declare_statement in declare_statement", "file", 1, 0]
    ]
   },
   "dialects/mysql/declare_multiple_variables_default": {
    "dialect": "mysql",
    "first_path": "file/statement",
    "hunks": [
-    ["unparsable", "unparsable: in declare_statement", "file", 1, 0]
+    ["unparsable", "unparsable: mysql: declare_statement in declare_statement", "file", 1, 0]
    ]
   },
   "dialects/mysql/delete_multitable": {
@@ -2127,7 +2127,7 @@
    "dialect": "mysql",
    "first_path": "file/statement",
    "hunks": [
-    ["unparsable", "unparsable: in do_statement", "file", 1, 0]
+    ["unparsable", "unparsable: mysql: do_statement in do_statement", "file", 1, 0]
    ]
   },
   "dialects/mysql/drop_index": {
@@ -2166,7 +2166,7 @@
     ["extra_wrapper", "extra_wrapper: grant_statement in grant_statement", "file/statement/access_statement/grant_statement", 8, 0],
     ["extra_wrapper", "extra_wrapper: access_permission in access_permission", "file/statement/access_statement/grant_statement/access_permissions/access_permission", 40, 5],
     ["extra_wrapper", "extra_wrapper: access_object in grant_statement", "file/statement/access_statement/grant_statement/access_object/object_reference", 8, 45],
-    ["unparsable", "unparsable: in access_statement", "file", 1, 542]
+    ["unparsable", "unparsable: mysql: grant_statement in access_statement", "file", 1, 542]
    ]
   },
   "dialects/mysql/if": {
@@ -2341,7 +2341,7 @@
     ["extra_wrapper", "extra_wrapper: referenced_column_list in table_constraint", "file/batch/statement/alter_table_statement/alter_table_constraint_clauses/bracketed/table_constraint/bracketed", 2, 475],
     ["extra_wrapper", "extra_wrapper: column_constraint_segment in oracle_column_definition", "file/batch/statement/alter_table_statement/alter_table_column_clauses/bracketed/column_definition/column_constraint_segment", 2, 819],
     ["missing_wrapper", "missing_wrapper: column_constraint_segment in column_definition", "file/batch/statement/alter_table_statement/alter_table_column_clauses/bracketed/column_definition/column_constraint_segment", 2, 819],
-    ["unparsable", "unparsable: in alter_table_statement", "file/batch", 1, 1005]
+    ["unparsable", "unparsable: oracle: alter_table_statement in alter_table_statement", "file/batch", 1, 1005]
    ]
   },
   "dialects/oracle/alter_trigger": {
@@ -2543,7 +2543,7 @@
    "dialect": "oracle",
    "first_path": "file/batch",
    "hunks": [
-    ["unparsable", "unparsable: in create_table_statement", "file/batch", 1, 0]
+    ["unparsable", "unparsable: oracle: create_table_statement in create_table_statement", "file/batch", 1, 0]
    ]
   },
   "dialects/oracle/continue": {
@@ -2618,7 +2618,7 @@
     ["renamed", "renamed: batch -> oracle_batch", "file/batch", 1, 0],
     ["renamed", "renamed: index_reference -> database_reference", "file/batch/statement/create_index_statement/index_reference", 6, 11],
     ["renamed", "renamed: table_reference -> oracle_table_reference", "file/batch/statement/create_index_statement/table_reference", 6, 27],
-    ["unparsable", "unparsable: in create_index_statement", "file/batch", 1, 277]
+    ["unparsable", "unparsable: oracle: create_index_statement in create_index_statement", "file/batch", 1, 277]
    ]
   },
   "dialects/oracle/create_package": {
@@ -2717,7 +2717,7 @@
    "hunks": [
     ["renamed", "renamed: batch -> oracle_batch", "file/batch", 1, 0],
     ["renamed", "renamed: sequence_reference -> column_reference", "file/batch/statement/create_sequence_statement/sequence_reference", 2, 14],
-    ["unparsable", "unparsable: in create_sequence_statement", "file/batch", 1, 175]
+    ["unparsable", "unparsable: oracle: create_sequence_statement in create_sequence_statement", "file/batch", 1, 175]
    ]
   },
   "dialects/oracle/create_synonym": {
@@ -2914,7 +2914,7 @@
     ["renamed", "renamed: batch -> oracle_batch", "file/batch", 1, 0],
     ["renamed", "renamed: delete_statement -> oracle_delete_statement", "file/batch/statement/delete_statement", 1, 0],
     ["renamed", "renamed: table_reference -> oracle_table_reference", "file/batch/statement/delete_statement/from_clause/from_expression/from_expression_element/table_expression/table_reference", 1, 10],
-    ["unparsable", "unparsable: in delete_statement", "file/batch", 1, 20]
+    ["unparsable", "unparsable: oracle: delete_statement in delete_statement", "file/batch", 1, 20]
    ]
   },
   "dialects/oracle/drop_cluster": {
@@ -3112,7 +3112,7 @@
    "hunks": [
     ["renamed", "renamed: batch -> oracle_batch", "file/batch", 1, 0],
     ["renamed", "renamed: table_reference -> oracle_table_reference", "file/batch/statement/select_statement/from_clause/from_expression/from_expression_element/table_expression/table_reference", 6, 21],
-    ["unparsable", "unparsable: in select_statement", "file/batch/statement/select_statement/fetch_clause", 3, 231],
+    ["unparsable", "unparsable: oracle: fetch_clause in select_statement", "file/batch/statement/select_statement/fetch_clause", 3, 231],
     ["renamed", "renamed: orderby_clause -> oracle_order_by_clause", "file/batch/statement/select_statement/orderby_clause", 1, 371]
    ]
   },
@@ -3720,7 +3720,7 @@
    "dialect": "oracle",
    "first_path": "file/batch",
    "hunks": [
-    ["unparsable", "unparsable: in batch", "file/batch", 1, 0]
+    ["unparsable", "unparsable: oracle: sqlplus_show_statement in batch", "file/batch", 1, 0]
    ]
   },
   "dialects/oracle/size_suffix_storage": {
@@ -3849,7 +3849,7 @@
     ["renamed", "renamed: index_reference -> database_reference", "file/batch/statement/create_table_statement/bracketed/table_constraint/using_index_clause/index_reference", 3, 86],
     ["renamed", "renamed: index_reference -> database_reference", "file/batch/statement/create_table_statement/bracketed/table_constraint/using_index_clause/bracketed/create_index_statement/index_reference", 10, 1337],
     ["renamed", "renamed: table_reference -> oracle_table_reference", "file/batch/statement/create_table_statement/bracketed/table_constraint/using_index_clause/bracketed/create_index_statement/table_reference", 10, 1359],
-    ["unparsable", "unparsable: in create_table_statement", "file/batch", 1, 3365]
+    ["unparsable", "unparsable: oracle: create_table_statement in create_table_statement", "file/batch", 1, 3365]
    ]
   },
   "dialects/oracle/while_loop": {
@@ -3992,7 +3992,7 @@
    "dialect": "postgres",
    "first_path": "file/statement",
    "hunks": [
-    ["unparsable", "unparsable: in alter_table_statement", "file", 1, 0]
+    ["unparsable", "unparsable: postgres: alter_table_statement in alter_table_statement", "file", 1, 0]
    ]
   },
   "dialects/postgres/alter_type": {
@@ -4041,7 +4041,7 @@
    "dialect": "postgres",
    "first_path": "file/statement/copy_statement",
    "hunks": [
-    ["unparsable", "unparsable: in copy_statement", "file", 1, 4166]
+    ["unparsable", "unparsable: postgres: bracketed in copy_statement", "file", 1, 4166]
    ]
   },
   "dialects/postgres/copy_from_stdin_data_block": {
@@ -4156,7 +4156,7 @@
     ["leaf_type", "leaf_type: word -> keyword in bracketed", "file/statement/create_type_statement/bracketed/word", 2, 1065],
     ["extra_wrapper", "extra_wrapper: referenced_column_list in column_constraint_segment", "file/statement/create_table_statement/bracketed/column_definition/column_constraint_segment/bracketed", 3, 3615],
     ["extra_wrapper", "extra_wrapper: referenced_column_list in table_constraint", "file/statement/create_table_statement/bracketed/table_constraint/bracketed", 2, 6213],
-    ["unparsable", "unparsable: in create_table_statement", "file", 1, 6483]
+    ["unparsable", "unparsable: postgres: create_table_statement in create_table_statement", "file", 1, 6483]
    ]
   },
   "dialects/postgres/create_trigger": {
@@ -4250,7 +4250,7 @@
    "dialect": "postgres",
    "first_path": "file/statement/merge_statement",
    "hunks": [
-    ["unparsable", "unparsable: in merge_statement", "file", 1, 139]
+    ["unparsable", "unparsable: postgres: merge_statement in merge_statement", "file", 1, 139]
    ]
   },
   "dialects/postgres/overlaps": {
@@ -4264,7 +4264,7 @@
    "dialect": "postgres",
    "first_path": "file/statement/select_statement/select_clause/select_clause_element/expression",
    "hunks": [
-    ["unparsable", "unparsable: in select_statement", "file/statement/select_statement/select_clause/select_clause_element/expression", 8, 30]
+    ["unparsable", "unparsable: postgres: expression in select_statement", "file/statement/select_statement/select_clause/select_clause_element/expression", 8, 30]
    ]
   },
   "dialects/postgres/pgvector": {
@@ -4303,7 +4303,7 @@
    "first_path": "file/statement/select_statement/select_clause/select_clause_element/column_reference/naked_identifier_all",
    "hunks": [
     ["leaf_type", "leaf_type: naked_identifier_all -> naked_identifier in column_reference", "file/statement/select_statement/select_clause/select_clause_element/column_reference/naked_identifier_all", 1, 1488],
-    ["unparsable", "unparsable: in select_statement", "file/statement/select_statement", 1, 2036]
+    ["unparsable", "unparsable: postgres: column_reference in select_statement", "file/statement/select_statement", 1, 2036]
    ]
   },
   "dialects/postgres/substring": {
@@ -4367,7 +4367,7 @@
    "dialect": "redshift",
    "first_path": "file/statement",
    "hunks": [
-    ["unparsable", "unparsable: in access_statement", "file", 1, 589]
+    ["unparsable", "unparsable: redshift: grant_statement in access_statement", "file", 1, 589]
    ]
   },
   "dialects/redshift/select_exclude": {
@@ -4384,7 +4384,7 @@
     ["nesting", "nesting: sqlfluff select_exclude_clause in select_clause", "file/statement/select_statement/select_clause/select_exclude_clause", 1, 36],
     ["extra_wrapper", "extra_wrapper: column_reference in select_clause_element", "file/statement/select_statement/select_clause/select_exclude_clause", 1, 48],
     ["extra_wrapper", "extra_wrapper: select_clause_element in select_clause", "file/statement/select_statement/select_clause/select_exclude_clause", 1, 48],
-    ["unparsable", "unparsable: in select_statement", "file/statement/select_statement/select_clause/select_exclude_clause", 2, 151],
+    ["unparsable", "unparsable: redshift: select_exclude_clause in select_statement", "file/statement/select_statement/select_clause/select_exclude_clause", 2, 151],
     ["keyword_vs_identifier", "keyword_vs_identifier: keyword -> naked_identifier in select_exclude_clause", "file/statement/select_statement/select_clause/select_exclude_clause/keyword", 2, 189],
     ["renamed", "renamed: select_exclude_clause -> alias_expression", "file/statement/select_statement/select_clause/select_exclude_clause", 2, 189],
     ["extra_wrapper", "extra_wrapper: identifier_list in bracketed", "file/statement/select_statement/select_clause/select_exclude_clause/bracketed", 2, 197]
@@ -4402,8 +4402,8 @@
    "dialect": "redshift",
    "first_path": "file/statement/select_statement/from_clause/from_expression/join_clause/from_expression_element/table_expression",
    "hunks": [
-    ["unparsable", "unparsable: in select_statement", "file/statement/select_statement/from_clause/from_expression/join_clause", 2, 30],
-    ["unparsable", "unparsable: in select_statement", "file/statement/select_statement/from_clause/from_expression/from_expression_element", 1, 117]
+    ["unparsable", "unparsable: redshift: array_accessor in select_statement", "file/statement/select_statement/from_clause/from_expression/join_clause", 2, 30],
+    ["unparsable", "unparsable: redshift: array_accessor in select_statement", "file/statement/select_statement/from_clause/from_expression/from_expression_element", 1, 117]
    ]
   },
   "dialects/snowflake/alter_account": {
@@ -4417,7 +4417,7 @@
    "dialect": "snowflake",
    "first_path": "file/statement",
    "hunks": [
-    ["unparsable", "unparsable: in alter_alert_statement", "file", 1, 0]
+    ["unparsable", "unparsable: snowflake: alter_alert_statement in alter_alert_statement", "file", 1, 0]
    ]
   },
   "dialects/snowflake/alter_dynamic_table": {
@@ -4431,7 +4431,7 @@
    "dialect": "snowflake",
    "first_path": "file/statement",
    "hunks": [
-    ["unparsable", "unparsable: in alter_dynamic_table_statement", "file", 1, 0]
+    ["unparsable", "unparsable: snowflake: alter_dynamic_table_statement in alter_dynamic_table_statement", "file", 1, 0]
    ]
   },
   "dialects/snowflake/alter_masking_policy": {
@@ -4452,7 +4452,7 @@
    "dialect": "snowflake",
    "first_path": "file/statement",
    "hunks": [
-    ["unparsable", "unparsable: in alter_procedure_statement", "file", 1, 0]
+    ["unparsable", "unparsable: snowflake: alter_procedure_statement in alter_procedure_statement", "file", 1, 0]
    ]
   },
   "dialects/snowflake/alter_resource_monitor": {
@@ -4471,7 +4471,7 @@
    "hunks": [
     ["extra_wrapper", "extra_wrapper: object_reference in table_reference", "file/statement/alter_schema_statement/schema_reference", 10, 19],
     ["renamed", "renamed: schema_reference -> table_reference", "file/statement/alter_schema_statement/schema_reference", 10, 19],
-    ["unparsable", "unparsable: in alter_schema_statement", "file", 1, 385]
+    ["unparsable", "unparsable: snowflake: alter_schema_statement in alter_schema_statement", "file", 1, 385]
    ]
   },
   "dialects/snowflake/alter_sequence": {
@@ -4485,14 +4485,14 @@
    "dialect": "snowflake",
    "first_path": "file/statement",
    "hunks": [
-    ["unparsable", "unparsable: in alter_session_policy_statement", "file", 1, 0]
+    ["unparsable", "unparsable: snowflake: alter_session_policy_statement in alter_session_policy_statement", "file", 1, 0]
    ]
   },
   "dialects/snowflake/alter_share": {
    "dialect": "snowflake",
    "first_path": "file/statement",
    "hunks": [
-    ["unparsable", "unparsable: in alter_share_statement", "file", 1, 796]
+    ["unparsable", "unparsable: snowflake: alter_share_statement in alter_share_statement", "file", 1, 796]
    ]
   },
   "dialects/snowflake/alter_stage": {
@@ -4513,42 +4513,42 @@
    "dialect": "snowflake",
    "first_path": "file/statement",
    "hunks": [
-    ["unparsable", "unparsable: in alter_table_statement", "file", 1, 0]
+    ["unparsable", "unparsable: snowflake: alter_table_statement in alter_table_statement", "file", 1, 0]
    ]
   },
   "dialects/snowflake/alter_user_policy": {
    "dialect": "snowflake",
    "first_path": "file/statement",
    "hunks": [
-    ["unparsable", "unparsable: in alter_user_statement", "file", 1, 0]
+    ["unparsable", "unparsable: snowflake: alter_user_statement in alter_user_statement", "file", 1, 0]
    ]
   },
   "dialects/snowflake/alter_user_set_values": {
    "dialect": "snowflake",
    "first_path": "file/statement",
    "hunks": [
-    ["unparsable", "unparsable: in alter_user_statement", "file", 1, 204]
+    ["unparsable", "unparsable: snowflake: alter_user_statement in alter_user_statement", "file", 1, 204]
    ]
   },
   "dialects/snowflake/alter_user_workload_identity": {
    "dialect": "snowflake",
    "first_path": "file/statement",
    "hunks": [
-    ["unparsable", "unparsable: in alter_user_statement", "file", 1, 0]
+    ["unparsable", "unparsable: snowflake: alter_user_statement in alter_user_statement", "file", 1, 0]
    ]
   },
   "dialects/snowflake/alter_view_governance": {
    "dialect": "snowflake",
    "first_path": "file/statement",
    "hunks": [
-    ["unparsable", "unparsable: in alter_view_statement", "file", 1, 0]
+    ["unparsable", "unparsable: snowflake: alter_view_statement in alter_view_statement", "file", 1, 0]
    ]
   },
   "dialects/snowflake/alter_warehouse": {
    "dialect": "snowflake",
    "first_path": "file/statement",
    "hunks": [
-    ["unparsable", "unparsable: in alter_warehouse_statement", "file", 1, 1818]
+    ["unparsable", "unparsable: snowflake: alter_warehouse_statement in alter_warehouse_statement", "file", 1, 1818]
    ]
   },
   "dialects/snowflake/copy_into_location": {
@@ -4583,56 +4583,56 @@
    "dialect": "snowflake",
    "first_path": "file/statement",
    "hunks": [
-    ["unparsable", "unparsable: in create_alert_statement", "file", 1, 0]
+    ["unparsable", "unparsable: snowflake: create_alert_statement in create_alert_statement", "file", 1, 0]
    ]
   },
   "dialects/snowflake/create_alert_all_options": {
    "dialect": "snowflake",
    "first_path": "file/statement",
    "hunks": [
-    ["unparsable", "unparsable: in create_alert_statement", "file", 1, 0]
+    ["unparsable", "unparsable: snowflake: create_alert_statement in create_alert_statement", "file", 1, 0]
    ]
   },
   "dialects/snowflake/create_alert_condition_variants": {
    "dialect": "snowflake",
    "first_path": "file/statement",
    "hunks": [
-    ["unparsable", "unparsable: in create_alert_statement", "file", 1, 0]
+    ["unparsable", "unparsable: snowflake: create_alert_statement in create_alert_statement", "file", 1, 0]
    ]
   },
   "dialects/snowflake/create_data_metric_function": {
    "dialect": "snowflake",
    "first_path": "file/statement",
    "hunks": [
-    ["unparsable", "unparsable: in create_data_metric_function_statement", "file", 1, 0]
+    ["unparsable", "unparsable: snowflake: create_data_metric_function_statement in create_data_metric_function_statement", "file", 1, 0]
    ]
   },
   "dialects/snowflake/create_dynamic_table_custom_incremental": {
    "dialect": "snowflake",
    "first_path": "file/statement/create_table_statement/dynamic_table_options",
    "hunks": [
-    ["unparsable", "unparsable: in create_table_statement", "file", 1, 146]
+    ["unparsable", "unparsable: snowflake: dynamic_table_options in create_table_statement", "file", 1, 146]
    ]
   },
   "dialects/snowflake/create_dynamic_table_governance": {
    "dialect": "snowflake",
    "first_path": "file/statement/create_table_statement",
    "hunks": [
-    ["unparsable", "unparsable: in create_table_statement", "file", 1, 73]
+    ["unparsable", "unparsable: snowflake: create_table_statement in create_table_statement", "file", 1, 73]
    ]
   },
   "dialects/snowflake/create_event_table": {
    "dialect": "snowflake",
    "first_path": "file/statement/create_event_table_statement",
    "hunks": [
-    ["unparsable", "unparsable: in create_event_table_statement", "file", 1, 470]
+    ["unparsable", "unparsable: snowflake: comment_equals_clause in create_event_table_statement", "file", 1, 470]
    ]
   },
   "dialects/snowflake/create_external_table": {
    "dialect": "snowflake",
    "first_path": "file/statement/create_external_table_statement",
    "hunks": [
-    ["unparsable", "unparsable: in create_external_table_statement", "file", 1, 1804]
+    ["unparsable", "unparsable: snowflake: create_external_table_statement in create_external_table_statement", "file", 1, 1804]
    ]
   },
   "dialects/snowflake/create_function": {
@@ -4640,21 +4640,21 @@
    "first_path": "file/statement/create_function_statement/bracketed/naked_identifier",
    "hunks": [
     ["extra_wrapper", "extra_wrapper: object_reference in bracketed", "file/statement/create_function_statement/bracketed", 4, 2253],
-    ["unparsable", "unparsable: in create_function_statement", "file", 1, 3585]
+    ["unparsable", "unparsable: snowflake: create_function_statement in create_function_statement", "file", 1, 3585]
    ]
   },
   "dialects/snowflake/create_mcp_server": {
    "dialect": "snowflake",
    "first_path": "file/statement",
    "hunks": [
-    ["unparsable", "unparsable: in create_mcp_server_statement", "file", 1, 0]
+    ["unparsable", "unparsable: snowflake: create_mcp_server_statement in create_mcp_server_statement", "file", 1, 0]
    ]
   },
   "dialects/snowflake/create_or_alter_share": {
    "dialect": "snowflake",
    "first_path": "file/statement",
    "hunks": [
-    ["unparsable", "unparsable: in create_statement", "file", 1, 0]
+    ["unparsable", "unparsable: snowflake: create_statement in create_statement", "file", 1, 0]
    ]
   },
   "dialects/snowflake/create_procedure": {
@@ -4668,7 +4668,7 @@
    "dialect": "snowflake",
    "first_path": "file/statement",
    "hunks": [
-    ["unparsable", "unparsable: in create_procedure_statement", "file", 1, 0]
+    ["unparsable", "unparsable: snowflake: create_procedure_statement in create_procedure_statement", "file", 1, 0]
    ]
   },
   "dialects/snowflake/create_resource_monitor": {
@@ -4687,7 +4687,7 @@
    "hunks": [
     ["extra_wrapper", "extra_wrapper: object_reference in table_reference", "file/statement/create_schema_statement/schema_reference", 7, 251],
     ["renamed", "renamed: schema_reference -> table_reference", "file/statement/create_schema_statement/schema_reference", 7, 251],
-    ["unparsable", "unparsable: in create_schema_statement", "file", 1, 645]
+    ["unparsable", "unparsable: snowflake: schema_object_properties in create_schema_statement", "file", 1, 645]
    ]
   },
   "dialects/snowflake/create_sequence": {
@@ -4701,7 +4701,7 @@
    "dialect": "snowflake",
    "first_path": "file/statement",
    "hunks": [
-    ["unparsable", "unparsable: in create_session_policy_statement", "file", 1, 0]
+    ["unparsable", "unparsable: snowflake: create_session_policy_statement in create_session_policy_statement", "file", 1, 0]
    ]
   },
   "dialects/snowflake/create_stage": {
@@ -4717,42 +4717,42 @@
    "dialect": "snowflake",
    "first_path": "file/statement/create_stream_statement",
    "hunks": [
-    ["unparsable", "unparsable: in create_stream_statement", "file", 1, 1131]
+    ["unparsable", "unparsable: snowflake: create_stream_statement in create_stream_statement", "file", 1, 1131]
    ]
   },
   "dialects/snowflake/create_table_governance_policies": {
    "dialect": "snowflake",
    "first_path": "file/statement/create_table_statement",
    "hunks": [
-    ["unparsable", "unparsable: in create_table_statement", "file", 1, 27]
+    ["unparsable", "unparsable: snowflake: create_table_statement in create_table_statement", "file", 1, 27]
    ]
   },
   "dialects/snowflake/create_view_governance": {
    "dialect": "snowflake",
    "first_path": "file/statement",
    "hunks": [
-    ["unparsable", "unparsable: in create_view_statement", "file", 1, 0]
+    ["unparsable", "unparsable: snowflake: create_view_statement in create_view_statement", "file", 1, 0]
    ]
   },
   "dialects/snowflake/create_warehouse": {
    "dialect": "snowflake",
    "first_path": "file/statement/create_statement",
    "hunks": [
-    ["unparsable", "unparsable: in create_statement", "file", 1, 671]
+    ["unparsable", "unparsable: snowflake: warehouse_object_properties in create_statement", "file", 1, 671]
    ]
   },
   "dialects/snowflake/define_file_format": {
    "dialect": "snowflake",
    "first_path": "file/statement",
    "hunks": [
-    ["unparsable", "unparsable: in create_file_format_segment", "file", 1, 0]
+    ["unparsable", "unparsable: snowflake: create_file_format_segment in create_file_format_segment", "file", 1, 0]
    ]
   },
   "dialects/snowflake/define_pipe": {
    "dialect": "snowflake",
    "first_path": "file/statement",
    "hunks": [
-    ["unparsable", "unparsable: in define_pipe_statement", "file", 1, 0]
+    ["unparsable", "unparsable: snowflake: define_pipe_statement in define_pipe_statement", "file", 1, 0]
    ]
   },
   "dialects/snowflake/define_schema": {
@@ -4767,7 +4767,7 @@
    "dialect": "snowflake",
    "first_path": "file/statement/define_stage_statement",
    "hunks": [
-    ["unparsable", "unparsable: in define_stage_statement", "file", 1, 132]
+    ["unparsable", "unparsable: snowflake: define_stage_statement in define_stage_statement", "file", 1, 132]
    ]
   },
   "dialects/snowflake/describe_statements": {
@@ -4776,14 +4776,14 @@
    "hunks": [
     ["extra_wrapper", "extra_wrapper: object_reference in table_reference", "file/statement/describe_statement/schema_reference", 4, 984],
     ["renamed", "renamed: schema_reference -> table_reference", "file/statement/describe_statement/schema_reference", 4, 984],
-    ["unparsable", "unparsable: in describe_statement", "file", 1, 1542]
+    ["unparsable", "unparsable: snowflake: describe_statement in describe_statement", "file", 1, 1542]
    ]
   },
   "dialects/snowflake/drop_alert": {
    "dialect": "snowflake",
    "first_path": "file/statement",
    "hunks": [
-    ["unparsable", "unparsable: in drop_object_statement", "file", 1, 0]
+    ["unparsable", "unparsable: snowflake: drop_object_statement in drop_object_statement", "file", 1, 0]
    ]
   },
   "dialects/snowflake/drop_resource_monitor": {
@@ -4814,7 +4814,7 @@
    "dialect": "snowflake",
    "first_path": "file/statement",
    "hunks": [
-    ["unparsable", "unparsable: in execute_dbt_project_statement", "file", 1, 0]
+    ["unparsable", "unparsable: snowflake: execute_dbt_project_statement in execute_dbt_project_statement", "file", 1, 0]
    ]
   },
   "dialects/snowflake/execute_immediate": {
@@ -4823,14 +4823,14 @@
    "hunks": [
     ["missing_wrapper", "missing_wrapper: expression in execute_immediate_clause", "file/statement/execute_immediate_clause/expression", 6, 16],
     ["missing_wrapper", "missing_wrapper: bind_variable in expression", "file/statement/execute_immediate_clause/expression/bind_variable", 2, 206],
-    ["unparsable", "unparsable: in execute_immediate_clause", "file", 1, 396]
+    ["unparsable", "unparsable: snowflake: binary_operator in execute_immediate_clause", "file", 1, 396]
    ]
   },
   "dialects/snowflake/grant_create_privileges": {
    "dialect": "snowflake",
    "first_path": "file/statement",
    "hunks": [
-    ["unparsable", "unparsable: in access_statement", "file", 1, 0]
+    ["unparsable", "unparsable: snowflake: grant_statement in access_statement", "file", 1, 0]
    ]
   },
   "dialects/snowflake/grant_revoke": {
@@ -4840,14 +4840,14 @@
     ["extra_wrapper", "extra_wrapper: access_schema_plural_object in access_object", "file/statement/access_statement/grant_statement/access_object", 2, 1875],
     ["extra_wrapper", "extra_wrapper: object_reference in table_reference", "file/statement/access_statement/grant_statement/schema_reference", 1, 4543],
     ["renamed", "renamed: schema_reference -> table_reference", "file/statement/access_statement/grant_statement/schema_reference", 1, 4543],
-    ["unparsable", "unparsable: in access_statement", "file", 1, 6003]
+    ["unparsable", "unparsable: snowflake: grant_statement in access_statement", "file", 1, 6003]
    ]
   },
   "dialects/snowflake/grant_revoke_inherited": {
    "dialect": "snowflake",
    "first_path": "file/statement",
    "hunks": [
-    ["unparsable", "unparsable: in access_statement", "file", 1, 0]
+    ["unparsable", "unparsable: snowflake: grant_statement in access_statement", "file", 1, 0]
    ]
   },
   "dialects/snowflake/identifier_pseudo_function": {
@@ -4865,7 +4865,7 @@
    "first_path": "file/statement/scripting_block_statement",
    "hunks": [
     ["renamed", "renamed: scripting_block_statement -> transaction_statement", "file/statement/scripting_block_statement", 1, 0],
-    ["unparsable", "unparsable: in scripting_if_statement", "file", 1, 5]
+    ["unparsable", "unparsable: snowflake: scripting_if_statement in scripting_if_statement", "file", 1, 5]
    ]
   },
   "dialects/snowflake/match_recognize": {
@@ -4879,7 +4879,7 @@
    "dialect": "snowflake",
    "first_path": "file/statement/select_statement/from_clause/from_expression/from_expression_element",
    "hunks": [
-    ["unparsable", "unparsable: in select_statement", "file/statement/select_statement", 3, 1200]
+    ["unparsable", "unparsable: snowflake: bracketed in select_statement", "file/statement/select_statement", 3, 1200]
    ]
   },
   "dialects/snowflake/raise_statement": {
@@ -4888,7 +4888,7 @@
    "hunks": [
     ["extra_wrapper", "extra_wrapper: statement in scripting_block_statement", "file/statement/scripting_block_statement/exception_block_statement", 1, 13],
     ["renamed", "renamed: scripting_block_statement -> transaction_statement", "file/statement/scripting_block_statement", 1, 105],
-    ["unparsable", "unparsable: in scripting_raise_statement", "file", 1, 110]
+    ["unparsable", "unparsable: snowflake: scripting_raise_statement in scripting_raise_statement", "file", 1, 110]
    ]
   },
   "dialects/snowflake/scripting_control_flow": {
@@ -4896,7 +4896,7 @@
    "first_path": "file/statement/scripting_block_statement",
    "hunks": [
     ["renamed", "renamed: scripting_block_statement -> transaction_statement", "file/statement/scripting_block_statement", 1, 0],
-    ["unparsable", "unparsable: in scripting_let_statement", "file", 1, 5]
+    ["unparsable", "unparsable: snowflake: scripting_let_statement in scripting_let_statement", "file", 1, 5]
    ]
   },
   "dialects/snowflake/select_asof_join": {
@@ -4918,7 +4918,7 @@
    "dialect": "snowflake",
    "first_path": "file/statement/select_statement/groupby_clause/grouping_sets_clause",
    "hunks": [
-    ["unparsable", "unparsable: in select_statement", "file/statement/select_statement/groupby_clause/grouping_sets_clause", 1, 40],
+    ["unparsable", "unparsable: snowflake: grouping_sets_clause in select_statement", "file/statement/select_statement/groupby_clause/grouping_sets_clause", 1, 40],
     ["extra_wrapper", "extra_wrapper: function in expression", "file/statement/select_statement/groupby_clause/cube_rollup_clause", 2, 83],
     ["extra_wrapper", "extra_wrapper: function_name in function", "file/statement/select_statement/groupby_clause/cube_rollup_clause", 2, 83],
     ["keyword_vs_identifier", "keyword_vs_identifier: keyword -> function_name_identifier in cube_rollup_clause", "file/statement/select_statement/groupby_clause/cube_rollup_clause/keyword", 2, 83],
@@ -4948,7 +4948,7 @@
    "dialect": "snowflake",
    "first_path": "file/statement/select_statement/from_clause/from_expression",
    "hunks": [
-    ["unparsable", "unparsable: in select_statement", "file/statement/select_statement/from_clause/from_expression/join_clause", 4, 12]
+    ["unparsable", "unparsable: snowflake: join_clause in select_statement", "file/statement/select_statement/from_clause/from_expression/join_clause", 4, 12]
    ]
   },
   "dialects/snowflake/semantic_view": {
@@ -4968,7 +4968,7 @@
     ["missing_wrapper", "missing_wrapper: semantic_view_field_reference in semantic_view_expression", "file/statement/select_statement/from_clause/from_expression/from_expression_element/table_expression/semantic_view/bracketed/semantic_view_dimensions_clause/semantic_view_dimension/semantic_view_expression/semantic_view_field_reference", 7, 49],
     ["renamed", "renamed: semantic_view_dimension -> expression", "file/statement/select_statement/from_clause/from_expression/from_expression_element/table_expression/semantic_view/bracketed/semantic_view_dimensions_clause/semantic_view_dimension", 7, 49],
     ["renamed", "renamed: semantic_view_expression -> column_reference", "file/statement/select_statement/from_clause/from_expression/from_expression_element/table_expression/semantic_view/bracketed/semantic_view_dimensions_clause/semantic_view_dimension/semantic_view_expression", 6, 49],
-    ["unparsable", "unparsable: in select_statement", "file/statement/select_statement/from_clause/from_expression/from_expression_element/table_expression/semantic_view/bracketed", 3, 92],
+    ["unparsable", "unparsable: snowflake: bracketed in select_statement", "file/statement/select_statement/from_clause/from_expression/from_expression_element/table_expression/semantic_view/bracketed", 3, 92],
     ["extra_wrapper", "extra_wrapper: column_reference in expression", "file/statement/select_statement/from_clause/from_expression/from_expression_element/table_expression/semantic_view/bracketed/semantic_view_facts_clause", 3, 242],
     ["extra_wrapper", "extra_wrapper: expression in bracketed", "file/statement/select_statement/from_clause/from_expression/from_expression_element/table_expression/semantic_view/bracketed/semantic_view_facts_clause", 3, 242],
     ["keyword_vs_identifier", "keyword_vs_identifier: keyword -> naked_identifier in semantic_view_facts_clause", "file/statement/select_statement/from_clause/from_expression/from_expression_element/table_expression/semantic_view/bracketed/semantic_view_facts_clause/keyword", 3, 242],
@@ -5017,7 +5017,7 @@
    "dialect": "snowflake",
    "first_path": "file/statement",
    "hunks": [
-    ["unparsable", "unparsable: in show_statement", "file", 1, 82]
+    ["unparsable", "unparsable: snowflake: show_statement in show_statement", "file", 1, 82]
    ]
   },
   "dialects/snowflake/truncate_table": {
@@ -5068,23 +5068,23 @@
    "dialect": "sparksql",
    "first_path": "file/statement/select_statement/from_clause",
    "hunks": [
-    ["unparsable", "unparsable: in select_statement", "file/statement/select_statement/from_clause", 5, 7],
-    ["unparsable", "unparsable: in select_statement", "file/statement/select_statement", 1, 130],
-    ["unparsable", "unparsable: in set_expression", "file/statement/set_expression/select_statement/from_clause", 2, 384]
+    ["unparsable", "unparsable: sparksql: from_clause in select_statement", "file/statement/select_statement/from_clause", 5, 7],
+    ["unparsable", "unparsable: sparksql: from_clause in select_statement", "file/statement/select_statement", 1, 130],
+    ["unparsable", "unparsable: sparksql: from_clause in set_expression", "file/statement/set_expression/select_statement/from_clause", 2, 384]
    ]
   },
   "dialects/sparksql/delta_describe_detail": {
    "dialect": "sparksql",
    "first_path": "file/statement",
    "hunks": [
-    ["unparsable", "unparsable: in describe_detail_statement", "file", 1, 92]
+    ["unparsable", "unparsable: sparksql: describe_detail_statement in describe_detail_statement", "file", 1, 92]
    ]
   },
   "dialects/sparksql/delta_describe_history": {
    "dialect": "sparksql",
    "first_path": "file/statement",
    "hunks": [
-    ["unparsable", "unparsable: in describe_history_statement", "file", 1, 132]
+    ["unparsable", "unparsable: sparksql: describe_history_statement in describe_history_statement", "file", 1, 132]
    ]
   },
   "dialects/sparksql/drop_schema": {
@@ -5129,7 +5129,7 @@
    "dialect": "sparksql",
    "first_path": "file/statement/select_statement/from_clause/from_expression",
    "hunks": [
-    ["unparsable", "unparsable: in select_statement", "file/statement/select_statement/from_clause/from_expression/join_clause", 4, 12]
+    ["unparsable", "unparsable: sparksql: join_clause in select_statement", "file/statement/select_statement/from_clause/from_expression/join_clause", 4, 12]
    ]
   },
   "dialects/sparksql/set_variable": {
@@ -5162,7 +5162,7 @@
    "dialect": "sqlite",
    "first_path": "file/statement",
    "hunks": [
-    ["unparsable", "unparsable: in attach_statement", "file", 1, 0]
+    ["unparsable", "unparsable: sqlite: attach_statement in attach_statement", "file", 1, 0]
    ]
   },
   "dialects/sqlite/arithmetric_a": {
@@ -5208,7 +5208,7 @@
     ["missing_wrapper", "missing_wrapper: returning_clause in delete_statement", "file/statement/delete_statement/returning_clause", 1, 57],
     ["missing_wrapper", "missing_wrapper: wildcard_expression in returning_clause", "file/statement/delete_statement/returning_clause/wildcard_expression", 1, 66],
     ["missing_wrapper", "missing_wrapper: wildcard_identifier in wildcard_expression", "file/statement/delete_statement/returning_clause/wildcard_expression/wildcard_identifier", 1, 66],
-    ["unparsable", "unparsable: in delete_statement", "file", 1, 106]
+    ["unparsable", "unparsable: sqlite: returning_clause in delete_statement", "file", 1, 106]
    ]
   },
   "dialects/sqlite/drop_trigger": {
@@ -5225,7 +5225,7 @@
     ["missing_wrapper", "missing_wrapper: returning_clause in insert_statement", "file/statement/insert_statement/returning_clause", 1, 503],
     ["missing_wrapper", "missing_wrapper: wildcard_expression in returning_clause", "file/statement/insert_statement/returning_clause/wildcard_expression", 1, 512],
     ["missing_wrapper", "missing_wrapper: wildcard_identifier in wildcard_expression", "file/statement/insert_statement/returning_clause/wildcard_expression/wildcard_identifier", 1, 512],
-    ["unparsable", "unparsable: in insert_statement", "file", 1, 556]
+    ["unparsable", "unparsable: sqlite: alias_expression in insert_statement", "file", 1, 556]
    ]
   },
   "dialects/sqlite/json_operators": {
@@ -5239,8 +5239,8 @@
    "dialect": "sqlite",
    "first_path": "file/statement/select_statement/select_clause/select_clause_element/column_reference",
    "hunks": [
-    ["unparsable", "unparsable: in select_statement", "file/statement/select_statement/select_clause/select_clause_element/column_reference", 1, 77],
-    ["unparsable", "unparsable: in select_statement", "file", 1, 86]
+    ["unparsable", "unparsable: sqlite: column_reference in select_statement", "file/statement/select_statement/select_clause/select_clause_element/column_reference", 1, 77],
+    ["unparsable", "unparsable: sqlite: from_clause in select_statement", "file", 1, 86]
    ]
   },
   "dialects/sqlite/raise_function": {
@@ -5257,7 +5257,7 @@
     ["missing_wrapper", "missing_wrapper: returning_clause in update_statement", "file/statement/update_statement/returning_clause", 1, 113],
     ["missing_wrapper", "missing_wrapper: wildcard_expression in returning_clause", "file/statement/update_statement/returning_clause/wildcard_expression", 1, 122],
     ["missing_wrapper", "missing_wrapper: wildcard_identifier in wildcard_expression", "file/statement/update_statement/returning_clause/wildcard_expression/wildcard_identifier", 1, 122],
-    ["unparsable", "unparsable: in update_statement", "file", 1, 191]
+    ["unparsable", "unparsable: sqlite: alias_expression in update_statement", "file", 1, 191]
    ]
   },
   "dialects/sqlite/upsert": {
@@ -5322,7 +5322,7 @@
    "dialect": "starrocks",
    "first_path": "file/statement/create_table_statement/keyword",
    "hunks": [
-    ["unparsable", "unparsable: in create_table_statement", "file", 1, 134]
+    ["unparsable", "unparsable: starrocks: bracketed in create_table_statement", "file", 1, 134]
    ]
   },
   "dialects/teradata/comparison_operators": {
@@ -5448,14 +5448,14 @@
    "dialect": "trino",
    "first_path": "file/statement",
    "hunks": [
-    ["unparsable", "unparsable: in describe_statement", "file", 1, 0]
+    ["unparsable", "unparsable: trino: describe_statement in describe_statement", "file", 1, 0]
    ]
   },
   "dialects/trino/explain": {
    "dialect": "trino",
    "first_path": "file/statement",
    "hunks": [
-    ["unparsable", "unparsable: in explain_statement", "file", 1, 25]
+    ["unparsable", "unparsable: trino: explain_statement in explain_statement", "file", 1, 25]
    ]
   },
   "dialects/trino/grouping_sets": {
@@ -5480,14 +5480,14 @@
    "dialect": "trino",
    "first_path": "file/statement/set_expression",
    "hunks": [
-    ["unparsable", "unparsable: in set_expression", "file", 1, 250]
+    ["unparsable", "unparsable: trino: set_operator in set_expression", "file", 1, 250]
    ]
   },
   "dialects/trino/show": {
    "dialect": "trino",
    "first_path": "file/statement",
    "hunks": [
-    ["unparsable", "unparsable: in show_statement", "file", 1, 0]
+    ["unparsable", "unparsable: trino: show_statement in show_statement", "file", 1, 0]
    ]
   },
   "dialects/trino/unnest_with_ordinality": {
@@ -5509,7 +5509,7 @@
    "dialect": "tsql",
    "first_path": "file/batch",
    "hunks": [
-    ["unparsable", "unparsable: in if_then_statement", "file", 1, 0]
+    ["unparsable", "unparsable: tsql: if_clause in if_then_statement", "file", 1, 0]
    ]
   },
   "dialects/tsql/alter_and_drop": {
@@ -5532,7 +5532,7 @@
    "dialect": "tsql",
    "first_path": "file/batch",
    "hunks": [
-    ["unparsable", "unparsable: in alter_index_statement", "file/batch", 1, 0]
+    ["unparsable", "unparsable: tsql: alter_index_statement in alter_index_statement", "file/batch", 1, 0]
    ]
   },
   "dialects/tsql/alter_table": {
@@ -5546,7 +5546,7 @@
     ["extra_wrapper", "extra_wrapper: object_reference in table_reference", "file/batch/statement/drop_table_statement/table_reference", 2, 156],
     ["extra_wrapper", "extra_wrapper: object_reference in table_reference", "file/batch/statement/insert_statement/table_reference", 2, 230],
     ["extra_wrapper", "extra_wrapper: object_reference in table_reference", "file/batch/statement/select_statement/from_clause/from_expression/from_expression_element/table_expression/table_reference", 1, 384],
-    ["unparsable", "unparsable: in alter_table_statement", "file", 1, 558]
+    ["unparsable", "unparsable: tsql: alter_table_statement in alter_table_statement", "file", 1, 558]
    ]
   },
   "dialects/tsql/alter_table_enable_disable_trigger": {
@@ -5627,7 +5627,7 @@
    "dialect": "tsql",
    "first_path": "file/batch",
    "hunks": [
-    ["unparsable", "unparsable: in bulk_insert_statement", "file/batch", 1, 0]
+    ["unparsable", "unparsable: tsql: bulk_insert_statement in bulk_insert_statement", "file/batch", 1, 0]
    ]
   },
   "dialects/tsql/cast_variable": {
@@ -5858,7 +5858,7 @@
    "hunks": [
     ["extra_wrapper", "extra_wrapper: object_reference in table_reference", "file/batch/statement/create_schema_statement/schema_reference", 1, 12],
     ["renamed", "renamed: schema_reference -> table_reference", "file/batch/statement/create_schema_statement/schema_reference", 1, 12],
-    ["unparsable", "unparsable: in create_schema_statement", "file/batch", 1, 47]
+    ["unparsable", "unparsable: tsql: create_schema_statement in create_schema_statement", "file/batch", 1, 47]
    ]
   },
   "dialects/tsql/create_table": {
@@ -5889,7 +5889,7 @@
     ["extra_wrapper", "extra_wrapper: object_reference in table_reference", "file/batch/statement/drop_table_statement/table_reference", 2, 277],
     ["extra_wrapper", "extra_wrapper: object_reference in table_reference", "file/batch/statement/create_table_as_select_statement/select_statement/from_clause/from_expression/from_expression_element/table_expression/table_reference", 1, 468],
     ["extra_wrapper", "extra_wrapper: object_reference in table_reference", "file/batch/statement/create_table_as_select_statement/select_statement/from_clause/from_expression/join_clause/from_expression_element/table_expression/table_reference", 1, 486],
-    ["unparsable", "unparsable: in create_table_as_select_statement", "file/batch/statement/create_table_as_select_statement/option_clause", 1, 762]
+    ["unparsable", "unparsable: tsql: option_clause in create_table_as_select_statement", "file/batch/statement/create_table_as_select_statement/option_clause", 1, 762]
    ]
   },
   "dialects/tsql/create_table_constraints": {
@@ -5900,7 +5900,7 @@
     ["extra_wrapper", "extra_wrapper: object_reference in table_reference", "file/batch/statement/create_table_statement/table_reference", 3, 11],
     ["missing_wrapper", "missing_wrapper: identity_grammar in column_constraint_segment", "file/batch/statement/create_table_statement/bracketed/column_definition/column_constraint_segment/identity_grammar", 2, 42],
     ["missing_wrapper", "missing_wrapper: expression in bracketed", "file/batch/statement/create_table_statement/bracketed/column_definition/data_type/bracketed_arguments/bracketed/expression", 2, 104],
-    ["unparsable", "unparsable: in create_table_statement", "file", 1, 483]
+    ["unparsable", "unparsable: tsql: create_table_statement in create_table_statement", "file", 1, 483]
    ]
   },
   "dialects/tsql/create_table_filtered_index": {
@@ -5944,7 +5944,7 @@
     ["missing_wrapper", "missing_wrapper: table_index_clause in bracketed", "file/batch/statement/create_table_statement/table_distribution_index_clause/bracketed/table_index_clause", 2, 106],
     ["missing_wrapper", "missing_wrapper: table_distribution_clause in bracketed", "file/batch/statement/create_table_statement/table_distribution_index_clause/bracketed/table_distribution_clause", 2, 132],
     ["extra_wrapper", "extra_wrapper: object_reference in table_reference", "file/batch/statement/drop_table_statement/table_reference", 2, 169],
-    ["unparsable", "unparsable: in create_table_statement", "file", 1, 446]
+    ["unparsable", "unparsable: tsql: table_distribution_index_clause in create_table_statement", "file", 1, 446]
    ]
   },
   "dialects/tsql/create_table_with_sequence": {
@@ -5969,7 +5969,7 @@
     ["extra_wrapper", "extra_wrapper: create_table_statement in create_table_statement", "file/batch/statement/create_table_statement", 2, 177],
     ["extra_wrapper", "extra_wrapper: object_reference in table_reference", "file/batch/statement/create_table_statement/table_reference", 2, 188],
     ["missing_wrapper", "missing_wrapper: expression in bracketed", "file/batch/statement/create_table_statement/bracketed/column_definition/data_type/bracketed_arguments/bracketed/expression", 15, 323],
-    ["unparsable", "unparsable: in create_index_statement", "file", 1, 1207]
+    ["unparsable", "unparsable: tsql: create_index_statement in create_index_statement", "file", 1, 1207]
    ]
   },
   "dialects/tsql/create_table_with_table_option_segment": {
@@ -6009,7 +6009,7 @@
    "hunks": [
     ["extra_wrapper", "extra_wrapper: table_reference in create_view_statement", "file/batch/statement/create_view_statement/object_reference", 2, 17],
     ["extra_wrapper", "extra_wrapper: object_reference in table_reference", "file/batch/statement/create_view_statement/select_statement/from_clause/from_expression/from_expression_element/table_expression/table_reference", 2, 100],
-    ["unparsable", "unparsable: in create_view_statement", "file/batch", 1, 380]
+    ["unparsable", "unparsable: tsql: create_view_statement in create_view_statement", "file/batch", 1, 380]
    ]
   },
   "dialects/tsql/create_view_with_columns": {
@@ -6248,7 +6248,7 @@
    "dialect": "tsql",
    "first_path": "file/batch/statement/drop_function_statement",
    "hunks": [
-    ["unparsable", "unparsable: in drop_function_statement", "file/batch", 1, 59]
+    ["unparsable", "unparsable: tsql: drop_function_statement in drop_function_statement", "file/batch", 1, 59]
    ]
   },
   "dialects/tsql/drop_sequence": {
@@ -6443,7 +6443,7 @@
     ["extra_wrapper", "extra_wrapper: object_reference in table_reference", "file/batch/statement/with_compound_statement/common_table_expression/bracketed/set_expression/select_statement/from_clause/from_expression/from_expression_element/table_expression/table_reference", 2, 428],
     ["extra_wrapper", "extra_wrapper: object_reference in table_reference", "file/batch/statement/with_compound_statement/common_table_expression/bracketed/set_expression/select_statement/from_clause/from_expression/join_clause/from_expression_element/table_expression/table_reference", 1, 528],
     ["extra_wrapper", "extra_wrapper: object_reference in table_reference", "file/batch/statement/with_compound_statement/select_statement/from_clause/from_expression/from_expression_element/table_expression/table_reference", 1, 610],
-    ["unparsable", "unparsable: in set_expression", "file", 1, 718]
+    ["unparsable", "unparsable: tsql: option_clause in set_expression", "file", 1, 718]
    ]
   },
   "dialects/tsql/identifier_special_chars": {
@@ -6543,7 +6543,7 @@
    "dialect": "tsql",
    "first_path": "file/batch/statement/select_statement/from_clause/from_expression/from_expression_element/table_expression/table_reference/naked_identifier",
    "hunks": [
-    ["unparsable", "unparsable: in select_statement", "file/batch", 1, 26]
+    ["unparsable", "unparsable: tsql: join_clause in select_statement", "file/batch", 1, 26]
    ]
   },
   "dialects/tsql/json_aggregate_functions": {
@@ -6700,7 +6700,7 @@
    "dialect": "tsql",
    "first_path": "file/batch/statement/select_statement/from_clause/from_expression/from_expression_element/table_expression/table_reference/naked_identifier",
    "hunks": [
-    ["unparsable", "unparsable: in select_statement", "file", 1, 66]
+    ["unparsable", "unparsable: tsql: join_on_condition in select_statement", "file", 1, 66]
    ]
   },
   "dialects/tsql/next_value_for_over": {
@@ -6853,14 +6853,14 @@
    "dialect": "tsql",
    "first_path": "file/batch",
    "hunks": [
-    ["unparsable", "unparsable: in raiserror_statement", "file/batch", 1, 0]
+    ["unparsable", "unparsable: tsql: raiserror_statement in raiserror_statement", "file/batch", 1, 0]
    ]
   },
   "dialects/tsql/rename_table": {
    "dialect": "tsql",
    "first_path": "file/batch/statement/rename_statement",
    "hunks": [
-    ["unparsable", "unparsable: in rename_statement", "file/batch", 1, 35]
+    ["unparsable", "unparsable: tsql: rename_statement in rename_statement", "file/batch", 1, 35]
    ]
   },
   "dialects/tsql/replicate": {
@@ -6889,7 +6889,7 @@
    "dialect": "tsql",
    "first_path": "file/batch",
    "hunks": [
-    ["unparsable", "unparsable: in select_statement", "file/batch", 1, 0]
+    ["unparsable", "unparsable: tsql: select_clause in select_statement", "file/batch", 1, 0]
    ]
   },
   "dialects/tsql/select_assign_parameter": {
@@ -6987,7 +6987,7 @@
    "first_path": "file/batch/statement/create_sequence_statement/sequence_reference",
    "hunks": [
     ["renamed", "renamed: sequence_reference -> column_reference", "file/batch/statement/create_sequence_statement/sequence_reference", 1, 14],
-    ["unparsable", "unparsable: in create_sequence_statement", "file/batch", 1, 73]
+    ["unparsable", "unparsable: tsql: create_sequence_options_segment in create_sequence_statement", "file/batch", 1, 73]
    ]
   },
   "dialects/tsql/set_context_info": {
@@ -7114,7 +7114,7 @@
    "dialect": "tsql",
    "first_path": "file/batch",
    "hunks": [
-    ["unparsable", "unparsable: in create_synonym_statement", "file/batch", 1, 0]
+    ["unparsable", "unparsable: tsql: create_synonym_statement in create_synonym_statement", "file/batch", 1, 0]
    ]
   },
   "dialects/tsql/system-variables": {
@@ -7153,7 +7153,7 @@
    "dialect": "tsql",
    "first_path": "file/batch/statement/select_statement/from_clause/from_expression/from_expression_element/table_expression/table_reference/naked_identifier",
    "hunks": [
-    ["unparsable", "unparsable: in select_statement", "file/batch", 1, 25]
+    ["unparsable", "unparsable: tsql: sample_expression in select_statement", "file/batch", 1, 25]
    ]
   },
   "dialects/tsql/temp_tables": {
@@ -7173,7 +7173,7 @@
     ["leaf_type", "leaf_type: parameter -> tsql_variable in declare_segment", "file/batch/statement/declare_segment/parameter", 3, 417],
     ["renamed", "renamed: comparison_operator -> assignment_operator", "file/batch/statement/declare_segment/comparison_operator", 3, 436],
     ["leaf_type", "leaf_type: parameter -> tsql_variable in temporal_query", "file/batch/statement/select_statement/from_clause/from_expression/from_expression_element/temporal_query/parameter", 3, 543],
-    ["unparsable", "unparsable: in create_table_statement", "file", 1, 766]
+    ["unparsable", "unparsable: tsql: table_option_statement in create_table_statement", "file", 1, 766]
    ]
   },
   "dialects/tsql/transaction": {
@@ -7204,7 +7204,7 @@
     ["extra_wrapper", "extra_wrapper: parameterized_expression in expression", "file/batch/statement/create_trigger/statement/if_then_statement/if_clause/expression/bracketed/expression", 1, 753],
     ["leaf_type", "leaf_type: system_variable -> tsql_variable in expression", "file/batch/statement/create_trigger/statement/if_then_statement/if_clause/expression/bracketed/expression/system_variable", 1, 753],
     ["extra_wrapper", "extra_wrapper: transaction_statement in transaction_statement", "file/batch/statement/create_trigger/statement/transaction_statement", 1, 844],
-    ["unparsable", "unparsable: in drop_trigger", "file", 1, 871]
+    ["unparsable", "unparsable: tsql: drop_trigger in drop_trigger", "file", 1, 871]
    ]
   },
   "dialects/tsql/try_catch": {
@@ -7266,7 +7266,7 @@
    "dialect": "tsql",
    "first_path": "file/batch",
    "hunks": [
-    ["unparsable", "unparsable: in while_statement", "file/batch/statement/while_statement", 1, 0]
+    ["unparsable", "unparsable: tsql: while_statement in while_statement", "file/batch/statement/while_statement", 1, 0]
    ]
   },
   "dialects/tsql/window_functions": {

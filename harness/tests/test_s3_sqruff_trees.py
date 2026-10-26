@@ -40,8 +40,8 @@ def classes(expected, actual):
     return sorted({h[0] for h in st.diff(expected, actual)["hunks"]})
 
 
-def keys(expected, actual):
-    return sorted({h[1] for h in st.diff(expected, actual)["hunks"]})
+def keys(expected, actual, dialect="-"):
+    return sorted({h[1] for h in st.diff(expected, actual, dialect)["hunks"]})
 
 
 # The classifier on small trees.
@@ -113,6 +113,12 @@ def test_meta():
     assert keys(e, a) == ["meta: indent -> implicit"]
 
 
+def test_a_sqruff_leaf_with_text_that_the_fixture_does_not_have_is_not_meta():
+    e = N("file", L("keyword", "a"))
+    a = N("file", L("keyword", "a"), L("newline", "\n"))
+    assert classes(e, a) == ["leaf_text"]
+
+
 def test_non_code_placement():
     e = N("file", N("s", N("x", L("keyword", "a")), L("whitespace", " ")))
     a = N("file", N("s", N("x", L("keyword", "a"), L("whitespace", " "))))
@@ -131,7 +137,40 @@ def test_unparsable_absorbs_its_statement_and_keeps_other_hunks():
         N("oracle_batch", stmt, N("statement", N("y", L("keyword", "a")))),
         N("unparsable", L("word", "b")),
     )
-    assert keys(e, a) == ["renamed: batch -> oracle_batch", "unparsable: in x"]
+    assert keys(e, a, "oracle") == [
+        "renamed: batch -> oracle_batch",
+        "unparsable: oracle: x in x",
+    ]
+
+
+def test_the_unparsable_key_has_the_dialect_and_the_failing_segment():
+    def tree(*select):
+        return N("file", N("statement", N("select_statement", *select)))
+
+    clause = N("select_clause", L("keyword", "SELECT"), L("raw", "x"))
+    e1 = tree(clause, N("where_clause", L("keyword", "WHERE"), L("raw", "y")))
+    a1 = tree(clause, N("unparsable", L("word", "WHERE"), L("word", "y")))
+    e2 = tree(clause, N("pivot_clause", L("keyword", "PIVOT"), L("raw", "y")))
+    a2 = tree(clause, N("unparsable", L("word", "PIVOT"), L("word", "y")))
+    got = {
+        tuple(k for k in keys(e, a, d) if k.startswith("unparsable"))
+        for e, a, d in ((e1, a1, "hive"), (e2, a2, "hive"), (e1, a1, "mysql"))
+    }
+    assert got == {
+        ("unparsable: hive: where_clause in select_statement",),
+        ("unparsable: hive: pivot_clause in select_statement",),
+        ("unparsable: mysql: where_clause in select_statement",),
+    }
+
+
+def test_leaf_changes_show_moved_removed_and_added_leaves():
+    e = N("file", N("s", N("x", L("keyword", "a")), L("keyword", "b")))
+    a = N("file", N("s", L("keyword", "a"), L("word", "c")))
+    assert st.leaf_changes(e, a) == [
+        ("~ s: x -> ()", 1),
+        ("- file/s | keyword 'b'", 1),
+        ("+ file/s | word 'c'", 1),
+    ]
 
 
 def test_equal_trees_give_other():
@@ -189,6 +228,18 @@ def test_an_unparsable_class_that_t2_does_not_give_fails(tmp_path):
     ]
     with pytest.raises(st.DataError, match="no_unparsable"):
         st.build(_write(tmp_path, "h.json", hunks))
+
+
+def test_a_dialect_failure_with_another_reason_fails(tmp_path, monkeypatch):
+    text = (st.KNOWN_FAILURES / "sqruff.txt").read_text("utf8")
+    line = "dialects/ansi/alter_sequence  # tree differs"
+    assert line in text
+    (tmp_path / "sqruff.txt").write_text(
+        text.replace(line, "dialects/ansi/alter_sequence  # parse error"), "utf8"
+    )
+    monkeypatch.setattr(st, "KNOWN_FAILURES", tmp_path)
+    with pytest.raises(st.DataError, match="alter_sequence: reason 'parse error'"):
+        st.build()
 
 
 def test_another_dialect_count_than_t2_fails(tmp_path, monkeypatch):
@@ -250,6 +301,43 @@ def test_the_top_group_shares_are_measured():
     ]
 
 
+def test_the_unparsable_key_sensitivity_is_measured():
+    rows = OUT["cases"]
+    variants = {
+        "used": lambda k, r: k,
+        "dialect_and_statement": lambda k, r: (
+            f"unparsable: {r[1]}: in {k.rsplit(' in ', 1)[1]}"
+        ),
+        "statement": lambda k, r: f"unparsable: in {k.rsplit(' in ', 1)[1]}",
+        "case": lambda k, r: f"unparsable: {r[0]}",
+    }
+    sens = OUT["groups"]["unparsable_key_sensitivity"]
+    assert set(sens) == set(variants)
+    for name, fn in variants.items():
+        case_keys = [
+            {fn(k, r) if k.startswith("unparsable: ") else k for k in r[3]}
+            for r in rows
+        ]
+        groups = Counter(k for ks in case_keys for k in ks)
+        ranked = sorted(groups, key=lambda k: (-groups[k], k))
+        for n in st.TOP:
+            top = set(ranked[:n])
+            assert sens[name]["top"][str(n)] == sum(1 for ks in case_keys if ks <= top)
+        singles = {k for k, v in groups.items() if v == 1}
+        assert sens[name]["groups"] == len(groups)
+        assert sens[name]["cases_with_a_unique_fix"] == sum(
+            1 for ks in case_keys if ks & singles
+        )
+    assert sens["used"]["top"] == {
+        n: v["cases"] for n, v in OUT["groups"]["top"].items()
+    }
+    # Each unparsable key names one dialect.
+    for r in rows:
+        for k in r[3]:
+            if k.startswith("unparsable: "):
+                assert k.startswith(f"unparsable: {r[1]}: ")
+
+
 def test_the_hand_check_is_recorded():
     hc = OUT["hand_check"]
     assert hc["size"] == len(hc["cases"]) >= 60
@@ -282,6 +370,10 @@ def test_the_s3_status_file_and_the_decision_record_have_t3():
     for n in st.TOP:
         assert f"top {n} groups: {top[str(n)]['cases']}" in flat
     assert f"{OUT['groups']['groups']} groups" in flat
+    unique = OUT["groups"]["cases_with_a_unique_fix"]
+    assert f"{unique} cases need a fix that no other case needs" in flat
+    per_case = OUT["groups"]["unparsable_key_sensitivity"]["case"]
+    assert f"{per_case['cases_with_a_unique_fix']} cases need a fix of their" in flat
     hc = OUT["hand_check"]
     assert f"{hc['agree']} of {hc['size']}" in flat
     for name in ("unparsable", "extra_wrapper", "renamed", "other"):
