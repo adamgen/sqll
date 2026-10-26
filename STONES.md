@@ -1,10 +1,16 @@
 # sqll Stones
 
-Stones are milestones. Do them in sequence. Each stone has exit criteria.
+Stones are milestones. Each stone has exit criteria.
 A stone is complete only when the harness shows that all exit criteria are true.
 A human approves each completed stone.
 
+Each stone lists the stones that it needs ("Needs:"). A stone starts when
+each stone that it needs is approved. Stones that do not need each other
+can run in parallel (PROCESS.md, "Tracks").
+
 ## S1. Binary test harness
+
+Needs: none.
 
 Run the sqlfluff test fixtures through a binary, not through function calls.
 
@@ -22,11 +28,15 @@ Run the sqlfluff test fixtures through a binary, not through function calls.
 
 ## S2. Benchmarks
 
+Needs: S1.
+
 - Make a benchmark for each command: start, parse, lint, fix.
 - Use small, medium, and large inputs for each dialect.
 - Exit: one command gives a machine-readable report for sqlfluff, `sqlfluff[rs]`, and sqruff. The baseline is recorded.
 
 ## S3. Choose the base
+
+Needs: S1, S2.
 
 Compare 3 bases with the S1 and S2 data:
 
@@ -40,20 +50,47 @@ Then:
 - Make the sqll binary from the base. Keep the license and attribution of all ported code.
 - Exit: sqll passes all cases that the base passes. sqll is not slower than sqruff on any benchmark.
 
+## S3b. Core
+
+Needs: S3.
+
+Make the shared core that the later stones use.
+
+- One lossless syntax tree: each byte of the source, positions, segment
+  types, and a typed view. It can print the sqlfluff tree format for the S1
+  harness.
+- The source map between the templated text and the source text.
+- Frozen interfaces: lexer to parser to tree; tree to rules to fixes;
+  templater to source map; tree to schema for code generation.
+- The sqll binary skeleton: CLI, config, and output formats. The sqll
+  adapters of the S1 harness and the S2 benchmarks.
+- A code layout with one package for each part.
+- Exit: the S1 harness and the S2 benchmarks run sqll through its adapters.
+- Exit: the interfaces are documented.
+- Exit: after S3b, each change to the core goes through the Core track.
+
 ## S4. Parser parity
+
+Needs: S3b.
 
 - Exit: sqll passes 100% of the dialect parse fixtures with an exact tree match.
 
 ## S5. Rule parity
 
+Needs: S3b. For each dialect, also the S4 trees of that dialect before its rules.
+
 - Exit: sqll passes 100% of the rule fixtures, lint and fix.
 
 ## S6. Templater parity
+
+Needs: S3b.
 
 - Support the Jinja, placeholder, and Python format-string templaters.
 - Exit: sqll passes 100% of the templater fixtures that do not need a Python runtime.
 
 ## S7. CLI and config parity
+
+Needs: the test conversion needs S1. The sqll part needs S3b.
 
 The expected results of these tests are in Python code. Write them as black-box cases.
 
@@ -63,6 +100,8 @@ The expected results of these tests are in Python code. Write them as black-box 
 Full parity (G1) is S4, S5, S6, and S7 complete.
 
 ## S8. Code generation
+
+Needs: S4, S6.
 
 - Read the schema from DDL files.
 - Find the types of query parameters and result columns.
@@ -75,10 +114,14 @@ Full parity (G1) is S4, S5, S6, and S7 complete.
 
 ## S9. External corpus
 
+Needs: S1. The sqll results need S3b.
+
 - Collect large, complex SQL files from public sources. Record source and license.
 - Exit: the report shows parse success and speed for each file, for each tool.
 
 ## S10. PL/pgSQL bodies
+
+Needs: S4.
 
 sqlfluff does not parse the body of PostgreSQL functions. sqll will.
 

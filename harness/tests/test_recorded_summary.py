@@ -1,4 +1,4 @@
-"""The recorded S1 results agree with the known failures and with STATUS.md.
+"""The recorded S1 results agree with the known failures and with status/S1.md.
 
 CI compares results/s1/summary.json with the summary of each full run. These
 tests make sure that the other records say the same.
@@ -86,12 +86,14 @@ def test_needs_python_counts():
                 assert entry["tags"]["needs_python"]["total"] == 0
 
 
-# STATUS.md
+# status/S1.md
+
+S1_STATUS = REPO_ROOT / "status" / "S1.md"
 
 
 def _status_rows(header: str) -> list[list[str]]:
-    """Return the cells of each row of the STATUS.md table with this header."""
-    text = (REPO_ROOT / "STATUS.md").read_text(encoding="utf8")
+    """Return the cells of each row of the status/S1.md table with this header."""
+    text = S1_STATUS.read_text(encoding="utf8")
     lines = text.splitlines()
     start = lines.index(header)
     rows = []
@@ -132,7 +134,7 @@ def test_status_suite_table_is_the_summary():
 
 
 def test_status_known_failure_counts_are_the_summary():
-    text = (REPO_ROOT / "STATUS.md").read_text(encoding="utf8")
+    text = S1_STATUS.read_text(encoding="utf8")
     for tool in TOOLS:
         known = _known(tool)
         m = re.search(rf"^- {re.escape(tool)}: (\d+) ", text, re.MULTILINE)

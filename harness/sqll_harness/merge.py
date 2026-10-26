@@ -35,7 +35,22 @@ def load(path: Path) -> dict:
 
 
 def load_expected(path: Path) -> list[tuple[str, str, int]]:
-    """Read a JSON list of {"suite", "tool", "shards"} objects."""
+    """Read a JSON list of {"suite", "tool", "shards"} objects.
+
+    If path is a folder (ci/matrix.d), read each *.json file in it, in the
+    order of the file names, as ci/matrix.py does. A suite and tool in two
+    entries is an error."""
+    if path.is_dir():
+        files = sorted(path.glob("*.json"))
+        if not files:
+            raise MergeError(f"{path}: no *.json file")
+        out = [e for f in files for e in load_expected(f)]
+        seen: set[tuple[str, str]] = set()
+        for suite, tool, _ in out:
+            if (suite, tool) in seen:
+                raise MergeError(f"{path}: {suite}/{tool} is in two entries")
+            seen.add((suite, tool))
+        return out
     try:
         entries = json.loads(path.read_text(encoding="utf8"))
         return [(e["suite"], e["tool"], int(e["shards"])) for e in entries]
