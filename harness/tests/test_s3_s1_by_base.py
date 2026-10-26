@@ -336,7 +336,10 @@ def test_the_record_has_the_ref_versions_commit_and_commands():
 def test_the_s3_status_file_has_the_t2_numbers():
     # The S3 track writes only status/S3.md (PROCESS.md, "Tracks").
     status = (REPO_ROOT / "status" / "S3.md").read_text("utf8")
-    assert "| T2 | S1 results by base, per suite and per dialect | PR #23 |" in status
+    assert (
+        "| T2 | S1 results by base, per suite and per dialect | Merged (PR #23) |"
+        in status
+    )
     status = " ".join(status.split())
     sq = OUT["bases"]["sqruff"]
     exact = {
