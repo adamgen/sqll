@@ -5,11 +5,12 @@ The probe (scripts/s3/probe-sqlfluffrs/) is research code, not sqll. It
 lexes and parses one file with the sqlfluffrs 4.4.0 crates, with no
 Python, and prints the parse record as "sqlfluff parse -f json" does.
 
-Commands. Run them on the host with the harness Python:
+Commands. Run them on the host with the harness Python. The build and the
+timing session take the machine lock (PROCESS.md, rule 7):
 
-    uv run --frozen --project harness python scripts/s3/sqlfluffrs_probe.py build --scratch DIR
+    flock /tmp/sqll-machine.lock uv run --frozen --project harness python scripts/s3/sqlfluffrs_probe.py build --scratch DIR
     uv run --frozen --project harness python scripts/s3/sqlfluffrs_probe.py fixtures --scratch DIR
-    uv run --frozen --project harness python scripts/s3/sqlfluffrs_probe.py time --scratch DIR
+    flock /tmp/sqll-machine.lock uv run --frozen --project harness python scripts/s3/sqlfluffrs_probe.py time --scratch DIR
     uv run --frozen --project harness python scripts/s3/sqlfluffrs_probe.py report [--check]
 
 "build" makes DIR (it must not exist) and copies the submodule into
@@ -128,20 +129,34 @@ SELECT_1_TREE = {
 }
 BENCH_COMMANDS = (START, PARSE)
 PHASE_RUNS = 5
+IDLE_LOAD = 0.3
+MAX_SESSION_LOAD = 1.5
 PHASES = ("setup_s", "lex_s", "parse_s", "record_s", "write_s")
 BENCH_TOOLS = (PROBE, "sqlfluff", "sqruff")
 DIFF_TEXT = 160
 FIXTURE_TEST_RE = re.compile(r"^test_(\w+)_fixtures$")
 YAML_TEST_RE = re.compile(r"^test_yaml_output_matches_python_(\w+)$")
 
+_SCRIPT = "uv run --frozen --project harness python scripts/s3/sqlfluffrs_probe.py"
+# The machine lock (PROCESS.md, rule 7): the build and the timing session
+# measure time.
 COMMANDS = {
-    name: f"uv run --frozen --project harness python scripts/s3/sqlfluffrs_probe.py {name}"
-    for name in ("build", "fixtures", "time", "report")
+    "build": f"flock /tmp/sqll-machine.lock {_SCRIPT} build",
+    "fixtures": f"{_SCRIPT} fixtures",
+    "time": f"flock /tmp/sqll-machine.lock {_SCRIPT} time",
+    "report": f"{_SCRIPT} report",
 }
 
 
 class DataError(Exception):
     """A step failed, or the data do not agree."""
+
+
+def rel(path: Path) -> str:
+    """The path from the repository root, or the path if it is outside."""
+    if path.is_relative_to(ROOT):
+        return path.relative_to(ROOT).as_posix()
+    return str(path)
 
 
 def sha256_bytes(data: bytes) -> str:
@@ -409,7 +424,7 @@ def parse_fixture_tests(stdout: str, stderr: str) -> dict:
     if not summary:
         raise DataError("no 'test result' line in the fixture test output")
     failed = set()
-    block = re.search(r"^failures:\n\n((?:    \S+\n)+)", stdout, re.MULTILINE)
+    block = re.search(r"^failures:\n((?:    \S+\n)+)", stdout, re.MULTILINE)
     if block:
         failed = {line.strip() for line in block[1].splitlines()}
     for name in results:
@@ -476,6 +491,7 @@ def build(scratch: Path, python: Path) -> dict:
         raise DataError(
             f"a sqlfluff config file is above the scratch folder: {configs}"
         )
+    load_before, waited = wait_idle()
     scratch.mkdir(parents=True)
     st = Steps(scratch)
     started = now()
@@ -716,6 +732,7 @@ def build(scratch: Path, python: Path) -> dict:
         "finished": now(),
         "scratch": str(scratch),
         "machine": bench_report.machine(),
+        "load": {"before": load_before, "idle_wait_s": waited, "after": read_load()},
         "harness": bench_report.harness(),
         "sqlfluffrs": {
             "version": cargo_package_version(workspace / "Cargo.toml"),
@@ -1029,6 +1046,26 @@ def probe_phases(binary: Path, inputs_dir: Path, benchmarks: list[dict]) -> dict
     return out
 
 
+def read_load() -> list[float]:
+    """The 1, 5, and 15-minute load averages of the host."""
+    return [float(x) for x in Path("/proc/loadavg").read_text().split()[:3]]
+
+
+def wait_idle(timeout_s: float = 900, step_s: float = 10) -> tuple[list[float], float]:
+    """Wait until the 1-minute load average is below IDLE_LOAD, so that no
+    other work runs at the start of the session. Return the load and the
+    wait. DataError after timeout_s."""
+    start = time.monotonic()
+    while True:
+        load = read_load()
+        waited = round(time.monotonic() - start, 1)
+        if load[0] < IDLE_LOAD:
+            return load, waited
+        if waited > timeout_s:
+            raise DataError(f"the machine is not idle: load average {load}")
+        time.sleep(step_s)
+
+
 def time_session(scratch: Path, image: str | None) -> dict:
     """Run time_inside in the CI image: one container, serial, no network."""
     scratch = scratch.absolute()
@@ -1047,6 +1084,7 @@ def time_session(scratch: Path, image: str | None) -> dict:
         "docker version", ["docker", "version", "--format", "{{.Server.Version}}"], ROOT
     ).stdout.strip()
     version = f"sqlfluffrs {build_record['sqlfluffrs']['version']} (probe)"
+    load_before, waited = wait_idle()
     started = now()
     st.run(
         "timing session",
@@ -1059,6 +1097,12 @@ def time_session(scratch: Path, image: str | None) -> dict:
         log=scratch / "logs" / "timing.log",
         timeout=4 * 3600,
     )
+    load_after = read_load()
+    if load_after[1] > MAX_SESSION_LOAD:
+        raise DataError(
+            f"the 5-minute load average after the session is {load_after[1]}: "
+            "other processes ran during the serial session"
+        )
     report = json.loads((scratch / "bench-report.json").read_text("utf8"))
     phases = json.loads((scratch / "probe-phases.json").read_text("utf8"))
     st.run(
@@ -1079,6 +1123,16 @@ def time_session(scratch: Path, image: str | None) -> dict:
             "serial, no network, no other load; the full profile; the tools run in "
             "turn for each repeat (timer.run_in_turn)",
             "host": bench_report.machine(),
+            "machine_lock": "the command ran under flock /tmp/sqll-machine.lock "
+            "(PROCESS.md, rule 7)",
+            "load": {
+                "before": load_before,
+                "after": load_after,
+                "idle_wait_s": waited,
+                "rule": f"start when the 1-minute load average is below {IDLE_LOAD}; "
+                f"after the session, the 5-minute load average must be at most "
+                f"{MAX_SESSION_LOAD} (one serial process gives about 1)",
+            },
         },
         "probe_sha256": build_record["probe"]["sha256"],
         "steps": st.entries,
@@ -1552,7 +1606,7 @@ def make_report(
         "task": "T5",
         "criterion": "C4",
         "inputs": {
-            p.relative_to(ROOT).as_posix(): sha256_file(p)
+            rel(p): sha256_file(p)
             for p in (build_path, cases_path, bench_path, baseline_path)
         },
         "commands": {
@@ -1638,15 +1692,15 @@ def main(argv: list[str] | None = None) -> int:
             python = args.python or tools_dir() / "sqlfluff" / "bin" / "python"
             record = build(args.scratch, python)
             BUILD_FILE.write_text(dump(record), encoding="utf8")
-            print(f"wrote {BUILD_FILE.relative_to(ROOT)}")
+            print(f"wrote {rel(BUILD_FILE)}")
         elif args.command == "fixtures":
             record = fixtures(args.scratch, args.jobs)
             CASES_FILE.write_text(dump(record), encoding="utf8")
-            print(f"wrote {CASES_FILE.relative_to(ROOT)}")
+            print(f"wrote {rel(CASES_FILE)}")
         elif args.command == "time":
             record = time_session(args.scratch, args.image)
             BENCH_FILE.write_text(dump(record), encoding="utf8")
-            print(f"wrote {BENCH_FILE.relative_to(ROOT)}")
+            print(f"wrote {rel(BENCH_FILE)}")
         elif args.command == "time-inside":
             report, phases = time_inside(args.scratch, args.version)
             (args.scratch / "bench-report.json").write_text(
@@ -1659,14 +1713,12 @@ def main(argv: list[str] | None = None) -> int:
             text = dump(make_report())
             if args.check:
                 if not OUT_FILE.exists() or OUT_FILE.read_text("utf8") != text:
-                    print(
-                        f"{OUT_FILE.relative_to(ROOT)} is not the report of the inputs"
-                    )
+                    print(f"{rel(OUT_FILE)} is not the report of the inputs")
                     return 1
-                print(f"{OUT_FILE.relative_to(ROOT)} is up to date")
+                print(f"{rel(OUT_FILE)} is up to date")
             else:
                 OUT_FILE.write_text(text, encoding="utf8")
-                print(f"wrote {OUT_FILE.relative_to(ROOT)}")
+                print(f"wrote {rel(OUT_FILE)}")
     except DataError as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1

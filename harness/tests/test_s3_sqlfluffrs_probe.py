@@ -466,7 +466,11 @@ def test_the_s3_status_file_and_the_decision_record_have_t5():
     fx = OUT["fixtures"]["total"]
     assert f"{fx['pass']} of {fx['cases']}" in status
     decision = (REPO_ROOT / "docs" / "decisions" / "s3-base.md").read_text("utf8")
-    c4 = next(line for line in decision.splitlines() if line.startswith("| C4 |"))
+    c4 = next(
+        line
+        for line in decision.splitlines()
+        if line.startswith("| C4 |") and "| T5 |" in line
+    )
     assert "`results/s3/sqlfluffrs-probe.json`" in c4
     assert "scripts/s3/sqlfluffrs_probe.py" in c4
 
@@ -477,3 +481,31 @@ def test_the_status_numbers_are_those_of_the_report():
     for group in ("start", "parse/small", "parse/medium", "parse/large"):
         ratio = summary[group]["probe_over_sqruff"]["median_ratio"]
         assert re.search(rf"\| {re.escape(group)} \|.*\| {ratio:.3f} \|", status), group
+
+
+# The machine lock and the load checks.
+
+
+def test_the_timed_commands_take_the_machine_lock():
+    for name in ("build", "time"):
+        assert OUT["commands"][name].startswith("flock /tmp/sqll-machine.lock ")
+        assert BUILD["command"].startswith("flock /tmp/sqll-machine.lock ")
+        assert BENCH["command"].startswith("flock /tmp/sqll-machine.lock ")
+
+
+def test_the_session_had_no_other_load():
+    load = BENCH["session"]["load"]
+    assert load["before"][0] < sp.IDLE_LOAD
+    assert load["after"][1] <= sp.MAX_SESSION_LOAD
+    assert BUILD["load"]["before"][0] < sp.IDLE_LOAD
+
+
+def test_wait_idle(monkeypatch):
+    loads = iter([[0.9, 0.5, 0.4], [0.2, 0.5, 0.4]])
+    monkeypatch.setattr(sp, "read_load", lambda: next(loads))
+    monkeypatch.setattr(sp.time, "sleep", lambda s: None)
+    load, _ = sp.wait_idle()
+    assert load == [0.2, 0.5, 0.4]
+    monkeypatch.setattr(sp, "read_load", lambda: [2.0, 2.0, 2.0])
+    with pytest.raises(sp.DataError, match="not idle"):
+        sp.wait_idle(timeout_s=-1)
