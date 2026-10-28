@@ -1,8 +1,8 @@
 {
  "kind": "sqll-s3-sqlfluffrs-probe-build",
  "command": "flock /tmp/sqll-machine.lock uv run --frozen --project harness python scripts/s3/sqlfluffrs_probe.py build --scratch $SCRATCH",
- "started": "2026-10-28T10:07:33Z",
- "finished": "2026-10-28T10:13:00Z",
+ "started": "2026-10-28T10:39:47Z",
+ "finished": "2026-10-28T10:45:17Z",
  "scratch": "/tmp/claude-0/-home-user-sqll/0a5b715a-4fe2-50ff-9952-36e574fb0715/scratchpad/t5",
  "machine": {
   "cpu_model": "Intel(R) Xeon(R) Processor @ 2.10GHz",
@@ -15,19 +15,19 @@
  },
  "load": {
   "before": [
-   0.26,
-   0.77,
-   0.97
+   0.27,
+   0.98,
+   1.12
   ],
   "idle_wait_s": 80.0,
   "after": [
-   2.71,
-   2.15,
-   1.51
+   2.45,
+   2.34,
+   1.69
   ]
  },
  "harness": {
-  "commit": "5da4eb6d04922ee57a6b1c348f151fb0bb66cfd1",
+  "commit": "17bd5685409dbd904a44a0129cdf7637fdee0456",
   "clean": true
  },
  "sqlfluffrs": {
@@ -608,11 +608,11 @@
  "builds": {
   "crates": {
    "exit_code": 0,
-   "wall_s": 77.231
+   "wall_s": 75.85
   },
   "probe": {
    "exit_code": 0,
-   "wall_s": 73.179
+   "wall_s": 79.517
   }
  },
  "python_shim_calls": [],
@@ -1045,6 +1045,11 @@
   ]
  },
  "probe": {
+  "source_sha256": {
+   "Cargo.toml": "6da1ce8f96b67372997e92fdd77e354d020c5b0297f3f305ac76addb2651997f",
+   "Cargo.lock": "5ff792784ef5bb68076735687c408cdd3e04c902004e88122e0fa2c8f21822ff",
+   "src/main.rs": "46197be3610141985e340744a05d2e615b5a1948f2b60f672162bfc07b1482c8"
+  },
   "bytes": 18134792,
   "sha256": "9ed6a0ce5d28b10e65fd219b09b7df32067f077c072bed3c29611a02ac856d13",
   "ldd": [
@@ -1615,7 +1620,7 @@
    "env": {},
    "unset": [],
    "exit_code": 0,
-   "wall_s": 0.02
+   "wall_s": 0.025
   },
   {
    "step": "submodule commit",
@@ -1630,7 +1635,7 @@
    "env": {},
    "unset": [],
    "exit_code": 0,
-   "wall_s": 0.003
+   "wall_s": 0.002
   },
   {
    "step": "submodule tag",
@@ -1647,7 +1652,7 @@
    "env": {},
    "unset": [],
    "exit_code": 0,
-   "wall_s": 0.002
+   "wall_s": 0.004
   },
   {
    "step": "copy the submodule",
@@ -1663,7 +1668,7 @@
    },
    "unset": [],
    "exit_code": 0,
-   "wall_s": 0.236
+   "wall_s": 0.705
   },
   {
    "step": "python (installed sqlfluff)",
@@ -1682,7 +1687,7 @@
     "VIRTUAL_ENV"
    ],
    "exit_code": 0,
-   "wall_s": 0.23
+   "wall_s": 0.248
   },
   {
    "step": "generate the dialect tables",
@@ -1701,7 +1706,7 @@
     "VIRTUAL_ENV"
    ],
    "exit_code": 0,
-   "wall_s": 22.959,
+   "wall_s": 23.224,
    "log": "$SCRATCH/logs/generate.log"
   },
   {
@@ -1721,7 +1726,7 @@
     "VIRTUAL_ENV"
    ],
    "exit_code": 0,
-   "wall_s": 23.291,
+   "wall_s": 22.042,
    "log": "$SCRATCH/logs/generate-check.log"
   },
   {
@@ -1737,7 +1742,7 @@
    },
    "unset": [],
    "exit_code": 0,
-   "wall_s": 0.314
+   "wall_s": 0.371
   },
   {
    "step": "check the generation (submodule src)",
@@ -1752,7 +1757,7 @@
    },
    "unset": [],
    "exit_code": 0,
-   "wall_s": 23.385,
+   "wall_s": 23.054,
    "log": "$SCRATCH/logs/generate-check-src.log"
   },
   {
@@ -1769,7 +1774,7 @@
    "env": {},
    "unset": [],
    "exit_code": 0,
-   "wall_s": 0.77
+   "wall_s": 0.944
   },
   {
    "step": "rustc version",
@@ -1792,7 +1797,7 @@
     "VIRTUAL_ENV"
    ],
    "exit_code": 0,
-   "wall_s": 0.023
+   "wall_s": 0.024
   },
   {
    "step": "cargo version",
@@ -1815,7 +1820,7 @@
     "VIRTUAL_ENV"
    ],
    "exit_code": 0,
-   "wall_s": 0.018
+   "wall_s": 0.034
   },
   {
    "step": "fetch the crates",
@@ -1839,7 +1844,7 @@
     "VIRTUAL_ENV"
    ],
    "exit_code": 0,
-   "wall_s": 0.148
+   "wall_s": 0.256
   },
   {
    "step": "build the crates",
@@ -1873,7 +1878,7 @@
     "VIRTUAL_ENV"
    ],
    "exit_code": 0,
-   "wall_s": 77.231,
+   "wall_s": 75.85,
    "log": "$SCRATCH/logs/build-crates.log"
   },
   {
@@ -1905,7 +1910,7 @@
     "VIRTUAL_ENV"
    ],
    "exit_code": 0,
-   "wall_s": 0.074
+   "wall_s": 0.079
   },
   {
    "step": "cargo tree sqlfluffrs_parser",
@@ -1936,7 +1941,7 @@
     "VIRTUAL_ENV"
    ],
    "exit_code": 0,
-   "wall_s": 0.096
+   "wall_s": 0.075
   },
   {
    "step": "cargo tree sqlfluffrs_dialects",
@@ -1967,7 +1972,7 @@
     "VIRTUAL_ENV"
    ],
    "exit_code": 0,
-   "wall_s": 0.076
+   "wall_s": 0.087
   },
   {
    "step": "cargo tree sqlfluffrs_rules",
@@ -1998,7 +2003,7 @@
     "VIRTUAL_ENV"
    ],
    "exit_code": 0,
-   "wall_s": 0.077
+   "wall_s": 0.081
   },
   {
    "step": "cargo tree sqlfluffrs",
@@ -2029,7 +2034,7 @@
     "VIRTUAL_ENV"
    ],
    "exit_code": 0,
-   "wall_s": 0.079
+   "wall_s": 0.114
   },
   {
    "step": "cargo tree sqlfluffrs_parser with the python feature (control)",
@@ -2062,7 +2067,7 @@
     "VIRTUAL_ENV"
    ],
    "exit_code": 0,
-   "wall_s": 0.08
+   "wall_s": 0.078
   },
   {
    "step": "fetch the probe crates",
@@ -2086,7 +2091,7 @@
     "VIRTUAL_ENV"
    ],
    "exit_code": 0,
-   "wall_s": 0.094
+   "wall_s": 0.121
   },
   {
    "step": "build the probe",
@@ -2112,7 +2117,7 @@
     "VIRTUAL_ENV"
    ],
    "exit_code": 0,
-   "wall_s": 73.179,
+   "wall_s": 79.517,
    "log": "$SCRATCH/logs/build-probe.log"
   },
   {
@@ -2142,7 +2147,7 @@
     "VIRTUAL_ENV"
    ],
    "exit_code": 0,
-   "wall_s": 0.068
+   "wall_s": 0.057
   },
   {
    "step": "ldd probe",
@@ -2167,7 +2172,7 @@
    "env": {},
    "unset": [],
    "exit_code": 0,
-   "wall_s": 0.003
+   "wall_s": 0.004
   },
   {
    "step": "run the probe with no Python",
@@ -2188,7 +2193,7 @@
    "env": {},
    "unset": [],
    "exit_code": 0,
-   "wall_s": 0.393
+   "wall_s": 0.399
   },
   {
    "step": "native fixture tests",
@@ -2220,7 +2225,7 @@
     "VIRTUAL_ENV"
    ],
    "exit_code": 0,
-   "wall_s": 103.058,
+   "wall_s": 101.734,
    "log": "$SCRATCH/logs/fixture-tests.log"
   },
   {
@@ -2252,7 +2257,7 @@
     "VIRTUAL_ENV"
    ],
    "exit_code": 0,
-   "wall_s": 0.092
+   "wall_s": 0.104
   },
   {
    "step": "check the submodule after",
@@ -2264,7 +2269,7 @@
    "env": {},
    "unset": [],
    "exit_code": 0,
-   "wall_s": 0.019
+   "wall_s": 0.018
   }
  ]
 }
