@@ -90,6 +90,95 @@ def test_a_missing_probe_benchmark_fails(tmp_path):
         sb.make_report(probe_path=path)
 
 
+def write_json(path, value):
+    path.write_text(json.dumps(value), "utf8")
+    return path
+
+
+def copy_probe():
+    return json.loads(json.dumps(PROBE))
+
+
+def probe_row(probe, bid):
+    return next(r for r in probe["speed"]["benchmarks"] if r["id"] == bid)
+
+
+def test_another_sqlfluff_commit_fails(tmp_path):
+    probe = copy_probe()
+    probe["sqlfluffrs"]["commit"] = "0" * 40
+    path = write_json(tmp_path / "probe.json", probe)
+    with pytest.raises(sb.DataError, match="pinned sqlfluff commit"):
+        sb.make_report(probe_path=path)
+
+
+def test_a_baseline_that_is_not_correct_fails(tmp_path):
+    baseline = json.loads(json.dumps(BASELINE))
+    baseline["kind"] = "another-report"
+    base_path = write_json(tmp_path / "baseline.json", baseline)
+    probe = copy_probe()
+    probe["inputs"]["results/s2/baseline.json"] = sb.sha256_file(base_path)
+    path = write_json(tmp_path / "probe.json", probe)
+    with pytest.raises(sb.DataError, match="baseline is not correct"):
+        sb.make_report(baseline_path=base_path, probe_path=path)
+
+
+def test_a_duplicate_probe_benchmark_fails(tmp_path):
+    probe = copy_probe()
+    rows = probe["speed"]["benchmarks"]
+    rows.append(json.loads(json.dumps(rows[0])))
+    path = write_json(tmp_path / "probe.json", probe)
+    with pytest.raises(sb.DataError, match="start and parse benchmarks"):
+        sb.make_report(probe_path=path)
+
+
+@pytest.mark.parametrize("setup_s", [0, 10])
+def test_a_setup_phase_outside_the_probe_time_fails(tmp_path, setup_s):
+    probe = copy_probe()
+    probe_row(probe, "parse/ansi/large")["probe_phases"]["setup_s"] = setup_s
+    path = write_json(tmp_path / "probe.json", probe)
+    with pytest.raises(sb.DataError, match="setup phase"):
+        sb.make_report(probe_path=path)
+
+
+@pytest.mark.parametrize("other", ["sqruff", "sqlfluff"])
+def test_a_ratio_that_is_not_the_ratio_of_the_medians_fails(tmp_path, other):
+    probe = copy_probe()
+    probe_row(probe, "parse/ansi/large")[f"probe_over_{other}"] = 0.5
+    path = write_json(tmp_path / "probe.json", probe)
+    with pytest.raises(sb.DataError, match=f"probe_over_{other}"):
+        sb.make_report(probe_path=path)
+
+
+def test_a_probe_result_that_is_not_valid_fails_its_comparisons(tmp_path):
+    probe = copy_probe()
+    for bid in ("parse/ansi/large", "start/ansi"):
+        row = probe_row(probe, bid)
+        row["status"][sb.PROBE] = "invalid"
+        row[sb.PROBE] = row["probe_over_sqruff"] = row["probe_over_sqlfluff"] = None
+    path = write_json(tmp_path / "probe.json", probe)
+    out = sb.make_report(probe_path=path)
+    by = {r["id"]: r["bases"] for r in out["benchmarks"]}
+    # fix/ansi/large: sqruff is not valid, thus G3.5 has no pair.
+    want = {
+        "start/ansi": ("not_met", "not_met"),
+        "parse/ansi/large": ("not_met", "not_met"),
+        "lint/ansi/large": ("not_met", "not_met"),
+        "fix/ansi/large": ("not_met", "skipped"),
+    }
+    for name in ESTIMATES:
+        for bid, outcomes in want.items():
+            e = by[bid][name]
+            assert e["kind"] == "not_valid" and e["from"] == "session", (bid, name)
+            assert e["status"] == "invalid" and e["time_s"] is None
+            assert (e["g3_4"], e["g3_5"]) == outcomes, (bid, name)
+        assert by["lint/ansi/medium"][name]["kind"] == "estimate"
+        sp = out["bases"][name]["lex_parse_speedup"]
+        assert sp["start"]["not_valid"] == ["start/ansi"]
+        assert sp["parse"]["not_valid"] == ["parse/ansi/large"]
+        s = out["bases"][name]["summary"]["all"]
+        assert s["kinds"]["not_valid"] == 4
+
+
 def test_a_reason_with_no_class_fails():
     with pytest.raises(sb.DataError, match="no class"):
         sb.reason_class("invalid", "warmup run: a new failure")
@@ -271,20 +360,39 @@ def test_the_sqruff_results_that_are_not_valid_are_listed():
     assert by == dict(classes)
 
 
-def test_the_speedup_of_each_benchmark_that_is_slower():
-    for name in ESTIMATES:
-        for command in sb.MEASURED_BY_PROBE:
-            sp = OUT["bases"][name]["lex_parse_speedup"][command]
-            slower = [e for _, e in entries(name, command) if e["g3_5"] == "not_met"]
-            assert sp["needed"] == len(slower)
-    sp = OUT["bases"]["sqlfluffrs"]["lex_parse_speedup"]["parse"]
-    factors = []
-    for row, e in entries("sqlfluffrs", "parse"):
-        if e["g3_5"] == "not_met":
-            ph = SESSION[row["id"]]["probe_phases"]
-            lp = ph["lex_s"] + ph["parse_s"]
-            factors.append(lp / (e["sqruff_s"] - (e["time_s"] - lp)))
-    assert sp["max_factor"] == round(max(factors), 4)
+@pytest.mark.parametrize("name", ESTIMATES)
+@pytest.mark.parametrize("command", sb.MEASURED_BY_PROBE)
+def test_the_speedup_of_each_benchmark_that_is_slower(name, command):
+    sp = OUT["bases"][name]["lex_parse_speedup"][command]
+    factors, unreachable, slower = [], [], 0
+    for row, e in entries(name, command):
+        if e["g3_5"] != "not_met":
+            continue
+        slower += 1
+        s = SESSION[row["id"]]
+        ph = s["probe_phases"]
+        lp = ph["lex_s"] + ph["parse_s"]
+        t = s[sb.PROBE]["median_s"]
+        if name == "new-parser-low":
+            t -= ph["setup_s"]
+        room = s["sqruff"]["median_s"] - (t - lp)
+        if room <= 0:
+            unreachable.append(row["id"])
+        else:
+            factors.append(lp / room)
+    assert sp["needed"] == slower
+    assert sp["unreachable"] == unreachable and sp["not_valid"] == []
+    if factors:
+        assert sp["max_factor"] == pytest.approx(max(factors), abs=1e-4)
+        assert sp["median_factor"] == pytest.approx(median_of(factors), abs=1e-4)
+    else:
+        assert sp["max_factor"] is sp["median_factor"] is None
+
+
+def median_of(values):
+    v = sorted(values)
+    mid = len(v) // 2
+    return v[mid] if len(v) % 2 else (v[mid - 1] + v[mid]) / 2
 
 
 # The status file and the decision record.
@@ -326,6 +434,10 @@ def test_the_decision_record_gives_the_c5_source():
     assert "scripts/s3/speed_by_base.py" in row
     assert "`results/s2/baseline.json`" in row
     assert "`results/s3/sqlfluffrs-probe.json`" in row
+    method = " ".join(record.split("## Method", 1)[1].split("| Criterion")[0].split())
+    # Only the estimates take ratios inside each session; unscaled does not.
+    assert "(formulas `rule_time` and `total_all`) take only ratios inside" in method
+    assert "(formula `unscaled`) does not" in method
 
 
 def test_the_status_text_numbers_are_those_of_the_output():

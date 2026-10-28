@@ -17,8 +17,9 @@ an "estimate" ("formula" names the formula in FORMULAS).
 
 It stops with exit code 1 (DataError) if the inputs do not agree: the
 probe report is not from the committed baseline, a tool version or the
-sqlfluff commit is not the pin, a benchmark is missing, or a reason of a
-result that is not valid has no known class.
+sqlfluff commit is not the pin, a benchmark is missing, a ratio of the
+probe report is not the ratio of its medians, or a reason of a result that
+is not valid has no known class.
 """
 
 import argparse
@@ -55,10 +56,10 @@ NOISE_LIMIT = 1 + NOISE.wall_pct
 RATIO_DIGITS = 4
 TIME_DIGITS = 6
 
-# The class of the reason of each result that is not valid. The first match
-# gives the class (harness/bench.md, "Validity").
+# The class of the reason of each result that is not valid, after the
+# status "unsupported". The first match gives the class (harness/bench.md,
+# "Validity").
 REASON_CLASSES = (
-    ("unsupported", "unsupported: "),
     ("panic", "the tool crashed (panic)"),
     ("timeout", "timeout after "),
     ("rule_codes", "the rule codes are not those of the sqlfluff reference"),
@@ -105,7 +106,8 @@ FORMULAS = {
     "and the weights from the baseline.",
     "speedup": "lex and parse speed-up for G3.5 on one start or parse benchmark: "
     "k = LP / (S - (T - LP)). LP: lex_s + parse_s of the probe phases; T: the "
-    "time of the base; S: the sqruff time (session). Unreachable if S <= T - LP.",
+    "time of the base; S: the sqruff time (session). Unreachable if S <= T - LP. "
+    "not_valid: the entry has no time (its probe result is not valid).",
     "unscaled": "sensitivity of rule_time, the simple form: T = Tb(parse, i) + "
     "Tq(c, i) - Pq(i). It adds a time of the probe session to times of the "
     "baseline session.",
@@ -126,6 +128,9 @@ RULES = [
     "not valid. A total uses only the benchmarks with a pair.",
     "unknown: an estimate is not possible (the sqruff result that the formula "
     "needs is not valid), and the other tool is valid.",
+    "A probe result that is not valid makes the start or parse entry of options "
+    "2 and 3 not_valid, and also lint and fix on the same input: the lint and "
+    "fix checks need the parse check of the same tool (harness/bench.md).",
     f"No noise limit: a ratio just above 1 counts as not_met. over_noise counts "
     f"the ratios above {NOISE_LIMIT} (the wall time limit of bench compare).",
     "Under rule_time, a lint or fix estimate is at most the sqruff time if, and "
@@ -177,7 +182,7 @@ def reason_class(status: str, reason: str | None) -> str:
     text = reason or ""
     if status == "unsupported" and text.startswith("unsupported: "):
         return "unsupported"
-    for name, needle in REASON_CLASSES[1:]:
+    for name, needle in REASON_CLASSES:
         if needle in text:
             return name
     raise DataError(f"no class for the reason {text[:80]!r} ({status})")
@@ -244,8 +249,9 @@ def _entry(
     over_sqlfluff: float | None = None,
     over_sqruff: float | None = None,
 ) -> dict:
-    """kind: measured (origin: a SOURCES key), not_valid (the measured result
-    is not valid), estimate (origin: a FORMULAS key), or no_estimate."""
+    """kind: measured (origin: a SOURCES key), not_valid (the measured result,
+    or the probe result that an estimate needs, is not valid), estimate
+    (origin: a FORMULAS key), or no_estimate."""
     base_valid = kind != "not_valid"
     return {
         "time_s": rt(time_s),
@@ -300,6 +306,26 @@ def _parse_time(base_name: str, row: dict) -> float | None:
     return t
 
 
+def _copied_ratio(row: dict, other: str, want: float | None) -> float | None:
+    got = row[f"probe_over_{other}"]
+    if got != want:
+        raise DataError(
+            f"{row['id']}: probe_over_{other} {got} is not the ratio of the "
+            f"medians {want}"
+        )
+    return got
+
+
+def _not_valid_probe(row: dict, refs: dict) -> dict:
+    return _entry(
+        time_s=None,
+        kind="not_valid",
+        origin="session",
+        status=row["status"][PROBE],
+        **refs,
+    )
+
+
 def _probe_entry(base_name: str, row: dict) -> dict:
     t = _parse_time(base_name, row)
     refs = {
@@ -307,28 +333,22 @@ def _probe_entry(base_name: str, row: dict) -> dict:
         "sqruff_s": row["sqruff"]["median_s"] if row["sqruff"] else None,
         "ref_from": "session",
     }
+    if t is None:
+        return _not_valid_probe(row, refs)
     if base_name == "sqlfluffrs":
-        if t is None:
-            return _entry(
-                time_s=None,
-                kind="not_valid",
-                origin="session",
-                status=row["status"][PROBE],
-                **refs,
-            )
         return _entry(
             time_s=t,
             kind="measured",
             origin="session",
             status=VALID,
-            over_sqlfluff=row["probe_over_sqlfluff"],
-            over_sqruff=row["probe_over_sqruff"],
+            over_sqlfluff=_copied_ratio(row, "sqlfluff", _ratio(t, refs["sqlfluff_s"])),
+            over_sqruff=_copied_ratio(row, "sqruff", _ratio(t, refs["sqruff_s"])),
             **refs,
         )
     formula = "option3_low" if base_name == "new-parser-low" else "option3_high"
     return _entry(
         time_s=t,
-        kind="estimate" if t is not None else "no_estimate",
+        kind="estimate",
         origin=formula,
         over_sqlfluff=_ratio(t, refs["sqlfluff_s"]),
         over_sqruff=_ratio(t, refs["sqruff_s"]),
@@ -357,7 +377,9 @@ def _rule_entry(
         "sqruff_s": tq,
         "ref_from": "baseline",
     }
-    if None in (tq, pq, tb, pqs):
+    if tb is None:
+        return _not_valid_probe(session_parse, refs)
+    if None in (tq, pq, pqs):
         return _entry(time_s=None, kind="no_estimate", origin=formula, **refs)
     if formula == "rule_time":
         t = rule_time(tq, pq, tb, pqs)
@@ -474,12 +496,15 @@ def speedup(name: str, table: list[dict], probe: dict) -> dict:
     session = {r["id"]: r for r in probe["speed"]["benchmarks"]}
     out = {}
     for command in MEASURED_BY_PROBE:
-        needed, factors, unreachable = 0, [], []
+        needed, factors, unreachable, not_valid = 0, [], [], []
         for r in table:
             e = r["bases"][name]
             if r["command"] != command or e["g3_5"] != NOT_MET:
                 continue
             needed += 1
+            if e["time_s"] is None:
+                not_valid.append(r["id"])
+                continue
             ph = session[r["id"]]["probe_phases"]
             lp = ph["lex_s"] + ph["parse_s"]
             room = e["sqruff_s"] - (e["time_s"] - lp)
@@ -493,6 +518,7 @@ def speedup(name: str, table: list[dict], probe: dict) -> dict:
             "max_factor": rr(max(factors)) if factors else None,
             "median_factor": rr(statistics.median(factors)) if factors else None,
             "unreachable": unreachable,
+            "not_valid": not_valid,
         }
     return out
 

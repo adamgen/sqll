@@ -22,12 +22,13 @@
   "session": {"path": "results/s3/sqlfluffrs-probe.json", "value": "speed.benchmarks[id].<tool>.median_s; the ratios: speed.benchmarks[id].probe_over_sqlfluff and probe_over_sqruff"},
   "phases": {"path": "results/s3/sqlfluffrs-probe.json", "value": "speed.benchmarks[id].probe_phases (setup_s, lex_s, parse_s)"}
  },
- "formulas": {"rule_time": "lint and fix of options 2 and 3: T = Tq(c, i) + Pq(i) * (r(i) - 1). Tq(c, i), Pq(i): the sqruff median of the command c and of parse on the input i (baseline). r(i) = Tb(parse, i) / Pq_session(i): the parse time of the base over the sqruff parse time, in the probe session. Thus: the sqruff time with its parse part (process start, lex, parse, tree output) replaced by that of the base, in the units of the baseline session. The rules take the sqruff rule time Tq(c) - Pq. Only if the sqruff results of c and parse are valid; else no estimate.", "option3_high": "start and parse of option 3, high bound: T = the probe median (session). The new parser has the speed of the sqlfluffrs engine on the same generated tables.", "option3_low": "start and parse of option 3, low bound: T = the probe median - the probe setup phase (session, phases). Also, the dialect tables cost no run time (made at compile time).", "total_all": "the total of all commands: sum(R * Tq) / sum(Tq), over the benchmarks with a pair. R: the ratio of the row to sqruff. Tq: the sqruff median of the benchmark (baseline). Thus each ratio comes from one session, and the weights from the baseline.", "speedup": "lex and parse speed-up for G3.5 on one start or parse benchmark: k = LP / (S - (T - LP)). LP: lex_s + parse_s of the probe phases; T: the time of the base; S: the sqruff time (session). Unreachable if S <= T - LP.", "unscaled": "sensitivity of rule_time, the simple form: T = Tb(parse, i) + Tq(c, i) - Pq(i). It adds a time of the probe session to times of the baseline session."},
+ "formulas": {"rule_time": "lint and fix of options 2 and 3: T = Tq(c, i) + Pq(i) * (r(i) - 1). Tq(c, i), Pq(i): the sqruff median of the command c and of parse on the input i (baseline). r(i) = Tb(parse, i) / Pq_session(i): the parse time of the base over the sqruff parse time, in the probe session. Thus: the sqruff time with its parse part (process start, lex, parse, tree output) replaced by that of the base, in the units of the baseline session. The rules take the sqruff rule time Tq(c) - Pq. Only if the sqruff results of c and parse are valid; else no estimate.", "option3_high": "start and parse of option 3, high bound: T = the probe median (session). The new parser has the speed of the sqlfluffrs engine on the same generated tables.", "option3_low": "start and parse of option 3, low bound: T = the probe median - the probe setup phase (session, phases). Also, the dialect tables cost no run time (made at compile time).", "total_all": "the total of all commands: sum(R * Tq) / sum(Tq), over the benchmarks with a pair. R: the ratio of the row to sqruff. Tq: the sqruff median of the benchmark (baseline). Thus each ratio comes from one session, and the weights from the baseline.", "speedup": "lex and parse speed-up for G3.5 on one start or parse benchmark: k = LP / (S - (T - LP)). LP: lex_s + parse_s of the probe phases; T: the time of the base; S: the sqruff time (session). Unreachable if S <= T - LP. not_valid: the entry has no time (its probe result is not valid).", "unscaled": "sensitivity of rule_time, the simple form: T = Tb(parse, i) + Tq(c, i) - Pq(i). It adds a time of the probe session to times of the baseline session."},
  "targets": {"g3_4": "G3.4: faster than sqlfluff on each benchmark (ratio < 1).", "g3_5_each": "G3.5: not slower than sqruff on any benchmark (ratio <= 1).", "g3_5_total": "G3.5: faster than sqruff on the total of all benchmarks (ratio of the sums < 1)."},
  "rules": [
   "Ratios: base / other tool, on the same benchmark, with the times of one session (the ref_from of the row). Below 1: the base is faster.",
   "Pairs (harness/bench.md, Validity): a result that is not valid of the base fails its comparison (not_met). A pair is skipped only if the other tool is not valid. A total uses only the benchmarks with a pair.",
   "unknown: an estimate is not possible (the sqruff result that the formula needs is not valid), and the other tool is valid.",
+  "A probe result that is not valid makes the start or parse entry of options 2 and 3 not_valid, and also lint and fix on the same input: the lint and fix checks need the parse check of the same tool (harness/bench.md).",
   "No noise limit: a ratio just above 1 counts as not_met. over_noise counts the ratios above 1.25 (the wall time limit of bench compare).",
   "Under rule_time, a lint or fix estimate is at most the sqruff time if, and only if, r(i) <= 1. Thus G3.5 on lint and fix of options 2 and 3 follows parse on the same input."
  ],
@@ -197,13 +198,21 @@
     }
    },
    "lex_parse_speedup": {
-    "start": {"formula": "speedup", "needed": 0, "max_factor": null, "median_factor": null, "unreachable": []},
+    "start": {
+     "formula": "speedup",
+     "needed": 0,
+     "max_factor": null,
+     "median_factor": null,
+     "unreachable": [],
+     "not_valid": []
+    },
     "parse": {
      "formula": "speedup",
      "needed": 44,
      "max_factor": 3.824,
      "median_factor": 1.7518,
-     "unreachable": []
+     "unreachable": [],
+     "not_valid": []
     }
    },
    "sensitivity": {
@@ -261,13 +270,21 @@
     }
    },
    "lex_parse_speedup": {
-    "start": {"formula": "speedup", "needed": 0, "max_factor": null, "median_factor": null, "unreachable": []},
+    "start": {
+     "formula": "speedup",
+     "needed": 0,
+     "max_factor": null,
+     "median_factor": null,
+     "unreachable": [],
+     "not_valid": []
+    },
     "parse": {
      "formula": "speedup",
      "needed": 35,
      "max_factor": 3.4362,
      "median_factor": 1.5823,
-     "unreachable": []
+     "unreachable": [],
+     "not_valid": []
     }
    },
    "sensitivity": {
@@ -325,13 +342,21 @@
     }
    },
    "lex_parse_speedup": {
-    "start": {"formula": "speedup", "needed": 0, "max_factor": null, "median_factor": null, "unreachable": []},
+    "start": {
+     "formula": "speedup",
+     "needed": 0,
+     "max_factor": null,
+     "median_factor": null,
+     "unreachable": [],
+     "not_valid": []
+    },
     "parse": {
      "formula": "speedup",
      "needed": 44,
      "max_factor": 3.824,
      "median_factor": 1.7518,
-     "unreachable": []
+     "unreachable": [],
+     "not_valid": []
     }
    },
    "sensitivity": {

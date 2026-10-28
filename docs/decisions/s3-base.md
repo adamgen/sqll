@@ -44,8 +44,10 @@ derives a file from committed data (not from timings) adds a drift test in
 session on the baseline machine setup (`harness/bench.md`, "Baseline"):
 the CI image in docker, serial, no other load. Comparisons use ratios
 inside that session. The lint and fix times of sqruff and sqlfluff come
-from the S2 baseline (`results/s2/baseline.json`). An estimate that uses
-both sessions takes only ratios inside each session (T6).
+from the S2 baseline (`results/s2/baseline.json`). The T6 estimates
+(formulas `rule_time` and `total_all`) take only ratios inside each
+session. The T6 sensitivity check (formula `unscaled`) does not: it adds
+a time of the probe session to times of the baseline session.
 
 Option 3 has no implementation. Each value for option 3 is an estimate. It
 comes from the sqlfluffrs generator and engine and from the sqruff rule
