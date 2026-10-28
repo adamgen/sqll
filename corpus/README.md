@@ -1,7 +1,8 @@
 # S9 corpus
 
 `sources.json` is the manifest of the S9 corpus: the source, commit,
-license, and copyright holders of each file (G4.3). The repository has no
+license, and copyright holders of each file (G4.3). `select.json` is the
+source list that `scripts/s9/select` makes it from. The repository has no
 corpus SQL. The harness downloads each file at run time by its pinned
 commit and checks its sha256. The rules: `docs/decisions/s9-corpus.md`.
 The code: `harness/sqll_harness/corpus/`.
@@ -16,6 +17,7 @@ uv run python -m sqll_harness.corpus run --profile smoke|full \
     [--shard K/N] [--tool T]... [--cache DIR] [--out FILE]
 uv run python -m sqll_harness.corpus merge REPORT... [--expect FILE] [--out FILE]
 uv run python -m sqll_harness.corpus check REPORT [--baseline FILE [--full]]
+uv run python -m sqll_harness.corpus select [--download] [--check] [--cache DIR]
 ```
 
 `validate` and `fetch` write a JSON object. Exit code 2 if the manifest is
@@ -92,3 +94,33 @@ license files and the manifest of each corpus file.
   Else the fetch deletes it and downloads it again.
 - The fetch refuses a cache folder if it, or a parent folder, has a
   sqlfluff or sqruff config file.
+
+## Selection
+
+`select.json` gives each source with the keys of the manifest
+(`repository`, `commit`, `license`, `copyright`, optional `note`), the
+paths of its license and notice files (`license_files`, the license
+first), and `include`: a list of `{"glob", "dialect"}` with an optional
+`"templater"` (default `raw`). A path must match at most one glob.
+
+```sh
+scripts/s9/select --download   # read the sources with git, write sources.json
+scripts/s9/select --check      # cache only: exit code 1 if sources.json differs
+```
+
+`--download` does a shallow, blobless git fetch of each commit, and writes
+to the cache `_listings/<source>/<commit>.json` (the path, size, and git
+blob id of each license file and each file that matches a glob) and the
+bytes of the license files and of each file in the size range. Then, with
+the cache only, the selection takes the files that match a glob, sorted by
+source and path, and drops a file out of the size range of its templater,
+a file that is not UTF-8, and a file with the sha256 of an earlier file.
+The output gives these counts for each source. The selection fails
+(exit code 2) if:
+
+- a cached file is not the git blob of the commit, or the listing is for
+  other globs or another commit;
+- the first license file does not have the phrases of its SPDX id
+  (`LICENSE_PHRASES` in `harness/sqll_harness/corpus/select.py`);
+- a copyright holder is in no license file and no selected file;
+- a source has no selected file, or the manifest is not valid.

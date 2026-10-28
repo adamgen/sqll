@@ -1,0 +1,11 @@
+#!/bin/sh
+# Make the S9 corpus manifest (corpus/sources.json) from the source list
+# (corpus/select.json) and the cache. Arguments go to
+# "python -m sqll_harness.corpus select" (corpus/README.md, "Selection"):
+#   scripts/s9/select --download   read the sources with git, then write
+#   scripts/s9/select --check      compare with the committed manifest
+set -eu
+
+root=$(CDPATH='' cd -- "$(dirname -- "$0")/../.." && pwd)
+cd "$root"
+exec uv run --quiet --frozen --project harness python -m sqll_harness.corpus select "$@"

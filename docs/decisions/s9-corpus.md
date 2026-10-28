@@ -1,6 +1,6 @@
 # S9 decision: the external corpus
 
-Status: design (T1); run and report (T3). Scope: STONES.md S9;
+Status: design (T1); run and report (T3); untemplated content (T4). Scope: STONES.md S9;
 CONSTITUTION.md G1.3, G3, G4.2, G4.3, G4.5. "Measured": `parse` runs of
 the `scripts/setup` tools on 2026-10-28 (4 CPUs, 16 GiB, machine lock),
 in a new folder with no config file above it. PR #29 (T1) and the T3 pull
@@ -28,7 +28,7 @@ request have the commands and the output.
   2. T2 (fetch), T3 (report), T7 (CI): the fetch gets and checks these
      files too. Each cache or artifact with corpus text also has them and
      the manifest.
-  3. T7 (cross-track): a THIRD_PARTY.md entry that points to the `corpus/`
+  3. T4 (cross-track): a THIRD_PARTY.md entry that points to the `corpus/`
      manifest.
 - **Out: copyleft.** Example: `mysql/mysql-server` (commit `06bcb0e`,
   `LICENSE`): "This software is released under version 2 of the GNU
@@ -57,7 +57,8 @@ use. Measured candidates:
 | `dbt-labs/jaffle_shop` (`fd7bfac`), 7 `fivetran/dbt_*` packages (T5 pins them) | Apache-2.0 | dbt models |
 
 `gitlab-data/analytics` is out: it needs a login (HTTP 302 to `sign_in`).
-T4 and T5 choose the final sources with these rules.
+T4 chose the untemplated sources ("Content"). T5 chooses the templated
+sources.
 
 ## Selection
 
@@ -71,6 +72,48 @@ by source and path) has its sha256.
 **Dialect.** The manifest gives one sqlfluff dialect name for each file,
 from the database of the source (`Chinook_SqlServer.sql`: `tsql`). All
 tools get it. CockroachDB and YugabyteDB files get `postgres`.
+
+**Globs.** A glob names folders of SQL of one database. The choice of a
+glob uses only the paths, sizes, and kind of the files, never a tool
+result. No TPC material. A folder with megabytes of data or text rows of
+one schema, or with too many files for the time budget of one dialect,
+gets a narrower glob or none; the source note gives the reason.
+
+## Content
+
+T4 (untemplated files). `corpus/select.json` lists each source: the
+commit, the license, the copyright holders, the license files, and the
+include globs with the dialect of each. `scripts/s9/select` makes
+`corpus/sources.json` from it and the cache, with the rules of
+"Selection" (corpus/README.md, "Selection"). It also fails closed if:
+the first license file does not have the phrases of its SPDX id; a
+copyright holder is in no license file and no selected file; a cached
+file is not the git blob of the commit; or a source has no file.
+
+| Source | Repository | Commit | License | Files | Bytes | Dialects |
+|---|---|---|---|---|---|---|
+| `amazon-redshift-utils` | `awslabs/amazon-redshift-utils` | `f208c11` | Apache-2.0 | 2 | 36,064 | redshift |
+| `bigquery-utils` | `GoogleCloudPlatform/bigquery-utils` | `d5bde4f` | Apache-2.0 | 2 | 87,911 | bigquery |
+| `chinook-database` | `lerocha/chinook-database` | `7f67772` | MIT | 11 | 6,425,616 | db2, mysql, oracle, postgres, sqlite, tsql |
+| `clickhouse` | `ClickHouse/ClickHouse` | `a1f4cd9` | Apache-2.0 | 6 | 193,022 | clickhouse |
+| `db-sample-schemas` | `oracle-samples/db-sample-schemas` | `6660bad` | MIT | 6 | 1,418,237 | oracle |
+| `emerging-solutions-toolbox` | `Snowflake-Labs/emerging-solutions-toolbox` | `d9073a3` | Apache-2.0 | 10 | 400,518 | snowflake |
+| `pagila` | `devrimgunduz/pagila` | `ce6e114` | PostgreSQL | 1 | 89,841 | postgres |
+| `postgres` | `postgres/postgres` | `7885b94` | PostgreSQL | 70 | 3,169,434 | postgres |
+| `sakila` | `jOOQ/sakila` | `e089a5b` | BSD-2-Clause | 6 | 183,311 | mysql, oracle, postgres, sqlite |
+| `spark` | `apache/spark` | `6176183` | Apache-2.0 | 25 | 1,133,814 | sparksql |
+| `sql-server-maintenance-solution` | `olahallengren/sql-server-maintenance-solution` | `4161757` | MIT | 5 | 1,473,445 | tsql |
+| `sql-server-samples` | `microsoft/sql-server-samples` | `348bbbc` | MIT | 13 | 2,814,661 | tsql |
+
+Total: 157 files, 17,425,874 bytes, 11 dialects. 26 files have more than
+100 kB, 3 more than 1 MB (largest 1,274,129 bytes). Smoke: the 78 files of
+32 KiB or less, 1,788,436 bytes. Limit (test): 2 MiB and 100 files.
+
+Out (examined): `pthom/northwind_psql` (Ms-PL);
+`OHDSI/CommonDataModel` and `GoogleCloudPlatform/data-analytics-golden-demo`
+(no license file at the root); `duckdb/duckdb` v1.5.6 (in the size range
+only TPC-DS queries); `trinodb/trino` 484 (no `.sql` file in the size
+range).
 
 ## Templated files
 
