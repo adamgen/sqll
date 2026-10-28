@@ -3,8 +3,8 @@
 Status: design (T1). Scope: STONES.md S9; CONSTITUTION.md G1.3, G3,
 G4.2, G4.3, G4.5. "Measured": `parse` runs of the `scripts/setup` tools
 on 2026-10-28 (4 CPUs, 16 GiB, machine lock, other tracks active), in a
-new folder with no config file above it. The T1 pull request has the
-commands and the output.
+new folder with no config file above it. PR #29 has the commands and
+the output.
 
 ## Licenses
 
