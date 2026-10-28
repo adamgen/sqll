@@ -101,7 +101,10 @@ license files and the manifest of each corpus file.
 (`repository`, `commit`, `license`, `copyright`, optional `note`), the
 paths of its license and notice files (`license_files`, the license
 first), and `include`: a list of `{"glob", "dialect"}` with an optional
-`"templater"` (default `raw`). A path must match at most one glob.
+`"templater"` (default `raw`). A path must match at most one glob. The
+optional `exclude` gives files to leave out, as `{"<path>": "<reason>"}`;
+each path must match a glob. The manifest note of the source gets
+"Excluded: <path>: <reason>" for each.
 
 ```sh
 scripts/s9/select --download   # read the sources with git, write sources.json
@@ -113,8 +116,9 @@ to the cache `_listings/<source>/<commit>.json` (the path, size, and git
 blob id of each license file and each file that matches a glob) and the
 bytes of the license files and of each file in the size range. Then, with
 the cache only, the selection takes the files that match a glob, sorted by
-source and path, and drops a file out of the size range of its templater,
-a file that is not UTF-8, and a file with the sha256 of an earlier file.
+source and path, and drops an excluded file, a file out of the size range
+of its templater, a file that is not UTF-8, and a file with the sha256 of
+an earlier file.
 The output gives these counts for each source. The selection fails
 (exit code 2) if:
 
@@ -123,9 +127,16 @@ The output gives these counts for each source. The selection fails
 - the first license file does not have the phrases of its SPDX id
   (`LICENSE_PHRASES` in `harness/sqll_harness/corpus/select.py`);
 - a copyright holder is in no license file and no selected file;
-- a copyright notice in a selected file ("Copyright (c) ...",
-  "Copyright 2021 ...", "Copyright Name") names no copyright holder of the
-  source, or a selected file has the text of another license
-  (`notice_errors` in `select.py`). Then give the file its own source with
-  its terms, or remove its glob, and give the reason in the note;
-- a source has no selected file, or the manifest is not valid.
+- a copyright notice in a selected file names no copyright holder of the
+  source, or also names another holder. Notice forms (case is ignored):
+  "Copyright" and then "(c)", "©", or a name, year, ":", or "by";
+  "(c) 2021"; "©". A notice must be on one line;
+- a selected file has the text, name, or SPDX id of another license (for
+  example "GNU", "GPL", "Mozilla Public License"). Then give the file its
+  own source with its terms, or exclude it or remove its glob, and give the
+  reason in the note (`notice_errors` in `select.py`);
+- a selected file has TPC material: "TPC-H", "TPC-DS", "tpch", "tpcds"
+  (with "-", "_", " ", or nothing), or a TPC-H or TPC-DS table name such as
+  `store_sales`, `date_dim`, or `lineitem` (`tpc_errors`). Exclude it;
+- an excluded path matches no glob, a source has no selected file, or the
+  manifest is not valid.

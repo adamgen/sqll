@@ -23,8 +23,7 @@ request have the commands and the output.
   each copy; Apache-2.0 4(a) needs a copy of the license. Thus:
   1. T2 (schema), T4 and T5 (data): for each source, the manifest records
      each copyright holder and the path and sha256 of each license or
-     notice file. A holder or license that a selected file names is part
-     of the record ("Content"). Example: `jOOQ/sakila` has "jOOQ Object
+     notice file ("Content"). Example: `jOOQ/sakila` has "jOOQ Object
      Oriented Querying" (`LICENSE`) and "DB Software Laboratory"
      (`README.md`).
   2. T2 (fetch), T3 (report), T7 (CI): the fetch gets and checks these
@@ -79,34 +78,25 @@ tools get it. CockroachDB and YugabyteDB files get `postgres`.
 glob uses only the paths, sizes, and kind of the files, never a tool
 result. No TPC material. A folder with megabytes of data or text rows of
 one schema, or with too many files for the time budget of one dialect,
-gets a narrower glob or none; the source note gives the reason.
+gets a narrower glob or none. A file can be excluded by its path. The
+source note gives the reason.
 
 ## Content
 
-T4 (untemplated files). `corpus/select.json` lists each source: the
-commit, the license, the copyright holders, the license files, and the
-include globs with the dialect of each. `scripts/s9/select` makes
-`corpus/sources.json` from it and the cache, with the rules of
-"Selection" (corpus/README.md, "Selection"). It also fails closed if:
-the first license file does not have the phrases of its SPDX id; a
-copyright holder is in no license file and no selected file; a copyright
-notice in a selected file names no recorded holder; a selected file has
-the text of a license other than that of its source; a cached file is not
-the git blob of the commit; or a source has no file. Thus a holder or
-license that a selected file names is part of the record. A file with
-other terms goes to its own source (`sakila-mysql`), or its glob is
-removed (the PostgreSQL ports of `spark`). The note of the source gives
-the reason.
+T4 (untemplated files). `scripts/s9/select` makes `corpus/sources.json`
+from `corpus/select.json` and the cache with these rules. It fails closed
+on a license, copyright notice, or TPC text that the record does not
+cover (the list: corpus/README.md, "Selection"). Thus a holder or license
+that a selected file names is part of the record. A file with other terms
+goes to its own source (`sakila-mysql`), or it or its glob is removed;
+the source note gives the reason. The counts of each source: the output
+of `scripts/s9/select --check`. Smoke: the files of 32 KiB or less.
+Limit (test): 2 MiB and 100 files.
 
-The sources, files, sizes, and dialects are in the manifest; the counts of
-each source are in the output of `scripts/s9/select --check`. Smoke: the
-files of 32 KiB or less. Limit (test): 2 MiB and 100 files.
-
-Out (examined): `pthom/northwind_psql` (Ms-PL);
-`OHDSI/CommonDataModel` and `GoogleCloudPlatform/data-analytics-golden-demo`
-(no license file at the root); `duckdb/duckdb` v1.5.6 (in the size range
-only TPC-DS queries); `trinodb/trino` 484 (no `.sql` file in the size
-range).
+Out: `pthom/northwind_psql` (Ms-PL); `OHDSI/CommonDataModel`,
+`GoogleCloudPlatform/data-analytics-golden-demo` (no root license file);
+`duckdb/duckdb` v1.5.6 (only TPC-DS queries in range); `trinodb/trino`
+484 (no `.sql` file in range).
 
 ## Templated files
 
@@ -226,8 +216,7 @@ The warmup run is the check run (as S2). Measured: one run of the 40
 files of 16 to 32 KiB took 49 s (sqlfluff), 32 s (`sqlfluff[rs]`), and
 2.7 s (sqruff). Max/min wall ratio of 2 runs of the same work: median
 1.11, max 2.27 (206 pairs under 1 s); median 1.12, max 1.68 (101 pairs of
-1 to 10 s); 1.01 and 1.15 (2 pairs of 10 s or more: too few to show less
-noise). Long runs get 1 timed run for the time budget (up to 105 s for a
+1 to 10 s). Long runs get 1 timed run for the time budget (up to 105 s for a
 Chinook file with sqlfluff); short runs get more to decrease the noise.
 sqlfluff takes more time per MB on larger files (187 s/MB at 0.6 MB,
 388 at 8 MB). At 388 s/MB a 2 MiB file takes 814 s, less than the

@@ -24,7 +24,7 @@
         "src/AdminViews/*.sql",
         "src/StoredProcedures/*.sql"
       ],
-      "note": "Default branch on 2026-10-28. Only admin views and stored procedures: the benchmark folders have SQL derived from TPC-H and TPC-DS (out, see Licenses)."
+      "note": "Default branch on 2026-10-28. Only admin views and stored procedures: the benchmark folders have SQL derived from TPC-H and TPC-DS (out, see Licenses). Excluded: src/StoredProcedures/sp_sync_merge_changes.sql: It names the TPC-H database 'tpch_100g'. The TPC check refuses each mention of TPC-H or TPC-DS."
     },
     "bigquery-utils": {
       "repository": "https://github.com/GoogleCloudPlatform/bigquery-utils",
@@ -196,7 +196,7 @@
         "sqlite-sakila-db/*.sql",
         "yugabytedb-sakila-db/*.sql"
       ],
-      "note": "Default branch on 2026-10-28. The data files are more than 2 MiB. README.md names the second copyright holder. The MySQL files are in the source sakila-mysql."
+      "note": "Default branch on 2026-10-28. The data files are more than 2 MiB. README.md names the second copyright holder. The files are ports of the MySQL AB original (BSD-3-Clause, see the source sakila-mysql): README.md says 'The Sakila example database was originally developed by Mike Hillyer of the MySQL AB documentation team. it was ported to other databases by DB Software Laboratory' and 'License: BSD'. The MySQL files are in the source sakila-mysql."
     },
     "sakila-mysql": {
       "repository": "https://github.com/jOOQ/sakila",
@@ -254,7 +254,7 @@
         "sql/core/src/test/resources/sql-tests/inputs/udtf/*.sql",
         "sql/core/src/test/resources/sql-tests/inputs/variant/*.sql"
       ],
-      "note": "Tag v4.2.1. The SQL test inputs of Spark SQL, but not the 2 postgreSQL folders: their files are ports of the PostgreSQL regression tests, with the notice 'Portions Copyright (c) 1996-2019, PostgreSQL Global Development Group'. The postgres source has the original tests."
+      "note": "Tag v4.2.1. The SQL test inputs of Spark SQL, but not the 2 postgreSQL folders: their files are ports of the PostgreSQL regression tests, with the notice 'Portions Copyright (c) 1996-2019, PostgreSQL Global Development Group'. The postgres source has the original tests. Excluded: sql/core/src/test/resources/sql-tests/inputs/pipe-operators.sql: From line 1265 it has TPC-DS queries Q1, Q2, Q3, Q12, Q44, and Q51 (out, see Licenses)."
     },
     "sql-server-maintenance-solution": {
       "repository": "https://github.com/olahallengren/sql-server-maintenance-solution",
@@ -311,18 +311,6 @@
       "sha256": "6ae84d4af2e562cb7d507455ecd3a5fd07cb1975178c8682e631e327c27d3042",
       "smoke": true,
       "selection": "glob src/AdminViews/*.sql (dialect redshift); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
-    },
-    {
-      "id": "amazon-redshift-utils/src/StoredProcedures/sp_sync_merge_changes.sql",
-      "source": "amazon-redshift-utils",
-      "path": "src/StoredProcedures/sp_sync_merge_changes.sql",
-      "dialect": "redshift",
-      "templater": "raw",
-      "bytes": 16565,
-      "lines": 324,
-      "sha256": "2102cd11655c6d16b04e50e0cc7633e24a06b5c26c3153a30092c44a11361973",
-      "smoke": true,
-      "selection": "glob src/StoredProcedures/*.sql (dialect redshift); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
     },
     {
       "id": "bigquery-utils/views/audit/bigquery_audit_logs_v2.sql",
@@ -1726,18 +1714,6 @@
       "lines": 244,
       "sha256": "9406c324c3c361bcff8c58012192c5db3a389ebb727afa961f86b5ec95cb060b",
       "smoke": true,
-      "selection": "glob sql/core/src/test/resources/sql-tests/inputs/*.sql (dialect sparksql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
-    },
-    {
-      "id": "spark/sql/core/src/test/resources/sql-tests/inputs/pipe-operators.sql",
-      "source": "spark",
-      "path": "sql/core/src/test/resources/sql-tests/inputs/pipe-operators.sql",
-      "dialect": "sparksql",
-      "templater": "raw",
-      "bytes": 51482,
-      "lines": 1917,
-      "sha256": "4c216b689e2ab288e59a6c0a955ed63f8d60c58eb4983a7dfd01e5ce9e0c8ee8",
-      "smoke": false,
       "selection": "glob sql/core/src/test/resources/sql-tests/inputs/*.sql (dialect sparksql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
     },
     {

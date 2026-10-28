@@ -7,11 +7,12 @@ source list names (path, size, git blob id) and the bytes of each license
 file and each candidate file in the size range. build() uses only the
 source list and the cache, never a tool result: a file is in if its path
 matches an include glob, its size is in the range of its templater, its
-bytes are UTF-8, and no earlier file (sorted by source and path) has its
-sha256. No file is changed. build() also checks the license text of each
-source and finds each copyright holder in its files. Each copyright notice
-and license text in a selected file must be that of the record of its
-source (notice_errors).
+bytes are UTF-8, no earlier file (sorted by source and path) has its
+sha256, and the source list does not exclude it. No file is changed. build()
+also checks the license text of each source and finds each copyright holder
+in its files. Each copyright notice and license text in a selected file must
+be that of the record of its source (notice_errors), and a selected file
+must have no TPC material (tpc_errors).
 """
 
 import hashlib
@@ -36,7 +37,7 @@ LISTINGS_DIR = "_listings"
 SOURCE_KEYS = frozenset(
     {"repository", "commit", "license", "copyright", "license_files", "include"}
 )
-SOURCE_OPTIONAL = frozenset({"note"})
+SOURCE_OPTIONAL = frozenset({"note", "exclude"})
 INCLUDE_KEYS = frozenset({"glob", "dialect"})
 INCLUDE_OPTIONAL = frozenset({"templater"})
 
@@ -75,13 +76,42 @@ LICENSE_PHRASES: dict[str, tuple[str, ...]] = {
     "CC0-1.0": ("cc0 1.0 universal",),
 }
 
-# Texts of licenses that are not on the allowlist (copyleft).
-OTHER_LICENSE_PHRASES = ("general public license", "mozilla public license")
-# A copyright notice: "Copyright (c) ...", "Copyright © ...", "Copyright 2021 ...",
-# or "Copyright Name". Not "copyright notice", "COPYRIGHT HOLDERS", or the
-# psql command "\copyright".
+# Names or texts of licenses that are not on the allowlist (copyleft and
+# others), in a _fold() text.
+OTHER_LICENSES = {
+    "GPL": re.compile(r"\bgnu\b|general public license|\b[al]?gpl(?:v?\d[\w.]*)?\b"),
+    "MPL": re.compile(r"mozilla public license|\bmpl-\d"),
+    "EPL": re.compile(r"eclipse public license|\bepl-\d"),
+    "CDDL": re.compile(r"common development and distribution license|\bcddl\b"),
+    "EUPL": re.compile(r"european union public licen[cs]e|\beupl\b"),
+    "CC": re.compile(r"creative commons|\bcc[- ]by\b"),
+}
+_SPDX = re.compile(r"spdx-license-identifier:\s*([\w.+-]+)")
+# A copyright notice (case is ignored): "Copyright" followed by "(c)", "©",
+# or white space (or ":", ".", ",") and a word that is not one of
+# _NOT_HOLDER; "(c) 2021"; or "©". Not "the above copyright notice",
+# "COPYRIGHT HOLDERS", "copyright ownership", 'name="Copyright"', or the
+# psql command "\copyright". A notice must be on one line.
+_NOT_HOLDER = (
+    r"(?:notices?|holders?|owners?|ownership|laws?|statement|and|or|of|to|is|in)\b"
+)
 _NOTICE = re.compile(
-    r"(?<![\\\w])(?:(?i:copyright)\s*(?:\([cC]\)|©|\d{4})|Copyright\s+[A-Z])"
+    r"(?<![\\\w])(?i:copyright(?:\s*(?:\(c\)|©)|[:.,]?\s+(?!"
+    + _NOT_HOLDER
+    + r")\S)|\(c\)\s*\d{4}|©)"
+)
+# The words of a notice that are not a holder name.
+_NOTICE_WORDS = re.compile(
+    r"copyright|\(c\)|©|all rights reserved|\bportions\b|\bby\b|\band\b|[\W\d_]"
+)
+# TPC-H and TPC-DS material (docs/decisions/s9-corpus.md, "Licenses"): the
+# kit names, and the TPC-DS and TPC-H table names that other schemas do not
+# use. Case is ignored.
+_TPC = re.compile(
+    r"tpc[-_ ]?(?:h|ds)|\b(?:store_sales|store_returns|catalog_sales|"
+    r"catalog_returns|catalog_page|web_sales|web_returns|date_dim|time_dim|"
+    r"customer_demographics|household_demographics|lineitem|partsupp)\b",
+    re.IGNORECASE,
 )
 _SPACE = re.compile(r"\s+")
 
@@ -111,6 +141,8 @@ class SourceSpec:
     license_files: tuple[str, ...]
     include: tuple[Include, ...]
     note: str | None = None
+    # (path, reason): the files that the selection leaves out.
+    exclude: tuple[tuple[str, str], ...] = ()
 
     @property
     def globs(self) -> list[str]:
@@ -176,6 +208,14 @@ def load_sources(path: Path = SOURCES) -> list[SourceSpec]:
             bad = [i.templater for i in includes if i.templater not in MIN_BYTES]
             if bad:
                 errors.append(f"{where}.include: unknown templater {bad}")
+        exclude = s.get("exclude", {})
+        if "exclude" in s and (
+            not isinstance(exclude, dict)
+            or not exclude
+            or not _texts([*exclude, *exclude.values()])
+        ):
+            errors.append(f"{where}.exclude: not an object of paths and reasons")
+            exclude = {}
         if s["license"] not in LICENSE_PHRASES:
             errors.append(
                 f"{where}.license: {s['license']!r} has no license text check"
@@ -190,6 +230,7 @@ def load_sources(path: Path = SOURCES) -> list[SourceSpec]:
                 license_files=tuple(s["license_files"]),
                 include=tuple(includes),
                 note=s.get("note"),
+                exclude=tuple(sorted(exclude.items())),
             )
         )
     if errors:
@@ -383,7 +424,8 @@ def license_errors(spdx: str, text: str) -> list[str]:
 
 
 def licenses_in(folded: str) -> set[str]:
-    """Return the licenses whose text is in folded (a _fold() text)."""
+    """Return the licenses whose text, name, or SPDX id is in folded (a
+    _fold() text). An allowlist license is found by its text or SPDX id."""
     found = {
         spdx
         for spdx, phrases in LICENSE_PHRASES.items()
@@ -391,27 +433,64 @@ def licenses_in(folded: str) -> set[str]:
     }
     if "BSD-3-Clause" in found:
         found.discard("BSD-2-Clause")
-    return found | {p for p in OTHER_LICENSE_PHRASES if p in folded}
+    found |= {
+        name for name, pattern in OTHER_LICENSES.items() if pattern.search(folded)
+    }
+    allow = {spdx.casefold(): spdx for spdx in LICENSE_PHRASES}
+    for spdx in _SPDX.findall(folded):
+        found.add(allow.get(spdx, f"SPDX {spdx}"))
+    return found
+
+
+def _residue(notice: str, holders: list[str]) -> str:
+    """Return the words of notice (a _fold() text) that are not a holder."""
+    for holder in sorted(holders, key=len, reverse=True):
+        notice = notice.replace(holder, " ")
+    return _SPACE.sub(" ", _NOTICE_WORDS.sub(" ", notice)).strip()
 
 
 def notice_errors(spec: SourceSpec, path: str, text: str, folded: str) -> list[str]:
     """Return each copyright notice of text that names no copyright holder of
-    spec, and each license text in it that is not the license of spec."""
+    spec or also names another holder, and each license text in it that is
+    not the license of spec. The notice forms: see _NOTICE."""
     holders = [_fold(h) for h in spec.copyright]
     errors = []
     for number, line in enumerate(text.splitlines(), 1):
-        if _NOTICE.search(line) and not any(h in _fold(line) for h in holders):
-            notice = line.strip()[:120]
-            errors.append(
-                f"{spec.id}/{path}:{number}: the copyright notice {notice!r} "
-                "names no copyright holder of the source"
-            )
+        match = _NOTICE.search(line)
+        if not match:
+            continue
+        notice = _fold(line[match.start() :])
+        named = any(h in notice for h in holders)
+        other = _residue(notice, holders)
+        if named and not other:
+            continue
+        problem = (
+            f"also names {other[:80]!r}, which is not a copyright holder"
+            if named
+            else "names no copyright holder"
+        )
+        errors.append(
+            f"{spec.id}/{path}:{number}: the copyright notice "
+            f"{line.strip()[:120]!r} {problem} of the source"
+        )
     other = sorted(licenses_in(folded) - {spec.license})
     if other:
         errors.append(
             f"{spec.id}/{path}: has the license text {other}, not {spec.license}"
         )
     return errors
+
+
+def tpc_errors(spec: SourceSpec, path: str, text: str) -> list[str]:
+    """Return an error if text has TPC-H or TPC-DS material (_TPC)."""
+    for number, line in enumerate(text.splitlines(), 1):
+        match = _TPC.search(line)
+        if match:
+            return [
+                f"{spec.id}/{path}:{number}: TPC material ({match.group()!r}). "
+                "Exclude the file and give the reason"
+            ]
+    return []
 
 
 @dataclass
@@ -421,6 +500,7 @@ class SourceResult:
     candidates: int = 0
     selected: int = 0
     out_of_range: int = 0
+    excluded: list[str] = field(default_factory=list)
     not_utf8: list[str] = field(default_factory=list)
     duplicates: dict[str, str] = field(default_factory=dict)
 
@@ -458,11 +538,15 @@ def build(specs: list[SourceSpec], cache: Path) -> tuple[bytes, dict]:
             f"{spec.id}: {spec.license_files[0]}: {e}"
             for e in license_errors(spec.license, folded_texts[0])
         ]
+        excluded = dict(spec.exclude)
         for path, entry in sorted(listing["files"].items()):
             include = _include(spec, path)
             if include is None:
                 continue
             result.candidates += 1
+            if path in excluded:
+                result.excluded.append(path)
+                continue
             if not _in_range(entry["bytes"], include.templater):
                 result.out_of_range += 1
                 continue
@@ -480,6 +564,7 @@ def build(specs: list[SourceSpec], cache: Path) -> tuple[bytes, dict]:
             folded = _fold(text)
             folded_texts.append(folded)
             errors += notice_errors(spec, path, text, folded)
+            errors += tpc_errors(spec, path, text)
             result.selected += 1
             files.append(_record(spec, path, include, data, sha))
         for holder in spec.copyright:
@@ -488,6 +573,8 @@ def build(specs: list[SourceSpec], cache: Path) -> tuple[bytes, dict]:
                     f"{spec.id}: the copyright holder {holder!r} is in no license "
                     "file and no selected file"
                 )
+        for path in sorted(set(excluded) - set(result.excluded)):
+            errors.append(f"{spec.id}: the excluded path {path} matches no glob")
         if result.selected == 0:
             errors.append(f"{spec.id}: no file is selected")
         sources[spec.id] = _source(spec, blobs)
@@ -495,6 +582,7 @@ def build(specs: list[SourceSpec], cache: Path) -> tuple[bytes, dict]:
             "candidates": result.candidates,
             "selected": result.selected,
             "out_of_range": result.out_of_range,
+            "excluded": result.excluded,
             "not_utf8": result.not_utf8,
             "duplicates": result.duplicates,
         }
@@ -515,6 +603,13 @@ def build(specs: list[SourceSpec], cache: Path) -> tuple[bytes, dict]:
     return text, {"totals": totals, "sources": summary}
 
 
+def source_note(spec: SourceSpec) -> str:
+    """Return the manifest note of spec: its note and each excluded path with
+    the reason."""
+    excluded = [f"Excluded: {path}: {reason}" for path, reason in spec.exclude]
+    return " ".join([*([spec.note] if spec.note else []), *excluded])
+
+
 def _source(spec: SourceSpec, blobs: list[dict]) -> dict:
     out = {
         "repository": spec.repository,
@@ -524,8 +619,8 @@ def _source(spec: SourceSpec, blobs: list[dict]) -> dict:
         "license_files": blobs,
         "globs": spec.globs,
     }
-    if spec.note:
-        out["note"] = spec.note
+    if note := source_note(spec):
+        out["note"] = note
     return out
 
 

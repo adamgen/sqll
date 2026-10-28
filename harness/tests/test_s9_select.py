@@ -118,6 +118,7 @@ def test_select_applies_the_rules(tmp_path, repo, cache):
         "candidates": 6,
         "selected": 3,
         "out_of_range": 1,
+        "excluded": [],
         "not_utf8": ["sql/latin1.sql"],
         "duplicates": {"demo/sql/b_copy.sql": "demo/sql/a.sql"},
     }
@@ -243,6 +244,13 @@ def with_header(header: str, fill: str = "h") -> bytes:
         ("-- Copyright 2021 Other LLC\n", "Other LLC"),
         ("-- Copyright Other Laboratory\n", "Other Laboratory"),
         ("-- COPYRIGHT (C) OTHER\n", "OTHER"),
+        ("-- (C) 2020 Other Corp\n", "Other Corp"),
+        ("-- Copyright: Other Corp\n", "Other Corp"),
+        ("-- copyright by Other Corp\n", "Other Corp"),
+        ("-- \u00a9 2020 Other Corp\n", "Other Corp"),
+        ("-- COPYRIGHT OTHER CORP 2020\n", "OTHER CORP"),
+        ("-- Copyright 2020 Other Corp and Example Holder\n", "other corp"),
+        ("-- Copyright 2020 Example Holder, Other Corp\n", "other corp"),
     ],
 )
 def test_copyright_notice_of_an_unrecorded_holder_fails(
@@ -260,7 +268,11 @@ def test_copyright_notice_of_an_unrecorded_holder_fails(
 
 
 def test_copyright_notice_of_a_recorded_holder_passes(tmp_path, cache):
-    header = "-- Copyright (c) 2024 Example Holder. All rights reserved.\n"
+    header = (
+        "-- Copyright (c) 2024 Example Holder. All rights reserved.\n"
+        "-- Portions Copyright \u00a9 2020-2024 by Example Holder and Example "
+        "Holder */\n"
+    )
     files = {**FILES, "sql/notice.sql": with_header(header)}
     root, commit = make_repo(tmp_path, files)
     specs = s.load_sources(write(tmp_path, source_list(commit)))
@@ -290,8 +302,13 @@ def test_text_that_is_not_a_copyright_notice_passes(tmp_path, repo, line):
     "license_text, found",
     [
         (" ".join(s.LICENSE_PHRASES["BSD-3-Clause"]), "BSD-3-Clause"),
-        ("GNU General Public License, version 2", "general public license"),
-        ("Mozilla Public License Version 2.0", "mozilla public license"),
+        ("General Public License, version 2", {"GPL"}),
+        ("Mozilla Public License Version 2.0", {"MPL"}),
+        ("Licensed under the GPL v2", {"GPL"}),
+        ("SPDX-License-Identifier: GPL-2.0-only", {"GPL", "SPDX gpl-2.0-only"}),
+        ("SPDX-License-Identifier: Apache-2.0", {"Apache-2.0"}),
+        ("Eclipse Public License - v 2.0", {"EPL"}),
+        ("Creative Commons Attribution-ShareAlike 4.0", {"CC"}),
     ],
 )
 def test_license_text_of_another_license_fails(tmp_path, cache, license_text, found):
@@ -301,16 +318,87 @@ def test_license_text_of_another_license_fails(tmp_path, cache, license_text, fo
     s.download(specs[0], cache, url=root.as_uri())
     with pytest.raises(s.SelectError, match="demo/sql/lic.sql: has the license text"):
         s.build(specs, cache)
-    assert s.licenses_in(s._fold(license_text)) == {found}
+    assert s.licenses_in(s._fold(license_text)) == (
+        found if isinstance(found, set) else {found}
+    )
 
 
 def test_license_text_of_the_source_license_passes(tmp_path, cache):
-    files = {**FILES, "sql/lic.sql": with_header(f"/* {MIT} */\n")}
+    header = f"/* {MIT} */\n-- SPDX-License-Identifier: MIT\n"
+    files = {**FILES, "sql/lic.sql": with_header(header)}
     root, commit = make_repo(tmp_path, files)
     specs = s.load_sources(write(tmp_path, source_list(commit)))
     s.download(specs[0], cache, url=root.as_uri())
     text, _ = s.build(specs, cache)
     assert "demo/sql/lic.sql" in {f.id for f in m.parse(text).files}
+
+
+@pytest.mark.parametrize(
+    "line, found",
+    [
+        (
+            "-- Exercise SQL compilation using a subset of TPC-DS table schemas.",
+            "TPC-DS",
+        ),
+        ("FROM POSTGRES DATABASE 'tpch_100g' SCHEMA 'public'", "tpch"),
+        ("-- tpcds q3", "tpcds"),
+        ("from date_dim dt, store_sales, item", "date_dim"),
+        ("SELECT * FROM LINEITEM;", "LINEITEM"),
+        ("join partsupp on ps_partkey = p_partkey", "partsupp"),
+    ],
+)
+def test_tpc_material_fails(tmp_path, cache, line, found):
+    files = {**FILES, "sql/tpc.sql": with_header(f"{line}\n")}
+    root, commit = make_repo(tmp_path, files)
+    specs = s.load_sources(write(tmp_path, source_list(commit)))
+    s.download(specs[0], cache, url=root.as_uri())
+    with pytest.raises(s.SelectError) as e:
+        s.build(specs, cache)
+    assert e.value.errors == [
+        f"demo/sql/tpc.sql:1: TPC material ({found!r}). "
+        "Exclude the file and give the reason"
+    ]
+
+
+@pytest.mark.parametrize(
+    "line",
+    [
+        "CREATE INDEX [IX_Store_SalesPersonID] ON [Sales].[Store]([SalesPersonID]);",
+        "COUNT(DISTINCT sod.SODetailID) AS LineItems,",
+        "[UnitPriceDiscountPct] [float] NULL,",
+    ],
+)
+def test_text_that_is_not_tpc_material_passes(tmp_path, repo, line):
+    _, commit = repo
+    (spec,) = s.load_sources(write(tmp_path, source_list(commit)))
+    assert s.tpc_errors(spec, "a.sql", line) == []
+
+
+def test_excluded_file_is_not_selected(tmp_path, repo, cache):
+    exclude = {"sql/big.sql": "A reason."}
+    specs = download(tmp_path, repo, cache, exclude=exclude)
+    text, summary = s.build(specs, cache)
+    man = m.parse(text)
+    assert [f.path for f in man.files] == ["models/m.sql", "sql/a.sql"]
+    assert summary["sources"]["demo"]["excluded"] == ["sql/big.sql"]
+    assert man.sources["demo"].note == "A test source. Excluded: sql/big.sql: A reason."
+
+
+def test_excluded_file_with_tpc_material_passes(tmp_path, cache):
+    files = {**FILES, "sql/tpc.sql": with_header("-- TPC-H Q1\n")}
+    root, commit = make_repo(tmp_path, files)
+    exclude = {"sql/tpc.sql": "TPC-H query."}
+    specs = s.load_sources(write(tmp_path, source_list(commit, exclude=exclude)))
+    s.download(specs[0], cache, url=root.as_uri())
+    text, _ = s.build(specs, cache)
+    assert "demo/sql/tpc.sql" not in {f.id for f in m.parse(text).files}
+
+
+def test_excluded_path_that_matches_no_glob_fails(tmp_path, repo, cache):
+    exclude = {"other/x.sql": "A reason."}
+    specs = download(tmp_path, repo, cache, exclude=exclude)
+    with pytest.raises(s.SelectError, match="excluded path other/x.sql matches no"):
+        s.build(specs, cache)
 
 
 def test_path_that_is_not_utf8_fails(tmp_path, cache):
@@ -340,6 +428,9 @@ def test_license_not_in_the_allowlist_fails(tmp_path, repo):
         ({"include": [{"glob": "a/*.sql"}]}, "missing keys"),
         ({"include": [{"glob": "a/*.sql", "dialect": "x", "templater": "dbt"}]}, "dbt"),
         ({"copyright": []}, "copyright"),
+        ({"exclude": {}}, "exclude"),
+        ({"exclude": ["a.sql"]}, "exclude"),
+        ({"exclude": {"a.sql": ""}}, "exclude"),
         (
             {
                 "include": [

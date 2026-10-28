@@ -57,7 +57,7 @@ def test_manifest_sources_are_those_of_the_source_list(manifest, specs):
         assert source.license == spec.license
         assert source.copyright == spec.copyright
         assert source.globs == tuple(spec.globs)
-        assert source.note == spec.note
+        assert source.note == (s.source_note(spec) or None)
         assert [b.path for b in source.license_files] == list(spec.license_files)
 
 
@@ -76,6 +76,16 @@ def test_each_file_has_the_dialect_templater_and_note_of_its_glob(manifest, spec
             f"glob {include.glob} (dialect {include.dialect}); "
             f"{low} <= bytes <= {m.MAX_BYTES}; UTF-8; first file with its sha256"
         )
+
+
+def test_excluded_files_are_not_in_the_manifest(manifest, specs):
+    ids = {f.id for f in manifest.files}
+    excluded = [(spec, path) for spec in specs.values() for path, _ in spec.exclude]
+    assert excluded
+    for spec, path in excluded:
+        assert f"{spec.id}/{path}" not in ids
+        assert any(s.matches(path, glob) for glob in spec.globs)
+        assert f"Excluded: {path}: " in manifest.sources[spec.id].note
 
 
 def test_each_source_has_files(manifest):

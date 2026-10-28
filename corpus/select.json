@@ -11,6 +11,9 @@
         {"glob": "src/AdminViews/*.sql", "dialect": "redshift"},
         {"glob": "src/StoredProcedures/*.sql", "dialect": "redshift"}
       ],
+      "exclude": {
+        "src/StoredProcedures/sp_sync_merge_changes.sql": "It names the TPC-H database 'tpch_100g'. The TPC check refuses each mention of TPC-H or TPC-DS."
+      },
       "note": "Default branch on 2026-10-28. Only admin views and stored procedures: the benchmark folders have SQL derived from TPC-H and TPC-DS (out, see Licenses)."
     },
     "bigquery-utils": {
@@ -114,7 +117,7 @@
         {"glob": "sqlite-sakila-db/*.sql", "dialect": "sqlite"},
         {"glob": "yugabytedb-sakila-db/*.sql", "dialect": "postgres"}
       ],
-      "note": "Default branch on 2026-10-28. The data files are more than 2 MiB. README.md names the second copyright holder. The MySQL files are in the source sakila-mysql."
+      "note": "Default branch on 2026-10-28. The data files are more than 2 MiB. README.md names the second copyright holder. The files are ports of the MySQL AB original (BSD-3-Clause, see the source sakila-mysql): README.md says 'The Sakila example database was originally developed by Mike Hillyer of the MySQL AB documentation team. it was ported to other databases by DB Software Laboratory' and 'License: BSD'. The MySQL files are in the source sakila-mysql."
     },
     "sakila-mysql": {
       "repository": "https://github.com/jOOQ/sakila",
@@ -145,6 +148,9 @@
         {"glob": "sql/core/src/test/resources/sql-tests/inputs/udtf/*.sql", "dialect": "sparksql"},
         {"glob": "sql/core/src/test/resources/sql-tests/inputs/variant/*.sql", "dialect": "sparksql"}
       ],
+      "exclude": {
+        "sql/core/src/test/resources/sql-tests/inputs/pipe-operators.sql": "From line 1265 it has TPC-DS queries Q1, Q2, Q3, Q12, Q44, and Q51 (out, see Licenses)."
+      },
       "note": "Tag v4.2.1. The SQL test inputs of Spark SQL, but not the 2 postgreSQL folders: their files are ports of the PostgreSQL regression tests, with the notice 'Portions Copyright (c) 1996-2019, PostgreSQL Global Development Group'. The postgres source has the original tests."
     },
     "sql-server-maintenance-solution": {
