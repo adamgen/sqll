@@ -139,7 +139,7 @@ The warmup run is the check run (as S2). Measured: one run of the 40
 files of 16 to 32 KiB took 49 s (sqlfluff), 32 s (`sqlfluff[rs]`), and
 2.7 s (sqruff). Two runs of the same work (2 settings of a file with
 the same result) had a median max/min wall ratio of 1.11 (206 pairs
-under 1 s), 1.12 (101 pairs of 1 to 10 s), and 1.08 and 1.15 (2 pairs of
+under 1 s), 1.12 (101 pairs of 1 to 10 s), and 1.01 and 1.15 (2 pairs of
 10 s or more). Thus long runs get 1 timed run and short runs get more.
 The time per MB of sqlfluff increases with the size (187 s/MB at 0.6 MB,
 388 s/MB at 8 MB). At 388 s/MB, a 2 MiB file takes 814 s; the timeout
