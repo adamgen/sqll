@@ -33,8 +33,9 @@ ONE_VARIANT = {"core": {"render_variant_limit": 1}}
 Render = Callable[[CorpusFile, bytes, dict, Path], tuple[str | None, str | None]]
 
 
-def _tail(data: bytes) -> str:
-    return data.decode("utf8", errors="replace").strip()[-REASON_TEXT:]
+def _text(data: bytes) -> str:
+    """Return the start of the output: the first templater error."""
+    return " ".join(data.decode("utf8", errors="replace").split())[:REASON_TEXT]
 
 
 class SqlfluffRender:
@@ -75,10 +76,10 @@ class SqlfluffRender:
             (folder / INPUT_FILE).unlink(missing_ok=True)
         out = proc.stdout
         if proc.returncode != 0:
-            text = _tail(out + b"\n" + proc.stderr)
+            text = _text(out + b"\n" + proc.stderr)
             return None, f"the render failed: exit code {proc.returncode}: {text}"
         if not out.endswith(b"\n") or out.startswith(VARIANTS_HEADER):
-            return None, f"the render output is not one variant: {_tail(out)}"
+            return None, f"the render output is not one variant: {_text(out)}"
         try:
             return out[:-1].decode("utf8"), None
         except UnicodeDecodeError as exc:
