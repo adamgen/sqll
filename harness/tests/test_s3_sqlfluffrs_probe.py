@@ -325,7 +325,7 @@ def test_the_probe_is_not_a_harness_tool():
     assert not any(
         "probe" in p.read_text("utf8") and "sqlfluffrs" in p.read_text("utf8")
         for p in harness
-        if p.name != "test_s3_sqlfluffrs_probe.py"
+        if p.name not in ("test_s3_sqlfluffrs_probe.py", "test_s3_speed_by_base.py")
     )
 
 

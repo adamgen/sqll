@@ -43,7 +43,9 @@ derives a file from committed data (not from timings) adds a drift test in
 `harness/tests/`. Timings for the probe and for sqruff come from one
 session on the baseline machine setup (`harness/bench.md`, "Baseline"):
 the CI image in docker, serial, no other load. Comparisons use ratios
-inside that session.
+inside that session. The lint and fix times of sqruff and sqlfluff come
+from the S2 baseline (`results/s2/baseline.json`). An estimate that uses
+both sessions takes only ratios inside each session (T6).
 
 Option 3 has no implementation. Each value for option 3 is an estimate. It
 comes from the sqlfluffrs generator and engine and from the sqruff rule
@@ -55,7 +57,7 @@ sizes. The record labels each such value as an estimate.
 | C2 | Classes of the sqruff tree mismatches: count of cases and dialects for each class; groups by segment type and the share of the top groups; hand check of a sample. Inputs: `results/s3/sqruff-tree-hunks.json` (a new sqruff run) and `results/s3/sqruff-tree-handcheck.json` | `results/s3/sqruff-tree-diffs.json` | T3 | Measurement |
 | C3 | Classes of the sqruff rule, autofix, and templater failures (unsupported item, parse cause, rule logic); for each rule, the tree types that it reads and the count that differ from sqlfluff 4.4.0. Inputs: `results/s3/sqruff-rule-parses.json` (a new sqruff and sqlfluff parse) and `results/s3/sqruff-rule-types.json` (names from the sqruff 0.41.0 rule sources and the sqlfluff grammar) | `results/s3/sqruff-rule-diffs.json` | T4 | Measurement; the cause of a parse_cause case and the helper module names are estimates |
 | C4 | sqlfluffrs probe (`scripts/s3/probe-sqlfluffrs/`, research code, not sqll; made and run by `scripts/s3/sqlfluffrs_probe.py`): build without Python, exact trees of the dialect fixtures in a native binary, the generator outside the submodule, and the start and parse times of the probe, sqruff, and sqlfluff in one session. Inputs: `results/s3/sqlfluffrs-probe-build.json`, `results/s3/sqlfluffrs-probe-cases.json`, and `results/s3/sqlfluffrs-probe-bench.json` | `results/s3/sqlfluffrs-probe.json` | T5 | Measurement; the reuse of the generator by option 3 is a judgement |
-| C5 | Times of the probe and of sqruff on the S2 inputs, in one session; the ratios to the G3 targets | `results/s3/speed.json` | T6 | Measurement (options 1, 2); estimate (option 3) |
+| C5 | For each base and benchmark (start, parse, lint, fix): the time, the ratios to sqlfluff and to sqruff, and the G3 result; the totals and the counts that miss a target (from `scripts/s3/speed_by_base.py`). Inputs: `results/s2/baseline.json` and `results/s3/sqlfluffrs-probe.json`; no new timing run | `results/s3/speed-by-base.json` | T6 | Measurement (option 1; option 2 start and parse); estimate with its formula (option 2 lint and fix; option 3, low and high bound) |
 | C6 | License and attribution duties, lines of code, crates and modules of each base | `results/s3/license-size.json` | T7 | Measurement |
 | C7 | For each base: templaters, CLI commands, config, parameter styles, and type data for code generation | `results/s3/capabilities.json` | T8 | List from the code (options 1, 2); estimate (option 3) |
 | C8 | Work for each base and stone, from C1 to C7 | `results/s3/estimates.json` | T9 | Estimate |
