@@ -41,6 +41,15 @@ names of the sqlfluff 4.4.0 dialects and segment classes.
 `scripts/s3/sqruff_rules.py` reads them from the installed sqlfluff package.
 No sqlfluff code is copied.
 
+`scripts/s3/sqlfluffrs_probe.py` (S3 research, task T5) copies the
+submodule into a scratch folder, runs `utils/rustify.py` there, and builds
+the sqlfluffrs crates and the probe there. The generated Rust files stay in
+the scratch folder; the repository has no copy.
+`results/s3/sqlfluffrs-probe-build.json` has only their paths, sizes, and
+sha256, the crate names of `cargo tree`, and test names and counts.
+`scripts/s3/probe-sqlfluffrs/Cargo.lock` has the crate versions of
+`sqlfluffrs/Cargo.lock`. The probe is research code, not sqll.
+
 Ported code (MIT, attribution in each file header):
 
 | sqll file | sqlfluff source |
@@ -54,6 +63,7 @@ Ported code (MIT, attribution in each file header):
 | `harness/sqll_harness/adapters/config_files.py` | `src/sqlfluff/core/config/` (`load_config_up_to_path`, `load_config_at_path`, `_resolve_paths_in_config`, `load_ini_string`), `src/sqlfluff/core/helpers/file.py` (`iter_intermediate_paths`) |
 | `scripts/sqlfluff_oracle.py` | `test/conftest.py` (`fail_on_parse_error_after_fix`) |
 | `scripts/sqlfluff-autofix-oracle` | `test/rules/std_fix_auto_test.py` (`test_cases`) |
+| `scripts/s3/probe-sqlfluffrs/src/main.rs` | S3 research code, not sqll: `sqlfluffrs/src/test_harness.rs` (`FixtureTest::run`), `sqlfluffrs/sqlfluffrs_parser/src/parser/python.rs` (`PyParser` limits), `src/sqlfluff/core/default_config.cfg` (the parse limits and indentation defaults) |
 
 ## sqruff
 
