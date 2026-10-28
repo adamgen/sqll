@@ -1,8 +1,8 @@
 {
  "kind": "sqll-s3-sqlfluffrs-probe-cases",
  "command": "uv run --frozen --project harness python scripts/s3/sqlfluffrs_probe.py fixtures --scratch $SCRATCH",
- "started": "2026-10-28T10:13:00Z",
- "finished": "2026-10-28T10:13:22Z",
+ "started": "2026-10-28T10:45:18Z",
+ "finished": "2026-10-28T10:45:39Z",
  "machine": {
   "cpu_model": "Intel(R) Xeon(R) Processor @ 2.10GHz",
   "cpu_count": 4,
@@ -13,7 +13,7 @@
   "python": "3.13.16"
  },
  "harness": {
-  "commit": "2fdfa61c60df38e9c8061d3ff815eaafe5084265",
+  "commit": "391c9259870004cb821c20c7550d15693823f00f",
   "clean": true
  },
  "sqlfluff_ref": "0348222a3bcdb0226563f7349c5a39beb0641955",
