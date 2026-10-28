@@ -26,7 +26,8 @@ not valid, or if a fetch, run, or merge cannot start or complete.
 `run` fetches the files of the profile (smoke: 32 KiB or less) and shard,
 parses each file with each tool of the bench registry (default: all), and
 writes the report (default `out/corpus.json`). A templated file also gets
-the render of the pinned sqlfluff. `merge` joins the shard reports; `check`
+the render of the pinned sqlfluff. The jinja settings: `templater = jinja`
+and `apply_dbt_builtins = True`, with no variable, macro, or library path. `merge` joins the shard reports; `check`
 checks the schema and completeness of a report, and its stable data
 against a baseline. Exit code 1 if a report has an error. The report
 schema and the statuses: `docs/decisions/s9-corpus.md`, "Report".
@@ -117,8 +118,12 @@ blob id of each license file and each file that matches a glob) and the
 bytes of the license files and of each file in the size range. Then, with
 the cache only, the selection takes the files that match a glob, sorted by
 source and path, and drops an excluded file, a file out of the size range
-of its templater, a file that is not UTF-8, and a file with the sha256 of
-an earlier file.
+of its templater, a file that is not UTF-8, a templated file that the Jinja
+rule refuses (`not_builtins_only`, with the reason), and a file with the
+sha256 of an earlier file. The Jinja rule (`jinja_names.py`): the Jinja
+code reads only dbt builtins of the pinned sqlfluff, Jinja globals, and
+names that the file sets; no `import`, `include`, `extends`, or `call`.
+The `selection` of a templated file gives the names that it reads.
 The output gives these counts for each source. The selection fails
 (exit code 2) if:
 
