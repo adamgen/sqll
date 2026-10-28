@@ -1,0 +1,1384 @@
+{
+ "kind": "sqll-s3-sqruff-rule-parses",
+ "format": 1,
+ "sqlfluff_ref": "0348222a3bcdb0226563f7349c5a39beb0641955",
+ "sqruff": "0.41.0",
+ "sqlfluff": "4.4.0",
+ "commands": {"collect": "uv run --frozen --project harness python scripts/s3/sqruff_rules.py collect"},
+ "file": "[state, T3 classes, T3 group keys, note]. state: equal, 'equal with implicit as indent' (equal if the sqruff meta type 'implicit' is 'indent', the type that sqlfluff gives to ImplicitIndent), differs, no sqruff tree, no sqlfluff tree, or no tree. The sqlfluff tree is the expected tree (sqruff_trees.diff); the classes and keys are those of the trees with 'implicit' as 'indent'. note (only if set): 'sqruff failed with the full config; parsed with no rules and layout sections: <error>'",
+ "files": "rules: pass, fail, and fixed (the SQL strings of the case, parsed with the case config as the lint of the rules suite); autofix: before (before.sql with the config files of the case); templater: sql (the sqruff tree of the templater suite and the fixture tree)",
+ "cases": {
+  "autofix/ansi/011_indentation": {
+   "rule": "LT01,LT02",
+   "dialect": "ansi",
+   "files": {"before": ["equal with implicit as indent", [], []]}
+  },
+  "autofix/ansi/018_LT02_indent_templated_code": {"rule": "LT02", "dialect": "ansi", "files": {"before": ["equal with implicit as indent", [], []]}},
+  "autofix/ansi/019_trailing_comma_to_leading": {"rule": "LT04", "dialect": "ansi", "files": {"before": ["equal with implicit as indent", [], []]}},
+  "autofix/ansi/021_fix_respects_noqa": {
+   "rule": "CP01,AL02,ST06",
+   "dialect": "ansi",
+   "files": {"before": ["equal with implicit as indent", [], []]}
+  },
+  "autofix/ansi/028_leading_comma_with_jinja": {
+   "rule": "LT04,ST06",
+   "dialect": "ansi",
+   "files": {"before": ["equal with implicit as indent", [], []]}
+  },
+  "autofix/ansi/macro_file_jinja_include_undefined_variable": {"rule": "LT09", "dialect": "ansi", "files": {"before": ["equal with implicit as indent", [], []]}},
+  "autofix/bigquery/002_templating": {
+   "rule": "LT01,LT02,LT12,LT05",
+   "dialect": "bigquery",
+   "files": {"before": ["equal with implicit as indent", [], []]}
+  },
+  "autofix/bigquery/004_templating": {
+   "rule": "LT01,LT02,LT12",
+   "dialect": "bigquery",
+   "files": {"before": ["equal with implicit as indent", [], []]}
+  },
+  "autofix/bigquery/006_fix_ignore_templating": {
+   "rule": "LT02,LT01,CP01,AL02,LT05,LT09",
+   "dialect": "bigquery",
+   "files": {"before": ["no sqruff tree", [], []]}
+  },
+  "autofix/snowflake/003_previously_parse_tree_damaging": {"rule": "LT02,LT09", "dialect": "snowflake", "files": {"before": ["equal", [], []]}},
+  "rules/AL05/test_fail_clickhouse_naked_select_quoted_table_cs": {
+   "rule": "AL05",
+   "dialect": "clickhouse",
+   "files": {
+    "fail": [
+     "equal with implicit as indent",
+     [],
+     []
+    ],
+    "fixed": [
+     "equal with implicit as indent",
+     [],
+     []
+    ]
+   }
+  },
+  "rules/AL05/test_pass_bigquery_quoted_escapes": {
+   "rule": "AL05",
+   "dialect": "bigquery",
+   "files": {
+    "pass": [
+     "differs",
+     ["unparsable"],
+     ["unparsable: bigquery: column_reference in select_statement"]
+    ]
+   }
+  },
+  "rules/AL05/test_pass_clickhouse_naked_select_quoted_table": {
+   "rule": "AL05",
+   "dialect": "clickhouse",
+   "files": {"pass": ["differs", ["meta"], ["meta: dedent dedent -> dedent dedent dedent indent"]]}
+  },
+  "rules/AL05/test_pass_clickhouse_quoted_escapes": {
+   "rule": "AL05",
+   "dialect": "clickhouse",
+   "files": {
+    "pass": [
+     "differs",
+     ["token_split", "unparsable"],
+     ["token_split: quoted_identifier -> quoted_identifier word back_quote unlexable", "unparsable: clickhouse: - in alias_expression"]
+    ]
+   }
+  },
+  "rules/AL05/test_pass_clickhouse_quoted_select_naked_table": {
+   "rule": "AL05",
+   "dialect": "clickhouse",
+   "files": {"pass": ["differs", ["meta"], ["meta: dedent dedent -> dedent dedent dedent indent"]]}
+  },
+  "rules/AL05/test_pass_clickhouse_quoted_select_naked_table_cs": {
+   "rule": "AL05",
+   "dialect": "clickhouse",
+   "files": {
+    "fail": [
+     "equal with implicit as indent",
+     [],
+     []
+    ],
+    "fixed": [
+     "equal with implicit as indent",
+     [],
+     []
+    ]
+   }
+  },
+  "rules/AL05/test_pass_duckdb_quoted_select_naked_table": {"rule": "AL05", "dialect": "duckdb", "files": {"pass": ["equal with implicit as indent", [], []]}},
+  "rules/AL05/test_pass_duckdb_quoted_select_single_quote_table": {
+   "rule": "AL05",
+   "dialect": "duckdb",
+   "files": {"pass": ["differs", ["unparsable"], ["unparsable: duckdb: column_reference in select_statement"]]}
+  },
+  "rules/AL05/test_pass_hive_quoted_select_naked_table": {"rule": "AL05", "dialect": "hive", "files": {"pass": ["equal with implicit as indent", [], []]}},
+  "rules/AL05/test_pass_mysql_naked_select_quoted_table": {"rule": "AL05", "dialect": "mysql", "files": {"pass": ["equal with implicit as indent", [], []]}},
+  "rules/AL05/test_pass_mysql_quoted_select_naked_table": {"rule": "AL05", "dialect": "mysql", "files": {"pass": ["equal with implicit as indent", [], []]}},
+  "rules/AL05/test_pass_postgres_quoted_select_single_quote_table": {
+   "rule": "AL05",
+   "dialect": "postgres",
+   "files": {
+    "pass": [
+     "differs",
+     ["extra_wrapper", "meta", "missing_wrapper", "nesting", "token_split", "unparsable"],
+     ["extra_wrapper: column_reference in select_clause_element", "extra_wrapper: select_clause in select_statement", "meta: - -> indent", "meta: dedent -> -", "meta: indent -> -", "missing_wrapper: alias_expression in from_expression_element", "missing_wrapper: alias_operator in alias_expression", "missing_wrapper: from_clause in select_statement", "missing_wrapper: from_expression in from_clause", "missing_wrapper: from_expression_element in from_expression", "missing_wrapper: table_expression in from_expression_element", "missing_wrapper: table_reference in table_expression", "nesting: sqlfluff column_reference in select_clause_element", "nesting: sqlfluff select_clause in select_statement", "nesting: sqlfluff select_clause_element in select_clause", "nesting: sqruff alias_expression in select_clause_element", "nesting: sqruff select_clause_element in select_clause", "token_split: quoted_identifier dot naked_identifier newline keyword whitespace ... -> quoted_identifier quoted_identifier word double_quote", "unparsable: postgres: - in alias_expression"]
+    ]
+   }
+  },
+  "rules/AL05/test_pass_redshift_quoted_select_single_quote_table": {
+   "rule": "AL05",
+   "dialect": "redshift",
+   "files": {
+    "pass": [
+     "differs",
+     ["extra_wrapper", "meta", "missing_wrapper", "nesting", "token_split", "unparsable"],
+     ["extra_wrapper: column_reference in select_clause_element", "extra_wrapper: select_clause in select_statement", "meta: - -> indent", "meta: dedent -> -", "meta: indent -> -", "missing_wrapper: alias_expression in from_expression_element", "missing_wrapper: alias_operator in alias_expression", "missing_wrapper: from_clause in select_statement", "missing_wrapper: from_expression in from_clause", "missing_wrapper: from_expression_element in from_expression", "missing_wrapper: table_expression in from_expression_element", "missing_wrapper: table_reference in table_expression", "nesting: sqlfluff column_reference in select_clause_element", "nesting: sqlfluff select_clause in select_statement", "nesting: sqlfluff select_clause_element in select_clause", "nesting: sqruff alias_expression in select_clause_element", "nesting: sqruff select_clause_element in select_clause", "token_split: quoted_identifier dot naked_identifier newline keyword whitespace ... -> quoted_identifier quoted_identifier word double_quote", "unparsable: redshift: - in alias_expression"]
+    ]
+   }
+  },
+  "rules/AL05/test_pass_sparksql_quoted_select_naked_table": {
+   "rule": "AL05",
+   "dialect": "sparksql",
+   "files": {"pass": ["equal with implicit as indent", [], []]}
+  },
+  "rules/AL05/test_pass_sqlite_different_escaped_quotes": {
+   "rule": "AL05",
+   "dialect": "sqlite",
+   "files": {
+    "pass": [
+     "differs",
+     ["unparsable"],
+     ["unparsable: sqlite: - in alias_expression", "unparsable: sqlite: column_reference in select_statement"]
+    ]
+   }
+  },
+  "rules/AL05/test_pass_sqlite_naked_select_quoted_table": {"rule": "AL05", "dialect": "sqlite", "files": {"pass": ["equal with implicit as indent", [], []]}},
+  "rules/AL05/test_pass_sqlite_naked_select_quoted_table_subquery": {"rule": "AL05", "dialect": "sqlite", "files": {"pass": ["equal with implicit as indent", [], []]}},
+  "rules/AL05/test_pass_sqlite_quoted_select_naked_table": {"rule": "AL05", "dialect": "sqlite", "files": {"pass": ["equal with implicit as indent", [], []]}},
+  "rules/AL05/test_pass_sqlite_quoted_select_naked_table_subquery": {"rule": "AL05", "dialect": "sqlite", "files": {"pass": ["equal with implicit as indent", [], []]}},
+  "rules/AL05/test_pass_teradata_quoted_select_naked_table": {
+   "rule": "AL05",
+   "dialect": "teradata",
+   "files": {"pass": ["equal with implicit as indent", [], []]}
+  },
+  "rules/AL05/test_pass_trino_quoted_select_naked_table": {"rule": "AL05", "dialect": "trino", "files": {"pass": ["equal with implicit as indent", [], []]}},
+  "rules/AL05/test_pass_tsql_naked_select_quoted_table": {
+   "rule": "AL05",
+   "dialect": "tsql",
+   "files": {"pass": ["differs", ["extra_wrapper"], ["extra_wrapper: object_reference in table_reference"]]}
+  },
+  "rules/AL05/test_pass_tsql_quoted_select_naked_table": {
+   "rule": "AL05",
+   "dialect": "tsql",
+   "files": {"pass": ["differs", ["extra_wrapper"], ["extra_wrapper: object_reference in table_reference"]]}
+  },
+  "rules/AL05/test_pass_vertica_quoted_select_naked_table": {
+   "rule": "AL05",
+   "dialect": "vertica",
+   "files": {"pass": ["differs", ["extra_wrapper"], ["extra_wrapper: select_statement in select_statement"]]}
+  },
+  "rules/AL07/test_fail_no_copy_code_out_of_template": {"rule": "AL07", "dialect": "ansi", "files": {"fail": ["equal with implicit as indent", [], []]}},
+  "rules/AM02/test_fail_mixed_case_union_preserves_case": {
+   "rule": "AM02",
+   "dialect": "ansi",
+   "files": {
+    "fail": [
+     "equal with implicit as indent",
+     [],
+     []
+    ],
+    "fixed": [
+     "equal with implicit as indent",
+     [],
+     []
+    ]
+   }
+  },
+  "rules/AM04/test_fail_exasol_invalid_foreign_key_from": {
+   "rule": "AM04",
+   "dialect": "exasol",
+   "files": {
+    "fail": [
+     "differs",
+     ["meta", "missing_wrapper", "nesting"],
+     ["meta: - -> dedent", "meta: dedent -> -", "meta: indent -> -", "missing_wrapper: from_clause in select_statement", "missing_wrapper: from_expression in from_clause", "missing_wrapper: from_expression_element in from_expression", "missing_wrapper: referencing_clause in select_statement", "missing_wrapper: table_expression in from_expression_element", "missing_wrapper: with_invalid_foreign_key_clause in select_clause", "nesting: sqlfluff select_clause in select_statement", "nesting: sqruff with_invalid_foreign_key_clause in select_statement"]
+    ]
+   }
+  },
+  "rules/AM04/test_fail_jinja_templated_table_reference": {"rule": "AM04", "dialect": "ansi", "files": {"fail": ["equal with implicit as indent", [], []]}},
+  "rules/AM04/test_fail_jinja_templated_table_reference_unqualified_wildcard": {"rule": "AM04", "dialect": "ansi", "files": {"fail": ["equal with implicit as indent", [], []]}},
+  "rules/AM04/test_fail_jinja_templated_wildcard_qualifier": {"rule": "AM04", "dialect": "ansi", "files": {"fail": ["equal with implicit as indent", [], []]}},
+  "rules/AM04/test_pass_cte_no_select_final_statement": {
+   "rule": "AM04",
+   "dialect": "ansi",
+   "files": {
+    "pass": [
+     "differs",
+     ["unparsable"],
+     ["unparsable: ansi: with_compound_statement in with_compound_statement"]
+    ]
+   }
+  },
+  "rules/AM07/test_pass_cte_no_select_final_statement": {
+   "rule": "AM07",
+   "dialect": "ansi",
+   "files": {
+    "pass": [
+     "differs",
+     ["unparsable"],
+     ["unparsable: ansi: with_compound_statement in with_compound_statement"]
+    ]
+   }
+  },
+  "rules/CP01/test_fail_select_lower_keyword_functions": {
+   "rule": "CP01",
+   "dialect": "tsql",
+   "files": {
+    "fail": [
+     "differs",
+     ["keyword_vs_identifier"],
+     ["keyword_vs_identifier: keyword -> function_name_identifier in function_name"]
+    ],
+    "fixed": [
+     "differs",
+     ["keyword_vs_identifier"],
+     ["keyword_vs_identifier: keyword -> function_name_identifier in function_name"]
+    ]
+   }
+  },
+  "rules/CP02/test_pass_databricks_case_sensitive_property": {"rule": "CP02", "dialect": "databricks", "files": {"pass": ["equal", [], []]}},
+  "rules/CV01/test_fail_ansi_not_equal_to_tsql": {
+   "rule": "CV01",
+   "dialect": "tsql",
+   "files": {
+    "fail": [
+     "differs",
+     ["unparsable"],
+     ["unparsable: tsql: comparison_operator in select_statement"]
+    ],
+    "fixed": [
+     "differs",
+     ["unparsable"],
+     ["unparsable: tsql: comparison_operator in select_statement"]
+    ]
+   }
+  },
+  "rules/CV01/test_fail_c_style_not_equal_to_tsql": {
+   "rule": "CV01",
+   "dialect": "tsql",
+   "files": {
+    "fail": [
+     "differs",
+     ["unparsable"],
+     ["unparsable: tsql: comparison_operator in select_statement"]
+    ],
+    "fixed": [
+     "differs",
+     ["unparsable"],
+     ["unparsable: tsql: comparison_operator in select_statement"]
+    ]
+   }
+  },
+  "rules/CV01/test_pass_ansi_not_equal_to_tsql": {
+   "rule": "CV01",
+   "dialect": "tsql",
+   "files": {"pass": ["differs", ["unparsable"], ["unparsable: tsql: comparison_operator in select_statement"]]}
+  },
+  "rules/CV01/test_pass_c_style_not_equal_to_tsql": {
+   "rule": "CV01",
+   "dialect": "tsql",
+   "files": {"pass": ["differs", ["unparsable"], ["unparsable: tsql: comparison_operator in select_statement"]]}
+  },
+  "rules/CV01/test_pass_consistent_ansi_not_equal_to_tsql": {
+   "rule": "CV01",
+   "dialect": "tsql",
+   "files": {"pass": ["differs", ["unparsable"], ["unparsable: tsql: comparison_operator in select_statement"]]}
+  },
+  "rules/CV01/test_pass_consistent_c_style_not_equal_to_tsql": {
+   "rule": "CV01",
+   "dialect": "tsql",
+   "files": {"pass": ["differs", ["unparsable"], ["unparsable: tsql: comparison_operator in select_statement"]]}
+  },
+  "rules/CV06/test_fail_templated_fix_crosses_block_boundary": {"rule": "CV06", "dialect": "ansi", "files": {"fail": ["equal", [], []]}},
+  "rules/CV09/test_fail_match_source1": {"rule": "CV09", "dialect": "ansi", "files": {"fail": ["equal with implicit as indent", [], []]}},
+  "rules/CV10/test_fail_backslash_escaped_quote_still_converts": {
+   "rule": "CV10",
+   "dialect": "mysql",
+   "files": {"fail": ["equal", [], []], "fixed": ["equal", [], []]}
+  },
+  "rules/CV10/test_fail_partially_templated_quoted_literals_complex": {"rule": "CV10", "dialect": "bigquery", "files": {"fail": ["equal", [], []]}},
+  "rules/CV10/test_fail_partially_templated_quoted_literals_inside_blocks": {"rule": "CV10", "dialect": "bigquery", "files": {"fail": ["equal", [], []]}},
+  "rules/CV10/test_fail_partially_templated_quoted_literals_simple": {"rule": "CV10", "dialect": "bigquery", "files": {"fail": ["equal", [], []]}},
+  "rules/CV10/test_fail_partially_templated_quoted_literals_with_multiple_templates": {"rule": "CV10", "dialect": "bigquery", "files": {"fail": ["equal", [], []]}},
+  "rules/CV10/test_fail_result_of_fix_is_valid_mysql": {
+   "rule": "CV10",
+   "dialect": "mysql",
+   "files": {"fail": ["equal", [], []], "fixed": ["equal", [], []]}
+  },
+  "rules/CV11/test_fail_doris_convert_is_fixed_to_cast": {
+   "rule": "CV11",
+   "dialect": "doris",
+   "files": {
+    "fail": [
+     "equal with implicit as indent",
+     [],
+     []
+    ],
+    "fixed": [
+     "equal with implicit as indent",
+     [],
+     []
+    ]
+   }
+  },
+  "rules/CV11/test_fail_mariadb_convert_is_fixed_to_cast": {
+   "rule": "CV11",
+   "dialect": "mariadb",
+   "files": {
+    "fail": [
+     "equal with implicit as indent",
+     [],
+     []
+    ],
+    "fixed": [
+     "equal with implicit as indent",
+     [],
+     []
+    ]
+   }
+  },
+  "rules/CV11/test_fail_mariadb_convert_target_is_fixed": {
+   "rule": "CV11",
+   "dialect": "mariadb",
+   "files": {
+    "fail": [
+     "equal with implicit as indent",
+     [],
+     []
+    ],
+    "fixed": [
+     "equal with implicit as indent",
+     [],
+     []
+    ]
+   }
+  },
+  "rules/CV11/test_fail_mysql_chained_shorthand_target_convert": {
+   "rule": "CV11",
+   "dialect": "mysql",
+   "files": {
+    "fail": [
+     "equal with implicit as indent",
+     [],
+     []
+    ],
+    "fixed": [
+     "equal with implicit as indent",
+     [],
+     []
+    ]
+   }
+  },
+  "rules/CV11/test_fail_mysql_consistent_cast_first": {
+   "rule": "CV11",
+   "dialect": "mysql",
+   "files": {
+    "fail": [
+     "equal with implicit as indent",
+     [],
+     []
+    ],
+    "fixed": [
+     "equal with implicit as indent",
+     [],
+     []
+    ]
+   }
+  },
+  "rules/CV11/test_fail_mysql_consistent_convert_first": {
+   "rule": "CV11",
+   "dialect": "mysql",
+   "files": {
+    "fail": [
+     "equal with implicit as indent",
+     [],
+     []
+    ],
+    "fixed": [
+     "equal with implicit as indent",
+     [],
+     []
+    ]
+   }
+  },
+  "rules/CV11/test_fail_mysql_consistent_shorthand_first": {
+   "rule": "CV11",
+   "dialect": "mysql",
+   "files": {
+    "fail": [
+     "equal with implicit as indent",
+     [],
+     []
+    ],
+    "fixed": [
+     "equal with implicit as indent",
+     [],
+     []
+    ]
+   }
+  },
+  "rules/CV11/test_fail_mysql_convert_is_fixed_to_cast": {
+   "rule": "CV11",
+   "dialect": "mysql",
+   "files": {
+    "fail": [
+     "equal with implicit as indent",
+     [],
+     []
+    ],
+    "fixed": [
+     "equal with implicit as indent",
+     [],
+     []
+    ]
+   }
+  },
+  "rules/CV11/test_fail_mysql_convert_is_fixed_to_shorthand": {
+   "rule": "CV11",
+   "dialect": "mysql",
+   "files": {
+    "fail": [
+     "equal with implicit as indent",
+     [],
+     []
+    ],
+    "fixed": [
+     "equal with implicit as indent",
+     [],
+     []
+    ]
+   }
+  },
+  "rules/CV11/test_fail_mysql_convert_target_is_fixed": {
+   "rule": "CV11",
+   "dialect": "mysql",
+   "files": {
+    "fail": [
+     "equal with implicit as indent",
+     [],
+     []
+    ],
+    "fixed": [
+     "equal with implicit as indent",
+     [],
+     []
+    ]
+   }
+  },
+  "rules/CV11/test_fail_shorthand_array_subscript_to_cast_consistent": {
+   "rule": "CV11",
+   "dialect": "ansi",
+   "files": {
+    "fail": [
+     "equal with implicit as indent",
+     [],
+     []
+    ],
+    "fixed": [
+     "equal with implicit as indent",
+     [],
+     []
+    ]
+   }
+  },
+  "rules/CV11/test_fail_shorthand_array_subscript_to_convert": {
+   "rule": "CV11",
+   "dialect": "ansi",
+   "files": {
+    "fail": [
+     "equal with implicit as indent",
+     [],
+     []
+    ],
+    "fixed": [
+     "equal with implicit as indent",
+     [],
+     []
+    ]
+   }
+  },
+  "rules/CV11/test_fail_shorthand_array_subscript_to_convert_consistent": {
+   "rule": "CV11",
+   "dialect": "ansi",
+   "files": {
+    "fail": [
+     "equal with implicit as indent",
+     [],
+     []
+    ],
+    "fixed": [
+     "equal with implicit as indent",
+     [],
+     []
+    ]
+   }
+  },
+  "rules/CV11/test_fail_shorthand_nested_array_subscript_to_convert": {
+   "rule": "CV11",
+   "dialect": "ansi",
+   "files": {
+    "fail": [
+     "equal with implicit as indent",
+     [],
+     []
+    ],
+    "fixed": [
+     "equal with implicit as indent",
+     [],
+     []
+    ]
+   }
+  },
+  "rules/CV11/test_fail_snowflake_semi_structured_cast_4453": {
+   "rule": "CV11",
+   "dialect": "snowflake",
+   "files": {"fail": ["equal", [], []], "fixed": ["equal", [], []]}
+  },
+  "rules/CV11/test_fail_starrocks_convert_is_fixed_to_cast": {
+   "rule": "CV11",
+   "dialect": "starrocks",
+   "files": {
+    "fail": [
+     "equal with implicit as indent",
+     [],
+     []
+    ],
+    "fixed": [
+     "equal with implicit as indent",
+     [],
+     []
+    ]
+   }
+  },
+  "rules/CV11/test_fail_starrocks_convert_target_is_fixed": {
+   "rule": "CV11",
+   "dialect": "starrocks",
+   "files": {
+    "fail": [
+     "equal with implicit as indent",
+     [],
+     []
+    ],
+    "fixed": [
+     "equal with implicit as indent",
+     [],
+     []
+    ]
+   }
+  },
+  "rules/CV11/test_pass_mysql_convert_using_is_left_alone": {"rule": "CV11", "dialect": "mysql", "files": {"pass": ["equal with implicit as indent", [], []]}},
+  "rules/CV12/test_fail_ansi_full_outer_join_without_fix": {"rule": "CV12", "dialect": "ansi", "files": {"fail": ["equal with implicit as indent", [], []]}},
+  "rules/CV12/test_fail_ansi_left_join_without_fix": {"rule": "CV12", "dialect": "ansi", "files": {"fail": ["equal with implicit as indent", [], []]}},
+  "rules/CV12/test_fail_ansi_right_join_without_fix": {"rule": "CV12", "dialect": "ansi", "files": {"fail": ["equal with implicit as indent", [], []]}},
+  "rules/CV12/test_fail_cross_join_mixed_with_later_outer_join": {"rule": "CV12", "dialect": "ansi", "files": {"fail": ["equal with implicit as indent", [], []]}},
+  "rules/CV12/test_fail_join_with_bracketed_join": {
+   "rule": "CV12",
+   "dialect": "ansi",
+   "files": {
+    "fail": [
+     "differs",
+     ["extra_wrapper", "meta", "missing_wrapper"],
+     ["extra_wrapper: from_expression in bracketed", "extra_wrapper: from_expression_element in from_expression", "meta: - -> dedent", "meta: - -> indent", "missing_wrapper: from_expression_element in join_clause"]
+    ]
+   }
+  },
+  "rules/CV12/test_fail_natural_join_mixed_with_later_outer_join": {"rule": "CV12", "dialect": "ansi", "files": {"fail": ["equal with implicit as indent", [], []]}},
+  "rules/CV12/test_fail_sqlite_left_join_without_fix": {"rule": "CV12", "dialect": "sqlite", "files": {"fail": ["equal with implicit as indent", [], []]}},
+  "rules/LT01-brackets/test_fail_parenthesis_block_not_isolated_templated": {"rule": "LT01", "dialect": "ansi", "files": {"fail": ["equal with implicit as indent", [], []]}},
+  "rules/LT01-commas/test_fail_whitespace_before_comma_template": {"rule": "LT01", "dialect": "ansi", "files": {"fail": ["equal", [], []]}},
+  "rules/LT01-excessive/test_basic_fail_template": {"rule": "LT01", "dialect": "ansi", "files": {"fail": ["equal", [], []]}},
+  "rules/LT01-excessive/test_comparison_operator_fix": {
+   "rule": "LT01",
+   "dialect": "tsql",
+   "files": {
+    "fail": [
+     "differs",
+     ["unparsable"],
+     ["unparsable: tsql: comparison_operator in select_statement"]
+    ],
+    "fixed": [
+     "differs",
+     ["extra_wrapper"],
+     ["extra_wrapper: object_reference in table_reference"]
+    ]
+   }
+  },
+  "rules/LT01-excessive/test_fix_tsql_spaced_chars": {
+   "rule": "LT01",
+   "dialect": "tsql",
+   "files": {
+    "fail": [
+     "differs",
+     ["unparsable"],
+     ["unparsable: tsql: comparison_operator in select_statement"]
+    ],
+    "fixed": [
+     "differs",
+     ["extra_wrapper"],
+     ["extra_wrapper: object_reference in table_reference"]
+    ]
+   }
+  },
+  "rules/LT01-literals/test_fail_tsql_unicode_single_quote": {
+   "rule": "LT01",
+   "dialect": "tsql",
+   "files": {
+    "fail": [
+     "differs",
+     ["extra_wrapper", "token_split"],
+     ["extra_wrapper: object_reference in table_reference", "token_split: quoted_literal -> naked_identifier quoted_literal"]
+    ],
+    "fixed": [
+     "differs",
+     ["extra_wrapper", "token_split"],
+     ["extra_wrapper: object_reference in table_reference", "token_split: quoted_literal -> naked_identifier quoted_literal"]
+    ]
+   }
+  },
+  "rules/LT01-literals/test_pass_tsql_unicode_single_quote": {
+   "rule": "LT01",
+   "dialect": "tsql",
+   "files": {
+    "pass": [
+     "differs",
+     ["extra_wrapper", "token_split"],
+     ["extra_wrapper: object_reference in table_reference", "token_split: quoted_literal -> naked_identifier quoted_literal"]
+    ]
+   }
+  },
+  "rules/LT01-missing/test_fail_tsql_table_alias_column_list_spaced": {
+   "rule": "LT01",
+   "dialect": "tsql",
+   "files": {
+    "fail": [
+     "differs",
+     ["missing_wrapper"],
+     ["missing_wrapper: alias_column_list in alias_expression"]
+    ],
+    "fixed": [
+     "differs",
+     ["missing_wrapper"],
+     ["missing_wrapper: alias_column_list in alias_expression"]
+    ]
+   }
+  },
+  "rules/LT01-missing/test_fail_tsql_values_alias_columns_excess_space": {
+   "rule": "LT01",
+   "dialect": "tsql",
+   "files": {
+    "fail": [
+     "differs",
+     ["missing_wrapper"],
+     ["missing_wrapper: alias_column_list in alias_expression"]
+    ],
+    "fixed": [
+     "differs",
+     ["missing_wrapper"],
+     ["missing_wrapper: alias_column_list in alias_expression"]
+    ]
+   }
+  },
+  "rules/LT01-missing/test_pass_tsql_table_alias_column_list_touching": {
+   "rule": "LT01",
+   "dialect": "tsql",
+   "files": {
+    "pass": [
+     "differs",
+     ["leaf_type", "meta", "missing_wrapper", "renamed"],
+     ["leaf_type: parameter -> tsql_variable in declare_segment", "leaf_type: parameter -> tsql_variable in table_reference", "meta: dedent -> -", "meta: indent -> -", "missing_wrapper: alias_column_list in alias_expression", "missing_wrapper: declare_segment in statement", "renamed: comparison_operator -> assignment_operator"]
+    ]
+   }
+  },
+  "rules/LT01-missing/test_pass_tsql_values_alias_columns": {
+   "rule": "LT01",
+   "dialect": "tsql",
+   "files": {
+    "pass": [
+     "differs",
+     ["missing_wrapper"],
+     ["missing_wrapper: alias_column_list in alias_expression"]
+    ]
+   }
+  },
+  "rules/LT01-operators/fail_consecutive_sign_indicators_across_a_newline": {
+   "rule": "LT01",
+   "dialect": "ansi",
+   "files": {"fail": ["equal", [], []], "fixed": ["equal", [], []]}
+  },
+  "rules/LT01-operators/fail_consecutive_sign_indicators_outer_spacing": {
+   "rule": "LT01",
+   "dialect": "ansi",
+   "files": {"fail": ["equal", [], []], "fixed": ["equal", [], []]}
+  },
+  "rules/LT01-operators/fail_consecutive_sign_indicators_trailing_code": {
+   "rule": "LT01",
+   "dialect": "ansi",
+   "files": {"fail": ["equal", [], []], "fixed": ["equal", [], []]}
+  },
+  "rules/LT01-operators/pass_consecutive_sign_indicators": {"rule": "LT01", "dialect": "ansi", "files": {"pass": ["equal", [], []]}},
+  "rules/LT02-indent/test_fail_consuming_whitespace_a": {
+   "rule": "LT02",
+   "dialect": "ansi",
+   "files": {
+    "fail": [
+     "equal with implicit as indent",
+     [],
+     []
+    ],
+    "fixed": [
+     "equal with implicit as indent",
+     [],
+     []
+    ]
+   }
+  },
+  "rules/LT02-indent/test_fail_consuming_whitespace_b": {
+   "rule": "LT02",
+   "dialect": "ansi",
+   "files": {
+    "fail": [
+     "equal with implicit as indent",
+     [],
+     []
+    ],
+    "fixed": [
+     "equal with implicit as indent",
+     [],
+     []
+    ]
+   }
+  },
+  "rules/LT02-indent/test_fail_fix_beside_templated": {
+   "rule": "LT02",
+   "dialect": "ansi",
+   "files": {
+    "fail": [
+     "equal with implicit as indent",
+     [],
+     []
+    ],
+    "fixed": [
+     "equal with implicit as indent",
+     [],
+     []
+    ]
+   }
+  },
+  "rules/LT02-indent/test_fail_fix_template_indentation_1": {
+   "rule": "LT02",
+   "dialect": "ansi",
+   "files": {"fail": ["equal", [], []], "fixed": ["equal", [], []]}
+  },
+  "rules/LT02-indent/test_fail_fix_template_indentation_2": {
+   "rule": "LT02",
+   "dialect": "ansi",
+   "files": {
+    "fail": [
+     "equal with implicit as indent",
+     [],
+     []
+    ],
+    "fixed": [
+     "equal with implicit as indent",
+     [],
+     []
+    ]
+   }
+  },
+  "rules/LT02-indent/test_fail_hard_templated_indents": {
+   "rule": "LT02",
+   "dialect": "ansi",
+   "files": {
+    "fail": [
+     "equal with implicit as indent",
+     [],
+     []
+    ],
+    "fixed": [
+     "equal with implicit as indent",
+     [],
+     []
+    ]
+   }
+  },
+  "rules/LT02-indent/test_fail_issue_4680": {
+   "rule": "LT02",
+   "dialect": "ansi",
+   "files": {
+    "fail": [
+     "equal with implicit as indent",
+     [],
+     []
+    ],
+    "fixed": [
+     "equal with implicit as indent",
+     [],
+     []
+    ]
+   }
+  },
+  "rules/LT02-indent/test_fail_snowflake_exception_block_nested": {
+   "rule": "LT02",
+   "dialect": "snowflake",
+   "files": {
+    "fail": [
+     "differs",
+     ["extra_wrapper", "meta"],
+     ["extra_wrapper: statement in scripting_block_statement", "meta: - -> dedent", "meta: dedent -> -", "meta: dedent dedent -> -", "meta: indent -> -"]
+    ],
+    "fixed": [
+     "differs",
+     ["extra_wrapper", "meta"],
+     ["extra_wrapper: statement in scripting_block_statement", "meta: - -> dedent", "meta: dedent -> -", "meta: dedent dedent -> -", "meta: indent -> -"]
+    ]
+   }
+  },
+  "rules/LT02-indent/test_fail_tsql_else_if": {
+   "rule": "LT02",
+   "dialect": "tsql",
+   "files": {
+    "fail": [
+     "differs",
+     ["unparsable"],
+     ["unparsable: tsql: if_then_statement in if_then_statement"]
+    ],
+    "fixed": [
+     "differs",
+     ["unparsable"],
+     ["unparsable: tsql: if_then_statement in if_then_statement"]
+    ]
+   }
+  },
+  "rules/LT02-indent/test_fail_tsql_else_if_successive": {
+   "rule": "LT02",
+   "dialect": "tsql",
+   "files": {
+    "fail": [
+     "differs",
+     ["unparsable"],
+     ["unparsable: tsql: if_then_statement in if_then_statement"]
+    ],
+    "fixed": [
+     "differs",
+     ["unparsable"],
+     ["unparsable: tsql: if_then_statement in if_then_statement"]
+    ]
+   }
+  },
+  "rules/LT02-indent/test_fix_macro_indents_4367": {
+   "rule": "LT02",
+   "dialect": "ansi",
+   "files": {
+    "fail": [
+     "equal with implicit as indent",
+     [],
+     []
+    ],
+    "fixed": [
+     "equal with implicit as indent",
+     [],
+     []
+    ]
+   }
+  },
+  "rules/LT02-indent/test_jinja_nested_blocks": {
+   "rule": "LT02",
+   "dialect": "ansi",
+   "files": {"fail": ["equal", [], []], "fixed": ["equal", [], []]}
+  },
+  "rules/LT02-indent/test_pass_snowflake_exception_block_in_scripting_block": {
+   "rule": "LT02",
+   "dialect": "snowflake",
+   "files": {
+    "pass": [
+     "differs",
+     ["extra_wrapper", "meta"],
+     ["extra_wrapper: statement in scripting_block_statement", "meta: - -> dedent", "meta: dedent -> -", "meta: dedent dedent -> -", "meta: indent -> -"]
+    ]
+   }
+  },
+  "rules/LT02-indent/test_pass_snowflake_exception_block_multiple_when": {
+   "rule": "LT02",
+   "dialect": "snowflake",
+   "files": {
+    "pass": [
+     "differs",
+     ["extra_wrapper", "meta"],
+     ["extra_wrapper: statement in scripting_block_statement", "meta: - -> dedent", "meta: dedent -> -", "meta: dedent dedent -> -", "meta: indent -> -"]
+    ]
+   }
+  },
+  "rules/LT02-indent/test_pass_snowflake_exception_block_standalone": {
+   "rule": "LT02",
+   "dialect": "snowflake",
+   "files": {"pass": ["differs", ["meta"], ["meta: dedent dedent -> -", "meta: indent -> -"]]}
+  },
+  "rules/LT02-indent/test_pass_tsql_declare_indent": {
+   "rule": "LT02",
+   "dialect": "tsql",
+   "files": {
+    "fail": [
+     "differs",
+     ["leaf_type", "meta", "missing_wrapper"],
+     ["leaf_type: parameter -> tsql_variable in declare_segment", "meta: dedent -> -", "meta: indent -> -", "missing_wrapper: declare_segment in statement"]
+    ],
+    "fixed": [
+     "differs",
+     ["leaf_type", "meta", "missing_wrapper"],
+     ["leaf_type: parameter -> tsql_variable in declare_segment", "meta: dedent -> -", "meta: indent -> -", "missing_wrapper: declare_segment in statement"]
+    ]
+   }
+  },
+  "rules/LT02-indent/test_pass_tsql_else_if": {
+   "rule": "LT02",
+   "dialect": "tsql",
+   "files": {"pass": ["differs", ["unparsable"], ["unparsable: tsql: if_then_statement in if_then_statement"]]}
+  },
+  "rules/LT02-indent/test_pass_tsql_if_indent": {
+   "rule": "LT02",
+   "dialect": "tsql",
+   "files": {
+    "pass": [
+     "differs",
+     ["extra_wrapper", "meta", "missing_wrapper"],
+     ["extra_wrapper: statement in batch", "meta: dedent -> -", "meta: dedent indent -> -", "meta: indent -> -", "missing_wrapper: if_clause in if_then_statement", "missing_wrapper: if_then_statement in statement", "missing_wrapper: statement in batch"]
+    ]
+   }
+  },
+  "rules/LT02-indent/test_pass_tsql_index_indent": {
+   "rule": "LT02",
+   "dialect": "tsql",
+   "files": {
+    "pass": [
+     "differs",
+     ["extra_wrapper", "meta", "missing_wrapper", "renamed"],
+     ["extra_wrapper: object_reference in table_reference", "meta: dedent -> -", "meta: indent -> -", "missing_wrapper: bracketed_index_column_list_grammar in create_index_statement", "renamed: index_reference -> database_reference"]
+    ]
+   }
+  },
+  "rules/LT02-indent/test_pass_tsql_statistics_indent": {
+   "rule": "LT02",
+   "dialect": "tsql",
+   "files": {
+    "pass": [
+     "differs",
+     ["unparsable"],
+     ["unparsable: tsql: create_index_statement in create_index_statement"]
+    ]
+   }
+  },
+  "rules/LT02-indent/test_tsql_function": {
+   "rule": "LT02",
+   "dialect": "tsql",
+   "files": {
+    "fail": [
+     "differs",
+     ["extra_wrapper", "keyword_vs_identifier", "leaf_type", "meta", "missing_wrapper"],
+     ["extra_wrapper: parameterized_expression in expression", "extra_wrapper: statement in statement", "keyword_vs_identifier: keyword -> function_name_identifier in function_name", "leaf_type: parameter -> tsql_variable in bracketed", "leaf_type: parameter -> tsql_variable in declare_segment", "leaf_type: parameter -> tsql_variable in expression", "leaf_type: parameter -> tsql_variable in set_local_variable_segment", "meta: dedent -> -", "meta: dedent indent -> -", "meta: indent -> -", "missing_wrapper: begin_end_block in statement", "missing_wrapper: declare_segment in statement", "missing_wrapper: execute_as_clause in function_option_segment", "missing_wrapper: expression in bracketed", "missing_wrapper: if_clause in if_then_statement", "missing_wrapper: if_then_statement in statement", "missing_wrapper: statement in begin_end_block"]
+    ],
+    "fixed": [
+     "differs",
+     ["extra_wrapper", "keyword_vs_identifier", "leaf_type", "meta", "missing_wrapper"],
+     ["extra_wrapper: parameterized_expression in expression", "extra_wrapper: statement in statement", "keyword_vs_identifier: keyword -> function_name_identifier in function_name", "leaf_type: parameter -> tsql_variable in bracketed", "leaf_type: parameter -> tsql_variable in declare_segment", "leaf_type: parameter -> tsql_variable in expression", "leaf_type: parameter -> tsql_variable in set_local_variable_segment", "meta: dedent -> -", "meta: dedent indent -> -", "meta: indent -> -", "missing_wrapper: begin_end_block in statement", "missing_wrapper: declare_segment in statement", "missing_wrapper: execute_as_clause in function_option_segment", "missing_wrapper: expression in bracketed", "missing_wrapper: if_clause in if_then_statement", "missing_wrapper: if_then_statement in statement", "missing_wrapper: statement in begin_end_block"]
+    ]
+   }
+  },
+  "rules/LT02-indent/test_tsql_nested_join": {
+   "rule": "LT02",
+   "dialect": "tsql",
+   "files": {
+    "fail": [
+     "differs",
+     ["extra_wrapper", "meta", "missing_wrapper"],
+     ["extra_wrapper: join_clause in from_expression", "extra_wrapper: object_reference in table_reference", "meta: - -> dedent", "meta: dedent dedent dedent dedent -> dedent dedent", "meta: indent -> -", "missing_wrapper: join_clause in from_expression"]
+    ],
+    "fixed": [
+     "differs",
+     ["extra_wrapper", "meta", "missing_wrapper"],
+     ["extra_wrapper: join_clause in from_expression", "extra_wrapper: object_reference in table_reference", "meta: - -> dedent", "meta: dedent dedent dedent dedent -> dedent dedent", "meta: indent -> -", "missing_wrapper: join_clause in from_expression"]
+    ]
+   }
+  },
+  "rules/LT02-indent/test_whitespace_control_issue_5277": {
+   "rule": "LT02",
+   "dialect": "ansi",
+   "files": {
+    "fail": [
+     "equal with implicit as indent",
+     [],
+     []
+    ],
+    "fixed": [
+     "equal with implicit as indent",
+     [],
+     []
+    ]
+   }
+  },
+  "rules/LT03/fails_templated_code_non_templated_newline": {"rule": "LT03", "dialect": "ansi", "files": {"fail": ["equal with implicit as indent", [], []]}},
+  "rules/LT04/trailing_comma_with_templated_column_2": {"rule": "LT04", "dialect": "ansi", "files": {"pass": ["equal with implicit as indent", [], []]}},
+  "rules/LT09/test_single_select_with_comment_after_select": {"rule": "LT09", "dialect": "ansi", "files": {"fail": ["equal", [], []]}},
+  "rules/LT12/test_fail_templated_no_newline": {
+   "rule": "LT12",
+   "dialect": "ansi",
+   "files": {"fail": ["equal", [], []], "fixed": ["equal", [], []]}
+  },
+  "rules/LT12/test_fail_templated_plus_raw_newlines": {
+   "rule": "LT12",
+   "dialect": "ansi",
+   "files": {"fail": ["equal", [], []], "fixed": ["equal", [], []]}
+  },
+  "rules/LT12/test_fail_templated_plus_raw_newlines_extra_newline": {
+   "rule": "LT12",
+   "dialect": "ansi",
+   "files": {"fail": ["equal", [], []], "fixed": ["equal", [], []]}
+  },
+  "rules/LT13/test_fail_leading_whitespace_jinja_comment": {
+   "rule": "LT13",
+   "dialect": "ansi",
+   "files": {
+    "fail": [
+     "equal with implicit as indent",
+     [],
+     []
+    ],
+    "fixed": [
+     "equal with implicit as indent",
+     [],
+     []
+    ]
+   }
+  },
+  "rules/LT13/test_fail_leading_whitespace_jinja_for": {
+   "rule": "LT13",
+   "dialect": "ansi",
+   "files": {
+    "fail": [
+     "equal with implicit as indent",
+     [],
+     []
+    ],
+    "fixed": [
+     "equal with implicit as indent",
+     [],
+     []
+    ]
+   }
+  },
+  "rules/LT13/test_fail_leading_whitespace_jinja_if": {
+   "rule": "LT13",
+   "dialect": "ansi",
+   "files": {
+    "fail": [
+     "equal with implicit as indent",
+     [],
+     []
+    ],
+    "fixed": [
+     "equal with implicit as indent",
+     [],
+     []
+    ]
+   }
+  },
+  "rules/LT14/test_fail_alone_window_function": {
+   "rule": "LT14",
+   "dialect": "ansi",
+   "files": {
+    "fail": [
+     "equal with implicit as indent",
+     [],
+     [],
+     "sqruff failed with the full config; parsed with no rules and layout sections: exit code 101: thread 'main' panicked at sqruff-lib-0.41.0/src/utils/reflow/config.rs:457:18:"
+    ],
+    "fixed": [
+     "equal with implicit as indent",
+     [],
+     [],
+     "sqruff failed with the full config; parsed with no rules and layout sections: exit code 101: thread 'main' panicked at sqruff-lib-0.41.0/src/utils/reflow/config.rs:457:18:"
+    ]
+   }
+  },
+  "rules/LT14/test_fail_leading_qualify": {
+   "rule": "LT14",
+   "dialect": "duckdb",
+   "files": {
+    "fail": [
+     "equal with implicit as indent",
+     [],
+     [],
+     "sqruff failed with the full config; parsed with no rules and layout sections: exit code 101: thread 'main' panicked at sqruff-lib-0.41.0/src/utils/reflow/config.rs:457:18:"
+    ],
+    "fixed": [
+     "equal with implicit as indent",
+     [],
+     [],
+     "sqruff failed with the full config; parsed with no rules and layout sections: exit code 101: thread 'main' panicked at sqruff-lib-0.41.0/src/utils/reflow/config.rs:457:18:"
+    ]
+   }
+  },
+  "rules/LT14/test_fail_leading_window_function": {
+   "rule": "LT14",
+   "dialect": "ansi",
+   "files": {
+    "fail": [
+     "equal with implicit as indent",
+     [],
+     [],
+     "sqruff failed with the full config; parsed with no rules and layout sections: exit code 101: thread 'main' panicked at sqruff-lib-0.41.0/src/utils/reflow/config.rs:457:18:"
+    ],
+    "fixed": [
+     "equal with implicit as indent",
+     [],
+     [],
+     "sqruff failed with the full config; parsed with no rules and layout sections: exit code 101: thread 'main' panicked at sqruff-lib-0.41.0/src/utils/reflow/config.rs:457:18:"
+    ]
+   }
+  },
+  "rules/LT14/test_pass_none_where_clause": {
+   "rule": "LT14",
+   "dialect": "ansi",
+   "files": {
+    "pass": [
+     "equal with implicit as indent",
+     [],
+     [],
+     "sqruff failed with the full config; parsed with no rules and layout sections: exit code 101: thread 'main' panicked at sqruff-lib-0.41.0/src/utils/reflow/config.rs:451:18:"
+    ]
+   }
+  },
+  "rules/LT15/test_fail_oracle_file_level_gap_uses_the_between_batches_maximum": {
+   "rule": "LT15",
+   "dialect": "oracle",
+   "files": {
+    "fail": [
+     "differs",
+     ["renamed"],
+     ["renamed: batch -> oracle_batch", "renamed: table_reference -> oracle_table_reference"]
+    ],
+    "fixed": [
+     "differs",
+     ["renamed"],
+     ["renamed: batch -> oracle_batch", "renamed: table_reference -> oracle_table_reference"]
+    ]
+   }
+  },
+  "rules/RF01/test_fail_snowflake_semantic_view_outer_join_reference": {
+   "rule": "RF01",
+   "dialect": "snowflake",
+   "files": {
+    "fail": [
+     "differs",
+     ["extra_wrapper", "keyword_vs_identifier", "missing_wrapper", "renamed"],
+     ["extra_wrapper: column_reference in expression", "extra_wrapper: expression in bracketed", "extra_wrapper: function_contents in function", "extra_wrapper: function_name in function", "keyword_vs_identifier: keyword -> function_name_identifier in semantic_view", "keyword_vs_identifier: keyword -> naked_identifier in semantic_view_dimensions_clause", "missing_wrapper: semantic_view_dimensions_clause in bracketed", "missing_wrapper: semantic_view_field_reference in semantic_view_expression", "renamed: semantic_view -> function", "renamed: semantic_view_dimension -> expression", "renamed: semantic_view_expression -> column_reference", "renamed: semantic_view_object_reference -> expression"]
+    ]
+   }
+  },
+  "rules/RF01/test_fail_snowflake_semantic_view_outer_select_reference": {
+   "rule": "RF01",
+   "dialect": "snowflake",
+   "files": {
+    "fail": [
+     "differs",
+     ["extra_wrapper", "keyword_vs_identifier", "missing_wrapper", "renamed"],
+     ["extra_wrapper: column_reference in expression", "extra_wrapper: expression in bracketed", "extra_wrapper: function_contents in function", "extra_wrapper: function_name in function", "keyword_vs_identifier: keyword -> function_name_identifier in semantic_view", "keyword_vs_identifier: keyword -> naked_identifier in semantic_view_dimensions_clause", "missing_wrapper: semantic_view_dimensions_clause in bracketed", "missing_wrapper: semantic_view_field_reference in semantic_view_expression", "renamed: semantic_view -> function", "renamed: semantic_view_dimension -> expression", "renamed: semantic_view_expression -> column_reference", "renamed: semantic_view_object_reference -> expression"]
+    ]
+   }
+  },
+  "rules/RF01/test_fail_snowflake_semantic_view_outer_where_reference": {
+   "rule": "RF01",
+   "dialect": "snowflake",
+   "files": {
+    "fail": [
+     "differs",
+     ["extra_wrapper", "keyword_vs_identifier", "missing_wrapper", "renamed"],
+     ["extra_wrapper: column_reference in expression", "extra_wrapper: expression in bracketed", "extra_wrapper: function_contents in function", "extra_wrapper: function_name in function", "keyword_vs_identifier: keyword -> function_name_identifier in semantic_view", "keyword_vs_identifier: keyword -> naked_identifier in semantic_view_dimensions_clause", "missing_wrapper: semantic_view_dimensions_clause in bracketed", "missing_wrapper: semantic_view_field_reference in semantic_view_expression", "renamed: semantic_view -> function", "renamed: semantic_view_dimension -> expression", "renamed: semantic_view_expression -> column_reference", "renamed: semantic_view_object_reference -> expression"]
+    ]
+   }
+  },
+  "rules/RF01/test_nested_join_clause_does_not_flag": {
+   "rule": "RF01",
+   "dialect": "tsql",
+   "files": {"pass": ["differs", ["unparsable"], ["unparsable: tsql: join_on_condition in select_statement"]]}
+  },
+  "rules/RF01/test_nested_join_clauses_do_not_flag": {
+   "rule": "RF01",
+   "dialect": "tsql",
+   "files": {"pass": ["differs", ["unparsable"], ["unparsable: tsql: join_on_condition in select_statement"]]}
+  },
+  "rules/RF01/test_pass_redundantly_bracketed_join_target_alias": {
+   "rule": "RF01",
+   "dialect": "ansi",
+   "files": {
+    "pass": [
+     "differs",
+     ["extra_wrapper", "missing_wrapper"],
+     ["extra_wrapper: from_expression in bracketed", "missing_wrapper: from_expression_element in join_clause"]
+    ]
+   }
+  },
+  "rules/RF01/test_pass_redundantly_bracketed_join_target_alias_snowflake": {
+   "rule": "RF01",
+   "dialect": "snowflake",
+   "files": {"pass": ["differs", ["unparsable"], ["unparsable: snowflake: join_clause in select_statement"]]}
+  },
+  "rules/RF01/test_pass_redundantly_bracketed_join_target_alias_tsql": {
+   "rule": "RF01",
+   "dialect": "tsql",
+   "files": {
+    "pass": [
+     "differs",
+     ["extra_wrapper", "meta", "missing_wrapper"],
+     ["extra_wrapper: from_expression in bracketed", "extra_wrapper: from_expression_element in from_expression", "extra_wrapper: object_reference in table_reference", "meta: - -> dedent", "meta: indent -> indent indent", "missing_wrapper: from_expression_element in join_clause", "missing_wrapper: table_expression in bracketed", "missing_wrapper: table_expression in from_expression_element"]
+    ]
+   }
+  },
+  "rules/RF01/test_pass_snowflake_semantic_view_facts": {
+   "rule": "RF01",
+   "dialect": "snowflake",
+   "files": {
+    "pass": [
+     "differs",
+     ["extra_wrapper", "keyword_vs_identifier", "missing_wrapper", "renamed"],
+     ["extra_wrapper: column_reference in expression", "extra_wrapper: expression in bracketed", "extra_wrapper: function_contents in function", "extra_wrapper: function_name in function", "keyword_vs_identifier: keyword -> function_name_identifier in semantic_view", "keyword_vs_identifier: keyword -> naked_identifier in semantic_view_dimensions_clause", "keyword_vs_identifier: keyword -> naked_identifier in semantic_view_facts_clause", "missing_wrapper: semantic_view_dimensions_clause in bracketed", "missing_wrapper: semantic_view_facts_clause in bracketed", "missing_wrapper: semantic_view_field_reference in semantic_view_expression", "renamed: semantic_view -> function", "renamed: semantic_view_dimension -> expression", "renamed: semantic_view_expression -> column_reference", "renamed: semantic_view_fact -> expression", "renamed: semantic_view_object_reference -> expression"]
+    ]
+   }
+  },
+  "rules/RF01/test_pass_snowflake_semantic_view_references": {
+   "rule": "RF01",
+   "dialect": "snowflake",
+   "files": {"pass": ["differs", ["unparsable"], ["unparsable: snowflake: bracketed in select_statement"]]}
+  },
+  "rules/RF01/test_trino_correlated_nested_row_reference_quoted_alias": {"rule": "RF01", "dialect": "trino", "files": {"pass": ["equal with implicit as indent", [], []]}},
+  "rules/RF01/test_trino_correlated_row_reference_in_joined_subquery": {"rule": "RF01", "dialect": "trino", "files": {"pass": ["equal with implicit as indent", [], []]}},
+  "rules/RF01/test_trino_row_fields_from_single_aliased_table": {"rule": "RF01", "dialect": "trino", "files": {"pass": ["equal with implicit as indent", [], []]}},
+  "rules/RF01/test_trino_row_fields_from_single_quoted_aliased_table": {"rule": "RF01", "dialect": "trino", "files": {"pass": ["equal with implicit as indent", [], []]}},
+  "rules/RF01/test_trino_row_fields_in_bracketed_union": {"rule": "RF01", "dialect": "trino", "files": {"pass": ["equal with implicit as indent", [], []]}},
+  "rules/RF01/test_trino_row_fields_in_union": {"rule": "RF01", "dialect": "trino", "files": {"pass": ["equal with implicit as indent", [], []]}},
+  "rules/RF01/test_trino_row_reference_with_multiple_tables": {"rule": "RF01", "dialect": "trino", "files": {"pass": ["equal with implicit as indent", [], []]}},
+  "rules/RF01/test_trino_unknown_reference_in_joined_subquery_unaliased_parent": {"rule": "RF01", "dialect": "trino", "files": {"fail": ["equal with implicit as indent", [], []]}},
+  "rules/RF02/test_arrow_with_non_parameter_left_operand_is_not_a_lambda": {
+   "rule": "RF02",
+   "dialect": "databricks",
+   "files": {"pass": ["differs", ["extra_wrapper"], ["extra_wrapper: object_reference in table_reference"]]}
+  },
+  "rules/RF02/test_json_arrow_on_plain_column_is_not_a_lambda_duckdb": {"rule": "RF02", "dialect": "duckdb", "files": {"fail": ["equal with implicit as indent", [], []]}},
+  "rules/RF02/test_json_arrow_on_plain_column_is_not_a_lambda_trino": {
+   "rule": "RF02",
+   "dialect": "trino",
+   "files": {"fail": ["differs", ["unparsable"], ["unparsable: trino: expression in select_statement"]]}
+  },
+  "rules/RF02/test_json_arrow_operator_is_not_a_lambda_duckdb": {"rule": "RF02", "dialect": "duckdb", "files": {"pass": ["equal with implicit as indent", [], []]}},
+  "rules/RF02/test_json_arrow_operator_is_not_a_lambda_trino": {
+   "rule": "RF02",
+   "dialect": "trino",
+   "files": {"pass": ["differs", ["unparsable"], ["unparsable: trino: expression in select_statement"]]}
+  },
+  "rules/RF03/fail_but_dont_fix_templated_table_name_consistent": {"rule": "RF03", "dialect": "ansi", "files": {"fail": ["equal with implicit as indent", [], []]}},
+  "rules/RF05/test_fail_special_chars_create_table_hash_unquoted": {
+   "rule": "RF05",
+   "dialect": "tsql",
+   "files": {
+    "fail": [
+     "differs",
+     ["extra_wrapper"],
+     ["extra_wrapper: create_table_statement in create_table_statement", "extra_wrapper: object_reference in table_reference"]
+    ]
+   }
+  },
+  "rules/RF05/test_fail_special_chars_unquoted_policy_aliases": {
+   "rule": "RF05",
+   "dialect": "tsql",
+   "files": {"fail": ["differs", ["extra_wrapper"], ["extra_wrapper: object_reference in table_reference"]]}
+  },
+  "rules/RF05/test_fail_special_chars_unquoted_policy_column_aliases": {
+   "rule": "RF05",
+   "dialect": "tsql",
+   "files": {"fail": ["differs", ["extra_wrapper"], ["extra_wrapper: object_reference in table_reference"]]}
+  },
+  "rules/RF05/test_pass_special_chars_quoted_policy_none": {
+   "rule": "RF05",
+   "dialect": "ansi",
+   "files": {
+    "pass": [
+     "equal with implicit as indent",
+     [],
+     [],
+     "sqruff failed with the full config; parsed with no rules and layout sections: exit code 101: thread 'main' panicked at sqruff-lib-0.41.0/src/rules/references/rf05.rs:31:18:"
+    ]
+   }
+  },
+  "rules/RF06/test_fail_column_reference_prefer_quoted_ansi": {"rule": "RF06", "dialect": "ansi", "files": {"fail": ["equal", [], []]}},
+  "rules/RF06/test_fail_column_reference_prefer_quoted_backticks": {"rule": "RF06", "dialect": "bigquery", "files": {"fail": ["equal", [], []]}},
+  "rules/RF06/test_fail_multiple_references_prefer_quoted_ansi": {"rule": "RF06", "dialect": "ansi", "files": {"fail": ["equal with implicit as indent", [], []]}},
+  "rules/RF06/test_fail_multiple_references_prefer_quoted_backticks": {
+   "rule": "RF06",
+   "dialect": "bigquery",
+   "files": {"fail": ["equal with implicit as indent", [], []]}
+  },
+  "rules/RF06/test_fail_multiple_references_prefer_quoted_tsql": {
+   "rule": "RF06",
+   "dialect": "tsql",
+   "files": {"fail": ["differs", ["extra_wrapper"], ["extra_wrapper: object_reference in table_reference"]]}
+  },
+  "rules/RF06/test_fail_prefer_quoted_identifiers_sqlite_no_fix": {"rule": "RF06", "dialect": "sqlite", "files": {"fail": ["equal", [], []]}},
+  "rules/RF06/test_fail_table_reference_prefer_quoted_ansi": {"rule": "RF06", "dialect": "ansi", "files": {"fail": ["equal with implicit as indent", [], []]}},
+  "rules/RF06/test_fail_table_reference_prefer_quoted_backticks": {
+   "rule": "RF06",
+   "dialect": "bigquery",
+   "files": {"fail": ["equal with implicit as indent", [], []]}
+  },
+  "rules/RF06/test_fail_table_reference_prefer_quoted_tsql": {
+   "rule": "RF06",
+   "dialect": "tsql",
+   "files": {"fail": ["differs", ["extra_wrapper"], ["extra_wrapper: object_reference in table_reference"]]}
+  },
+  "rules/ST02/test_fail_no_copy_code_out_of_template": {"rule": "ST02", "dialect": "ansi", "files": {"fail": ["equal with implicit as indent", [], []]}},
+  "rules/ST04/test_fail_nested_end_on_same_line": {
+   "rule": "ST04",
+   "dialect": "ansi",
+   "files": {
+    "fail": [
+     "equal with implicit as indent",
+     [],
+     []
+    ],
+    "fixed": [
+     "equal with implicit as indent",
+     [],
+     []
+    ]
+   }
+  },
+  "rules/ST04/test_fail_no_copy_code_out_of_template": {"rule": "ST04", "dialect": "ansi", "files": {"fail": ["equal with implicit as indent", [], []]}},
+  "rules/ST05/issue_3617_parentheses_around_ctas_select": {"rule": "ST05", "dialect": "ansi", "files": {"fail": ["equal with implicit as indent", [], []]}},
+  "rules/ST05/uses_templating": {"rule": "ST05", "dialect": "ansi", "files": {"fail": ["equal with implicit as indent", [], []]}},
+  "rules/ST06/test_fail_no_fix_block_comment_before_final_comma": {"rule": "ST06", "dialect": "ansi", "files": {"fail": ["equal with implicit as indent", [], []]}},
+  "rules/ST06/test_fail_no_fix_block_comment_between_unchanged_and_moved_targets": {"rule": "ST06", "dialect": "ansi", "files": {"fail": ["equal with implicit as indent", [], []]}},
+  "rules/ST06/test_fail_no_fix_comment_before_final_comma": {"rule": "ST06", "dialect": "ansi", "files": {"fail": ["equal with implicit as indent", [], []]}},
+  "rules/ST06/test_fail_no_fix_leading_comment_on_moved_target": {"rule": "ST06", "dialect": "ansi", "files": {"fail": ["equal with implicit as indent", [], []]}},
+  "rules/ST06/test_fail_no_fix_standalone_block_comment_after_moved_target": {"rule": "ST06", "dialect": "ansi", "files": {"fail": ["equal with implicit as indent", [], []]}},
+  "rules/ST06/test_fail_no_fix_standalone_comment_after_moved_target": {"rule": "ST06", "dialect": "ansi", "files": {"fail": ["equal with implicit as indent", [], []]}},
+  "rules/ST06/test_fail_no_fix_trailing_comment_inside_cte": {"rule": "ST06", "dialect": "ansi", "files": {"fail": ["equal with implicit as indent", [], []]}},
+  "rules/ST06/test_fail_no_fix_trailing_comment_on_final_target": {"rule": "ST06", "dialect": "ansi", "files": {"fail": ["equal with implicit as indent", [], []]}},
+  "rules/ST06/test_fail_no_fix_trailing_inline_comments": {"rule": "ST06", "dialect": "ansi", "files": {"fail": ["equal with implicit as indent", [], []]}},
+  "rules/ST07/fail_but_dont_fix_templated_table_names": {"rule": "ST07", "dialect": "ansi", "files": {"fail": ["equal with implicit as indent", [], []]}},
+  "templater/jinja_l_metas/001": {"rule": "-", "dialect": "ansi", "files": {"sql": ["equal with implicit as indent", [], []]}},
+  "templater/jinja_l_metas/002": {"rule": "-", "dialect": "ansi", "files": {"sql": ["equal with implicit as indent", [], []]}},
+  "templater/jinja_l_metas/007": {"rule": "-", "dialect": "ansi", "files": {"sql": ["equal with implicit as indent", [], []]}},
+  "templater/jinja_l_metas/008": {"rule": "-", "dialect": "ansi", "files": {"sql": ["equal with implicit as indent", [], []]}},
+  "templater/jinja_l_metas/009": {"rule": "-", "dialect": "ansi", "files": {"sql": ["equal with implicit as indent", [], []]}},
+  "templater/jinja_t_loader_search_path/jinja": {"rule": "-", "dialect": "ansi", "files": {"sql": ["no sqruff tree", [], []]}}
+ }
+}
