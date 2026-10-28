@@ -1,0 +1,31 @@
+# S3 research probe (task T5). This is not sqll and not a harness tool.
+# It lexes and parses one SQL file with the sqlfluffrs 4.4.0 crates, with no
+# Python, and prints the parse record as "sqlfluff parse -f json" does.
+#
+# The path dependencies point to a scratch copy of the sqlfluff submodule
+# (<scratch>/sqlfluff), never to third_party/sqlfluff: the build script of
+# sqlfluffrs_dialects writes generated files into its source tree.
+# scripts/s3/sqlfluffrs_probe.py copies this folder to <scratch>/probe-sqlfluffrs
+# and builds it there.
+[package]
+name = "probe-sqlfluffrs"
+version = "0.0.0"
+edition = "2021"
+publish = false
+license = "MIT"
+description = "S3 research probe, not sqll: native sqlfluffrs lex and parse of one file"
+
+[workspace]
+
+[dependencies]
+sqlfluffrs_dialects = { path = "../sqlfluff/sqlfluffrs/sqlfluffrs_dialects" }
+sqlfluffrs_lexer = { path = "../sqlfluff/sqlfluffrs/sqlfluffrs_lexer" }
+sqlfluffrs_parser = { path = "../sqlfluff/sqlfluffrs/sqlfluffrs_parser" }
+hashbrown = "0.16.1"
+serde_json = "1.0.149"
+serde_yaml_ng = "0.10.0"
+
+# The release profile of the sqlfluffrs workspace.
+[profile.release]
+debug = false
+strip = true
