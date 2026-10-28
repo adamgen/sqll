@@ -54,6 +54,17 @@
       ],
       "note": "Tag v25.8.9.20-lts. Only the stateless tests 00000 to 00299. The full folder has 67 tests in the size range, 3.9 MB in total."
     },
+    "dbt-cerebro": {
+      "repository": "https://github.com/gnosischain/dbt-cerebro",
+      "commit": "b5e7f2ac0704707e33c980ac16bf9fea151a6834",
+      "license": "MIT",
+      "copyright": ["hdser"],
+      "license_files": ["LICENSE"],
+      "include": [
+        {"glob": "models/**/*.sql", "dialect": "clickhouse", "templater": "jinja"}
+      ],
+      "note": "Default branch on 2026-10-28. A dbt project on ClickHouse (profiles.yml: type clickhouse). Only the models: the macro files define macros and render to almost no SQL. The Jinja rule takes the models that use only dbt builtins."
+    },
     "db-sample-schemas": {
       "repository": "https://github.com/oracle-samples/db-sample-schemas",
       "commit": "6660bad68c07bd143430ace58565b3f727e17263",
@@ -129,6 +140,17 @@
         {"glob": "mysql-sakila-db/*.sql", "dialect": "mysql"}
       ],
       "note": "The commit of sakila. mysql-sakila-schema.sql has its own BSD-3-Clause notice, 'Copyright (c) 2006, MySQL AB' (the first license file). The repository LICENSE is BSD-2-Clause (jOOQ); BSD-3-Clause has all its conditions."
+    },
+    "simple_ga4_dbt": {
+      "repository": "https://github.com/admindio/simple_ga4_dbt",
+      "commit": "6452a9ba7be2c269730be6596dff47cba9dcbdc5",
+      "license": "MIT",
+      "copyright": ["Michael Query (Molly Data, LLC)"],
+      "license_files": ["LICENSE"],
+      "include": [
+        {"glob": "models/*.sql", "dialect": "bigquery", "templater": "jinja"}
+      ],
+      "note": "Default branch on 2026-10-28. A dbt package for GA4 data in BigQuery (README.md). Only the models. The Jinja rule takes the models that use only dbt builtins."
     },
     "spark": {
       "repository": "https://github.com/apache/spark",

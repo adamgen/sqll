@@ -8,7 +8,9 @@ file and each candidate file in the size range. build() uses only the
 source list and the cache, never a tool result: a file is in if its path
 matches an include glob, its size is in the range of its templater, its
 bytes are UTF-8, no earlier file (sorted by source and path) has its
-sha256, and the source list does not exclude it. No file is changed. build()
+sha256, and the source list does not exclude it. A templated file must
+also pass the Jinja rule (jinja_names.py): its Jinja code reads only dbt
+builtins, Jinja globals, and names that it sets. No file is changed. build()
 also checks the license text of each source and finds each copyright holder
 in its files. Each copyright notice and license text in a selected file must
 be that of the record of its source (notice_errors), and a selected file
@@ -27,7 +29,8 @@ from typing import Any
 
 from ..paths import REPO_ROOT
 from . import fetch as fetch_module
-from .manifest import FORMAT, MAX_BYTES, MIN_BYTES, RAW, SMOKE_MAX_BYTES
+from . import jinja_names
+from .manifest import FORMAT, JINJA, MAX_BYTES, MIN_BYTES, RAW, SMOKE_MAX_BYTES
 from .manifest import parse as parse_manifest
 
 SOURCES = REPO_ROOT / "corpus" / "select.json"
@@ -502,6 +505,8 @@ class SourceResult:
     out_of_range: int = 0
     excluded: list[str] = field(default_factory=list)
     not_utf8: list[str] = field(default_factory=list)
+    # {path: reason}: the templated files that the Jinja rule refuses.
+    not_builtins_only: dict[str, str] = field(default_factory=dict)
     duplicates: dict[str, str] = field(default_factory=dict)
 
 
@@ -555,6 +560,13 @@ def build(specs: list[SourceSpec], cache: Path) -> tuple[bytes, dict]:
             if text is None:
                 result.not_utf8.append(path)
                 continue
+            names = None
+            if include.templater == JINJA:
+                found = jinja_names.scan(text)
+                if not found.ok:
+                    result.not_builtins_only[path] = found.reason()
+                    continue
+                names = sorted(found.reads)
             sha = hashlib.sha256(data).hexdigest()
             fid = f"{spec.id}/{path}"
             if sha in seen:
@@ -566,7 +578,7 @@ def build(specs: list[SourceSpec], cache: Path) -> tuple[bytes, dict]:
             errors += notice_errors(spec, path, text, folded)
             errors += tpc_errors(spec, path, text)
             result.selected += 1
-            files.append(_record(spec, path, include, data, sha))
+            files.append(_record(spec, path, include, data, sha, names))
         for holder in spec.copyright:
             if not any(_fold(holder) in t for t in folded_texts):
                 errors.append(
@@ -584,6 +596,7 @@ def build(specs: list[SourceSpec], cache: Path) -> tuple[bytes, dict]:
             "out_of_range": result.out_of_range,
             "excluded": result.excluded,
             "not_utf8": result.not_utf8,
+            "not_builtins_only": result.not_builtins_only,
             "duplicates": result.duplicates,
         }
     if errors:
@@ -624,11 +637,32 @@ def _source(spec: SourceSpec, blobs: list[dict]) -> dict:
     return out
 
 
+def selection(include: Include, names: list[str] | None = None) -> str:
+    """Return why a file of include is in. names: the dbt builtins and Jinja
+    globals that a templated file reads (jinja_names.scan)."""
+    low = MIN_BYTES[include.templater]
+    text = (
+        f"glob {include.glob} (dialect {include.dialect}); "
+        f"{low} <= bytes <= {MAX_BYTES}; UTF-8; first file with its sha256"
+    )
+    if include.templater != JINJA:
+        return text
+    return (
+        f"{text}; templater jinja: the Jinja code reads only "
+        f"[{', '.join(names or [])}] (dbt builtins of the pinned sqlfluff and "
+        "Jinja globals) and names that it sets"
+    )
+
+
 def _record(
-    spec: SourceSpec, path: str, include: Include, data: bytes, sha: str
+    spec: SourceSpec,
+    path: str,
+    include: Include,
+    data: bytes,
+    sha: str,
+    names: list[str] | None,
 ) -> dict:
     size = len(data)
-    low = MIN_BYTES[include.templater]
     return {
         "id": f"{spec.id}/{path}",
         "source": spec.id,
@@ -639,10 +673,7 @@ def _record(
         "lines": data.count(b"\n"),
         "sha256": sha,
         "smoke": size <= SMOKE_MAX_BYTES,
-        "selection": (
-            f"glob {include.glob} (dialect {include.dialect}); "
-            f"{low} <= bytes <= {MAX_BYTES}; UTF-8; first file with its sha256"
-        ),
+        "selection": selection(include, names),
     }
 
 

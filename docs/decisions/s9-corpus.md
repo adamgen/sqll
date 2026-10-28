@@ -1,6 +1,7 @@
 # S9 decision: the external corpus
 
-Status: design (T1); run and report (T3); untemplated content (T4). Scope: STONES.md S9;
+Status: design (T1); run and report (T3); untemplated content (T4);
+templated content (T5). Scope: STONES.md S9;
 CONSTITUTION.md G1.3, G3, G4.2, G4.3, G4.5. "Measured": `parse` runs of
 the `scripts/setup` tools on 2026-10-28 (4 CPUs, 16 GiB, machine lock),
 in a new folder with no config file above it. PR #29 (T1) and the T3 pull
@@ -55,11 +56,10 @@ use. Measured candidates:
 | `postgres/postgres` (`7885b94`, REL_17_6) `src/test/regress/sql/` | PostgreSQL | 224; 70 of 16 KiB or more |
 | `lerocha/chinook-database` (`7f67772`) | MIT | 11 of 558 to 614 kB, 6 dialects |
 | `jOOQ/sakila` (`e089a5b`) | BSD-2-Clause | SQL 0.7 to 51 kB; data 2.5 to 9.1 MB |
-| `dbt-labs/jaffle_shop` (`fd7bfac`), 7 `fivetran/dbt_*` packages (T5 pins them) | Apache-2.0 | dbt models |
+| `gnosischain/dbt-cerebro` (`b5e7f2a`), `admindio/simple_ga4_dbt` (`6452a9b`) | MIT | dbt models |
 
 `gitlab-data/analytics` is out: it needs a login (HTTP 302 to `sign_in`).
-T4 chose the untemplated sources ("Content"). T5 chooses the templated
-sources.
+T4 chose the untemplated sources, T5 the templated sources ("Content").
 
 ## Selection
 
@@ -93,6 +93,19 @@ the source note gives the reason. The counts of each source: the output
 of `scripts/s9/select --check`. Smoke: the files of 32 KiB or less.
 Limit (test): 2 MiB and 100 files.
 
+T5 (templated files): the `models/` globs of `dbt-cerebro` (ClickHouse)
+and `simple_ga4_dbt` (BigQuery), with the Jinja rule ("Templated files").
+Measured on 201 `.sql` files of 8 KiB or more in 55 candidate
+repositories. Out: `dbt-labs/jaffle_shop` (no file of 8 KiB or more); 44
+`fivetran/dbt_*` packages (each supports more than one database, so no one
+dialect; 2 of their 62 models of 8 KiB or more pass the rule);
+`tuva-health/tuva` (no model passes the rule); macro packages such as
+`dbt-labs/dbt-utils` (a macro file renders to almost no SQL);
+`duneanalytics/spellbook` (Business Source License), `cal-itp/data-infra`
+(AGPL-3.0), `prefeitura-rio/queries-rj-smtr` (GPL-3.0),
+`snowplow-incubator/dbt-snowplow-identities` (Snowplow license),
+`wnl-icb-analytics/dbt-analytics` (Open Government Licence v3).
+
 Out: `pthom/northwind_psql` (Ms-PL); `OHDSI/CommonDataModel`,
 `GoogleCloudPlatform/data-analytics-golden-demo` (no root license file);
 `duckdb/duckdb` v1.5.6 (only TPC-DS queries in range); `trinodb/trino`
@@ -108,8 +121,28 @@ dbt templater is out (G1.3). Their leaf text is the render: on
 of 1156 characters (measured). Thus the check compares the leaf text
 with the render of the pinned sqlfluff (the reference, as in S2). If
 that render fails, the file stays, and each tool gets the status `no
-reference` with its parse data: no tool gets a success on it. T5 gives
-the render settings of each source.
+reference` with its parse data: no tool gets a success on it.
+
+**Jinja rule** (T5, `harness/sqll_harness/corpus/jinja_names.py`). A
+templated file is in only if its Jinja code reads only the dbt builtins of
+the pinned sqlfluff
+(`DBT_BUILTINS`), the Jinja globals, `loop` in a `for` block, `varargs` and
+`kwargs` in a `macro` block, and names that it sets before in the same
+block or an outer block. Each tag must be complete. Each statement must be
+`if`, `for`, `set`, `macro`, `with`, `filter`, `do`, `raw`, or an end.
+Thus no `import`, `include`, `extends`, or `call`, and no `break` or
+`continue` (the pinned sqlfluff loads only the `do` extension). The scan reads
+only the file text, with no tool and no Jinja library. Reason: then the
+file is the only render input, and its sha256 pins the render. The
+`selection` of each file gives the names that it reads. On the 201 files
+of "Content", the rule and `jinja2.meta.find_undeclared_variables` agree
+on 200. On 1 file, Jinja also names a variable that a `set` block in an
+`if` block sets, but the file does not read it (measured).
+
+**Render settings** (all tools and the reference): `templater = jinja`
+and `apply_dbt_builtins = True`. No template variable, macro path, or
+library path. The builtins give `ref('a')` = `a`, `var(...)` = `item`, and
+`is_incremental()` = true.
 
 ## Size
 
@@ -152,6 +185,10 @@ result then measures the limit, not the parser. Measured on 87 files of
 - Lifted: each tool gives a tree on each file, but sqruff panics on
   `strings.sql` (`parsers.rs:333`) with the defaults and with lifted
   limits. No run stops at `max_parse_depth`.
+- T5 smoke run: each tool gives no tree (exit code 1) on the templated
+  `dbt-cerebro/models/p2p/staging/stg_crawlers_data__ipinfo.sql`.
+  `sqlfluff lint` and `sqlfluff[rs]` lint of its render say "Maximum parse
+  depth exceeded (limit 600)". The setting stays; T6 records the result.
 
 ## Parse check and report
 

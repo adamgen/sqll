@@ -29,6 +29,11 @@ def sql(size: int, fill: str) -> bytes:
     return data[: size - 1] + b"\n"
 
 
+def jinja(size: int, head: str) -> bytes:
+    """A templated file: a Jinja header and SQL lines."""
+    return head.encode() + sql(size - len(head), "f")
+
+
 FILES = {
     "LICENSE": MIT.encode(),
     "sql/a.sql": sql(20 * KIB, "a"),
@@ -37,7 +42,8 @@ FILES = {
     "sql/latin1.sql": sql(20 * KIB, "c")[:-2] + b"\xe9\n",
     "sql/small.sql": sql(2 * KIB, "d"),
     "sql/sub/deep.sql": sql(20 * KIB, "e"),
-    "models/m.sql": sql(9 * KIB, "f"),
+    "models/m.sql": jinja(9 * KIB, "{{ config(materialized='table') }}\n"),
+    "models/macro.sql": jinja(9 * KIB, "{{ dbt_utils.star(ref('t')) }}\n"),
     "other/x.sql": sql(20 * KIB, "g"),
 }
 
@@ -115,11 +121,12 @@ def test_select_applies_the_rules(tmp_path, repo, cache):
     man = m.parse(text)
     assert [f.path for f in man.files] == ["models/m.sql", "sql/a.sql", "sql/big.sql"]
     assert summary["sources"]["demo"] == {
-        "candidates": 6,
+        "candidates": 7,
         "selected": 3,
         "out_of_range": 1,
         "excluded": [],
         "not_utf8": ["sql/latin1.sql"],
+        "not_builtins_only": {"models/macro.sql": "it reads dbt_utils"},
         "duplicates": {"demo/sql/b_copy.sql": "demo/sql/a.sql"},
     }
     models, a, big = man.files
@@ -134,6 +141,12 @@ def test_select_applies_the_rules(tmp_path, repo, cache):
     assert a.selection == (
         "glob sql/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; "
         "first file with its sha256"
+    )
+    assert models.selection == (
+        "glob models/*.sql (dialect snowflake); 8192 <= bytes <= 2097152; UTF-8; "
+        "first file with its sha256; templater jinja: the Jinja code reads only "
+        "[config] (dbt builtins of the pinned sqlfluff and Jinja globals) and "
+        "names that it sets"
     )
     source = man.sources["demo"]
     assert source.globs == ("sql/*.sql", "models/*.sql")
@@ -162,6 +175,7 @@ def test_cache_has_the_listing_and_only_the_needed_files(tmp_path, repo, cache):
     assert sorted(listing["files"]) == [
         "LICENSE",
         "models/m.sql",
+        "models/macro.sql",
         "sql/a.sql",
         "sql/b_copy.sql",
         "sql/big.sql",

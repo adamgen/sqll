@@ -66,6 +66,10 @@ RUST_ITERATIONS = 1_000_000_000_000
 TOOL_LAYERS: dict[str, dict[str, Any]] = {
     "sqlfluff-rs": {"core": {"rust_parser_max_iterations": RUST_ITERATIONS}},
 }
+# docs/decisions/s9-corpus.md, "Templated files": the render settings. The
+# dbt builtins, and no template variable, macro path, or library path: the
+# selection takes only files that need nothing more (jinja_names.py).
+JINJA_SETTINGS: dict[str, Any] = {"templater": {"jinja": {"apply_dbt_builtins": True}}}
 _NEWLINES = re.compile(r"\r\n|\r")
 _ANSI = re.compile(r"\x1b\[[0-9;]*m")
 BOM = "\ufeff"
@@ -84,10 +88,13 @@ class MergeError(Exception):
 
 def settings(templater: str) -> dict[str, Any]:
     """Return the corpus settings of all tools: the S2 settings, the
-    templater of the file, and no parse node limit."""
+    templater of the file, and no parse node limit. A templated file also
+    gets the render settings (JINJA_SETTINGS)."""
     s = bench_settings()
     s["core"]["templater"] = templater
     s["core"]["max_parse_nodes"] = 0
+    if templater == JINJA:
+        s = nested_combine(s, deepcopy(JINJA_SETTINGS))
     return s
 
 

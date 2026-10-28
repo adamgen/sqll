@@ -5,10 +5,12 @@ No test uses the network.
 """
 
 import json
+import re
 from collections import Counter
 
 import pytest
 
+from sqll_harness.corpus import jinja_names
 from sqll_harness.corpus import manifest as m
 from sqll_harness.corpus import select as s
 from sqll_harness.paths import REPO_ROOT
@@ -18,6 +20,16 @@ SMOKE_TOTAL_MAX_BYTES = 2 * 1024 * 1024
 SMOKE_MAX_FILES = 100
 # The dialects with a permissive source (T4 task scope).
 DIALECTS = {"postgres", "mysql", "tsql", "oracle", "sqlite", "snowflake", "bigquery"}
+# The dialects of the templated sources (T5).
+TEMPLATED_DIALECTS = {"bigquery", "clickhouse"}
+_NAMES = re.compile(r"; templater jinja: the Jinja code reads only \[([a-z_, ]*)\] ")
+
+
+def _reads(selection: str) -> list[str]:
+    """Return the names in the selection of a templated file ([] for "[]")."""
+    names = _NAMES.search(selection)
+    assert names, selection
+    return names.group(1).split(", ") if names.group(1) else []
 
 
 @pytest.fixture(scope="module")
@@ -72,10 +84,23 @@ def test_each_file_has_the_dialect_templater_and_note_of_its_glob(manifest, spec
         assert f.templater == include.templater
         low = m.MIN_BYTES[f.templater]
         assert low <= f.bytes <= m.MAX_BYTES, f.id
-        assert f.selection == (
+        rule = (
             f"glob {include.glob} (dialect {include.dialect}); "
             f"{low} <= bytes <= {m.MAX_BYTES}; UTF-8; first file with its sha256"
         )
+        if f.templater == m.RAW:
+            assert f.selection == rule == s.selection(include)
+            continue
+        assert f.selection.startswith(rule + "; templater jinja: "), f.id
+        reads = _reads(f.selection)
+        assert reads == sorted(set(reads)) and set(reads) <= jinja_names.allowed()
+        assert f.selection == s.selection(include, reads), f.id
+
+
+def test_the_read_names_of_a_selection():
+    include = s.Include("models/*.sql", "ansi", m.JINJA)
+    assert _reads(s.selection(include, [])) == []
+    assert _reads(s.selection(include, ["config", "ref"])) == ["config", "ref"]
 
 
 def test_excluded_files_are_not_in_the_manifest(manifest, specs):
@@ -98,6 +123,21 @@ def test_untemplated_files_cover_the_dialects_and_sizes(manifest):
     assert DIALECTS <= {f.dialect for f in raw}
     assert sum(f.bytes > 100_000 for f in raw) >= 5
     assert sum(f.bytes > 1_000_000 for f in raw) >= 1
+
+
+def test_templated_files_use_only_the_dbt_builtins(manifest, specs):
+    jinja = [f for f in manifest.files if f.templater == m.JINJA]
+    assert len(jinja) >= 10
+    assert {f.dialect for f in jinja} == TEMPLATED_DIALECTS
+    assert len({f.source for f in jinja}) >= 2
+    used = set()
+    for f in jinja:
+        used |= set(_reads(f.selection))
+    # The files use the main dbt builtins, and no name outside the rule.
+    assert {"config", "ref", "source", "var", "is_incremental", "this"} <= used
+    # A source of templated files has only templated globs.
+    for sid in {f.source for f in jinja}:
+        assert {i.templater for i in specs[sid].include} == {m.JINJA}
 
 
 def test_smoke_subset_is_small(manifest):

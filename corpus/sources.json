@@ -110,6 +110,25 @@
       ],
       "note": "Default branch on 2026-10-28. Not order_entry: 39 files (3.4 MB) in the size range, most of them product text in many languages. The selected files have the notice 'Copyright (c) 2023 Oracle'."
     },
+    "dbt-cerebro": {
+      "repository": "https://github.com/gnosischain/dbt-cerebro",
+      "commit": "b5e7f2ac0704707e33c980ac16bf9fea151a6834",
+      "license": "MIT",
+      "copyright": [
+        "hdser"
+      ],
+      "license_files": [
+        {
+          "path": "LICENSE",
+          "bytes": 1062,
+          "sha256": "573ff9bd7b42fb56f2828a23a92f9e531924dad13c47ee8f8bb38063d6b16abc"
+        }
+      ],
+      "globs": [
+        "models/**/*.sql"
+      ],
+      "note": "Default branch on 2026-10-28. A dbt project on ClickHouse (profiles.yml: type clickhouse). Only the models: the macro files define macros and render to almost no SQL. The Jinja rule takes the models that use only dbt builtins."
+    },
     "emerging-solutions-toolbox": {
       "repository": "https://github.com/Snowflake-Labs/emerging-solutions-toolbox",
       "commit": "d9073a376b4c9479d444cff57becc9c98b26e7e3",
@@ -222,6 +241,25 @@
         "mysql-sakila-db/*.sql"
       ],
       "note": "The commit of sakila. mysql-sakila-schema.sql has its own BSD-3-Clause notice, 'Copyright (c) 2006, MySQL AB' (the first license file). The repository LICENSE is BSD-2-Clause (jOOQ); BSD-3-Clause has all its conditions."
+    },
+    "simple_ga4_dbt": {
+      "repository": "https://github.com/admindio/simple_ga4_dbt",
+      "commit": "6452a9ba7be2c269730be6596dff47cba9dcbdc5",
+      "license": "MIT",
+      "copyright": [
+        "Michael Query (Molly Data, LLC)"
+      ],
+      "license_files": [
+        {
+          "path": "LICENSE",
+          "bytes": 1091,
+          "sha256": "5cc256abf7515bef9d7a6eb669d4c19b851591c70b203693b6b6d2cb647cedfa"
+        }
+      ],
+      "globs": [
+        "models/*.sql"
+      ],
+      "note": "Default branch on 2026-10-28. A dbt package for GA4 data in BigQuery (README.md). Only the models. The Jinja rule takes the models that use only dbt builtins."
     },
     "spark": {
       "repository": "https://github.com/apache/spark",
@@ -611,6 +649,210 @@
       "sha256": "1581dabda1e0b482f0ec37c9ca5d2cb6968926b84df4f62a6e639d44cc9a3bcd",
       "smoke": false,
       "selection": "glob sales_history/*.sql (dialect oracle); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "dbt-cerebro/models/ESG/intermediate/int_esg_dynamic_power_consumption.sql",
+      "source": "dbt-cerebro",
+      "path": "models/ESG/intermediate/int_esg_dynamic_power_consumption.sql",
+      "dialect": "clickhouse",
+      "templater": "jinja",
+      "bytes": 10298,
+      "lines": 284,
+      "sha256": "7e32c7afe5dcabf1a44f905d74ab8abb84972c97075f1b200fa70e4c097c4e88",
+      "smoke": true,
+      "selection": "glob models/**/*.sql (dialect clickhouse); 8192 <= bytes <= 2097152; UTF-8; first file with its sha256; templater jinja: the Jinja code reads only [config, is_incremental, ref, this] (dbt builtins of the pinned sqlfluff and Jinja globals) and names that it sets"
+    },
+    {
+      "id": "dbt-cerebro/models/ESG/marts/fct_esg_carbon_footprint_uncertainty.sql",
+      "source": "dbt-cerebro",
+      "path": "models/ESG/marts/fct_esg_carbon_footprint_uncertainty.sql",
+      "dialect": "clickhouse",
+      "templater": "jinja",
+      "bytes": 15270,
+      "lines": 348,
+      "sha256": "b44523018e667cbad8084cdb17cd1db9c5a1c20738b7435f66ad0384eb305f56",
+      "smoke": true,
+      "selection": "glob models/**/*.sql (dialect clickhouse); 8192 <= bytes <= 2097152; UTF-8; first file with its sha256; templater jinja: the Jinja code reads only [config, is_incremental, ref, this] (dbt builtins of the pinned sqlfluff and Jinja globals) and names that it sets"
+    },
+    {
+      "id": "dbt-cerebro/models/celo/gpay/marts/fct_celo_gpay_cardholder_engagement.sql",
+      "source": "dbt-cerebro",
+      "path": "models/celo/gpay/marts/fct_celo_gpay_cardholder_engagement.sql",
+      "dialect": "clickhouse",
+      "templater": "jinja",
+      "bytes": 9692,
+      "lines": 190,
+      "sha256": "130f001f02a56953a6ba2c5f0f4113888959bf8cbfe0fae124baa349d88fba4b",
+      "smoke": true,
+      "selection": "glob models/**/*.sql (dialect clickhouse); 8192 <= bytes <= 2097152; UTF-8; first file with its sha256; templater jinja: the Jinja code reads only [config, ref] (dbt builtins of the pinned sqlfluff and Jinja globals) and names that it sets"
+    },
+    {
+      "id": "dbt-cerebro/models/celo/gpay/marts/fct_celo_gpay_settlement_batches.sql",
+      "source": "dbt-cerebro",
+      "path": "models/celo/gpay/marts/fct_celo_gpay_settlement_batches.sql",
+      "dialect": "clickhouse",
+      "templater": "jinja",
+      "bytes": 8792,
+      "lines": 171,
+      "sha256": "f87b644ab8ba92293c9caa957c015eac121e0d66cb8e578ff80b54bd3133226d",
+      "smoke": true,
+      "selection": "glob models/**/*.sql (dialect clickhouse); 8192 <= bytes <= 2097152; UTF-8; first file with its sha256; templater jinja: the Jinja code reads only [config, ref] (dbt builtins of the pinned sqlfluff and Jinja globals) and names that it sets"
+    },
+    {
+      "id": "dbt-cerebro/models/crawlers_data/staging/stg_crawlers_data__dune_labels.sql",
+      "source": "dbt-cerebro",
+      "path": "models/crawlers_data/staging/stg_crawlers_data__dune_labels.sql",
+      "dialect": "clickhouse",
+      "templater": "jinja",
+      "bytes": 9110,
+      "lines": 196,
+      "sha256": "4f79f61efbf9fcd73db8ff0a682545b50e43c8fb0a850e46ccac47b05b826a32",
+      "smoke": true,
+      "selection": "glob models/**/*.sql (dialect clickhouse); 8192 <= bytes <= 2097152; UTF-8; first file with its sha256; templater jinja: the Jinja code reads only [config, ref, source] (dbt builtins of the pinned sqlfluff and Jinja globals) and names that it sets"
+    },
+    {
+      "id": "dbt-cerebro/models/execution/Circles/intermediate/int_execution_circles_v2_avatar_metadata.sql",
+      "source": "dbt-cerebro",
+      "path": "models/execution/Circles/intermediate/int_execution_circles_v2_avatar_metadata.sql",
+      "dialect": "clickhouse",
+      "templater": "jinja",
+      "bytes": 9877,
+      "lines": 220,
+      "sha256": "136e061efdafaf2cfd3d5bc259f458fd83d5010bd2463a9df859d066eab2e6d5",
+      "smoke": true,
+      "selection": "glob models/**/*.sql (dialect clickhouse); 8192 <= bytes <= 2097152; UTF-8; first file with its sha256; templater jinja: the Jinja code reads only [config, is_incremental, ref, source, this, var] (dbt builtins of the pinned sqlfluff and Jinja globals) and names that it sets"
+    },
+    {
+      "id": "dbt-cerebro/models/execution/Circles/marts/api_execution_circles_v2_pool_explorer_liquidity_events.sql",
+      "source": "dbt-cerebro",
+      "path": "models/execution/Circles/marts/api_execution_circles_v2_pool_explorer_liquidity_events.sql",
+      "dialect": "clickhouse",
+      "templater": "jinja",
+      "bytes": 10017,
+      "lines": 176,
+      "sha256": "3977a7a76b82c1085448db961ec9d09cc7550d368aac06c56859a3269170178b",
+      "smoke": true,
+      "selection": "glob models/**/*.sql (dialect clickhouse); 8192 <= bytes <= 2097152; UTF-8; first file with its sha256; templater jinja: the Jinja code reads only [config, ref] (dbt builtins of the pinned sqlfluff and Jinja globals) and names that it sets"
+    },
+    {
+      "id": "dbt-cerebro/models/execution/accounts/marts/fct_execution_account_profile_latest.sql",
+      "source": "dbt-cerebro",
+      "path": "models/execution/accounts/marts/fct_execution_account_profile_latest.sql",
+      "dialect": "clickhouse",
+      "templater": "jinja",
+      "bytes": 9493,
+      "lines": 244,
+      "sha256": "a1a92efd592a46ecc8ef4b483615f4d283fabb296eff5376fbba5c73b9bdc0eb",
+      "smoke": true,
+      "selection": "glob models/**/*.sql (dialect clickhouse); 8192 <= bytes <= 2097152; UTF-8; first file with its sha256; templater jinja: the Jinja code reads only [config, ref] (dbt builtins of the pinned sqlfluff and Jinja globals) and names that it sets"
+    },
+    {
+      "id": "dbt-cerebro/models/execution/gnosis_app_gt/intermediate/int_execution_gnosis_app_gt_user_activity.sql",
+      "source": "dbt-cerebro",
+      "path": "models/execution/gnosis_app_gt/intermediate/int_execution_gnosis_app_gt_user_activity.sql",
+      "dialect": "clickhouse",
+      "templater": "jinja",
+      "bytes": 8907,
+      "lines": 131,
+      "sha256": "54f05fb3359fc971193c4ed2d213b7aa4ec0b2a10b7a992ad5a9fe8a2a486bc9",
+      "smoke": true,
+      "selection": "glob models/**/*.sql (dialect clickhouse); 8192 <= bytes <= 2097152; UTF-8; first file with its sha256; templater jinja: the Jinja code reads only [config, ref] (dbt builtins of the pinned sqlfluff and Jinja globals) and names that it sets"
+    },
+    {
+      "id": "dbt-cerebro/models/execution/hopr/intermediate/int_hopr_channels_events.sql",
+      "source": "dbt-cerebro",
+      "path": "models/execution/hopr/intermediate/int_hopr_channels_events.sql",
+      "dialect": "clickhouse",
+      "templater": "jinja",
+      "bytes": 13594,
+      "lines": 283,
+      "sha256": "d9e8d5750302fc28da3c03f29f8cdfd6c1ffc56a035ef20f4d9e381d6eeaa803",
+      "smoke": true,
+      "selection": "glob models/**/*.sql (dialect clickhouse); 8192 <= bytes <= 2097152; UTF-8; first file with its sha256; templater jinja: the Jinja code reads only [config, ref] (dbt builtins of the pinned sqlfluff and Jinja globals) and names that it sets"
+    },
+    {
+      "id": "dbt-cerebro/models/execution/hopr/intermediate/int_hopr_nodes.sql",
+      "source": "dbt-cerebro",
+      "path": "models/execution/hopr/intermediate/int_hopr_nodes.sql",
+      "dialect": "clickhouse",
+      "templater": "jinja",
+      "bytes": 21746,
+      "lines": 407,
+      "sha256": "0624f59e40673c6396ffffaec563090a838147924b178c7c60c1e5509512c0b2",
+      "smoke": true,
+      "selection": "glob models/**/*.sql (dialect clickhouse); 8192 <= bytes <= 2097152; UTF-8; first file with its sha256; templater jinja: the Jinja code reads only [config, ref] (dbt builtins of the pinned sqlfluff and Jinja globals) and names that it sets"
+    },
+    {
+      "id": "dbt-cerebro/models/execution/lending/intermediate/int_execution_lending_aave_daily.sql",
+      "source": "dbt-cerebro",
+      "path": "models/execution/lending/intermediate/int_execution_lending_aave_daily.sql",
+      "dialect": "clickhouse",
+      "templater": "jinja",
+      "bytes": 13524,
+      "lines": 337,
+      "sha256": "f3ff4426e6b95de5427f0d7b9606037eeb6c976a1d7c8e8acc9cf9ff40653a8c",
+      "smoke": true,
+      "selection": "glob models/**/*.sql (dialect clickhouse); 8192 <= bytes <= 2097152; UTF-8; first file with its sha256; templater jinja: the Jinja code reads only [config, is_incremental, ref, this, var] (dbt builtins of the pinned sqlfluff and Jinja globals) and names that it sets"
+    },
+    {
+      "id": "dbt-cerebro/models/execution/ubo/intermediate/int_ubo_claims_curve_daily.sql",
+      "source": "dbt-cerebro",
+      "path": "models/execution/ubo/intermediate/int_ubo_claims_curve_daily.sql",
+      "dialect": "clickhouse",
+      "templater": "jinja",
+      "bytes": 9311,
+      "lines": 246,
+      "sha256": "4a4531cd44e8545b9834440a320871e71203bc77d0a820a076437112198587f9",
+      "smoke": true,
+      "selection": "glob models/**/*.sql (dialect clickhouse); 8192 <= bytes <= 2097152; UTF-8; first file with its sha256; templater jinja: the Jinja code reads only [config, ref] (dbt builtins of the pinned sqlfluff and Jinja globals) and names that it sets"
+    },
+    {
+      "id": "dbt-cerebro/models/execution/yields/marts/fct_execution_yields_opportunities_latest.sql",
+      "source": "dbt-cerebro",
+      "path": "models/execution/yields/marts/fct_execution_yields_opportunities_latest.sql",
+      "dialect": "clickhouse",
+      "templater": "jinja",
+      "bytes": 9881,
+      "lines": 321,
+      "sha256": "cd2ed1122ab56aad145921407ca1b34ba8f9306a0f9e0dc99505ec330fdc31c5",
+      "smoke": true,
+      "selection": "glob models/**/*.sql (dialect clickhouse); 8192 <= bytes <= 2097152; UTF-8; first file with its sha256; templater jinja: the Jinja code reads only [config, ref] (dbt builtins of the pinned sqlfluff and Jinja globals) and names that it sets"
+    },
+    {
+      "id": "dbt-cerebro/models/execution/yields/marts/fct_execution_yields_overview_snapshot.sql",
+      "source": "dbt-cerebro",
+      "path": "models/execution/yields/marts/fct_execution_yields_overview_snapshot.sql",
+      "dialect": "clickhouse",
+      "templater": "jinja",
+      "bytes": 8301,
+      "lines": 289,
+      "sha256": "eca7b27b919adb4d54ff1aa1738f631ba9d62b760847e6631cf96f4eaddcc4a2",
+      "smoke": true,
+      "selection": "glob models/**/*.sql (dialect clickhouse); 8192 <= bytes <= 2097152; UTF-8; first file with its sha256; templater jinja: the Jinja code reads only [config, ref] (dbt builtins of the pinned sqlfluff and Jinja globals) and names that it sets"
+    },
+    {
+      "id": "dbt-cerebro/models/governance/intermediate/int_governance_gip.sql",
+      "source": "dbt-cerebro",
+      "path": "models/governance/intermediate/int_governance_gip.sql",
+      "dialect": "clickhouse",
+      "templater": "jinja",
+      "bytes": 9079,
+      "lines": 206,
+      "sha256": "e1bf9b7574df976b8061dfedb6c26fe860fcdf4fc3f2e150c949d986b449fb77",
+      "smoke": true,
+      "selection": "glob models/**/*.sql (dialect clickhouse); 8192 <= bytes <= 2097152; UTF-8; first file with its sha256; templater jinja: the Jinja code reads only [config, ref] (dbt builtins of the pinned sqlfluff and Jinja globals) and names that it sets"
+    },
+    {
+      "id": "dbt-cerebro/models/p2p/staging/stg_crawlers_data__ipinfo.sql",
+      "source": "dbt-cerebro",
+      "path": "models/p2p/staging/stg_crawlers_data__ipinfo.sql",
+      "dialect": "clickhouse",
+      "templater": "jinja",
+      "bytes": 10648,
+      "lines": 121,
+      "sha256": "ce18075a6703ec5b53e7a1b7003bd89d10158762c8348369239421c2cce1bdea",
+      "smoke": true,
+      "selection": "glob models/**/*.sql (dialect clickhouse); 8192 <= bytes <= 2097152; UTF-8; first file with its sha256; templater jinja: the Jinja code reads only [config, source] (dbt builtins of the pinned sqlfluff and Jinja globals) and names that it sets"
     },
     {
       "id": "emerging-solutions-toolbox/framework-zamboni/demo/02_zamboni_demo.sql",
@@ -1655,6 +1897,30 @@
       "sha256": "f2c41c3bf6d6c239941b4f98fb37afad21f6be12b82bf586202529a793ccc2ee",
       "smoke": true,
       "selection": "glob mysql-sakila-db/*.sql (dialect mysql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "simple_ga4_dbt/models/simple_ga4__sessions.sql",
+      "source": "simple_ga4_dbt",
+      "path": "models/simple_ga4__sessions.sql",
+      "dialect": "bigquery",
+      "templater": "jinja",
+      "bytes": 28649,
+      "lines": 361,
+      "sha256": "7ed6aa2418b006a41f6deb6be1a9ded90c82bdeed1f4bf3d42b9871083546413",
+      "smoke": true,
+      "selection": "glob models/*.sql (dialect bigquery); 8192 <= bytes <= 2097152; UTF-8; first file with its sha256; templater jinja: the Jinja code reads only [config, is_incremental, ref, var] (dbt builtins of the pinned sqlfluff and Jinja globals) and names that it sets"
+    },
+    {
+      "id": "simple_ga4_dbt/models/simple_ga4__users.sql",
+      "source": "simple_ga4_dbt",
+      "path": "models/simple_ga4__users.sql",
+      "dialect": "bigquery",
+      "templater": "jinja",
+      "bytes": 10547,
+      "lines": 103,
+      "sha256": "f4724a2c85b16ad2f8410c17a5e528d25dcd4a05267e0a80e29b61bff92595c5",
+      "smoke": true,
+      "selection": "glob models/*.sql (dialect bigquery); 8192 <= bytes <= 2097152; UTF-8; first file with its sha256; templater jinja: the Jinja code reads only [config, ref] (dbt builtins of the pinned sqlfluff and Jinja globals) and names that it sets"
     },
     {
       "id": "spark/sql/core/src/test/resources/sql-tests/inputs/cte-recursion.sql",
