@@ -392,6 +392,8 @@ def run(
     policy = PROFILES[profile]
     adapters = sorted(adapters, key=lambda a: a.name)
     selected = select(manifest, profile, shard)
+    if render is None and any(f.templater == JINJA for f in selected):
+        raise RunError("a templated file needs the reference render")
     timer_entry = overhead(work / "overhead")
     inputs: dict[str, dict] = {}
     results: list[dict] = []
@@ -404,27 +406,28 @@ def run(
             raise RunError(f"{entry.id}: {path} is not the file of the manifest")
         folder = work / "files" / str(i)
         expected, no_reference, ref = data.decode("utf8"), None, None
-        if entry.templater == JINJA:
-            if render is None:
-                raise RunError(f"{entry.id}: a templated file needs a render")
-            expected, no_reference = render(
-                entry, data, reference_config(entry), folder / REFERENCE_DIR
-            )
-            sha = None if expected is None else _sha256(expected.encode("utf8"))
-            ref = report.reference_record(sha, no_reference)
-        inputs[entry.id] = report.input_record(entry, ref)
         try:
+            if entry.templater == JINJA:
+                expected, no_reference = render(
+                    entry, data, reference_config(entry), folder / REFERENCE_DIR
+                )
+                sha = None if expected is None else _sha256(expected.encode("utf8"))
+                ref = report.reference_record(sha, no_reference)
             entries = measure_file(
                 entry, data, adapters, policy, folder, expected, no_reference
             )
         except Exception as exc:  # noqa: BLE001 - one file must not stop the run.
-            m = Measurement(timer.ERROR, f"harness error: {exc!r}", [], None)
+            reason = f"harness error: {exc!r}"
+            if entry.templater == JINJA and ref is None:
+                ref = report.reference_record(None, reason)
+            m = Measurement(timer.ERROR, reason, [], None)
             entries = [
                 report.result_entry(
-                    entry.id, entry.bytes, a.name, report.ERROR, m.reason, m, None
+                    entry.id, entry.bytes, a.name, report.ERROR, reason, m, None
                 )
                 for a in adapters
             ]
+        inputs[entry.id] = report.input_record(entry, ref)
         shutil.rmtree(folder, ignore_errors=True)
         results += entries
         if progress:

@@ -139,7 +139,10 @@ each compared tool succeeds (as S2).
 Line ends: the compare removes a first byte order mark and changes each
 `\r\n` and `\r` to `\n` in both texts. Reason: the pinned sqlfluff does
 this before it lexes, and each of the 3 tools gives a tree of 17
-characters for a 19-byte `\r\n` file (measured). The corpus check reads
+characters for a 19-byte `\r\n` file (measured). The render of a
+templated file is the output of `sqlfluff render` with
+`render_variant_limit = 1`: the tree is that of the first variant, and the
+output then has no variant headers. The corpus check reads
 the tree with the adapter `read_tree` and the S2 problem messages, not
 with `check_tree`: it needs the unparsable count and this compare.
 

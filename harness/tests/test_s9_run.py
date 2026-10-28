@@ -520,6 +520,24 @@ def test_a_new_tool_runs_each_file_through_the_registry_alone(smoke):
     assert "sqll" not in smoke["manifest"].text.decode()
 
 
+def test_a_render_that_stops_gives_an_error_for_each_tool(tmp_path, monkeypatch):
+    env = Env(tmp_path, monkeypatch)
+
+    def stop(entry, data, config, folder):
+        raise OSError("no python")
+
+    monkeypatch.setattr(corpus_main, "make_render", lambda: stop)
+    assert env.run("r.json", "--profile", "smoke") == 0
+    rep = env.load("r.json")
+    assert report.check(rep) == []
+    r = by_key(rep)[("models/tmpl.sql", "sqlfluff")]
+    assert r["status"] == "error"
+    assert r["reason"] == "harness error: OSError('no python')"
+    ref = rep["inputs"]["demo/models/tmpl.sql"]["reference"]
+    assert ref["status"] == "failed" and ref["reason"] == r["reason"]
+    assert by_key(rep)[("sql/ok.sql", "sqlfluff")]["status"] == "ok"
+
+
 def test_the_run_fails_closed_on_a_changed_cache_file(tmp_path, monkeypatch):
     env = Env(tmp_path, monkeypatch)
     path = env.cache / "demo" / COMMIT / "sql" / "ok.sql"
@@ -771,14 +789,27 @@ def test_check_fails_on_a_report_of_another_manifest(full, capsys):
 # The real tools.
 
 
+JINJA_LINE = (
+    b"SELECT {{ 1 + 1 }} AS a FROM {{ ref('t') }}"
+    b"{% if is_incremental() %} WHERE a > 1{% endif %};\n"
+)
+
+
 def real_case(tmp: Path) -> tuple[Path, dict[str, bytes]]:
     """A manifest of 3 synthetic files in a fetch cache: ansi (raw), soql
     (raw), and a jinja file with a dbt builtin."""
     raw = sql(16 * KIB, line=b"SELECT a, b FROM t WHERE a > 1;\n")
     soql = sql(16 * KIB, line=b"SELECT Id FROM Account\n")
-    jinja = sql(8 * KIB, line=b"SELECT {{ 1 + 1 }} AS a FROM {{ ref('t') }};\n")
-    files = {"sql/ansi.sql": raw, "sql/soql.sql": soql, "models/m.sql": jinja}
+    jinja = sql(8 * KIB, line=JINJA_LINE)
+    bad = sql(8 * KIB, line=b"SELECT {{ no_such_macro() }} AS a;\n")
+    files = {
+        "sql/ansi.sql": raw,
+        "sql/soql.sql": soql,
+        "models/m.sql": jinja,
+        "models/bad.sql": bad,
+    }
     cases = [
+        ("models/bad.sql", None, "jinja", 0, "ansi"),
         ("models/m.sql", None, "jinja", 0, "ansi"),
         ("sql/ansi.sql", None, "raw", 0, "ansi"),
         ("sql/soql.sql", None, "raw", 0, "soql"),
@@ -810,9 +841,18 @@ def test_the_real_tools_give_a_report_with_no_schema_error(tmp_path, capsys):
     assert rows[("sql/soql.sql", "sqruff")]["status"] == "unsupported"
     assert rows[("sql/soql.sql", "sqruff")]["reason"] == "unsupported: dialect soql"
     ref = rep["inputs"]["demo/models/m.sql"]["reference"]
-    render = files["models/m.sql"].decode().replace("{{ 1 + 1 }}", "2")
-    render = render.replace("{{ ref('t') }}", "t")
+    # The dbt builtin is_incremental() is true.
+    line = JINJA_LINE.decode()
+    render = (
+        files["models/m.sql"]
+        .decode()
+        .replace(line, "SELECT 2 AS a FROM t WHERE a > 1;\n")
+    )
     assert ref["status"] == "ok" and ref["sha256"] == sha(render.encode())
+    bad = rep["inputs"]["demo/models/bad.sql"]["reference"]
+    assert bad["status"] == "failed"
+    assert bad["reason"].startswith("the render failed: exit code 1: ")
+    assert rows[("models/bad.sql", "sqlfluff")]["status"] == "no_reference"
     rs = rep["tools"]["sqlfluff-rs"]["settings"]["raw"]["core"]
     assert rs["rust_parser_max_iterations"] == 10**12
     assert corpus_main.main(["check", "--manifest", str(path), str(out)]) == 0

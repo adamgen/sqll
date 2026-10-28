@@ -3,48 +3,38 @@
 
 The leaf text of a tree of a templated file is the render, not the input.
 Thus the parse check compares it with the render of the pinned sqlfluff
-(the reference). render() runs the Python of the sqlfluff tool venv once
-for a file, with the config file of the sqlfluff benchmark adapter and the
-corpus settings. It does the steps of "sqlfluff render" and "sqlfluff
-parse" (load the file and its config, then render) and writes the render
-of each variant as JSON, so no output format can change the text. The
-parse tree is that of the first variant, so the reference is that variant.
-If the render has a templater error or no variant, there is no reference.
+(the reference). render() runs "sqlfluff render" once for a file through
+the sqlfluff binary (G1.5), with the config file of the sqlfluff benchmark
+adapter and the corpus settings. The parse tree is that of the first
+render variant. The reference config also sets render_variant_limit = 1,
+so that the output is only that variant, with no variant headers; the
+first variant does not change. The command prints the render and a new
+line. A templater error gives exit code 1 and no reference.
 """
 
-import json
 import shutil
 import subprocess
 from collections.abc import Callable
 from pathlib import Path
 
+from ..adapters.sqruff_config import nested_combine
 from ..bench.tools import SqlfluffBench
 from .manifest import CorpusFile
 
-# argv: config file, SQL file. Output: {"variants": [...], "errors": [...]}.
-RENDER_SCRIPT = """
-import json, sys
-from sqlfluff.core import FluffConfig, Linter
-config = FluffConfig.from_root(extra_config_path=sys.argv[1], ignore_local_config=True)
-linter = Linter(config=config)
-raw, file_config, _ = linter.load_raw_file_and_config(sys.argv[2], linter.config)
-file_config.process_raw_file_for_config(raw, sys.argv[2])
-rendered = linter.render_string(raw, sys.argv[2], file_config, "utf8")
-json.dump(
-    {
-        "variants": [v.templated_str for v in rendered.templated_variants],
-        "errors": [str(e) for e in rendered.templater_violations],
-    },
-    sys.stdout,
-)
-"""
 INPUT_FILE = "input.sql"
 REASON_TEXT = 300
+# "sqlfluff render" prints this line before each variant if there are more.
+VARIANTS_HEADER = b"SQLFluff rendered "
+ONE_VARIANT = {"core": {"render_variant_limit": 1}}
 
 # render(entry, data, config, folder) returns (render, None), or (None,
 # reason) if there is no reference. config: the corpus settings of the
 # reference tool for the file.
 Render = Callable[[CorpusFile, bytes, dict, Path], tuple[str | None, str | None]]
+
+
+def _tail(data: bytes) -> str:
+    return data.decode("utf8", errors="replace").strip()[-REASON_TEXT:]
 
 
 class SqlfluffRender:
@@ -59,12 +49,21 @@ class SqlfluffRender:
     ) -> tuple[str | None, str | None]:
         if folder.exists():
             shutil.rmtree(folder)
+        config = nested_combine(config, ONE_VARIANT)
         config_file = self.adapter.write_config(config, folder / "config")
         (folder / INPUT_FILE).write_bytes(data)
-        python = self.adapter.s1.venv / "bin" / "python"
+        argv = [
+            str(self.adapter.s1.binary),
+            "render",
+            "--ignore-local-config",
+            "--nocolor",
+            "--config",
+            str(config_file),
+            INPUT_FILE,
+        ]
         try:
             proc = subprocess.run(
-                [str(python), "-I", "-c", RENDER_SCRIPT, str(config_file), INPUT_FILE],
+                argv,
                 cwd=folder,
                 capture_output=True,
                 env=self.adapter.env(),
@@ -74,17 +73,13 @@ class SqlfluffRender:
             return None, f"the render did not stop in {self.timeout_s} s"
         finally:
             (folder / INPUT_FILE).unlink(missing_ok=True)
+        out = proc.stdout
         if proc.returncode != 0:
-            tail = proc.stderr.decode("utf8", "replace").strip()[-REASON_TEXT:]
-            return None, f"the render failed: exit code {proc.returncode}: {tail}"
+            text = _tail(out + b"\n" + proc.stderr)
+            return None, f"the render failed: exit code {proc.returncode}: {text}"
+        if not out.endswith(b"\n") or out.startswith(VARIANTS_HEADER):
+            return None, f"the render output is not one variant: {_tail(out)}"
         try:
-            out = json.loads(proc.stdout)
-            variants, errors = out["variants"], out["errors"]
-        except (ValueError, KeyError, TypeError) as exc:
-            return None, f"the render output cannot be read: {exc!r}"[:REASON_TEXT]
-        if errors:
-            text = "; ".join(str(e) for e in errors)
-            return None, f"the render has a templater error: {text}"[:REASON_TEXT]
-        if not variants or not isinstance(variants[0], str):
-            return None, "the render has no variant"
-        return variants[0], None
+            return out[:-1].decode("utf8"), None
+        except UnicodeDecodeError as exc:
+            return None, f"the render output is not UTF-8: {exc}"
