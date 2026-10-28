@@ -4,8 +4,10 @@
 The selection takes a templated file only if scan() finds no problem: the
 file has a Jinja tag, each tag is complete, each statement is one of
 STATEMENTS, and each name that the code reads is a dbt builtin of the pinned
-sqlfluff, a Jinja global (GLOBALS), or a name that the file sets before in
-the same block or an outer block (set, for, macro, with). Then the render
+sqlfluff, a Jinja global (GLOBALS), a name that Jinja gives in a block
+(SCOPED: loop in a for block, varargs and kwargs in a macro block), or a
+name that the file sets before in the same block or an outer block (set,
+for, macro, with). Then the render
 needs no input other than the file and the jinja settings: no template
 variable, macro file, or library.
 
@@ -27,23 +29,25 @@ from ..paths import SQLFLUFF_ROOT
 _DBT_FILE = (
     SQLFLUFF_ROOT / "src" / "sqlfluff" / "core" / "templaters" / "builtins" / "dbt.py"
 )
-# The globals of a default Jinja environment, and the names that Jinja gives
-# in a for loop (loop) and in a macro (varargs, kwargs).
-GLOBALS = frozenset(
-    {"range", "dict", "lipsum", "cycler", "joiner", "namespace"}
-    | {"loop", "varargs", "kwargs"}
-)
+# The globals of a default Jinja environment.
+GLOBALS = frozenset({"range", "dict", "lipsum", "cycler", "joiner", "namespace"})
+# The names that Jinja gives only in a block: loop in the body of a for
+# block (not in its "if" test, and not in a macro in it), varargs and kwargs
+# in the body of a macro block.
+SCOPED = {"loop": "for", "varargs": "macro", "kwargs": "macro"}
 KEYWORDS = frozenset(
     {"and", "or", "not", "in", "is", "if", "else", "recursive"}
     | {"true", "false", "none", "True", "False", "None"}
 )
-# The statements that the rule accepts, and their end statements. Others
-# (import, from, include, extends, call, block, ...) need another template
-# or have their own scopes, so the rule refuses them.
+# The statements that the rule accepts, and their end statements. scan()
+# reads a raw block before the statements. Others (import, from, include,
+# extends, call, block, ...) need another template or have their own scopes,
+# so the rule refuses them. break and continue need the loopcontrols
+# extension, which the pinned sqlfluff does not load (jinja.py loads only
+# jinja2.ext.do), so the rule refuses them too.
 STATEMENTS = frozenset(
     {"if", "elif", "else", "endif", "for", "endfor", "set", "endset"}
-    | {"macro", "endmacro", "with", "endwith", "filter", "endfilter"}
-    | {"do", "break", "continue", "raw"}
+    | {"macro", "endmacro", "with", "endwith", "filter", "endfilter", "do"}
 )
 
 _TAG = re.compile(r"\{\{|\{%|\{#")
@@ -84,7 +88,7 @@ def dbt_builtins(path: Path = _DBT_FILE) -> frozenset[str]:
 
 def allowed() -> frozenset[str]:
     """Return the names that a file can read with no other render input."""
-    return dbt_builtins() | GLOBALS
+    return dbt_builtins() | GLOBALS | frozenset(SCOPED)
 
 
 @dataclass
@@ -180,6 +184,9 @@ class _Block:
     names: set[str] = field(default_factory=set)
     # A set block ("{% set x %}...{% endset %}") sets x after its end.
     sets: list[str] = field(default_factory=list)
+    # The SCOPED names that Jinja gives in the block, from the start of its
+    # body.
+    gives: set[str] = field(default_factory=set)
 
 
 class _Scanner:
@@ -208,10 +215,22 @@ class _Scanner:
             if kind == "name" and _is_read(tokens, i):
                 self.use(value)
 
+    def given(self, name: str) -> bool:
+        """Return True if the innermost for or macro block gives name
+        (loop), or an open macro block gives it (varargs, kwargs)."""
+        for block in reversed(self.blocks):
+            if name in block.gives:
+                return True
+            if block.word in ("for", "macro") and SCOPED[name] == "for":
+                return False
+        return False
+
     def use(self, name: str) -> None:
         if self.bound(name):
             return
-        if name in self.allowed:
+        if name in SCOPED and not self.given(name):
+            self.result.unknown.add(name)
+        elif name in self.allowed:
             self.result.reads.add(name)
         else:
             self.result.unknown.add(name)
@@ -283,9 +302,10 @@ class _Scanner:
             (i for i, t in enumerate(tail) if t[1] == "if" and t[2] == 0), len(tail)
         )
         self.read(tail[:cut])
-        self.push("for")
+        block = self.push("for")
         self.bind(v for k, v, _ in rest[:split] if k == "name")
         self.read(tail[cut:])
+        block.gives.add("loop")
 
     def macro(self, rest: list) -> None:
         if not rest or rest[0][0] != "name":
@@ -301,7 +321,7 @@ class _Scanner:
             else:
                 defaults.append(params[i])
         self.read(defaults)
-        self.push("macro")
+        self.push("macro").gives.update(("varargs", "kwargs"))
         self.bind(names)
 
     def with_(self, rest: list) -> None:

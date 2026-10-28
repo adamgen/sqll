@@ -25,6 +25,13 @@ TEMPLATED_DIALECTS = {"bigquery", "clickhouse"}
 _NAMES = re.compile(r"; templater jinja: the Jinja code reads only \[([a-z_, ]*)\] ")
 
 
+def _reads(selection: str) -> list[str]:
+    """Return the names in the selection of a templated file ([] for "[]")."""
+    names = _NAMES.search(selection)
+    assert names, selection
+    return names.group(1).split(", ") if names.group(1) else []
+
+
 @pytest.fixture(scope="module")
 def manifest() -> m.Manifest:
     return m.load()
@@ -85,11 +92,15 @@ def test_each_file_has_the_dialect_templater_and_note_of_its_glob(manifest, spec
             assert f.selection == rule == s.selection(include)
             continue
         assert f.selection.startswith(rule + "; templater jinja: "), f.id
-        names = _NAMES.search(f.selection)
-        assert names, f.id
-        reads = names.group(1).split(", ")
+        reads = _reads(f.selection)
         assert reads == sorted(set(reads)) and set(reads) <= jinja_names.allowed()
         assert f.selection == s.selection(include, reads), f.id
+
+
+def test_the_read_names_of_a_selection():
+    include = s.Include("models/*.sql", "ansi", m.JINJA)
+    assert _reads(s.selection(include, [])) == []
+    assert _reads(s.selection(include, ["config", "ref"])) == ["config", "ref"]
 
 
 def test_excluded_files_are_not_in_the_manifest(manifest, specs):
@@ -121,7 +132,7 @@ def test_templated_files_use_only_the_dbt_builtins(manifest, specs):
     assert len({f.source for f in jinja}) >= 2
     used = set()
     for f in jinja:
-        used |= set(_NAMES.search(f.selection).group(1).split(", "))
+        used |= set(_reads(f.selection))
     # The files use the main dbt builtins, and no name outside the rule.
     assert {"config", "ref", "source", "var", "is_incremental", "this"} <= used
     # A source of templated files has only templated globs.

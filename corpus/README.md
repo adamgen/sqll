@@ -27,10 +27,11 @@ not valid, or if a fetch, run, or merge cannot start or complete.
 parses each file with each tool of the bench registry (default: all), and
 writes the report (default `out/corpus.json`). A templated file also gets
 the render of the pinned sqlfluff. The jinja settings: `templater = jinja`
-and `apply_dbt_builtins = True`, with no variable, macro, or library path. `merge` joins the shard reports; `check`
-checks the schema and completeness of a report, and its stable data
-against a baseline. Exit code 1 if a report has an error. The report
-schema and the statuses: `docs/decisions/s9-corpus.md`, "Report".
+and `apply_dbt_builtins = True`, with no variable, macro, or library
+path. `merge` joins the shard reports; `check` checks the schema and
+completeness of a report, and its stable data against a baseline. Exit
+code 1 if a report has an error. The report schema and the statuses:
+`docs/decisions/s9-corpus.md`, "Report".
 
 ## Manifest format
 
@@ -121,8 +122,9 @@ source and path, and drops an excluded file, a file out of the size range
 of its templater, a file that is not UTF-8, a templated file that the Jinja
 rule refuses (`not_builtins_only`, with the reason), and a file with the
 sha256 of an earlier file. The Jinja rule (`jinja_names.py`): the Jinja
-code reads only dbt builtins of the pinned sqlfluff, Jinja globals, and
-names that the file sets; no `import`, `include`, `extends`, or `call`.
+code reads only dbt builtins of the pinned sqlfluff, Jinja globals, the
+names that Jinja gives in a block, and names that the file sets; no
+`import`, `include`, `extends`, `call`, `break`, or `continue`.
 The `selection` of a templated file gives the names that it reads.
 The output gives these counts for each source. The selection fails
 (exit code 2) if:

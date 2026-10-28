@@ -41,42 +41,64 @@ def test_the_dbt_builtins_are_those_of_the_pinned_sqlfluff():
         "zip",
         "return",
     }
-    assert j.allowed() == j.dbt_builtins() | j.GLOBALS
+    assert j.allowed() == j.dbt_builtins() | j.GLOBALS | {"loop", "varargs", "kwargs"}
 
 
-@pytest.mark.parametrize(
-    "text, reads",
-    [
-        (
-            "{{ config(materialized='incremental', unique_key=['a']) }}\n"
-            "select * from {{ ref('a') }} join {{ source('s', 't') }}\n"
-            "{% if is_incremental() %} where x > (select max(x) from {{ this }})"
-            "{% endif %}",
-            {"config", "ref", "source", "is_incremental", "this"},
-        ),
-        ("{{ var('x', 'y') | upper }} {{ this.schema }}", {"var", "this"}),
-        (
-            "{% set cols = ['a', 'b'] %}{% for c in cols %}{{ c }}"
-            "{% if not loop.last %},{% endif %}{% endfor %}",
-            {"loop"},
-        ),
-        ("{% for c in ['a', 'b'] if c != 'a' %}{{ c }}{% endfor %}", set()),
-        ("{% macro m(a, b=1) %}{{ a }}{{ b }}{% endmacro %}{{ m(ref('t')) }}", {"ref"}),
-        ("{% set ns = namespace(x=0) %}{% set ns.x = 1 %}{{ ns.x }}", {"namespace"}),
-        ("{% set q %}select 1{% endset %}{{ q }}", set()),
-        ("{% with a = var('x') %}{{ a }}{% endwith %}", {"var"}),
-        ("{% set x = 1 %}{% if x is not none and x is number %}{% endif %}", set()),
-        ("{# {{ dbt_utils.star() }} #}{{ ref('a') }}", {"ref"}),
-        ("{% raw %}{{ anything }}{% endraw %}{{ ref('a') }}", {"ref"}),
-        ("{{ ref('a}}b') }} {{ \"it's\" ~ var('x') }}", {"ref", "var"}),
-        ("{{ {'a': {'b': 1}} }}", set()),
-        ("{%- if true -%} x {%+ endif -%}", set()),
-        (
-            "{% if is_incremental() %}a{% elif true %}b{% else %}c{% endif %}",
-            {"is_incremental"},
-        ),
-    ],
-)
+# Code that the rule takes, and the names that it reads. Each one renders
+# with the pinned sqlfluff (test_the_pinned_sqlfluff_renders_the_code_that_
+# the_rule_takes).
+TAKES = [
+    (
+        "{{ config(materialized='incremental', unique_key=['a']) }}\n"
+        "select * from {{ ref('a') }} join {{ source('s', 't') }}\n"
+        "{% if is_incremental() %} where x > (select max(x) from {{ this }})"
+        "{% endif %}",
+        {"config", "ref", "source", "is_incremental", "this"},
+    ),
+    ("{{ var('x', 'y') | upper }} {{ this.schema }}", {"var", "this"}),
+    (
+        "{% set cols = ['a', 'b'] %}{% for c in cols %}{{ c }}"
+        "{% if not loop.last %},{% endif %}{% endfor %}",
+        {"loop"},
+    ),
+    ("{% for c in ['a', 'b'] if c != 'a' %}{{ c }}{% endfor %}", set()),
+    ("{% macro m(a, b=1) %}{{ a }}{{ b }}{% endmacro %}{{ m(ref('t')) }}", {"ref"}),
+    ("{% set ns = namespace(x=0) %}{% set ns.x = 1 %}{{ ns.x }}", {"namespace"}),
+    ("{% set q %}select 1{% endset %}{{ q }}", set()),
+    ("{% with a = var('x') %}{{ a }}{% endwith %}", {"var"}),
+    ("{% set x = 1 %}{% if x is not none and x is number %}{% endif %}", set()),
+    ("{# {{ dbt_utils.star() }} #}{{ ref('a') }}", {"ref"}),
+    ("{% raw %}{{ anything }}{% endraw %}{{ ref('a') }}", {"ref"}),
+    ("{{ ref('a}}b') }} {{ \"it's\" ~ var('x') }}", {"ref", "var"}),
+    ("{{ {'a': {'b': 1}} }}", set()),
+    ("{%- if true -%} x {%+ endif -%}", set()),
+    (
+        "{% if is_incremental() %}a{% elif true %}b{% else %}c{% endif %}",
+        {"is_incremental"},
+    ),
+    ("{% filter upper %}{{ ref('a') }}{% endfilter %}", {"ref"}),
+    ("{% set xs = [] %}{% do xs.append(1) %}{{ xs }}", set()),
+    (
+        "{% macro m() %}{{ varargs }}{{ kwargs }}{% endmacro %}",
+        {"varargs", "kwargs"},
+    ),
+    (
+        "{% macro m() %}{% for a in [1] %}{{ varargs }}{% endfor %}{% endmacro %}",
+        {"varargs"},
+    ),
+    (
+        "{% for a in [1] %}{% for b in [loop.index] %}{{ loop.index }}"
+        "{% endfor %}{% endfor %}",
+        {"loop"},
+    ),
+    (
+        "{% for a in [1] %}{% if true %}{{ loop.first }}{% endif %}{% endfor %}",
+        {"loop"},
+    ),
+]
+
+
+@pytest.mark.parametrize("text, reads", TAKES)
 def test_the_rule_takes_code_that_reads_only_allowed_names(text, reads):
     found = j.scan(text)
     assert found.ok, found.reason()
@@ -109,12 +131,42 @@ def test_the_rule_takes_code_that_reads_only_allowed_names(text, reads):
         ("{% else %}", "'else' is not in an if or for block"),
         ("{% raw %}x", "a raw block has no endraw"),
         ("select 1 -- no tag", "no Jinja tag"),
+        # The pinned sqlfluff does not load the loopcontrols extension.
+        ("{% for a in [1] %}{% break %}{% endfor %}", "statement 'break'"),
+        ("{% for a in [1] %}{% continue %}{% endfor %}", "statement 'continue'"),
+        ("{% endraw %}", "statement 'endraw'"),
+        ("{% do x.append(1) %}", "it reads x"),
+        # Jinja gives loop, varargs, and kwargs only in their blocks.
+        (
+            "select {{ loop }}, {{ kwargs }} from {{ ref('t') }}",
+            "it reads kwargs, loop",
+        ),
+        ("{{ varargs }}", "it reads varargs"),
+        ("{% for a in [1] if loop.index %}{% endfor %}", "it reads loop"),
+        ("{% for a in [] %}{% else %}{{ loop }}{% endfor %}", "it reads loop"),
+        (
+            "{% for a in [1] %}{% macro m() %}{{ loop }}{% endmacro %}{% endfor %}",
+            "it reads loop",
+        ),
+        ("{% for a in [1] %}{% endfor %}{{ loop }}", "it reads loop"),
+        ("{% macro m() %}{% endmacro %}{{ kwargs }}", "it reads kwargs"),
     ],
 )
 def test_the_rule_refuses_other_code(text, reason):
     found = j.scan(text)
     assert not found.ok
     assert found.reason() == reason
+
+
+@needs_all_tools
+def test_the_pinned_sqlfluff_renders_the_code_that_the_rule_takes(tmp_path):
+    for n, (text, _) in enumerate(TAKES):
+        entry = m.CorpusFile(
+            f"s/{n}.sql", "s", f"{n}.sql", "ansi", m.JINJA, 1, 1, "0" * 64, True, "x"
+        )
+        config = corpus_run.reference_config(entry)
+        render, why = SqlfluffRender()(entry, text.encode(), config, tmp_path / str(n))
+        assert why is None and render is not None, (text, why)
 
 
 # The render settings.

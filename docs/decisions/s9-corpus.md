@@ -126,10 +126,12 @@ reference` with its parse data: no tool gets a success on it.
 **Jinja rule** (T5, `harness/sqll_harness/corpus/jinja_names.py`). A
 templated file is in only if its Jinja code reads only the dbt builtins of
 the pinned sqlfluff
-(`DBT_BUILTINS`), the Jinja globals, and names that it sets before in the
-same block. Each tag must be complete. Each statement must be `if`, `for`,
-`set`, `macro`, `with`, `filter`, `do`, `break`, `continue`, `raw`, or
-an end. Thus no `import`, `include`, `extends`, or `call`. The scan reads
+(`DBT_BUILTINS`), the Jinja globals, `loop` in a `for` block, `varargs` and
+`kwargs` in a `macro` block, and names that it sets before in the same
+block or an outer block. Each tag must be complete. Each statement must be
+`if`, `for`, `set`, `macro`, `with`, `filter`, `do`, `raw`, or an end.
+Thus no `import`, `include`, `extends`, or `call`, and no `break` or
+`continue` (the pinned sqlfluff loads only the `do` extension). The scan reads
 only the file text, with no tool and no Jinja library. Reason: then the
 file is the only render input, and its sha256 pins the render. The
 `selection` of each file gives the names that it reads. On the 201 files
