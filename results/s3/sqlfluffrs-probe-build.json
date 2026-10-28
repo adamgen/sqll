@@ -1,0 +1,2275 @@
+{
+ "kind": "sqll-s3-sqlfluffrs-probe-build",
+ "command": "flock /tmp/sqll-machine.lock uv run --frozen --project harness python scripts/s3/sqlfluffrs_probe.py build --scratch $SCRATCH",
+ "started": "2026-10-28T10:39:47Z",
+ "finished": "2026-10-28T10:45:17Z",
+ "scratch": "/tmp/claude-0/-home-user-sqll/0a5b715a-4fe2-50ff-9952-36e574fb0715/scratchpad/t5",
+ "machine": {
+  "cpu_model": "Intel(R) Xeon(R) Processor @ 2.10GHz",
+  "cpu_count": 4,
+  "memory_kib": 16477352,
+  "os": "Ubuntu 24.04.5 LTS",
+  "kernel": "6.18.44-fc-v180",
+  "arch": "x86_64",
+  "python": "3.13.16"
+ },
+ "load": {
+  "before": [
+   0.27,
+   0.98,
+   1.12
+  ],
+  "idle_wait_s": 80.0,
+  "after": [
+   2.45,
+   2.34,
+   1.69
+  ]
+ },
+ "harness": {
+  "commit": "17bd5685409dbd904a44a0129cdf7637fdee0456",
+  "clean": true
+ },
+ "sqlfluffrs": {
+  "version": "4.4.0",
+  "submodule": "third_party/sqlfluff",
+  "commit": "0348222a3bcdb0226563f7349c5a39beb0641955",
+  "tag": "4.4.0"
+ },
+ "toolchain": {
+  "channel": "1.96",
+  "source": "sqlfluffrs/rust-toolchain.toml",
+  "rustc": [
+   "rustc 1.96.1 (31fca3adb 2026-06-26)",
+   "binary: rustc",
+   "commit-hash: 31fca3adb283cc9dfd56b49cdee9a96eb9c96ffd",
+   "commit-date: 2026-06-26",
+   "host: x86_64-unknown-linux-gnu",
+   "release: 1.96.1",
+   "LLVM version: 22.1.2"
+  ],
+  "cargo": "cargo 1.96.1 (356927216 2026-06-26)"
+ },
+ "generation": {
+  "python": {
+   "installed": {
+    "sqlfluff_version": "4.4.0",
+    "sqlfluff_file": "$REPO/.tools/sqlfluff/lib/python3.13/site-packages/sqlfluff/__init__.py",
+    "python": "3.13.16",
+    "python_binary": "$REPO/.tools/sqlfluff/bin/python"
+   },
+   "submodule_src": {
+    "sqlfluff_version": "4.4.0",
+    "sqlfluff_file": "$SCRATCH/sqlfluff/src/sqlfluff/__init__.py",
+    "python": "3.13.16"
+   }
+  },
+  "files": [
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/ansi/matcher.rs",
+    "lines": 674,
+    "bytes": 18425,
+    "sha256": "ae8d4b7f358698368676d0e0f0600ffbf3e4e3b2b66035af5e5f46e46015d424"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/ansi/mod.rs",
+    "lines": 7,
+    "bytes": 238,
+    "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/ansi/parser.rs",
+    "lines": 9529,
+    "bytes": 1316043,
+    "sha256": "3ed15e8427051cf05e461326c3878f8773b9bbbb88c245200e6c35ebf0d0c2cc",
+    "grammar_instructions": 3074
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/athena/matcher.rs",
+    "lines": 799,
+    "bytes": 21656,
+    "sha256": "1bd669d23b8e3e81d588340998ab2e93e0f38764564b491a1d8504b33d336cec"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/athena/mod.rs",
+    "lines": 7,
+    "bytes": 238,
+    "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/athena/parser.rs",
+    "lines": 10891,
+    "bytes": 1527154,
+    "sha256": "5a6a75a6da54569d10c1ff32c5610fed503e0d932fb515a1cb4335fcbc27f1bb",
+    "grammar_instructions": 3583
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/bigquery/matcher.rs",
+    "lines": 832,
+    "bytes": 23017,
+    "sha256": "b046f32a005adec15129e4c0a087fdb079341a9e44d5855b42b53a6ca2ece0a3"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/bigquery/mod.rs",
+    "lines": 7,
+    "bytes": 238,
+    "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/bigquery/parser.rs",
+    "lines": 9565,
+    "bytes": 1438891,
+    "sha256": "f56fd14fb7185bbf2eb4e36dc5eb04af418bc68e49d62c5c6300d30a61ff7355",
+    "grammar_instructions": 3861
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/clickhouse/matcher.rs",
+    "lines": 753,
+    "bytes": 20612,
+    "sha256": "e1f736336b3a658c6dc4172bb1923dd95d3b43df0e4951fe402e926c93313b97"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/clickhouse/mod.rs",
+    "lines": 7,
+    "bytes": 238,
+    "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/clickhouse/parser.rs",
+    "lines": 13043,
+    "bytes": 1893480,
+    "sha256": "68f50a22fa41797acaddce8c0b579958229e86bb8577b717f442c77c1f09665f",
+    "grammar_instructions": 4634
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/databricks/matcher.rs",
+    "lines": 1178,
+    "bytes": 31746,
+    "sha256": "d1620af535aa1a91bd0ea59e4d842340d3a5d484c4203567ec88619a9b6dfaf7"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/databricks/mod.rs",
+    "lines": 7,
+    "bytes": 238,
+    "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/databricks/parser.rs",
+    "lines": 14805,
+    "bytes": 2202819,
+    "sha256": "38d8f390d10e1807b885ae1ddb4fdbd3156cb1dd2f4a89f48812a71ff352121a",
+    "grammar_instructions": 5526
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/db2/matcher.rs",
+    "lines": 688,
+    "bytes": 18716,
+    "sha256": "3b624f0fb30f50c13c159cf7ee76bc826ce51a3ac9e1d80c1c4249cb80a27dce"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/db2/mod.rs",
+    "lines": 7,
+    "bytes": 238,
+    "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/db2/parser.rs",
+    "lines": 11300,
+    "bytes": 1571515,
+    "sha256": "6c96141e84928186c95c65ee8bb36823c232272b3c56aef33fc8723b75b445cf",
+    "grammar_instructions": 3685
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/doris/matcher.rs",
+    "lines": 960,
+    "bytes": 25967,
+    "sha256": "0cf048d9573c8b8f1b83229eb4c727c63e1615361b1db7936bc91cfd30735d2d"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/doris/mod.rs",
+    "lines": 7,
+    "bytes": 238,
+    "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/doris/parser.rs",
+    "lines": 15893,
+    "bytes": 2316307,
+    "sha256": "91887583878da5c7eec9fd3aedf0232d0268bf643598891bf8c684712cb78d55",
+    "grammar_instructions": 5630
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/duckdb/matcher.rs",
+    "lines": 1106,
+    "bytes": 29838,
+    "sha256": "16dedad5f3b1834fe5742be0a4449ea046dcff7a7245f591b350a3382ff712ff"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/duckdb/mod.rs",
+    "lines": 7,
+    "bytes": 238,
+    "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/duckdb/parser.rs",
+    "lines": 18162,
+    "bytes": 2887852,
+    "sha256": "6b36ce5f2a5b2260a36e5fdac138452df00a2b0a92413e748b54e47fba60940d",
+    "grammar_instructions": 7796
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/exasol/matcher.rs",
+    "lines": 1301,
+    "bytes": 35212,
+    "sha256": "2b5c279c14882349279407654bc1ca28c9deffaf264d175dff094ed7603e3e2d"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/exasol/mod.rs",
+    "lines": 7,
+    "bytes": 238,
+    "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/exasol/parser.rs",
+    "lines": 11629,
+    "bytes": 1693487,
+    "sha256": "d63d57649ae2044676a6354abd50d7cae814213ec1b2fb8b6c3c310cb6ad0408",
+    "grammar_instructions": 4179
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/flink/matcher.rs",
+    "lines": 775,
+    "bytes": 21079,
+    "sha256": "8451028c846a1dcd681dec2323cc7a8279a745eaaaf545707dcd2736ce7e0669"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/flink/mod.rs",
+    "lines": 7,
+    "bytes": 238,
+    "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/flink/parser.rs",
+    "lines": 10244,
+    "bytes": 1428834,
+    "sha256": "812e120402979df3d3d882df06a91937fbf384c3607ef16c5378f18daa7b5335",
+    "grammar_instructions": 3355
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/greenplum/matcher.rs",
+    "lines": 1056,
+    "bytes": 28648,
+    "sha256": "c7d697a980acfa516d1fd9976546abb6dd9931177ae560225c29e48fdf6b510c"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/greenplum/mod.rs",
+    "lines": 7,
+    "bytes": 238,
+    "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/greenplum/parser.rs",
+    "lines": 18396,
+    "bytes": 2939381,
+    "sha256": "b3304babe8622eb073a785203140972782467b6a5a36f1a527f486d252e89522",
+    "grammar_instructions": 7939
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/hive/matcher.rs",
+    "lines": 811,
+    "bytes": 21964,
+    "sha256": "f204e18897b9fcb1943abe2aaba98569f251d5d703a4d19f840239a7916a65cc"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/hive/mod.rs",
+    "lines": 7,
+    "bytes": 238,
+    "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/hive/parser.rs",
+    "lines": 10965,
+    "bytes": 1544873,
+    "sha256": "4cd6a319ff73654dcad934d619dc111741b536b10823cd1ac0b0e3ec5656788c",
+    "grammar_instructions": 3667
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/impala/matcher.rs",
+    "lines": 1102,
+    "bytes": 30146,
+    "sha256": "3760d24a70dda826c1ece7eb6bd81bb6c449bb024731aba6dd77ad6fcbe7afd0"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/impala/mod.rs",
+    "lines": 7,
+    "bytes": 238,
+    "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/impala/parser.rs",
+    "lines": 11531,
+    "bytes": 1626963,
+    "sha256": "706707006a9cac172de4964e9009fbc676291bf58b063dc504d8066a613a12ae",
+    "grammar_instructions": 3821
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/mariadb/matcher.rs",
+    "lines": 1031,
+    "bytes": 28178,
+    "sha256": "af2d36f6300178a946c7b2c89f2a648dfd50812818e104df9d9dea94b891a6df"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/mariadb/mod.rs",
+    "lines": 7,
+    "bytes": 238,
+    "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/mariadb/parser.rs",
+    "lines": 15877,
+    "bytes": 2356710,
+    "sha256": "1afe38a0b70fcb6102beb43df4cbd54144d8095962b5cdf2c1d518766aa72c15",
+    "grammar_instructions": 5840
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/materialize/matcher.rs",
+    "lines": 1011,
+    "bytes": 27384,
+    "sha256": "60a14eab6ed30175802e4b020faa622aa407e0bf2ff32136b27219b7919554d6"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/materialize/mod.rs",
+    "lines": 7,
+    "bytes": 238,
+    "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/materialize/parser.rs",
+    "lines": 18792,
+    "bytes": 3018448,
+    "sha256": "566ff8b9c3f4c8a3b41d995c0361b4b2eb8895ad9c5be8ff7fff74d371f07a42",
+    "grammar_instructions": 8135
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/mod.rs",
+    "lines": 337,
+    "bytes": 18401,
+    "sha256": "1c0f2ef6eefc36ab5cbdb7fd9c36ffa8e40c252dfa86201e20389f8cb7e85939"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/mysql/matcher.rs",
+    "lines": 1036,
+    "bytes": 28198,
+    "sha256": "27703ba3c827ed97cfee22b2b82f7eb10e98bfaf657a0cd79353a30242d78cab"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/mysql/mod.rs",
+    "lines": 7,
+    "bytes": 238,
+    "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/mysql/parser.rs",
+    "lines": 14946,
+    "bytes": 2198942,
+    "sha256": "f246cfc10ebe4f91c54f4094ffd028551f957860eb560a7a2296871c40981ca8",
+    "grammar_instructions": 5425
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/oracle/matcher.rs",
+    "lines": 935,
+    "bytes": 25253,
+    "sha256": "2bcaf2cab17407fe1125d7498431c06ae5b4795b6748e4d1f55d7cd1e2df137c"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/oracle/mod.rs",
+    "lines": 7,
+    "bytes": 238,
+    "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/oracle/parser.rs",
+    "lines": 15724,
+    "bytes": 2355534,
+    "sha256": "1d1218e458f0060304d7b41983e89e15d4a5f467bf5a9d028e21afa19eb6c419",
+    "grammar_instructions": 5956
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/postgres/matcher.rs",
+    "lines": 1052,
+    "bytes": 28537,
+    "sha256": "ef707828098ee4ac431877facb0f23299a9b2d725b7f8866b9e356c6c9832493"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/postgres/mod.rs",
+    "lines": 7,
+    "bytes": 238,
+    "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/postgres/parser.rs",
+    "lines": 17888,
+    "bytes": 2863110,
+    "sha256": "ba568f3bfa071f5032d77b29a24647a3e0d306b3b5dbcdd9aa10403ba988ba5e",
+    "grammar_instructions": 7759
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/redshift/matcher.rs",
+    "lines": 1107,
+    "bytes": 30028,
+    "sha256": "d1dd1d9345529b0c5aa05e02a4d6c42913467698b841eb614022595865946dfa"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/redshift/mod.rs",
+    "lines": 7,
+    "bytes": 238,
+    "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/redshift/parser.rs",
+    "lines": 19961,
+    "bytes": 3136593,
+    "sha256": "72263735d5f47ac3137ad3c36f1d339b4f3190408596fc2945d35f1a2b1711d8",
+    "grammar_instructions": 8326
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/snowflake/matcher.rs",
+    "lines": 938,
+    "bytes": 25116,
+    "sha256": "55dc82ee043c0673d5e9bb1c6137c8b08ae20ec41116e8dddd26584b9fc05c72"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/snowflake/mod.rs",
+    "lines": 7,
+    "bytes": 238,
+    "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/snowflake/parser.rs",
+    "lines": 23802,
+    "bytes": 3859989,
+    "sha256": "fbe420a1fc6127adcab11978a99b2071286be016af8797af5e34b5dd7725bbe1",
+    "grammar_instructions": 10667
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/soql/matcher.rs",
+    "lines": 745,
+    "bytes": 20547,
+    "sha256": "ea71b46e374a634b92511fa524d114ad3846de3270b90ff8c3252c013f939531"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/soql/mod.rs",
+    "lines": 7,
+    "bytes": 238,
+    "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/soql/parser.rs",
+    "lines": 9606,
+    "bytes": 1332421,
+    "sha256": "311aaf662731a4a22ce1b635d70393d3988f0e59a675a944d3de0a52ce8ab6de",
+    "grammar_instructions": 3093
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/sparksql/matcher.rs",
+    "lines": 866,
+    "bytes": 23306,
+    "sha256": "f943fafed103d6f4a9d29ef0599e651eb93b6291bebb41050ac479f13e40c41b"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/sparksql/mod.rs",
+    "lines": 7,
+    "bytes": 238,
+    "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/sparksql/parser.rs",
+    "lines": 13038,
+    "bytes": 1898356,
+    "sha256": "96404d6eca5fad63bb48057c0dc28fc08e5619f67291a7689b9c14157c3e6765",
+    "grammar_instructions": 4665
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/sqlite/matcher.rs",
+    "lines": 928,
+    "bytes": 25019,
+    "sha256": "77a830a226d28d5660961b89a85aa00ea7b1b3e1f2bdf6b400e8b65975c8d00a"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/sqlite/mod.rs",
+    "lines": 7,
+    "bytes": 238,
+    "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/sqlite/parser.rs",
+    "lines": 6243,
+    "bytes": 931222,
+    "sha256": "9ba5048f0e6af1a53f9f01cc4b6e510d5cd984b265b909f5f6ce16da573babd5",
+    "grammar_instructions": 2500
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/starrocks/matcher.rs",
+    "lines": 1035,
+    "bytes": 28300,
+    "sha256": "6eec6de02b1f8ff28794a3083979b1129532fed6b3a60d1ebdc44313cac1e44c"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/starrocks/mod.rs",
+    "lines": 7,
+    "bytes": 238,
+    "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/starrocks/parser.rs",
+    "lines": 15562,
+    "bytes": 2291749,
+    "sha256": "1bae2a7175975f8b0f96198208ea5b2b22b4ec0a3fd02a02c11914c14bb97163",
+    "grammar_instructions": 5620
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/teradata/matcher.rs",
+    "lines": 681,
+    "bytes": 18626,
+    "sha256": "c12a8d0606b47665a4c49b7a057ffd78fc811747e296bdaf4431dd3296d2b527"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/teradata/mod.rs",
+    "lines": 7,
+    "bytes": 238,
+    "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/teradata/parser.rs",
+    "lines": 10686,
+    "bytes": 1513028,
+    "sha256": "1bde233ef3bd9820de7304d98055a6b94e4b2541d740cc7d9046b7696a257d67",
+    "grammar_instructions": 3605
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/trino/matcher.rs",
+    "lines": 765,
+    "bytes": 20797,
+    "sha256": "49cb2c206513d95d8a28a01900db4caddba39b987254ddee19f64ad0f154026a"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/trino/mod.rs",
+    "lines": 7,
+    "bytes": 238,
+    "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/trino/parser.rs",
+    "lines": 7127,
+    "bytes": 1059804,
+    "sha256": "609c59f3d018f56db24bbae60cf8c69049cd08b43b9d7db5f2b9e03ecae22260",
+    "grammar_instructions": 2810
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/tsql/matcher.rs",
+    "lines": 941,
+    "bytes": 26112,
+    "sha256": "82d0171af829b751c2db4d34efbd877840c8f56aa7506ba3642e44c1edeea416"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/tsql/mod.rs",
+    "lines": 7,
+    "bytes": 238,
+    "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/tsql/parser.rs",
+    "lines": 19802,
+    "bytes": 3100102,
+    "sha256": "61586fc17753ca25e0cb34c1803f26f5e2dbb6e6433cdd2ada239d0741c9c88f",
+    "grammar_instructions": 8240
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/vertica/matcher.rs",
+    "lines": 828,
+    "bytes": 22489,
+    "sha256": "1b95475943db08bcb4d2184e87d81c88df68455ff69e6321c8a10a3981c51e44"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/vertica/mod.rs",
+    "lines": 7,
+    "bytes": 238,
+    "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/vertica/parser.rs",
+    "lines": 12878,
+    "bytes": 1838182,
+    "sha256": "11c4efdde3eb871b4f4fb9a92516c073fa3167ccf115b34b5eaf3d450643a457",
+    "grammar_instructions": 4366
+   }
+  ]
+ },
+ "builds": {
+  "crates": {
+   "exit_code": 0,
+   "wall_s": 75.85
+  },
+  "probe": {
+   "exit_code": 0,
+   "wall_s": 79.517
+  }
+ },
+ "python_shim_calls": [],
+ "cargo_tree": {
+  "sqlfluffrs_lexer": [
+   "aho-corasick",
+   "allocator-api2",
+   "bit-set",
+   "bit-vec",
+   "cfg-if",
+   "either",
+   "equivalent",
+   "fancy-regex",
+   "foldhash",
+   "getrandom",
+   "hashbrown",
+   "itertools",
+   "libc",
+   "log",
+   "memchr",
+   "once_cell",
+   "proc-macro2",
+   "quote",
+   "regex",
+   "regex-automata",
+   "regex-syntax",
+   "serde",
+   "serde_core",
+   "serde_derive",
+   "sqlfluffrs_dialects",
+   "sqlfluffrs_lexer",
+   "sqlfluffrs_types",
+   "syn",
+   "unicode-ident",
+   "uuid"
+  ],
+  "sqlfluffrs_parser": [
+   "aho-corasick",
+   "allocator-api2",
+   "anstream",
+   "anstyle",
+   "anstyle-parse",
+   "anstyle-query",
+   "bit-set",
+   "bit-vec",
+   "cfg-if",
+   "colorchoice",
+   "either",
+   "env_filter",
+   "env_logger",
+   "equivalent",
+   "fancy-regex",
+   "foldhash",
+   "getrandom",
+   "hashbrown",
+   "indexmap",
+   "is_terminal_polyfill",
+   "itertools",
+   "itoa",
+   "jiff",
+   "libc",
+   "log",
+   "memchr",
+   "once_cell",
+   "proc-macro2",
+   "quote",
+   "regex",
+   "regex-automata",
+   "regex-syntax",
+   "ryu",
+   "serde",
+   "serde_core",
+   "serde_derive",
+   "serde_yaml_ng",
+   "smallvec",
+   "sqlfluffrs_dialects",
+   "sqlfluffrs_lexer",
+   "sqlfluffrs_parser",
+   "sqlfluffrs_types",
+   "syn",
+   "unicode-ident",
+   "unsafe-libyaml",
+   "utf8parse",
+   "uuid"
+  ],
+  "sqlfluffrs_dialects": [
+   "aho-corasick",
+   "allocator-api2",
+   "bit-set",
+   "bit-vec",
+   "cfg-if",
+   "equivalent",
+   "fancy-regex",
+   "foldhash",
+   "getrandom",
+   "hashbrown",
+   "libc",
+   "log",
+   "memchr",
+   "once_cell",
+   "proc-macro2",
+   "quote",
+   "regex",
+   "regex-automata",
+   "regex-syntax",
+   "serde",
+   "serde_core",
+   "serde_derive",
+   "sqlfluffrs_dialects",
+   "sqlfluffrs_types",
+   "syn",
+   "unicode-ident",
+   "uuid"
+  ],
+  "sqlfluffrs_rules": [
+   "aho-corasick",
+   "allocator-api2",
+   "anstream",
+   "anstyle",
+   "anstyle-parse",
+   "anstyle-query",
+   "bit-set",
+   "bit-vec",
+   "cfg-if",
+   "colorchoice",
+   "either",
+   "env_filter",
+   "env_logger",
+   "equivalent",
+   "fancy-regex",
+   "foldhash",
+   "getrandom",
+   "hashbrown",
+   "indexmap",
+   "is_terminal_polyfill",
+   "itertools",
+   "itoa",
+   "jiff",
+   "libc",
+   "log",
+   "memchr",
+   "once_cell",
+   "proc-macro2",
+   "quote",
+   "regex",
+   "regex-automata",
+   "regex-syntax",
+   "ryu",
+   "serde",
+   "serde_core",
+   "serde_derive",
+   "serde_yaml_ng",
+   "smallvec",
+   "sqlfluffrs_dialects",
+   "sqlfluffrs_lexer",
+   "sqlfluffrs_parser",
+   "sqlfluffrs_rules",
+   "sqlfluffrs_types",
+   "syn",
+   "unicode-ident",
+   "unsafe-libyaml",
+   "utf8parse",
+   "uuid"
+  ],
+  "sqlfluffrs": [
+   "aho-corasick",
+   "allocator-api2",
+   "anstream",
+   "anstyle",
+   "anstyle-parse",
+   "anstyle-query",
+   "bit-set",
+   "bit-vec",
+   "blake2",
+   "block-buffer",
+   "cfg-if",
+   "colorchoice",
+   "crypto-common",
+   "digest",
+   "either",
+   "env_filter",
+   "env_logger",
+   "equivalent",
+   "fancy-regex",
+   "foldhash",
+   "generic-array",
+   "getrandom",
+   "hashbrown",
+   "indexmap",
+   "is_terminal_polyfill",
+   "itertools",
+   "itoa",
+   "jiff",
+   "libc",
+   "log",
+   "memchr",
+   "once_cell",
+   "proc-macro2",
+   "quote",
+   "regex",
+   "regex-automata",
+   "regex-syntax",
+   "ryu",
+   "serde",
+   "serde_core",
+   "serde_derive",
+   "serde_yaml_ng",
+   "smallvec",
+   "sqlfluffrs",
+   "sqlfluffrs_dialects",
+   "sqlfluffrs_lexer",
+   "sqlfluffrs_parser",
+   "sqlfluffrs_rules",
+   "sqlfluffrs_types",
+   "subtle",
+   "syn",
+   "typenum",
+   "unicode-ident",
+   "unsafe-libyaml",
+   "utf8parse",
+   "uuid",
+   "version_check"
+  ],
+  "probe-sqlfluffrs": [
+   "aho-corasick",
+   "allocator-api2",
+   "anstream",
+   "anstyle",
+   "anstyle-parse",
+   "anstyle-query",
+   "bit-set",
+   "bit-vec",
+   "cfg-if",
+   "colorchoice",
+   "either",
+   "env_filter",
+   "env_logger",
+   "equivalent",
+   "fancy-regex",
+   "foldhash",
+   "getrandom",
+   "hashbrown",
+   "indexmap",
+   "is_terminal_polyfill",
+   "itertools",
+   "itoa",
+   "jiff",
+   "libc",
+   "log",
+   "memchr",
+   "once_cell",
+   "probe-sqlfluffrs",
+   "proc-macro2",
+   "quote",
+   "regex",
+   "regex-automata",
+   "regex-syntax",
+   "ryu",
+   "serde",
+   "serde_core",
+   "serde_derive",
+   "serde_json",
+   "serde_yaml_ng",
+   "smallvec",
+   "sqlfluffrs_dialects",
+   "sqlfluffrs_lexer",
+   "sqlfluffrs_parser",
+   "sqlfluffrs_types",
+   "syn",
+   "unicode-ident",
+   "unsafe-libyaml",
+   "utf8parse",
+   "uuid",
+   "zmij"
+  ]
+ },
+ "cargo_tree_dev": {
+  "sqlfluffrs (tests)": [
+   "aho-corasick",
+   "alloca",
+   "allocator-api2",
+   "anes",
+   "anstream",
+   "anstyle",
+   "anstyle-parse",
+   "anstyle-query",
+   "autocfg",
+   "bit-set",
+   "bit-vec",
+   "blake2",
+   "block-buffer",
+   "cast",
+   "cc",
+   "cfg-if",
+   "ciborium",
+   "ciborium-io",
+   "ciborium-ll",
+   "clap",
+   "clap_builder",
+   "clap_lex",
+   "colorchoice",
+   "criterion",
+   "criterion-plot",
+   "crossbeam-deque",
+   "crossbeam-epoch",
+   "crossbeam-utils",
+   "crypto-common",
+   "digest",
+   "either",
+   "env_filter",
+   "env_logger",
+   "equivalent",
+   "fancy-regex",
+   "find-msvc-tools",
+   "foldhash",
+   "generic-array",
+   "getrandom",
+   "half",
+   "hashbrown",
+   "indexmap",
+   "is_terminal_polyfill",
+   "itertools",
+   "itoa",
+   "jiff",
+   "libc",
+   "log",
+   "memchr",
+   "num-traits",
+   "once_cell",
+   "oorandom",
+   "page_size",
+   "plotters",
+   "plotters-backend",
+   "plotters-svg",
+   "proc-macro2",
+   "quote",
+   "rayon",
+   "rayon-core",
+   "regex",
+   "regex-automata",
+   "regex-syntax",
+   "ryu",
+   "same-file",
+   "serde",
+   "serde_core",
+   "serde_derive",
+   "serde_json",
+   "serde_yaml_ng",
+   "shlex",
+   "smallvec",
+   "sqlfluffrs",
+   "sqlfluffrs_dialects",
+   "sqlfluffrs_lexer",
+   "sqlfluffrs_parser",
+   "sqlfluffrs_rules",
+   "sqlfluffrs_types",
+   "subtle",
+   "syn",
+   "tinytemplate",
+   "typenum",
+   "unicode-ident",
+   "unsafe-libyaml",
+   "utf8parse",
+   "uuid",
+   "version_check",
+   "walkdir",
+   "zerocopy",
+   "zerocopy-derive",
+   "zmij"
+  ]
+ },
+ "cargo_tree_control": {
+  "sqlfluffrs_parser --features python": [
+   "aho-corasick",
+   "allocator-api2",
+   "anstream",
+   "anstyle",
+   "anstyle-parse",
+   "anstyle-query",
+   "bincode",
+   "bit-set",
+   "bit-vec",
+   "cfg-if",
+   "colorchoice",
+   "either",
+   "env_filter",
+   "env_logger",
+   "equivalent",
+   "fancy-regex",
+   "foldhash",
+   "getrandom",
+   "hashbrown",
+   "heck",
+   "indexmap",
+   "is_terminal_polyfill",
+   "itertools",
+   "itoa",
+   "jiff",
+   "libc",
+   "log",
+   "memchr",
+   "once_cell",
+   "proc-macro2",
+   "pyo3",
+   "pyo3-build-config",
+   "pyo3-ffi",
+   "pyo3-macros",
+   "pyo3-macros-backend",
+   "quote",
+   "regex",
+   "regex-automata",
+   "regex-syntax",
+   "ryu",
+   "serde",
+   "serde_core",
+   "serde_derive",
+   "serde_yaml_ng",
+   "smallvec",
+   "sqlfluffrs_dialects",
+   "sqlfluffrs_lexer",
+   "sqlfluffrs_parser",
+   "sqlfluffrs_python",
+   "sqlfluffrs_types",
+   "syn",
+   "target-lexicon",
+   "unicode-ident",
+   "unsafe-libyaml",
+   "utf8parse",
+   "uuid"
+  ]
+ },
+ "probe": {
+  "source_sha256": {
+   "Cargo.toml": "6da1ce8f96b67372997e92fdd77e354d020c5b0297f3f305ac76addb2651997f",
+   "Cargo.lock": "5ff792784ef5bb68076735687c408cdd3e04c902004e88122e0fa2c8f21822ff",
+   "src/main.rs": "46197be3610141985e340744a05d2e615b5a1948f2b60f672162bfc07b1482c8"
+  },
+  "bytes": 18134792,
+  "sha256": "9ed6a0ce5d28b10e65fd219b09b7df32067f077c072bed3c29611a02ac856d13",
+  "ldd": [
+   "/lib64/ld-linux-x86-64.so.2",
+   "libc.so.6",
+   "libgcc_s.so.1",
+   "linux-vdso.so.1"
+  ],
+  "needed": [
+   "ld-linux-x86-64.so.2",
+   "libc.so.6",
+   "libgcc_s.so.1"
+  ],
+  "no_python_run": {
+   "image": "mirror.gcr.io/library/rust:1.97.0-slim-trixie@sha256:686a437ead83701e8f871e66e838c3ec55f46b5fc235b025756396ac823bdc51",
+   "script": "if command -v python3 python; then exit 3; fi; if [ -n \"$(find / -xdev -name \"libpython*\" 2>/dev/null)\" ]; then exit 4; fi; /scratch/probe-sqlfluffrs/target/release/probe-sqlfluffrs --dialect ansi /scratch/select1.sql",
+   "exit_code": 0,
+   "tree": {
+    "file": {
+     "statement": {
+      "select_statement": {
+       "select_clause": {
+        "keyword": "SELECT",
+        "whitespace": " ",
+        "select_clause_element": {
+         "numeric_literal": "1"
+        }
+       }
+      }
+     },
+     "statement_terminator": ";",
+     "newline": "\n"
+    }
+   }
+  }
+ },
+ "fixture_tests": {
+  "result": "ok",
+  "passed": 60,
+  "failed": 0,
+  "ignored": 0,
+  "tests": {
+   "test_ansi_fixtures": "passed",
+   "test_ansi_fixtures_simple": "passed",
+   "test_athena_fixtures": "passed",
+   "test_bigquery_fixtures": "passed",
+   "test_clickhouse_fixtures": "passed",
+   "test_databricks_fixtures": "passed",
+   "test_db2_fixtures": "passed",
+   "test_doris_fixtures": "passed",
+   "test_duckdb_fixtures": "passed",
+   "test_exasol_fixtures": "passed",
+   "test_flink_fixtures": "passed",
+   "test_greenplum_fixtures": "passed",
+   "test_hive_fixtures": "passed",
+   "test_impala_fixtures": "passed",
+   "test_mariadb_fixtures": "passed",
+   "test_materialize_fixtures": "passed",
+   "test_mysql_fixtures": "passed",
+   "test_oracle_fixtures": "passed",
+   "test_postgres_fixtures": "passed",
+   "test_redshift_fixtures": "passed",
+   "test_select_a": "passed",
+   "test_select_simple_a": "passed",
+   "test_snowflake_fixtures": "passed",
+   "test_soql_fixtures": "passed",
+   "test_sparksql_fixtures": "passed",
+   "test_sqlite_fixtures": "passed",
+   "test_starrocks_fixtures": "passed",
+   "test_teradata_fixtures": "passed",
+   "test_trino_fixtures": "passed",
+   "test_tsql_fixtures": "passed",
+   "test_vertica_fixtures": "passed",
+   "test_yaml_output_matches_python": "passed",
+   "test_yaml_output_matches_python_ansi": "passed",
+   "test_yaml_output_matches_python_athena": "passed",
+   "test_yaml_output_matches_python_bigquery": "passed",
+   "test_yaml_output_matches_python_clickhouse": "passed",
+   "test_yaml_output_matches_python_databricks": "passed",
+   "test_yaml_output_matches_python_db2": "passed",
+   "test_yaml_output_matches_python_doris": "passed",
+   "test_yaml_output_matches_python_duckdb": "passed",
+   "test_yaml_output_matches_python_exasol": "passed",
+   "test_yaml_output_matches_python_flink": "passed",
+   "test_yaml_output_matches_python_greenplum": "passed",
+   "test_yaml_output_matches_python_hive": "passed",
+   "test_yaml_output_matches_python_impala": "passed",
+   "test_yaml_output_matches_python_mariadb": "passed",
+   "test_yaml_output_matches_python_materialize": "passed",
+   "test_yaml_output_matches_python_mysql": "passed",
+   "test_yaml_output_matches_python_oracle": "passed",
+   "test_yaml_output_matches_python_postgres": "passed",
+   "test_yaml_output_matches_python_redshift": "passed",
+   "test_yaml_output_matches_python_snowflake": "passed",
+   "test_yaml_output_matches_python_soql": "passed",
+   "test_yaml_output_matches_python_sparksql": "passed",
+   "test_yaml_output_matches_python_sqlite": "passed",
+   "test_yaml_output_matches_python_starrocks": "passed",
+   "test_yaml_output_matches_python_teradata": "passed",
+   "test_yaml_output_matches_python_trino": "passed",
+   "test_yaml_output_matches_python_tsql": "passed",
+   "test_yaml_output_matches_python_vertica": "passed"
+  },
+  "yaml_counts": {
+   "ansi": {
+    "total": 208,
+    "failed": 0
+   },
+   "athena": {
+    "total": 50,
+    "failed": 0
+   },
+   "bigquery": {
+    "total": 144,
+    "failed": 0
+   },
+   "clickhouse": {
+    "total": 62,
+    "failed": 0
+   },
+   "databricks": {
+    "total": 62,
+    "failed": 0
+   },
+   "db2": {
+    "total": 22,
+    "failed": 0
+   },
+   "doris": {
+    "total": 47,
+    "failed": 0
+   },
+   "duckdb": {
+    "total": 41,
+    "failed": 0
+   },
+   "exasol": {
+    "total": 60,
+    "failed": 0
+   },
+   "flink": {
+    "total": 17,
+    "failed": 0
+   },
+   "greenplum": {
+    "total": 11,
+    "failed": 0
+   },
+   "hive": {
+    "total": 48,
+    "failed": 0
+   },
+   "impala": {
+    "total": 9,
+    "failed": 0
+   },
+   "mariadb": {
+    "total": 223,
+    "failed": 0
+   },
+   "materialize": {
+    "total": 16,
+    "failed": 0
+   },
+   "mysql": {
+    "total": 221,
+    "failed": 0
+   },
+   "oracle": {
+    "total": 103,
+    "failed": 0
+   },
+   "postgres": {
+    "total": 171,
+    "failed": 0
+   },
+   "redshift": {
+    "total": 80,
+    "failed": 0
+   },
+   "snowflake": {
+    "total": 250,
+    "failed": 0
+   },
+   "soql": {
+    "total": 3,
+    "failed": 0
+   },
+   "sparksql": {
+    "total": 135,
+    "failed": 0
+   },
+   "sqlite": {
+    "total": 37,
+    "failed": 0
+   },
+   "starrocks": {
+    "total": 16,
+    "failed": 0
+   },
+   "teradata": {
+    "total": 18,
+    "failed": 0
+   },
+   "trino": {
+    "total": 28,
+    "failed": 0
+   },
+   "tsql": {
+    "total": 181,
+    "failed": 0
+   },
+   "vertica": {
+    "total": 43,
+    "failed": 0
+   }
+  },
+  "yaml_failed": {},
+  "parse_counts": {
+   "ansi": {
+    "found": 208,
+    "passed": 208,
+    "failed": 0
+   },
+   "athena": {
+    "found": 50,
+    "passed": 50,
+    "failed": 0
+   },
+   "bigquery": {
+    "found": 144,
+    "passed": 144,
+    "failed": 0
+   },
+   "clickhouse": {
+    "found": 62,
+    "passed": 62,
+    "failed": 0
+   },
+   "databricks": {
+    "found": 62,
+    "passed": 62,
+    "failed": 0
+   },
+   "db2": {
+    "found": 22,
+    "passed": 22,
+    "failed": 0
+   },
+   "doris": {
+    "found": 47,
+    "passed": 47,
+    "failed": 0
+   },
+   "duckdb": {
+    "found": 41,
+    "passed": 41,
+    "failed": 0
+   },
+   "exasol": {
+    "found": 60,
+    "passed": 60,
+    "failed": 0
+   },
+   "flink": {
+    "found": 17,
+    "passed": 17,
+    "failed": 0
+   },
+   "greenplum": {
+    "found": 11,
+    "passed": 11,
+    "failed": 0
+   },
+   "hive": {
+    "found": 48,
+    "passed": 48,
+    "failed": 0
+   },
+   "impala": {
+    "found": 9,
+    "passed": 9,
+    "failed": 0
+   },
+   "mariadb": {
+    "found": 223,
+    "passed": 223,
+    "failed": 0
+   },
+   "materialize": {
+    "found": 16,
+    "passed": 16,
+    "failed": 0
+   },
+   "mysql": {
+    "found": 221,
+    "passed": 221,
+    "failed": 0
+   },
+   "oracle": {
+    "found": 103,
+    "passed": 103,
+    "failed": 0
+   },
+   "postgres": {
+    "found": 171,
+    "passed": 171,
+    "failed": 0
+   },
+   "redshift": {
+    "found": 80,
+    "passed": 80,
+    "failed": 0
+   },
+   "snowflake": {
+    "found": 250,
+    "passed": 250,
+    "failed": 0
+   },
+   "soql": {
+    "found": 3,
+    "passed": 3,
+    "failed": 0
+   },
+   "sparksql": {
+    "found": 135,
+    "passed": 135,
+    "failed": 0
+   },
+   "sqlite": {
+    "found": 37,
+    "passed": 37,
+    "failed": 0
+   },
+   "starrocks": {
+    "found": 16,
+    "passed": 16,
+    "failed": 0
+   },
+   "teradata": {
+    "found": 18,
+    "passed": 18,
+    "failed": 0
+   },
+   "trino": {
+    "found": 28,
+    "passed": 28,
+    "failed": 0
+   },
+   "tsql": {
+    "found": 181,
+    "passed": 181,
+    "failed": 0
+   },
+   "vertica": {
+    "found": 43,
+    "passed": 43,
+    "failed": 0
+   }
+  },
+  "panics": {}
+ },
+ "fixture_test_inputs": {
+  "ansi": 208,
+  "athena": 50,
+  "bigquery": 144,
+  "clickhouse": 62,
+  "databricks": 62,
+  "db2": 22,
+  "doris": 47,
+  "duckdb": 41,
+  "exasol": 60,
+  "flink": 17,
+  "greenplum": 11,
+  "hive": 48,
+  "impala": 9,
+  "mariadb": 223,
+  "materialize": 16,
+  "mysql": 221,
+  "oracle": 103,
+  "postgres": 171,
+  "redshift": 80,
+  "snowflake": 250,
+  "soql": 3,
+  "sparksql": 135,
+  "sqlite": 37,
+  "starrocks": 16,
+  "teradata": 18,
+  "trino": 28,
+  "tsql": 181,
+  "vertica": 43
+ },
+ "lines": {
+  "sqlfluffrs": {
+   "hand_written": {
+    "files": 17,
+    "lines": 4496,
+    "by_part": {
+     "benches": {
+      "files": 3,
+      "lines": 720
+     },
+     "src": {
+      "files": 3,
+      "lines": 467
+     },
+     "tests": {
+      "files": 11,
+      "lines": 3309
+     }
+    }
+   },
+   "generated": {
+    "files": 0,
+    "lines": 0,
+    "by_part": {}
+   }
+  },
+  "sqlfluffrs_types": {
+   "hand_written": {
+    "files": 24,
+    "lines": 5743,
+    "by_part": {
+     "src": {
+      "files": 24,
+      "lines": 5743
+     }
+    }
+   },
+   "generated": {
+    "files": 0,
+    "lines": 0,
+    "by_part": {}
+   }
+  },
+  "sqlfluffrs_dialects": {
+   "generated": {
+    "files": 85,
+    "lines": 414352,
+    "by_part": {
+     "src": {
+      "files": 85,
+      "lines": 414352
+     }
+    }
+   },
+   "hand_written": {
+    "files": 3,
+    "lines": 357,
+    "by_part": {
+     "build.rs": {
+      "files": 1,
+      "lines": 263
+     },
+     "src": {
+      "files": 2,
+      "lines": 94
+     }
+    }
+   }
+  },
+  "sqlfluffrs_lexer": {
+   "hand_written": {
+    "files": 2,
+    "lines": 977,
+    "by_part": {
+     "src": {
+      "files": 2,
+      "lines": 977
+     }
+    }
+   },
+   "generated": {
+    "files": 0,
+    "lines": 0,
+    "by_part": {}
+   }
+  },
+  "sqlfluffrs_parser": {
+   "hand_written": {
+    "files": 23,
+    "lines": 12744,
+    "by_part": {
+     "src": {
+      "files": 23,
+      "lines": 12744
+     }
+    }
+   },
+   "generated": {
+    "files": 0,
+    "lines": 0,
+    "by_part": {}
+   }
+  },
+  "sqlfluffrs_rules": {
+   "hand_written": {
+    "files": 6,
+    "lines": 535,
+    "by_part": {
+     "src": {
+      "files": 6,
+      "lines": 535
+     }
+    }
+   },
+   "generated": {
+    "files": 0,
+    "lines": 0,
+    "by_part": {}
+   }
+  },
+  "sqlfluffrs_python": {
+   "hand_written": {
+    "files": 9,
+    "lines": 1699,
+    "by_part": {
+     "src": {
+      "files": 9,
+      "lines": 1699
+     }
+    }
+   },
+   "generated": {
+    "files": 0,
+    "lines": 0,
+    "by_part": {}
+   }
+  },
+  "sqlfluffrs_benchmarks": {
+   "hand_written": {
+    "files": 4,
+    "lines": 572,
+    "by_part": {
+     "benches": {
+      "files": 1,
+      "lines": 114
+     },
+     "build.rs": {
+      "files": 1,
+      "lines": 117
+     },
+     "examples/time_tpc.rs": {
+      "files": 1,
+      "lines": 304
+     },
+     "src": {
+      "files": 1,
+      "lines": 37
+     }
+    }
+   },
+   "generated": {
+    "files": 0,
+    "lines": 0,
+    "by_part": {}
+   }
+  }
+ },
+ "steps": [
+  {
+   "step": "check the submodule before",
+   "cwd": "$REPO",
+   "argv": [
+    "$REPO/scripts/check-submodule",
+    "before the T5 build"
+   ],
+   "env": {},
+   "unset": [],
+   "exit_code": 0,
+   "wall_s": 0.025
+  },
+  {
+   "step": "submodule commit",
+   "cwd": "$REPO",
+   "argv": [
+    "git",
+    "-C",
+    "$REPO/third_party/sqlfluff",
+    "rev-parse",
+    "HEAD"
+   ],
+   "env": {},
+   "unset": [],
+   "exit_code": 0,
+   "wall_s": 0.002
+  },
+  {
+   "step": "submodule tag",
+   "cwd": "$REPO",
+   "argv": [
+    "git",
+    "-C",
+    "$REPO/third_party/sqlfluff",
+    "describe",
+    "--tags",
+    "--exact-match",
+    "HEAD"
+   ],
+   "env": {},
+   "unset": [],
+   "exit_code": 0,
+   "wall_s": 0.004
+  },
+  {
+   "step": "copy the submodule",
+   "cwd": "$SCRATCH",
+   "argv": [
+    "sh",
+    "-c",
+    "git -C \"$REPO/third_party/sqlfluff\" archive --format=tar --prefix=sqlfluff/ HEAD | tar -x -C \"$SCRATCH\""
+   ],
+   "env": {
+    "REPO": "$REPO",
+    "SCRATCH": "$SCRATCH"
+   },
+   "unset": [],
+   "exit_code": 0,
+   "wall_s": 0.705
+  },
+  {
+   "step": "python (installed sqlfluff)",
+   "cwd": "$SCRATCH/sqlfluff",
+   "argv": [
+    "$REPO/.tools/sqlfluff/bin/python",
+    "-c",
+    "import json, sys, sqlfluff;print(json.dumps({'sqlfluff_version': sqlfluff.__version__, 'sqlfluff_file': sqlfluff.__file__, 'python': sys.version.split()[0]}))"
+   ],
+   "env": {},
+   "unset": [
+    "MATURIN_PYTHON_INTERPRETER",
+    "PYO3_PYTHON",
+    "PYTHONHOME",
+    "PYTHONPATH",
+    "VIRTUAL_ENV"
+   ],
+   "exit_code": 0,
+   "wall_s": 0.248
+  },
+  {
+   "step": "generate the dialect tables",
+   "cwd": "$SCRATCH/sqlfluff",
+   "argv": [
+    "$REPO/.tools/sqlfluff/bin/python",
+    "utils/rustify.py",
+    "build"
+   ],
+   "env": {},
+   "unset": [
+    "MATURIN_PYTHON_INTERPRETER",
+    "PYO3_PYTHON",
+    "PYTHONHOME",
+    "PYTHONPATH",
+    "VIRTUAL_ENV"
+   ],
+   "exit_code": 0,
+   "wall_s": 23.224,
+   "log": "$SCRATCH/logs/generate.log"
+  },
+  {
+   "step": "check the generation (installed sqlfluff)",
+   "cwd": "$SCRATCH/sqlfluff",
+   "argv": [
+    "$REPO/.tools/sqlfluff/bin/python",
+    "utils/rustify.py",
+    "check"
+   ],
+   "env": {},
+   "unset": [
+    "MATURIN_PYTHON_INTERPRETER",
+    "PYO3_PYTHON",
+    "PYTHONHOME",
+    "PYTHONPATH",
+    "VIRTUAL_ENV"
+   ],
+   "exit_code": 0,
+   "wall_s": 22.042,
+   "log": "$SCRATCH/logs/generate-check.log"
+  },
+  {
+   "step": "python (submodule src)",
+   "cwd": "$SCRATCH/sqlfluff",
+   "argv": [
+    "$REPO/.tools/sqlfluff/bin/python",
+    "-c",
+    "import json, sys, sqlfluff;print(json.dumps({'sqlfluff_version': sqlfluff.__version__, 'sqlfluff_file': sqlfluff.__file__, 'python': sys.version.split()[0]}))"
+   ],
+   "env": {
+    "PYTHONPATH": "$SCRATCH/sqlfluff/src"
+   },
+   "unset": [],
+   "exit_code": 0,
+   "wall_s": 0.371
+  },
+  {
+   "step": "check the generation (submodule src)",
+   "cwd": "$SCRATCH/sqlfluff",
+   "argv": [
+    "$REPO/.tools/sqlfluff/bin/python",
+    "utils/rustify.py",
+    "check"
+   ],
+   "env": {
+    "PYTHONPATH": "$SCRATCH/sqlfluff/src"
+   },
+   "unset": [],
+   "exit_code": 0,
+   "wall_s": 23.054,
+   "log": "$SCRATCH/logs/generate-check-src.log"
+  },
+  {
+   "step": "install the toolchain",
+   "cwd": "$SCRATCH",
+   "argv": [
+    "rustup",
+    "toolchain",
+    "install",
+    "1.96",
+    "--profile",
+    "minimal"
+   ],
+   "env": {},
+   "unset": [],
+   "exit_code": 0,
+   "wall_s": 0.944
+  },
+  {
+   "step": "rustc version",
+   "cwd": "$SCRATCH/sqlfluff/sqlfluffrs",
+   "argv": [
+    "rustc",
+    "-vV"
+   ],
+   "env": {
+    "PATH": "$SCRATCH/no-python/bin:$PATH",
+    "RUSTUP_TOOLCHAIN": "1.96"
+   },
+   "unset": [
+    "CARGO_TARGET_DIR",
+    "MATURIN_PYTHON_INTERPRETER",
+    "PYO3_PYTHON",
+    "PYTHONHOME",
+    "PYTHONPATH",
+    "RUSTFLAGS",
+    "VIRTUAL_ENV"
+   ],
+   "exit_code": 0,
+   "wall_s": 0.024
+  },
+  {
+   "step": "cargo version",
+   "cwd": "$SCRATCH/sqlfluff/sqlfluffrs",
+   "argv": [
+    "cargo",
+    "-V"
+   ],
+   "env": {
+    "PATH": "$SCRATCH/no-python/bin:$PATH",
+    "RUSTUP_TOOLCHAIN": "1.96"
+   },
+   "unset": [
+    "CARGO_TARGET_DIR",
+    "MATURIN_PYTHON_INTERPRETER",
+    "PYO3_PYTHON",
+    "PYTHONHOME",
+    "PYTHONPATH",
+    "RUSTFLAGS",
+    "VIRTUAL_ENV"
+   ],
+   "exit_code": 0,
+   "wall_s": 0.034
+  },
+  {
+   "step": "fetch the crates",
+   "cwd": "$SCRATCH/sqlfluff/sqlfluffrs",
+   "argv": [
+    "cargo",
+    "fetch",
+    "--locked"
+   ],
+   "env": {
+    "PATH": "$SCRATCH/no-python/bin:$PATH",
+    "RUSTUP_TOOLCHAIN": "1.96"
+   },
+   "unset": [
+    "CARGO_TARGET_DIR",
+    "MATURIN_PYTHON_INTERPRETER",
+    "PYO3_PYTHON",
+    "PYTHONHOME",
+    "PYTHONPATH",
+    "RUSTFLAGS",
+    "VIRTUAL_ENV"
+   ],
+   "exit_code": 0,
+   "wall_s": 0.256
+  },
+  {
+   "step": "build the crates",
+   "cwd": "$SCRATCH/sqlfluff/sqlfluffrs",
+   "argv": [
+    "cargo",
+    "build",
+    "--release",
+    "--locked",
+    "--offline",
+    "-p",
+    "sqlfluffrs_lexer",
+    "-p",
+    "sqlfluffrs_parser",
+    "-p",
+    "sqlfluffrs_dialects",
+    "-p",
+    "sqlfluffrs_rules"
+   ],
+   "env": {
+    "PATH": "$SCRATCH/no-python/bin:$PATH",
+    "RUSTUP_TOOLCHAIN": "1.96"
+   },
+   "unset": [
+    "CARGO_TARGET_DIR",
+    "MATURIN_PYTHON_INTERPRETER",
+    "PYO3_PYTHON",
+    "PYTHONHOME",
+    "PYTHONPATH",
+    "RUSTFLAGS",
+    "VIRTUAL_ENV"
+   ],
+   "exit_code": 0,
+   "wall_s": 75.85,
+   "log": "$SCRATCH/logs/build-crates.log"
+  },
+  {
+   "step": "cargo tree sqlfluffrs_lexer",
+   "cwd": "$SCRATCH/sqlfluff/sqlfluffrs",
+   "argv": [
+    "cargo",
+    "tree",
+    "--locked",
+    "--offline",
+    "-e",
+    "normal,build",
+    "--prefix",
+    "none",
+    "-p",
+    "sqlfluffrs_lexer"
+   ],
+   "env": {
+    "PATH": "$SCRATCH/no-python/bin:$PATH",
+    "RUSTUP_TOOLCHAIN": "1.96"
+   },
+   "unset": [
+    "CARGO_TARGET_DIR",
+    "MATURIN_PYTHON_INTERPRETER",
+    "PYO3_PYTHON",
+    "PYTHONHOME",
+    "PYTHONPATH",
+    "RUSTFLAGS",
+    "VIRTUAL_ENV"
+   ],
+   "exit_code": 0,
+   "wall_s": 0.079
+  },
+  {
+   "step": "cargo tree sqlfluffrs_parser",
+   "cwd": "$SCRATCH/sqlfluff/sqlfluffrs",
+   "argv": [
+    "cargo",
+    "tree",
+    "--locked",
+    "--offline",
+    "-e",
+    "normal,build",
+    "--prefix",
+    "none",
+    "-p",
+    "sqlfluffrs_parser"
+   ],
+   "env": {
+    "PATH": "$SCRATCH/no-python/bin:$PATH",
+    "RUSTUP_TOOLCHAIN": "1.96"
+   },
+   "unset": [
+    "CARGO_TARGET_DIR",
+    "MATURIN_PYTHON_INTERPRETER",
+    "PYO3_PYTHON",
+    "PYTHONHOME",
+    "PYTHONPATH",
+    "RUSTFLAGS",
+    "VIRTUAL_ENV"
+   ],
+   "exit_code": 0,
+   "wall_s": 0.075
+  },
+  {
+   "step": "cargo tree sqlfluffrs_dialects",
+   "cwd": "$SCRATCH/sqlfluff/sqlfluffrs",
+   "argv": [
+    "cargo",
+    "tree",
+    "--locked",
+    "--offline",
+    "-e",
+    "normal,build",
+    "--prefix",
+    "none",
+    "-p",
+    "sqlfluffrs_dialects"
+   ],
+   "env": {
+    "PATH": "$SCRATCH/no-python/bin:$PATH",
+    "RUSTUP_TOOLCHAIN": "1.96"
+   },
+   "unset": [
+    "CARGO_TARGET_DIR",
+    "MATURIN_PYTHON_INTERPRETER",
+    "PYO3_PYTHON",
+    "PYTHONHOME",
+    "PYTHONPATH",
+    "RUSTFLAGS",
+    "VIRTUAL_ENV"
+   ],
+   "exit_code": 0,
+   "wall_s": 0.087
+  },
+  {
+   "step": "cargo tree sqlfluffrs_rules",
+   "cwd": "$SCRATCH/sqlfluff/sqlfluffrs",
+   "argv": [
+    "cargo",
+    "tree",
+    "--locked",
+    "--offline",
+    "-e",
+    "normal,build",
+    "--prefix",
+    "none",
+    "-p",
+    "sqlfluffrs_rules"
+   ],
+   "env": {
+    "PATH": "$SCRATCH/no-python/bin:$PATH",
+    "RUSTUP_TOOLCHAIN": "1.96"
+   },
+   "unset": [
+    "CARGO_TARGET_DIR",
+    "MATURIN_PYTHON_INTERPRETER",
+    "PYO3_PYTHON",
+    "PYTHONHOME",
+    "PYTHONPATH",
+    "RUSTFLAGS",
+    "VIRTUAL_ENV"
+   ],
+   "exit_code": 0,
+   "wall_s": 0.081
+  },
+  {
+   "step": "cargo tree sqlfluffrs",
+   "cwd": "$SCRATCH/sqlfluff/sqlfluffrs",
+   "argv": [
+    "cargo",
+    "tree",
+    "--locked",
+    "--offline",
+    "-e",
+    "normal,build",
+    "--prefix",
+    "none",
+    "-p",
+    "sqlfluffrs"
+   ],
+   "env": {
+    "PATH": "$SCRATCH/no-python/bin:$PATH",
+    "RUSTUP_TOOLCHAIN": "1.96"
+   },
+   "unset": [
+    "CARGO_TARGET_DIR",
+    "MATURIN_PYTHON_INTERPRETER",
+    "PYO3_PYTHON",
+    "PYTHONHOME",
+    "PYTHONPATH",
+    "RUSTFLAGS",
+    "VIRTUAL_ENV"
+   ],
+   "exit_code": 0,
+   "wall_s": 0.114
+  },
+  {
+   "step": "cargo tree sqlfluffrs_parser with the python feature (control)",
+   "cwd": "$SCRATCH/sqlfluff/sqlfluffrs",
+   "argv": [
+    "cargo",
+    "tree",
+    "--locked",
+    "--offline",
+    "-e",
+    "normal,build",
+    "--prefix",
+    "none",
+    "-p",
+    "sqlfluffrs_parser",
+    "-F",
+    "sqlfluffrs_parser/python"
+   ],
+   "env": {
+    "PATH": "$SCRATCH/no-python/bin:$PATH",
+    "RUSTUP_TOOLCHAIN": "1.96"
+   },
+   "unset": [
+    "CARGO_TARGET_DIR",
+    "MATURIN_PYTHON_INTERPRETER",
+    "PYO3_PYTHON",
+    "PYTHONHOME",
+    "PYTHONPATH",
+    "RUSTFLAGS",
+    "VIRTUAL_ENV"
+   ],
+   "exit_code": 0,
+   "wall_s": 0.078
+  },
+  {
+   "step": "fetch the probe crates",
+   "cwd": "$SCRATCH/probe-sqlfluffrs",
+   "argv": [
+    "cargo",
+    "fetch",
+    "--locked"
+   ],
+   "env": {
+    "PATH": "$SCRATCH/no-python/bin:$PATH",
+    "RUSTUP_TOOLCHAIN": "1.96"
+   },
+   "unset": [
+    "CARGO_TARGET_DIR",
+    "MATURIN_PYTHON_INTERPRETER",
+    "PYO3_PYTHON",
+    "PYTHONHOME",
+    "PYTHONPATH",
+    "RUSTFLAGS",
+    "VIRTUAL_ENV"
+   ],
+   "exit_code": 0,
+   "wall_s": 0.121
+  },
+  {
+   "step": "build the probe",
+   "cwd": "$SCRATCH/probe-sqlfluffrs",
+   "argv": [
+    "cargo",
+    "build",
+    "--release",
+    "--locked",
+    "--offline"
+   ],
+   "env": {
+    "PATH": "$SCRATCH/no-python/bin:$PATH",
+    "RUSTUP_TOOLCHAIN": "1.96"
+   },
+   "unset": [
+    "CARGO_TARGET_DIR",
+    "MATURIN_PYTHON_INTERPRETER",
+    "PYO3_PYTHON",
+    "PYTHONHOME",
+    "PYTHONPATH",
+    "RUSTFLAGS",
+    "VIRTUAL_ENV"
+   ],
+   "exit_code": 0,
+   "wall_s": 79.517,
+   "log": "$SCRATCH/logs/build-probe.log"
+  },
+  {
+   "step": "cargo tree probe",
+   "cwd": "$SCRATCH/probe-sqlfluffrs",
+   "argv": [
+    "cargo",
+    "tree",
+    "--locked",
+    "--offline",
+    "-e",
+    "normal,build",
+    "--prefix",
+    "none"
+   ],
+   "env": {
+    "PATH": "$SCRATCH/no-python/bin:$PATH",
+    "RUSTUP_TOOLCHAIN": "1.96"
+   },
+   "unset": [
+    "CARGO_TARGET_DIR",
+    "MATURIN_PYTHON_INTERPRETER",
+    "PYO3_PYTHON",
+    "PYTHONHOME",
+    "PYTHONPATH",
+    "RUSTFLAGS",
+    "VIRTUAL_ENV"
+   ],
+   "exit_code": 0,
+   "wall_s": 0.057
+  },
+  {
+   "step": "ldd probe",
+   "cwd": "$SCRATCH",
+   "argv": [
+    "ldd",
+    "$SCRATCH/probe-sqlfluffrs/target/release/probe-sqlfluffrs"
+   ],
+   "env": {},
+   "unset": [],
+   "exit_code": 0,
+   "wall_s": 0.009
+  },
+  {
+   "step": "readelf probe",
+   "cwd": "$SCRATCH",
+   "argv": [
+    "readelf",
+    "-d",
+    "$SCRATCH/probe-sqlfluffrs/target/release/probe-sqlfluffrs"
+   ],
+   "env": {},
+   "unset": [],
+   "exit_code": 0,
+   "wall_s": 0.004
+  },
+  {
+   "step": "run the probe with no Python",
+   "cwd": "$SCRATCH",
+   "argv": [
+    "docker",
+    "run",
+    "--rm",
+    "--network",
+    "none",
+    "-v",
+    "$SCRATCH:/scratch:ro",
+    "mirror.gcr.io/library/rust:1.97.0-slim-trixie@sha256:686a437ead83701e8f871e66e838c3ec55f46b5fc235b025756396ac823bdc51",
+    "sh",
+    "-c",
+    "if command -v python3 python; then exit 3; fi; if [ -n \"$(find / -xdev -name \"libpython*\" 2>/dev/null)\" ]; then exit 4; fi; /scratch/probe-sqlfluffrs/target/release/probe-sqlfluffrs --dialect ansi /scratch/select1.sql"
+   ],
+   "env": {},
+   "unset": [],
+   "exit_code": 0,
+   "wall_s": 0.399
+  },
+  {
+   "step": "native fixture tests",
+   "cwd": "$SCRATCH/sqlfluff/sqlfluffrs",
+   "argv": [
+    "cargo",
+    "test",
+    "--release",
+    "--locked",
+    "--offline",
+    "--test",
+    "fixture_tests",
+    "--",
+    "--test-threads",
+    "1",
+    "--nocapture"
+   ],
+   "env": {
+    "PATH": "$SCRATCH/no-python/bin:$PATH",
+    "RUSTUP_TOOLCHAIN": "1.96"
+   },
+   "unset": [
+    "CARGO_TARGET_DIR",
+    "MATURIN_PYTHON_INTERPRETER",
+    "PYO3_PYTHON",
+    "PYTHONHOME",
+    "PYTHONPATH",
+    "RUSTFLAGS",
+    "VIRTUAL_ENV"
+   ],
+   "exit_code": 0,
+   "wall_s": 101.734,
+   "log": "$SCRATCH/logs/fixture-tests.log"
+  },
+  {
+   "step": "cargo tree sqlfluffrs with dev dependencies",
+   "cwd": "$SCRATCH/sqlfluff/sqlfluffrs",
+   "argv": [
+    "cargo",
+    "tree",
+    "--locked",
+    "--offline",
+    "-e",
+    "normal,build,dev",
+    "--prefix",
+    "none",
+    "-p",
+    "sqlfluffrs"
+   ],
+   "env": {
+    "PATH": "$SCRATCH/no-python/bin:$PATH",
+    "RUSTUP_TOOLCHAIN": "1.96"
+   },
+   "unset": [
+    "CARGO_TARGET_DIR",
+    "MATURIN_PYTHON_INTERPRETER",
+    "PYO3_PYTHON",
+    "PYTHONHOME",
+    "PYTHONPATH",
+    "RUSTFLAGS",
+    "VIRTUAL_ENV"
+   ],
+   "exit_code": 0,
+   "wall_s": 0.104
+  },
+  {
+   "step": "check the submodule after",
+   "cwd": "$REPO",
+   "argv": [
+    "$REPO/scripts/check-submodule",
+    "after the T5 build"
+   ],
+   "env": {},
+   "unset": [],
+   "exit_code": 0,
+   "wall_s": 0.018
+  }
+ ]
+}
