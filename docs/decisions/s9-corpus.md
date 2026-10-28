@@ -1,6 +1,6 @@
 # S9 decision: the external corpus
 
-Status: design (T1); run and report (T3). Scope: STONES.md S9;
+Status: design (T1); run and report (T3); untemplated content (T4). Scope: STONES.md S9;
 CONSTITUTION.md G1.3, G3, G4.2, G4.3, G4.5. "Measured": `parse` runs of
 the `scripts/setup` tools on 2026-10-28 (4 CPUs, 16 GiB, machine lock),
 in a new folder with no config file above it. PR #29 (T1) and the T3 pull
@@ -23,12 +23,13 @@ request have the commands and the output.
   each copy; Apache-2.0 4(a) needs a copy of the license. Thus:
   1. T2 (schema), T4 and T5 (data): for each source, the manifest records
      each copyright holder and the path and sha256 of each license or
-     notice file. Example: `jOOQ/sakila` has "jOOQ Object Oriented
-     Querying" (`LICENSE`) and "DB Software Laboratory" (`README.md`).
+     notice file ("Content"). Example: `jOOQ/sakila` has "jOOQ Object
+     Oriented Querying" (`LICENSE`) and "DB Software Laboratory"
+     (`README.md`).
   2. T2 (fetch), T3 (report), T7 (CI): the fetch gets and checks these
      files too. Each cache or artifact with corpus text also has them and
      the manifest.
-  3. T7 (cross-track): a THIRD_PARTY.md entry that points to the `corpus/`
+  3. T4 (cross-track): a THIRD_PARTY.md entry that points to the `corpus/`
      manifest.
 - **Out: copyleft.** Example: `mysql/mysql-server` (commit `06bcb0e`,
   `LICENSE`): "This software is released under version 2 of the GNU
@@ -57,7 +58,8 @@ use. Measured candidates:
 | `dbt-labs/jaffle_shop` (`fd7bfac`), 7 `fivetran/dbt_*` packages (T5 pins them) | Apache-2.0 | dbt models |
 
 `gitlab-data/analytics` is out: it needs a login (HTTP 302 to `sign_in`).
-T4 and T5 choose the final sources with these rules.
+T4 chose the untemplated sources ("Content"). T5 chooses the templated
+sources.
 
 ## Selection
 
@@ -71,6 +73,30 @@ by source and path) has its sha256.
 **Dialect.** The manifest gives one sqlfluff dialect name for each file,
 from the database of the source (`Chinook_SqlServer.sql`: `tsql`). All
 tools get it. CockroachDB and YugabyteDB files get `postgres`.
+
+**Globs.** A glob names folders of SQL of one database. The choice of a
+glob uses only the paths, sizes, and kind of the files, never a tool
+result. No TPC material. A folder with megabytes of data or text rows of
+one schema, or with too many files for the time budget of one dialect,
+gets a narrower glob or none. A file can be excluded by its path. The
+source note gives the reason.
+
+## Content
+
+T4 (untemplated files). `scripts/s9/select` makes `corpus/sources.json`
+from `corpus/select.json` and the cache with these rules. It fails closed
+on a license, copyright notice, or TPC text that the record does not
+cover (the list: corpus/README.md, "Selection"). Thus a holder or license
+that a selected file names is part of the record. A file with other terms
+goes to its own source (`sakila-mysql`), or it or its glob is removed;
+the source note gives the reason. The counts of each source: the output
+of `scripts/s9/select --check`. Smoke: the files of 32 KiB or less.
+Limit (test): 2 MiB and 100 files.
+
+Out: `pthom/northwind_psql` (Ms-PL); `OHDSI/CommonDataModel`,
+`GoogleCloudPlatform/data-analytics-golden-demo` (no root license file);
+`duckdb/duckdb` v1.5.6 (only TPC-DS queries in range); `trinodb/trino`
+484 (no `.sql` file in range).
 
 ## Templated files
 
@@ -190,8 +216,7 @@ The warmup run is the check run (as S2). Measured: one run of the 40
 files of 16 to 32 KiB took 49 s (sqlfluff), 32 s (`sqlfluff[rs]`), and
 2.7 s (sqruff). Max/min wall ratio of 2 runs of the same work: median
 1.11, max 2.27 (206 pairs under 1 s); median 1.12, max 1.68 (101 pairs of
-1 to 10 s); 1.01 and 1.15 (2 pairs of 10 s or more: too few to show less
-noise). Long runs get 1 timed run for the time budget (up to 105 s for a
+1 to 10 s). Long runs get 1 timed run for the time budget (up to 105 s for a
 Chinook file with sqlfluff); short runs get more to decrease the noise.
 sqlfluff takes more time per MB on larger files (187 s/MB at 0.6 MB,
 388 at 8 MB). At 388 s/MB a 2 MiB file takes 814 s, less than the

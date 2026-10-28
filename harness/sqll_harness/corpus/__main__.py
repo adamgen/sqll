@@ -10,6 +10,10 @@ and write the report.
 merge REPORT... [--expect FILE] [--out FILE]: merge the shard reports.
 check REPORT [--baseline FILE [--full]]: check the schema and completeness
 of a report, and its stable data against the baseline.
+select [--sources FILE] [--cache DIR] [--download] [--check]: make the
+manifest from the source list and the cache (--download first fills the
+cache with git), and write it to --manifest, or with --check compare it with
+--manifest.
 
 validate and fetch write a JSON object on stdout. Exit code 2 if the
 manifest is not valid, or if a fetch, run, or merge cannot start or
@@ -30,6 +34,7 @@ from . import baseline as corpus_baseline
 from . import fetch as fetch_module
 from . import report as corpus_report
 from . import run as corpus_run
+from . import select as corpus_select
 from .manifest import JINJA, MANIFEST, ManifestError, load
 from .reference import SqlfluffRender
 
@@ -47,7 +52,7 @@ def _shard(text: str) -> tuple[int, int]:
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="python -m sqll_harness.corpus")
     commands = parser.add_subparsers(dest="command", required=True)
-    for name in ("validate", "fetch", "run", "merge", "check"):
+    for name in ("validate", "fetch", "run", "merge", "check", "select"):
         sub = commands.add_parser(name)
         sub.add_argument("--manifest", type=Path, default=MANIFEST)
     cache_help = f"Default: ${fetch_module.CACHE_ENV}, else out/corpus/cache."
@@ -82,6 +87,21 @@ def _parser() -> argparse.ArgumentParser:
         "--full",
         action="store_true",
         help="Also need the profile and each result of the baseline.",
+    )
+    select_parser = commands.choices["select"]
+    select_parser.add_argument(
+        "--sources", type=Path, default=corpus_select.SOURCES, help="The source list."
+    )
+    select_parser.add_argument("--cache", help=cache_help)
+    select_parser.add_argument(
+        "--download",
+        action="store_true",
+        help="First read each source with git into the cache.",
+    )
+    select_parser.add_argument(
+        "--check",
+        action="store_true",
+        help="Do not write the manifest. Exit code 1 if it is not the same.",
     )
     return parser
 
@@ -181,8 +201,39 @@ def check_command(args: argparse.Namespace, manifest) -> int:
     return 0
 
 
+def select_command(args: argparse.Namespace) -> int:
+    try:
+        specs = corpus_select.load_sources(args.sources)
+        cache = fetch_module.cache_dir(args.cache)
+        if args.download:
+            corpus_select.download_all(specs, cache)
+        text, summary = corpus_select.build(specs, cache)
+    except corpus_select.SelectError as e:
+        print("error: the selection failed:", file=sys.stderr)
+        for line in e.errors:
+            print(f"  {line}", file=sys.stderr)
+        return 2
+    except (ManifestError, fetch_module.FetchError) as e:
+        return _error(str(e))
+    out = {"sources_file": str(args.sources), "manifest": str(args.manifest)}
+    status = 0
+    if args.check:
+        try:
+            same = Path(args.manifest).read_bytes() == text
+        except OSError:
+            same = False
+        out["same_as_manifest"] = same
+        status = 0 if same else 1
+    else:
+        Path(args.manifest).write_bytes(text)
+    print(json.dumps({**out, **summary}, indent=2))
+    return status
+
+
 def main(argv: list[str] | None = None) -> int:
     args = _parser().parse_args(argv)
+    if args.command == "select":
+        return select_command(args)
     try:
         manifest = load(args.manifest)
         if args.command == "run":

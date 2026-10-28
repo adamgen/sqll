@@ -80,6 +80,15 @@ Ported code (MIT, attribution in each file header):
   names of `default_config.cfg`. `scripts/s3/sqruff_rules.py` reads the
   crates from the cargo cache. No sqruff code is copied.
 
+## S9 corpus
+
+The S9 corpus files are SQL files of public repositories with permissive
+licenses. The repository stores no corpus SQL. The harness downloads each
+file at run time by its pinned commit and checks its sha256.
+`corpus/sources.json` is the record of the source, version (commit),
+license, copyright holders, and license files of each corpus file. See
+`corpus/README.md`.
+
 ## Tools
 
 `scripts/setup` installs these tools in `SQLL_TOOLS_DIR` (default `.tools/`).
