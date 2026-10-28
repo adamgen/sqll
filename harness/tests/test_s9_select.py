@@ -4,6 +4,7 @@ A local git repository is the source. No test uses the network.
 """
 
 import json
+import os
 import subprocess
 from pathlib import Path
 
@@ -52,20 +53,24 @@ def git(cwd: Path, *args: str) -> str:
     return out.stdout.strip()
 
 
-@pytest.fixture
-def repo(tmp_path) -> tuple[Path, str]:
+def make_repo(tmp_path: Path, files: dict[str | bytes, bytes]) -> tuple[Path, str]:
     root = tmp_path / "repo"
     root.mkdir()
     git(root, "init", "-q")
     git(root, "config", "uploadpack.allowFilter", "true")
     git(root, "config", "uploadpack.allowAnySHA1InWant", "true")
-    for path, data in FILES.items():
-        dest = root / path
+    for path, data in files.items():
+        dest = Path(os.fsdecode(os.fsencode(root) + b"/" + os.fsencode(path)))
         dest.parent.mkdir(parents=True, exist_ok=True)
         dest.write_bytes(data)
     git(root, "add", ".")
     git(root, "commit", "-qm", "files")
     return root, git(root, "rev-parse", "HEAD")
+
+
+@pytest.fixture
+def repo(tmp_path) -> tuple[Path, str]:
+    return make_repo(tmp_path, FILES)
 
 
 def source_list(commit: str, **change) -> dict:
@@ -223,6 +228,96 @@ def test_unknown_copyright_holder_fails(tmp_path, repo, cache):
     specs = download(tmp_path, repo, cache, copyright=["Somebody Else"])
     with pytest.raises(s.SelectError, match="Somebody Else"):
         s.build(specs, cache)
+
+
+def with_header(header: str, fill: str = "h") -> bytes:
+    return header.encode() + sql(20 * KIB, fill)
+
+
+@pytest.mark.parametrize(
+    "header, message",
+    [
+        ("-- Copyright (c) 2006, Other AB\n", "Other AB"),
+        ("-- Portions Copyright (c) 1996-2019, Other Group\n", "Other Group"),
+        ("/* Copyright \u00a9 2023 Other Inc. */\n", "Other Inc."),
+        ("-- Copyright 2021 Other LLC\n", "Other LLC"),
+        ("-- Copyright Other Laboratory\n", "Other Laboratory"),
+        ("-- COPYRIGHT (C) OTHER\n", "OTHER"),
+    ],
+)
+def test_copyright_notice_of_an_unrecorded_holder_fails(
+    tmp_path, cache, header, message
+):
+    files = {**FILES, "sql/notice.sql": with_header(header)}
+    root, commit = make_repo(tmp_path, files)
+    specs = s.load_sources(write(tmp_path, source_list(commit)))
+    s.download(specs[0], cache, url=root.as_uri())
+    with pytest.raises(s.SelectError) as e:
+        s.build(specs, cache)
+    assert len(e.value.errors) == 1
+    assert e.value.errors[0].startswith("demo/sql/notice.sql:1: the copyright notice")
+    assert message in e.value.errors[0]
+
+
+def test_copyright_notice_of_a_recorded_holder_passes(tmp_path, cache):
+    header = "-- Copyright (c) 2024 Example Holder. All rights reserved.\n"
+    files = {**FILES, "sql/notice.sql": with_header(header)}
+    root, commit = make_repo(tmp_path, files)
+    specs = s.load_sources(write(tmp_path, source_list(commit)))
+    s.download(specs[0], cache, url=root.as_uri())
+    text, _ = s.build(specs, cache)
+    assert "demo/sql/notice.sql" in {f.id for f in m.parse(text).files}
+
+
+@pytest.mark.parametrize(
+    "line",
+    [
+        "-- The above copyright notice and this permission notice shall be included",
+        "-- THE COPYRIGHT HOLDERS AND CONTRIBUTORS",
+        "-- this work for additional information regarding copyright ownership.",
+        "\\copyright",
+        '<xs:element name="Copyright" type="xs:string" />',
+        "SELECT x AS [Copyright], CopyrightURL FROM t;",
+    ],
+)
+def test_text_that_is_not_a_copyright_notice_passes(tmp_path, repo, line):
+    _, commit = repo
+    (spec,) = s.load_sources(write(tmp_path, source_list(commit)))
+    assert s.notice_errors(spec, "a.sql", line, s._fold(line)) == []
+
+
+@pytest.mark.parametrize(
+    "license_text, found",
+    [
+        (" ".join(s.LICENSE_PHRASES["BSD-3-Clause"]), "BSD-3-Clause"),
+        ("GNU General Public License, version 2", "general public license"),
+        ("Mozilla Public License Version 2.0", "mozilla public license"),
+    ],
+)
+def test_license_text_of_another_license_fails(tmp_path, cache, license_text, found):
+    files = {**FILES, "sql/lic.sql": with_header(f"/* {license_text} */\n")}
+    root, commit = make_repo(tmp_path, files)
+    specs = s.load_sources(write(tmp_path, source_list(commit)))
+    s.download(specs[0], cache, url=root.as_uri())
+    with pytest.raises(s.SelectError, match="demo/sql/lic.sql: has the license text"):
+        s.build(specs, cache)
+    assert s.licenses_in(s._fold(license_text)) == {found}
+
+
+def test_license_text_of_the_source_license_passes(tmp_path, cache):
+    files = {**FILES, "sql/lic.sql": with_header(f"/* {MIT} */\n")}
+    root, commit = make_repo(tmp_path, files)
+    specs = s.load_sources(write(tmp_path, source_list(commit)))
+    s.download(specs[0], cache, url=root.as_uri())
+    text, _ = s.build(specs, cache)
+    assert "demo/sql/lic.sql" in {f.id for f in m.parse(text).files}
+
+
+def test_path_that_is_not_utf8_fails(tmp_path, cache):
+    root, commit = make_repo(tmp_path, {**FILES, b"sql/\xe9.sql": sql(20 * KIB, "x")})
+    specs = s.load_sources(write(tmp_path, source_list(commit)))
+    with pytest.raises(s.SelectError, match="a path is not UTF-8"):
+        s.download(specs[0], cache, url=root.as_uri())
 
 
 def test_source_with_no_selected_file_fails(tmp_path, repo, cache):

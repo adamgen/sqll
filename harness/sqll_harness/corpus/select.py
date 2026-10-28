@@ -9,7 +9,9 @@ source list and the cache, never a tool result: a file is in if its path
 matches an include glob, its size is in the range of its templater, its
 bytes are UTF-8, and no earlier file (sorted by source and path) has its
 sha256. No file is changed. build() also checks the license text of each
-source and finds each copyright holder in its files.
+source and finds each copyright holder in its files. Each copyright notice
+and license text in a selected file must be that of the record of its
+source (notice_errors).
 """
 
 import hashlib
@@ -73,6 +75,14 @@ LICENSE_PHRASES: dict[str, tuple[str, ...]] = {
     "CC0-1.0": ("cc0 1.0 universal",),
 }
 
+# Texts of licenses that are not on the allowlist (copyleft).
+OTHER_LICENSE_PHRASES = ("general public license", "mozilla public license")
+# A copyright notice: "Copyright (c) ...", "Copyright © ...", "Copyright 2021 ...",
+# or "Copyright Name". Not "copyright notice", "COPYRIGHT HOLDERS", or the
+# psql command "\copyright".
+_NOTICE = re.compile(
+    r"(?<![\\\w])(?:(?i:copyright)\s*(?:\([cC]\)|©|\d{4})|Copyright\s+[A-Z])"
+)
 _SPACE = re.compile(r"\s+")
 
 
@@ -253,16 +263,23 @@ def download(spec: SourceSpec, cache: Path, url: str | None = None) -> dict:
         _git([*fetch, url, spec.commit], work)
         tree = _git(["ls-tree", "-r", "-z", spec.commit], work)
         entries: dict[str, str] = {}
+        errors: list[str] = []
         for item in tree.split(b"\0"):
             if not item:
                 continue
-            meta, path = item.decode("utf8").split("\t", 1)
+            try:
+                meta, path = item.decode("utf8").split("\t", 1)
+            except UnicodeDecodeError:
+                errors.append(f"{spec.id}: a path is not UTF-8: {item!r}")
+                continue
             mode, kind, oid = meta.split()
             if kind == "blob" and mode in ("100644", "100755") and _wanted(spec, path):
                 entries[path] = oid
         missing = [p for p in spec.license_files if p not in entries]
         if missing:
-            raise SelectError([f"{spec.id}: no license file {missing} at the commit"])
+            errors.append(f"{spec.id}: no license file {missing} at the commit")
+        if errors:
+            raise SelectError(errors)
         oids = sorted(set(entries.values()))
         _git(
             [
@@ -289,7 +306,7 @@ def download(spec: SourceSpec, cache: Path, url: str | None = None) -> dict:
         if path in spec.license_files or (
             include and _in_range(len(data), include.templater)
         ):
-            fetch_module._write(file_path(cache, spec, path), data)
+            fetch_module.write_file(file_path(cache, spec, path), data)
     listing = {
         "repository": spec.repository,
         "commit": spec.commit,
@@ -299,7 +316,7 @@ def download(spec: SourceSpec, cache: Path, url: str | None = None) -> dict:
     }
     dest = listing_path(cache, spec)
     text = json.dumps(listing, indent=2, ensure_ascii=False) + "\n"
-    fetch_module._write(dest, text.encode("utf8"))
+    fetch_module.write_file(dest, text.encode("utf8"))
     return listing
 
 
@@ -356,15 +373,44 @@ def _fold(text: str) -> str:
 
 
 def license_errors(spdx: str, text: str) -> list[str]:
-    """Return why text is not a license text of spdx (empty if it is)."""
+    """Return why text is not a license text of spdx (empty if it is).
+    load_sources() refuses an spdx with no entry in LICENSE_PHRASES."""
     folded = _fold(text)
-    errors = [
-        f"no phrase {p!r}" for p in LICENSE_PHRASES.get(spdx, ()) if p not in folded
-    ]
-    if spdx not in LICENSE_PHRASES:
-        errors.append(f"{spdx!r} has no license text check")
+    errors = [f"no phrase {p!r}" for p in LICENSE_PHRASES[spdx] if p not in folded]
     if spdx == "BSD-2-Clause" and BSD3_CLAUSE in folded:
         errors.append("the text has the third clause of BSD-3-Clause")
+    return errors
+
+
+def licenses_in(folded: str) -> set[str]:
+    """Return the licenses whose text is in folded (a _fold() text)."""
+    found = {
+        spdx
+        for spdx, phrases in LICENSE_PHRASES.items()
+        if all(p in folded for p in phrases)
+    }
+    if "BSD-3-Clause" in found:
+        found.discard("BSD-2-Clause")
+    return found | {p for p in OTHER_LICENSE_PHRASES if p in folded}
+
+
+def notice_errors(spec: SourceSpec, path: str, text: str, folded: str) -> list[str]:
+    """Return each copyright notice of text that names no copyright holder of
+    spec, and each license text in it that is not the license of spec."""
+    holders = [_fold(h) for h in spec.copyright]
+    errors = []
+    for number, line in enumerate(text.splitlines(), 1):
+        if _NOTICE.search(line) and not any(h in _fold(line) for h in holders):
+            notice = line.strip()[:120]
+            errors.append(
+                f"{spec.id}/{path}:{number}: the copyright notice {notice!r} "
+                "names no copyright holder of the source"
+            )
+    other = sorted(licenses_in(folded) - {spec.license})
+    if other:
+        errors.append(
+            f"{spec.id}/{path}: has the license text {other}, not {spec.license}"
+        )
     return errors
 
 
@@ -398,19 +444,19 @@ def build(specs: list[SourceSpec], cache: Path) -> tuple[bytes, dict]:
     for spec in specs:
         listing = _listing(cache, spec)
         result = SourceResult()
-        texts: list[str] = []
+        folded_texts: list[str] = []
         blobs = []
         for path in spec.license_files:
             entry = listing["files"].get(path)
             if entry is None:
                 raise SelectError([f"{spec.id}: no license file {path} in the listing"])
             data = _cached(cache, spec, path, entry)
-            texts.append(data.decode("utf8", "replace"))
+            folded_texts.append(_fold(data.decode("utf8", "replace")))
             sha = hashlib.sha256(data).hexdigest()
             blobs.append({"path": path, "bytes": len(data), "sha256": sha})
         errors += [
             f"{spec.id}: {spec.license_files[0]}: {e}"
-            for e in license_errors(spec.license, texts[0])
+            for e in license_errors(spec.license, folded_texts[0])
         ]
         for path, entry in sorted(listing["files"].items()):
             include = _include(spec, path)
@@ -431,12 +477,13 @@ def build(specs: list[SourceSpec], cache: Path) -> tuple[bytes, dict]:
                 result.duplicates[fid] = seen[sha]
                 continue
             seen[sha] = fid
-            texts.append(text)
+            folded = _fold(text)
+            folded_texts.append(folded)
+            errors += notice_errors(spec, path, text, folded)
             result.selected += 1
             files.append(_record(spec, path, include, data, sha))
-        folded = [_fold(t) for t in texts]
         for holder in spec.copyright:
-            if not any(_fold(holder) in t for t in folded):
+            if not any(_fold(holder) in t for t in folded_texts):
                 errors.append(
                     f"{spec.id}: the copyright holder {holder!r} is in no license "
                     "file and no selected file"

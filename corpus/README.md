@@ -123,4 +123,9 @@ The output gives these counts for each source. The selection fails
 - the first license file does not have the phrases of its SPDX id
   (`LICENSE_PHRASES` in `harness/sqll_harness/corpus/select.py`);
 - a copyright holder is in no license file and no selected file;
+- a copyright notice in a selected file ("Copyright (c) ...",
+  "Copyright 2021 ...", "Copyright Name") names no copyright holder of the
+  source, or a selected file has the text of another license
+  (`notice_errors` in `select.py`). Then give the file its own source with
+  its terms, or remove its glob, and give the reason in the note;
 - a source has no selected file, or the manifest is not valid.

@@ -86,14 +86,15 @@
       "globs": [
         "tests/queries/0_stateless/00[0-2]*.sql"
       ],
-      "note": "Tag v25.8.9.20-lts. Only the stateless tests 00000 to 00299: all 67 tests in the size range have 3.9 MB."
+      "note": "Tag v25.8.9.20-lts. Only the stateless tests 00000 to 00299. The full folder has 67 tests in the size range, 3.9 MB in total."
     },
     "db-sample-schemas": {
       "repository": "https://github.com/oracle-samples/db-sample-schemas",
       "commit": "6660bad68c07bd143430ace58565b3f727e17263",
       "license": "MIT",
       "copyright": [
-        "Oracle and/or its affiliates"
+        "Oracle and/or its affiliates",
+        "Oracle"
       ],
       "license_files": [
         {
@@ -107,7 +108,7 @@
         "human_resources/*.sql",
         "sales_history/*.sql"
       ],
-      "note": "Default branch on 2026-10-28. Not order_entry: 39 files (3.4 MB) in the size range, most of them product text in many languages."
+      "note": "Default branch on 2026-10-28. Not order_entry: 39 files (3.4 MB) in the size range, most of them product text in many languages. The selected files have the notice 'Copyright (c) 2023 Oracle'."
     },
     "emerging-solutions-toolbox": {
       "repository": "https://github.com/Snowflake-Labs/emerging-solutions-toolbox",
@@ -189,14 +190,38 @@
       ],
       "globs": [
         "cockroachdb-sakila-db/*.sql",
-        "mysql-sakila-db/*.sql",
         "oracle-sakila-db/*.sql",
         "postgres-sakila-db/*.sql",
         "sql-server-sakila-db/*.sql",
         "sqlite-sakila-db/*.sql",
         "yugabytedb-sakila-db/*.sql"
       ],
-      "note": "Default branch on 2026-10-28. The data files are more than 2 MiB. README.md names the second copyright holder."
+      "note": "Default branch on 2026-10-28. The data files are more than 2 MiB. README.md names the second copyright holder. The MySQL files are in the source sakila-mysql."
+    },
+    "sakila-mysql": {
+      "repository": "https://github.com/jOOQ/sakila",
+      "commit": "e089a5b1ec9af0df7a9c6a5d47d49fa1736a4e84",
+      "license": "BSD-3-Clause",
+      "copyright": [
+        "MySQL AB",
+        "jOOQ Object Oriented Querying"
+      ],
+      "license_files": [
+        {
+          "path": "mysql-sakila-db/mysql-sakila-schema.sql",
+          "bytes": 23088,
+          "sha256": "f2c41c3bf6d6c239941b4f98fb37afad21f6be12b82bf586202529a793ccc2ee"
+        },
+        {
+          "path": "LICENSE",
+          "bytes": 1339,
+          "sha256": "1f1f3467bc7e7ba6277f20ddd7925e2ec2165d3bd56bdaf2eb26ea84c3953279"
+        }
+      ],
+      "globs": [
+        "mysql-sakila-db/*.sql"
+      ],
+      "note": "The commit of sakila. mysql-sakila-schema.sql has its own BSD-3-Clause notice, 'Copyright (c) 2006, MySQL AB' (the first license file). The repository LICENSE is BSD-2-Clause (jOOQ); BSD-3-Clause has all its conditions."
     },
     "spark": {
       "repository": "https://github.com/apache/spark",
@@ -218,9 +243,18 @@
         }
       ],
       "globs": [
-        "sql/core/src/test/resources/sql-tests/inputs/**/*.sql"
+        "sql/core/src/test/resources/sql-tests/inputs/*.sql",
+        "sql/core/src/test/resources/sql-tests/inputs/nonansi/*.sql",
+        "sql/core/src/test/resources/sql-tests/inputs/scripting/*.sql",
+        "sql/core/src/test/resources/sql-tests/inputs/subquery/**/*.sql",
+        "sql/core/src/test/resources/sql-tests/inputs/timestampNTZ/*.sql",
+        "sql/core/src/test/resources/sql-tests/inputs/typeCoercion/**/*.sql",
+        "sql/core/src/test/resources/sql-tests/inputs/udaf/*.sql",
+        "sql/core/src/test/resources/sql-tests/inputs/udf/*.sql",
+        "sql/core/src/test/resources/sql-tests/inputs/udtf/*.sql",
+        "sql/core/src/test/resources/sql-tests/inputs/variant/*.sql"
       ],
-      "note": "Tag v4.2.1. The SQL test inputs of Spark SQL."
+      "note": "Tag v4.2.1. The SQL test inputs of Spark SQL, but not the 2 postgreSQL folders: their files are ports of the PostgreSQL regression tests, with the notice 'Portions Copyright (c) 1996-2019, PostgreSQL Global Development Group'. The postgres source has the original tests."
     },
     "sql-server-maintenance-solution": {
       "repository": "https://github.com/olahallengren/sql-server-maintenance-solution",
@@ -246,7 +280,8 @@
       "commit": "348bbbc25079785f93ea74be3dd0d6369a59358f",
       "license": "MIT",
       "copyright": [
-        "Microsoft Corporation"
+        "Microsoft Corporation",
+        "Microsoft, Inc."
       ],
       "license_files": [
         {
@@ -261,7 +296,7 @@
         "samples/databases/northwind-pubs/*.sql",
         "samples/features/in-memory-database/in-memory-oltp/t-sql-scripts/*.sql"
       ],
-      "note": "Default branch on 2026-10-28. Not wide-world-importers: 33 files (6.8 MB) in the size range, most of them data."
+      "note": "Default branch on 2026-10-28. Not wide-world-importers: 33 files (6.8 MB) in the size range, most of them data. The northwind-pubs files have the notice 'Copyright Microsoft, Inc. 1994 - 2000'."
     }
   },
   "files": [
@@ -1574,18 +1609,6 @@
       "selection": "glob cockroachdb-sakila-db/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
     },
     {
-      "id": "sakila/mysql-sakila-db/mysql-sakila-schema.sql",
-      "source": "sakila",
-      "path": "mysql-sakila-db/mysql-sakila-schema.sql",
-      "dialect": "mysql",
-      "templater": "raw",
-      "bytes": 23088,
-      "lines": 644,
-      "sha256": "f2c41c3bf6d6c239941b4f98fb37afad21f6be12b82bf586202529a793ccc2ee",
-      "smoke": true,
-      "selection": "glob mysql-sakila-db/*.sql (dialect mysql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
-    },
-    {
       "id": "sakila/oracle-sakila-db/oracle-sakila-schema.sql",
       "source": "sakila",
       "path": "oracle-sakila-db/oracle-sakila-schema.sql",
@@ -1634,6 +1657,18 @@
       "selection": "glob yugabytedb-sakila-db/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
     },
     {
+      "id": "sakila-mysql/mysql-sakila-db/mysql-sakila-schema.sql",
+      "source": "sakila-mysql",
+      "path": "mysql-sakila-db/mysql-sakila-schema.sql",
+      "dialect": "mysql",
+      "templater": "raw",
+      "bytes": 23088,
+      "lines": 644,
+      "sha256": "f2c41c3bf6d6c239941b4f98fb37afad21f6be12b82bf586202529a793ccc2ee",
+      "smoke": true,
+      "selection": "glob mysql-sakila-db/*.sql (dialect mysql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
       "id": "spark/sql/core/src/test/resources/sql-tests/inputs/cte-recursion.sql",
       "source": "spark",
       "path": "sql/core/src/test/resources/sql-tests/inputs/cte-recursion.sql",
@@ -1643,7 +1678,7 @@
       "lines": 834,
       "sha256": "97b245322d10e1b9f5b845fe5107a7f92577fc9559a34ce1067850336cf65254",
       "smoke": true,
-      "selection": "glob sql/core/src/test/resources/sql-tests/inputs/**/*.sql (dialect sparksql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+      "selection": "glob sql/core/src/test/resources/sql-tests/inputs/*.sql (dialect sparksql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
     },
     {
       "id": "spark/sql/core/src/test/resources/sql-tests/inputs/identifier-clause.sql",
@@ -1655,7 +1690,7 @@
       "lines": 397,
       "sha256": "8f7a31627ee06bdd6b1e445497f64c7de8bde8ccecc6810355bf1ae36f56f7f3",
       "smoke": true,
-      "selection": "glob sql/core/src/test/resources/sql-tests/inputs/**/*.sql (dialect sparksql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+      "selection": "glob sql/core/src/test/resources/sql-tests/inputs/*.sql (dialect sparksql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
     },
     {
       "id": "spark/sql/core/src/test/resources/sql-tests/inputs/join-lateral.sql",
@@ -1667,7 +1702,7 @@
       "lines": 589,
       "sha256": "773ab1c453bdd5ab79f006e0e98c4fdcb1182c6e66733bb2fe9aeedd0621f6f9",
       "smoke": true,
-      "selection": "glob sql/core/src/test/resources/sql-tests/inputs/**/*.sql (dialect sparksql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+      "selection": "glob sql/core/src/test/resources/sql-tests/inputs/*.sql (dialect sparksql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
     },
     {
       "id": "spark/sql/core/src/test/resources/sql-tests/inputs/kllquantiles.sql",
@@ -1679,7 +1714,7 @@
       "lines": 712,
       "sha256": "7fc69381c5e6b02ac2b061067ba03cf1d29125e54150ec3557cb158aef2969b7",
       "smoke": true,
-      "selection": "glob sql/core/src/test/resources/sql-tests/inputs/**/*.sql (dialect sparksql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+      "selection": "glob sql/core/src/test/resources/sql-tests/inputs/*.sql (dialect sparksql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
     },
     {
       "id": "spark/sql/core/src/test/resources/sql-tests/inputs/order-by-and-having-on-top-of-aggregate-with-join.sql",
@@ -1691,7 +1726,7 @@
       "lines": 244,
       "sha256": "9406c324c3c361bcff8c58012192c5db3a389ebb727afa961f86b5ec95cb060b",
       "smoke": true,
-      "selection": "glob sql/core/src/test/resources/sql-tests/inputs/**/*.sql (dialect sparksql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+      "selection": "glob sql/core/src/test/resources/sql-tests/inputs/*.sql (dialect sparksql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
     },
     {
       "id": "spark/sql/core/src/test/resources/sql-tests/inputs/pipe-operators.sql",
@@ -1703,115 +1738,7 @@
       "lines": 1917,
       "sha256": "4c216b689e2ab288e59a6c0a955ed63f8d60c58eb4983a7dfd01e5ce9e0c8ee8",
       "smoke": false,
-      "selection": "glob sql/core/src/test/resources/sql-tests/inputs/**/*.sql (dialect sparksql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
-    },
-    {
-      "id": "spark/sql/core/src/test/resources/sql-tests/inputs/postgreSQL/create_view.sql",
-      "source": "spark",
-      "path": "sql/core/src/test/resources/sql-tests/inputs/postgreSQL/create_view.sql",
-      "dialect": "sparksql",
-      "templater": "raw",
-      "bytes": 26880,
-      "lines": 779,
-      "sha256": "4cde5ead7bfe2a39e661838651b6250a75414c74f0ce2b91eb977b11829b0ca2",
-      "smoke": true,
-      "selection": "glob sql/core/src/test/resources/sql-tests/inputs/**/*.sql (dialect sparksql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
-    },
-    {
-      "id": "spark/sql/core/src/test/resources/sql-tests/inputs/postgreSQL/float8.sql",
-      "source": "spark",
-      "path": "sql/core/src/test/resources/sql-tests/inputs/postgreSQL/float8.sql",
-      "dialect": "sparksql",
-      "templater": "raw",
-      "bytes": 17984,
-      "lines": 502,
-      "sha256": "40925929c371c018d24415ea91741c2a30951a7cb7d4aa2298c2fd7a4362ff9b",
-      "smoke": true,
-      "selection": "glob sql/core/src/test/resources/sql-tests/inputs/**/*.sql (dialect sparksql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
-    },
-    {
-      "id": "spark/sql/core/src/test/resources/sql-tests/inputs/postgreSQL/groupingsets.sql",
-      "source": "spark",
-      "path": "sql/core/src/test/resources/sql-tests/inputs/postgreSQL/groupingsets.sql",
-      "dialect": "sparksql",
-      "templater": "raw",
-      "bytes": 24421,
-      "lines": 561,
-      "sha256": "2c60f833f7d836f0b2a93e7f0827eeb14d19150d7493fe1f8c6e5be73542d0de",
-      "smoke": true,
-      "selection": "glob sql/core/src/test/resources/sql-tests/inputs/**/*.sql (dialect sparksql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
-    },
-    {
-      "id": "spark/sql/core/src/test/resources/sql-tests/inputs/postgreSQL/insert.sql",
-      "source": "spark",
-      "path": "sql/core/src/test/resources/sql-tests/inputs/postgreSQL/insert.sql",
-      "dialect": "sparksql",
-      "templater": "raw",
-      "bytes": 30323,
-      "lines": 653,
-      "sha256": "e3014a7672af463d7b9329aa7076b10188fdf1b14ea74a1abd1fbbaed4849adc",
-      "smoke": true,
-      "selection": "glob sql/core/src/test/resources/sql-tests/inputs/**/*.sql (dialect sparksql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
-    },
-    {
-      "id": "spark/sql/core/src/test/resources/sql-tests/inputs/postgreSQL/join.sql",
-      "source": "spark",
-      "path": "sql/core/src/test/resources/sql-tests/inputs/postgreSQL/join.sql",
-      "dialect": "sparksql",
-      "templater": "raw",
-      "bytes": 66490,
-      "lines": 2106,
-      "sha256": "aad7c145a2d42b9d76d1ca5429cc53f869ccbdaf67694b5bcccf059145f440a8",
-      "smoke": false,
-      "selection": "glob sql/core/src/test/resources/sql-tests/inputs/**/*.sql (dialect sparksql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
-    },
-    {
-      "id": "spark/sql/core/src/test/resources/sql-tests/inputs/postgreSQL/numeric.sql",
-      "source": "spark",
-      "path": "sql/core/src/test/resources/sql-tests/inputs/postgreSQL/numeric.sql",
-      "dialect": "sparksql",
-      "templater": "raw",
-      "bytes": 53054,
-      "lines": 1165,
-      "sha256": "14a36356ee967ff7d4e32f828456f82fe5266938523cad51255e38b5a7404698",
-      "smoke": false,
-      "selection": "glob sql/core/src/test/resources/sql-tests/inputs/**/*.sql (dialect sparksql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
-    },
-    {
-      "id": "spark/sql/core/src/test/resources/sql-tests/inputs/postgreSQL/strings.sql",
-      "source": "spark",
-      "path": "sql/core/src/test/resources/sql-tests/inputs/postgreSQL/strings.sql",
-      "dialect": "sparksql",
-      "templater": "raw",
-      "bytes": 23162,
-      "lines": 659,
-      "sha256": "1810129058ffd3c08bdf1badf606fddc7092c8f5b2aab1cff19e1457278b3ba5",
-      "smoke": true,
-      "selection": "glob sql/core/src/test/resources/sql-tests/inputs/**/*.sql (dialect sparksql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
-    },
-    {
-      "id": "spark/sql/core/src/test/resources/sql-tests/inputs/postgreSQL/window_part3.sql",
-      "source": "spark",
-      "path": "sql/core/src/test/resources/sql-tests/inputs/postgreSQL/window_part3.sql",
-      "dialect": "sparksql",
-      "templater": "raw",
-      "bytes": 19799,
-      "lines": 455,
-      "sha256": "5482f7dbd93a3d4dd84e9de5cc36e066c479c0a5104d8b27479411b9a162cca0",
-      "smoke": true,
-      "selection": "glob sql/core/src/test/resources/sql-tests/inputs/**/*.sql (dialect sparksql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
-    },
-    {
-      "id": "spark/sql/core/src/test/resources/sql-tests/inputs/postgreSQL/with.sql",
-      "source": "spark",
-      "path": "sql/core/src/test/resources/sql-tests/inputs/postgreSQL/with.sql",
-      "dialect": "sparksql",
-      "templater": "raw",
-      "bytes": 34456,
-      "lines": 1267,
-      "sha256": "52e6a96cb43d23c32b6d9103378e47c7346701ba7a36f9fdea610104a27b176c",
-      "smoke": false,
-      "selection": "glob sql/core/src/test/resources/sql-tests/inputs/**/*.sql (dialect sparksql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+      "selection": "glob sql/core/src/test/resources/sql-tests/inputs/*.sql (dialect sparksql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
     },
     {
       "id": "spark/sql/core/src/test/resources/sql-tests/inputs/scripting/randomly_generated_scripts.sql",
@@ -1823,7 +1750,7 @@
       "lines": 6882,
       "sha256": "5bb4d1e979de50164d242a433b7e6ca467c883c40c49a1de6b77e908215b8f6d",
       "smoke": false,
-      "selection": "glob sql/core/src/test/resources/sql-tests/inputs/**/*.sql (dialect sparksql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+      "selection": "glob sql/core/src/test/resources/sql-tests/inputs/scripting/*.sql (dialect sparksql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
     },
     {
       "id": "spark/sql/core/src/test/resources/sql-tests/inputs/sql-udf.sql",
@@ -1835,7 +1762,7 @@
       "lines": 1035,
       "sha256": "59bf33fde3a859e884b0c9786f54c3bc4e73b36faf35f7c0fa9c193b9d2b35e3",
       "smoke": false,
-      "selection": "glob sql/core/src/test/resources/sql-tests/inputs/**/*.sql (dialect sparksql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+      "selection": "glob sql/core/src/test/resources/sql-tests/inputs/*.sql (dialect sparksql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
     },
     {
       "id": "spark/sql/core/src/test/resources/sql-tests/inputs/subquery/in-subquery/in-set-operations.sql",
@@ -1847,7 +1774,7 @@
       "lines": 583,
       "sha256": "14951da1b63eb654c8a1d521227e4f417a80d13eb69106675f5a939e393f8aea",
       "smoke": true,
-      "selection": "glob sql/core/src/test/resources/sql-tests/inputs/**/*.sql (dialect sparksql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+      "selection": "glob sql/core/src/test/resources/sql-tests/inputs/subquery/**/*.sql (dialect sparksql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
     },
     {
       "id": "spark/sql/core/src/test/resources/sql-tests/inputs/thetasketch.sql",
@@ -1859,7 +1786,7 @@
       "lines": 539,
       "sha256": "d5cd5c26ebab36b408d736d483d6bc52f33d5ce839d1e4548a583349403df715",
       "smoke": true,
-      "selection": "glob sql/core/src/test/resources/sql-tests/inputs/**/*.sql (dialect sparksql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+      "selection": "glob sql/core/src/test/resources/sql-tests/inputs/*.sql (dialect sparksql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
     },
     {
       "id": "spark/sql/core/src/test/resources/sql-tests/inputs/tuplesketch.sql",
@@ -1871,7 +1798,7 @@
       "lines": 1751,
       "sha256": "eff1b09473319e38018d41caf3789cbb5f3481b79ac54221c276571c8f1d65a0",
       "smoke": false,
-      "selection": "glob sql/core/src/test/resources/sql-tests/inputs/**/*.sql (dialect sparksql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+      "selection": "glob sql/core/src/test/resources/sql-tests/inputs/*.sql (dialect sparksql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
     },
     {
       "id": "spark/sql/core/src/test/resources/sql-tests/inputs/typeCoercion/native/decimalPrecision.sql",
@@ -1883,7 +1810,7 @@
       "lines": 1448,
       "sha256": "6b7f14d8085863ef4e9504d5ed64ad6797fa3dda31e5e8daa461ab332006e2ae",
       "smoke": false,
-      "selection": "glob sql/core/src/test/resources/sql-tests/inputs/**/*.sql (dialect sparksql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+      "selection": "glob sql/core/src/test/resources/sql-tests/inputs/typeCoercion/**/*.sql (dialect sparksql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
     },
     {
       "id": "spark/sql/core/src/test/resources/sql-tests/inputs/typeCoercion/native/inConversion.sql",
@@ -1895,7 +1822,7 @@
       "lines": 330,
       "sha256": "3088e459dd1936527a12884aeb1ec92e63d53878028d9393ab77528f1e871a9e",
       "smoke": true,
-      "selection": "glob sql/core/src/test/resources/sql-tests/inputs/**/*.sql (dialect sparksql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+      "selection": "glob sql/core/src/test/resources/sql-tests/inputs/typeCoercion/**/*.sql (dialect sparksql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
     },
     {
       "id": "spark/sql/core/src/test/resources/sql-tests/inputs/typeCoercion/native/promoteStrings.sql",
@@ -1907,19 +1834,7 @@
       "lines": 364,
       "sha256": "273338857fcf8e5acab0a3086b7191527e14f60e2931c11a63c0aa25bb72d9ff",
       "smoke": true,
-      "selection": "glob sql/core/src/test/resources/sql-tests/inputs/**/*.sql (dialect sparksql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
-    },
-    {
-      "id": "spark/sql/core/src/test/resources/sql-tests/inputs/udf/postgreSQL/udf-join.sql",
-      "source": "spark",
-      "path": "sql/core/src/test/resources/sql-tests/inputs/udf/postgreSQL/udf-join.sql",
-      "dialect": "sparksql",
-      "templater": "raw",
-      "bytes": 69476,
-      "lines": 2090,
-      "sha256": "4688045389ab5254e95017290fc9a8673cf45ab487ffc61d1068bab14b0c2c83",
-      "smoke": false,
-      "selection": "glob sql/core/src/test/resources/sql-tests/inputs/**/*.sql (dialect sparksql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+      "selection": "glob sql/core/src/test/resources/sql-tests/inputs/typeCoercion/**/*.sql (dialect sparksql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
     },
     {
       "id": "spark/sql/core/src/test/resources/sql-tests/inputs/window.sql",
@@ -1931,7 +1846,7 @@
       "lines": 519,
       "sha256": "570e31bce936c41a861d765c34c175daabba8d999a64fa398cb552360b57cac5",
       "smoke": true,
-      "selection": "glob sql/core/src/test/resources/sql-tests/inputs/**/*.sql (dialect sparksql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+      "selection": "glob sql/core/src/test/resources/sql-tests/inputs/*.sql (dialect sparksql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
     },
     {
       "id": "sql-server-maintenance-solution/DatabaseBackup.sql",

@@ -23,8 +23,10 @@ request have the commands and the output.
   each copy; Apache-2.0 4(a) needs a copy of the license. Thus:
   1. T2 (schema), T4 and T5 (data): for each source, the manifest records
      each copyright holder and the path and sha256 of each license or
-     notice file. Example: `jOOQ/sakila` has "jOOQ Object Oriented
-     Querying" (`LICENSE`) and "DB Software Laboratory" (`README.md`).
+     notice file. A holder or license that a selected file names is part
+     of the record ("Content"). Example: `jOOQ/sakila` has "jOOQ Object
+     Oriented Querying" (`LICENSE`) and "DB Software Laboratory"
+     (`README.md`).
   2. T2 (fetch), T3 (report), T7 (CI): the fetch gets and checks these
      files too. Each cache or artifact with corpus text also has them and
      the manifest.
@@ -87,27 +89,18 @@ include globs with the dialect of each. `scripts/s9/select` makes
 `corpus/sources.json` from it and the cache, with the rules of
 "Selection" (corpus/README.md, "Selection"). It also fails closed if:
 the first license file does not have the phrases of its SPDX id; a
-copyright holder is in no license file and no selected file; a cached
-file is not the git blob of the commit; or a source has no file.
+copyright holder is in no license file and no selected file; a copyright
+notice in a selected file names no recorded holder; a selected file has
+the text of a license other than that of its source; a cached file is not
+the git blob of the commit; or a source has no file. Thus a holder or
+license that a selected file names is part of the record. A file with
+other terms goes to its own source (`sakila-mysql`), or its glob is
+removed (the PostgreSQL ports of `spark`). The note of the source gives
+the reason.
 
-| Source | Repository | Commit | License | Files | Bytes | Dialects |
-|---|---|---|---|---|---|---|
-| `amazon-redshift-utils` | `awslabs/amazon-redshift-utils` | `f208c11` | Apache-2.0 | 2 | 36,064 | redshift |
-| `bigquery-utils` | `GoogleCloudPlatform/bigquery-utils` | `d5bde4f` | Apache-2.0 | 2 | 87,911 | bigquery |
-| `chinook-database` | `lerocha/chinook-database` | `7f67772` | MIT | 11 | 6,425,616 | db2, mysql, oracle, postgres, sqlite, tsql |
-| `clickhouse` | `ClickHouse/ClickHouse` | `a1f4cd9` | Apache-2.0 | 6 | 193,022 | clickhouse |
-| `db-sample-schemas` | `oracle-samples/db-sample-schemas` | `6660bad` | MIT | 6 | 1,418,237 | oracle |
-| `emerging-solutions-toolbox` | `Snowflake-Labs/emerging-solutions-toolbox` | `d9073a3` | Apache-2.0 | 10 | 400,518 | snowflake |
-| `pagila` | `devrimgunduz/pagila` | `ce6e114` | PostgreSQL | 1 | 89,841 | postgres |
-| `postgres` | `postgres/postgres` | `7885b94` | PostgreSQL | 70 | 3,169,434 | postgres |
-| `sakila` | `jOOQ/sakila` | `e089a5b` | BSD-2-Clause | 6 | 183,311 | mysql, oracle, postgres, sqlite |
-| `spark` | `apache/spark` | `6176183` | Apache-2.0 | 25 | 1,133,814 | sparksql |
-| `sql-server-maintenance-solution` | `olahallengren/sql-server-maintenance-solution` | `4161757` | MIT | 5 | 1,473,445 | tsql |
-| `sql-server-samples` | `microsoft/sql-server-samples` | `348bbbc` | MIT | 13 | 2,814,661 | tsql |
-
-Total: 157 files, 17,425,874 bytes, 11 dialects. 26 files have more than
-100 kB, 3 more than 1 MB (largest 1,274,129 bytes). Smoke: the 78 files of
-32 KiB or less, 1,788,436 bytes. Limit (test): 2 MiB and 100 files.
+The sources, files, sizes, and dialects are in the manifest; the counts of
+each source are in the output of `scripts/s9/select --check`. Smoke: the
+files of 32 KiB or less. Limit (test): 2 MiB and 100 files.
 
 Out (examined): `pthom/northwind_psql` (Ms-PL);
 `OHDSI/CommonDataModel` and `GoogleCloudPlatform/data-analytics-golden-demo`

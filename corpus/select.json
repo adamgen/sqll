@@ -49,20 +49,20 @@
       "include": [
         {"glob": "tests/queries/0_stateless/00[0-2]*.sql", "dialect": "clickhouse"}
       ],
-      "note": "Tag v25.8.9.20-lts. Only the stateless tests 00000 to 00299: all 67 tests in the size range have 3.9 MB."
+      "note": "Tag v25.8.9.20-lts. Only the stateless tests 00000 to 00299. The full folder has 67 tests in the size range, 3.9 MB in total."
     },
     "db-sample-schemas": {
       "repository": "https://github.com/oracle-samples/db-sample-schemas",
       "commit": "6660bad68c07bd143430ace58565b3f727e17263",
       "license": "MIT",
-      "copyright": ["Oracle and/or its affiliates"],
+      "copyright": ["Oracle and/or its affiliates", "Oracle"],
       "license_files": ["LICENSE.txt"],
       "include": [
         {"glob": "customer_orders/*.sql", "dialect": "oracle"},
         {"glob": "human_resources/*.sql", "dialect": "oracle"},
         {"glob": "sales_history/*.sql", "dialect": "oracle"}
       ],
-      "note": "Default branch on 2026-10-28. Not order_entry: 39 files (3.4 MB) in the size range, most of them product text in many languages."
+      "note": "Default branch on 2026-10-28. Not order_entry: 39 files (3.4 MB) in the size range, most of them product text in many languages. The selected files have the notice 'Copyright (c) 2023 Oracle'."
     },
     "emerging-solutions-toolbox": {
       "repository": "https://github.com/Snowflake-Labs/emerging-solutions-toolbox",
@@ -108,14 +108,24 @@
       "license_files": ["LICENSE", "README.md"],
       "include": [
         {"glob": "cockroachdb-sakila-db/*.sql", "dialect": "postgres"},
-        {"glob": "mysql-sakila-db/*.sql", "dialect": "mysql"},
         {"glob": "oracle-sakila-db/*.sql", "dialect": "oracle"},
         {"glob": "postgres-sakila-db/*.sql", "dialect": "postgres"},
         {"glob": "sql-server-sakila-db/*.sql", "dialect": "tsql"},
         {"glob": "sqlite-sakila-db/*.sql", "dialect": "sqlite"},
         {"glob": "yugabytedb-sakila-db/*.sql", "dialect": "postgres"}
       ],
-      "note": "Default branch on 2026-10-28. The data files are more than 2 MiB. README.md names the second copyright holder."
+      "note": "Default branch on 2026-10-28. The data files are more than 2 MiB. README.md names the second copyright holder. The MySQL files are in the source sakila-mysql."
+    },
+    "sakila-mysql": {
+      "repository": "https://github.com/jOOQ/sakila",
+      "commit": "e089a5b1ec9af0df7a9c6a5d47d49fa1736a4e84",
+      "license": "BSD-3-Clause",
+      "copyright": ["MySQL AB", "jOOQ Object Oriented Querying"],
+      "license_files": ["mysql-sakila-db/mysql-sakila-schema.sql", "LICENSE"],
+      "include": [
+        {"glob": "mysql-sakila-db/*.sql", "dialect": "mysql"}
+      ],
+      "note": "The commit of sakila. mysql-sakila-schema.sql has its own BSD-3-Clause notice, 'Copyright (c) 2006, MySQL AB' (the first license file). The repository LICENSE is BSD-2-Clause (jOOQ); BSD-3-Clause has all its conditions."
     },
     "spark": {
       "repository": "https://github.com/apache/spark",
@@ -124,9 +134,18 @@
       "copyright": ["The Apache Software Foundation"],
       "license_files": ["LICENSE", "NOTICE"],
       "include": [
-        {"glob": "sql/core/src/test/resources/sql-tests/inputs/**/*.sql", "dialect": "sparksql"}
+        {"glob": "sql/core/src/test/resources/sql-tests/inputs/*.sql", "dialect": "sparksql"},
+        {"glob": "sql/core/src/test/resources/sql-tests/inputs/nonansi/*.sql", "dialect": "sparksql"},
+        {"glob": "sql/core/src/test/resources/sql-tests/inputs/scripting/*.sql", "dialect": "sparksql"},
+        {"glob": "sql/core/src/test/resources/sql-tests/inputs/subquery/**/*.sql", "dialect": "sparksql"},
+        {"glob": "sql/core/src/test/resources/sql-tests/inputs/timestampNTZ/*.sql", "dialect": "sparksql"},
+        {"glob": "sql/core/src/test/resources/sql-tests/inputs/typeCoercion/**/*.sql", "dialect": "sparksql"},
+        {"glob": "sql/core/src/test/resources/sql-tests/inputs/udaf/*.sql", "dialect": "sparksql"},
+        {"glob": "sql/core/src/test/resources/sql-tests/inputs/udf/*.sql", "dialect": "sparksql"},
+        {"glob": "sql/core/src/test/resources/sql-tests/inputs/udtf/*.sql", "dialect": "sparksql"},
+        {"glob": "sql/core/src/test/resources/sql-tests/inputs/variant/*.sql", "dialect": "sparksql"}
       ],
-      "note": "Tag v4.2.1. The SQL test inputs of Spark SQL."
+      "note": "Tag v4.2.1. The SQL test inputs of Spark SQL, but not the 2 postgreSQL folders: their files are ports of the PostgreSQL regression tests, with the notice 'Portions Copyright (c) 1996-2019, PostgreSQL Global Development Group'. The postgres source has the original tests."
     },
     "sql-server-maintenance-solution": {
       "repository": "https://github.com/olahallengren/sql-server-maintenance-solution",
@@ -143,7 +162,7 @@
       "repository": "https://github.com/microsoft/sql-server-samples",
       "commit": "348bbbc25079785f93ea74be3dd0d6369a59358f",
       "license": "MIT",
-      "copyright": ["Microsoft Corporation"],
+      "copyright": ["Microsoft Corporation", "Microsoft, Inc."],
       "license_files": ["license.txt"],
       "include": [
         {"glob": "samples/databases/adventure-works/*/*.sql", "dialect": "tsql"},
@@ -151,7 +170,7 @@
         {"glob": "samples/databases/northwind-pubs/*.sql", "dialect": "tsql"},
         {"glob": "samples/features/in-memory-database/in-memory-oltp/t-sql-scripts/*.sql", "dialect": "tsql"}
       ],
-      "note": "Default branch on 2026-10-28. Not wide-world-importers: 33 files (6.8 MB) in the size range, most of them data."
+      "note": "Default branch on 2026-10-28. Not wide-world-importers: 33 files (6.8 MB) in the size range, most of them data. The northwind-pubs files have the notice 'Copyright Microsoft, Inc. 1994 - 2000'."
     }
   }
 }
