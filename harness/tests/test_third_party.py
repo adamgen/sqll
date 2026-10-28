@@ -15,9 +15,13 @@ def _ported_rows() -> set[str]:
 
 
 def _header(path) -> str:
-    """Return the comment lines at the start of the file, without a shebang."""
+    """Return the comment lines at the start of the file, without a shebang.
+    A comment line starts with "#" (Python, shell) or "//" (Rust)."""
     lines = []
     for line in path.read_text(encoding="utf-8").splitlines():
+        if line.startswith("//"):
+            lines.append(line.lstrip("/ "))
+            continue
         if not line.startswith("#"):
             break
         if not line.startswith("#!"):

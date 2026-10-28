@@ -765,6 +765,7 @@ def build(scratch: Path, python: Path) -> dict:
         "cargo_tree_dev": tests_trees,
         "cargo_tree_control": {"sqlfluffrs_parser --features python": control_packages},
         "probe": {
+            "source_sha256": {r: sha256_file(probe_dir / r) for r in PROBE_FILES},
             "bytes": binary.stat().st_size,
             "sha256": sha256_file(binary),
             "ldd": ldd_libraries(ldd),
@@ -1594,6 +1595,9 @@ def make_report(
     baseline = json.loads(baseline_path.read_text("utf8"))
     if bench["probe_sha256"] != build_record["probe"]["sha256"]:
         raise DataError("the bench file is not from the probe of the build file")
+    source = {r: sha256_file(PROBE_SRC / r) for r in PROBE_FILES}
+    if build_record["probe"]["source_sha256"] != source:
+        raise DataError("the probe source is not the source of the build file")
     if build_record["sqlfluffrs"]["commit"] != sqlfluff_ref(SQLFLUFF_ROOT):
         raise DataError("the build file is not from the pinned submodule commit")
     if bench["report"]["sqlfluff_ref"] != build_record["sqlfluffrs"]["commit"]:
@@ -1622,6 +1626,7 @@ def make_report(
             "research_code": "yes: S3 research code, not sqll; no harness adapter or "
             "registry entry; no lint or fix command",
             "license": "MIT (parts follow sqlfluffrs 4.4.0 code; THIRD_PARTY.md)",
+            "source_sha256": build_record["probe"]["source_sha256"],
             "bytes": build_record["probe"]["bytes"],
             "sha256": build_record["probe"]["sha256"],
         },

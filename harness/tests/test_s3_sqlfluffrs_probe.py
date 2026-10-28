@@ -509,3 +509,20 @@ def test_wait_idle(monkeypatch):
     monkeypatch.setattr(sp, "read_load", lambda: [2.0, 2.0, 2.0])
     with pytest.raises(sp.DataError, match="not idle"):
         sp.wait_idle(timeout_s=-1)
+
+
+def test_the_records_come_from_clean_commits_and_the_committed_probe_source():
+    for record in (BUILD, CASES, BENCH["report"]):
+        assert record["harness"]["clean"] is True
+    for rel, digest in OUT["probe"]["source_sha256"].items():
+        assert sp.sha256_file(sp.PROBE_SRC / rel) == digest, rel
+    assert set(OUT["probe"]["source_sha256"]) == set(sp.PROBE_FILES)
+
+
+def test_another_probe_source_fails(tmp_path):
+    build = json.loads(json.dumps(BUILD))
+    build["probe"]["source_sha256"]["src/main.rs"] = "0" * 64
+    path = tmp_path / "build.json"
+    path.write_text(json.dumps(build), "utf8")
+    with pytest.raises(sp.DataError, match="probe source"):
+        sp.make_report(build_path=path)

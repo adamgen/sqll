@@ -1,10 +1,10 @@
 // S3 research probe (task T5). This is not sqll and not a harness tool.
 //
-// Parts of this file follow sqlfluffrs 4.4.0 code: src/test_harness.rs
-// (FixtureTest::run: the lexer and parser calls) and
-// sqlfluffrs_parser/src/parser/python.rs (PyParser: the parser limits).
-// The limits and the indentation values are the defaults of sqlfluff 4.4.0
-// src/sqlfluff/core/default_config.cfg.
+// Parts of this file are a port of sqlfluff 4.4.0 code (its sqlfluffrs
+// crates): sqlfluffrs/src/test_harness.rs (FixtureTest::run: the lexer and
+// parser calls) and sqlfluffrs/sqlfluffrs_parser/src/parser/python.rs
+// (PyParser: the parser limits). The limits and the indentation values are
+// the defaults of src/sqlfluff/core/default_config.cfg.
 // Source: https://github.com/sqlfluff/sqlfluff
 // Copyright (c) 2018-2026 Alan Cruickshank. MIT License.
 // See THIRD_PARTY.md for the full attribution.
