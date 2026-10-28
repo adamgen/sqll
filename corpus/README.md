@@ -17,6 +17,7 @@ uv run python -m sqll_harness.corpus run --profile smoke|full \
     [--shard K/N] [--tool T]... [--cache DIR] [--out FILE]
 uv run python -m sqll_harness.corpus merge REPORT... [--expect FILE] [--out FILE]
 uv run python -m sqll_harness.corpus check REPORT [--baseline FILE [--full]]
+uv run python -m sqll_harness.corpus tables REPORT
 uv run python -m sqll_harness.corpus select [--download] [--check] [--cache DIR]
 ```
 
@@ -30,8 +31,10 @@ the render of the pinned sqlfluff. The jinja settings: `templater = jinja`
 and `apply_dbt_builtins = True`, with no variable, macro, or library
 path. `merge` joins the shard reports; `check` checks the schema and
 completeness of a report, and its stable data against a baseline. Exit
-code 1 if a report has an error. The report schema and the statuses:
-`docs/decisions/s9-corpus.md`, "Report".
+code 1 if a report has an error. `tables` prints the Markdown tables of a
+report for `status/S9.md`. The report schema and the statuses:
+`docs/decisions/s9-corpus.md`, "Report". The recorded baseline:
+`results/S9/baseline.json`.
 
 ## Manifest format
 

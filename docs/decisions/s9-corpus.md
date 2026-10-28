@@ -1,7 +1,7 @@
 # S9 decision: the external corpus
 
 Status: design (T1); run and report (T3); untemplated content (T4);
-templated content (T5). Scope: STONES.md S9;
+templated content (T5); recorded results (T6). Scope: STONES.md S9;
 CONSTITUTION.md G1.3, G3, G4.2, G4.3, G4.5. "Measured": `parse` runs of
 the `scripts/setup` tools on 2026-10-28 (4 CPUs, 16 GiB, machine lock),
 in a new folder with no config file above it. PR #29 (T1) and the T3 pull
@@ -258,6 +258,11 @@ Chinook file with sqlfluff); short runs get more to decrease the noise.
 sqlfluff takes more time per MB on larger files (187 s/MB at 0.6 MB,
 388 at 8 MB). At 388 s/MB a 2 MiB file takes 814 s, less than the
 timeout (1200 s). T6 confirms these values in the controlled run.
+
+T6 (controlled full run, `results/S9/baseline.json`): no run has a
+timeout. The longest run is 109.6 s (sqlfluff, `Chinook_PostgreSql.sql`).
+Max RSS: 1141 MiB (sqlfluff), 2022 MiB (`sqlfluff[rs]`), 590 MiB (sqruff).
+No setting changes.
 
 ## Code, CI, and sqll
 
