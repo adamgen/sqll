@@ -12,10 +12,22 @@ The code: `harness/sqll_harness/corpus/`.
 cd harness
 uv run python -m sqll_harness.corpus validate
 uv run python -m sqll_harness.corpus fetch [--smoke] [--cache DIR]
+uv run python -m sqll_harness.corpus run --profile smoke|full \
+    [--shard K/N] [--tool T]... [--cache DIR] [--out FILE]
+uv run python -m sqll_harness.corpus merge REPORT... [--expect FILE] [--out FILE]
+uv run python -m sqll_harness.corpus check REPORT [--baseline FILE [--full]]
 ```
 
-Output: a JSON object. Exit code 2 if the manifest is not valid or the
-fetch fails.
+`validate` and `fetch` write a JSON object. Exit code 2 if the manifest is
+not valid, or if a fetch, run, or merge cannot start or complete.
+
+`run` fetches the files of the profile (smoke: 32 KiB or less) and shard,
+parses each file with each tool of the bench registry (default: all), and
+writes the report (default `out/corpus.json`). A templated file also gets
+the render of the pinned sqlfluff. `merge` joins the shard reports; `check`
+checks the schema and completeness of a report, and its stable data
+against a baseline. Exit code 1 if a report has an error. The report
+schema and the statuses: `docs/decisions/s9-corpus.md`, "Report".
 
 ## Manifest format
 

@@ -1,9 +1,10 @@
 # S9 decision: the external corpus
 
-Status: design (T1). Scope: STONES.md S9; CONSTITUTION.md G1.3, G3,
-G4.2, G4.3, G4.5. "Measured": `parse` runs of the `scripts/setup` tools
-on 2026-10-28 (4 CPUs, 16 GiB, machine lock), in a new folder with no
-config file above it. PR #29 has the commands and the output.
+Status: design (T1); run and report (T3). Scope: STONES.md S9;
+CONSTITUTION.md G1.3, G3, G4.2, G4.3, G4.5. "Measured": `parse` runs of
+the `scripts/setup` tools on 2026-10-28 (4 CPUs, 16 GiB, machine lock),
+in a new folder with no config file above it. PR #29 (T1) and the T3 pull
+request have the commands and the output.
 
 ## Licenses
 
@@ -134,6 +135,46 @@ unparsable segment, and leaf text = input (untemplated files; templated:
 count and bytes of unparsable segments, the reason, wall and CPU time,
 max RSS, and bytes per second. Totals and ratios use only the files where
 each compared tool succeeds (as S2).
+
+Line ends: the compare removes a first byte order mark and changes each
+`\r\n` and `\r` to `\n` in both texts. Reason: the pinned sqlfluff does
+this before it lexes, and each of the 3 tools gives a tree of 17
+characters for a 19-byte `\r\n` file (measured). The corpus check reads
+the tree with the adapter `read_tree` and the S2 problem messages, not
+with `check_tree`: it needs the unparsable count and this compare.
+
+## Report
+
+`python -m sqll_harness.corpus run` writes `out/corpus.json` (`kind`
+`sqll-corpus-report`, `format` 1). As S2: `sqlfluff_ref`, `harness`,
+`profile`, `policy`, `machine`, `timer`, and `parts` (the shards of a
+merged report). Also: `manifest_sha256`; `scope` (`tools`, `shard`);
+`tools` (version, and the settings for `raw` and `jinja`); `inputs` (the
+manifest record of each file, and `reference`: the status and sha256 of
+the sqlfluff render of a templated file).
+
+One result for each file and tool: `status` (`ok`, `unparsable`,
+`no_reference`, `invalid`, `unsupported`, `error`), `reason`,
+`exit_code` (warmup run), `unparsable` (`count` and `bytes` of the
+outer unparsable segments), `runs`, `samples`, `stats` (wall and CPU:
+n, median, min, max, MAD), `max_rss_kib`, and `bytes_per_s` (input bytes
+/ median wall). Only `ok`, `unparsable`, and `no_reference` have stats.
+`unparsable`: a tree with all the text and unparsable segments, exit code
+0 or 1. `invalid`: a crash, panic, timeout, no tree, other leaf text, or
+another exit code.
+
+`totals`: the count of each status for each tool. `compared`: for the
+files where each tool is `ok`, the count, the bytes, and for each tool the
+sums of the median times, the bytes per second, and the ratios to
+sqlfluff. The schema check calculates each derived number again.
+
+`merge` fails on a missing or repeated shard, or another run record.
+`check --baseline FILE [--full]` compares the stable data, fail closed:
+the sqlfluff ref, the tool versions and settings, the input records (with
+the render sha256), and the status and unparsable count and bytes of each
+result. Not the timings, reasons, exit codes, or machine. A reason can
+have parts of a corpus file, so an artifact with a report also has the
+manifest and the license files (T7).
 
 ## Profiles
 
