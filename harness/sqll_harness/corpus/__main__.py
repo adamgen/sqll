@@ -54,9 +54,10 @@ def _shard(text: str) -> tuple[int, int]:
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="python -m sqll_harness.corpus")
     commands = parser.add_subparsers(dest="command", required=True)
-    for name in ("validate", "fetch", "run", "merge", "check", "select", "tables"):
+    for name in ("validate", "fetch", "run", "merge", "check", "select"):
         sub = commands.add_parser(name)
         sub.add_argument("--manifest", type=Path, default=MANIFEST)
+    commands.add_parser("tables").add_argument("report", type=Path)
     cache_help = f"Default: ${fetch_module.CACHE_ENV}, else out/corpus/cache."
     fetch_parser = commands.choices["fetch"]
     fetch_parser.add_argument(
@@ -90,7 +91,6 @@ def _parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Also need the profile and each result of the baseline.",
     )
-    commands.choices["tables"].add_argument("report", type=Path)
     select_parser = commands.choices["select"]
     select_parser.add_argument(
         "--sources", type=Path, default=corpus_select.SOURCES, help="The source list."

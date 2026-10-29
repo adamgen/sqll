@@ -9,6 +9,8 @@ import re
 import subprocess
 from collections import Counter
 
+import pytest
+
 from sqll_harness.bench import registry
 from sqll_harness.corpus import __main__ as corpus_main
 from sqll_harness.corpus import baseline, report, tables
@@ -21,6 +23,9 @@ BASE = report.load(baseline.BASELINE)
 TOOLS = ["sqlfluff", "sqlfluff-rs", "sqruff"]
 VERSIONS = {"sqlfluff": "4.4.0", "sqlfluff-rs": "4.4.0", "sqruff": "0.41.0"}
 STATUS = (REPO_ROOT / "status" / "S9.md").read_text(encoding="utf8")
+DECISION = (REPO_ROOT / "docs" / "decisions" / "s9-corpus.md").read_text(
+    encoding="utf8"
+)
 SHARDS = 4
 
 
@@ -169,6 +174,7 @@ def test_status_names_the_baseline_and_its_run():
     machine = BASE["machine"]
     assert machine["cpu_model"] in STATUS
     assert f"{machine['cpu_count']} CPUs" in STATUS
+    assert f"{machine['memory_kib'] / 1024**2:.1f} GiB" in STATUS
 
 
 def test_status_counts_are_the_baseline():
@@ -251,12 +257,62 @@ def test_status_lists_the_reason_of_each_result_that_is_not_ok():
     assert len(listed) == len(set(listed)) and set(listed) == want
 
 
+# The records of max RSS and max_parse_depth (status/S9.md, the decision
+# record).
+
+
+def _words(text: str) -> str:
+    return " ".join(text.split())
+
+
+def test_the_records_name_the_harness_rss_floor_of_max_rss():
+    """The timer value is at least the harness RSS (Core issue #38). The
+    most frequent value is that floor; only values above it are tool values."""
+    values = Counter(r["max_rss_kib"] for r in BASE["results"])
+    (floor, count), (_, second) = values.most_common(2)
+    assert count > 10 * second
+    total = len(BASE["results"])
+    for text in (STATUS, DECISION):
+        text = _words(text)
+        assert f"{count} of the {total} results have exactly" in text
+        assert f"{floor} KiB" in text
+        assert "issues/38" in text
+    for tool in TOOLS:
+        top = max(r["max_rss_kib"] for r in BASE["results"] if r["tool"] == tool)
+        assert top > floor
+        assert f"{top // 1024} MiB" in DECISION
+
+
+def test_the_decision_record_names_each_file_that_stops_at_max_parse_depth():
+    """A file where sqlfluff gives no tree and sqruff gives a tree."""
+    by_key = {(r["file"], r["tool"]): r for r in BASE["results"]}
+    files = [
+        f
+        for f in BASE["inputs"]
+        if "no parse tree" in (by_key[(f, "sqlfluff")]["reason"] or "")
+        and by_key[(f, "sqruff")]["status"] in report.TIMED_STATUSES
+    ]
+    assert len(files) == 2
+    text = _words(DECISION)
+    for f in files:
+        assert f.rsplit("/", 1)[1] in text
+        assert all(by_key[(f, t)]["status"] == report.INVALID for t in TOOLS[:2])
+    assert "T8 decides" in text
+
+
 # "python -m sqll_harness.corpus tables REPORT".
 
 
 def test_the_tables_command_prints_the_tables(capsys):
     assert corpus("tables", baseline.BASELINE) == 0
     assert capsys.readouterr().out == tables.markdown(BASE)
+
+
+def test_the_tables_command_has_no_manifest_option(capsys):
+    with pytest.raises(SystemExit) as exc:
+        corpus("tables", "--manifest", "/nonexistent/x.json", baseline.BASELINE)
+    assert exc.value.code == 2
+    assert "--manifest" in capsys.readouterr().err
 
 
 def test_the_tables_command_refuses_a_report_with_an_error(tmp_path, capsys):
