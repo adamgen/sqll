@@ -178,6 +178,82 @@ def test_the_s3_input_has_the_numbers_of_the_baseline():
         assert top["file"].endswith("/Chinook_PostgreSql.sql")
 
 
+def _ok_files() -> list[str]:
+    return [
+        f
+        for f in BASE["inputs"]
+        if all(BY_KEY[(f, t)]["status"] == report.OK for t in TOOLS)
+    ]
+
+
+def test_the_s3_input_has_the_details_of_the_baseline():
+    text = _section("Input for S3")
+    files = list(BASE["inputs"])
+    ok_unparsable = [
+        f
+        for f in files
+        if BY_KEY[(f, "sqlfluff")]["status"] == report.OK
+        and BY_KEY[(f, "sqruff")]["status"] == report.UNPARSABLE
+    ]
+    dialects = Counter(BASE["inputs"][f]["dialect"] for f in ok_unparsable)
+    assert f"{len(ok_unparsable)} files: {dialects['tsql']} tsql (" in text
+    panics = [
+        r["file"]
+        for r in BASE["results"]
+        if r["tool"] == "sqruff" and "panic" in (r["reason"] or "")
+    ]
+    assert len(panics) == 1
+    assert f"sqruff panics on `{panics[0].rsplit('/', 1)[1]}`" in text
+
+    ok = sorted(_ok_files(), key=lambda f: -BASE["inputs"][f]["bytes"])
+    chinook = [f for f in ok if f.startswith("chinook-database/")]
+    assert ok[: len(chinook)] == chinook
+    sizes = [BASE["inputs"][f]["bytes"] / 1e6 for f in chinook]
+    assert (
+        f"Largest such files: {len(chinook)} Chinook files of "
+        f"{min(sizes):.2f} to {max(sizes):.2f} MB" in text
+    )
+    pg = "chinook-database/ChinookDatabase/DataSources/Chinook_PostgreSql.sql"
+    walls = [f"{BY_KEY[(pg, t)]['stats']['wall_s']['median']:.3f} s" for t in TOOLS]
+    assert f"`Chinook_PostgreSql.sql`: {walls[0]}, {walls[1]}, and {walls[2]}" in text
+
+
+def _no_tree() -> list[dict]:
+    """The results that stop at max_parse_depth: the record gives the tool
+    message of each ("S9 results")."""
+    return [
+        r
+        for r in BASE["results"]
+        if r["status"] == report.INVALID and "no parse tree" in (r["reason"] or "")
+    ]
+
+
+def test_the_max_parse_depth_results_are_those_of_the_baseline():
+    no_tree = _no_tree()
+    files = sorted({r["file"] for r in no_tree})
+    names = [f.rsplit("/", 1)[1] for f in files]
+    decision = _words(DECISION)
+    t8 = decision[decision.index("T8 decision:") :]
+    t8 = t8[: t8.index("## ")]
+    assert (
+        f"The {len(no_tree)} `invalid` results that stop at `max_parse_depth`" in t8
+    )
+    text = _section("Input for S3")
+    assert (
+        f"`max_parse_depth` stops {len(no_tree)} results with no tree on "
+        f"{len(files)} files" in text
+    )
+    for f, name in zip(files, names):
+        assert f"`{name}`" in t8 and f"`{name}`" in text, name
+        tools = {r["tool"] for r in no_tree if r["file"] == f}
+        assert {"sqlfluff", "sqlfluff-rs"} <= tools, f
+        if tools == set(TOOLS):
+            assert f"No tool gives a tree on `{name}`" in text
+            assert f"all 3 tools on `{name}`" in t8
+        else:
+            assert BY_KEY[(f, "sqruff")]["status"] in report.TIMED_STATUSES
+
+
 def test_the_t8_decision_keeps_max_parse_depth():
     """No tool setting of the baseline changes max_parse_depth, so each tool
     uses the default (600) of the pinned sqlfluff, as the record says."""

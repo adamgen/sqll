@@ -273,7 +273,8 @@ T6, `max_parse_depth = 600`: sqlfluff and `sqlfluff[rs]` give no tree
 (`invalid`) on 2 tsql files of `sql-server-maintenance-solution`:
 `DatabaseBackup.sql` and `MaintenanceSolution.sql`. A lint with the run
 settings says "Maximum parse depth exceeded (limit 600)" (status/S9.md).
-sqruff gives a tree for both. The setting stays 600 in T6. Reasons: 600 is
+sqruff gives a tree for both. All 3 tools give no tree on
+`stg_crawlers_data__ipinfo.sql`, as in the T5 smoke run: the same message. The setting stays 600 in T6. Reasons: 600 is
 the default of the pinned sqlfluff, a guard against deep input, and not a
 limit of the file size as `max_parse_nodes`; and a change of a setting
 needs a new full run. T8 decides if S9 lifts it. No other setting changes.
@@ -283,8 +284,11 @@ above; the S9 rule that a failure is data, not a reason to change the
 input or the settings for some files; and the same settings for all tools
 and files. `max_parse_nodes` and `rust_parser_max_iterations` are not the
 same: their defaults stop the parse because of the file size only
-("Settings"). The 2 `invalid` results stay in the baseline, and the S3
-track gets them as input (status/S9.md, "Input for S3").
+("Settings"). The 7 `invalid` results that stop at `max_parse_depth` stay
+in the baseline: sqlfluff and `sqlfluff[rs]` on `DatabaseBackup.sql` and
+`MaintenanceSolution.sql`, and all 3 tools on
+`stg_crawlers_data__ipinfo.sql`. The S3 track gets them as input
+(status/S9.md, "Input for S3").
 
 ## Code, CI, and sqll
 
