@@ -1,6 +1,6 @@
 #!/bin/sh
-# Run all sqll tests: install the tools, run the harness unit tests, then run
-# all suites for all tools. Arguments go to "sqll-harness run".
+# Run all sqll tests: install the tools, build sqll, run the harness unit
+# tests, then run all suites for all tools. Arguments go to "sqll-harness run".
 # Output: out/tools.json and out/report.json.
 set -eu
 
@@ -19,6 +19,9 @@ uv run --quiet --frozen --project harness python -m sqll_harness.preflight "$roo
 SQLL_TOOLS_DIR=${SQLL_TOOLS_DIR:-$root/.tools}
 export SQLL_TOOLS_DIR
 scripts/setup
+# sqll: the dialect tables and the release build of the worktree
+# (out/sqll/bin/sqll). The tool check refuses a stale binary.
+scripts/build-sqll
 
 uv sync --quiet --frozen --project harness
 mkdir -p out

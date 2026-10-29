@@ -1,0 +1,27 @@
+# The sqll binary. This file is new sqll code (crates/ported.json, "new").
+[package]
+name = "sqll"
+version.workspace = true
+edition = "2021"
+rust-version.workspace = true
+publish = false
+build = "build.rs"
+description = "sqll: a SQL toolchain. Parse output in the format of sqlfluff parse -f json."
+
+[[bin]]
+name = "sqll"
+path = "src/main.rs"
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+serde_yaml_ng.workspace = true
+sqll_dialects = { path = "../sqll_dialects" }
+sqll_lexer = { path = "../sqll_lexer" }
+sqll_parser = { path = "../sqll_parser" }
+
+[build-dependencies]
+sha2.workspace = true
+
+[dev-dependencies]
+serde_yaml_ng.workspace = true

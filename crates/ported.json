@@ -33,7 +33,7 @@
    "path": "Cargo.toml",
    "source": "sqlfluffrs/Cargo.toml",
    "source_sha256": "b732205a4911557a6a5ba76b40e4a6557e88166523450b5b01731760b337a3a8",
-   "changed": "Only the workspace parts are kept: the members are the 4 ported crates in crates/, the workspace dependencies that they use, and the release profile. The workspace version is the sqll version. New: serde_json and sha2 (for build.rs of sqll_dialects), and opt-level 3 for sha2. No root package, no feature \"python\", no pyo3."
+   "changed": "Only the workspace parts are kept: the members are the 4 ported crates in crates/ and the new sqll binary crate (crates/sqll), the workspace dependencies that they use, and the release profile. The workspace version is the sqll version. New: serde_json and sha2 (for build.rs of sqll_dialects), and opt-level 3 for sha2. No root package, no feature \"python\", no pyo3."
   },
   {
    "path": "crates/sqll_dialects/Cargo.toml",
@@ -411,6 +411,30 @@
   {
    "path": "crates/sqll_dialects/tests/build_tables.rs",
    "reason": "The tests of the table check."
+  },
+  {
+   "path": "crates/sqll/Cargo.toml",
+   "reason": "The sqll binary crate (T12). New sqll code."
+  },
+  {
+   "path": "crates/sqll/build.rs",
+   "reason": "Build script of the sqll binary: the version (crate version and the sha256 of generated.json) and the source hash for the freshness check of the harness. No Python."
+  },
+  {
+   "path": "crates/sqll/src/main.rs",
+   "reason": "The sqll command line: parse, version, and the unsupported lint and fix commands, in the command shape of sqlfluff. New sqll code."
+  },
+  {
+   "path": "crates/sqll/src/output.rs",
+   "reason": "The JSON output of \"sqlfluff parse -f json\" (the separators and escapes of Python json.dumps). New sqll code."
+  },
+  {
+   "path": "crates/sqll/src/parse.rs",
+   "reason": "The lex and parse of one file. Parts are a port of sqlfluff 4.4.0 code by way of the T5 probe; the file header names the sources (THIRD_PARTY.md, \"Ported code\")."
+  },
+  {
+   "path": "crates/sqll/tests/cli.rs",
+   "reason": "Tests of the sqll command line on sqlfluff 4.4.0 dialect fixtures (read in place in the submodule). New sqll code."
   }
  ]
 }

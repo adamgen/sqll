@@ -108,6 +108,8 @@ _UNSUPPORTED_KINDS = (
     "dialect",
     "setting",
     "rule",
+    "lint",
+    "fix",
 )
 _REASON_LIMIT = 300
 # Text of a Rust panic message that changes between runs and machines: the

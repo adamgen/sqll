@@ -22,8 +22,9 @@ exit code 2 and names the file if one of these folders has `.sqlfluff`,
 `pep8.ini` with a `[sqlfluff]` section. Example: a `pyproject.toml` with
 `[tool.sqlfluff]` above the checkout gave 73 false sqruff failures.
 
-`scripts/test` runs `scripts/setup`, writes `out/tools.json` with
-`sqll-harness tools`, runs `pytest harness/tests`, then runs the suites. The
+`scripts/test` runs `scripts/setup` and `scripts/build-sqll`, writes
+`out/tools.json` with `sqll-harness tools`, runs `pytest harness/tests`,
+then runs the suites. The
 exit code is not 0 if a result is different from `known_failures/<tool>.txt`.
 `scripts/check-submodule` fails if `third_party/sqlfluff` has a change or an
 untracked or ignored file. `scripts/test` runs it before the tests and after
@@ -73,6 +74,7 @@ setting. Needs: uv, Python 3.13 with a shared libpython, and cargo.
 | `sqlfluff` | `tools/sqlfluff/uv.lock` | `<dir>/sqlfluff` (venv) |
 | `sqlfluff-rs` | `tools/sqlfluff-rs/uv.lock` | `<dir>/sqlfluff-rs` (venv with `sqlfluffrs`) |
 | `sqruff` | `tools/sqruff/uv.lock` | `<dir>/sqruff/bin/sqruff` and `<dir>/sqruff/python` |
+| `sqll` | the worktree (`Cargo.toml`, `crates/`) | `out/sqll/bin/sqll`, built by `scripts/build-sqll`, not by `scripts/setup` |
 
 It also installs `<dir>/sqlfluff-oracle` for the oracle scripts
 (`scripts/sqlfluff-dialect-oracle`, `scripts/sqlfluff-rule-oracle`,
@@ -89,7 +91,9 @@ binary links to the libpython of the Python that it was built with.
 `sqll-harness tools` prints each tool as JSON: name, version, pin, binary, and
 checks. It fails if a version is not the pin, if `sqlfluffrs` does not import
 in the `sqlfluff-rs` venv, if `sqlfluff-rs` does not log that it uses the Rust
-parser, or if `sqruff parse` or its jinja templater does not work.
+parser, or if `sqruff parse` or its jinja templater does not work. For
+sqll it also fails for a stale binary or a binary that needs libpython
+([sqll.md](sqll.md)).
 `sqll-harness run` makes the same check for the tools that it runs, before
 the first case.
 
@@ -97,7 +101,9 @@ The `sqlfluff-rs` adapter is the `sqlfluff` adapter with the Rust parser and
 rules forced on. See [sqlfluff-rs.md](sqlfluff-rs.md). The `sqruff` adapter
 gives each config to sqruff as one translated `.sqruff` file. A case that
 uses an item that sqruff does not support fails with the reason
-`unsupported: <item>`. See [sqruff.md](sqruff.md).
+`unsupported: <item>`. See [sqruff.md](sqruff.md). The `sqll` adapter
+runs `sqll parse`; the rule, autofix, and templater cases fail with
+`unsupported: <item>`. See [sqll.md](sqll.md).
 
 ## Shards and CI
 
@@ -112,12 +118,13 @@ CI (`.github/workflows/ci.yml`):
 
 1. `image`: `ci/image_tag.py` hashes all inputs of `ci/Dockerfile`. If
    `ghcr.io/adamgen/sqll-ci:<hash>` does not exist, CI builds and pushes it.
-2. `lint`: `sqll-harness tools`, ruff, the unit tests (also the case-count
-   test, see [Case counts](#case-counts)), and the oracles on the harness
-   dialect, rule, autofix, and templater fixtures (also with `--rust`), in
-   the image.
+2. `lint`: `sqll-harness tools` (the tools of `scripts/setup`), ruff, the
+   unit tests (also the case-count test, see [Case counts](#case-counts)),
+   and the oracles on the harness dialect, rule, autofix, and templater
+   fixtures (also with `--rust`), in the image.
 3. `test`: one job for each suite, tool, and shard in `ci/matrix.d/*.json`
-   (one fragment for each track, `ci/matrix.py`).
+   (one fragment for each track, `ci/matrix.py`). It needs the `build` job:
+   a sqll job runs the binary of the `sqll-build` artifact.
 4. `report`: `sqll-harness merge --expect ci/matrix.d`,
    `sqll-harness summarize`, then the rule, autofix, and templater oracles
    on the merged report for `sqlfluff`, and again with `--rust` for

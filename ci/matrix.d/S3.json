@@ -1,0 +1,6 @@
+[
+ {"suite": "dialects", "tool": "sqll", "shards": 2},
+ {"suite": "rules", "tool": "sqll", "shards": 1},
+ {"suite": "autofix", "tool": "sqll", "shards": 1},
+ {"suite": "templater", "tool": "sqll", "shards": 1}
+]

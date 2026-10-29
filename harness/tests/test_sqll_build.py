@@ -186,14 +186,15 @@ def test_tree_packages():
     assert build_sqll.tree_packages(text) == ["regex", "sha2", "sqll_types"]
 
 
-def test_the_workspace_has_the_4_crates_and_no_python():
+def test_the_workspace_has_the_4_crates_the_binary_and_no_python():
     cargo = tomllib.loads((REPO_ROOT / "Cargo.toml").read_text("utf8"))
-    assert cargo["workspace"]["members"] == [f"crates/{c}" for c in CRATES]
+    members = [f"crates/{c}" for c in CRATES] + ["crates/sqll"]
+    assert cargo["workspace"]["members"] == members
     lock = tomllib.loads((REPO_ROOT / "Cargo.lock").read_text("utf8"))
     names = {p["name"] for p in lock["package"]}
-    assert set(CRATES) <= names
+    assert {*CRATES, "sqll"} <= names
     assert not names & {"pyo3", "pyo3-ffi", "sqlfluffrs_python"}
-    for crate in CRATES:
+    for crate in [*CRATES, "sqll"]:
         text = (REPO_ROOT / "crates" / crate / "Cargo.toml").read_text("utf8")
         assert "pyo3" not in text and "python" not in text, crate
 

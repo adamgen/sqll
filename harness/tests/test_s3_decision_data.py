@@ -25,7 +25,8 @@ OUT = json.loads(dd.OUT_FILE.read_text("utf8"))
 VALUES = OUT["values"]
 RECORD = (REPO_ROOT / "docs" / "decisions" / "s3-base.md").read_text("utf8")
 INPUTS = {
-    rel: json.loads((REPO_ROOT / rel).read_text("utf8")) for rel in dd.INPUTS.values()
+    rel: json.loads(dd.phase_a.read_path(rel).read_text("utf8"))
+    for rel in dd.INPUTS.values()
 }
 
 
@@ -53,12 +54,12 @@ def test_the_check_fails_on_a_change(tmp_path, monkeypatch):
 
 def test_the_inputs_are_the_committed_files():
     assert OUT["inputs"] == {
-        rel: dd.sha256_file(REPO_ROOT / rel) for rel in dd.INPUTS.values()
+        rel: dd.sha256_file(dd.phase_a.read_path(rel)) for rel in dd.INPUTS.values()
     }
 
 
 def _paths(tmp_path, name, change):
-    paths = {k: REPO_ROOT / rel for k, rel in dd.INPUTS.items()}
+    paths = {k: dd.phase_a.read_path(rel) for k, rel in dd.INPUTS.items()}
     doc = copy.deepcopy(INPUTS[dd.INPUTS[name]])
     change(doc)
     paths[name] = tmp_path / f"{name}.json"

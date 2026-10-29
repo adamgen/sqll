@@ -536,6 +536,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "67b1b7a3b5fe4f1376887184045fcf45c69e92af734b7aaddc05fb777b6fbd03"
 
 [[package]]
+name = "sqll"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "serde_yaml_ng",
+ "sha2",
+ "sqll_dialects",
+ "sqll_lexer",
+ "sqll_parser",
+]
+
+[[package]]
 name = "sqll_dialects"
 version = "0.1.0"
 dependencies = [

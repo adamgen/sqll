@@ -64,13 +64,16 @@ from sqll_harness.compare import has_node, load_yaml, record_to_tuple, trees_mat
 from sqll_harness.paths import SQLFLUFF_ROOT, sqlfluff_ref, tools_dir
 from sqll_harness.suites import dialects
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import phase_a  # noqa: E402
+
 ROOT = Path(__file__).resolve().parents[2]
 RESULTS = ROOT / "results" / "s3"
 BUILD_FILE = RESULTS / "sqlfluffrs-probe-build.json"
 CASES_FILE = RESULTS / "sqlfluffrs-probe-cases.json"
 BENCH_FILE = RESULTS / "sqlfluffrs-probe-bench.json"
 OUT_FILE = RESULTS / "sqlfluffrs-probe.json"
-BASELINE_FILE = ROOT / "results" / "s2" / "baseline.json"
+BASELINE_FILE = phase_a.read_path("results/s2/baseline.json")
 PROBE_SRC = ROOT / "scripts" / "s3" / "probe-sqlfluffrs"
 PROBE = "probe-sqlfluffrs"
 PROBE_FILES = ("Cargo.toml", "Cargo.lock", "src/main.rs")
@@ -155,7 +158,7 @@ class DataError(Exception):
 def rel(path: Path) -> str:
     """The path from the repository root, or the path if it is outside."""
     if path.is_relative_to(ROOT):
-        return path.relative_to(ROOT).as_posix()
+        return phase_a.name_of(path.relative_to(ROOT).as_posix())
     return str(path)
 
 

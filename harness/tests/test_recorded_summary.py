@@ -12,10 +12,18 @@ import pytest
 from test_case_counts import COUNTS
 
 from sqll_harness import known_failures, summary
+from sqll_harness.adapters import sqll
 from sqll_harness.paths import KNOWN_FAILURES_DIR, RECORDED_SUMMARY, REPO_ROOT
 
-TOOLS = ("sqlfluff", "sqlfluff-rs", "sqruff")
-VERSIONS = {"sqlfluff": "4.4.0", "sqlfluff-rs": "4.4.0", "sqruff": "0.41.0"}
+TOOLS = ("sqlfluff", "sqlfluff-rs", "sqruff", "sqll")
+# The sqll version is the crate version and the table manifest hash, so it is
+# the same for each commit with the same tables.
+VERSIONS = {
+    "sqlfluff": "4.4.0",
+    "sqlfluff-rs": "4.4.0",
+    "sqruff": "0.41.0",
+    "sqll": sqll.expected_version(),
+}
 RECORDED = json.loads(RECORDED_SUMMARY.read_text(encoding="utf8"))
 RESULTS = RECORDED["results"]
 
@@ -65,6 +73,28 @@ def test_sqlfluff_passes_each_case(tool):
 def test_code_only_check_passes():
     assert RESULTS["sqlfluff"]["suites"]["code_only"]["passed"] == 2306
     assert "code_only" not in RESULTS["sqruff"]["suites"]
+    assert "code_only" not in RESULTS["sqll"]["suites"]
+
+
+def test_sqll_passes_each_dialect_case_and_supports_no_other_case():
+    # S3: sqll has only the parse command. Each rule, autofix, and templater
+    # case fails with the reason "unsupported: <item>".
+    suites = RESULTS["sqll"]["suites"]
+    assert suites["dialects"]["passed"] == 2306
+    assert suites["dialects"]["checks"] == {"exact": 2306, "no_unparsable": 2306}
+    known = _known("sqll")
+    for name in ("rules", "autofix", "templater"):
+        assert suites[name]["passed"] == 0
+        assert suites[name]["failed"] == suites[name]["total"]
+        listed = {i: r for i, r in known.items() if i.startswith(f"{name}/")}
+        assert len(listed) == suites[name]["total"]
+        assert all(r.startswith("unsupported: ") for r in listed.values())
+    assert not [i for i in known if i.startswith("dialects/")]
+    assert RECORDED["tools"]["sqll"]["preflight"] == {
+        "fresh_build": True,
+        "needs_libpython": False,
+        "parse": True,
+    }
 
 
 @pytest.mark.parametrize("tool", TOOLS)

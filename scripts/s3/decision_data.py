@@ -26,6 +26,9 @@ import json
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import phase_a  # noqa: E402
+
 ROOT = Path(__file__).resolve().parents[2]
 OUT_FILE = ROOT / "results" / "s3" / "decision-data.json"
 COMMAND = "uv run --frozen --project harness python scripts/s3/decision_data.py"
@@ -87,7 +90,7 @@ def sha256_file(path: Path) -> str:
 
 
 def load(paths: dict[str, Path] | None = None) -> dict[str, dict]:
-    paths = paths or {k: ROOT / v for k, v in INPUTS.items()}
+    paths = paths or {k: phase_a.read_path(v) for k, v in INPUTS.items()}
     data = {}
     for name, path in paths.items():
         try:
@@ -966,7 +969,7 @@ def make_report(paths: dict[str, Path] | None = None) -> dict:
     capability_values(vs)
     tabs = tables(vs)
     inputs = {
-        rel: sha256_file((paths or {}).get(name, ROOT / rel))
+        rel: sha256_file((paths or {}).get(name, phase_a.read_path(rel)))
         for name, rel in INPUTS.items()
     }
     return {
