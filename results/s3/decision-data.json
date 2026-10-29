@@ -1,0 +1,559 @@
+{
+ "kind": "sqll-s3-decision-data",
+ "format": 1,
+ "task": "T9",
+ "criterion": "C8",
+ "command": "uv run --frozen --project harness python scripts/s3/decision_data.py",
+ "inputs": {"results/s1/summary.json": "ed1419ecb70d746aa31b195966d0a4e1fcd86e51829e9eb28d1ff56310470fd2", "results/s3/s1-by-base.json": "e6f67398893b8e31fe62038dd4aa80d5e27f81f21bba3dc6254ba43b37108a41", "results/s3/sqruff-tree-diffs.json": "d10037c55cfe436c71d7e530a6c8fde60ea4dd20e3369da92c9cab97b4513a29", "results/s3/sqruff-rule-diffs.json": "716110df81c3e1fbd8054938af61aea2bbb9e3a65991fe5f7c27e229213e1a91", "results/s3/sqlfluffrs-probe.json": "1f3776d2b67505c37060a475c755f9ba558f30755f049c62e934623a6d6d61a0", "results/s3/speed-by-base.json": "1be51b4191063687c74e9a529c88093a666fac634c6fd0e267ca8174cb5d76f7", "results/s3/license-size.json": "ad36704380e3dc9bc7dcd32b7f5ccb3fb78b7f86289d7735ab10b2386dd76dd3", "results/s3/capabilities.json": "44e03a18e95596d5408ea6150c1b27dc529eae4b32245f9d38030444e47e9b8f"},
+ "rules": [
+  "copied: the value of the key in the file. derived: a formula over copied values. estimate: a formula and its reason; the record labels it.",
+  "text: the form that docs/decisions/s3-base.md shows. A ratio has 3 digits, a share is a percent with 1 digit.",
+  "Each number of the decision record outside code and links is the text of a value, or a version, or an id such as G3.5 or T5."
+ ],
+ "estimate_limits": [
+  "The work estimates count items (cases, groups, rules, commands, lines); they give no time. One item can need much more work than another.",
+  "A T3 group is a proxy for one grammar fix (T3 limit). A T4 changed tree is an upper bound of the rules that need a change.",
+  "Option 3 has no implementation. Its engine size is that of the sqlfluffrs engine crates, and its rule size is that of the sqruff rules (T7).",
+  "No base has native rules on sqlfluff trees. The rule work of options 2 and 3 is not measured; its size is that of the sqruff rule layer."
+ ],
+ "values": {
+  "g3.limit": {"kind": "derived", "value": 1, "formula": "CONSTITUTION.md G3.4, G3.5: a ratio of the sums below 1", "text": "1"},
+  "s1.sqlfluff.dialects.total": {"kind": "copied", "value": 2306, "from": "results/s1/summary.json", "key": "results.sqlfluff.suites.dialects.total", "text": "2306"},
+  "s1.sqlfluff.dialects.pass": {"kind": "copied", "value": 2306, "from": "results/s1/summary.json", "key": "results.sqlfluff.suites.dialects.passed", "text": "2306"},
+  "t2.sqruff.dialects.total": {"kind": "copied", "value": 2306, "from": "results/s3/s1-by-base.json", "key": "bases.sqruff.suites.dialects.total", "text": "2306"},
+  "t2.sqruff.dialects.pass": {"kind": "copied", "value": 1548, "from": "results/s3/s1-by-base.json", "key": "bases.sqruff.suites.dialects.pass", "text": "1548"},
+  "t2.sqlfluffrs.dialects.total": {"kind": "copied", "value": 2306, "from": "results/s3/s1-by-base.json", "key": "bases.sqlfluffrs.suites.dialects.total", "text": "2306"},
+  "t2.sqlfluffrs.dialects.pass": {"kind": "copied", "value": 2306, "from": "results/s3/s1-by-base.json", "key": "bases.sqlfluffrs.suites.dialects.pass", "text": "2306"},
+  "s1.sqlfluff.rules.total": {"kind": "copied", "value": 2527, "from": "results/s1/summary.json", "key": "results.sqlfluff.suites.rules.total", "text": "2527"},
+  "s1.sqlfluff.rules.pass": {"kind": "copied", "value": 2527, "from": "results/s1/summary.json", "key": "results.sqlfluff.suites.rules.passed", "text": "2527"},
+  "t2.sqruff.rules.total": {"kind": "copied", "value": 2527, "from": "results/s3/s1-by-base.json", "key": "bases.sqruff.suites.rules.total", "text": "2527"},
+  "t2.sqruff.rules.pass": {"kind": "copied", "value": 2185, "from": "results/s3/s1-by-base.json", "key": "bases.sqruff.suites.rules.pass", "text": "2185"},
+  "t2.sqlfluffrs.rules.total": {"kind": "copied", "value": 2527, "from": "results/s3/s1-by-base.json", "key": "bases.sqlfluffrs.suites.rules.total", "text": "2527"},
+  "t2.sqlfluffrs.rules.pass": {"kind": "copied", "value": 2527, "from": "results/s3/s1-by-base.json", "key": "bases.sqlfluffrs.suites.rules.pass", "text": "2527"},
+  "s1.sqlfluff.autofix.total": {"kind": "copied", "value": 61, "from": "results/s1/summary.json", "key": "results.sqlfluff.suites.autofix.total", "text": "61"},
+  "s1.sqlfluff.autofix.pass": {"kind": "copied", "value": 61, "from": "results/s1/summary.json", "key": "results.sqlfluff.suites.autofix.passed", "text": "61"},
+  "t2.sqruff.autofix.total": {"kind": "copied", "value": 61, "from": "results/s3/s1-by-base.json", "key": "bases.sqruff.suites.autofix.total", "text": "61"},
+  "t2.sqruff.autofix.pass": {"kind": "copied", "value": 45, "from": "results/s3/s1-by-base.json", "key": "bases.sqruff.suites.autofix.pass", "text": "45"},
+  "t2.sqlfluffrs.autofix.total": {"kind": "copied", "value": 61, "from": "results/s3/s1-by-base.json", "key": "bases.sqlfluffrs.suites.autofix.total", "text": "61"},
+  "t2.sqlfluffrs.autofix.pass": {"kind": "copied", "value": 61, "from": "results/s3/s1-by-base.json", "key": "bases.sqlfluffrs.suites.autofix.pass", "text": "61"},
+  "s1.sqlfluff.templater.total": {"kind": "copied", "value": 43, "from": "results/s1/summary.json", "key": "results.sqlfluff.suites.templater.total", "text": "43"},
+  "s1.sqlfluff.templater.pass": {"kind": "copied", "value": 43, "from": "results/s1/summary.json", "key": "results.sqlfluff.suites.templater.passed", "text": "43"},
+  "t2.sqruff.templater.total": {"kind": "copied", "value": 43, "from": "results/s3/s1-by-base.json", "key": "bases.sqruff.suites.templater.total", "text": "43"},
+  "t2.sqruff.templater.pass": {"kind": "copied", "value": 28, "from": "results/s3/s1-by-base.json", "key": "bases.sqruff.suites.templater.pass", "text": "28"},
+  "t2.sqlfluffrs.templater.total": {"kind": "copied", "value": 43, "from": "results/s3/s1-by-base.json", "key": "bases.sqlfluffrs.suites.templater.total", "text": "43"},
+  "t2.sqlfluffrs.templater.pass": {"kind": "copied", "value": 43, "from": "results/s3/s1-by-base.json", "key": "bases.sqlfluffrs.suites.templater.pass", "text": "43"},
+  "s1.suites": {
+   "kind": "copied",
+   "value": ["dialects", "rules", "autofix", "templater"],
+   "from": "results/s1/summary.json",
+   "key": "results.sqlfluff.parity.suites",
+   "text": "4"
+  },
+  "s1.sqlfluff.exact": {"kind": "copied", "value": 2306, "from": "results/s1/summary.json", "key": "results.sqlfluff.suites.dialects.checks.exact", "text": "2306"},
+  "s1.sqlfluff.no_unparsable": {"kind": "copied", "value": 2306, "from": "results/s1/summary.json", "key": "results.sqlfluff.suites.dialects.checks.no_unparsable", "text": "2306"},
+  "t2.sqruff.exact": {"kind": "copied", "value": 1548, "from": "results/s3/s1-by-base.json", "key": "bases.sqruff.suites.dialects.checks.exact.pass", "text": "1548"},
+  "t2.sqruff.no_unparsable": {"kind": "copied", "value": 2164, "from": "results/s3/s1-by-base.json", "key": "bases.sqruff.suites.dialects.checks.no_unparsable.pass", "text": "2164"},
+  "t2.sqlfluffrs.exact": {"kind": "copied", "value": 2306, "from": "results/s3/s1-by-base.json", "key": "bases.sqlfluffrs.suites.dialects.checks.exact.pass", "text": "2306"},
+  "t2.sqlfluffrs.no_unparsable": {"kind": "copied", "value": 2306, "from": "results/s3/s1-by-base.json", "key": "bases.sqlfluffrs.suites.dialects.checks.no_unparsable.pass", "text": "2306"},
+  "option.sqruff": {"kind": "copied", "value": 1, "from": "results/s3/s1-by-base.json", "key": "bases.sqruff.option", "text": "1"},
+  "option.sqlfluffrs": {"kind": "copied", "value": 2, "from": "results/s3/s1-by-base.json", "key": "bases.sqlfluffrs.option", "text": "2"},
+  "option.new-parser": {"kind": "copied", "value": 3, "from": "results/s3/s1-by-base.json", "key": "bases.new-parser.option", "text": "3"},
+  "t5.native.exact": {"kind": "copied", "value": 2306, "from": "results/s3/sqlfluffrs-probe.json", "key": "fixtures.total.exact", "text": "2306"},
+  "t5.native.no_unparsable": {"kind": "copied", "value": 2306, "from": "results/s3/sqlfluffrs-probe.json", "key": "fixtures.total.no_unparsable", "text": "2306"},
+  "t5.native.cases": {"kind": "copied", "value": 2306, "from": "results/s3/sqlfluffrs-probe.json", "key": "fixtures.total.cases", "text": "2306"},
+  "t5.cases_to_fix": {"kind": "derived", "value": 0, "formula": "t5.native.cases - t5.native.exact", "text": "0"},
+  "t2.dialects": {"kind": "derived", "value": 28, "formula": "len(t2 bases.sqruff.dialects)", "text": "28"},
+  "t2.sqruff.dialects_all_exact": {"kind": "derived", "value": 1, "formula": "count of t2 bases.sqruff.dialects with checks.exact.pass == total", "text": "1"},
+  "t2.sqruff.dialects_all_exact_names": {"kind": "derived", "value": ["flink"], "formula": "the same dialects", "text": "flink"},
+  "t2.sqruff.worst.pass": {"kind": "copied", "value": 0, "from": "results/s3/s1-by-base.json", "key": "bases.sqruff.dialects.oracle.checks.exact.pass", "text": "0"},
+  "t2.sqruff.worst.total": {"kind": "copied", "value": 103, "from": "results/s3/s1-by-base.json", "key": "bases.sqruff.dialects.oracle.total", "text": "103"},
+  "t2.sqruff.worst.name": {"kind": "derived", "value": "oracle", "formula": "the t2 sqruff dialect with the lowest exact share (the largest on a tie)", "text": "oracle"},
+  "t2.rule_groups": {"kind": "derived", "value": 82, "formula": "len(t2 bases.sqruff.rules)", "text": "82"},
+  "t2.rule_codes": {"kind": "derived", "value": 79, "formula": "the rule codes in the keys of t2 bases.sqruff.rules", "text": "79"},
+  "t2.sqruff.groups_all_pass": {"kind": "derived", "value": 42, "formula": "count of t2 bases.sqruff.rules with fail + error == 0", "text": "42"},
+  "sqruff.rules_missing": {"kind": "derived", "value": 2, "formula": "the S1 rule codes that are not in t4 coupling.rules", "text": "2"},
+  "sqruff.rules_missing_names": {"kind": "derived", "value": ["CV13", "TQ01"], "formula": "the same codes", "text": "CV13, TQ01"},
+  "t7.sqlfluffrs.rule_modules": {
+   "kind": "copied",
+   "value": ["cp01.rs", "cp03.rs", "cp04.rs"],
+   "from": "results/s3/license-size.json",
+   "key": "bases.sqlfluffrs.structure.values.rule_modules",
+   "text": "3"
+  },
+  "sqlfluffrs.rule_names": {
+   "kind": "derived",
+   "value": ["CP01", "CP03", "CP04"],
+   "formula": "the t7 rule modules as codes",
+   "text": "CP01, CP03, CP04"
+  },
+  "sqlfluffrs.rules_in_python": {"kind": "derived", "value": 76, "formula": "t2.rule_codes - len(t7.sqlfluffrs.rule_modules)", "text": "76"},
+  "t2.sqruff.rules.fail": {"kind": "copied", "value": 335, "from": "results/s3/s1-by-base.json", "key": "bases.sqruff.suites.rules.fail", "text": "335"},
+  "t2.sqruff.rules.error": {"kind": "copied", "value": 7, "from": "results/s3/s1-by-base.json", "key": "bases.sqruff.suites.rules.error", "text": "7"},
+  "t3.cases": {"kind": "copied", "value": 763, "from": "results/s3/sqruff-tree-diffs.json", "key": "scope.cases", "text": "763"},
+  "t3.dialect_cases": {"kind": "copied", "value": 758, "from": "results/s3/sqruff-tree-diffs.json", "key": "scope.dialects", "text": "758"},
+  "t3.templater_cases": {"kind": "copied", "value": 5, "from": "results/s3/sqruff-tree-diffs.json", "key": "scope.templater", "text": "5"},
+  "t3.class.extra_wrapper": {"kind": "copied", "value": 359, "from": "results/s3/sqruff-tree-diffs.json", "key": "classes.extra_wrapper.cases", "text": "359"},
+  "t3.class.renamed": {"kind": "copied", "value": 316, "from": "results/s3/sqruff-tree-diffs.json", "key": "classes.renamed.cases", "text": "316"},
+  "t3.class.missing_wrapper": {"kind": "copied", "value": 183, "from": "results/s3/sqruff-tree-diffs.json", "key": "classes.missing_wrapper.cases", "text": "183"},
+  "t3.class.unparsable": {"kind": "copied", "value": 139, "from": "results/s3/sqruff-tree-diffs.json", "key": "classes.unparsable.cases", "text": "139"},
+  "t3.class.leaf_type": {"kind": "copied", "value": 137, "from": "results/s3/sqruff-tree-diffs.json", "key": "classes.leaf_type.cases", "text": "137"},
+  "t3.class.unsupported_dialect": {"kind": "copied", "value": 3, "from": "results/s3/sqruff-tree-diffs.json", "key": "classes.unsupported_dialect.cases", "text": "3"},
+  "t3.groups": {"kind": "copied", "value": 593, "from": "results/s3/sqruff-tree-diffs.json", "key": "groups.groups", "text": "593"},
+  "t3.top10.n": {"kind": "derived", "value": 10, "formula": "a key of t3 groups.top", "text": "10"},
+  "t3.top10.cases": {"kind": "copied", "value": 162, "from": "results/s3/sqruff-tree-diffs.json", "key": "groups.top.10.cases", "text": "162"},
+  "t3.top10.share": {"kind": "copied", "value": 0.2123, "from": "results/s3/sqruff-tree-diffs.json", "key": "groups.top.10.share", "text": "21.2%"},
+  "t3.top20.n": {"kind": "derived", "value": 20, "formula": "a key of t3 groups.top", "text": "20"},
+  "t3.top20.cases": {"kind": "copied", "value": 188, "from": "results/s3/sqruff-tree-diffs.json", "key": "groups.top.20.cases", "text": "188"},
+  "t3.top20.share": {"kind": "copied", "value": 0.2464, "from": "results/s3/sqruff-tree-diffs.json", "key": "groups.top.20.share", "text": "24.6%"},
+  "t3.top50.n": {"kind": "derived", "value": 50, "formula": "a key of t3 groups.top", "text": "50"},
+  "t3.top50.cases": {"kind": "copied", "value": 265, "from": "results/s3/sqruff-tree-diffs.json", "key": "groups.top.50.cases", "text": "265"},
+  "t3.top50.share": {"kind": "copied", "value": 0.3473, "from": "results/s3/sqruff-tree-diffs.json", "key": "groups.top.50.share", "text": "34.7%"},
+  "t3.groups_with_one_case": {"kind": "copied", "value": 344, "from": "results/s3/sqruff-tree-diffs.json", "key": "groups.groups_with_one_case", "text": "344"},
+  "t3.unique_fix": {"kind": "copied", "value": 230, "from": "results/s3/sqruff-tree-diffs.json", "key": "groups.cases_with_a_unique_fix", "text": "230"},
+  "t3.hand_check.agree": {"kind": "copied", "value": 60, "from": "results/s3/sqruff-tree-diffs.json", "key": "hand_check.agree", "text": "60"},
+  "t3.hand_check.size": {"kind": "copied", "value": 60, "from": "results/s3/sqruff-tree-diffs.json", "key": "hand_check.size", "text": "60"},
+  "t4.failures.rules": {"kind": "copied", "value": 342, "from": "results/s3/sqruff-rule-diffs.json", "key": "scope.failures.rules", "text": "342"},
+  "t4.failures.autofix": {"kind": "copied", "value": 16, "from": "results/s3/sqruff-rule-diffs.json", "key": "scope.failures.autofix", "text": "16"},
+  "t4.failures.templater": {"kind": "copied", "value": 15, "from": "results/s3/sqruff-rule-diffs.json", "key": "scope.failures.templater", "text": "15"},
+  "t4.total.unsupported_item": {"kind": "copied", "value": 180, "from": "results/s3/sqruff-rule-diffs.json", "key": "total.unsupported_item", "text": "180"},
+  "t4.rules_autofix.unsupported_item": {"kind": "derived", "value": 171, "formula": "t4 counts.rules.unsupported_item + counts.autofix.unsupported_item", "text": "171"},
+  "t4.total.parse_cause": {"kind": "copied", "value": 69, "from": "results/s3/sqruff-rule-diffs.json", "key": "total.parse_cause", "text": "69"},
+  "t4.rules_autofix.parse_cause": {"kind": "derived", "value": 63, "formula": "t4 counts.rules.parse_cause + counts.autofix.parse_cause", "text": "63"},
+  "t4.total.rule_logic": {"kind": "copied", "value": 124, "from": "results/s3/sqruff-rule-diffs.json", "key": "total.rule_logic", "text": "124"},
+  "t4.rules_autofix.rule_logic": {"kind": "derived", "value": 124, "formula": "t4 counts.rules.rule_logic + counts.autofix.rule_logic", "text": "124"},
+  "t4.failures": {"kind": "derived", "value": 373, "formula": "t4 scope.failures: rules + autofix + templater", "text": "373"},
+  "t4.rules": {"kind": "copied", "value": 77, "from": "results/s3/sqruff-rule-diffs.json", "key": "coupling.summary.rules", "text": "77"},
+  "t4.names": {"kind": "copied", "value": 188, "from": "results/s3/sqruff-rule-diffs.json", "key": "coupling.summary.names", "text": "188"},
+  "t4.names_renamed": {"kind": "copied", "value": 54, "from": "results/s3/sqruff-rule-diffs.json", "key": "coupling.summary.names_renamed_in_t3", "text": "54"},
+  "t4.names_not_in_sqlfluff": {
+   "kind": "copied",
+   "value": [
+    "aggregate_order_by_clause",
+    "implicit",
+    "match_condition_clause",
+    "oracle_assignment_operator",
+    "oracle_batch",
+    "oracle_table_reference",
+    "referenced_column_list",
+    "unordered_select_statement_segment"
+   ],
+   "from": "results/s3/sqruff-rule-diffs.json",
+   "key": "coupling.summary.names_not_in_sqlfluff",
+   "text": "8"
+  },
+  "t4.rules_differ": {"kind": "copied", "value": 66, "from": "results/s3/sqruff-rule-diffs.json", "key": "coupling.summary.rules_with_a_name_that_differs", "text": "66"},
+  "t4.rules_changed": {"kind": "copied", "value": 75, "from": "results/s3/sqruff-rule-diffs.json", "key": "coupling.summary.rules_that_see_a_changed_tree", "text": "75"},
+  "t4.rules_not_changed": {
+   "kind": "copied",
+   "value": ["CV09", "JJ01"],
+   "from": "results/s3/sqruff-rule-diffs.json",
+   "key": "coupling.summary.rules_that_see_no_changed_tree",
+   "text": "CV09, JJ01"
+  },
+  "t5.python_calls": {
+   "kind": "copied",
+   "value": [],
+   "from": "results/s3/sqlfluffrs-probe.json",
+   "key": "standalone.python_calls_during_cargo",
+   "text": "0"
+  },
+  "t5.libpython": {"kind": "copied", "value": false, "from": "results/s3/sqlfluffrs-probe.json", "key": "standalone.libpython_linked", "text": "False"},
+  "t5.generation.files": {"kind": "copied", "value": 85, "from": "results/s3/sqlfluffrs-probe.json", "key": "generation.files", "text": "85"},
+  "t5.generation.lines": {"kind": "copied", "value": 414352, "from": "results/s3/sqlfluffrs-probe.json", "key": "generation.lines", "text": "414352"},
+  "t5.generation.wall_s": {"kind": "copied", "value": 23.224, "from": "results/s3/sqlfluffrs-probe.json", "key": "generation.wall_s", "text": "23"},
+  "t5.table_builder_lines": {"kind": "copied", "value": 1606, "from": "results/s3/sqlfluffrs-probe.json", "key": "generator.table_builder_lines", "text": "1606"},
+  "t5.emitter_lines": {"kind": "copied", "value": 178, "from": "results/s3/sqlfluffrs-probe.json", "key": "generator.rust_emitter_lines", "text": "178"},
+  "t5.private_attributes": {
+   "kind": "copied",
+   "value": [
+    "_class_types",
+    "_config_rules",
+    "_elements",
+    "_get_normalized_value",
+    "_instance_types",
+    "_is_code",
+    "_is_comment",
+    "_is_whitespace",
+    "_library",
+    "_meta",
+    "_ref"
+   ],
+   "from": "results/s3/sqlfluffrs-probe.json",
+   "key": "generator.private_attributes",
+   "text": "11"
+  },
+  "t5.custom_match": {
+   "kind": "copied",
+   "value": [],
+   "from": "results/s3/sqlfluffrs-probe.json",
+   "key": "generator.dialect_files_with_custom_match",
+   "text": "0"
+  },
+  "t5.new_emitter_lines.a": {"kind": "estimate", "value": 0, "formula": "way (a) of t5 option3_reuse.conclusion: keep the sqlfluffrs_types table format, thus no new emitter lines", "reason": "A judgement of T5; way (b) needs a new emitter of the size of t5.emitter_lines.", "text": "0"},
+  "t5.engine_lines": {"kind": "copied", "value": 12744, "from": "results/s3/sqlfluffrs-probe.json", "key": "build.lines.sqlfluffrs_parser.hand_written.lines", "text": "12744"},
+  "t6.sqruff.start.total": {"kind": "copied", "value": 1.0, "from": "results/s3/speed-by-base.json", "key": "bases.sqruff.summary.start.g3_5_total.ratio", "text": "1.000"},
+  "t6.sqruff.parse.total": {"kind": "copied", "value": 1.0, "from": "results/s3/speed-by-base.json", "key": "bases.sqruff.summary.parse.g3_5_total.ratio", "text": "1.000"},
+  "t6.sqruff.lint.total": {"kind": "copied", "value": 1.0, "from": "results/s3/speed-by-base.json", "key": "bases.sqruff.summary.lint.g3_5_total.ratio", "text": "1.000"},
+  "t6.sqruff.fix.total": {"kind": "copied", "value": 1.0, "from": "results/s3/speed-by-base.json", "key": "bases.sqruff.summary.fix.g3_5_total.ratio", "text": "1.000"},
+  "t6.sqruff.all.total": {"kind": "copied", "value": 1.0, "from": "results/s3/speed-by-base.json", "key": "bases.sqruff.summary.all.g3_5_total.ratio", "text": "1.000"},
+  "t6.sqruff.g3_4.met": {"kind": "copied", "value": 216, "from": "results/s3/speed-by-base.json", "key": "bases.sqruff.summary.all.g3_4.met", "text": "216"},
+  "t6.sqruff.g3_4.not_met": {"kind": "copied", "value": 64, "from": "results/s3/speed-by-base.json", "key": "bases.sqruff.summary.all.g3_4.not_met", "text": "64"},
+  "t6.sqruff.g3_4.unknown": {"kind": "copied", "value": 0, "from": "results/s3/speed-by-base.json", "key": "bases.sqruff.summary.all.g3_4.unknown", "text": "0"},
+  "t6.sqruff.g3_5.not_met": {"kind": "copied", "value": 0, "from": "results/s3/speed-by-base.json", "key": "bases.sqruff.summary.all.g3_5_each.not_met", "text": "0"},
+  "t6.sqruff.g3_5.pairs": {"kind": "derived", "value": 216, "formula": "t6 bases.sqruff.summary.all.g3_5_each: met + not_met", "text": "216"},
+  "t6.sqruff.benchmarks": {"kind": "copied", "value": 280, "from": "results/s3/speed-by-base.json", "key": "bases.sqruff.summary.all.benchmarks", "text": "280"},
+  "t6.sqlfluffrs.start.total": {"kind": "copied", "value": 0.5878, "from": "results/s3/speed-by-base.json", "key": "bases.sqlfluffrs.summary.start.g3_5_total.ratio", "text": "0.588"},
+  "t6.sqlfluffrs.parse.total": {"kind": "copied", "value": 1.2674, "from": "results/s3/speed-by-base.json", "key": "bases.sqlfluffrs.summary.parse.g3_5_total.ratio", "text": "1.267"},
+  "t6.sqlfluffrs.lint.total": {"kind": "copied", "value": 1.078, "from": "results/s3/speed-by-base.json", "key": "bases.sqlfluffrs.summary.lint.g3_5_total.ratio", "text": "1.078"},
+  "t6.sqlfluffrs.fix.total": {"kind": "copied", "value": 1.0287, "from": "results/s3/speed-by-base.json", "key": "bases.sqlfluffrs.summary.fix.g3_5_total.ratio", "text": "1.029"},
+  "t6.sqlfluffrs.all.total": {"kind": "copied", "value": 1.0693, "from": "results/s3/speed-by-base.json", "key": "bases.sqlfluffrs.summary.all.g3_5_total.ratio", "text": "1.069"},
+  "t6.sqlfluffrs.g3_4.met": {"kind": "copied", "value": 220, "from": "results/s3/speed-by-base.json", "key": "bases.sqlfluffrs.summary.all.g3_4.met", "text": "220"},
+  "t6.sqlfluffrs.g3_4.not_met": {"kind": "copied", "value": 0, "from": "results/s3/speed-by-base.json", "key": "bases.sqlfluffrs.summary.all.g3_4.not_met", "text": "0"},
+  "t6.sqlfluffrs.g3_4.unknown": {"kind": "copied", "value": 60, "from": "results/s3/speed-by-base.json", "key": "bases.sqlfluffrs.summary.all.g3_4.unknown", "text": "60"},
+  "t6.sqlfluffrs.g3_5.not_met": {"kind": "copied", "value": 94, "from": "results/s3/speed-by-base.json", "key": "bases.sqlfluffrs.summary.all.g3_5_each.not_met", "text": "94"},
+  "t6.sqlfluffrs.g3_5.pairs": {"kind": "derived", "value": 216, "formula": "t6 bases.sqlfluffrs.summary.all.g3_5_each: met + not_met", "text": "216"},
+  "t6.sqlfluffrs.benchmarks": {"kind": "copied", "value": 280, "from": "results/s3/speed-by-base.json", "key": "bases.sqlfluffrs.summary.all.benchmarks", "text": "280"},
+  "t6.new-parser-low.start.total": {"kind": "copied", "value": 0.3259, "from": "results/s3/speed-by-base.json", "key": "bases.new-parser-low.summary.start.g3_5_total.ratio", "text": "0.326"},
+  "t6.new-parser-low.parse.total": {"kind": "copied", "value": 1.1529, "from": "results/s3/speed-by-base.json", "key": "bases.new-parser-low.summary.parse.g3_5_total.ratio", "text": "1.153"},
+  "t6.new-parser-low.lint.total": {"kind": "copied", "value": 1.0358, "from": "results/s3/speed-by-base.json", "key": "bases.new-parser-low.summary.lint.g3_5_total.ratio", "text": "1.036"},
+  "t6.new-parser-low.fix.total": {"kind": "copied", "value": 1.0099, "from": "results/s3/speed-by-base.json", "key": "bases.new-parser-low.summary.fix.g3_5_total.ratio", "text": "1.010"},
+  "t6.new-parser-low.all.total": {"kind": "copied", "value": 1.0258, "from": "results/s3/speed-by-base.json", "key": "bases.new-parser-low.summary.all.g3_5_total.ratio", "text": "1.026"},
+  "t6.new-parser-low.g3_4.met": {"kind": "copied", "value": 220, "from": "results/s3/speed-by-base.json", "key": "bases.new-parser-low.summary.all.g3_4.met", "text": "220"},
+  "t6.new-parser-low.g3_4.not_met": {"kind": "copied", "value": 0, "from": "results/s3/speed-by-base.json", "key": "bases.new-parser-low.summary.all.g3_4.not_met", "text": "0"},
+  "t6.new-parser-low.g3_4.unknown": {"kind": "copied", "value": 60, "from": "results/s3/speed-by-base.json", "key": "bases.new-parser-low.summary.all.g3_4.unknown", "text": "60"},
+  "t6.new-parser-low.g3_5.not_met": {"kind": "copied", "value": 67, "from": "results/s3/speed-by-base.json", "key": "bases.new-parser-low.summary.all.g3_5_each.not_met", "text": "67"},
+  "t6.new-parser-low.g3_5.pairs": {"kind": "derived", "value": 216, "formula": "t6 bases.new-parser-low.summary.all.g3_5_each: met + not_met", "text": "216"},
+  "t6.new-parser-low.benchmarks": {"kind": "copied", "value": 280, "from": "results/s3/speed-by-base.json", "key": "bases.new-parser-low.summary.all.benchmarks", "text": "280"},
+  "t6.new-parser-high.start.total": {"kind": "copied", "value": 0.5878, "from": "results/s3/speed-by-base.json", "key": "bases.new-parser-high.summary.start.g3_5_total.ratio", "text": "0.588"},
+  "t6.new-parser-high.parse.total": {"kind": "copied", "value": 1.2674, "from": "results/s3/speed-by-base.json", "key": "bases.new-parser-high.summary.parse.g3_5_total.ratio", "text": "1.267"},
+  "t6.new-parser-high.lint.total": {"kind": "copied", "value": 1.078, "from": "results/s3/speed-by-base.json", "key": "bases.new-parser-high.summary.lint.g3_5_total.ratio", "text": "1.078"},
+  "t6.new-parser-high.fix.total": {"kind": "copied", "value": 1.0287, "from": "results/s3/speed-by-base.json", "key": "bases.new-parser-high.summary.fix.g3_5_total.ratio", "text": "1.029"},
+  "t6.new-parser-high.all.total": {"kind": "copied", "value": 1.0693, "from": "results/s3/speed-by-base.json", "key": "bases.new-parser-high.summary.all.g3_5_total.ratio", "text": "1.069"},
+  "t6.new-parser-high.g3_4.met": {"kind": "copied", "value": 220, "from": "results/s3/speed-by-base.json", "key": "bases.new-parser-high.summary.all.g3_4.met", "text": "220"},
+  "t6.new-parser-high.g3_4.not_met": {"kind": "copied", "value": 0, "from": "results/s3/speed-by-base.json", "key": "bases.new-parser-high.summary.all.g3_4.not_met", "text": "0"},
+  "t6.new-parser-high.g3_4.unknown": {"kind": "copied", "value": 60, "from": "results/s3/speed-by-base.json", "key": "bases.new-parser-high.summary.all.g3_4.unknown", "text": "60"},
+  "t6.new-parser-high.g3_5.not_met": {"kind": "copied", "value": 94, "from": "results/s3/speed-by-base.json", "key": "bases.new-parser-high.summary.all.g3_5_each.not_met", "text": "94"},
+  "t6.new-parser-high.g3_5.pairs": {"kind": "derived", "value": 216, "formula": "t6 bases.new-parser-high.summary.all.g3_5_each: met + not_met", "text": "216"},
+  "t6.new-parser-high.benchmarks": {"kind": "copied", "value": 280, "from": "results/s3/speed-by-base.json", "key": "bases.new-parser-high.summary.all.benchmarks", "text": "280"},
+  "t6.sqlfluffrs.speedup.needed": {"kind": "copied", "value": 44, "from": "results/s3/speed-by-base.json", "key": "bases.sqlfluffrs.lex_parse_speedup.parse.needed", "text": "44"},
+  "t6.sqlfluffrs.speedup.median": {"kind": "copied", "value": 1.7518, "from": "results/s3/speed-by-base.json", "key": "bases.sqlfluffrs.lex_parse_speedup.parse.median_factor", "text": "1.75"},
+  "t6.sqlfluffrs.speedup.max": {"kind": "copied", "value": 3.824, "from": "results/s3/speed-by-base.json", "key": "bases.sqlfluffrs.lex_parse_speedup.parse.max_factor", "text": "3.82"},
+  "t6.new-parser-low.speedup.needed": {"kind": "copied", "value": 35, "from": "results/s3/speed-by-base.json", "key": "bases.new-parser-low.lex_parse_speedup.parse.needed", "text": "35"},
+  "t6.new-parser-low.speedup.median": {"kind": "copied", "value": 1.5823, "from": "results/s3/speed-by-base.json", "key": "bases.new-parser-low.lex_parse_speedup.parse.median_factor", "text": "1.58"},
+  "t6.new-parser-low.speedup.max": {"kind": "copied", "value": 3.4362, "from": "results/s3/speed-by-base.json", "key": "bases.new-parser-low.lex_parse_speedup.parse.max_factor", "text": "3.44"},
+  "t6.sqruff.start.over_sqlfluff": {"kind": "copied", "value": 0.0316, "from": "results/s3/speed-by-base.json", "key": "bases.sqruff.summary.start.g3_4.median_ratio", "text": "0.032"},
+  "t6.sqruff.parse.over_sqlfluff": {"kind": "copied", "value": 0.0408, "from": "results/s3/speed-by-base.json", "key": "bases.sqruff.summary.parse.g3_4.median_ratio", "text": "0.041"},
+  "t6.sqruff.lint.over_sqlfluff": {"kind": "copied", "value": 0.0521, "from": "results/s3/speed-by-base.json", "key": "bases.sqruff.summary.lint.g3_4.median_ratio", "text": "0.052"},
+  "t6.sqruff.fix.over_sqlfluff": {"kind": "copied", "value": 0.0582, "from": "results/s3/speed-by-base.json", "key": "bases.sqruff.summary.fix.g3_4.median_ratio", "text": "0.058"},
+  "t6.sqlfluffrs.start.over_sqlfluff": {"kind": "copied", "value": 0.0184, "from": "results/s3/speed-by-base.json", "key": "bases.sqlfluffrs.summary.start.g3_4.median_ratio", "text": "0.018"},
+  "t6.sqlfluffrs.parse.over_sqlfluff": {"kind": "copied", "value": 0.0402, "from": "results/s3/speed-by-base.json", "key": "bases.sqlfluffrs.summary.parse.g3_4.median_ratio", "text": "0.040"},
+  "t6.sqruff.not_valid": {"kind": "copied", "value": 64, "from": "results/s3/speed-by-base.json", "key": "bases.sqruff.not_valid.count", "text": "64"},
+  "t5.parse_large.median": {"kind": "copied", "value": 1.5053, "from": "results/s3/sqlfluffrs-probe.json", "key": "speed.summary.[parse/large].probe_over_sqruff.median_ratio", "text": "1.505"},
+  "t5.parse_large.faster": {"kind": "copied", "value": 1, "from": "results/s3/sqlfluffrs-probe.json", "key": "speed.summary.[parse/large].probe_over_sqruff.probe_faster", "text": "1"},
+  "t5.parse_large.pairs": {"kind": "copied", "value": 27, "from": "results/s3/sqlfluffrs-probe.json", "key": "speed.summary.[parse/large].probe_over_sqruff.pairs", "text": "27"},
+  "t5.parse.share": {"kind": "copied", "value": 0.6735, "from": "results/s3/sqlfluffrs-probe.json", "key": "speed.summary.[parse/large].probe_phases.share.parse_s", "text": "0.67"},
+  "t8.setup_share": {"kind": "copied", "value": 0.6803, "from": "results/s3/capabilities.json", "key": "G3_start.bases.sqlfluffrs.value.setup_share_of_probe_start", "text": "0.68"},
+  "t7.sqruff.spdx": {"kind": "copied", "value": "Apache-2.0", "from": "results/s3/license-size.json", "key": "bases.sqruff.license.spdx", "text": "Apache-2.0"},
+  "t7.sqlfluffrs.spdx": {"kind": "copied", "value": "MIT", "from": "results/s3/license-size.json", "key": "bases.sqlfluffrs.license.spdx", "text": "MIT"},
+  "t7.new-parser.spdx": {"kind": "copied", "value": "MIT", "from": "results/s3/license-size.json", "key": "bases.new-parser.license.spdx", "text": "MIT"},
+  "t7.sqruff.hand": {"kind": "copied", "value": 176917, "from": "results/s3/license-size.json", "key": "bases.sqruff.size.totals.hand_written", "text": "176917"},
+  "t7.sqruff.generated": {"kind": "copied", "value": 705, "from": "results/s3/license-size.json", "key": "bases.sqruff.size.totals.generated", "text": "705"},
+  "t7.sqlfluffrs.hand": {"kind": "copied", "value": 27123, "from": "results/s3/license-size.json", "key": "bases.sqlfluffrs.size.totals.hand_written", "text": "27123"},
+  "t7.sqlfluffrs.generated": {"kind": "copied", "value": 414352, "from": "results/s3/license-size.json", "key": "bases.sqlfluffrs.size.totals.generated", "text": "414352"},
+  "t7.new-parser.engine": {"kind": "copied", "value": 19464, "from": "results/s3/license-size.json", "key": "bases.new-parser.size.hand_written_engine", "text": "19464"},
+  "t7.new-parser.rules": {"kind": "copied", "value": 18655, "from": "results/s3/license-size.json", "key": "bases.new-parser.size.hand_written_rules", "text": "18655"},
+  "t7.new-parser.generated": {"kind": "copied", "value": 414352, "from": "results/s3/license-size.json", "key": "bases.new-parser.size.generated", "text": "414352"},
+  "t7.sqruff.packages": {"kind": "copied", "value": 113, "from": "results/s3/license-size.json", "key": "bases.sqruff.dependencies.installed.packages", "text": "113"},
+  "t7.sqlfluffrs.packages": {"kind": "copied", "value": 54, "from": "results/s3/license-size.json", "key": "bases.sqlfluffrs.dependencies.standalone.packages", "text": "54"},
+  "t7.sqruff.port_lag": {"kind": "copied", "value": 124, "from": "results/s3/license-size.json", "key": "bases.sqruff.sqlfluff_attribution.history_of_that_commit.commits_only_in_pin", "text": "124"},
+  "t7.sqruff.fixture_copies": {
+   "kind": "copied",
+   "value": {"sqruff": 0, "sqruff-cli-lib": 0, "sqruff-lib": 97, "sqruff-lib-core": 0, "sqruff-lib-dialects": 1944, "sqruff-lsp": 0},
+   "from": "results/s3/license-size.json",
+   "key": "bases.sqruff.sqlfluff_attribution.crate_data_files_equal_to_sqlfluff_fixtures",
+   "text": "2041"
+  },
+  "t7.sqruff.node_matchers": {"kind": "copied", "value": 1615, "from": "results/s3/license-size.json", "key": "bases.sqruff.structure.values.node_matchers_in_dialect_modules", "text": "1615"},
+  "t7.sqruff.rule_files": {"kind": "copied", "value": 77, "from": "results/s3/license-size.json", "key": "bases.sqruff.structure.values.rule_files", "text": "77"},
+  "t7.sqruff.rule_lines": {"kind": "copied", "value": 18655, "from": "results/s3/license-size.json", "key": "bases.sqruff.structure.values.rule_lines", "text": "18655"},
+  "sqruff.rule_layer_lines": {"kind": "estimate", "value": 35950, "formula": "t7 bases.sqruff.size.crates.sqruff-lib: hand_written.lines - hand_written_src_by_dir[src/templaters]", "reason": "The rule layer of sqruff (rules, reflow and fix utilities, linter core, config) is the crate sqruff-lib without its templaters. Options 2 and 3 need a rule layer of this kind.", "text": "35950"},
+  "t7.sqlfluff.rule_python_lines": {"kind": "copied", "value": 15601, "from": "results/s3/license-size.json", "key": "bases.new-parser.input_python_lines.rules.lines", "text": "15601"},
+  "t7.open_questions": {
+   "kind": "copied",
+   "value": [
+    "Which license does sqll use? The repository has no license file. It must permit the Apache-2.0 duties (option 1) or the MIT duties (options 2 and 3), and those of the dependencies.",
+    "Option 1: the sqruff crates port sqlfluff code and ship sqlfluff fixture files with no sqlfluff MIT notice. Must sqll add the sqlfluff MIT notice for the parts that it takes from sqruff? sqll already carries it for its own ports (THIRD_PARTY.md).",
+    "Options 2 and 3: are the generated dialect tables a substantial portion of sqlfluff, so that each sqll binary must carry the sqlfluff MIT notice?",
+    "How does a sqll binary give the notices of its dependencies (MIT, BSD, Zlib, Unicode-3.0, Apache-2.0)? For example a notices file made at release time.",
+    "The sqlfluffrs crates have no license field in Cargo.toml. Does sqlfluffrs/LICENSE.md (MIT, named by sqlfluffrs/pyproject.toml) cover each Rust crate of the workspace?",
+    "For each dependency with an OR choice that has a copyleft option (permissive_choice_over), sqll takes the permissive option. Must the choice be recorded?",
+    "The sqruff license has the copyright line in its appendix (Copyright 2024 Quary Inc.). Is this the notice to keep under Apache-2.0 4(c)?"
+   ],
+   "from": "results/s3/license-size.json",
+   "key": "open_questions",
+   "text": "7"
+  },
+  "s6.templaters": {"kind": "derived", "value": 4, "formula": "raw, placeholder, python, jinja (S6)", "text": "4"},
+  "t8.sqruff.native_templaters": {"kind": "derived", "value": 2, "formula": "t8 S6.templaters[raw, placeholder, python, jinja].sqruff.value.native", "text": "2"},
+  "t8.sqruff.templaters_to_write": {"kind": "derived", "value": 2, "formula": "s6.templaters - t8.sqruff.native_templaters", "text": "2"},
+  "t8.sqlfluffrs.native_templaters": {"kind": "derived", "value": 0, "formula": "t8 S6.templaters[raw, placeholder, python, jinja].sqlfluffrs.value.native", "text": "0"},
+  "t8.sqlfluffrs.templaters_to_write": {"kind": "derived", "value": 4, "formula": "s6.templaters - t8.sqlfluffrs.native_templaters", "text": "4"},
+  "t8.new-parser.native_templaters": {"kind": "derived", "value": 0, "formula": "t8 S6.templaters[raw, placeholder, python, jinja].new-parser.value.native", "text": "0"},
+  "t8.new-parser.templaters_to_write": {"kind": "derived", "value": 4, "formula": "s6.templaters - t8.new-parser.native_templaters", "text": "4"},
+  "t8.templater.no_python_cases": {"kind": "copied", "value": 40, "from": "results/s3/capabilities.json", "key": "S6.templater_suite.sqruff.value.no_python_cases", "text": "40"},
+  "t8.templater.no_python_pass": {"kind": "copied", "value": 27, "from": "results/s3/capabilities.json", "key": "S6.templater_suite.sqruff.value.no_python_pass", "text": "27"},
+  "t8.placeholder.styles": {"kind": "derived", "value": 12, "formula": "len(t8 S6.placeholder_styles.rows)", "text": "12"},
+  "t8.placeholder.sqruff": {"kind": "derived", "value": 11, "formula": "t8 S6.placeholder_styles.rows with sqruff.value exists and same_pattern", "text": "11"},
+  "t8.commands.sqlfluff": {"kind": "derived", "value": 8, "formula": "t8 S7.commands with sqlfluff.value", "text": "8"},
+  "t8.commands.sqruff": {"kind": "derived", "value": 5, "formula": "t8 S7.commands with sqlfluff.value and sqruff.value", "text": "5"},
+  "t8.commands.missing": {"kind": "derived", "value": 3, "formula": "t8.commands.sqlfluff - t8.commands.sqruff", "text": "3"},
+  "t8.options.sqlfluff": {"kind": "derived", "value": 97, "formula": "sum of t8 S7.options.*.value.sqlfluff", "text": "97"},
+  "t8.options.sqruff": {"kind": "derived", "value": 42, "formula": "sum of len(t8 S7.options.*.value.both)", "text": "42"},
+  "t8.options.missing": {"kind": "derived", "value": 55, "formula": "t8.options.sqlfluff - t8.options.sqruff", "text": "55"},
+  "t8.keys.sqlfluff": {"kind": "copied", "value": 208, "from": "results/s3/capabilities.json", "key": "S7.config_keys.sqlfluff_defaults.value", "text": "208"},
+  "t8.keys.sqruff": {"kind": "copied", "value": 197, "from": "results/s3/capabilities.json", "key": "S7.config_keys.in_both_defaults.value", "text": "197"},
+  "t8.keys.missing": {"kind": "derived", "value": 11, "formula": "t8.keys.sqlfluff - t8.keys.sqruff", "text": "11"},
+  "t8.unsupported_settings": {"kind": "copied", "value": 122, "from": "results/s3/capabilities.json", "key": "S7.config_keys.s1_unsupported_settings.value.cases", "text": "122"},
+  "t8.config_files.sqlfluff": {"kind": "derived", "value": 5, "formula": "len(t8 S7.config.files_in_each_folder.sqlfluff.value)", "text": "5"},
+  "t8.config_files.sqruff": {"kind": "derived", "value": 2, "formula": "the sqlfluff config files that sqruff reads (t8 S7.config.files_in_each_folder)", "text": "2"},
+  "t8.placeholder.sqlfluffrs": {"kind": "copied", "value": "0", "from": "results/s3/capabilities.json", "key": "tables.S6.rows.6.4", "text": "0"},
+  "t8.syntax_kinds": {"kind": "copied", "value": 1359, "from": "results/s3/capabilities.json", "key": "G2_S8.typed_tree.sqruff.value.syntax_kinds", "text": "1359"},
+  "t8.parameter_styles.sqruff": {"kind": "copied", "value": 14, "from": "results/s3/capabilities.json", "key": "G2_S8.parameter_styles.sqruff.value", "text": "14"}
+ },
+ "tables": {
+  "s1": {
+   "columns": [
+    "Base",
+    "Dialects: exact tree",
+    "Dialects: no unparsable",
+    "Rule cases",
+    "Autofix",
+    "Templater",
+    "How it runs"
+   ],
+   "rows": [
+    [
+     "sqlfluff 4.4.0 (reference)",
+     "2306 of 2306",
+     "2306 of 2306",
+     "2527 of 2527",
+     "61 of 61",
+     "43 of 43",
+     "Python"
+    ],
+    [
+     "1 sqruff",
+     "1548 of 2306",
+     "2164 of 2306",
+     "2185 of 2527",
+     "45 of 61",
+     "28 of 43",
+     "native; Jinja in Python"
+    ],
+    [
+     "2 sqlfluffrs in S1 (`sqlfluff-rs`)",
+     "2306 of 2306",
+     "2306 of 2306",
+     "2527 of 2527",
+     "61 of 61",
+     "43 of 43",
+     "Python sqlfluff calls the Rust parser; 76 of 79 rules in Python"
+    ],
+    [
+     "2 sqlfluffrs native (T5 probe)",
+     "2306 of 2306",
+     "2306 of 2306",
+     "no data",
+     "no data",
+     "no data",
+     "native, no Python"
+    ],
+    ["3 new parser", "no data", "no data", "no data", "no data", "no data", "no implementation"]
+   ],
+   "markdown": [
+    "| Base | Dialects: exact tree | Dialects: no unparsable | Rule cases | Autofix | Templater | How it runs |",
+    "|---|---|---|---|---|---|---|",
+    "| sqlfluff 4.4.0 (reference) | 2306 of 2306 | 2306 of 2306 | 2527 of 2527 | 61 of 61 | 43 of 43 | Python |",
+    "| 1 sqruff | 1548 of 2306 | 2164 of 2306 | 2185 of 2527 | 45 of 61 | 28 of 43 | native; Jinja in Python |",
+    "| 2 sqlfluffrs in S1 (`sqlfluff-rs`) | 2306 of 2306 | 2306 of 2306 | 2527 of 2527 | 61 of 61 | 43 of 43 | Python sqlfluff calls the Rust parser; 76 of 79 rules in Python |",
+    "| 2 sqlfluffrs native (T5 probe) | 2306 of 2306 | 2306 of 2306 | no data | no data | no data | native, no Python |",
+    "| 3 new parser | no data | no data | no data | no data | no data | no implementation |"
+   ]
+  },
+  "failures": {
+   "columns": ["sqruff failures", "Cases", "Classes (T3, T4)"],
+   "rows": [
+    [
+     "Tree mismatches (dialects, templater)",
+     "763",
+     "extra_wrapper 359, renamed 316, missing_wrapper 183, unparsable 139, leaf_type 137 (a case can have more than one class)"
+    ],
+    [
+     "Rule, autofix, and templater failures",
+     "373",
+     "unsupported_item 180, parse_cause 69, rule_logic 124"
+    ]
+   ],
+   "markdown": [
+    "| sqruff failures | Cases | Classes (T3, T4) |",
+    "|---|---|---|",
+    "| Tree mismatches (dialects, templater) | 763 | extra_wrapper 359, renamed 316, missing_wrapper 183, unparsable 139, leaf_type 137 (a case can have more than one class) |",
+    "| Rule, autofix, and templater failures | 373 | unsupported_item 180, parse_cause 69, rule_logic 124 |"
+   ]
+  },
+  "speed": {
+   "columns": [
+    "Base",
+    "start / sqruff",
+    "parse / sqruff",
+    "lint / sqruff",
+    "fix / sqruff",
+    "all / sqruff",
+    "Faster than sqlfluff (G3.4)",
+    "Slower than sqruff (G3.5, pairs)",
+    "Kind"
+   ],
+   "rows": [
+    ["1 sqruff", "1.000", "1.000", "1.000", "1.000", "1.000", "216 of 280", "0 of 216", "measured"],
+    [
+     "2 sqlfluffrs",
+     "0.588",
+     "1.267",
+     "1.078",
+     "1.029",
+     "1.069",
+     "220 of 280",
+     "94 of 216",
+     "start, parse: measured; lint, fix, all: estimate"
+    ],
+    ["3 low", "0.326", "1.153", "1.036", "1.010", "1.026", "220 of 280", "67 of 216", "estimate"],
+    ["3 high", "0.588", "1.267", "1.078", "1.029", "1.069", "220 of 280", "94 of 216", "estimate"]
+   ],
+   "markdown": [
+    "| Base | start / sqruff | parse / sqruff | lint / sqruff | fix / sqruff | all / sqruff | Faster than sqlfluff (G3.4) | Slower than sqruff (G3.5, pairs) | Kind |",
+    "|---|---|---|---|---|---|---|---|---|",
+    "| 1 sqruff | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 216 of 280 | 0 of 216 | measured |",
+    "| 2 sqlfluffrs | 0.588 | 1.267 | 1.078 | 1.029 | 1.069 | 220 of 280 | 94 of 216 | start, parse: measured; lint, fix, all: estimate |",
+    "| 3 low | 0.326 | 1.153 | 1.036 | 1.010 | 1.026 | 220 of 280 | 67 of 216 | estimate |",
+    "| 3 high | 0.588 | 1.267 | 1.078 | 1.029 | 1.069 | 220 of 280 | 94 of 216 | estimate |"
+   ]
+  },
+  "license": {
+   "columns": ["Base", "License", "Hand-written lines", "Generated lines", "Dependencies"],
+   "rows": [
+    ["1 sqruff", "Apache-2.0", "176917", "705", "113 packages, all permissive"],
+    ["2 sqlfluffrs", "MIT", "27123", "414352", "54 packages, all permissive"],
+    [
+     "3 new parser",
+     "MIT (the input)",
+     "19464 engine and 18655 rules (estimate)",
+     "414352 (estimate)",
+     "no implementation"
+    ]
+   ],
+   "markdown": [
+    "| Base | License | Hand-written lines | Generated lines | Dependencies |",
+    "|---|---|---|---|---|",
+    "| 1 sqruff | Apache-2.0 | 176917 | 705 | 113 packages, all permissive |",
+    "| 2 sqlfluffrs | MIT | 27123 | 414352 | 54 packages, all permissive |",
+    "| 3 new parser | MIT (the input) | 19464 engine and 18655 rules (estimate) | 414352 (estimate) | no implementation |"
+   ]
+  },
+  "capabilities": {
+   "columns": ["Item", "1 sqruff", "2 sqlfluffrs", "3 new parser"],
+   "rows": [
+    [
+     "S6 native templaters (raw, placeholder, python, jinja)",
+     "2 of 4: raw, placeholder",
+     "0 of 4",
+     "0 of 4 (estimate)"
+    ],
+    ["S6, G2.3 placeholder styles of sqlfluff", "11 of 12", "0 of 12", "0 of 12 (estimate)"],
+    ["S7 sqlfluff commands", "5 of 8", "no CLI", "no CLI"],
+    ["S7 option names of the shared commands", "42 of 97", "no CLI", "no CLI"],
+    [
+     "S7 sqlfluff config files, default keys",
+     "2 of 5; 197 of 208",
+     "no config reader",
+     "no config reader"
+    ],
+    [
+     "G2 segment type",
+     "`SyntaxKind` enum (1359 kinds)",
+     "string",
+     "enum from the generator (estimate)"
+    ],
+    ["G2.2 schema output", "no", "no", "no"]
+   ],
+   "markdown": [
+    "| Item | 1 sqruff | 2 sqlfluffrs | 3 new parser |",
+    "|---|---|---|---|",
+    "| S6 native templaters (raw, placeholder, python, jinja) | 2 of 4: raw, placeholder | 0 of 4 | 0 of 4 (estimate) |",
+    "| S6, G2.3 placeholder styles of sqlfluff | 11 of 12 | 0 of 12 | 0 of 12 (estimate) |",
+    "| S7 sqlfluff commands | 5 of 8 | no CLI | no CLI |",
+    "| S7 option names of the shared commands | 42 of 97 | no CLI | no CLI |",
+    "| S7 sqlfluff config files, default keys | 2 of 5; 197 of 208 | no config reader | no config reader |",
+    "| G2 segment type | `SyntaxKind` enum (1359 kinds) | string | enum from the generator (estimate) |",
+    "| G2.2 schema output | no | no | no |"
+   ]
+  },
+  "work": {
+   "columns": ["Goal or stone", "1 sqruff", "2 sqlfluffrs", "3 new parser"],
+   "rows": [
+    [
+     "S4 trees",
+     "758 dialect cases in 593 groups; top 50 groups: 34.7% of the cases; 230 cases need their own fix; by hand in 1615 node matchers",
+     "0 cases (2306 of 2306 native)",
+     "an engine of about 19464 lines; 2306 cases to pass; generator reuse with 0 or 178 new lines"
+    ],
+    [
+     "S5 rules",
+     "342 rule and 16 autofix failures; 2 rules to add (CV13, TQ01); after S4, 75 of 77 rules see a changed tree",
+     "76 of 79 rules and the fixes; a rule layer of about 35950 lines",
+     "79 of 79 rules and the fixes; else as option 2"
+    ],
+    [
+     "S6 templaters",
+     "2 native templaters to write (jinja, python)",
+     "4 native templaters to write; the source map exists",
+     "4 native templaters to write; the source map of option 2"
+    ],
+    [
+     "S7 CLI and config",
+     "3 commands, 55 option names, 11 default keys",
+     "8 commands, 97 option names, 208 default keys",
+     "as option 2"
+    ],
+    [
+     "G2 code generation",
+     "typed node view, schema output",
+     "segment enum, typed node view, schema output",
+     "typed node view, schema output"
+    ],
+    [
+     "G3 speed",
+     "all / sqruff 1.000 must go below 1; 64 results not valid",
+     "lex and parse faster by a median 1.75 (at most 3.82) on 44 parse benchmarks",
+     "low bound: 1.58 (at most 3.44) on 35 parse benchmarks"
+    ],
+    [
+     "G1.2, G4 new sqlfluff version",
+     "port the grammar by hand; the port is 124 commits before the pin",
+     "generate the tables again (85 files in 23 s)",
+     "as option 2"
+    ]
+   ],
+   "markdown": [
+    "| Goal or stone | 1 sqruff | 2 sqlfluffrs | 3 new parser |",
+    "|---|---|---|---|",
+    "| S4 trees | 758 dialect cases in 593 groups; top 50 groups: 34.7% of the cases; 230 cases need their own fix; by hand in 1615 node matchers | 0 cases (2306 of 2306 native) | an engine of about 19464 lines; 2306 cases to pass; generator reuse with 0 or 178 new lines |",
+    "| S5 rules | 342 rule and 16 autofix failures; 2 rules to add (CV13, TQ01); after S4, 75 of 77 rules see a changed tree | 76 of 79 rules and the fixes; a rule layer of about 35950 lines | 79 of 79 rules and the fixes; else as option 2 |",
+    "| S6 templaters | 2 native templaters to write (jinja, python) | 4 native templaters to write; the source map exists | 4 native templaters to write; the source map of option 2 |",
+    "| S7 CLI and config | 3 commands, 55 option names, 11 default keys | 8 commands, 97 option names, 208 default keys | as option 2 |",
+    "| G2 code generation | typed node view, schema output | segment enum, typed node view, schema output | typed node view, schema output |",
+    "| G3 speed | all / sqruff 1.000 must go below 1; 64 results not valid | lex and parse faster by a median 1.75 (at most 3.82) on 44 parse benchmarks | low bound: 1.58 (at most 3.44) on 35 parse benchmarks |",
+    "| G1.2, G4 new sqlfluff version | port the grammar by hand; the port is 124 commits before the pin | generate the tables again (85 files in 23 s) | as option 2 |"
+   ]
+  }
+ }
+}
