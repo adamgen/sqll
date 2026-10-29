@@ -1,7 +1,6 @@
 # S3 decision: the base of sqll
 
-Status: the data and the recommendation are complete. The human owner
-chooses the base. Phase B (the sqll binary) starts only after that choice.
+Status: decided. The human owner chose option 2 (sqlfluffrs) on 2026-10-29.
 
 ## Question
 
@@ -24,6 +23,16 @@ All versions are the pinned versions. This record does not change them.
 gives the sqlfluff trees now, without Python, and the trees are the base of
 the parity number and of the rules. Its largest work is the rules (S5), the
 CLI and config (S7), and parse speed (G3).
+
+## Decision
+
+The human owner chose option 2, sqlfluffrs, on 2026-10-29.
+
+- Phase B (the sqll binary) starts with the parse speed work of risk 1
+  ("Main risks"). The other phase B work comes after it.
+- If the data of "Data that would change the recommendation" occurs, the
+  S3 track does not change the base. It gives the data to the human owner,
+  and the human owner decides.
 
 ## Data
 

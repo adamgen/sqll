@@ -207,12 +207,13 @@ def test_the_record_has_each_table_of_the_data_file():
 
 def numbers(text: str) -> list[str]:
     """Return the numbers of the text outside code, link targets, list
-    markers, versions, and ids such as G3.5, T5, or CP01."""
+    markers, versions, dates, and ids such as G3.5, T5, or CP01."""
     text = re.sub(r"`[^`]*`", " ", text)
     text = re.sub(r"\]\([^)]*\)", "]", text)
     text = re.sub(r"(?m)^\s*\d+\. ", " ", text)
     text = re.sub(r"CONSTITUTION \d+\.\d+", " ", text)
     text = re.sub(r"\b\d+\.\d+\.\d+\b", " ", text)
+    text = re.sub(r"\b\d{4}-\d{2}-\d{2}\b", " ", text)
     text = re.sub(r"\b[A-Z][A-Za-z]*\d+(?:\.\d+)*\b", " ", text)
     text = re.sub(r"\bApache-2\.0\b", " ", text)
     return re.findall(r"(?<![\w.-])\d+(?:\.\d+)?%?", text)
@@ -224,6 +225,7 @@ def test_numbers():
         "1.25",
     ]
     assert numbers("1. item 3\n2. item") == ["3"]
+    assert numbers("on 2026-10-29 and 2026 and 10-29") == ["2026", "10"]
 
 
 def test_each_number_of_the_record_is_a_value_of_the_data_file():
@@ -270,6 +272,19 @@ def test_the_record_has_one_recommendation_and_its_risks():
         assert section(title).strip(), title
 
 
+def test_the_record_has_the_decision_of_the_human_owner():
+    assert (
+        "\nStatus: decided. The human owner chose option 2 (sqlfluffrs) on"
+        " 2026-10-29.\n"
+    ) in RECORD
+    decision = section("Decision")
+    assert "The human owner chose option 2, sqlfluffrs, on 2026-10-29." in decision
+    assert "parse speed work of risk 1" in decision
+    assert '"Data that would change the recommendation"' in decision
+    assert "human owner decides" in decision
+    assert "chooses the base" not in RECORD
+
+
 def test_the_premises_of_the_reasons_hold_in_the_data():
     # Option 2 has all trees natively; option 1 does not, and its mismatches
     # are not systematic: the top 50 groups cover less than half of the cases.
@@ -301,15 +316,17 @@ def test_the_record_is_short():
 # The status files.
 
 
-def test_status_says_the_base_decision_awaits_the_human_owner():
+def test_status_says_the_human_owner_chose_sqlfluffrs():
+    state = "Phase A done; base: sqlfluffrs (human owner, 2026-10-29); phase B in work"
     index = (REPO_ROOT / "STATUS.md").read_text("utf8")
     assert (
-        "| S3 | S3 | S3: base decision awaiting the human owner. Decision record:"
+        f"| S3 | S3 | {state}. Decision record:"
         " [docs/decisions/s3-base.md](docs/decisions/s3-base.md)"
         " | [status/S3.md](status/S3.md) |"
     ) in index
     status = (REPO_ROOT / "status" / "S3.md").read_text("utf8")
-    assert "**S3: base decision awaiting the human owner.**" in status
+    assert f"- State: **{state}.**" in status
+    assert "awaiting" not in status
     tasks = status.split("## S3 phase A tasks", 1)[1].split("\n## ", 1)[0]
     rows = {
         line.split("|")[1].strip(): line.split("|")[3].strip()

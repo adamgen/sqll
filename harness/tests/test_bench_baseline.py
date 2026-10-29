@@ -325,7 +325,8 @@ def test_status_says_s2_is_approved_and_names_the_baseline():
         " | [status/S2.md](status/S2.md) |"
     ) in INDEX
     assert (
-        "| S3 | S3 | S3: base decision awaiting the human owner. Decision record:"
+        "| S3 | S3 | Phase A done; base: sqlfluffrs (human owner, 2026-10-29);"
+        " phase B in work. Decision record:"
         " [docs/decisions/s3-base.md](docs/decisions/s3-base.md)"
         " | [status/S3.md](status/S3.md) |"
     ) in INDEX
