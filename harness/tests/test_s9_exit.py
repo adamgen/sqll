@@ -231,19 +231,17 @@ def _no_tree() -> list[dict]:
 def test_the_max_parse_depth_results_are_those_of_the_baseline():
     no_tree = _no_tree()
     files = sorted({r["file"] for r in no_tree})
-    names = [f.rsplit("/", 1)[1] for f in files]
     decision = _words(DECISION)
     t8 = decision[decision.index("T8 decision:") :]
     t8 = t8[: t8.index("## ")]
-    assert (
-        f"The {len(no_tree)} `invalid` results that stop at `max_parse_depth`" in t8
-    )
+    assert f"The {len(no_tree)} `invalid` results that stop at `max_parse_depth`" in t8
     text = _section("Input for S3")
     assert (
         f"`max_parse_depth` stops {len(no_tree)} results with no tree on "
         f"{len(files)} files" in text
     )
-    for f, name in zip(files, names):
+    for f in files:
+        name = f.rsplit("/", 1)[1]
         assert f"`{name}`" in t8 and f"`{name}`" in text, name
         tools = {r["tool"] for r in no_tree if r["file"] == f}
         assert {"sqlfluff", "sqlfluff-rs"} <= tools, f
