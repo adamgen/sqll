@@ -46,10 +46,8 @@ def test_the_check_fails_on_a_change(tmp_path, monkeypatch):
 
 def test_the_inputs_are_the_committed_files():
     assert OUT["inputs"] == {
-        "results/s3/license-size-sources.json": ls.probe.sha256_file(ls.SOURCES_FILE),
-        "results/s3/sqlfluffrs-probe-build.json": ls.probe.sha256_file(
-            ls.T5_BUILD_FILE
-        ),
+        "results/s3/license-size-sources.json": ls.sha256_file(ls.SOURCES_FILE),
+        ls.rel(ls.T5_BUILD_FILE): ls.sha256_file(ls.T5_BUILD_FILE),
     }
 
 
@@ -161,7 +159,7 @@ def test_the_sqlfluff_licenses_are_the_submodule_files():
 
 
 def test_the_sqlfluffrs_crates_have_no_cargo_license_field():
-    for folder in ls.probe.CRATE_DIRS.values():
+    for folder in ls.CRATE_DIRS.values():
         manifest = SQLFLUFF_ROOT / "sqlfluffrs" / folder / "Cargo.toml"
         assert not re.search(r"^license", manifest.read_text("utf8"), re.M)
     fields = BASES["sqlfluffrs"]["license"]["cargo_license_of_each_crate"]
@@ -283,7 +281,8 @@ def test_the_generator_environment_table():
 
 
 def test_the_line_tool_and_command_are_stated():
-    assert "line_count of scripts/s3/sqlfluffrs_probe.py" in OUT["method"]["lines"]
+    assert OUT["method"]["lines"] == SOURCES["line_tool"]
+    assert SOURCES["line_tool"].startswith("line_count of scripts/s3/")
     assert OUT["method"]["lines_command"] == ls.COMMANDS["collect"]
 
 
@@ -302,8 +301,8 @@ def test_the_line_counts_add_up():
 
 def test_the_sqlfluffrs_lines_are_those_of_t5_and_the_submodule():
     assert BASES["sqlfluffrs"]["size"]["crates"] == T5["lines"]
-    tracked = ls.probe.tracked_files(SQLFLUFF_ROOT)
-    hand = ls.probe.rust_lines(SQLFLUFF_ROOT / "sqlfluffrs", tracked)
+    tracked = ls.tracked_files(SQLFLUFF_ROOT)
+    hand = ls.rust_lines(SQLFLUFF_ROOT / "sqlfluffrs", tracked)
     for crate, kinds in T5["lines"].items():
         assert hand[crate]["hand_written"] == kinds["hand_written"]
     generated = SOURCES["sqlfluffrs"]["generated_files"]

@@ -64,6 +64,10 @@ COMMANDS = {
 DataError = probe.DataError
 line_count = probe.line_count
 sha256_bytes = probe.sha256_bytes
+sha256_file = probe.sha256_file
+tracked_files = probe.tracked_files
+rust_lines = probe.rust_lines
+CRATE_DIRS = probe.CRATE_DIRS
 
 SQRUFF_VERSION = "0.41.0"
 SQRUFF_TAG = "v0.41.0"
