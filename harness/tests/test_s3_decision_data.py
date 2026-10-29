@@ -318,15 +318,15 @@ def test_the_record_is_short():
 
 
 def test_status_says_the_human_owner_chose_sqlfluffrs():
-    state = "Phase A done; base: sqlfluffrs (human owner, 2026-10-29); phase B next"
+    # The phase B state (test_s3_status.py) keeps the decision and its record.
     index = (REPO_ROOT / "STATUS.md").read_text("utf8")
-    assert (
-        f"| S3 | S3 | {state}. Decision record:"
-        " [docs/decisions/s3-base.md](docs/decisions/s3-base.md)"
-        " | [status/S3.md](status/S3.md) |"
-    ) in index
+    (row,) = [line for line in index.splitlines() if line.startswith("| S3 |")]
+    assert "the base is sqlfluffrs (human owner, 2026-10-29)" in row
+    record = "[docs/decisions/s3-base.md](docs/decisions/s3-base.md)"
+    assert f"Decision record: {record}" in row
     status = (REPO_ROOT / "status" / "S3.md").read_text("utf8")
-    assert f"- State: **{state}.**" in status
+    assert "the base is sqlfluffrs (human owner, 2026-10-29)" in status
+    assert "[docs/decisions/s3-base.md](../docs/decisions/s3-base.md)" in status
     assert "awaiting" not in status
     assert "in work" not in status
     tasks = status.split("## S3 phase A tasks", 1)[1].split("\n## ", 1)[0]
@@ -337,7 +337,7 @@ def test_status_says_the_human_owner_chose_sqlfluffrs():
     }
     assert sorted(rows) == [f"T{i}" for i in range(1, 10)]
     for task, state in rows.items():
-        assert state.startswith("Merged (PR #") or task == "T9", (task, state)
-    assert rows["T9"] != "Not started"
+        assert re.fullmatch(r"Merged \(PR #\d+\)", state), (task, state)
+    assert rows["T9"] == "Merged (PR #42)"
     assert "results/s3/decision-data.json" in status
     assert "scripts/s3/decision_data.py" in status
