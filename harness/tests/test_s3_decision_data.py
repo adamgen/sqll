@@ -279,7 +279,8 @@ def test_the_record_has_the_decision_of_the_human_owner():
     ) in RECORD
     decision = section("Decision")
     assert "The human owner chose option 2, sqlfluffrs, on 2026-10-29." in decision
-    assert "parse speed work of risk 1" in decision
+    start = "The S3 track starts phase B (the sqll binary) with the parse speed work"
+    assert start in decision
     assert '"Data that would change the recommendation"' in decision
     assert "human owner decides" in decision
     assert "chooses the base" not in RECORD
@@ -317,7 +318,7 @@ def test_the_record_is_short():
 
 
 def test_status_says_the_human_owner_chose_sqlfluffrs():
-    state = "Phase A done; base: sqlfluffrs (human owner, 2026-10-29); phase B in work"
+    state = "Phase A done; base: sqlfluffrs (human owner, 2026-10-29); phase B next"
     index = (REPO_ROOT / "STATUS.md").read_text("utf8")
     assert (
         f"| S3 | S3 | {state}. Decision record:"
@@ -327,6 +328,7 @@ def test_status_says_the_human_owner_chose_sqlfluffrs():
     status = (REPO_ROOT / "status" / "S3.md").read_text("utf8")
     assert f"- State: **{state}.**" in status
     assert "awaiting" not in status
+    assert "in work" not in status
     tasks = status.split("## S3 phase A tasks", 1)[1].split("\n## ", 1)[0]
     rows = {
         line.split("|")[1].strip(): line.split("|")[3].strip()

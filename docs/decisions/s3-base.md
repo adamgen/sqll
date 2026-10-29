@@ -28,8 +28,8 @@ CLI and config (S7), and parse speed (G3).
 
 The human owner chose option 2, sqlfluffrs, on 2026-10-29.
 
-- Phase B (the sqll binary) starts with the parse speed work of risk 1
-  ("Main risks"). The other phase B work comes after it.
+- The S3 track starts phase B (the sqll binary) with the parse speed work
+  of risk 1 ("Main risks"). The other phase B work comes after it.
 - If the data of "Data that would change the recommendation" occurs, the
   S3 track does not change the base. It gives the data to the human owner,
   and the human owner decides.
