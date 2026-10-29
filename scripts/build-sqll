@@ -1,0 +1,410 @@
+#!/usr/bin/env python3
+"""Build sqll: generate the dialect tables, check them, and build the crates.
+
+1. Copy utils/ of the sqlfluff submodule (git archive) to a scratch folder.
+   The submodule does not change.
+2. Run the generator of the submodule (utils/rustify.py build) there with
+   the pinned sqlfluff of the tool venv ($SQLL_TOOLS_DIR/sqlfluff).
+3. Compare each generated file with crates/sqll_dialects/generated.json
+   (path, size, sha256). Stop if a file is missing, extra, or different.
+4. Copy the tables to target/sqll-tables ($SQLL_TABLES_DIR).
+   crates/sqll_dialects/build.rs checks them again and runs no Python.
+5. cargo build --release --locked, with Python commands on PATH that record
+   each call and fail. Stop if a call occurs.
+6. Stop if "cargo tree" has pyo3, or if a binary needs libpython (readelf).
+7. Write out/sqll/build.json and copy each binary to out/sqll/bin/.
+
+Usage: scripts/build-sqll [--tables-only] [--keep-scratch]
+       scripts/build-sqll --manifest-out FILE
+--tables-only: steps 1 to 4. --manifest-out: steps 1 and 2, then write the
+manifest of the generated files to FILE, with no comparison (only for a new
+sqlfluff pin, which a human approves).
+"""
+
+import argparse
+import hashlib
+import io
+import json
+import os
+import shutil
+import subprocess
+import sys
+import tarfile
+import tempfile
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+SUBMODULE = ROOT / "third_party" / "sqlfluff"
+MANIFEST = ROOT / "crates" / "sqll_dialects" / "generated.json"
+OUT = ROOT / "out" / "sqll"
+# The generator writes here, relative to the root of the sqlfluff copy.
+PREFIX = "sqlfluffrs/sqlfluffrs_dialects/src/"
+GENERATED = PREFIX + "dialect/"
+GENERATOR = ["utils/rustify.py", "build"]
+# The variables that can make Python read other code.
+PYTHON_VARS = (
+    "PYTHONPATH",
+    "PYTHONHOME",
+    "PYTHONSTARTUP",
+    "VIRTUAL_ENV",
+    "MATURIN_PYTHON_INTERPRETER",
+    "PYO3_PYTHON",
+)
+# The Python names that a build script can try (as sqlfluffrs_dialects/build.rs
+# of the source did).
+PYTHON_NAMES = ("python", "python3") + tuple(f"python3.{m}" for m in range(9, 15))
+SHIM_EXIT = 97
+PY_INFO = (
+    "import json, sys, sqlfluff;"
+    "print(json.dumps({'sqlfluff_version': sqlfluff.__version__,"
+    " 'sqlfluff_file': sqlfluff.__file__, 'python': sys.version.split()[0]}))"
+)
+
+
+class BuildError(Exception):
+    """A step failed or a check found a difference."""
+
+
+def say(text: str) -> None:
+    print(f"build-sqll: {text}", flush=True)
+
+
+def tools_dir() -> Path:
+    return Path(os.environ.get("SQLL_TOOLS_DIR") or ROOT / ".tools").absolute()
+
+
+def tables_dir() -> Path:
+    return Path(os.environ.get("SQLL_TABLES_DIR") or ROOT / "target" / "sqll-tables")
+
+
+def sha256(data: bytes) -> str:
+    return hashlib.sha256(data).hexdigest()
+
+
+def line_count(data: bytes) -> int:
+    """The newlines, and 1 more for a last line with no newline."""
+    if not data:
+        return 0
+    return data.count(b"\n") + (0 if data.endswith(b"\n") else 1)
+
+
+def clean_env(**extra: str) -> dict[str, str]:
+    env = {k: v for k, v in os.environ.items() if k not in PYTHON_VARS}
+    env.update(extra)
+    return env
+
+
+def run(argv: list, cwd: Path = ROOT, env: dict | None = None, **kw):
+    """Run a command. Stop if it fails."""
+    say("$ " + " ".join(str(a) for a in argv))
+    result = subprocess.run([str(a) for a in argv], cwd=cwd, env=env, **kw)
+    if result.returncode != 0:
+        raise BuildError(f"exit code {result.returncode}: {' '.join(map(str, argv))}")
+    return result
+
+
+def output(argv: list, cwd: Path = ROOT, env: dict | None = None) -> str:
+    return run(argv, cwd, env, capture_output=True, text=True).stdout
+
+
+# The generator.
+
+
+def load_manifest(path: Path = MANIFEST) -> dict:
+    return json.loads(path.read_text("utf8"))
+
+
+def check_python(python: Path, want_version: str | None) -> dict:
+    """The sqlfluff of the tool venv must be from the venv and, if
+    want_version is given, of that version."""
+    if not python.exists():
+        raise BuildError(f"{python} does not exist. Run scripts/setup.")
+    info = json.loads(output([python, "-I", "-c", PY_INFO], env=clean_env()))
+    if want_version is not None and info["sqlfluff_version"] != want_version:
+        raise BuildError(f"sqlfluff {info['sqlfluff_version']}, not {want_version}")
+    if not Path(info["sqlfluff_file"]).resolve().is_relative_to(tools_dir().resolve()):
+        raise BuildError(f"sqlfluff is not from the tool venv: {info['sqlfluff_file']}")
+    return info
+
+
+def copy_utils(scratch: Path) -> set[str]:
+    """Extract utils/ of the submodule HEAD into scratch. Return the paths."""
+    data = run(
+        ["git", "-C", SUBMODULE, "archive", "--format=tar", "HEAD", "utils"],
+        capture_output=True,
+    ).stdout
+    with tarfile.open(fileobj=io.BytesIO(data)) as tar:
+        names = {m.name for m in tar.getmembers() if m.isfile()}
+        tar.extractall(scratch, filter="data")
+    return names
+
+
+def generate(python: Path, scratch: Path) -> list[dict]:
+    """Run the generator in scratch. Return the record of each generated file:
+    path (relative to the sqlfluff root), bytes, lines, sha256."""
+    copied = copy_utils(scratch)
+    run(
+        [python, *GENERATOR],
+        cwd=scratch,
+        env=clean_env(PYTHONDONTWRITEBYTECODE="1"),
+    )
+    return generated_files(scratch, copied)
+
+
+def generated_files(scratch: Path, copied: set[str]) -> list[dict]:
+    files = []
+    for path in sorted(scratch.rglob("*")):
+        if not path.is_file():
+            continue
+        rel = path.relative_to(scratch).as_posix()
+        if rel in copied:
+            continue
+        if not rel.startswith(GENERATED):
+            raise BuildError(f"the generator wrote a file outside {GENERATED}: {rel}")
+        data = path.read_bytes()
+        files.append(
+            {
+                "path": rel,
+                "bytes": len(data),
+                "lines": line_count(data),
+                "sha256": sha256(data),
+            }
+        )
+    return files
+
+
+def compare(files: list[dict], manifest: dict) -> list[str]:
+    """Return one line for each difference between the generated files and
+    the manifest."""
+    want = {f["path"]: f for f in manifest["files"]}
+    got = {f["path"]: f for f in files}
+    problems = []
+    for path in sorted(want.keys() | got.keys()):
+        if path not in got:
+            problems.append(f"{path}: not generated")
+        elif path not in want:
+            problems.append(f"{path}: generated, but not in the manifest")
+        else:
+            for key in ("bytes", "lines", "sha256"):
+                if got[path][key] != want[path][key]:
+                    problems.append(
+                        f"{path}: {key} {got[path][key]}, manifest {want[path][key]}"
+                    )
+    if not manifest["files"]:
+        problems.append("the manifest has no file")
+    return problems
+
+
+def install(scratch: Path, files: list[dict], dest: Path) -> None:
+    """Copy the generated files to dest (their path without PREFIX)."""
+    new = dest.with_name(dest.name + ".new")
+    if new.exists():
+        shutil.rmtree(new)
+    for f in files:
+        target = new / f["path"][len(PREFIX) :]
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(scratch / f["path"], target)
+    if dest.exists():
+        shutil.rmtree(dest)
+    new.rename(dest)
+
+
+def new_manifest(files: list[dict], info: dict, commit: str) -> dict:
+    return {
+        "about": "The sha256 manifest of the generated dialect tables."
+        " scripts/build-sqll generates them and compares each file with this"
+        " manifest; crates/sqll_dialects/build.rs checks them again.",
+        "generator": {
+            "sqlfluff": info["sqlfluff_version"],
+            "python_package": "PyPI sqlfluff (tools/sqlfluff/uv.lock)",
+            "submodule_commit": commit,
+            "command": " ".join(GENERATOR),
+        },
+        "prefix": PREFIX,
+        "files": files,
+    }
+
+
+# The cargo build and its checks.
+
+
+def write_shims(folder: Path, log: Path) -> None:
+    """Python commands that record their call and fail."""
+    folder.mkdir(parents=True)
+    for name in PYTHON_NAMES:
+        path = folder / name
+        path.write_text(
+            f'#!/bin/sh\necho "$0 $*" >> "{log}"\nexit {SHIM_EXIT}\n', encoding="utf8"
+        )
+        path.chmod(0o755)
+
+
+def cargo_build(scratch: Path) -> list[str]:
+    """Build the workspace (release). Return the Python calls during cargo."""
+    shims, log = scratch / "no-python" / "bin", scratch / "no-python" / "calls.log"
+    write_shims(shims, log)
+    env = clean_env(PATH=f"{shims}{os.pathsep}{os.environ['PATH']}")
+    run(["cargo", "build", "--release", "--locked", "--workspace"], env=env)
+    return log.read_text("utf8").splitlines() if log.exists() else []
+
+
+def tree_packages(text: str) -> list[str]:
+    """The package names of "cargo tree --prefix none" output."""
+    names = set()
+    for line in text.splitlines():
+        parts = line.split()
+        if parts and not line.startswith(("[", "warning", "error")):
+            names.add(parts[0])
+    return sorted(names)
+
+
+def cargo_tree() -> list[str]:
+    text = output(
+        [
+            "cargo",
+            "tree",
+            "--locked",
+            "--workspace",
+            "-e",
+            "normal,build,dev",
+            "--target",
+            "all",
+            "--prefix",
+            "none",
+        ],
+        env=clean_env(),
+    )
+    return tree_packages(text)
+
+
+def binaries(folder: Path) -> list[Path]:
+    """The executable files of the cargo output folder (not the libraries)."""
+    return sorted(
+        p
+        for p in folder.iterdir()
+        if p.is_file()
+        and os.access(p, os.X_OK)
+        and p.suffix not in (".d", ".rlib", ".so", ".a")
+    )
+
+
+def needed_libraries(binary: Path) -> list[str]:
+    text = output(["readelf", "-d", binary])
+    return sorted(
+        line.split("[", 1)[1].split("]", 1)[0]
+        for line in text.splitlines()
+        if "(NEEDED)" in line
+    )
+
+
+def python_problems(calls: list[str], packages: list[str], needed: dict) -> list[str]:
+    problems = [f"a Python call during cargo: {c}" for c in calls]
+    problems += [
+        f"cargo tree has {p}" for p in packages if p in ("pyo3", "sqlfluffrs_python")
+    ]
+    problems += [
+        f"{name} needs {lib}"
+        for name, libs in needed.items()
+        for lib in libs
+        if lib.startswith("libpython")
+    ]
+    return problems
+
+
+def toolchain() -> dict:
+    return {
+        "rustc": output(["rustc", "-vV"]).splitlines(),
+        "cargo": output(["cargo", "-V"]).strip(),
+    }
+
+
+def main(argv: list[str] | None = None) -> int:
+    p = argparse.ArgumentParser(
+        prog="scripts/build-sqll", description=__doc__.split("\n\n")[0]
+    )
+    p.add_argument("--tables-only", action="store_true")
+    p.add_argument("--keep-scratch", action="store_true")
+    p.add_argument("--manifest-out", type=Path)
+    args = p.parse_args(argv)
+    try:
+        return build(args)
+    except BuildError as e:
+        print(f"build-sqll: error: {e}", file=sys.stderr)
+        return 1
+
+
+def build(args: argparse.Namespace) -> int:
+    run([ROOT / "scripts" / "check-submodule", "before scripts/build-sqll"])
+    commit = output(["git", "-C", SUBMODULE, "rev-parse", "HEAD"]).strip()
+    manifest = None if args.manifest_out else load_manifest()
+    if manifest and commit != manifest["generator"]["submodule_commit"]:
+        raise BuildError(
+            f"the submodule is at {commit}, the manifest is for"
+            f" {manifest['generator']['submodule_commit']}"
+        )
+    python = tools_dir() / "sqlfluff" / "bin" / "python"
+    info = check_python(python, manifest["generator"]["sqlfluff"] if manifest else None)
+    scratch = Path(tempfile.mkdtemp(prefix="sqll-build-"))
+    try:
+        files = generate(python, scratch)
+        say(f"{len(files)} generated files")
+        if manifest is None:
+            data = new_manifest(files, info, commit)
+            args.manifest_out.write_text(json.dumps(data, indent=1) + "\n", "utf8")
+            say(f"wrote {args.manifest_out}")
+            return 0
+        problems = compare(files, manifest)
+        if problems:
+            raise BuildError(
+                "the generated tables are not equal to the manifest"
+                f" {MANIFEST.relative_to(ROOT)}:\n  " + "\n  ".join(problems)
+            )
+        say(f"all {len(files)} files are equal to the manifest")
+        install(scratch, files, tables_dir())
+        say(f"tables in {tables_dir()}")
+        run([ROOT / "scripts" / "check-submodule", "after the generation"])
+        if args.tables_only:
+            return 0
+        calls = cargo_build(scratch)
+        packages = cargo_tree()
+        release = ROOT / "target" / "release"
+        found = binaries(release)
+        needed = {b.name: needed_libraries(b) for b in found}
+        problems = python_problems(calls, packages, needed)
+        if problems:
+            raise BuildError("Python in the build:\n  " + "\n  ".join(problems))
+        if OUT.exists():
+            shutil.rmtree(OUT)
+        (OUT / "bin").mkdir(parents=True)
+        for b in found:
+            shutil.copy2(b, OUT / "bin" / b.name)
+        record = {
+            "manifest_sha256": sha256(MANIFEST.read_bytes()),
+            "tables": len(files),
+            "sqlfluff": manifest["generator"]["sqlfluff"],
+            "submodule_commit": commit,
+            "toolchain": toolchain(),
+            "python_calls_during_cargo": calls,
+            "packages": packages,
+            "binaries": {
+                name: {"sha256": sha256((release / name).read_bytes()), "needed": libs}
+                for name, libs in needed.items()
+            },
+        }
+        (OUT / "build.json").write_text(json.dumps(record, indent=1) + "\n", "utf8")
+        say(
+            f"no Python: 0 calls during cargo, no pyo3 in {len(packages)} packages,"
+            f" {len(found)} binaries without libpython"
+        )
+        say(f"wrote {(OUT / 'build.json').relative_to(ROOT)}")
+        run([ROOT / "scripts" / "check-submodule", "after scripts/build-sqll"])
+        return 0
+    finally:
+        if args.keep_scratch:
+            say(f"scratch folder: {scratch}")
+        else:
+            shutil.rmtree(scratch, ignore_errors=True)
+
+
+if __name__ == "__main__":
+    sys.exit(main())

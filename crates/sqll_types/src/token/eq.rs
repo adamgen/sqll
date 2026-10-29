@@ -1,0 +1,31 @@
+// This file is a port of sqlfluff 4.4.0 code (sqlfluffrs):
+// sqlfluffrs/sqlfluffrs_types/src/token/eq.rs
+// Source: https://github.com/sqlfluff/sqlfluff, tag 4.4.0,
+// commit 0348222a3bcdb0226563f7349c5a39beb0641955.
+// Copyright (c) 2018-2026 Alan Cruickshank. MIT License: see
+// crates/LICENSE-sqlfluffrs.md. See THIRD_PARTY.md and crates/ported.json.
+
+use std::hash::Hash;
+
+use super::Token;
+
+impl PartialEq for Token {
+    fn eq(&self, other: &Self) -> bool {
+        self.uuid == other.uuid
+            || (self.token_type == other.token_type
+                && self.raw.as_str() == other.raw.as_str()
+                && self.pos_marker.is_some()
+                && other.pos_marker.is_some()
+                && self.pos_marker == other.pos_marker)
+    }
+}
+
+impl Hash for Token {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.token_type.hash(state);
+        self.raw.as_str().hash(state);
+        if let Some(p) = self.pos_marker.as_ref() {
+            p.working_loc().hash(state);
+        }
+    }
+}

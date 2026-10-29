@@ -105,6 +105,43 @@ Ported code (MIT, attribution in each file header):
 | `scripts/sqlfluff-autofix-oracle` | `test/rules/std_fix_auto_test.py` (`test_cases`) |
 | `scripts/s3/probe-sqlfluffrs/src/main.rs` | S3 research code, not sqll: `sqlfluffrs/src/test_harness.rs` (`FixtureTest::run`), `sqlfluffrs/sqlfluffrs_parser/src/parser/python.rs` (`PyParser` limits), `src/sqlfluff/core/default_config.cfg` (the parse limits and indentation defaults) |
 
+## sqlfluffrs in crates/
+
+The sqll engine crates are a port of the sqlfluffrs crates of sqlfluff.
+
+- Source: https://github.com/sqlfluff/sqlfluff, folder `sqlfluffrs/`.
+- Version: tag `4.4.0`, commit `0348222a3bcdb0226563f7349c5a39beb0641955`
+  (the submodule).
+- License: MIT. Copyright (c) 2018-2026 Alan Cruickshank. The license text
+  is in `crates/LICENSE-sqlfluffrs.md`, a copy of `sqlfluffrs/LICENSE.md`.
+
+| sqll crate | Source crate |
+|---|---|
+| `crates/sqll_types` | `sqlfluffrs/sqlfluffrs_types` |
+| `crates/sqll_lexer` | `sqlfluffrs/sqlfluffrs_lexer` |
+| `crates/sqll_parser` | `sqlfluffrs/sqlfluffrs_parser` |
+| `crates/sqll_dialects` | `sqlfluffrs/sqlfluffrs_dialects` |
+
+The workspace `Cargo.toml` is a port of `sqlfluffrs/Cargo.toml`. Each
+ported file has a header with its source file, the version, the commit,
+the copyright, and the license. `crates/ported.json` gives the source path
+and sha256 of each ported file, the reason of each change, and the source
+files that are not ported (for example the Python bindings). The test
+`harness/tests/test_sqll_ported.py` checks it against the submodule.
+
+Generated dialect tables: the repository has no copy. `scripts/build-sqll`
+makes them with the generator of the submodule (`utils/rustify.py`,
+`utils/build_dialect.py`, `utils/build_dialects.py`,
+`utils/build_lexers.py`, `utils/build_parsers.py`) and the sqlfluff 4.4.0
+dialects of the tool venv (PyPI `sqlfluff` 4.4.0). Both are MIT, with the
+copyright above. `crates/sqll_dialects/generated.json` has the path, size,
+lines, and sha256 of each of the 85 files. The build copies them into
+`sqll_dialects`, so a sqll binary contains them.
+
+The new sqll files in `crates/` (listed in `crates/ported.json`, "new") and
+`rust-toolchain.toml` have no sqlfluff code. The crates.io dependencies are
+in `Cargo.lock`. Task T19 records the license of sqll and the notices.
+
 ## sqruff
 
 - Source: https://github.com/quarylabs/sqruff, version `0.41.0`.

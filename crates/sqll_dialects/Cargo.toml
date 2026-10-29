@@ -1,0 +1,30 @@
+# This file is a port of sqlfluff 4.4.0 code (sqlfluffrs):
+# sqlfluffrs/sqlfluffrs_dialects/Cargo.toml
+# Source: https://github.com/sqlfluff/sqlfluff, tag 4.4.0,
+# commit 0348222a3bcdb0226563f7349c5a39beb0641955.
+# Copyright (c) 2018-2026 Alan Cruickshank. MIT License: see
+# crates/LICENSE-sqlfluffrs.md. See THIRD_PARTY.md and crates/ported.json.
+# sqll changed this file. crates/ported.json gives the reason.
+
+[package]
+name = "sqll_dialects"
+version.workspace = true
+edition = "2021"
+rust-version.workspace = true
+publish = false
+build = "build.rs"
+
+# The ported code and the generated tables use the sqlfluffrs crate names.
+[dependencies]
+once_cell.workspace = true
+sqlfluffrs_types = { package = "sqll_types", path = "../sqll_types" }
+
+# build.rs checks the generated tables against generated.json. The test
+# tests/build_tables.rs runs the same code (build/tables.rs).
+[build-dependencies]
+serde_json.workspace = true
+sha2.workspace = true
+
+[dev-dependencies]
+serde_json.workspace = true
+sha2.workspace = true

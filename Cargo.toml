@@ -1,0 +1,48 @@
+# This file is a port of sqlfluff 4.4.0 code (sqlfluffrs):
+# sqlfluffrs/Cargo.toml
+# Source: https://github.com/sqlfluff/sqlfluff, tag 4.4.0,
+# commit 0348222a3bcdb0226563f7349c5a39beb0641955.
+# Copyright (c) 2018-2026 Alan Cruickshank. MIT License: see
+# crates/LICENSE-sqlfluffrs.md. See THIRD_PARTY.md and crates/ported.json.
+# sqll changed this file. crates/ported.json gives the reason.
+
+[workspace]
+resolver = "2"
+members = [
+    "crates/sqll_types",
+    "crates/sqll_lexer",
+    "crates/sqll_parser",
+    "crates/sqll_dialects",
+]
+
+[workspace.package]
+version = "0.1.0"
+rust-version = "1.96"
+
+# The versions of sqlfluffrs 4.4.0. serde_json and sha2 are new: the build
+# script of sqll_dialects uses them.
+[workspace.dependencies]
+env_logger = "0.11.9"
+regex = { version = "1.12.3", features = ["perf"] }
+fancy-regex = "0.17.0"
+hashbrown = "0.16.1"
+itertools = "0.14.0"
+log = "0.4.29"
+smallvec = "1.15.1"
+once_cell = "1.21.4"
+uuid = { version = "1.22.0", features = ["v4"] }
+serde = { version = "1.0.228", features = ["derive"] }
+serde_yaml_ng = "0.10.0"
+serde_json = "1.0.149"
+sha2 = "0.10.9"
+
+[profile.release]
+debug = false
+strip = true
+
+# build.rs of sqll_dialects hashes about 59 MB of generated tables.
+[profile.dev.package.sha2]
+opt-level = 3
+
+[profile.release.package.sha2]
+opt-level = 3

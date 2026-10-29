@@ -310,6 +310,16 @@ CODE_PATHS = (
     "tracks.yml",
     "README.txt",
     "md",
+    # The sqll Rust workspace (S3 T11).
+    "Cargo.toml",
+    "Cargo.lock",
+    "rust-toolchain.toml",
+    "crates/ported.json",
+    "crates/LICENSE-sqlfluffrs.md",
+    "crates/sqll_types/README.md",
+    "crates/sqll_dialects/build.rs",
+    "crates/sqll_dialects/generated.json",
+    "scripts/build-sqll",
 )
 
 

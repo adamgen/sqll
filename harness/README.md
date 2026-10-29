@@ -30,7 +30,9 @@ untracked or ignored file. `scripts/test` runs it before the tests and after
 the run. CI runs it after the tests and after each shard.
 
 `scripts/verify [--jobs N] [--quick | --full-bench]` runs each CI check
-locally: the lint job, one unsharded run of all tools and suites, the
+locally: the lint job, the sqll build (`scripts/build-sqll` and
+`cargo test --locked`, as the `build` job; it needs the Rust toolchain of
+`rust-toolchain.toml`), one unsharded run of all tools and suites, the
 report and dialect-oracle checks, the smoke benchmark
 (`out/bench.json`), the corpus smoke run (`out/corpus.json`), and their
 baseline checks. Exit code 0 only if all pass;

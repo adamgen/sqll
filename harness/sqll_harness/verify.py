@@ -73,6 +73,9 @@ CI_ONLY = {
     "image: docker/build-push-action": "image build; locally scripts/setup",
     "lint: actions/checkout": "checkout",
     "lint: git config --global --add safe.directory '*'": "container user",
+    "build: actions/checkout": "checkout",
+    "build: git config --global --add safe.directory '*'": "container user",
+    "build: actions/upload-artifact": "artifact upload",
     "test: actions/checkout": "checkout",
     "test: git config --global --add safe.directory '*'": "container user",
     "test: actions/upload-artifact": "artifact upload",
@@ -140,6 +143,7 @@ CI_ONLY_RUN = {
         f"{job}: {_SAFE_DIRECTORY}": _SAFE_DIRECTORY
         for job in (
             "lint",
+            "build",
             "test",
             "report",
             "dialect-oracle",
@@ -179,6 +183,7 @@ CI_ONLY_RUN_ENV = {
 _FULL = "needs.changes.outputs.full != 'false'"
 _NOT_PR = "github.event_name != 'pull_request'"
 JOB_IF = {
+    "build": _FULL,
     "test": _FULL,
     "report": f"always() && {_FULL} && needs.image.result == 'success'",
     "bench-smoke": _FULL,
@@ -193,6 +198,7 @@ JOB_IF = {
 # jobs use them, thus drift() fails if they change.
 JOB_NEEDS = {
     "lint": ["image"],
+    "build": ["changes", "image"],
     "test": ["changes", "image"],
     "report": ["changes", "image", "test"],
     "dialect-oracle": ["image", "report"],
@@ -342,6 +348,8 @@ ORACLES = (
     " scripts/sqlfluff-autofix-oracle scripts/sqlfluff-templater-oracle"
     " scripts/sqlfluff-dialect-oracle scripts/sqlfluff-case-ids"
 )
+# The Python files that the lint job checks with ruff, after harness and ci.
+LINTED = f"{ORACLES} scripts/build-sqll"
 ORACLE_PY = '"$SQLL_TOOLS_DIR/sqlfluff-oracle/bin/python"'
 RS_PY = '"$SQLL_TOOLS_DIR/sqlfluff-rs-oracle/bin/python"'
 LINT_SUBMODULE = "lint: Check that the sqlfluff submodule is clean"
@@ -396,13 +404,13 @@ def checks(jobs: int | None = None) -> list[Check]:
         ),
         Check(
             "ruff-check",
-            f"{UV} ruff check harness ci {ORACLES}",
+            f"{UV} ruff check harness ci {LINTED}",
             ("lint: Lint",),
             quick=True,
         ),
         Check(
             "ruff-format",
-            f"{UV} ruff format --check harness ci {ORACLES}",
+            f"{UV} ruff format --check harness ci {LINTED}",
             ("lint: Lint",),
             quick=True,
         ),
@@ -457,6 +465,36 @@ def checks(jobs: int | None = None) -> list[Check]:
             'scripts/check-submodule "after the tests"',
             (LINT_SUBMODULE,),
             quick=True,
+        ),
+        # The build of sqll: the dialect tables, the release build, and the
+        # Rust tests.
+        Check(
+            "submodule-before-build",
+            'scripts/check-submodule "before the build"',
+            ("build: Check that the sqlfluff submodule is clean before the build",),
+        ),
+        Check(
+            "build-sqll",
+            "scripts/build-sqll",
+            ("build: Build sqll",),
+            needs=(SETUP,),
+            removes=("out/sqll/build.json",),
+            report="out/sqll/build.json",
+        ),
+        Check(
+            "submodule-after-build",
+            'scripts/check-submodule "after the build"',
+            ("build: Check that the sqlfluff submodule is clean after the build",),
+        ),
+        Check(
+            "rust-tests",
+            "cargo test --locked",
+            ("build: Run the Rust tests",),
+        ),
+        Check(
+            "submodule-after-rust-tests",
+            'scripts/check-submodule "after the Rust tests"',
+            ("build: Check that the sqlfluff submodule is clean after the Rust tests",),
         ),
         # One unsharded run of all suites and tools, as all shards of CI.
         Check(

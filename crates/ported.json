@@ -1,0 +1,416 @@
+{
+ "about": "The provenance of the sqll code that is ported from sqlfluffrs. harness/tests/test_sqll_ported.py checks it.",
+ "source": {
+  "repository": "https://github.com/sqlfluff/sqlfluff",
+  "tag": "4.4.0",
+  "commit": "0348222a3bcdb0226563f7349c5a39beb0641955",
+  "submodule": "third_party/sqlfluff",
+  "license": "MIT",
+  "copyright": "Copyright (c) 2018-2026 Alan Cruickshank"
+ },
+ "header": [
+  "This file is a port of sqlfluff 4.4.0 code (sqlfluffrs):",
+  "{source}",
+  "Source: https://github.com/sqlfluff/sqlfluff, tag 4.4.0,",
+  "commit {commit}.",
+  "Copyright (c) 2018-2026 Alan Cruickshank. MIT License: see",
+  "crates/LICENSE-sqlfluffrs.md. See THIRD_PARTY.md and crates/ported.json."
+ ],
+ "changed_line": "sqll changed this file. crates/ported.json gives the reason.",
+ "license_copy": {
+  "path": "crates/LICENSE-sqlfluffrs.md",
+  "source": "sqlfluffrs/LICENSE.md",
+  "source_sha256": "22dce2dc3663d299ccc2606289647982d757e6157393081e59736a9db335c77f"
+ },
+ "crates": {
+  "sqlfluffrs/sqlfluffrs_types": "crates/sqll_types",
+  "sqlfluffrs/sqlfluffrs_lexer": "crates/sqll_lexer",
+  "sqlfluffrs/sqlfluffrs_parser": "crates/sqll_parser",
+  "sqlfluffrs/sqlfluffrs_dialects": "crates/sqll_dialects"
+ },
+ "files": [
+  {
+   "path": "Cargo.toml",
+   "source": "sqlfluffrs/Cargo.toml",
+   "source_sha256": "b732205a4911557a6a5ba76b40e4a6557e88166523450b5b01731760b337a3a8",
+   "changed": "Only the workspace parts are kept: the members are the 4 ported crates in crates/, the workspace dependencies that they use, and the release profile. The workspace version is the sqll version. New: serde_json and sha2 (for build.rs of sqll_dialects), and opt-level 3 for sha2. No root package, no feature \"python\", no pyo3."
+  },
+  {
+   "path": "crates/sqll_dialects/Cargo.toml",
+   "source": "sqlfluffrs/sqlfluffrs_dialects/Cargo.toml",
+   "source_sha256": "6e41453ddcab2d86085c26873725b2b5f7fe83be05cdf29aaea925a968baefaa",
+   "changed": "The package name is sqll_*, and the workspace gives the version. The dependencies keep the sqlfluffrs crate names (\"package\" key), so that the ported code and the generated tables do not change. No feature \"python\", no pyo3, and no sqlfluffrs_python."
+  },
+  {
+   "path": "crates/sqll_dialects/src/block_comment.rs",
+   "source": "sqlfluffrs/sqlfluffrs_dialects/src/block_comment.rs",
+   "source_sha256": "0a07f3d34c98750b3050013db611e17ceb2b5ce6ee3d78f84218941ef819780c",
+   "changed": null
+  },
+  {
+   "path": "crates/sqll_dialects/src/lib.rs",
+   "source": "sqlfluffrs/sqlfluffrs_dialects/src/lib.rs",
+   "source_sha256": "36610e5d97b19f902c38b54957f7126e7b4e016b89b293e4867f2b6c753a201e",
+   "changed": "The module \"dialect\" comes from the build output folder (OUT_DIR): build.rs checks the generated tables and writes them there. The source reads them from src/dialect/, where its build.rs runs the generator."
+  },
+  {
+   "path": "crates/sqll_lexer/Cargo.toml",
+   "source": "sqlfluffrs/sqlfluffrs_lexer/Cargo.toml",
+   "source_sha256": "c09af658681b4576dc778db8634da2002cf57fc6c79ce6a9462fd05b99c5e400",
+   "changed": "The package name is sqll_*, and the workspace gives the version. The dependencies keep the sqlfluffrs crate names (\"package\" key), so that the ported code and the generated tables do not change. No feature \"python\", no pyo3, and no sqlfluffrs_python."
+  },
+  {
+   "path": "crates/sqll_lexer/src/lexer.rs",
+   "source": "sqlfluffrs/sqlfluffrs_lexer/src/lexer.rs",
+   "source_sha256": "d37d1b1b6b59e31afe116cc4b7e3c3601e1fcdeb08564c462480c8f0b2095188",
+   "changed": "Removed the code of the feature \"python\" (pyo3): the SQLLexError fields and methods for Python, and the module \"python\"."
+  },
+  {
+   "path": "crates/sqll_lexer/src/lib.rs",
+   "source": "sqlfluffrs/sqlfluffrs_lexer/src/lib.rs",
+   "source_sha256": "fafcf68b695e164aaf1e498c46c59171a7c1b2d4c658db7108edbc65b7b59649",
+   "changed": "Removed the re-export of the Python bindings (feature \"python\", pyo3)."
+  },
+  {
+   "path": "crates/sqll_parser/Cargo.toml",
+   "source": "sqlfluffrs/sqlfluffrs_parser/Cargo.toml",
+   "source_sha256": "f152f24c10b446c9bfa558af0bd91b55711a857782a42fa9648ab53ec1df6bca",
+   "changed": "The package name is sqll_*, and the workspace gives the version. The dependencies keep the sqlfluffrs crate names (\"package\" key), so that the ported code and the generated tables do not change. No feature \"python\", no pyo3, and no sqlfluffrs_python."
+  },
+  {
+   "path": "crates/sqll_parser/src/lib.rs",
+   "source": "sqlfluffrs/sqlfluffrs_parser/src/lib.rs",
+   "source_sha256": "f80d1e38cff1817298bb58cf64a5ee51b3187f7515011901595ac3e5de192ca9",
+   "changed": "Removed the re-export of the Python bindings (feature \"python\", pyo3)."
+  },
+  {
+   "path": "crates/sqll_parser/src/parser/arena.rs",
+   "source": "sqlfluffrs/sqlfluffrs_parser/src/parser/arena.rs",
+   "source_sha256": "f8c028beb8fa362c3611ea4ecf9ca62ea2510f394fe9d9a7c28d2b420c296a2f",
+   "changed": null
+  },
+  {
+   "path": "crates/sqll_parser/src/parser/cache.rs",
+   "source": "sqlfluffrs/sqlfluffrs_parser/src/parser/cache.rs",
+   "source_sha256": "5d4780c3153d22e911564155c9916e16b1daea8e74f827d99a49274a487c9814",
+   "changed": null
+  },
+  {
+   "path": "crates/sqll_parser/src/parser/core.rs",
+   "source": "sqlfluffrs/sqlfluffrs_parser/src/parser/core.rs",
+   "source_sha256": "4cc29db5d877491584d8286653851208631365c402f746fac32f67206a981ea6",
+   "changed": null
+  },
+  {
+   "path": "crates/sqll_parser/src/parser/frame.rs",
+   "source": "sqlfluffrs/sqlfluffrs_parser/src/parser/frame.rs",
+   "source_sha256": "6db0d3fbeb35cd0df25f640ece8c5d74a908c2d4a39b6ebad75478c7bba48823",
+   "changed": null
+  },
+  {
+   "path": "crates/sqll_parser/src/parser/helpers.rs",
+   "source": "sqlfluffrs/sqlfluffrs_parser/src/parser/helpers.rs",
+   "source_sha256": "304a358c12923ef572546ed0d69084e7d375be909c241fa5425578ebf8dc7d17",
+   "changed": null
+  },
+  {
+   "path": "crates/sqll_parser/src/parser/match_result.rs",
+   "source": "sqlfluffrs/sqlfluffrs_parser/src/parser/match_result.rs",
+   "source_sha256": "5355db5e9d27ae9353660fdbfefce2ebc0685eaceb0e5fff41c909cf6c58df19",
+   "changed": null
+  },
+  {
+   "path": "crates/sqll_parser/src/parser/mod.rs",
+   "source": "sqlfluffrs/sqlfluffrs_parser/src/parser/mod.rs",
+   "source_sha256": "3d390416c9f11787ea85ef7e1bc3192adafd22cae34974a5be681db6cf149a9f",
+   "changed": "Removed the modules arena_py and python and their re-exports (feature \"python\", pyo3)."
+  },
+  {
+   "path": "crates/sqll_parser/src/parser/table_driven/anynumberof.rs",
+   "source": "sqlfluffrs/sqlfluffrs_parser/src/parser/table_driven/anynumberof.rs",
+   "source_sha256": "f6857d62e9f2037fd68847e1f18fdc7ad80c48c46f6c37ba82a1efe963d55705",
+   "changed": null
+  },
+  {
+   "path": "crates/sqll_parser/src/parser/table_driven/bracketed.rs",
+   "source": "sqlfluffrs/sqlfluffrs_parser/src/parser/table_driven/bracketed.rs",
+   "source_sha256": "bc63bbe1b6870d66618e211097ad80fdf127b034a2fc03f8f50ae75292e5ba30",
+   "changed": null
+  },
+  {
+   "path": "crates/sqll_parser/src/parser/table_driven/contexts.rs",
+   "source": "sqlfluffrs/sqlfluffrs_parser/src/parser/table_driven/contexts.rs",
+   "source_sha256": "1ded8c74c72c6c7f00d182035adcdaba842180a69ba5d3cbd5fa7bac2d088ef8",
+   "changed": null
+  },
+  {
+   "path": "crates/sqll_parser/src/parser/table_driven/delimited.rs",
+   "source": "sqlfluffrs/sqlfluffrs_parser/src/parser/table_driven/delimited.rs",
+   "source_sha256": "08b0a566373e77b47d0d455177d4a8072e2d7f6fac69524b15294feb23cb71f7",
+   "changed": null
+  },
+  {
+   "path": "crates/sqll_parser/src/parser/table_driven/frame.rs",
+   "source": "sqlfluffrs/sqlfluffrs_parser/src/parser/table_driven/frame.rs",
+   "source_sha256": "bb50b9361179f1553e83ad4dc457def632848d925e48f0aa22f51d0e23ec20ee",
+   "changed": null
+  },
+  {
+   "path": "crates/sqll_parser/src/parser/table_driven/iterative.rs",
+   "source": "sqlfluffrs/sqlfluffrs_parser/src/parser/table_driven/iterative.rs",
+   "source_sha256": "ec21b036c886d2f73d108bf9bb64dc5e9ad6769661a0cfba48d180dd2a0c1d1a",
+   "changed": null
+  },
+  {
+   "path": "crates/sqll_parser/src/parser/table_driven/match_algorithms.rs",
+   "source": "sqlfluffrs/sqlfluffrs_parser/src/parser/table_driven/match_algorithms.rs",
+   "source_sha256": "58c67dd92872a6ae91465f3477c9aeaedb8ea5165845b390041dd7637a4d79df",
+   "changed": null
+  },
+  {
+   "path": "crates/sqll_parser/src/parser/table_driven/mod.rs",
+   "source": "sqlfluffrs/sqlfluffrs_parser/src/parser/table_driven/mod.rs",
+   "source_sha256": "fe29b3802bf6488371c25fc743333916559ac9920a1f91b9d3e788ada82b3a3f",
+   "changed": null
+  },
+  {
+   "path": "crates/sqll_parser/src/parser/table_driven/oneof.rs",
+   "source": "sqlfluffrs/sqlfluffrs_parser/src/parser/table_driven/oneof.rs",
+   "source_sha256": "538d4e918da50a1420fa624552230df040c9ef715a37cb49b1913dead70f2f5a",
+   "changed": null
+  },
+  {
+   "path": "crates/sqll_parser/src/parser/table_driven/parity.rs",
+   "source": "sqlfluffrs/sqlfluffrs_parser/src/parser/table_driven/parity.rs",
+   "source_sha256": "c4fc856d02c407455a817c02f5c13ab02a77df8b0e4cd8266ae878e51562d4d6",
+   "changed": null
+  },
+  {
+   "path": "crates/sqll_parser/src/parser/table_driven/ref_grammar.rs",
+   "source": "sqlfluffrs/sqlfluffrs_parser/src/parser/table_driven/ref_grammar.rs",
+   "source_sha256": "feb60951a6b07d825f6d1546d6138ea1bbd32289f5affb44538cdb74bd240ef8",
+   "changed": null
+  },
+  {
+   "path": "crates/sqll_parser/src/parser/table_driven/sequence.rs",
+   "source": "sqlfluffrs/sqlfluffrs_parser/src/parser/table_driven/sequence.rs",
+   "source_sha256": "956f4e573a6645e667191f7329d1bcfe81f0b7d3ca3faa935b8640e716a03f1f",
+   "changed": null
+  },
+  {
+   "path": "crates/sqll_parser/src/parser/types.rs",
+   "source": "sqlfluffrs/sqlfluffrs_parser/src/parser/types.rs",
+   "source_sha256": "e3bb1323d6603691709e884e90f0cccd7d5143e07f2030678f93febfbd9a5f9b",
+   "changed": null
+  },
+  {
+   "path": "crates/sqll_types/Cargo.toml",
+   "source": "sqlfluffrs/sqlfluffrs_types/Cargo.toml",
+   "source_sha256": "771f51011d9f23394d197bb2d07178f001bfb1a0637f1b70534a9ab07f66ed11",
+   "changed": "The package name is sqll_*, and the workspace gives the version. The dependencies keep the sqlfluffrs crate names (\"package\" key), so that the ported code and the generated tables do not change. No feature \"python\", no pyo3, and no sqlfluffrs_python."
+  },
+  {
+   "path": "crates/sqll_types/src/config/fluffconfig.rs",
+   "source": "sqlfluffrs/sqlfluffrs_types/src/config/fluffconfig.rs",
+   "source_sha256": "f837090feddd86c30532d5532c1db8f232cb1149c3c9ed37b2cece16ffaa9967",
+   "changed": null
+  },
+  {
+   "path": "crates/sqll_types/src/config/mod.rs",
+   "source": "sqlfluffrs/sqlfluffrs_types/src/config/mod.rs",
+   "source_sha256": "5b66f08a823eb696e617e6c07403b8c1ad4bf318665de57d104540ca518a983c",
+   "changed": null
+  },
+  {
+   "path": "crates/sqll_types/src/grammar_api.rs",
+   "source": "sqlfluffrs/sqlfluffrs_types/src/grammar_api.rs",
+   "source_sha256": "f270d4eed248424ea7e38d3d40cd5c61a3414ace9c4513b70c9bafca8e0278c0",
+   "changed": null
+  },
+  {
+   "path": "crates/sqll_types/src/grammar_inst.rs",
+   "source": "sqlfluffrs/sqlfluffrs_types/src/grammar_inst.rs",
+   "source_sha256": "9802d0247fe04bc13e163c0527ed7784027dd192766f40d4265cf8004bd9566f",
+   "changed": null
+  },
+  {
+   "path": "crates/sqll_types/src/grammar_tables.rs",
+   "source": "sqlfluffrs/sqlfluffrs_types/src/grammar_tables.rs",
+   "source_sha256": "39481ca7e8541b1277180c51b149a38d6de09ce3ac52d943e17a1605ce18eca0",
+   "changed": null
+  },
+  {
+   "path": "crates/sqll_types/src/identity.rs",
+   "source": "sqlfluffrs/sqlfluffrs_types/src/identity.rs",
+   "source_sha256": "e9ea42e08311617e9f58f91addfdf3e2ffb2354e9f76cd0993908bbd331f02d6",
+   "changed": null
+  },
+  {
+   "path": "crates/sqll_types/src/lib.rs",
+   "source": "sqlfluffrs/sqlfluffrs_types/src/lib.rs",
+   "source_sha256": "22b4db8a7e095b567565b5f8f763f0b9e737ce404ab439f6261876fa22947025",
+   "changed": null
+  },
+  {
+   "path": "crates/sqll_types/src/marker.rs",
+   "source": "sqlfluffrs/sqlfluffrs_types/src/marker.rs",
+   "source_sha256": "ef78e58d0e0d524b73b11d7ecf74467f415e914cbbe4e27fab7604dd84cfaf0b",
+   "changed": null
+  },
+  {
+   "path": "crates/sqll_types/src/matcher.rs",
+   "source": "sqlfluffrs/sqlfluffrs_types/src/matcher.rs",
+   "source_sha256": "ef3b950c7f3e6546bcace88fa5e05e455363d75f13753315974674108d06953d",
+   "changed": null
+  },
+  {
+   "path": "crates/sqll_types/src/parser.rs",
+   "source": "sqlfluffrs/sqlfluffrs_types/src/parser.rs",
+   "source_sha256": "ec1a70b99161ef384b02cadaa0e341db7bd13b449b629f3cd0d76686715315dd",
+   "changed": null
+  },
+  {
+   "path": "crates/sqll_types/src/regex.rs",
+   "source": "sqlfluffrs/sqlfluffrs_types/src/regex.rs",
+   "source_sha256": "d9bb3626bf4a1b8d5963163b6d8fdfde03d4c9ea41073a754273f2e1c6d3b3f1",
+   "changed": null
+  },
+  {
+   "path": "crates/sqll_types/src/slice.rs",
+   "source": "sqlfluffrs/sqlfluffrs_types/src/slice.rs",
+   "source_sha256": "8dccd65ae1b76a36c62b59fa57744811c4e3e209434ea536e0a800a704eb4b44",
+   "changed": null
+  },
+  {
+   "path": "crates/sqll_types/src/string.rs",
+   "source": "sqlfluffrs/sqlfluffrs_types/src/string.rs",
+   "source_sha256": "76566ee8628598f6f0b496120915f5acd112c17c18ec27b2984756bf8a1d017d",
+   "changed": null
+  },
+  {
+   "path": "crates/sqll_types/src/templater/fileslice.rs",
+   "source": "sqlfluffrs/sqlfluffrs_types/src/templater/fileslice.rs",
+   "source_sha256": "27ea643c992744d76c72ba88f0bfa6b078bd69058099760a7ea99dd2f696559d",
+   "changed": null
+  },
+  {
+   "path": "crates/sqll_types/src/templater/mod.rs",
+   "source": "sqlfluffrs/sqlfluffrs_types/src/templater/mod.rs",
+   "source_sha256": "c4bbc4d59348fcaf14f8d514b14a3d3a7f38369fbadcd0d821b5d702a3581dcd",
+   "changed": null
+  },
+  {
+   "path": "crates/sqll_types/src/templater/templatefile.rs",
+   "source": "sqlfluffrs/sqlfluffrs_types/src/templater/templatefile.rs",
+   "source_sha256": "3d3842992052fdf7c83d363bc143bc45332f18268e54f52d6f2aa3dc16b4bd81",
+   "changed": null
+  },
+  {
+   "path": "crates/sqll_types/src/token/config.rs",
+   "source": "sqlfluffrs/sqlfluffrs_types/src/token/config.rs",
+   "source_sha256": "93718bdb36b59199c54b1fa5682c74e9224145f4ce16562b3168948301bcbb06",
+   "changed": null
+  },
+  {
+   "path": "crates/sqll_types/src/token/construction.rs",
+   "source": "sqlfluffrs/sqlfluffrs_types/src/token/construction.rs",
+   "source_sha256": "d7c0d53a9adecac0b1ceb352319fb9ad44453d066af919bf848dd37626596153",
+   "changed": null
+  },
+  {
+   "path": "crates/sqll_types/src/token/eq.rs",
+   "source": "sqlfluffrs/sqlfluffrs_types/src/token/eq.rs",
+   "source_sha256": "7202633518af70e6b6acbb6dafe80c2da5590e289f50c52ae0258ff6b7d2ba73",
+   "changed": null
+  },
+  {
+   "path": "crates/sqll_types/src/token/fix.rs",
+   "source": "sqlfluffrs/sqlfluffrs_types/src/token/fix.rs",
+   "source_sha256": "53bb6b51099d330c596c07bd9d40b705e0f7ead6273e0628ba8487af540acc54",
+   "changed": null
+  },
+  {
+   "path": "crates/sqll_types/src/token/fmt.rs",
+   "source": "sqlfluffrs/sqlfluffrs_types/src/token/fmt.rs",
+   "source_sha256": "b76d3a2397c5efb4beee63c25a72b8a8d6d1c56a3c94f62d5d4cd3ee8c20f0b0",
+   "changed": null
+  },
+  {
+   "path": "crates/sqll_types/src/token/mod.rs",
+   "source": "sqlfluffrs/sqlfluffrs_types/src/token/mod.rs",
+   "source_sha256": "f2a5981b0b5cddf98cb852b58ec88409384201de9c143cb52a83db8a7d773aa3",
+   "changed": null
+  },
+  {
+   "path": "crates/sqll_types/src/token/path.rs",
+   "source": "sqlfluffrs/sqlfluffrs_types/src/token/path.rs",
+   "source_sha256": "7efcc81fa47494cb740c96d543ae5c0128fe3672b2f7433660101d77387a5fcf",
+   "changed": null
+  },
+  {
+   "path": "crates/sqll_types/src/token/raw_string.rs",
+   "source": "sqlfluffrs/sqlfluffrs_types/src/token/raw_string.rs",
+   "source_sha256": "b907d0cf15bf52e669d04a2f0a537cb1747e7b948245c78ffdd72a005946a53c",
+   "changed": null
+  }
+ ],
+ "excluded": [
+  {
+   "source": "sqlfluffrs/sqlfluffrs_dialects/README.md",
+   "source_sha256": "e107124d1c1b1cf8a87643913389a3f272958ba7c9b17253672acbef3bcfdfc5",
+   "reason": "Documentation of the source crate. sqll does not need it."
+  },
+  {
+   "source": "sqlfluffrs/sqlfluffrs_dialects/build.rs",
+   "source_sha256": "efa14530ecd94beb406c6e54ede03a5e6a12eff526569b8c70886149e92fd505",
+   "reason": "It runs the Python generator and writes into the source tree. sqll has a new build.rs (crates/sqll_dialects/build.rs) that runs no Python."
+  },
+  {
+   "source": "sqlfluffrs/sqlfluffrs_lexer/README.md",
+   "source_sha256": "8b793e13a962e196084e952fcb551b6cd3ea50d6c071c4a229a01a75b667804e",
+   "reason": "Documentation of the source crate. sqll does not need it."
+  },
+  {
+   "source": "sqlfluffrs/sqlfluffrs_parser/README.md",
+   "source_sha256": "cfd0f7dc7d2ccdacd001abb92ca082698ea519647dc935d37a02d51a9ffd6c73",
+   "reason": "Documentation of the source crate. sqll does not need it."
+  },
+  {
+   "source": "sqlfluffrs/sqlfluffrs_parser/src/parser/arena_py.rs",
+   "source_sha256": "32e5de18ab36f600e90e4d75a3bd00e09d1fdc4e78841134323eda84e97ee604",
+   "reason": "Python bindings (feature \"python\", pyo3)."
+  },
+  {
+   "source": "sqlfluffrs/sqlfluffrs_parser/src/parser/python.rs",
+   "source_sha256": "6e6a459e19d7880c007ec8a421d1a553a5fab4a76a604a7a325c45b9f6580dfa",
+   "reason": "Python bindings (feature \"python\", pyo3)."
+  },
+  {
+   "source": "sqlfluffrs/sqlfluffrs_types/README.md",
+   "source_sha256": "8dbf0cde6488e9d742ad30ff23639d5cd24ee9d883d4f5feb40fdf7ad8735dc6",
+   "reason": "Documentation of the source crate. sqll does not need it."
+  }
+ ],
+ "new": [
+  {
+   "path": "crates/ported.json",
+   "reason": "This provenance record."
+  },
+  {
+   "path": "crates/sqll_dialects/build.rs",
+   "reason": "New build script: no Python. It checks the generated tables against generated.json and copies them to OUT_DIR."
+  },
+  {
+   "path": "crates/sqll_dialects/build/tables.rs",
+   "reason": "The table check of build.rs."
+  },
+  {
+   "path": "crates/sqll_dialects/generated.json",
+   "reason": "The sha256 manifest of the generated dialect tables (scripts/build-sqll)."
+  },
+  {
+   "path": "crates/sqll_dialects/tests/build_tables.rs",
+   "reason": "The tests of the table check."
+  }
+ ]
+}

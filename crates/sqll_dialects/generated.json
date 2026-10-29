@@ -1,0 +1,522 @@
+{
+ "about": "The sha256 manifest of the generated dialect tables. scripts/build-sqll generates them and compares each file with this manifest; crates/sqll_dialects/build.rs checks them again.",
+ "generator": {
+  "sqlfluff": "4.4.0",
+  "python_package": "PyPI sqlfluff (tools/sqlfluff/uv.lock)",
+  "submodule_commit": "0348222a3bcdb0226563f7349c5a39beb0641955",
+  "command": "utils/rustify.py build"
+ },
+ "prefix": "sqlfluffrs/sqlfluffrs_dialects/src/",
+ "files": [
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/ansi/matcher.rs",
+   "bytes": 18425,
+   "lines": 674,
+   "sha256": "ae8d4b7f358698368676d0e0f0600ffbf3e4e3b2b66035af5e5f46e46015d424"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/ansi/mod.rs",
+   "bytes": 238,
+   "lines": 7,
+   "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/ansi/parser.rs",
+   "bytes": 1316043,
+   "lines": 9529,
+   "sha256": "3ed15e8427051cf05e461326c3878f8773b9bbbb88c245200e6c35ebf0d0c2cc"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/athena/matcher.rs",
+   "bytes": 21656,
+   "lines": 799,
+   "sha256": "1bd669d23b8e3e81d588340998ab2e93e0f38764564b491a1d8504b33d336cec"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/athena/mod.rs",
+   "bytes": 238,
+   "lines": 7,
+   "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/athena/parser.rs",
+   "bytes": 1527154,
+   "lines": 10891,
+   "sha256": "5a6a75a6da54569d10c1ff32c5610fed503e0d932fb515a1cb4335fcbc27f1bb"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/bigquery/matcher.rs",
+   "bytes": 23017,
+   "lines": 832,
+   "sha256": "b046f32a005adec15129e4c0a087fdb079341a9e44d5855b42b53a6ca2ece0a3"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/bigquery/mod.rs",
+   "bytes": 238,
+   "lines": 7,
+   "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/bigquery/parser.rs",
+   "bytes": 1438891,
+   "lines": 9565,
+   "sha256": "f56fd14fb7185bbf2eb4e36dc5eb04af418bc68e49d62c5c6300d30a61ff7355"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/clickhouse/matcher.rs",
+   "bytes": 20612,
+   "lines": 753,
+   "sha256": "e1f736336b3a658c6dc4172bb1923dd95d3b43df0e4951fe402e926c93313b97"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/clickhouse/mod.rs",
+   "bytes": 238,
+   "lines": 7,
+   "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/clickhouse/parser.rs",
+   "bytes": 1893480,
+   "lines": 13043,
+   "sha256": "68f50a22fa41797acaddce8c0b579958229e86bb8577b717f442c77c1f09665f"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/databricks/matcher.rs",
+   "bytes": 31746,
+   "lines": 1178,
+   "sha256": "d1620af535aa1a91bd0ea59e4d842340d3a5d484c4203567ec88619a9b6dfaf7"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/databricks/mod.rs",
+   "bytes": 238,
+   "lines": 7,
+   "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/databricks/parser.rs",
+   "bytes": 2202819,
+   "lines": 14805,
+   "sha256": "38d8f390d10e1807b885ae1ddb4fdbd3156cb1dd2f4a89f48812a71ff352121a"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/db2/matcher.rs",
+   "bytes": 18716,
+   "lines": 688,
+   "sha256": "3b624f0fb30f50c13c159cf7ee76bc826ce51a3ac9e1d80c1c4249cb80a27dce"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/db2/mod.rs",
+   "bytes": 238,
+   "lines": 7,
+   "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/db2/parser.rs",
+   "bytes": 1571515,
+   "lines": 11300,
+   "sha256": "6c96141e84928186c95c65ee8bb36823c232272b3c56aef33fc8723b75b445cf"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/doris/matcher.rs",
+   "bytes": 25967,
+   "lines": 960,
+   "sha256": "0cf048d9573c8b8f1b83229eb4c727c63e1615361b1db7936bc91cfd30735d2d"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/doris/mod.rs",
+   "bytes": 238,
+   "lines": 7,
+   "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/doris/parser.rs",
+   "bytes": 2316307,
+   "lines": 15893,
+   "sha256": "91887583878da5c7eec9fd3aedf0232d0268bf643598891bf8c684712cb78d55"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/duckdb/matcher.rs",
+   "bytes": 29838,
+   "lines": 1106,
+   "sha256": "16dedad5f3b1834fe5742be0a4449ea046dcff7a7245f591b350a3382ff712ff"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/duckdb/mod.rs",
+   "bytes": 238,
+   "lines": 7,
+   "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/duckdb/parser.rs",
+   "bytes": 2887852,
+   "lines": 18162,
+   "sha256": "6b36ce5f2a5b2260a36e5fdac138452df00a2b0a92413e748b54e47fba60940d"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/exasol/matcher.rs",
+   "bytes": 35212,
+   "lines": 1301,
+   "sha256": "2b5c279c14882349279407654bc1ca28c9deffaf264d175dff094ed7603e3e2d"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/exasol/mod.rs",
+   "bytes": 238,
+   "lines": 7,
+   "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/exasol/parser.rs",
+   "bytes": 1693487,
+   "lines": 11629,
+   "sha256": "d63d57649ae2044676a6354abd50d7cae814213ec1b2fb8b6c3c310cb6ad0408"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/flink/matcher.rs",
+   "bytes": 21079,
+   "lines": 775,
+   "sha256": "8451028c846a1dcd681dec2323cc7a8279a745eaaaf545707dcd2736ce7e0669"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/flink/mod.rs",
+   "bytes": 238,
+   "lines": 7,
+   "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/flink/parser.rs",
+   "bytes": 1428834,
+   "lines": 10244,
+   "sha256": "812e120402979df3d3d882df06a91937fbf384c3607ef16c5378f18daa7b5335"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/greenplum/matcher.rs",
+   "bytes": 28648,
+   "lines": 1056,
+   "sha256": "c7d697a980acfa516d1fd9976546abb6dd9931177ae560225c29e48fdf6b510c"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/greenplum/mod.rs",
+   "bytes": 238,
+   "lines": 7,
+   "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/greenplum/parser.rs",
+   "bytes": 2939381,
+   "lines": 18396,
+   "sha256": "b3304babe8622eb073a785203140972782467b6a5a36f1a527f486d252e89522"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/hive/matcher.rs",
+   "bytes": 21964,
+   "lines": 811,
+   "sha256": "f204e18897b9fcb1943abe2aaba98569f251d5d703a4d19f840239a7916a65cc"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/hive/mod.rs",
+   "bytes": 238,
+   "lines": 7,
+   "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/hive/parser.rs",
+   "bytes": 1544873,
+   "lines": 10965,
+   "sha256": "4cd6a319ff73654dcad934d619dc111741b536b10823cd1ac0b0e3ec5656788c"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/impala/matcher.rs",
+   "bytes": 30146,
+   "lines": 1102,
+   "sha256": "3760d24a70dda826c1ece7eb6bd81bb6c449bb024731aba6dd77ad6fcbe7afd0"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/impala/mod.rs",
+   "bytes": 238,
+   "lines": 7,
+   "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/impala/parser.rs",
+   "bytes": 1626963,
+   "lines": 11531,
+   "sha256": "706707006a9cac172de4964e9009fbc676291bf58b063dc504d8066a613a12ae"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/mariadb/matcher.rs",
+   "bytes": 28178,
+   "lines": 1031,
+   "sha256": "af2d36f6300178a946c7b2c89f2a648dfd50812818e104df9d9dea94b891a6df"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/mariadb/mod.rs",
+   "bytes": 238,
+   "lines": 7,
+   "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/mariadb/parser.rs",
+   "bytes": 2356710,
+   "lines": 15877,
+   "sha256": "1afe38a0b70fcb6102beb43df4cbd54144d8095962b5cdf2c1d518766aa72c15"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/materialize/matcher.rs",
+   "bytes": 27384,
+   "lines": 1011,
+   "sha256": "60a14eab6ed30175802e4b020faa622aa407e0bf2ff32136b27219b7919554d6"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/materialize/mod.rs",
+   "bytes": 238,
+   "lines": 7,
+   "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/materialize/parser.rs",
+   "bytes": 3018448,
+   "lines": 18792,
+   "sha256": "566ff8b9c3f4c8a3b41d995c0361b4b2eb8895ad9c5be8ff7fff74d371f07a42"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/mod.rs",
+   "bytes": 18401,
+   "lines": 337,
+   "sha256": "1c0f2ef6eefc36ab5cbdb7fd9c36ffa8e40c252dfa86201e20389f8cb7e85939"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/mysql/matcher.rs",
+   "bytes": 28198,
+   "lines": 1036,
+   "sha256": "27703ba3c827ed97cfee22b2b82f7eb10e98bfaf657a0cd79353a30242d78cab"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/mysql/mod.rs",
+   "bytes": 238,
+   "lines": 7,
+   "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/mysql/parser.rs",
+   "bytes": 2198942,
+   "lines": 14946,
+   "sha256": "f246cfc10ebe4f91c54f4094ffd028551f957860eb560a7a2296871c40981ca8"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/oracle/matcher.rs",
+   "bytes": 25253,
+   "lines": 935,
+   "sha256": "2bcaf2cab17407fe1125d7498431c06ae5b4795b6748e4d1f55d7cd1e2df137c"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/oracle/mod.rs",
+   "bytes": 238,
+   "lines": 7,
+   "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/oracle/parser.rs",
+   "bytes": 2355534,
+   "lines": 15724,
+   "sha256": "1d1218e458f0060304d7b41983e89e15d4a5f467bf5a9d028e21afa19eb6c419"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/postgres/matcher.rs",
+   "bytes": 28537,
+   "lines": 1052,
+   "sha256": "ef707828098ee4ac431877facb0f23299a9b2d725b7f8866b9e356c6c9832493"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/postgres/mod.rs",
+   "bytes": 238,
+   "lines": 7,
+   "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/postgres/parser.rs",
+   "bytes": 2863110,
+   "lines": 17888,
+   "sha256": "ba568f3bfa071f5032d77b29a24647a3e0d306b3b5dbcdd9aa10403ba988ba5e"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/redshift/matcher.rs",
+   "bytes": 30028,
+   "lines": 1107,
+   "sha256": "d1dd1d9345529b0c5aa05e02a4d6c42913467698b841eb614022595865946dfa"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/redshift/mod.rs",
+   "bytes": 238,
+   "lines": 7,
+   "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/redshift/parser.rs",
+   "bytes": 3136593,
+   "lines": 19961,
+   "sha256": "72263735d5f47ac3137ad3c36f1d339b4f3190408596fc2945d35f1a2b1711d8"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/snowflake/matcher.rs",
+   "bytes": 25116,
+   "lines": 938,
+   "sha256": "55dc82ee043c0673d5e9bb1c6137c8b08ae20ec41116e8dddd26584b9fc05c72"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/snowflake/mod.rs",
+   "bytes": 238,
+   "lines": 7,
+   "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/snowflake/parser.rs",
+   "bytes": 3859989,
+   "lines": 23802,
+   "sha256": "fbe420a1fc6127adcab11978a99b2071286be016af8797af5e34b5dd7725bbe1"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/soql/matcher.rs",
+   "bytes": 20547,
+   "lines": 745,
+   "sha256": "ea71b46e374a634b92511fa524d114ad3846de3270b90ff8c3252c013f939531"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/soql/mod.rs",
+   "bytes": 238,
+   "lines": 7,
+   "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/soql/parser.rs",
+   "bytes": 1332421,
+   "lines": 9606,
+   "sha256": "311aaf662731a4a22ce1b635d70393d3988f0e59a675a944d3de0a52ce8ab6de"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/sparksql/matcher.rs",
+   "bytes": 23306,
+   "lines": 866,
+   "sha256": "f943fafed103d6f4a9d29ef0599e651eb93b6291bebb41050ac479f13e40c41b"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/sparksql/mod.rs",
+   "bytes": 238,
+   "lines": 7,
+   "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/sparksql/parser.rs",
+   "bytes": 1898356,
+   "lines": 13038,
+   "sha256": "96404d6eca5fad63bb48057c0dc28fc08e5619f67291a7689b9c14157c3e6765"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/sqlite/matcher.rs",
+   "bytes": 25019,
+   "lines": 928,
+   "sha256": "77a830a226d28d5660961b89a85aa00ea7b1b3e1f2bdf6b400e8b65975c8d00a"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/sqlite/mod.rs",
+   "bytes": 238,
+   "lines": 7,
+   "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/sqlite/parser.rs",
+   "bytes": 931222,
+   "lines": 6243,
+   "sha256": "9ba5048f0e6af1a53f9f01cc4b6e510d5cd984b265b909f5f6ce16da573babd5"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/starrocks/matcher.rs",
+   "bytes": 28300,
+   "lines": 1035,
+   "sha256": "6eec6de02b1f8ff28794a3083979b1129532fed6b3a60d1ebdc44313cac1e44c"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/starrocks/mod.rs",
+   "bytes": 238,
+   "lines": 7,
+   "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/starrocks/parser.rs",
+   "bytes": 2291749,
+   "lines": 15562,
+   "sha256": "1bae2a7175975f8b0f96198208ea5b2b22b4ec0a3fd02a02c11914c14bb97163"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/teradata/matcher.rs",
+   "bytes": 18626,
+   "lines": 681,
+   "sha256": "c12a8d0606b47665a4c49b7a057ffd78fc811747e296bdaf4431dd3296d2b527"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/teradata/mod.rs",
+   "bytes": 238,
+   "lines": 7,
+   "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/teradata/parser.rs",
+   "bytes": 1513028,
+   "lines": 10686,
+   "sha256": "1bde233ef3bd9820de7304d98055a6b94e4b2541d740cc7d9046b7696a257d67"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/trino/matcher.rs",
+   "bytes": 20797,
+   "lines": 765,
+   "sha256": "49cb2c206513d95d8a28a01900db4caddba39b987254ddee19f64ad0f154026a"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/trino/mod.rs",
+   "bytes": 238,
+   "lines": 7,
+   "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/trino/parser.rs",
+   "bytes": 1059804,
+   "lines": 7127,
+   "sha256": "609c59f3d018f56db24bbae60cf8c69049cd08b43b9d7db5f2b9e03ecae22260"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/tsql/matcher.rs",
+   "bytes": 26112,
+   "lines": 941,
+   "sha256": "82d0171af829b751c2db4d34efbd877840c8f56aa7506ba3642e44c1edeea416"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/tsql/mod.rs",
+   "bytes": 238,
+   "lines": 7,
+   "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/tsql/parser.rs",
+   "bytes": 3100102,
+   "lines": 19802,
+   "sha256": "61586fc17753ca25e0cb34c1803f26f5e2dbb6e6433cdd2ada239d0741c9c88f"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/vertica/matcher.rs",
+   "bytes": 22489,
+   "lines": 828,
+   "sha256": "1b95475943db08bcb4d2184e87d81c88df68455ff69e6321c8a10a3981c51e44"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/vertica/mod.rs",
+   "bytes": 238,
+   "lines": 7,
+   "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+  },
+  {
+   "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/vertica/parser.rs",
+   "bytes": 1838182,
+   "lines": 12878,
+   "sha256": "11c4efdde3eb871b4f4fb9a92516c073fa3167ccf115b34b5eaf3d450643a457"
+  }
+ ]
+}

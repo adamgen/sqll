@@ -1,0 +1,5 @@
+# The Rust toolchain of the CI image (ci/Dockerfile, RUST_IMAGE).
+# harness/tests/test_sqll_build.py checks that the two agree.
+[toolchain]
+channel = "1.97.0"
+profile = "minimal"

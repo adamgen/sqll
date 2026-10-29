@@ -1,5 +1,5 @@
-# The CI image: Python 3.13, uv, git, the pinned tools, and the harness
-# dependencies. Build it from the repository root:
+# The CI image: Python 3.13, uv, git, the pinned tools, the harness
+# dependencies, and the pinned Rust toolchain that builds sqll. Build it from the repository root:
 #   docker build -f ci/Dockerfile .
 # ci/image_tag.py hashes all inputs of this file. CI pushes the image as
 # ghcr.io/adamgen/sqll-ci:<hash>.
@@ -43,13 +43,26 @@ RUN PYO3_PYTHON=/usr/local/bin/python3.13 \
 
 FROM base
 LABEL org.opencontainers.image.source=https://github.com/adamgen/sqll \
-      org.opencontainers.image.description="sqll CI: Python 3.13, uv, sqlfluff, sqlfluff[rs], sqruff"
+      org.opencontainers.image.description="sqll CI: Python 3.13, uv, Rust, sqlfluff, sqlfluff[rs], sqruff"
 # git: actions/checkout needs it for submodules, and the harness reads the
-# sqlfluff commit with it.
+# sqlfluff commit with it. gcc and libc6-dev: cargo links with them.
+# binutils: scripts/build-sqll reads the binaries with readelf.
 RUN command -v git > /dev/null || { \
         apt-get update \
         && apt-get install -y --no-install-recommends git \
         && rm -rf /var/lib/apt/lists/*; }
+RUN command -v gcc > /dev/null && command -v readelf > /dev/null || { \
+        apt-get update \
+        && apt-get install -y --no-install-recommends gcc libc6-dev binutils \
+        && rm -rf /var/lib/apt/lists/*; }
+# The Rust toolchain of the rust stage (rust-toolchain.toml has the same
+# version). scripts/build-sqll and "cargo test" use it.
+COPY --from=rust /usr/local/rustup /usr/local/rustup
+COPY --from=rust /usr/local/cargo /usr/local/cargo
+ENV RUSTUP_HOME=/usr/local/rustup \
+    CARGO_HOME=/usr/local/cargo \
+    PATH=/usr/local/cargo/bin:$PATH
+RUN rustc -V && cargo -V
 COPY --from=sqruff /opt/sqll/tools/sqruff /opt/sqll/tools/sqruff
 COPY scripts/setup /src/scripts/setup
 COPY tools/ /src/tools/

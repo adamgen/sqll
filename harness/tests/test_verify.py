@@ -80,7 +80,32 @@ def _corpus_run(d, job: str, name: str, old: str, new: str):
     step["run"] = step["run"].replace(old, new)
 
 
+def _build_run(d, name: str, old: str, new: str):
+    step = _step(d, "build", name)
+    assert old in step["run"]
+    step["run"] = step["run"].replace(old, new)
+
+
 CI_CHANGES = {
+    "build of the tables only": lambda d: _build_run(
+        d, "Build sqll", "scripts/build-sqll", "scripts/build-sqll --tables-only"
+    ),
+    "Rust tests without --locked": lambda d: _build_run(
+        d, "Run the Rust tests", " --locked", ""
+    ),
+    "Rust tests of one crate": lambda d: _build_run(
+        d, "Run the Rust tests", "--locked", "--locked -p sqll_types"
+    ),
+    "no Rust test step": lambda d: _without_step(d, "build", "Run the Rust tests"),
+    "build job only on push": lambda d: d["jobs"]["build"].update(
+        {"if": "github.event_name != 'pull_request'"}
+    ),
+    "build job without the changes job": lambda d: d["jobs"]["build"].update(
+        needs=["image"]
+    ),
+    "build artifact upload can find no file": lambda d: d["jobs"]["build"]["steps"][-1][
+        "with"
+    ].update({"if-no-files-found": "warn"}),
     "no baseline check step": lambda d: _without_step(d, "bench-smoke", BASELINE_STEP),
     "baseline check of a smoke run without --baseline": lambda d: _step(
         d, "bench-smoke", BASELINE_STEP
@@ -416,6 +441,16 @@ def test_drift_finds_a_ci_change(name):
 
 
 LOCAL_CHANGES = {
+    "build of the tables only": ("build-sqll", lambda c: c + " --tables-only"),
+    "Rust tests without --locked": ("rust-tests", lambda c: c.replace(" --locked", "")),
+    "submodule check before the build": (
+        "submodule-before-build",
+        lambda c: c.replace("before the build", "before the tests"),
+    ),
+    "submodule check after the Rust tests": (
+        "submodule-after-rust-tests",
+        lambda c: c.replace("Rust tests", "tests"),
+    ),
     "|| true": ("recorded-summary", lambda c: c + " || true"),
     "||true": ("recorded-summary", lambda c: c + "||true"),
     "--filter": ("run", lambda c: c + " --filter dialects/"),
@@ -608,8 +643,9 @@ def test_each_upload_fails_if_a_file_is_missing():
         for key, step, _ in verify.ci_steps(CI)
         if str(step.get("uses", "")).startswith(verify.UPLOAD)
     ]
-    assert len(uploads) == 9
+    assert len(uploads) == 10
     for job in (
+        "build",
         "bench-smoke",
         "bench-full",
         "bench-merge",
@@ -749,6 +785,7 @@ def test_quick_and_full_bench_cannot_be_used_together(capsys):
 def test_the_reports_of_the_checks():
     reports = {c.name: c.report for c in CHECKS if c.report}
     assert reports == {
+        "build-sqll": "out/sqll/build.json",
         "run": "out/report.json",
         "bench-smoke": "out/bench.json",
         "bench-full": "out/bench-full.json",
