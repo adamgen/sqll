@@ -6,10 +6,10 @@
   "collect": "uv run --frozen --project harness python scripts/s3/license_size.py collect --scratch DIR",
   "report": "uv run --frozen --project harness python scripts/s3/license_size.py report"
  },
- "started": "2026-10-29T05:16:17Z",
- "finished": "2026-10-29T05:16:58Z",
+ "started": "2026-10-29T05:48:36Z",
+ "finished": "2026-10-29T05:49:18Z",
  "sqll": {
-  "commit": "197f3e09d25d145f9e8bf3098ffce4cc51b5d9f8",
+  "commit": "344b9395e4199d91a9cf311eebb7ec1883e4d2ef",
   "root_license_files": []
  },
  "tools": {
@@ -69,7 +69,13 @@
       "same_name": 0
      }
     },
-    "sqlfluff_port_mentions": []
+    "sqlfluff_port_mentions": [
+     {
+      "file": "tests/none_format.rs",
+      "line": 9,
+      "text": "/// testing. Mirrors SQLFluff's `none` format type (sqlfluff#4704)."
+     }
+    ]
    },
    "sqruff-cli-lib": {
     "sha256": "29b282bee1f69b347a91af0f595bbc2f405d06c059a8aa189183d0983ad93226",
@@ -115,7 +121,13 @@
       "same_name": 0
      }
     },
-    "sqlfluff_port_mentions": []
+    "sqlfluff_port_mentions": [
+     {
+      "file": "src/formatters.rs",
+      "line": 194,
+      "text": "/// Mirrors SQLFluff's `none` format type, which is used mostly for testing."
+     }
+    ]
    },
    "sqruff-lib": {
     "sha256": "e6ed07488aab52e7f03a803be9ab4dc1c1f4c0d46ab6f392d8ac6ae0a3cce611",
@@ -190,6 +202,26 @@
     },
     "sqlfluff_port_mentions": [
      {
+      "file": "src/core/linter/core.rs",
+      "line": 640,
+      "text": "// template-generated (non-literal) region. Mirrors SQLFluff's"
+     },
+     {
+      "file": "src/core/rules/noqa.rs",
+      "line": 587,
+      "text": "/// Mirrors SQLFluff's `IgnoreMask.generate_warnings_for_unused`, surfacing"
+     },
+     {
+      "file": "src/rules/layout/lt12.rs",
+      "line": 278,
+      "text": "// without error, mirroring SQLFluff's `if not segment: return None`."
+     },
+     {
+      "file": "src/rules/structure/st03.rs",
+      "line": 100,
+      "text": "// Mirrors SQLFluff ST03's `_is_data_modifying_cte` exemption."
+     },
+     {
       "file": "src/templaters/python_shared.rs",
       "line": 108,
       "text": "// Ported from SQLFluff #4925."
@@ -213,6 +245,11 @@
       "file": "src/tests.rs",
       "line": 1046,
       "text": "/// Ports SQLFluff's regression coverage for fixes generated beside an"
+     },
+     {
+      "file": "src/utils/reflow/reindent.rs",
+      "line": 299,
+      "text": "/// Make template-block lines indent consistently. Mirrors SQLFluff's"
      }
     ]
    },
@@ -257,6 +294,16 @@
      }
     },
     "sqlfluff_port_mentions": [
+     {
+      "file": "src/parser/lexer.rs",
+      "line": 828,
+      "text": "/// template elements. Mirrors SQLFluff's `_handle_zero_length_slice`."
+     },
+     {
+      "file": "src/parser/segments.rs",
+      "line": 1342,
+      "text": "/// Template block kind, mirroring SQLFluff's `TemplateSegment.block_type`."
+     },
      {
       "file": "src/parser/segments/fix.rs",
       "line": 36,
@@ -324,6 +371,21 @@
     },
     "sqlfluff_port_mentions": [
      {
+      "file": "src/doris_keywords.rs",
+      "line": 1,
+      "text": "//! Apache Doris keywords from SQLFluff #6979."
+     },
+     {
+      "file": "src/flink_keywords.rs",
+      "line": 1,
+      "text": "//! Flink SQL keywords from SQLFluff #6985."
+     },
+     {
+      "file": "src/mariadb.rs",
+      "line": 4,
+      "text": "//! the MySQL dialect at the revision recorded in `.sqlfluff-sha`."
+     },
+     {
       "file": "src/mariadb_keywords.rs",
       "line": 1,
       "text": "// Auto-generated from SQLFluff's dialect_mariadb_keywords.py."
@@ -334,6 +396,191 @@
       "text": "//! This is based on PostgreSQL, matching Materialize's origins and SQLFluff's"
      },
      {
+      "file": "src/materialize.rs",
+      "line": 4,
+      "text": "//! dialect at the revision recorded in `.sqlfluff-sha`."
+     },
+     {
+      "file": "src/materialize_keywords.rs",
+      "line": 1,
+      "text": "//! Keywords for the Materialize dialect, synchronized with SQLFluff."
+     },
+     {
+      "file": "src/oracle.rs",
+      "line": 143,
+      "text": "// SQLFluff: r\"[\\p{L}\\p{N}_]*[\\p{L}][\\p{L}\\p{N}_#$]*\" with reserved keywords anti_template"
+     },
+     {
+      "file": "src/oracle.rs",
+      "line": 2252,
+      "text": "// SQLFluff: AnyNumberOf(DefaultCollation, InvokerRights, AccessibleBy)"
+     },
+     {
+      "file": "src/oracle.rs",
+      "line": 2409,
+      "text": "// SQLFluff: TYPE name IS [TABLE OF | VARRAY(n) OF] type [NOT NULL] [INDEX BY type]"
+     },
+     {
+      "file": "src/oracle.rs",
+      "line": 2485,
+      "text": "// SQLFluff: TYPE name IS RECORD (field type [NOT NULL] [:= | DEFAULT expr], ...)"
+     },
+     {
+      "file": "src/oracle.rs",
+      "line": 3056,
+      "text": "// SQLFluff: AnyNumberOf(ObjectRef, Bracketed(subscript)?, DotSegment?,"
+     },
+     {
+      "file": "src/oracle.rs",
+      "line": 3391,
+      "text": "// SQLFluff: Sequence(\"FOR\", Delimited(Sequence(id, OneOf(MUTABLE,IMMUTABLE)?)),"
+     },
+     {
+      "file": "src/oracle.rs",
+      "line": 3579,
+      "text": "// SQLFluff: OPEN cursor FOR select/string/ident [USING [IN|OUT|IN OUT] expr, ...]"
+     },
+     {
+      "file": "src/oracle.rs",
+      "line": 3717,
+      "text": "// SQLFluff: EXIT [label] [WHEN expression]"
+     },
+     {
+      "file": "src/oracle.rs",
+      "line": 3743,
+      "text": "// SQLFluff: CONTINUE [label] [WHEN expression]"
+     },
+     {
+      "file": "src/oracle.rs",
+      "line": 4412,
+      "text": "// SQLFluff: FileSegment.match_grammar = Sequence(AnyNumberOf(Ref(\"BatchSegment\"), Ref(\"ExecuteFileSegment\")))"
+     },
+     {
+      "file": "src/oracle.rs",
+      "line": 4485,
+      "text": "// SQLFluff: ansi.StatementSegment.match_grammar.copy(insert=[...])"
+     },
+     {
+      "file": "src/oracle.rs",
+      "line": 4692,
+      "text": "// SQLFluff: Completely rewritten for Oracle with PlusJoinGrammar, subscript access,"
+     },
+     {
+      "file": "src/oracle.rs",
+      "line": 4890,
+      "text": "// SQLFluff: OneOf(ansi_dialect.get_grammar(\"ColumnConstraintDefaultGrammar\"), Ref(\"SequencePseudocolumnGrammar\"))"
+     },
+     {
+      "file": "src/oracle.rs",
+      "line": 4944,
+      "text": "// SQLFluff: ansi.UpdateStatementSegment.match_grammar.copy(insert=[Ref(\"ReturningClauseSegment\", optional=True)])"
+     },
+     {
+      "file": "src/oracle.rs",
+      "line": 4967,
+      "text": "// SQLFluff: ansi.DeleteStatementSegment.match_grammar.copy(insert=[Ref(\"ReturningClauseSegment\", optional=True)])"
+     },
+     {
+      "file": "src/oracle.rs",
+      "line": 4984,
+      "text": "// SQLFluff: supports INSERT INTO (subquery), INSERT ALL, RETURNING INTO, LOG ERRORS"
+     },
+     {
+      "file": "src/oracle.rs",
+      "line": 5135,
+      "text": "// SQLFluff: ORDER [SIBLINGS] BY ..."
+     },
+     {
+      "file": "src/oracle.rs",
+      "line": 5187,
+      "text": "// SQLFluff: GreaterThanOrEqualToSegment, LessThanOrEqualToSegment, NotEqualToSegment"
+     },
+     {
+      "file": "src/oracle.rs",
+      "line": 5253,
+      "text": "// SQLFluff: adds BODY keyword and FORCE/VALIDATE options"
+     },
+     {
+      "file": "src/oracle.rs",
+      "line": 5280,
+      "text": "// SQLFluff: Ref(\"IfExistsGrammar\", optional=True) before function name"
+     },
+     {
+      "file": "src/oracle.rs",
+      "line": 5569,
+      "text": "// SQLFluff: supports MODIFY column"
+     },
+     {
+      "file": "src/oracle.rs",
+      "line": 5648,
+      "text": "// SQLFluff: Bracketed(Anything(), OneOf(\"BYTE\", \"CHAR\", optional=True), optional=True)"
+     },
+     {
+      "file": "src/oracle.rs",
+      "line": 5906,
+      "text": "// SQLFluff: ansi_dialect.get_grammar(\"FunctionContentsGrammar\").copy("
+     },
+     {
+      "file": "src/oracle.rs",
+      "line": 5941,
+      "text": "// SQLFluff: CREATE USER with IDENTIFIED BY/EXTERNALLY/GLOBALLY"
+     },
+     {
+      "file": "src/oracle.rs",
+      "line": 6282,
+      "text": "// SQLFluff: long list of Oracle-specific privilege keywords"
+     },
+     {
+      "file": "src/oracle.rs",
+      "line": 6375,
+      "text": "// SQLFluff: SESSION, TABLE, VIEW, etc. as standalone keywords matching access targets"
+     },
+     {
+      "file": "src/oracle.rs",
+      "line": 6578,
+      "text": "// SQLFluff: Delimited(Sequence(permission, ANY?, object?), role)"
+     },
+     {
+      "file": "src/oracle.rs",
+      "line": 6668,
+      "text": "// SQLFluff: Oracle GRANT with system privs, ON clause, CONTAINER"
+     },
+     {
+      "file": "src/oracle.rs",
+      "line": 6798,
+      "text": "// SQLFluff: Oracle REVOKE"
+     },
+     {
+      "file": "src/oracle.rs",
+      "line": 7177,
+      "text": "// SQLFluff: ansi SingleIdentifierGrammar.copy(insert=[Ref(\"SubstitutionVariableSegment\")])"
+     },
+     {
+      "file": "src/oracle.rs",
+      "line": 7194,
+      "text": "// SQLFluff: ansi BaseExpressionElementGrammar.copy(insert=[ConnectByRootGrammar, SubstitutionVariableSegment])"
+     },
+     {
+      "file": "src/oracle.rs",
+      "line": 7254,
+      "text": "// SQLFluff: ansi.TableExpressionSegment.match_grammar.copy(insert=[Ref(\"SubstitutionVariableSegment\")])"
+     },
+     {
+      "file": "src/oracle.rs",
+      "line": 7913,
+      "text": "// SQLFluff: Sequence(Ref.keyword(\"GLOBAL\", optional=True), \"QUERY\", \"REWRITE\")"
+     },
+     {
+      "file": "src/oracle.rs",
+      "line": 8125,
+      "text": "// SQLFluff: ReferencingClauseSegment"
+     },
+     {
+      "file": "src/oracle.rs",
+      "line": 8191,
+      "text": "// SQLFluff: COMPOUND TRIGGER [DeclareSegment] AnyNumberOf(TimingPointSectionSegment)"
+     },
+     {
       "file": "src/postgres.rs",
       "line": 475,
       "text": "// Verbatim from sqlfluff#6323, which fixed `@?`, `@@`, `?|` and `?&` (we"
@@ -342,6 +589,11 @@
       "file": "src/teradata.rs",
       "line": 1,
       "text": "//! Teradata dialect, ported from SQLFluff at the revision in `.sqlfluff-sha`."
+     },
+     {
+      "file": "src/tsql_keywords.rs",
+      "line": 1,
+      "text": "//! T-SQL keyword classifications synchronized with SQLFluff."
      },
      {
       "file": "src/vertica.rs",
@@ -491,9 +743,11 @@
    ],
    "sqlfluff_sha": "4d6da1abcfbd4fff7bcb9a5f0a7b710815f73313",
    "sqlfluff_sha_history": {
-    "commits_only_in_sqlfluff_sha": 6912,
-    "commits_only_in_pin": 1,
-    "is_ancestor_of_pin": false,
+    "repository": "https://github.com/sqlfluff/sqlfluff.git",
+    "pin": "0348222a3bcdb0226563f7349c5a39beb0641955",
+    "commits_only_in_sqlfluff_sha": 0,
+    "commits_only_in_pin": 124,
+    "is_ancestor_of_pin": true,
     "sqlfluff_sha_date": "2026-08-13T15:43:36+00:00",
     "pin_date": "2026-10-02T19:51:59+01:00"
    }
@@ -5464,7 +5718,7 @@
    "env": {},
    "unset": [],
    "exit_code": 0,
-   "wall_s": 0.025
+   "wall_s": 0.028
   },
   {
    "step": "sqll commit",
@@ -5477,7 +5731,7 @@
    "env": {},
    "unset": [],
    "exit_code": 0,
-   "wall_s": 0.003
+   "wall_s": 0.004
   },
   {
    "step": "sqll root files",
@@ -5491,7 +5745,7 @@
    "env": {},
    "unset": [],
    "exit_code": 0,
-   "wall_s": 0.003
+   "wall_s": 0.004
   },
   {
    "step": "cargo version",
@@ -5503,7 +5757,7 @@
    "env": {},
    "unset": [],
    "exit_code": 0,
-   "wall_s": 0.015
+   "wall_s": 0.017
   },
   {
    "step": "git version",
@@ -5532,7 +5786,7 @@
    "env": {},
    "unset": [],
    "exit_code": 0,
-   "wall_s": 1.715
+   "wall_s": 1.514
   },
   {
    "step": "sqruff tag commit",
@@ -5545,7 +5799,7 @@
    "env": {},
    "unset": [],
    "exit_code": 0,
-   "wall_s": 0.005
+   "wall_s": 0.004
   },
   {
    "step": "check out the tag",
@@ -5559,7 +5813,7 @@
    "env": {},
    "unset": [],
    "exit_code": 0,
-   "wall_s": 1.966
+   "wall_s": 2.222
   },
   {
    "step": "tracked files",
@@ -5572,42 +5826,113 @@
    "env": {},
    "unset": [],
    "exit_code": 0,
-   "wall_s": 0.005
+   "wall_s": 0.007
   },
   {
-   "step": "commits only in .sqlfluff-sha, only in the pinned sqlfluff",
-   "cwd": "$REPO",
+   "step": "clone sqlfluff (all commits, no trees)",
+   "cwd": "$SCRATCH",
    "argv": [
     "git",
-    "-C",
-    "$REPO/third_party/sqlfluff",
-    "rev-list",
-    "--left-right",
-    "--count",
-    "4d6da1abcfbd4fff7bcb9a5f0a7b710815f73313...HEAD"
+    "clone",
+    "--quiet",
+    "--bare",
+    "--filter=tree:0",
+    "https://github.com/sqlfluff/sqlfluff.git",
+    "$SCRATCH/sqlfluff-history.git"
    ],
    "env": {},
    "unset": [],
    "exit_code": 0,
-   "wall_s": 0.083
+   "wall_s": 0.778
+  },
+  {
+   "step": "shallow check",
+   "cwd": "$SCRATCH/sqlfluff-history.git",
+   "argv": [
+    "git",
+    "rev-parse",
+    "--is-shallow-repository"
+   ],
+   "env": {},
+   "unset": [],
+   "exit_code": 0,
+   "wall_s": 0.003
+  },
+  {
+   "step": "commit check",
+   "cwd": "$SCRATCH/sqlfluff-history.git",
+   "argv": [
+    "git",
+    "rev-parse",
+    "--verify",
+    "--quiet",
+    "4d6da1abcfbd4fff7bcb9a5f0a7b710815f73313^{commit}"
+   ],
+   "env": {},
+   "unset": [],
+   "exit_code": 0,
+   "wall_s": 0.003
+  },
+  {
+   "step": "commit check",
+   "cwd": "$SCRATCH/sqlfluff-history.git",
+   "argv": [
+    "git",
+    "rev-parse",
+    "--verify",
+    "--quiet",
+    "0348222a3bcdb0226563f7349c5a39beb0641955^{commit}"
+   ],
+   "env": {},
+   "unset": [],
+   "exit_code": 0,
+   "wall_s": 0.005
+  },
+  {
+   "step": "is .sqlfluff-sha an ancestor of the pin",
+   "cwd": "$SCRATCH/sqlfluff-history.git",
+   "argv": [
+    "git",
+    "merge-base",
+    "--is-ancestor",
+    "4d6da1abcfbd4fff7bcb9a5f0a7b710815f73313",
+    "0348222a3bcdb0226563f7349c5a39beb0641955"
+   ],
+   "env": {},
+   "unset": [],
+   "exit_code": 0,
+   "wall_s": 0.005
+  },
+  {
+   "step": "commits only in .sqlfluff-sha, only in the pin",
+   "cwd": "$SCRATCH/sqlfluff-history.git",
+   "argv": [
+    "git",
+    "rev-list",
+    "--left-right",
+    "--count",
+    "4d6da1abcfbd4fff7bcb9a5f0a7b710815f73313...0348222a3bcdb0226563f7349c5a39beb0641955"
+   ],
+   "env": {},
+   "unset": [],
+   "exit_code": 0,
+   "wall_s": 0.007
   },
   {
    "step": "commit dates",
-   "cwd": "$REPO",
+   "cwd": "$SCRATCH/sqlfluff-history.git",
    "argv": [
     "git",
-    "-C",
-    "$REPO/third_party/sqlfluff",
     "show",
     "-s",
     "--format=%cI",
     "4d6da1abcfbd4fff7bcb9a5f0a7b710815f73313",
-    "HEAD"
+    "0348222a3bcdb0226563f7349c5a39beb0641955"
    ],
    "env": {},
    "unset": [],
    "exit_code": 0,
-   "wall_s": 0.021
+   "wall_s": 1.989
   },
   {
    "step": "unpack the sqruff crate",
@@ -5624,7 +5949,7 @@
    },
    "unset": [],
    "exit_code": 0,
-   "wall_s": 0.01
+   "wall_s": 0.031
   },
   {
    "step": "cargo metadata",
@@ -5640,7 +5965,7 @@
    "env": {},
    "unset": [],
    "exit_code": 0,
-   "wall_s": 0.395
+   "wall_s": 0.213
   },
   {
    "step": "cargo tree (installed)",
@@ -5663,7 +5988,7 @@
    "env": {},
    "unset": [],
    "exit_code": 0,
-   "wall_s": 0.301
+   "wall_s": 0.18
   },
   {
    "step": "cargo tree (libraries)",
@@ -5690,7 +6015,7 @@
    "env": {},
    "unset": [],
    "exit_code": 0,
-   "wall_s": 0.325
+   "wall_s": 0.161
   },
   {
    "step": "copy the submodule",
@@ -5706,7 +6031,7 @@
    },
    "unset": [],
    "exit_code": 0,
-   "wall_s": 0.538
+   "wall_s": 0.8
   },
   {
    "step": "python (installed sqlfluff)",
@@ -5725,7 +6050,7 @@
     "VIRTUAL_ENV"
    ],
    "exit_code": 0,
-   "wall_s": 0.262
+   "wall_s": 0.28
   },
   {
    "step": "generate the dialect tables",
@@ -5744,7 +6069,7 @@
     "VIRTUAL_ENV"
    ],
    "exit_code": 0,
-   "wall_s": 32.932,
+   "wall_s": 31.855,
    "log": "$SCRATCH/logs/generate.log"
   },
   {
@@ -5757,7 +6082,7 @@
    "env": {},
    "unset": [],
    "exit_code": 0,
-   "wall_s": 0.052
+   "wall_s": 0.072
   },
   {
    "step": "cargo metadata",
@@ -5773,7 +6098,7 @@
    "env": {},
    "unset": [],
    "exit_code": 0,
-   "wall_s": 0.341
+   "wall_s": 0.25
   },
   {
    "step": "cargo tree (standalone)",
@@ -5804,7 +6129,7 @@
    "env": {},
    "unset": [],
    "exit_code": 0,
-   "wall_s": 0.195
+   "wall_s": 0.191
   },
   {
    "step": "cargo tree (python)",
@@ -5829,7 +6154,7 @@
    "env": {},
    "unset": [],
    "exit_code": 0,
-   "wall_s": 0.201
+   "wall_s": 0.197
   },
   {
    "step": "generator environment packages",
@@ -5849,7 +6174,7 @@
     "VIRTUAL_ENV"
    ],
    "exit_code": 0,
-   "wall_s": 0.141
+   "wall_s": 0.112
   },
   {
    "step": "check the submodule after",
@@ -5861,7 +6186,7 @@
    "env": {},
    "unset": [],
    "exit_code": 0,
-   "wall_s": 0.032
+   "wall_s": 0.028
   }
  ]
 }

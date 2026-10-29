@@ -9,6 +9,7 @@ import copy
 import importlib.util
 import json
 import re
+import subprocess
 
 import pytest
 
@@ -100,6 +101,186 @@ def test_other_python_lines_fail(tmp_path):
     sources["sqlfluff"]["python_lines"]["dialects"]["lines"] += 1
     with pytest.raises(ls.DataError, match="Python lines"):
         _report_of(tmp_path, sources=sources)
+
+
+def test_a_history_of_another_pin_fails(tmp_path):
+    sources = copy.deepcopy(SOURCES)
+    sources["sqruff"]["repository"]["sqlfluff_sha_history"]["pin"] = "0" * 40
+    with pytest.raises(ls.DataError, match="not of the pinned sqlfluff"):
+        _report_of(tmp_path, sources=sources)
+
+
+def test_a_history_that_does_not_agree_with_itself_fails(tmp_path):
+    sources = copy.deepcopy(SOURCES)
+    history = sources["sqruff"]["repository"]["sqlfluff_sha_history"]
+    history["is_ancestor_of_pin"] = not history["is_ancestor_of_pin"]
+    with pytest.raises(ls.DataError, match="does not agree with itself"):
+        _report_of(tmp_path, sources=sources)
+
+
+# The history of the sqruff .sqlfluff-sha commit.
+
+
+def _git(cwd, *args):
+    return subprocess.run(
+        ["git", "-c", "user.name=t", "-c", "user.email=t@t", *args],
+        cwd=cwd,
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+
+
+def _commit(repo, message):
+    _git(repo, "commit", "--quiet", "--allow-empty", "-m", message)
+    return _git(repo, "rev-parse", "HEAD")
+
+
+@pytest.fixture
+def history_repo(tmp_path):
+    """a <- b <- c on main, and d on a side branch from a."""
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    _git(repo, "init", "--quiet", "-b", "main")
+    a = _commit(repo, "a")
+    b = _commit(repo, "b")
+    c = _commit(repo, "c")
+    _git(repo, "checkout", "--quiet", "-b", "side", a)
+    d = _commit(repo, "d")
+    _git(repo, "checkout", "--quiet", "main")
+    return repo, {"a": a, "b": b, "c": c, "d": d}
+
+
+def test_the_history_of_an_ancestor(tmp_path, history_repo):
+    repo, c = history_repo
+    h = ls.sqlfluff_history(ls.Steps(tmp_path), repo, c["a"], c["c"])
+    assert h["is_ancestor_of_pin"] is True
+    assert (h["commits_only_in_sqlfluff_sha"], h["commits_only_in_pin"]) == (0, 2)
+    assert h["pin"] == c["c"] and h["repository"] == ls.SQLFLUFF_REPO
+
+
+def test_the_history_of_a_commit_on_another_branch(tmp_path, history_repo):
+    repo, c = history_repo
+    h = ls.sqlfluff_history(ls.Steps(tmp_path), repo, c["d"], c["c"])
+    assert h["is_ancestor_of_pin"] is False
+    assert (h["commits_only_in_sqlfluff_sha"], h["commits_only_in_pin"]) == (1, 2)
+
+
+def test_the_history_of_a_shallow_clone_fails(tmp_path, history_repo):
+    repo, c = history_repo
+    shallow = tmp_path / "shallow"
+    _git(tmp_path, "clone", "--quiet", "--depth", "1", repo.as_uri(), shallow)
+    with pytest.raises(ls.DataError, match="shallow"):
+        ls.sqlfluff_history(ls.Steps(tmp_path), shallow, c["c"], c["c"])
+
+
+def test_the_history_of_a_missing_commit_fails(tmp_path, history_repo):
+    repo, c = history_repo
+    with pytest.raises(ls.DataError, match="does not have the commit"):
+        ls.sqlfluff_history(ls.Steps(tmp_path), repo, "1" * 40, c["c"])
+
+
+def test_the_recorded_history_is_from_a_full_clone_of_sqlfluff():
+    history = SOURCES["sqruff"]["repository"]["sqlfluff_sha_history"]
+    assert history["pin"] == SOURCES["sqlfluff"]["sqlfluff_ref"]
+    assert BASES["sqruff"]["sqlfluff_attribution"]["history_of_that_commit"] == (
+        history
+    )
+    clone = next(s for s in SOURCES["steps"] if s["step"].startswith("clone sqlfluff"))
+    assert ls.SQLFLUFF_REPO in clone["argv"] and "--filter=tree:0" in clone["argv"]
+    assert not any(a.startswith("--depth") or "shallow" in a for a in clone["argv"])
+    target = clone["argv"][-1]
+    names = {
+        "shallow check",
+        "is .sqlfluff-sha an ancestor of the pin",
+        "commits only in .sqlfluff-sha, only in the pin",
+    }
+    ran = [s for s in SOURCES["steps"] if s["step"] in names]
+    assert len(ran) == len(names)
+    assert all(s["cwd"] == target and s["exit_code"] in (0, 1) for s in ran)
+    assert not any("third_party/sqlfluff" in " ".join(s["argv"]) for s in ran)
+
+
+# Parsers and classifiers of collect, on inline inputs.
+
+
+def test_cargo_tree_lines():
+    text = (
+        "sqruff v0.41.0 (/x/sqruff-0.41.0)|Apache-2.0\n"
+        "serde_derive v1.0.219 (proc-macro)|MIT OR Apache-2.0\n"
+        "serde v1.0.219|MIT OR Apache-2.0\n"
+        "serde_derive v1.0.219 (proc-macro)|MIT OR Apache-2.0 (*)\n"
+        "nolicense v0.1.0|\n"
+        "\n"
+    )
+    assert ls.tree_packages(text) == [
+        {"name": "nolicense", "version": "0.1.0", "tree_license": None},
+        {"name": "serde", "version": "1.0.219", "tree_license": "MIT OR Apache-2.0"},
+        {
+            "name": "serde_derive",
+            "version": "1.0.219",
+            "tree_license": "MIT OR Apache-2.0",
+        },
+        {"name": "sqruff", "version": "0.41.0", "tree_license": "Apache-2.0"},
+    ]
+    with pytest.raises(ls.DataError, match="cargo tree line"):
+        ls.tree_packages("not a package line|MIT\n")
+
+
+def test_cargo_lock_checksums():
+    lock = (
+        "version = 4\n\n"
+        '[[package]]\nname = "a"\nversion = "1.0.0"\n'
+        'source = "registry+https://github.com/rust-lang/crates.io-index"\n'
+        'checksum = "ab12"\n\n'
+        '[[package]]\nname = "local"\nversion = "0.1.0"\n'
+    )
+    assert ls.lock_checksums(lock) == {"a-1.0.0": "ab12"}
+
+
+def test_the_generated_mark_is_in_the_first_3_lines():
+    assert ls.is_generated(b"// Auto-generated from x.py.\nfn a() {}\n")
+    assert ls.is_generated(b"//! a\n//! b\n// @generated\n")
+    assert not ls.is_generated(b"a\nb\nc\n// do not edit\n")
+    assert not ls.is_generated(b"// Ported from SQLFluff.\n")
+
+
+def test_port_mentions():
+    files = {
+        "src/a.rs": (
+            b"// Ported from SQLFluff.\n"
+            b"//! Keywords from SQLFluff #6979.\n"
+            b"/// Mirrors SQLFluff's `none` format.\n"
+            b"    // SQLFluff: Sequence(a, b)\n"
+            b'let s = "ported from sqlfluff";\n'
+            b"// Ported from elsewhere.\n"
+            b"// SQLFluff has the same rule.\n"
+        ),
+        "README.md": b"// Ported from SQLFluff.\n",
+    }
+    assert [(m["file"], m["line"]) for m in ls.port_mentions(files)] == [
+        ("src/a.rs", 1),
+        ("src/a.rs", 2),
+        ("src/a.rs", 3),
+        ("src/a.rs", 4),
+    ]
+
+
+def test_data_size():
+    hashes = {ls.sha256_bytes(b"select 1\n"): {"a.sql"}}
+    files = {
+        "Cargo.toml": b"x",
+        "src/lib.rs": b"x",
+        "tests/a.sql": b"select 1\n",
+        "tests/b.sql": b"select 1\n",
+        "tests/c.sql": b"select 2\n",
+        "tests/empty.sql": b"",
+        "README.md": b"abc",
+    }
+    assert ls.data_size(files, hashes) == {
+        "README.md": {"files": 1, "bytes": 3, "equal_to_sqlfluff": 0, "same_name": 0},
+        "tests": {"files": 4, "bytes": 27, "equal_to_sqlfluff": 2, "same_name": 1},
+    }
 
 
 # License claims: each one cites the file and the version.

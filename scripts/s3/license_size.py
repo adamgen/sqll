@@ -62,6 +62,7 @@ COMMANDS = {
 }
 
 DataError = probe.DataError
+Steps = probe.Steps
 line_count = probe.line_count
 sha256_bytes = probe.sha256_bytes
 sha256_file = probe.sha256_file
@@ -72,6 +73,7 @@ CRATE_DIRS = probe.CRATE_DIRS
 SQRUFF_VERSION = "0.41.0"
 SQRUFF_TAG = "v0.41.0"
 SQRUFF_REPO = "https://github.com/quarylabs/sqruff.git"
+SQLFLUFF_REPO = "https://github.com/sqlfluff/sqlfluff.git"
 SQRUFF_CRATES = (
     "sqruff",
     "sqruff-cli-lib",
@@ -146,7 +148,8 @@ MIT_GRANT = "Permission is hereby granted, free of charge"
 COPYRIGHT_LINE = re.compile(r"^\s*Copyright\b.*$", re.M)
 PORT_MENTION = re.compile(
     r"\bport(s|ed|ing)?\b|\bcopied\b|\bverbatim\b|brought over|generated from"
-    r"|taken from|based on",
+    r"|taken from|based on|\bmirror(s|ed|ing)?\b|\bfrom sqlfluff\b"
+    r"|synchroni[sz]ed with|revision in|revision recorded in|^//[/!]?\s*sqlfluff:",
     re.I,
 )
 PARTS = ("src", "tests", "benches", "examples")
@@ -359,7 +362,7 @@ def sqruff_crates(
             raise DataError(f"{path} does not exist; run tools/sqruff/install.sh")
         contents[name] = read_crate_bytes(path)
         meta[name] = sha256_bytes(path.read_bytes())
-    locked = probe_lock(contents["sqruff"]["Cargo.lock"].decode("utf8"))
+    locked = lock_checksums(contents["sqruff"]["Cargo.lock"].decode("utf8"))
     out = {}
     for name in SQRUFF_CRATES:
         files = contents[name]
@@ -387,7 +390,7 @@ def sqruff_crates(
     return out, sqruff_structure(contents)
 
 
-def probe_lock(lock: str) -> dict[str, str]:
+def lock_checksums(lock: str) -> dict[str, str]:
     out = {}
     for block in lock.split("[[package]]"):
         name = re.search(r'^name = "([^"]+)"', block, re.M)
@@ -406,6 +409,69 @@ def cargo_cache() -> Path:
     if not found:
         raise DataError(f"no sqruff crates in {home}/registry/cache")
     return found[0].parent
+
+
+# collect: the sqlfluff history. The submodule is a shallow clone and does
+# not have it.
+
+
+def sqlfluff_clone(st: probe.Steps, scratch: Path) -> Path:
+    repo = scratch / "sqlfluff-history.git"
+    st.run(
+        "clone sqlfluff (all commits, no trees)",
+        ["git", "clone", "--quiet", "--bare", "--filter=tree:0", SQLFLUFF_REPO, repo],
+        scratch,
+    )
+    return repo
+
+
+def sqlfluff_history(st: probe.Steps, repo: Path, sha: str, pin: str) -> dict:
+    """The place of commit sha in the history of commit pin. Fail if repo is
+    shallow or does not have the two commits."""
+    shallow = st.run(
+        "shallow check", ["git", "rev-parse", "--is-shallow-repository"], repo
+    ).stdout.strip()
+    if shallow != "false":
+        raise DataError(f"{repo} is a shallow clone; it has no full history")
+    for commit in (sha, pin):
+        found = st.run(
+            "commit check",
+            ["git", "rev-parse", "--verify", "--quiet", f"{commit}^{{commit}}"],
+            repo,
+            check=False,
+        )
+        if found.returncode != 0 or found.stdout.strip() != commit:
+            raise DataError(f"{repo} does not have the commit {commit}")
+    ancestor = st.run(
+        "is .sqlfluff-sha an ancestor of the pin",
+        ["git", "merge-base", "--is-ancestor", sha, pin],
+        repo,
+        check=False,
+    ).returncode
+    if ancestor not in (0, 1):
+        raise DataError(f"git merge-base --is-ancestor: exit code {ancestor}")
+    left, right = map(
+        int,
+        st.run(
+            "commits only in .sqlfluff-sha, only in the pin",
+            ["git", "rev-list", "--left-right", "--count", f"{sha}...{pin}"],
+            repo,
+        ).stdout.split(),
+    )
+    if (ancestor == 0) != (left == 0):
+        raise DataError("merge-base and rev-list do not agree")
+    dates = st.run(
+        "commit dates", ["git", "show", "-s", "--format=%cI", sha, pin], repo
+    ).stdout.split()
+    return {
+        "repository": SQLFLUFF_REPO,
+        "pin": pin,
+        "commits_only_in_sqlfluff_sha": left,
+        "commits_only_in_pin": right,
+        "is_ancestor_of_pin": ancestor == 0,
+        "sqlfluff_sha_date": dates[0],
+        "pin_date": dates[1],
+    }
 
 
 # collect: the sqruff repository at the tag
@@ -454,40 +520,9 @@ def sqruff_repo(st: probe.Steps, scratch: Path, commits: set[str]) -> dict:
     sqlfluff_sha = sha_file.read_text("utf8").strip() if sha_file.exists() else None
     history = None
     if sqlfluff_sha:
-        counts = st.run(
-            "commits only in .sqlfluff-sha, only in the pinned sqlfluff",
-            [
-                "git",
-                "-C",
-                SQLFLUFF_ROOT,
-                "rev-list",
-                "--left-right",
-                "--count",
-                f"{sqlfluff_sha}...HEAD",
-            ],
-            ROOT,
-        ).stdout.split()
-        dates = st.run(
-            "commit dates",
-            [
-                "git",
-                "-C",
-                SQLFLUFF_ROOT,
-                "show",
-                "-s",
-                "--format=%cI",
-                sqlfluff_sha,
-                "HEAD",
-            ],
-            ROOT,
-        ).stdout.split()
-        history = {
-            "commits_only_in_sqlfluff_sha": int(counts[0]),
-            "commits_only_in_pin": int(counts[1]),
-            "is_ancestor_of_pin": int(counts[0]) == 0,
-            "sqlfluff_sha_date": dates[0],
-            "pin_date": dates[1],
-        }
+        history = sqlfluff_history(
+            st, sqlfluff_clone(st, scratch), sqlfluff_sha, sqlfluff_ref(SQLFLUFF_ROOT)
+        )
     workspace = (repo / "Cargo.toml").read_text("utf8")
     lic = re.search(r'^license = "([^"]+)"', workspace, re.M)
     return {
@@ -1094,6 +1129,18 @@ def base_license(files: list[dict], path: str, version: str, source: str) -> dic
     }
 
 
+def check_history(history: dict | None, pin: str) -> None:
+    """Fail if the history of .sqlfluff-sha is not of the pin or does not
+    agree with itself."""
+    if history is None:
+        return
+    if history.get("pin") != pin or history.get("repository") != SQLFLUFF_REPO:
+        raise DataError("the .sqlfluff-sha history is not of the pinned sqlfluff")
+    left = history["commits_only_in_sqlfluff_sha"]
+    if history["is_ancestor_of_pin"] != (left == 0):
+        raise DataError("the .sqlfluff-sha history does not agree with itself")
+
+
 def make_report(
     sources_path: Path = SOURCES_FILE, t5_path: Path = T5_BUILD_FILE
 ) -> dict:
@@ -1108,6 +1155,7 @@ def make_report(
         raise DataError("the sqruff crates are not of the tag commit")
     if sq["version"] != SQRUFF_VERSION or rs["version"] != SQLFLUFFRS_VERSION:
         raise DataError("a version is not the pin")
+    check_history(repo["sqlfluff_sha_history"], sf["sqlfluff_ref"])
     for entry in repo["license_files"] + sf["license_files"]:
         if sha256_bytes(entry["text"].encode("utf8")) != entry["sha256"]:
             raise DataError(f"{entry['path']}: the text is not the recorded file")
@@ -1133,7 +1181,7 @@ def make_report(
         for f in repo["license_files"]
         if f["path"].rsplit("/", 1)[-1].lower().startswith("notice")
     ]
-    crate_license_files = {
+    published_license_files = {
         name: c["license_like_files"] for name, c in sq["crates"].items()
     }
     sf_license = base_license(
@@ -1217,7 +1265,7 @@ def make_report(
                 "copyright_after_appendix_heading": apache_text.find("APPENDIX")
                 < apache_text.find(sq_license["copyright"][0]),
             },
-            "license_files_in_published_crates": crate_license_files,
+            "license_files_in_published_crates": published_license_files,
             "notice_files_in_repository": notice_files,
             "sqlfluff_attribution": {
                 "sqlfluff_commit_of_port": repo["sqlfluff_sha"],
@@ -1396,9 +1444,15 @@ def make_report(
             "code). crate_data_files_equal_to_sqlfluff_fixtures: the non-empty "
             "files of the crates that are byte-equal to a file of the sqlfluff "
             "4.4.0 test fixtures (by sha256).",
-            "duties": "Quoted in short form from the license texts of the "
-            "pinned versions. No legal advice: the open questions are for a "
-            "human.",
+            "duties": "section_4 and conditions are paraphrases of the license "
+            "texts of the pinned versions, not quotes. condition_text and the "
+            "MIT condition in sqlfluff_mit are exact quotes (white space "
+            "joined). No legal advice: the open questions are for a human.",
+            "sqlfluff_sha_history": "From a clone of the sqlfluff repository "
+            "with all commits (git clone --bare --filter=tree:0), not the "
+            "shallow submodule: git merge-base --is-ancestor and git rev-list "
+            "--left-right --count between .sqlfluff-sha and the pin. collect "
+            "fails if the clone is shallow or does not have the two commits.",
         },
         "sqll": {
             "commit": sources["sqll"]["commit"],
