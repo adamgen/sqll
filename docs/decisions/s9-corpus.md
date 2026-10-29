@@ -1,7 +1,7 @@
 # S9 decision: the external corpus
 
 Status: design (T1); run and report (T3); untemplated content (T4);
-templated content (T5); recorded results (T6); CI (T7). Scope: STONES.md S9;
+templated content (T5); recorded results (T6); CI (T7); exit (T8). Scope: STONES.md S9;
 CONSTITUTION.md G1.3, G3, G4.2, G4.3, G4.5. "Measured": `parse` runs of
 the `scripts/setup` tools on 2026-10-28 (4 CPUs, 16 GiB, machine lock),
 in a new folder with no config file above it. PR #29 (T1) and the T3 pull
@@ -277,6 +277,14 @@ sqruff gives a tree for both. The setting stays 600 in T6. Reasons: 600 is
 the default of the pinned sqlfluff, a guard against deep input, and not a
 limit of the file size as `max_parse_nodes`; and a change of a setting
 needs a new full run. T8 decides if S9 lifts it. No other setting changes.
+
+T8 decision: S9 keeps `max_parse_depth = 600`. Reasons: the T6 reasons
+above; the S9 rule that a failure is data, not a reason to change the
+input or the settings for some files; and the same settings for all tools
+and files. `max_parse_nodes` and `rust_parser_max_iterations` are not the
+same: their defaults stop the parse because of the file size only
+("Settings"). The 2 `invalid` results stay in the baseline, and the S3
+track gets them as input (status/S9.md, "Input for S3").
 
 ## Code, CI, and sqll
 
