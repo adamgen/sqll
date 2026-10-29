@@ -1,0 +1,3174 @@
+{
+ "kind": "sqll-s3-capabilities-start",
+ "task": "T8",
+ "command": "flock /tmp/sqll-machine.lock uv run --frozen --project harness python scripts/s3/capabilities.py time --scratch DIR",
+ "started": "2026-10-29T10:21:11Z",
+ "finished": "2026-10-29T10:23:37Z",
+ "session": {
+  "image": "sqll-ci:59ae7339028b026546c9",
+  "image_id": "sha256:c483e625b7b5dec70174ac3eedb6ce43a64df07cbb948a0e1801e89b891bdfab",
+  "docker": "29.8.2",
+  "method": "harness/bench.md: the CI image in docker, one container, serial, no network, no other load. The start benchmarks: the harness, the full profile, the tools in turn. Then the 3 series of the T8 script in turn, with a policy of 20 timed runs",
+  "policy": {
+   "min_runs": 20,
+   "max_runs": 20,
+   "budget_s": 0.0,
+   "timeout_s": 120.0
+  },
+  "machine_lock": "the command ran under flock /tmp/sqll-machine.lock (PROCESS.md, rule 7)",
+  "load": {
+   "before": [
+    0.13,
+    0.27,
+    1.12
+   ],
+   "after": [
+    0.95,
+    0.57,
+    1.1
+   ],
+   "idle_wait_s": 0.0
+  }
+ },
+ "steps": [
+  {
+   "step": "CI image id",
+   "cwd": "$REPO",
+   "argv": [
+    "docker",
+    "image",
+    "inspect",
+    "--format",
+    "{{.Id}}",
+    "sqll-ci:59ae7339028b026546c9"
+   ],
+   "env": {},
+   "unset": [],
+   "exit_code": 0,
+   "wall_s": 0.246
+  },
+  {
+   "step": "docker version",
+   "cwd": "$REPO",
+   "argv": [
+    "docker",
+    "version",
+    "--format",
+    "{{.Server.Version}}"
+   ],
+   "env": {},
+   "unset": [],
+   "exit_code": 0,
+   "wall_s": 0.09
+  },
+  {
+   "step": "timing session",
+   "cwd": "$REPO",
+   "argv": [
+    "docker",
+    "run",
+    "--rm",
+    "--network",
+    "none",
+    "-v",
+    "$REPO:/repo:ro",
+    "-v",
+    "$SCRATCH:/scratch",
+    "-e",
+    "PYTHONPATH=/repo/harness",
+    "-w",
+    "/repo",
+    "sqll-ci:59ae7339028b026546c9",
+    "/opt/sqll/harness-venv/bin/python",
+    "scripts/s3/capabilities.py",
+    "time-inside",
+    "--scratch",
+    "/scratch"
+   ],
+   "env": {},
+   "unset": [],
+   "exit_code": 0,
+   "wall_s": 145.361,
+   "log": "$SCRATCH/logs/timing.log"
+  },
+  {
+   "step": "readelf of sqruff in the CI image",
+   "cwd": "$REPO",
+   "argv": [
+    "docker",
+    "run",
+    "--rm",
+    "--network",
+    "none",
+    "sqll-ci:59ae7339028b026546c9",
+    "readelf",
+    "-d",
+    "/opt/sqll/tools/sqruff/bin/sqruff"
+   ],
+   "env": {},
+   "unset": [],
+   "exit_code": 0,
+   "wall_s": 0.521
+  }
+ ],
+ "readelf_needed": [
+  "ld-linux-x86-64.so.2",
+  "libc.so.6",
+  "libgcc_s.so.1",
+  "libpython3.13.so.1.0"
+ ],
+ "report": {
+  "kind": "sqll-bench-report",
+  "format": 2,
+  "sqlfluff_ref": "0348222a3bcdb0226563f7349c5a39beb0641955",
+  "harness": {
+   "commit": "5cfb271f5d1113495a0a4970af2b931d7f63b14c",
+   "clean": false
+  },
+  "profile": "full",
+  "policy": {
+   "warmup_runs": 1,
+   "min_runs": 3,
+   "max_runs": 20,
+   "budget_s": 2.0,
+   "timeout_s": 120.0
+  },
+  "machine": {
+   "cpu_model": "Intel(R) Xeon(R) Processor @ 2.80GHz",
+   "cpu_count": 4,
+   "memory_kib": 16477352,
+   "os": "Debian GNU/Linux 13 (trixie)",
+   "kernel": "6.18.44-fc-v185",
+   "arch": "x86_64",
+   "python": "3.13.16"
+  },
+  "timer": {
+   "clock": "time.perf_counter_ns",
+   "rusage": "os.wait4",
+   "overhead": {
+    "argv": [
+     "/bin/true"
+    ],
+    "samples": [
+     {
+      "kind": "timed",
+      "wall_s": 0.057267,
+      "user_s": 0.002416,
+      "sys_s": 0.0,
+      "max_rss_kib": 35224,
+      "exit_code": 0,
+      "timed_out": false
+     },
+     {
+      "kind": "timed",
+      "wall_s": 0.002074,
+      "user_s": 0.0,
+      "sys_s": 0.001774,
+      "max_rss_kib": 35244,
+      "exit_code": 0,
+      "timed_out": false
+     },
+     {
+      "kind": "timed",
+      "wall_s": 0.005486,
+      "user_s": 0.0,
+      "sys_s": 0.002341,
+      "max_rss_kib": 35244,
+      "exit_code": 0,
+      "timed_out": false
+     },
+     {
+      "kind": "timed",
+      "wall_s": 0.002306,
+      "user_s": 0.002061,
+      "sys_s": 0.0,
+      "max_rss_kib": 35244,
+      "exit_code": 0,
+      "timed_out": false
+     },
+     {
+      "kind": "timed",
+      "wall_s": 0.002061,
+      "user_s": 0.001822,
+      "sys_s": 0.0,
+      "max_rss_kib": 35244,
+      "exit_code": 0,
+      "timed_out": false
+     },
+     {
+      "kind": "timed",
+      "wall_s": 0.002039,
+      "user_s": 0.001834,
+      "sys_s": 0.0,
+      "max_rss_kib": 35244,
+      "exit_code": 0,
+      "timed_out": false
+     },
+     {
+      "kind": "timed",
+      "wall_s": 0.002057,
+      "user_s": 0.001842,
+      "sys_s": 0.0,
+      "max_rss_kib": 35244,
+      "exit_code": 0,
+      "timed_out": false
+     },
+     {
+      "kind": "timed",
+      "wall_s": 0.002245,
+      "user_s": 0.001853,
+      "sys_s": 0.0,
+      "max_rss_kib": 35244,
+      "exit_code": 0,
+      "timed_out": false
+     },
+     {
+      "kind": "timed",
+      "wall_s": 0.00203,
+      "user_s": 0.001689,
+      "sys_s": 0.0,
+      "max_rss_kib": 35244,
+      "exit_code": 0,
+      "timed_out": false
+     },
+     {
+      "kind": "timed",
+      "wall_s": 0.002855,
+      "user_s": 0.0,
+      "sys_s": 0.001993,
+      "max_rss_kib": 35244,
+      "exit_code": 0,
+      "timed_out": false
+     }
+    ],
+    "stats": {
+     "wall_s": {
+      "n": 10,
+      "median": 0.002159,
+      "min": 0.00203,
+      "max": 0.057267,
+      "mad": 0.000125
+     },
+     "cpu_s": {
+      "n": 10,
+      "median": 0.001848,
+      "min": 0.001689,
+      "max": 0.002416,
+      "mad": 0.00011
+     }
+    }
+   }
+  },
+  "tools": {
+   "sqlfluff": {
+    "version": "4.4.0",
+    "settings": {
+     "core": {
+      "templater": "raw",
+      "rules": "all",
+      "large_file_skip_byte_limit": 0,
+      "large_file_skip_char_limit": 0
+     }
+    }
+   },
+   "sqruff": {
+    "version": "0.41.0",
+    "settings": {
+     "core": {
+      "templater": "raw",
+      "rules": "all",
+      "large_file_skip_byte_limit": 0,
+      "large_file_skip_char_limit": 0
+     },
+     "layout": {
+      "type": {
+       "match_condition": {
+        "spacing_within": "touch:inline"
+       }
+      }
+     }
+    }
+   }
+  },
+  "results": [
+   {
+    "id": "start/ansi",
+    "tool": "sqlfluff",
+    "dialect": "ansi",
+    "status": "valid",
+    "reason": null,
+    "runs": {
+     "warmup": 1,
+     "timed": 3
+    },
+    "wall_s": [
+     0.72993,
+     0.833974,
+     0.771921
+    ],
+    "stats": {
+     "wall_s": {
+      "n": 3,
+      "median": 0.771921,
+      "min": 0.72993,
+      "max": 0.833974,
+      "mad": 0.041991
+     },
+     "cpu_s": {
+      "n": 3,
+      "median": 0.71229,
+      "min": 0.699779,
+      "max": 0.761728,
+      "mad": 0.012511
+     }
+    }
+   },
+   {
+    "id": "start/ansi",
+    "tool": "sqruff",
+    "dialect": "ansi",
+    "status": "valid",
+    "reason": null,
+    "runs": {
+     "warmup": 1,
+     "timed": 20
+    },
+    "wall_s": [
+     0.01371,
+     0.013361,
+     0.013689,
+     0.018253,
+     0.014187,
+     0.013939,
+     0.013355,
+     0.018538,
+     0.014341,
+     0.012629,
+     0.01431,
+     0.018491,
+     0.027634,
+     0.01347,
+     0.013793,
+     0.019857,
+     0.014414,
+     0.01765,
+     0.017916,
+     0.01582
+    ],
+    "stats": {
+     "wall_s": {
+      "n": 20,
+      "median": 0.014325,
+      "min": 0.012629,
+      "max": 0.027634,
+      "mad": 0.000967
+     },
+     "cpu_s": {
+      "n": 20,
+      "median": 0.013224,
+      "min": 0.012147,
+      "max": 0.016453,
+      "mad": 0.000492
+     }
+    }
+   },
+   {
+    "id": "start/athena",
+    "tool": "sqlfluff",
+    "dialect": "athena",
+    "status": "valid",
+    "reason": null,
+    "runs": {
+     "warmup": 1,
+     "timed": 3
+    },
+    "wall_s": [
+     0.932259,
+     0.923316,
+     0.979523
+    ],
+    "stats": {
+     "wall_s": {
+      "n": 3,
+      "median": 0.932259,
+      "min": 0.923316,
+      "max": 0.979523,
+      "mad": 0.008943
+     },
+     "cpu_s": {
+      "n": 3,
+      "median": 0.858666,
+      "min": 0.853976,
+      "max": 0.870981,
+      "mad": 0.00469
+     }
+    }
+   },
+   {
+    "id": "start/athena",
+    "tool": "sqruff",
+    "dialect": "athena",
+    "status": "valid",
+    "reason": null,
+    "runs": {
+     "warmup": 1,
+     "timed": 20
+    },
+    "wall_s": [
+     0.018798,
+     0.021656,
+     0.027991,
+     0.032055,
+     0.020039,
+     0.020055,
+     0.029132,
+     0.024523,
+     0.021693,
+     0.022156,
+     0.019988,
+     0.028789,
+     0.019283,
+     0.018142,
+     0.020933,
+     0.022489,
+     0.023646,
+     0.02391,
+     0.025935,
+     0.024851
+    ],
+    "stats": {
+     "wall_s": {
+      "n": 20,
+      "median": 0.022322,
+      "min": 0.018142,
+      "max": 0.032055,
+      "mad": 0.002309
+     },
+     "cpu_s": {
+      "n": 20,
+      "median": 0.019464,
+      "min": 0.0178,
+      "max": 0.023697,
+      "mad": 0.000852
+     }
+    }
+   },
+   {
+    "id": "start/bigquery",
+    "tool": "sqlfluff",
+    "dialect": "bigquery",
+    "status": "valid",
+    "reason": null,
+    "runs": {
+     "warmup": 1,
+     "timed": 3
+    },
+    "wall_s": [
+     0.851043,
+     0.891568,
+     0.889742
+    ],
+    "stats": {
+     "wall_s": {
+      "n": 3,
+      "median": 0.889742,
+      "min": 0.851043,
+      "max": 0.891568,
+      "mad": 0.001826
+     },
+     "cpu_s": {
+      "n": 3,
+      "median": 0.776089,
+      "min": 0.764854,
+      "max": 0.805719,
+      "mad": 0.011235
+     }
+    }
+   },
+   {
+    "id": "start/bigquery",
+    "tool": "sqruff",
+    "dialect": "bigquery",
+    "status": "valid",
+    "reason": null,
+    "runs": {
+     "warmup": 1,
+     "timed": 20
+    },
+    "wall_s": [
+     0.023716,
+     0.026466,
+     0.018374,
+     0.018812,
+     0.019981,
+     0.021313,
+     0.020137,
+     0.019225,
+     0.02096,
+     0.018472,
+     0.017571,
+     0.018149,
+     0.017614,
+     0.018397,
+     0.020364,
+     0.029202,
+     0.02397,
+     0.021743,
+     0.017982,
+     0.017497
+    ],
+    "stats": {
+     "wall_s": {
+      "n": 20,
+      "median": 0.019603,
+      "min": 0.017497,
+      "max": 0.029202,
+      "mad": 0.001537
+     },
+     "cpu_s": {
+      "n": 20,
+      "median": 0.018722,
+      "min": 0.016802,
+      "max": 0.020908,
+      "mad": 0.001018
+     }
+    }
+   },
+   {
+    "id": "start/clickhouse",
+    "tool": "sqlfluff",
+    "dialect": "clickhouse",
+    "status": "valid",
+    "reason": null,
+    "runs": {
+     "warmup": 1,
+     "timed": 3
+    },
+    "wall_s": [
+     0.859845,
+     0.871017,
+     0.954816
+    ],
+    "stats": {
+     "wall_s": {
+      "n": 3,
+      "median": 0.871017,
+      "min": 0.859845,
+      "max": 0.954816,
+      "mad": 0.011172
+     },
+     "cpu_s": {
+      "n": 3,
+      "median": 0.812954,
+      "min": 0.784038,
+      "max": 0.89794,
+      "mad": 0.028916
+     }
+    }
+   },
+   {
+    "id": "start/clickhouse",
+    "tool": "sqruff",
+    "dialect": "clickhouse",
+    "status": "valid",
+    "reason": null,
+    "runs": {
+     "warmup": 1,
+     "timed": 20
+    },
+    "wall_s": [
+     0.025102,
+     0.02512,
+     0.016393,
+     0.017078,
+     0.019455,
+     0.016643,
+     0.020347,
+     0.022772,
+     0.022852,
+     0.018541,
+     0.018168,
+     0.016259,
+     0.018079,
+     0.0175,
+     0.023197,
+     0.031648,
+     0.021394,
+     0.01738,
+     0.017326,
+     0.017689
+    ],
+    "stats": {
+     "wall_s": {
+      "n": 20,
+      "median": 0.018354,
+      "min": 0.016259,
+      "max": 0.031648,
+      "mad": 0.001836
+     },
+     "cpu_s": {
+      "n": 20,
+      "median": 0.01642,
+      "min": 0.015781,
+      "max": 0.02036,
+      "mad": 0.000245
+     }
+    }
+   },
+   {
+    "id": "start/databricks",
+    "tool": "sqlfluff",
+    "dialect": "databricks",
+    "status": "valid",
+    "reason": null,
+    "runs": {
+     "warmup": 1,
+     "timed": 3
+    },
+    "wall_s": [
+     1.000816,
+     0.943225,
+     0.978398
+    ],
+    "stats": {
+     "wall_s": {
+      "n": 3,
+      "median": 0.978398,
+      "min": 0.943225,
+      "max": 1.000816,
+      "mad": 0.022418
+     },
+     "cpu_s": {
+      "n": 3,
+      "median": 0.91442,
+      "min": 0.890654,
+      "max": 0.92882,
+      "mad": 0.0144
+     }
+    }
+   },
+   {
+    "id": "start/databricks",
+    "tool": "sqruff",
+    "dialect": "databricks",
+    "status": "valid",
+    "reason": null,
+    "runs": {
+     "warmup": 1,
+     "timed": 20
+    },
+    "wall_s": [
+     0.056416,
+     0.068132,
+     0.060251,
+     0.049442,
+     0.061874,
+     0.058066,
+     0.075411,
+     0.089557,
+     0.070284,
+     0.064715,
+     0.052071,
+     0.05856,
+     0.062484,
+     0.055198,
+     0.057434,
+     0.051679,
+     0.049193,
+     0.05642,
+     0.056389,
+     0.054772
+    ],
+    "stats": {
+     "wall_s": {
+      "n": 20,
+      "median": 0.05775,
+      "min": 0.049193,
+      "max": 0.089557,
+      "mad": 0.004429
+     },
+     "cpu_s": {
+      "n": 20,
+      "median": 0.051999,
+      "min": 0.048333,
+      "max": 0.06641,
+      "mad": 0.001587
+     }
+    }
+   },
+   {
+    "id": "start/db2",
+    "tool": "sqlfluff",
+    "dialect": "db2",
+    "status": "valid",
+    "reason": null,
+    "runs": {
+     "warmup": 1,
+     "timed": 3
+    },
+    "wall_s": [
+     0.812076,
+     0.795046,
+     0.771806
+    ],
+    "stats": {
+     "wall_s": {
+      "n": 3,
+      "median": 0.795046,
+      "min": 0.771806,
+      "max": 0.812076,
+      "mad": 0.01703
+     },
+     "cpu_s": {
+      "n": 3,
+      "median": 0.743362,
+      "min": 0.723511,
+      "max": 0.753174,
+      "mad": 0.009812
+     }
+    }
+   },
+   {
+    "id": "start/db2",
+    "tool": "sqruff",
+    "dialect": "db2",
+    "status": "valid",
+    "reason": null,
+    "runs": {
+     "warmup": 1,
+     "timed": 20
+    },
+    "wall_s": [
+     0.016571,
+     0.015791,
+     0.017804,
+     0.020599,
+     0.019377,
+     0.016351,
+     0.020064,
+     0.016316,
+     0.017512,
+     0.016574,
+     0.017415,
+     0.017275,
+     0.031107,
+     0.019566,
+     0.018291,
+     0.020237,
+     0.027655,
+     0.023425,
+     0.017116,
+     0.015906
+    ],
+    "stats": {
+     "wall_s": {
+      "n": 20,
+      "median": 0.017658,
+      "min": 0.015791,
+      "max": 0.031107,
+      "mad": 0.00153
+     },
+     "cpu_s": {
+      "n": 20,
+      "median": 0.016587,
+      "min": 0.015273,
+      "max": 0.019093,
+      "mad": 0.00052
+     }
+    }
+   },
+   {
+    "id": "start/doris",
+    "tool": "sqlfluff",
+    "dialect": "doris",
+    "status": "valid",
+    "reason": null,
+    "runs": {
+     "warmup": 1,
+     "timed": 3
+    },
+    "wall_s": [
+     0.867499,
+     0.958114,
+     0.971464
+    ],
+    "stats": {
+     "wall_s": {
+      "n": 3,
+      "median": 0.958114,
+      "min": 0.867499,
+      "max": 0.971464,
+      "mad": 0.01335
+     },
+     "cpu_s": {
+      "n": 3,
+      "median": 0.86983,
+      "min": 0.85189,
+      "max": 0.895581,
+      "mad": 0.01794
+     }
+    }
+   },
+   {
+    "id": "start/doris",
+    "tool": "sqruff",
+    "dialect": "doris",
+    "status": "valid",
+    "reason": null,
+    "runs": {
+     "warmup": 1,
+     "timed": 20
+    },
+    "wall_s": [
+     0.027098,
+     0.024242,
+     0.023875,
+     0.032531,
+     0.032872,
+     0.023496,
+     0.027255,
+     0.033403,
+     0.024741,
+     0.029547,
+     0.031179,
+     0.025528,
+     0.035177,
+     0.029169,
+     0.027134,
+     0.024522,
+     0.023707,
+     0.024997,
+     0.027904,
+     0.023269
+    ],
+    "stats": {
+     "wall_s": {
+      "n": 20,
+      "median": 0.027116,
+      "min": 0.023269,
+      "max": 0.035177,
+      "mad": 0.002734
+     },
+     "cpu_s": {
+      "n": 20,
+      "median": 0.024644,
+      "min": 0.022819,
+      "max": 0.030687,
+      "mad": 0.001327
+     }
+    }
+   },
+   {
+    "id": "start/duckdb",
+    "tool": "sqlfluff",
+    "dialect": "duckdb",
+    "status": "valid",
+    "reason": null,
+    "runs": {
+     "warmup": 1,
+     "timed": 3
+    },
+    "wall_s": [
+     0.975826,
+     0.893125,
+     1.041616
+    ],
+    "stats": {
+     "wall_s": {
+      "n": 3,
+      "median": 0.975826,
+      "min": 0.893125,
+      "max": 1.041616,
+      "mad": 0.06579
+     },
+     "cpu_s": {
+      "n": 3,
+      "median": 0.892352,
+      "min": 0.838586,
+      "max": 0.903244,
+      "mad": 0.010892
+     }
+    }
+   },
+   {
+    "id": "start/duckdb",
+    "tool": "sqruff",
+    "dialect": "duckdb",
+    "status": "valid",
+    "reason": null,
+    "runs": {
+     "warmup": 1,
+     "timed": 20
+    },
+    "wall_s": [
+     0.029193,
+     0.030777,
+     0.02744,
+     0.039083,
+     0.033732,
+     0.034466,
+     0.030212,
+     0.028847,
+     0.031092,
+     0.028362,
+     0.038699,
+     0.027156,
+     0.028463,
+     0.028443,
+     0.026434,
+     0.033539,
+     0.030473,
+     0.028513,
+     0.042007,
+     0.032635
+    ],
+    "stats": {
+     "wall_s": {
+      "n": 20,
+      "median": 0.030343,
+      "min": 0.026434,
+      "max": 0.042007,
+      "mad": 0.002136
+     },
+     "cpu_s": {
+      "n": 20,
+      "median": 0.027752,
+      "min": 0.025866,
+      "max": 0.030488,
+      "mad": 0.00085
+     }
+    }
+   },
+   {
+    "id": "start/exasol",
+    "tool": "sqlfluff",
+    "dialect": "exasol",
+    "status": "valid",
+    "reason": null,
+    "runs": {
+     "warmup": 1,
+     "timed": 3
+    },
+    "wall_s": [
+     0.825523,
+     0.819385,
+     0.797555
+    ],
+    "stats": {
+     "wall_s": {
+      "n": 3,
+      "median": 0.819385,
+      "min": 0.797555,
+      "max": 0.825523,
+      "mad": 0.006138
+     },
+     "cpu_s": {
+      "n": 3,
+      "median": 0.770876,
+      "min": 0.75723,
+      "max": 0.77391,
+      "mad": 0.003034
+     }
+    }
+   },
+   {
+    "id": "start/exasol",
+    "tool": "sqruff",
+    "dialect": "exasol",
+    "status": "valid",
+    "reason": null,
+    "runs": {
+     "warmup": 1,
+     "timed": 20
+    },
+    "wall_s": [
+     0.0285,
+     0.031396,
+     0.031563,
+     0.024361,
+     0.024465,
+     0.032227,
+     0.031743,
+     0.033087,
+     0.029128,
+     0.030883,
+     0.030267,
+     0.024584,
+     0.030998,
+     0.027027,
+     0.038341,
+     0.02749,
+     0.033996,
+     0.027042,
+     0.02743,
+     0.025951
+    ],
+    "stats": {
+     "wall_s": {
+      "n": 20,
+      "median": 0.029698,
+      "min": 0.024361,
+      "max": 0.038341,
+      "mad": 0.002398
+     },
+     "cpu_s": {
+      "n": 20,
+      "median": 0.025896,
+      "min": 0.023827,
+      "max": 0.027793,
+      "mad": 0.00079
+     }
+    }
+   },
+   {
+    "id": "start/flink",
+    "tool": "sqlfluff",
+    "dialect": "flink",
+    "status": "valid",
+    "reason": null,
+    "runs": {
+     "warmup": 1,
+     "timed": 3
+    },
+    "wall_s": [
+     0.78343,
+     0.8048,
+     0.772337
+    ],
+    "stats": {
+     "wall_s": {
+      "n": 3,
+      "median": 0.78343,
+      "min": 0.772337,
+      "max": 0.8048,
+      "mad": 0.011093
+     },
+     "cpu_s": {
+      "n": 3,
+      "median": 0.742147,
+      "min": 0.729386,
+      "max": 0.751915,
+      "mad": 0.009768
+     }
+    }
+   },
+   {
+    "id": "start/flink",
+    "tool": "sqruff",
+    "dialect": "flink",
+    "status": "valid",
+    "reason": null,
+    "runs": {
+     "warmup": 1,
+     "timed": 20
+    },
+    "wall_s": [
+     0.017639,
+     0.019897,
+     0.020004,
+     0.028114,
+     0.029438,
+     0.023236,
+     0.019493,
+     0.023032,
+     0.021491,
+     0.0244,
+     0.021193,
+     0.021017,
+     0.021864,
+     0.021556,
+     0.024621,
+     0.021392,
+     0.020364,
+     0.021756,
+     0.019739,
+     0.022529
+    ],
+    "stats": {
+     "wall_s": {
+      "n": 20,
+      "median": 0.021524,
+      "min": 0.017639,
+      "max": 0.029438,
+      "mad": 0.001514
+     },
+     "cpu_s": {
+      "n": 20,
+      "median": 0.019397,
+      "min": 0.017384,
+      "max": 0.021224,
+      "mad": 0.000686
+     }
+    }
+   },
+   {
+    "id": "start/greenplum",
+    "tool": "sqlfluff",
+    "dialect": "greenplum",
+    "status": "valid",
+    "reason": null,
+    "runs": {
+     "warmup": 1,
+     "timed": 3
+    },
+    "wall_s": [
+     0.926018,
+     0.913074,
+     0.929018
+    ],
+    "stats": {
+     "wall_s": {
+      "n": 3,
+      "median": 0.926018,
+      "min": 0.913074,
+      "max": 0.929018,
+      "mad": 0.003
+     },
+     "cpu_s": {
+      "n": 3,
+      "median": 0.865935,
+      "min": 0.858395,
+      "max": 0.882352,
+      "mad": 0.00754
+     }
+    }
+   },
+   {
+    "id": "start/greenplum",
+    "tool": "sqruff",
+    "dialect": "greenplum",
+    "status": "valid",
+    "reason": null,
+    "runs": {
+     "warmup": 1,
+     "timed": 20
+    },
+    "wall_s": [
+     0.024285,
+     0.037398,
+     0.027278,
+     0.029083,
+     0.026183,
+     0.025713,
+     0.030708,
+     0.027618,
+     0.02991,
+     0.031874,
+     0.035147,
+     0.025731,
+     0.02932,
+     0.03835,
+     0.030754,
+     0.035996,
+     0.038054,
+     0.040148,
+     0.040799,
+     0.033621
+    ],
+    "stats": {
+     "wall_s": {
+      "n": 20,
+      "median": 0.030731,
+      "min": 0.024285,
+      "max": 0.040799,
+      "mad": 0.004482
+     },
+     "cpu_s": {
+      "n": 20,
+      "median": 0.027129,
+      "min": 0.024033,
+      "max": 0.030692,
+      "mad": 0.001738
+     }
+    }
+   },
+   {
+    "id": "start/hive",
+    "tool": "sqlfluff",
+    "dialect": "hive",
+    "status": "valid",
+    "reason": null,
+    "runs": {
+     "warmup": 1,
+     "timed": 3
+    },
+    "wall_s": [
+     0.741293,
+     0.673554,
+     0.758339
+    ],
+    "stats": {
+     "wall_s": {
+      "n": 3,
+      "median": 0.741293,
+      "min": 0.673554,
+      "max": 0.758339,
+      "mad": 0.017046
+     },
+     "cpu_s": {
+      "n": 3,
+      "median": 0.702725,
+      "min": 0.667147,
+      "max": 0.708501,
+      "mad": 0.005776
+     }
+    }
+   },
+   {
+    "id": "start/hive",
+    "tool": "sqruff",
+    "dialect": "hive",
+    "status": "valid",
+    "reason": null,
+    "runs": {
+     "warmup": 1,
+     "timed": 20
+    },
+    "wall_s": [
+     0.013611,
+     0.020103,
+     0.017558,
+     0.014375,
+     0.013229,
+     0.016634,
+     0.013787,
+     0.013409,
+     0.017508,
+     0.013752,
+     0.01759,
+     0.014539,
+     0.012972,
+     0.01426,
+     0.016275,
+     0.013254,
+     0.014418,
+     0.013728,
+     0.013166,
+     0.013534
+    ],
+    "stats": {
+     "wall_s": {
+      "n": 20,
+      "median": 0.014024,
+      "min": 0.012972,
+      "max": 0.020103,
+      "mad": 0.000692
+     },
+     "cpu_s": {
+      "n": 20,
+      "median": 0.013296,
+      "min": 0.012676,
+      "max": 0.014441,
+      "mad": 0.000381
+     }
+    }
+   },
+   {
+    "id": "start/impala",
+    "tool": "sqlfluff",
+    "dialect": "impala",
+    "status": "valid",
+    "reason": null,
+    "runs": {
+     "warmup": 1,
+     "timed": 3
+    },
+    "wall_s": [
+     0.829911,
+     0.941911,
+     0.817452
+    ],
+    "stats": {
+     "wall_s": {
+      "n": 3,
+      "median": 0.829911,
+      "min": 0.817452,
+      "max": 0.941911,
+      "mad": 0.012459
+     },
+     "cpu_s": {
+      "n": 3,
+      "median": 0.784871,
+      "min": 0.77983,
+      "max": 0.867921,
+      "mad": 0.005041
+     }
+    }
+   },
+   {
+    "id": "start/impala",
+    "tool": "sqruff",
+    "dialect": "impala",
+    "status": "valid",
+    "reason": null,
+    "runs": {
+     "warmup": 1,
+     "timed": 20
+    },
+    "wall_s": [
+     0.02389,
+     0.023,
+     0.027156,
+     0.028485,
+     0.023678,
+     0.028653,
+     0.030787,
+     0.024792,
+     0.033011,
+     0.020983,
+     0.024497,
+     0.032437,
+     0.031776,
+     0.024347,
+     0.022505,
+     0.030312,
+     0.026737,
+     0.025574,
+     0.024269,
+     0.026289
+    ],
+    "stats": {
+     "wall_s": {
+      "n": 20,
+      "median": 0.025931,
+      "min": 0.020983,
+      "max": 0.033011,
+      "mad": 0.002403
+     },
+     "cpu_s": {
+      "n": 20,
+      "median": 0.02286,
+      "min": 0.020603,
+      "max": 0.03205,
+      "mad": 0.001134
+     }
+    }
+   },
+   {
+    "id": "start/mariadb",
+    "tool": "sqlfluff",
+    "dialect": "mariadb",
+    "status": "valid",
+    "reason": null,
+    "runs": {
+     "warmup": 1,
+     "timed": 3
+    },
+    "wall_s": [
+     1.085181,
+     1.131862,
+     1.056701
+    ],
+    "stats": {
+     "wall_s": {
+      "n": 3,
+      "median": 1.085181,
+      "min": 1.056701,
+      "max": 1.131862,
+      "mad": 0.02848
+     },
+     "cpu_s": {
+      "n": 3,
+      "median": 0.947068,
+      "min": 0.90423,
+      "max": 0.950478,
+      "mad": 0.00341
+     }
+    }
+   },
+   {
+    "id": "start/mariadb",
+    "tool": "sqruff",
+    "dialect": "mariadb",
+    "status": "valid",
+    "reason": null,
+    "runs": {
+     "warmup": 1,
+     "timed": 20
+    },
+    "wall_s": [
+     0.028228,
+     0.033414,
+     0.043552,
+     0.031187,
+     0.040338,
+     0.033552,
+     0.03608,
+     0.029909,
+     0.025613,
+     0.036871,
+     0.028982,
+     0.039832,
+     0.035547,
+     0.025422,
+     0.031676,
+     0.032862,
+     0.037647,
+     0.040785,
+     0.029847,
+     0.046998
+    ],
+    "stats": {
+     "wall_s": {
+      "n": 20,
+      "median": 0.033483,
+      "min": 0.025422,
+      "max": 0.046998,
+      "mad": 0.0039
+     },
+     "cpu_s": {
+      "n": 20,
+      "median": 0.028298,
+      "min": 0.024953,
+      "max": 0.039585,
+      "mad": 0.001772
+     }
+    }
+   },
+   {
+    "id": "start/materialize",
+    "tool": "sqlfluff",
+    "dialect": "materialize",
+    "status": "valid",
+    "reason": null,
+    "runs": {
+     "warmup": 1,
+     "timed": 3
+    },
+    "wall_s": [
+     0.893726,
+     0.968311,
+     0.949288
+    ],
+    "stats": {
+     "wall_s": {
+      "n": 3,
+      "median": 0.949288,
+      "min": 0.893726,
+      "max": 0.968311,
+      "mad": 0.019023
+     },
+     "cpu_s": {
+      "n": 3,
+      "median": 0.866484,
+      "min": 0.829114,
+      "max": 0.875864,
+      "mad": 0.00938
+     }
+    }
+   },
+   {
+    "id": "start/materialize",
+    "tool": "sqruff",
+    "dialect": "materialize",
+    "status": "valid",
+    "reason": null,
+    "runs": {
+     "warmup": 1,
+     "timed": 20
+    },
+    "wall_s": [
+     0.028528,
+     0.028006,
+     0.023447,
+     0.028063,
+     0.025662,
+     0.044452,
+     0.023733,
+     0.02373,
+     0.024217,
+     0.023557,
+     0.023824,
+     0.031152,
+     0.029163,
+     0.025649,
+     0.025461,
+     0.030613,
+     0.02419,
+     0.02408,
+     0.024856,
+     0.025945
+    ],
+    "stats": {
+     "wall_s": {
+      "n": 20,
+      "median": 0.025555,
+      "min": 0.023447,
+      "max": 0.044452,
+      "mad": 0.001824
+     },
+     "cpu_s": {
+      "n": 20,
+      "median": 0.023871,
+      "min": 0.022897,
+      "max": 0.026137,
+      "mad": 0.000598
+     }
+    }
+   },
+   {
+    "id": "start/mysql",
+    "tool": "sqlfluff",
+    "dialect": "mysql",
+    "status": "valid",
+    "reason": null,
+    "runs": {
+     "warmup": 1,
+     "timed": 3
+    },
+    "wall_s": [
+     0.808736,
+     0.791201,
+     0.780909
+    ],
+    "stats": {
+     "wall_s": {
+      "n": 3,
+      "median": 0.791201,
+      "min": 0.780909,
+      "max": 0.808736,
+      "mad": 0.010292
+     },
+     "cpu_s": {
+      "n": 3,
+      "median": 0.762616,
+      "min": 0.748891,
+      "max": 0.776129,
+      "mad": 0.013513
+     }
+    }
+   },
+   {
+    "id": "start/mysql",
+    "tool": "sqruff",
+    "dialect": "mysql",
+    "status": "valid",
+    "reason": null,
+    "runs": {
+     "warmup": 1,
+     "timed": 20
+    },
+    "wall_s": [
+     0.026119,
+     0.023695,
+     0.02324,
+     0.023848,
+     0.026003,
+     0.02452,
+     0.025275,
+     0.024953,
+     0.02379,
+     0.044647,
+     0.028063,
+     0.028313,
+     0.025862,
+     0.027925,
+     0.031711,
+     0.023863,
+     0.046972,
+     0.026306,
+     0.024001,
+     0.023811
+    ],
+    "stats": {
+     "wall_s": {
+      "n": 20,
+      "median": 0.025569,
+      "min": 0.02324,
+      "max": 0.046972,
+      "mad": 0.001739
+     },
+     "cpu_s": {
+      "n": 20,
+      "median": 0.023454,
+      "min": 0.022418,
+      "max": 0.027123,
+      "mad": 0.000457
+     }
+    }
+   },
+   {
+    "id": "start/oracle",
+    "tool": "sqlfluff",
+    "dialect": "oracle",
+    "status": "valid",
+    "reason": null,
+    "runs": {
+     "warmup": 1,
+     "timed": 3
+    },
+    "wall_s": [
+     0.983836,
+     0.898177,
+     0.781525
+    ],
+    "stats": {
+     "wall_s": {
+      "n": 3,
+      "median": 0.898177,
+      "min": 0.781525,
+      "max": 0.983836,
+      "mad": 0.085659
+     },
+     "cpu_s": {
+      "n": 3,
+      "median": 0.760999,
+      "min": 0.733919,
+      "max": 0.838205,
+      "mad": 0.02708
+     }
+    }
+   },
+   {
+    "id": "start/oracle",
+    "tool": "sqruff",
+    "dialect": "oracle",
+    "status": "valid",
+    "reason": null,
+    "runs": {
+     "warmup": 1,
+     "timed": 20
+    },
+    "wall_s": [
+     0.022959,
+     0.025846,
+     0.03715,
+     0.027449,
+     0.026546,
+     0.027263,
+     0.023568,
+     0.020317,
+     0.022502,
+     0.022597,
+     0.024264,
+     0.021034,
+     0.019919,
+     0.021329,
+     0.030707,
+     0.025097,
+     0.023111,
+     0.029291,
+     0.025905,
+     0.025437
+    ],
+    "stats": {
+     "wall_s": {
+      "n": 20,
+      "median": 0.024681,
+      "min": 0.019919,
+      "max": 0.03715,
+      "mad": 0.002131
+     },
+     "cpu_s": {
+      "n": 20,
+      "median": 0.02192,
+      "min": 0.019688,
+      "max": 0.030214,
+      "mad": 0.001017
+     }
+    }
+   },
+   {
+    "id": "start/postgres",
+    "tool": "sqlfluff",
+    "dialect": "postgres",
+    "status": "valid",
+    "reason": null,
+    "runs": {
+     "warmup": 1,
+     "timed": 3
+    },
+    "wall_s": [
+     0.797765,
+     0.896259,
+     0.930249
+    ],
+    "stats": {
+     "wall_s": {
+      "n": 3,
+      "median": 0.896259,
+      "min": 0.797765,
+      "max": 0.930249,
+      "mad": 0.03399
+     },
+     "cpu_s": {
+      "n": 3,
+      "median": 0.834438,
+      "min": 0.778338,
+      "max": 0.875545,
+      "mad": 0.041107
+     }
+    }
+   },
+   {
+    "id": "start/postgres",
+    "tool": "sqruff",
+    "dialect": "postgres",
+    "status": "valid",
+    "reason": null,
+    "runs": {
+     "warmup": 1,
+     "timed": 20
+    },
+    "wall_s": [
+     0.024681,
+     0.029885,
+     0.025789,
+     0.030481,
+     0.034587,
+     0.029219,
+     0.033228,
+     0.029638,
+     0.03099,
+     0.047129,
+     0.028618,
+     0.03683,
+     0.024827,
+     0.025543,
+     0.027404,
+     0.024049,
+     0.030359,
+     0.024671,
+     0.024977,
+     0.024143
+    ],
+    "stats": {
+     "wall_s": {
+      "n": 20,
+      "median": 0.028918,
+      "min": 0.024049,
+      "max": 0.047129,
+      "mad": 0.003659
+     },
+     "cpu_s": {
+      "n": 20,
+      "median": 0.025105,
+      "min": 0.023679,
+      "max": 0.036438,
+      "mad": 0.001064
+     }
+    }
+   },
+   {
+    "id": "start/redshift",
+    "tool": "sqlfluff",
+    "dialect": "redshift",
+    "status": "valid",
+    "reason": null,
+    "runs": {
+     "warmup": 1,
+     "timed": 3
+    },
+    "wall_s": [
+     1.053509,
+     0.81874,
+     0.834994
+    ],
+    "stats": {
+     "wall_s": {
+      "n": 3,
+      "median": 0.834994,
+      "min": 0.81874,
+      "max": 1.053509,
+      "mad": 0.016254
+     },
+     "cpu_s": {
+      "n": 3,
+      "median": 0.80434,
+      "min": 0.803534,
+      "max": 0.965452,
+      "mad": 0.000806
+     }
+    }
+   },
+   {
+    "id": "start/redshift",
+    "tool": "sqruff",
+    "dialect": "redshift",
+    "status": "valid",
+    "reason": null,
+    "runs": {
+     "warmup": 1,
+     "timed": 20
+    },
+    "wall_s": [
+     0.022675,
+     0.022184,
+     0.024308,
+     0.023526,
+     0.032369,
+     0.031894,
+     0.025505,
+     0.024361,
+     0.026499,
+     0.031376,
+     0.024753,
+     0.024462,
+     0.032513,
+     0.039067,
+     0.024391,
+     0.026136,
+     0.031653,
+     0.029508,
+     0.029245,
+     0.03692
+    ],
+    "stats": {
+     "wall_s": {
+      "n": 20,
+      "median": 0.026318,
+      "min": 0.022184,
+      "max": 0.039067,
+      "mad": 0.003059
+     },
+     "cpu_s": {
+      "n": 20,
+      "median": 0.024542,
+      "min": 0.021943,
+      "max": 0.031997,
+      "mad": 0.001205
+     }
+    }
+   },
+   {
+    "id": "start/snowflake",
+    "tool": "sqlfluff",
+    "dialect": "snowflake",
+    "status": "valid",
+    "reason": null,
+    "runs": {
+     "warmup": 1,
+     "timed": 3
+    },
+    "wall_s": [
+     0.922346,
+     0.942951,
+     0.917782
+    ],
+    "stats": {
+     "wall_s": {
+      "n": 3,
+      "median": 0.922346,
+      "min": 0.917782,
+      "max": 0.942951,
+      "mad": 0.004564
+     },
+     "cpu_s": {
+      "n": 3,
+      "median": 0.886994,
+      "min": 0.849211,
+      "max": 0.900702,
+      "mad": 0.013708
+     }
+    }
+   },
+   {
+    "id": "start/snowflake",
+    "tool": "sqruff",
+    "dialect": "snowflake",
+    "status": "valid",
+    "reason": null,
+    "runs": {
+     "warmup": 1,
+     "timed": 20
+    },
+    "wall_s": [
+     0.031645,
+     0.027809,
+     0.021873,
+     0.022782,
+     0.024212,
+     0.035909,
+     0.035542,
+     0.023844,
+     0.027575,
+     0.029558,
+     0.025797,
+     0.022334,
+     0.022243,
+     0.021834,
+     0.02426,
+     0.021813,
+     0.029124,
+     0.021544,
+     0.028941,
+     0.022504
+    ],
+    "stats": {
+     "wall_s": {
+      "n": 20,
+      "median": 0.024236,
+      "min": 0.021544,
+      "max": 0.035909,
+      "mad": 0.002413
+     },
+     "cpu_s": {
+      "n": 20,
+      "median": 0.022263,
+      "min": 0.021138,
+      "max": 0.024795,
+      "mad": 0.000678
+     }
+    }
+   },
+   {
+    "id": "start/soql",
+    "tool": "sqlfluff",
+    "dialect": "soql",
+    "status": "valid",
+    "reason": null,
+    "runs": {
+     "warmup": 1,
+     "timed": 3
+    },
+    "wall_s": [
+     0.691375,
+     0.706095,
+     0.706103
+    ],
+    "stats": {
+     "wall_s": {
+      "n": 3,
+      "median": 0.706095,
+      "min": 0.691375,
+      "max": 0.706103,
+      "mad": 8e-06
+     },
+     "cpu_s": {
+      "n": 3,
+      "median": 0.661808,
+      "min": 0.656383,
+      "max": 0.673071,
+      "mad": 0.005425
+     }
+    }
+   },
+   {
+    "id": "start/soql",
+    "tool": "sqruff",
+    "dialect": "soql",
+    "status": "unsupported",
+    "reason": "unsupported: dialect soql",
+    "runs": {
+     "warmup": 0,
+     "timed": 0
+    },
+    "wall_s": [],
+    "stats": null
+   },
+   {
+    "id": "start/sparksql",
+    "tool": "sqlfluff",
+    "dialect": "sparksql",
+    "status": "valid",
+    "reason": null,
+    "runs": {
+     "warmup": 1,
+     "timed": 3
+    },
+    "wall_s": [
+     0.838025,
+     0.867294,
+     0.780359
+    ],
+    "stats": {
+     "wall_s": {
+      "n": 3,
+      "median": 0.838025,
+      "min": 0.780359,
+      "max": 0.867294,
+      "mad": 0.029269
+     },
+     "cpu_s": {
+      "n": 3,
+      "median": 0.76654,
+      "min": 0.765251,
+      "max": 0.79731,
+      "mad": 0.001289
+     }
+    }
+   },
+   {
+    "id": "start/sparksql",
+    "tool": "sqruff",
+    "dialect": "sparksql",
+    "status": "valid",
+    "reason": null,
+    "runs": {
+     "warmup": 1,
+     "timed": 20
+    },
+    "wall_s": [
+     0.029002,
+     0.027239,
+     0.021036,
+     0.022833,
+     0.020305,
+     0.025558,
+     0.021425,
+     0.029676,
+     0.023321,
+     0.021367,
+     0.020201,
+     0.020669,
+     0.025231,
+     0.019865,
+     0.021397,
+     0.02384,
+     0.021303,
+     0.022033,
+     0.023399,
+     0.033012
+    ],
+    "stats": {
+     "wall_s": {
+      "n": 20,
+      "median": 0.022433,
+      "min": 0.019865,
+      "max": 0.033012,
+      "mad": 0.001586
+     },
+     "cpu_s": {
+      "n": 20,
+      "median": 0.020185,
+      "min": 0.018217,
+      "max": 0.023105,
+      "mad": 0.000435
+     }
+    }
+   },
+   {
+    "id": "start/sqlite",
+    "tool": "sqlfluff",
+    "dialect": "sqlite",
+    "status": "valid",
+    "reason": null,
+    "runs": {
+     "warmup": 1,
+     "timed": 3
+    },
+    "wall_s": [
+     0.643186,
+     0.711279,
+     0.82703
+    ],
+    "stats": {
+     "wall_s": {
+      "n": 3,
+      "median": 0.711279,
+      "min": 0.643186,
+      "max": 0.82703,
+      "mad": 0.068093
+     },
+     "cpu_s": {
+      "n": 3,
+      "median": 0.660226,
+      "min": 0.634714,
+      "max": 0.723579,
+      "mad": 0.025512
+     }
+    }
+   },
+   {
+    "id": "start/sqlite",
+    "tool": "sqruff",
+    "dialect": "sqlite",
+    "status": "valid",
+    "reason": null,
+    "runs": {
+     "warmup": 1,
+     "timed": 20
+    },
+    "wall_s": [
+     0.013434,
+     0.014849,
+     0.014064,
+     0.019805,
+     0.017999,
+     0.01849,
+     0.014449,
+     0.020486,
+     0.014696,
+     0.014852,
+     0.018766,
+     0.015008,
+     0.014297,
+     0.016573,
+     0.022896,
+     0.014901,
+     0.015042,
+     0.023097,
+     0.013911,
+     0.021393
+    ],
+    "stats": {
+     "wall_s": {
+      "n": 20,
+      "median": 0.015025,
+      "min": 0.013434,
+      "max": 0.023097,
+      "mad": 0.001331
+     },
+     "cpu_s": {
+      "n": 20,
+      "median": 0.014342,
+      "min": 0.013167,
+      "max": 0.019004,
+      "mad": 0.000504
+     }
+    }
+   },
+   {
+    "id": "start/starrocks",
+    "tool": "sqlfluff",
+    "dialect": "starrocks",
+    "status": "valid",
+    "reason": null,
+    "runs": {
+     "warmup": 1,
+     "timed": 3
+    },
+    "wall_s": [
+     0.923338,
+     0.958705,
+     0.721542
+    ],
+    "stats": {
+     "wall_s": {
+      "n": 3,
+      "median": 0.923338,
+      "min": 0.721542,
+      "max": 0.958705,
+      "mad": 0.035367
+     },
+     "cpu_s": {
+      "n": 3,
+      "median": 0.84095,
+      "min": 0.701365,
+      "max": 0.844661,
+      "mad": 0.003711
+     }
+    }
+   },
+   {
+    "id": "start/starrocks",
+    "tool": "sqruff",
+    "dialect": "starrocks",
+    "status": "valid",
+    "reason": null,
+    "runs": {
+     "warmup": 1,
+     "timed": 20
+    },
+    "wall_s": [
+     0.03231,
+     0.021822,
+     0.023204,
+     0.031281,
+     0.021293,
+     0.022928,
+     0.022109,
+     0.021402,
+     0.027625,
+     0.022177,
+     0.021793,
+     0.024026,
+     0.022232,
+     0.023845,
+     0.023279,
+     0.022605,
+     0.023297,
+     0.02388,
+     0.022029,
+     0.025178
+    ],
+    "stats": {
+     "wall_s": {
+      "n": 20,
+      "median": 0.023066,
+      "min": 0.021293,
+      "max": 0.03231,
+      "mad": 0.000958
+     },
+     "cpu_s": {
+      "n": 20,
+      "median": 0.021691,
+      "min": 0.020762,
+      "max": 0.024606,
+      "mad": 0.000385
+     }
+    }
+   },
+   {
+    "id": "start/teradata",
+    "tool": "sqlfluff",
+    "dialect": "teradata",
+    "status": "valid",
+    "reason": null,
+    "runs": {
+     "warmup": 1,
+     "timed": 3
+    },
+    "wall_s": [
+     0.659844,
+     0.879454,
+     0.739776
+    ],
+    "stats": {
+     "wall_s": {
+      "n": 3,
+      "median": 0.739776,
+      "min": 0.659844,
+      "max": 0.879454,
+      "mad": 0.079932
+     },
+     "cpu_s": {
+      "n": 3,
+      "median": 0.708819,
+      "min": 0.644211,
+      "max": 0.76062,
+      "mad": 0.051801
+     }
+    }
+   },
+   {
+    "id": "start/teradata",
+    "tool": "sqruff",
+    "dialect": "teradata",
+    "status": "valid",
+    "reason": null,
+    "runs": {
+     "warmup": 1,
+     "timed": 20
+    },
+    "wall_s": [
+     0.014652,
+     0.014483,
+     0.013607,
+     0.014125,
+     0.01834,
+     0.016149,
+     0.01693,
+     0.015254,
+     0.01661,
+     0.013998,
+     0.014515,
+     0.013709,
+     0.0154,
+     0.018954,
+     0.014786,
+     0.022291,
+     0.013999,
+     0.014644,
+     0.016406,
+     0.014091
+    ],
+    "stats": {
+     "wall_s": {
+      "n": 20,
+      "median": 0.014719,
+      "min": 0.013607,
+      "max": 0.022291,
+      "mad": 0.00072
+     },
+     "cpu_s": {
+      "n": 20,
+      "median": 0.014069,
+      "min": 0.013342,
+      "max": 0.014937,
+      "mad": 0.000478
+     }
+    }
+   },
+   {
+    "id": "start/trino",
+    "tool": "sqlfluff",
+    "dialect": "trino",
+    "status": "valid",
+    "reason": null,
+    "runs": {
+     "warmup": 1,
+     "timed": 3
+    },
+    "wall_s": [
+     0.738024,
+     0.783523,
+     1.085193
+    ],
+    "stats": {
+     "wall_s": {
+      "n": 3,
+      "median": 0.783523,
+      "min": 0.738024,
+      "max": 1.085193,
+      "mad": 0.045499
+     },
+     "cpu_s": {
+      "n": 3,
+      "median": 0.708869,
+      "min": 0.699908,
+      "max": 0.777537,
+      "mad": 0.008961
+     }
+    }
+   },
+   {
+    "id": "start/trino",
+    "tool": "sqruff",
+    "dialect": "trino",
+    "status": "valid",
+    "reason": null,
+    "runs": {
+     "warmup": 1,
+     "timed": 20
+    },
+    "wall_s": [
+     0.015738,
+     0.01546,
+     0.014769,
+     0.019231,
+     0.016534,
+     0.016161,
+     0.030605,
+     0.015387,
+     0.045413,
+     0.014448,
+     0.019788,
+     0.028902,
+     0.017863,
+     0.017107,
+     0.022743,
+     0.036743,
+     0.015391,
+     0.014899,
+     0.021796,
+     0.013826
+    ],
+    "stats": {
+     "wall_s": {
+      "n": 20,
+      "median": 0.016821,
+      "min": 0.013826,
+      "max": 0.045413,
+      "mad": 0.002212
+     },
+     "cpu_s": {
+      "n": 20,
+      "median": 0.014849,
+      "min": 0.013429,
+      "max": 0.022687,
+      "mad": 0.000666
+     }
+    }
+   },
+   {
+    "id": "start/tsql",
+    "tool": "sqlfluff",
+    "dialect": "tsql",
+    "status": "valid",
+    "reason": null,
+    "runs": {
+     "warmup": 1,
+     "timed": 3
+    },
+    "wall_s": [
+     0.960706,
+     0.944608,
+     1.041669
+    ],
+    "stats": {
+     "wall_s": {
+      "n": 3,
+      "median": 0.960706,
+      "min": 0.944608,
+      "max": 1.041669,
+      "mad": 0.016098
+     },
+     "cpu_s": {
+      "n": 3,
+      "median": 0.898561,
+      "min": 0.888922,
+      "max": 0.930061,
+      "mad": 0.009639
+     }
+    }
+   },
+   {
+    "id": "start/tsql",
+    "tool": "sqruff",
+    "dialect": "tsql",
+    "status": "valid",
+    "reason": null,
+    "runs": {
+     "warmup": 1,
+     "timed": 20
+    },
+    "wall_s": [
+     0.030878,
+     0.033812,
+     0.034938,
+     0.042055,
+     0.034548,
+     0.042994,
+     0.039452,
+     0.031421,
+     0.029645,
+     0.052891,
+     0.040776,
+     0.042718,
+     0.039358,
+     0.038172,
+     0.039393,
+     0.038251,
+     0.044525,
+     0.040537,
+     0.029987,
+     0.038035
+    ],
+    "stats": {
+     "wall_s": {
+      "n": 20,
+      "median": 0.038804,
+      "min": 0.029645,
+      "max": 0.052891,
+      "mad": 0.00389
+     },
+     "cpu_s": {
+      "n": 20,
+      "median": 0.032293,
+      "min": 0.029283,
+      "max": 0.035138,
+      "mad": 0.001
+     }
+    }
+   },
+   {
+    "id": "start/vertica",
+    "tool": "sqlfluff",
+    "dialect": "vertica",
+    "status": "valid",
+    "reason": null,
+    "runs": {
+     "warmup": 1,
+     "timed": 3
+    },
+    "wall_s": [
+     0.793515,
+     0.854112,
+     0.766369
+    ],
+    "stats": {
+     "wall_s": {
+      "n": 3,
+      "median": 0.793515,
+      "min": 0.766369,
+      "max": 0.854112,
+      "mad": 0.027146
+     },
+     "cpu_s": {
+      "n": 3,
+      "median": 0.741915,
+      "min": 0.737839,
+      "max": 0.772019,
+      "mad": 0.004076
+     }
+    }
+   },
+   {
+    "id": "start/vertica",
+    "tool": "sqruff",
+    "dialect": "vertica",
+    "status": "valid",
+    "reason": null,
+    "runs": {
+     "warmup": 1,
+     "timed": 20
+    },
+    "wall_s": [
+     0.021326,
+     0.035868,
+     0.020013,
+     0.020469,
+     0.026937,
+     0.022272,
+     0.022637,
+     0.021068,
+     0.020759,
+     0.026819,
+     0.025676,
+     0.026782,
+     0.0232,
+     0.026077,
+     0.02289,
+     0.031103,
+     0.022459,
+     0.020303,
+     0.0301,
+     0.021114
+    ],
+    "stats": {
+     "wall_s": {
+      "n": 20,
+      "median": 0.022763,
+      "min": 0.020013,
+      "max": 0.035868,
+      "mad": 0.002377
+     },
+     "cpu_s": {
+      "n": 20,
+      "median": 0.021111,
+      "min": 0.019727,
+      "max": 0.02316,
+      "mad": 0.000653
+     }
+    }
+   }
+  ]
+ },
+ "series": {
+  "python": {
+   "argv": [
+    "$TOOLS/sqlfluff/bin/python",
+    "-c",
+    "pass"
+   ],
+   "what": "the Python of the sqlfluff venv: -c pass",
+   "samples": [
+    {
+     "kind": "warmup",
+     "wall_s": 0.032411,
+     "user_s": 0.020725,
+     "sys_s": 0.006566,
+     "max_rss_kib": 36268,
+     "exit_code": 0,
+     "timed_out": false
+    },
+    {
+     "kind": "timed",
+     "wall_s": 0.024622,
+     "user_s": 0.024307,
+     "sys_s": 0.0,
+     "max_rss_kib": 36268,
+     "exit_code": 0,
+     "timed_out": false
+    },
+    {
+     "kind": "timed",
+     "wall_s": 0.026585,
+     "user_s": 0.021038,
+     "sys_s": 0.004334,
+     "max_rss_kib": 36268,
+     "exit_code": 0,
+     "timed_out": false
+    },
+    {
+     "kind": "timed",
+     "wall_s": 0.036394,
+     "user_s": 0.02062,
+     "sys_s": 0.00778,
+     "max_rss_kib": 36268,
+     "exit_code": 0,
+     "timed_out": false
+    },
+    {
+     "kind": "timed",
+     "wall_s": 0.034991,
+     "user_s": 0.020946,
+     "sys_s": 0.009831,
+     "max_rss_kib": 36268,
+     "exit_code": 0,
+     "timed_out": false
+    },
+    {
+     "kind": "timed",
+     "wall_s": 0.037979,
+     "user_s": 0.01384,
+     "sys_s": 0.014977,
+     "max_rss_kib": 36268,
+     "exit_code": 0,
+     "timed_out": false
+    },
+    {
+     "kind": "timed",
+     "wall_s": 0.025283,
+     "user_s": 0.024341,
+     "sys_s": 0.0,
+     "max_rss_kib": 36268,
+     "exit_code": 0,
+     "timed_out": false
+    },
+    {
+     "kind": "timed",
+     "wall_s": 0.030399,
+     "user_s": 0.026274,
+     "sys_s": 0.0,
+     "max_rss_kib": 36268,
+     "exit_code": 0,
+     "timed_out": false
+    },
+    {
+     "kind": "timed",
+     "wall_s": 0.031445,
+     "user_s": 0.023532,
+     "sys_s": 0.003561,
+     "max_rss_kib": 36268,
+     "exit_code": 0,
+     "timed_out": false
+    },
+    {
+     "kind": "timed",
+     "wall_s": 0.032135,
+     "user_s": 0.018654,
+     "sys_s": 0.006927,
+     "max_rss_kib": 36268,
+     "exit_code": 0,
+     "timed_out": false
+    },
+    {
+     "kind": "timed",
+     "wall_s": 0.031499,
+     "user_s": 0.017541,
+     "sys_s": 0.010694,
+     "max_rss_kib": 36268,
+     "exit_code": 0,
+     "timed_out": false
+    },
+    {
+     "kind": "timed",
+     "wall_s": 0.029286,
+     "user_s": 0.014189,
+     "sys_s": 0.011214,
+     "max_rss_kib": 36268,
+     "exit_code": 0,
+     "timed_out": false
+    },
+    {
+     "kind": "timed",
+     "wall_s": 0.035642,
+     "user_s": 0.022423,
+     "sys_s": 0.003535,
+     "max_rss_kib": 36268,
+     "exit_code": 0,
+     "timed_out": false
+    },
+    {
+     "kind": "timed",
+     "wall_s": 0.024296,
+     "user_s": 0.016001,
+     "sys_s": 0.008,
+     "max_rss_kib": 36268,
+     "exit_code": 0,
+     "timed_out": false
+    },
+    {
+     "kind": "timed",
+     "wall_s": 0.02496,
+     "user_s": 0.014114,
+     "sys_s": 0.010544,
+     "max_rss_kib": 36268,
+     "exit_code": 0,
+     "timed_out": false
+    },
+    {
+     "kind": "timed",
+     "wall_s": 0.02477,
+     "user_s": 0.012226,
+     "sys_s": 0.012226,
+     "max_rss_kib": 36268,
+     "exit_code": 0,
+     "timed_out": false
+    },
+    {
+     "kind": "timed",
+     "wall_s": 0.023357,
+     "user_s": 0.019244,
+     "sys_s": 0.003848,
+     "max_rss_kib": 36268,
+     "exit_code": 0,
+     "timed_out": false
+    },
+    {
+     "kind": "timed",
+     "wall_s": 0.024512,
+     "user_s": 0.016015,
+     "sys_s": 0.007956,
+     "max_rss_kib": 36268,
+     "exit_code": 0,
+     "timed_out": false
+    },
+    {
+     "kind": "timed",
+     "wall_s": 0.031984,
+     "user_s": 0.015111,
+     "sys_s": 0.014247,
+     "max_rss_kib": 36268,
+     "exit_code": 0,
+     "timed_out": false
+    },
+    {
+     "kind": "timed",
+     "wall_s": 0.030293,
+     "user_s": 0.014209,
+     "sys_s": 0.012707,
+     "max_rss_kib": 36268,
+     "exit_code": 0,
+     "timed_out": false
+    },
+    {
+     "kind": "timed",
+     "wall_s": 0.028611,
+     "user_s": 0.022077,
+     "sys_s": 0.004054,
+     "max_rss_kib": 36268,
+     "exit_code": 0,
+     "timed_out": false
+    }
+   ],
+   "stats": {
+    "wall_s": {
+     "n": 20,
+     "median": 0.02979,
+     "min": 0.023357,
+     "max": 0.037979,
+     "mad": 0.004668
+    },
+    "cpu_s": {
+     "n": 20,
+     "median": 0.02577,
+     "min": 0.023092,
+     "max": 0.030777,
+     "mad": 0.001376
+    }
+   }
+  },
+  "import_cli": {
+   "argv": [
+    "$TOOLS/sqlfluff/bin/python",
+    "-c",
+    "import sqlfluff.cli.commands"
+   ],
+   "what": "the Python of the sqlfluff venv: -c 'import sqlfluff.cli.commands'",
+   "samples": [
+    {
+     "kind": "warmup",
+     "wall_s": 0.444035,
+     "user_s": 0.374536,
+     "sys_s": 0.021881,
+     "max_rss_kib": 36268,
+     "exit_code": 0,
+     "timed_out": false
+    },
+    {
+     "kind": "timed",
+     "wall_s": 0.43864,
+     "user_s": 0.349168,
+     "sys_s": 0.050982,
+     "max_rss_kib": 36268,
+     "exit_code": 0,
+     "timed_out": false
+    },
+    {
+     "kind": "timed",
+     "wall_s": 0.432662,
+     "user_s": 0.364084,
+     "sys_s": 0.037528,
+     "max_rss_kib": 36268,
+     "exit_code": 0,
+     "timed_out": false
+    },
+    {
+     "kind": "timed",
+     "wall_s": 0.451708,
+     "user_s": 0.355733,
+     "sys_s": 0.049088,
+     "max_rss_kib": 36268,
+     "exit_code": 0,
+     "timed_out": false
+    },
+    {
+     "kind": "timed",
+     "wall_s": 0.468919,
+     "user_s": 0.374055,
+     "sys_s": 0.041737,
+     "max_rss_kib": 36268,
+     "exit_code": 0,
+     "timed_out": false
+    },
+    {
+     "kind": "timed",
+     "wall_s": 0.44643,
+     "user_s": 0.345726,
+     "sys_s": 0.055967,
+     "max_rss_kib": 36268,
+     "exit_code": 0,
+     "timed_out": false
+    },
+    {
+     "kind": "timed",
+     "wall_s": 0.381858,
+     "user_s": 0.334901,
+     "sys_s": 0.03828,
+     "max_rss_kib": 36268,
+     "exit_code": 0,
+     "timed_out": false
+    },
+    {
+     "kind": "timed",
+     "wall_s": 0.389015,
+     "user_s": 0.319048,
+     "sys_s": 0.063863,
+     "max_rss_kib": 36268,
+     "exit_code": 0,
+     "timed_out": false
+    },
+    {
+     "kind": "timed",
+     "wall_s": 0.421004,
+     "user_s": 0.358121,
+     "sys_s": 0.04715,
+     "max_rss_kib": 36268,
+     "exit_code": 0,
+     "timed_out": false
+    },
+    {
+     "kind": "timed",
+     "wall_s": 0.420738,
+     "user_s": 0.340217,
+     "sys_s": 0.053002,
+     "max_rss_kib": 36268,
+     "exit_code": 0,
+     "timed_out": false
+    },
+    {
+     "kind": "timed",
+     "wall_s": 0.406956,
+     "user_s": 0.358994,
+     "sys_s": 0.029137,
+     "max_rss_kib": 36268,
+     "exit_code": 0,
+     "timed_out": false
+    },
+    {
+     "kind": "timed",
+     "wall_s": 0.398595,
+     "user_s": 0.309231,
+     "sys_s": 0.056279,
+     "max_rss_kib": 36268,
+     "exit_code": 0,
+     "timed_out": false
+    },
+    {
+     "kind": "timed",
+     "wall_s": 0.377813,
+     "user_s": 0.341854,
+     "sys_s": 0.028116,
+     "max_rss_kib": 36268,
+     "exit_code": 0,
+     "timed_out": false
+    },
+    {
+     "kind": "timed",
+     "wall_s": 0.363383,
+     "user_s": 0.326543,
+     "sys_s": 0.035907,
+     "max_rss_kib": 36268,
+     "exit_code": 0,
+     "timed_out": false
+    },
+    {
+     "kind": "timed",
+     "wall_s": 0.384888,
+     "user_s": 0.318675,
+     "sys_s": 0.054111,
+     "max_rss_kib": 36268,
+     "exit_code": 0,
+     "timed_out": false
+    },
+    {
+     "kind": "timed",
+     "wall_s": 0.502132,
+     "user_s": 0.375513,
+     "sys_s": 0.036856,
+     "max_rss_kib": 36268,
+     "exit_code": 0,
+     "timed_out": false
+    },
+    {
+     "kind": "timed",
+     "wall_s": 0.357929,
+     "user_s": 0.314969,
+     "sys_s": 0.03375,
+     "max_rss_kib": 36268,
+     "exit_code": 0,
+     "timed_out": false
+    },
+    {
+     "kind": "timed",
+     "wall_s": 0.431062,
+     "user_s": 0.359441,
+     "sys_s": 0.045665,
+     "max_rss_kib": 36268,
+     "exit_code": 0,
+     "timed_out": false
+    },
+    {
+     "kind": "timed",
+     "wall_s": 0.441653,
+     "user_s": 0.363708,
+     "sys_s": 0.054519,
+     "max_rss_kib": 36268,
+     "exit_code": 0,
+     "timed_out": false
+    },
+    {
+     "kind": "timed",
+     "wall_s": 0.467429,
+     "user_s": 0.380186,
+     "sys_s": 0.039818,
+     "max_rss_kib": 36268,
+     "exit_code": 0,
+     "timed_out": false
+    },
+    {
+     "kind": "timed",
+     "wall_s": 0.512838,
+     "user_s": 0.394084,
+     "sys_s": 0.064662,
+     "max_rss_kib": 36268,
+     "exit_code": 0,
+     "timed_out": false
+    }
+   ],
+   "stats": {
+    "wall_s": {
+     "n": 20,
+     "median": 0.426033,
+     "min": 0.357929,
+     "max": 0.512838,
+     "mad": 0.032228
+    },
+    "cpu_s": {
+     "n": 20,
+     "median": 0.400881,
+     "min": 0.348719,
+     "max": 0.458746,
+     "mad": 0.016128
+    }
+   }
+  },
+  "sqruff_version": {
+   "argv": [
+    "$TOOLS/sqruff/bin/sqruff",
+    "--version"
+   ],
+   "what": "sqruff --version",
+   "samples": [
+    {
+     "kind": "warmup",
+     "wall_s": 0.004481,
+     "user_s": 0.00405,
+     "sys_s": 0.0,
+     "max_rss_kib": 36268,
+     "exit_code": 0,
+     "timed_out": false
+    },
+    {
+     "kind": "timed",
+     "wall_s": 0.007489,
+     "user_s": 0.002961,
+     "sys_s": 0.002171,
+     "max_rss_kib": 36268,
+     "exit_code": 0,
+     "timed_out": false
+    },
+    {
+     "kind": "timed",
+     "wall_s": 0.007428,
+     "user_s": 0.002936,
+     "sys_s": 0.001968,
+     "max_rss_kib": 36268,
+     "exit_code": 0,
+     "timed_out": false
+    },
+    {
+     "kind": "timed",
+     "wall_s": 0.004391,
+     "user_s": 0.0,
+     "sys_s": 0.004144,
+     "max_rss_kib": 36268,
+     "exit_code": 0,
+     "timed_out": false
+    },
+    {
+     "kind": "timed",
+     "wall_s": 0.008778,
+     "user_s": 0.004641,
+     "sys_s": 0.0,
+     "max_rss_kib": 36268,
+     "exit_code": 0,
+     "timed_out": false
+    },
+    {
+     "kind": "timed",
+     "wall_s": 0.004327,
+     "user_s": 0.0,
+     "sys_s": 0.004014,
+     "max_rss_kib": 36268,
+     "exit_code": 0,
+     "timed_out": false
+    },
+    {
+     "kind": "timed",
+     "wall_s": 0.004283,
+     "user_s": 0.0,
+     "sys_s": 0.004065,
+     "max_rss_kib": 36268,
+     "exit_code": 0,
+     "timed_out": false
+    },
+    {
+     "kind": "timed",
+     "wall_s": 0.009184,
+     "user_s": 0.001218,
+     "sys_s": 0.003685,
+     "max_rss_kib": 36268,
+     "exit_code": 0,
+     "timed_out": false
+    },
+    {
+     "kind": "timed",
+     "wall_s": 0.004163,
+     "user_s": 0.0,
+     "sys_s": 0.003858,
+     "max_rss_kib": 36268,
+     "exit_code": 0,
+     "timed_out": false
+    },
+    {
+     "kind": "timed",
+     "wall_s": 0.004264,
+     "user_s": 0.0,
+     "sys_s": 0.004021,
+     "max_rss_kib": 36268,
+     "exit_code": 0,
+     "timed_out": false
+    },
+    {
+     "kind": "timed",
+     "wall_s": 0.007385,
+     "user_s": 0.0,
+     "sys_s": 0.00505,
+     "max_rss_kib": 36268,
+     "exit_code": 0,
+     "timed_out": false
+    },
+    {
+     "kind": "timed",
+     "wall_s": 0.004712,
+     "user_s": 0.004048,
+     "sys_s": 0.0,
+     "max_rss_kib": 36268,
+     "exit_code": 0,
+     "timed_out": false
+    },
+    {
+     "kind": "timed",
+     "wall_s": 0.004382,
+     "user_s": 0.004091,
+     "sys_s": 0.0,
+     "max_rss_kib": 36268,
+     "exit_code": 0,
+     "timed_out": false
+    },
+    {
+     "kind": "timed",
+     "wall_s": 0.004139,
+     "user_s": 0.0,
+     "sys_s": 0.0039,
+     "max_rss_kib": 36268,
+     "exit_code": 0,
+     "timed_out": false
+    },
+    {
+     "kind": "timed",
+     "wall_s": 0.004211,
+     "user_s": 0.0,
+     "sys_s": 0.003855,
+     "max_rss_kib": 36268,
+     "exit_code": 0,
+     "timed_out": false
+    },
+    {
+     "kind": "timed",
+     "wall_s": 0.006479,
+     "user_s": 0.001401,
+     "sys_s": 0.002825,
+     "max_rss_kib": 36268,
+     "exit_code": 0,
+     "timed_out": false
+    },
+    {
+     "kind": "timed",
+     "wall_s": 0.004035,
+     "user_s": 0.0,
+     "sys_s": 0.003771,
+     "max_rss_kib": 36268,
+     "exit_code": 0,
+     "timed_out": false
+    },
+    {
+     "kind": "timed",
+     "wall_s": 0.00449,
+     "user_s": 0.004055,
+     "sys_s": 0.0,
+     "max_rss_kib": 36268,
+     "exit_code": 0,
+     "timed_out": false
+    },
+    {
+     "kind": "timed",
+     "wall_s": 0.005512,
+     "user_s": 0.0,
+     "sys_s": 0.004968,
+     "max_rss_kib": 36268,
+     "exit_code": 0,
+     "timed_out": false
+    },
+    {
+     "kind": "timed",
+     "wall_s": 0.004432,
+     "user_s": 0.0,
+     "sys_s": 0.004048,
+     "max_rss_kib": 36268,
+     "exit_code": 0,
+     "timed_out": false
+    },
+    {
+     "kind": "timed",
+     "wall_s": 0.005473,
+     "user_s": 0.0,
+     "sys_s": 0.004494,
+     "max_rss_kib": 36268,
+     "exit_code": 0,
+     "timed_out": false
+    }
+   ],
+   "stats": {
+    "wall_s": {
+     "n": 20,
+     "median": 0.004461,
+     "min": 0.004035,
+     "max": 0.009184,
+     "mad": 0.00031
+    },
+    "cpu_s": {
+     "n": 20,
+     "median": 0.004078,
+     "min": 0.003771,
+     "max": 0.005132,
+     "mad": 0.000199
+    }
+   }
+  }
+ }
+}

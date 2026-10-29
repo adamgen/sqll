@@ -68,6 +68,28 @@ quote one declaration line of
 `results/s3/license-size.json` also has this line in the text of
 `structure.rules`. No other sqlfluffrs code is copied.
 
+`scripts/s3/capabilities.py` (S3 research, task T8) runs the help commands
+of the pinned sqlfluff and reads the click objects, the templaters, the
+placeholder styles, and the default config keys of the tool venv.
+`results/s3/capabilities-sources.json` has the help text of each sqlfluff
+4.4.0 command, and the 12 placeholder style regexes and the default config
+key names of sqlfluff 4.4.0. `results/s3/capabilities.json` has the option
+names, the placeholder regexes, the config key names, and cited lines
+(with the file, the line numbers, and the sha256; at most 8 lines of a
+file in one entry) of these submodule files: `src/sqlfluff/core/templaters/` (`__init__.py`,
+`base.py`, `jinja.py`, `python.py`, `placeholder.py`),
+`src/sqlfluff/core/config/` (`loader.py`, `ini.py`, `toml.py`,
+`fluffconfig.py`), `src/sqlfluff/core/linter/discovery.py`,
+`plugins/sqlfluff-templater-dbt/sqlfluff_templater_dbt/templater.py`,
+`plugins/sqlfluff-templater-sqlmesh/sqlfluff_templater_sqlmesh/templater.py`,
+`test/cli/commands_test.py` (line 1), and of the sqlfluffrs files
+`sqlfluffrs_types/src/templater/` (`mod.rs`, `templatefile.rs`,
+`fileslice.rs`), `sqlfluffrs_types/src/config/fluffconfig.rs`,
+`sqlfluffrs_lexer/src/lexer.rs` (`LexInput`),
+`sqlfluffrs_parser/src/parser/types.rs`, and
+`sqlfluffrs_parser/src/parser/core.rs`. These are facts for the S3
+decision, not sqll code.
+
 Ported code (MIT, attribution in each file header):
 
 | sqll file | sqlfluff source |
@@ -108,6 +130,22 @@ Ported code (MIT, attribution in each file header):
   `sqruff-lib-dialects`; and one declaration line of `src/core/rules.rs` of
   `sqruff-lib`: `pub trait Rule: Debug + 'static + Send + Sync {`.
   No other sqruff code is copied.
+- `results/s3/capabilities-sources.json` and `results/s3/capabilities.json`
+  (task T8) have the help text of each sqruff 0.41.0 command and the output
+  of `sqruff templaters` (the binary of `tools/sqruff/install.sh`), the 14
+  placeholder style regexes and the default config key names of the
+  crates.io crates of sqruff 0.41.0, and cited lines (with the crate, the
+  file, the line numbers, and the sha256; at most 8 lines of a file in one
+  entry, but 28 lines of `src/templaters/types.rs`: the names and regexes
+  of the placeholder styles) of `sqruff-lib` (`src/templaters.rs`,
+  `src/templaters/` (`raw.rs`, `placeholder.rs`, `python.rs`, `jinja.rs`,
+  `dbt.rs`, `sqlmesh.rs`, `python_shared.rs`, `types.rs`), `src/core/config.rs`, `src/core/default_config.cfg`
+  (the first and last line), `src/ignore.rs`, `src/core/linter/core.rs`,
+  `src/core/linter/common.rs`, `src/core/linter/discovery.rs`),
+  `sqruff-lib-core` (`src/dialects/syntax.rs`, `src/parser/segments.rs`,
+  `src/templaters.rs`), and the `Cargo.toml` features of the `sqruff`
+  crate. These are facts for the S3 decision, not sqll code. No other
+  sqruff code is copied.
 
 ## S9 corpus
 
