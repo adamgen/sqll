@@ -362,6 +362,31 @@ def test_the_duties_quote_the_license_texts():
     ]
 
 
+def test_third_party_md_names_the_quoted_third_party_text():
+    text = (REPO_ROOT / "THIRD_PARTY.md").read_text("utf8")
+    words = " ".join(text.split())
+    sqlfluff, sqruff = text.split("\n## sqruff\n")
+    sqruff = sqruff.split("\n## ")[0]
+    for part in (sqlfluff, sqruff):
+        assert "results/s3/license-size-sources.json" in part
+        assert "results/s3/license-size.json" in part
+    rule_trait = BASES["sqruff"]["structure"]["values"]["rule_trait"]
+    is_type = BASES["sqlfluffrs"]["structure"]["values"]["arena_is_type"]
+    assert rule_trait == SOURCES["sqruff"]["structure"]["rule_trait"]
+    assert is_type == SOURCES["sqlfluffrs"]["structure"]["arena_is_type"]
+    assert f"`{rule_trait}`" in sqruff
+    assert f"`{is_type}`" in sqlfluff
+    assert is_type in BASES["sqlfluffrs"]["structure"]["rules"]
+    mentions = BASES["sqruff"]["sqlfluff_attribution"]["port_mentions_in_crates"]
+    assert f"{len(mentions)} short comment lines" in " ".join(sqruff.split())
+    dialects = BASES["sqruff"]["size"]["crates"]["sqruff-lib-dialects"]
+    for f in dialects["generated_files"]:
+        assert f"`{f['path']}`" in sqruff
+    assert BASES["sqlfluffrs"]["duties"]["condition_text"] in words
+    assert "No other sqruff code is copied" in sqruff
+    assert "No other sqlfluffrs code is copied" in sqlfluff
+
+
 # Dependency tables.
 
 
