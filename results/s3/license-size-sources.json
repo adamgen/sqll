@@ -1,0 +1,5867 @@
+{
+ "kind": "sqll-s3-license-size-sources",
+ "format": 1,
+ "task": "T7",
+ "commands": {
+  "collect": "uv run --frozen --project harness python scripts/s3/license_size.py collect --scratch DIR",
+  "report": "uv run --frozen --project harness python scripts/s3/license_size.py report"
+ },
+ "started": "2026-10-29T05:16:17Z",
+ "finished": "2026-10-29T05:16:58Z",
+ "sqll": {
+  "commit": "197f3e09d25d145f9e8bf3098ffce4cc51b5d9f8",
+  "root_license_files": []
+ },
+ "tools": {
+  "cargo": "cargo 1.97.0 (c980f4866 2026-06-30)",
+  "git": "git version 2.43.0",
+  "cargo_sqlfluffrs": "cargo 1.96.1 (356927216 2026-06-26)"
+ },
+ "line_tool": "line_count of scripts/s3/sqlfluffrs_probe.py: the newline bytes of a file, and 1 more for a last line with no newline (the T5 rule). Blank and comment lines are included.",
+ "sqruff": {
+  "version": "0.41.0",
+  "crates": {
+   "sqruff": {
+    "sha256": "4d63af596b864429afa7d595d1e62acd5a0b4d363e08c1a1c7b3f3849ac551bd",
+    "source": "crates.io",
+    "vcs_commit": "aa4c5730d697794ffaf72a4c187d64522e5820c7",
+    "path_in_vcs": "crates/cli",
+    "cargo_license": "Apache-2.0",
+    "license_like_files": [],
+    "files": 107,
+    "rust": {
+     "hand_written": {
+      "files": 21,
+      "lines": 2244,
+      "by_part": {
+       "src": {
+        "files": 2,
+        "lines": 70
+       },
+       "tests": {
+        "files": 19,
+        "lines": 2174
+       }
+      }
+     },
+     "generated": {
+      "files": 0,
+      "lines": 0,
+      "by_part": {}
+     },
+     "generated_files": [],
+     "hand_written_src_by_dir": {
+      "src/*.rs": 28,
+      "src/bin": 42
+     }
+    },
+    "data": {
+     "BUILD.bazel": {
+      "files": 1,
+      "bytes": 3089,
+      "equal_to_sqlfluff": 0,
+      "same_name": 0
+     },
+     "tests": {
+      "files": 81,
+      "bytes": 9522,
+      "equal_to_sqlfluff": 0,
+      "same_name": 0
+     }
+    },
+    "sqlfluff_port_mentions": []
+   },
+   "sqruff-cli-lib": {
+    "sha256": "29b282bee1f69b347a91af0f595bbc2f405d06c059a8aa189183d0983ad93226",
+    "source": "crates.io",
+    "vcs_commit": "aa4c5730d697794ffaf72a4c187d64522e5820c7",
+    "path_in_vcs": "crates/cli-lib",
+    "cargo_license": "Apache-2.0",
+    "license_like_files": [],
+    "files": 28,
+    "rust": {
+     "hand_written": {
+      "files": 20,
+      "lines": 2224,
+      "by_part": {
+       "src": {
+        "files": 20,
+        "lines": 2224
+       }
+      }
+     },
+     "generated": {
+      "files": 0,
+      "lines": 0,
+      "by_part": {}
+     },
+     "generated_files": [],
+     "hand_written_src_by_dir": {
+      "src/*.rs": 1662,
+      "src/formatters": 562
+     }
+    },
+    "data": {
+     "BUILD.bazel": {
+      "files": 1,
+      "bytes": 3357,
+      "equal_to_sqlfluff": 0,
+      "same_name": 0
+     },
+     "src": {
+      "files": 3,
+      "bytes": 2739,
+      "equal_to_sqlfluff": 0,
+      "same_name": 0
+     }
+    },
+    "sqlfluff_port_mentions": []
+   },
+   "sqruff-lib": {
+    "sha256": "e6ed07488aab52e7f03a803be9ab4dc1c1f4c0d46ab6f392d8ac6ae0a3cce611",
+    "source": "crates.io",
+    "vcs_commit": "aa4c5730d697794ffaf72a4c187d64522e5820c7",
+    "path_in_vcs": "crates/lib",
+    "cargo_license": "Apache-2.0",
+    "license_like_files": [],
+    "files": 334,
+    "rust": {
+     "hand_written": {
+      "files": 138,
+      "lines": 39049,
+      "by_part": {
+       "benches": {
+        "files": 6,
+        "lines": 401
+       },
+       "examples": {
+        "files": 1,
+        "lines": 83
+       },
+       "src": {
+        "files": 129,
+        "lines": 38121
+       },
+       "tests": {
+        "files": 2,
+        "lines": 444
+       }
+      }
+     },
+     "generated": {
+      "files": 0,
+      "lines": 0,
+      "by_part": {}
+     },
+     "generated_files": [],
+     "hand_written_src_by_dir": {
+      "src/*.rs": 1530,
+      "src/core": 7474,
+      "src/rules": 18904,
+      "src/templaters": 3099,
+      "src/utils": 7114
+     }
+    },
+    "data": {
+     "BUILD.bazel": {
+      "files": 1,
+      "bytes": 6000,
+      "equal_to_sqlfluff": 0,
+      "same_name": 0
+     },
+     "benches": {
+      "files": 2,
+      "bytes": 47560,
+      "equal_to_sqlfluff": 0,
+      "same_name": 0
+     },
+     "src": {
+      "files": 1,
+      "bytes": 16160,
+      "equal_to_sqlfluff": 0,
+      "same_name": 0
+     },
+     "test": {
+      "files": 188,
+      "bytes": 675453,
+      "equal_to_sqlfluff": 97,
+      "same_name": 95
+     }
+    },
+    "sqlfluff_port_mentions": [
+     {
+      "file": "src/templaters/python_shared.rs",
+      "line": 108,
+      "text": "// Ported from SQLFluff #4925."
+     },
+     {
+      "file": "src/tests.rs",
+      "line": 667,
+      "text": "/// Ports the SQLFluff regression test for the LT02/LT04 interaction where the"
+     },
+     {
+      "file": "src/tests.rs",
+      "line": 765,
+      "text": "/// Ports the SQLFluff regression test for the ST05/LT08 interaction where"
+     },
+     {
+      "file": "src/tests.rs",
+      "line": 839,
+      "text": "/// Ports the SQLFluff regression test for the ST05/LT09 interaction where a"
+     },
+     {
+      "file": "src/tests.rs",
+      "line": 1046,
+      "text": "/// Ports SQLFluff's regression coverage for fixes generated beside an"
+     }
+    ]
+   },
+   "sqruff-lib-core": {
+    "sha256": "c2d60b53c5c4c072cd0a79cfea1c5307f053f96b2d81921d444577c19455c0a8",
+    "source": "crates.io",
+    "vcs_commit": "aa4c5730d697794ffaf72a4c187d64522e5820c7",
+    "path_in_vcs": "crates/lib-core",
+    "cargo_license": "Apache-2.0",
+    "license_like_files": [],
+    "files": 54,
+    "rust": {
+     "hand_written": {
+      "files": 49,
+      "lines": 15191,
+      "by_part": {
+       "src": {
+        "files": 49,
+        "lines": 15191
+       }
+      }
+     },
+     "generated": {
+      "files": 0,
+      "lines": 0,
+      "by_part": {}
+     },
+     "generated_files": [],
+     "hand_written_src_by_dir": {
+      "src/*.rs": 3269,
+      "src/dialects": 2096,
+      "src/parser": 8523,
+      "src/utils": 1303
+     }
+    },
+    "data": {
+     "BUILD.bazel": {
+      "files": 1,
+      "bytes": 1208,
+      "equal_to_sqlfluff": 0,
+      "same_name": 0
+     }
+    },
+    "sqlfluff_port_mentions": [
+     {
+      "file": "src/parser/segments/fix.rs",
+      "line": 36,
+      "text": "// generated. It has no significance for processing. Brought over from sqlfluff"
+     }
+    ]
+   },
+   "sqruff-lib-dialects": {
+    "sha256": "98bec2815c17d15813bc65af102791e3b77fa68dec826115f101efa68858a919",
+    "source": "crates.io",
+    "vcs_commit": "aa4c5730d697794ffaf72a4c187d64522e5820c7",
+    "path_in_vcs": "crates/lib-dialects",
+    "cargo_license": "Apache-2.0",
+    "license_like_files": [],
+    "files": 4607,
+    "rust": {
+     "hand_written": {
+      "files": 51,
+      "lines": 115737,
+      "by_part": {
+       "src": {
+        "files": 50,
+        "lines": 114858
+       },
+       "tests": {
+        "files": 1,
+        "lines": 879
+       }
+      }
+     },
+     "generated": {
+      "files": 1,
+      "lines": 705,
+      "by_part": {
+       "src": {
+        "files": 1,
+        "lines": 705
+       }
+      }
+     },
+     "generated_files": [
+      {
+       "path": "src/mariadb_keywords.rs",
+       "lines": 705,
+       "first_line": "// Auto-generated from SQLFluff's dialect_mariadb_keywords.py."
+      }
+     ],
+     "hand_written_src_by_dir": {
+      "src/*.rs": 114858
+     }
+    },
+    "data": {
+     "BUILD.bazel": {
+      "files": 1,
+      "bytes": 2770,
+      "equal_to_sqlfluff": 0,
+      "same_name": 0
+     },
+     "test": {
+      "files": 4550,
+      "bytes": 12897719,
+      "equal_to_sqlfluff": 1944,
+      "same_name": 1918
+     }
+    },
+    "sqlfluff_port_mentions": [
+     {
+      "file": "src/mariadb_keywords.rs",
+      "line": 1,
+      "text": "// Auto-generated from SQLFluff's dialect_mariadb_keywords.py."
+     },
+     {
+      "file": "src/materialize.rs",
+      "line": 3,
+      "text": "//! This is based on PostgreSQL, matching Materialize's origins and SQLFluff's"
+     },
+     {
+      "file": "src/postgres.rs",
+      "line": 475,
+      "text": "// Verbatim from sqlfluff#6323, which fixed `@?`, `@@`, `?|` and `?&` (we"
+     },
+     {
+      "file": "src/teradata.rs",
+      "line": 1,
+      "text": "//! Teradata dialect, ported from SQLFluff at the revision in `.sqlfluff-sha`."
+     },
+     {
+      "file": "src/vertica.rs",
+      "line": 5,
+      "text": "//! Ported from SQLFluff's `dialect_vertica.py`. Vertica is based on the ANSI"
+     },
+     {
+      "file": "src/vertica_keywords.rs",
+      "line": 1,
+      "text": "// Vertica keyword lists, ported from SQLFluff's dialect_vertica_keywords.py."
+     }
+    ]
+   },
+   "sqruff-lsp": {
+    "sha256": "0022296e6852547d42726b66a61543ebeb8c8e12675c5d153e4efb0c268437e6",
+    "source": "crates.io",
+    "vcs_commit": "aa4c5730d697794ffaf72a4c187d64522e5820c7",
+    "path_in_vcs": "crates/lsp",
+    "cargo_license": "Apache-2.0",
+    "license_like_files": [],
+    "files": 7,
+    "rust": {
+     "hand_written": {
+      "files": 2,
+      "lines": 2472,
+      "by_part": {
+       "src": {
+        "files": 2,
+        "lines": 2472
+       }
+      }
+     },
+     "generated": {
+      "files": 0,
+      "lines": 0,
+      "by_part": {}
+     },
+     "generated_files": [],
+     "hand_written_src_by_dir": {
+      "src/*.rs": 2472
+     }
+    },
+    "data": {
+     "BUILD.bazel": {
+      "files": 1,
+      "bytes": 2847,
+      "equal_to_sqlfluff": 0,
+      "same_name": 0
+     }
+    },
+    "sqlfluff_port_mentions": []
+   }
+  },
+  "structure": {
+   "dialect_modules": [
+    "ansi.rs",
+    "athena.rs",
+    "bigquery.rs",
+    "clickhouse.rs",
+    "databricks.rs",
+    "db2.rs",
+    "doris.rs",
+    "duckdb.rs",
+    "exasol.rs",
+    "flink.rs",
+    "greenplum.rs",
+    "hive.rs",
+    "impala.rs",
+    "mariadb.rs",
+    "materialize.rs",
+    "mysql.rs",
+    "oracle.rs",
+    "postgres.rs",
+    "redshift.rs",
+    "snowflake.rs",
+    "sparksql.rs",
+    "sqlite.rs",
+    "starrocks.rs",
+    "teradata.rs",
+    "trino.rs",
+    "tsql.rs",
+    "vertica.rs"
+   ],
+   "keyword_modules": 23,
+   "node_matchers_in_dialect_modules": 1615,
+   "syntax_kind_variants": 1359,
+   "rule_files": 77,
+   "rule_files_impl_rule": 77,
+   "syntax_kind_uses_in_rule_files": 814,
+   "rule_trait": "pub trait Rule: Debug + 'static + Send + Sync {",
+   "rule_lines": 18655
+  },
+  "repository": {
+   "url": "https://github.com/quarylabs/sqruff.git",
+   "tag": "v0.41.0",
+   "commit": "aa4c5730d697794ffaf72a4c187d64522e5820c7",
+   "workspace_license": "Apache-2.0",
+   "license_files": [
+    {
+     "path": "LICENSE",
+     "sha256": "954c30259208c39cf74febfd8e7466e1a9bf6479c6aa7a7e85f1e39afce7bda7",
+     "lines": 201,
+     "first_line": "Apache License",
+     "copyright": [
+      "Copyright 2024 Quary Inc."
+     ],
+     "text": "                                 Apache License\n                           Version 2.0, January 2004\n                        http://www.apache.org/licenses/\n\n   TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION\n\n   1. Definitions.\n\n      \"License\" shall mean the terms and conditions for use, reproduction,\n      and distribution as defined by Sections 1 through 9 of this document.\n\n      \"Licensor\" shall mean the copyright owner or entity authorized by\n      the copyright owner that is granting the License.\n\n      \"Legal Entity\" shall mean the union of the acting entity and all\n      other entities that control, are controlled by, or are under common\n      control with that entity. For the purposes of this definition,\n      \"control\" means (i) the power, direct or indirect, to cause the\n      direction or management of such entity, whether by contract or\n      otherwise, or (ii) ownership of fifty percent (50%) or more of the\n      outstanding shares, or (iii) beneficial ownership of such entity.\n\n      \"You\" (or \"Your\") shall mean an individual or Legal Entity\n      exercising permissions granted by this License.\n\n      \"Source\" form shall mean the preferred form for making modifications,\n      including but not limited to software source code, documentation\n      source, and configuration files.\n\n      \"Object\" form shall mean any form resulting from mechanical\n      transformation or translation of a Source form, including but\n      not limited to compiled object code, generated documentation,\n      and conversions to other media types.\n\n      \"Work\" shall mean the work of authorship, whether in Source or\n      Object form, made available under the License, as indicated by a\n      copyright notice that is included in or attached to the work\n      (an example is provided in the Appendix below).\n\n      \"Derivative Works\" shall mean any work, whether in Source or Object\n      form, that is based on (or derived from) the Work and for which the\n      editorial revisions, annotations, elaborations, or other modifications\n      represent, as a whole, an original work of authorship. For the purposes\n      of this License, Derivative Works shall not include works that remain\n      separable from, or merely link (or bind by name) to the interfaces of,\n      the Work and Derivative Works thereof.\n\n      \"Contribution\" shall mean any work of authorship, including\n      the original version of the Work and any modifications or additions\n      to that Work or Derivative Works thereof, that is intentionally\n      submitted to Licensor for inclusion in the Work by the copyright owner\n      or by an individual or Legal Entity authorized to submit on behalf of\n      the copyright owner. For the purposes of this definition, \"submitted\"\n      means any form of electronic, verbal, or written communication sent\n      to the Licensor or its representatives, including but not limited to\n      communication on electronic mailing lists, source code control systems,\n      and issue tracking systems that are managed by, or on behalf of, the\n      Licensor for the purpose of discussing and improving the Work, but\n      excluding communication that is conspicuously marked or otherwise\n      designated in writing by the copyright owner as \"Not a Contribution.\"\n\n      \"Contributor\" shall mean Licensor and any individual or Legal Entity\n      on behalf of whom a Contribution has been received by Licensor and\n      subsequently incorporated within the Work.\n\n   2. Grant of Copyright License. Subject to the terms and conditions of\n      this License, each Contributor hereby grants to You a perpetual,\n      worldwide, non-exclusive, no-charge, royalty-free, irrevocable\n      copyright license to reproduce, prepare Derivative Works of,\n      publicly display, publicly perform, sublicense, and distribute the\n      Work and such Derivative Works in Source or Object form.\n\n   3. Grant of Patent License. Subject to the terms and conditions of\n      this License, each Contributor hereby grants to You a perpetual,\n      worldwide, non-exclusive, no-charge, royalty-free, irrevocable\n      (except as stated in this section) patent license to make, have made,\n      use, offer to sell, sell, import, and otherwise transfer the Work,\n      where such license applies only to those patent claims licensable\n      by such Contributor that are necessarily infringed by their\n      Contribution(s) alone or by combination of their Contribution(s)\n      with the Work to which such Contribution(s) was submitted. If You\n      institute patent litigation against any entity (including a\n      cross-claim or counterclaim in a lawsuit) alleging that the Work\n      or a Contribution incorporated within the Work constitutes direct\n      or contributory patent infringement, then any patent licenses\n      granted to You under this License for that Work shall terminate\n      as of the date such litigation is filed.\n\n   4. Redistribution. You may reproduce and distribute copies of the\n      Work or Derivative Works thereof in any medium, with or without\n      modifications, and in Source or Object form, provided that You\n      meet the following conditions:\n\n      (a) You must give any other recipients of the Work or\n          Derivative Works a copy of this License; and\n\n      (b) You must cause any modified files to carry prominent notices\n          stating that You changed the files; and\n\n      (c) You must retain, in the Source form of any Derivative Works\n          that You distribute, all copyright, patent, trademark, and\n          attribution notices from the Source form of the Work,\n          excluding those notices that do not pertain to any part of\n          the Derivative Works; and\n\n      (d) If the Work includes a \"NOTICE\" text file as part of its\n          distribution, then any Derivative Works that You distribute must\n          include a readable copy of the attribution notices contained\n          within such NOTICE file, excluding those notices that do not\n          pertain to any part of the Derivative Works, in at least one\n          of the following places: within a NOTICE text file distributed\n          as part of the Derivative Works; within the Source form or\n          documentation, if provided along with the Derivative Works; or,\n          within a display generated by the Derivative Works, if and\n          wherever such third-party notices normally appear. The contents\n          of the NOTICE file are for informational purposes only and\n          do not modify the License. You may add Your own attribution\n          notices within Derivative Works that You distribute, alongside\n          or as an addendum to the NOTICE text from the Work, provided\n          that such additional attribution notices cannot be construed\n          as modifying the License.\n\n      You may add Your own copyright statement to Your modifications and\n      may provide additional or different license terms and conditions\n      for use, reproduction, or distribution of Your modifications, or\n      for any such Derivative Works as a whole, provided Your use,\n      reproduction, and distribution of the Work otherwise complies with\n      the conditions stated in this License.\n\n   5. Submission of Contributions. Unless You explicitly state otherwise,\n      any Contribution intentionally submitted for inclusion in the Work\n      by You to the Licensor shall be under the terms and conditions of\n      this License, without any additional terms or conditions.\n      Notwithstanding the above, nothing herein shall supersede or modify\n      the terms of any separate license agreement you may have executed\n      with Licensor regarding such Contributions.\n\n   6. Trademarks. This License does not grant permission to use the trade\n      names, trademarks, service marks, or product names of the Licensor,\n      except as required for reasonable and customary use in describing the\n      origin of the Work and reproducing the content of the NOTICE file.\n\n   7. Disclaimer of Warranty. Unless required by applicable law or\n      agreed to in writing, Licensor provides the Work (and each\n      Contributor provides its Contributions) on an \"AS IS\" BASIS,\n      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or\n      implied, including, without limitation, any warranties or conditions\n      of TITLE, NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A\n      PARTICULAR PURPOSE. You are solely responsible for determining the\n      appropriateness of using or redistributing the Work and assume any\n      risks associated with Your exercise of permissions under this License.\n\n   8. Limitation of Liability. In no event and under no legal theory,\n      whether in tort (including negligence), contract, or otherwise,\n      unless required by applicable law (such as deliberate and grossly\n      negligent acts) or agreed to in writing, shall any Contributor be\n      liable to You for damages, including any direct, indirect, special,\n      incidental, or consequential damages of any character arising as a\n      result of this License or out of the use or inability to use the\n      Work (including but not limited to damages for loss of goodwill,\n      work stoppage, computer failure or malfunction, or any and all\n      other commercial damages or losses), even if such Contributor\n      has been advised of the possibility of such damages.\n\n   9. Accepting Warranty or Additional Liability. While redistributing\n      the Work or Derivative Works thereof, You may choose to offer,\n      and charge a fee for, acceptance of support, warranty, indemnity,\n      or other liability obligations and/or rights consistent with this\n      License. However, in accepting such obligations, You may act only\n      on Your own behalf and on Your sole responsibility, not on behalf\n      of any other Contributor, and only if You agree to indemnify,\n      defend, and hold each Contributor harmless for any liability\n      incurred by, or claims asserted against, such Contributor by reason\n      of your accepting any such warranty or additional liability.\n\n   END OF TERMS AND CONDITIONS\n\n   APPENDIX: How to apply the Apache License to your work.\n\n      To apply the Apache License to your work, attach the following\n      boilerplate notice, with the fields enclosed by brackets \"[]\"\n      replaced with your own identifying information. (Don't include\n      the brackets!)  The text should be enclosed in the appropriate\n      comment syntax for the file format. We also recommend that a\n      file or class name and description of purpose be included on the\n      same \"printed page\" as the copyright notice for easier\n      identification within third-party archives.\n\n   Copyright 2024 Quary Inc.\n\n   Licensed under the Apache License, Version 2.0 (the \"License\");\n   you may not use this file except in compliance with the License.\n   You may obtain a copy of the License at\n\n       http://www.apache.org/licenses/LICENSE-2.0\n\n   Unless required by applicable law or agreed to in writing, software\n   distributed under the License is distributed on an \"AS IS\" BASIS,\n   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n   See the License for the specific language governing permissions and\n   limitations under the License."
+    },
+    {
+     "path": "editors/code/LICENSE",
+     "sha256": "954c30259208c39cf74febfd8e7466e1a9bf6479c6aa7a7e85f1e39afce7bda7",
+     "lines": 201,
+     "first_line": "Apache License",
+     "copyright": [
+      "Copyright 2024 Quary Inc."
+     ],
+     "text": "                                 Apache License\n                           Version 2.0, January 2004\n                        http://www.apache.org/licenses/\n\n   TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION\n\n   1. Definitions.\n\n      \"License\" shall mean the terms and conditions for use, reproduction,\n      and distribution as defined by Sections 1 through 9 of this document.\n\n      \"Licensor\" shall mean the copyright owner or entity authorized by\n      the copyright owner that is granting the License.\n\n      \"Legal Entity\" shall mean the union of the acting entity and all\n      other entities that control, are controlled by, or are under common\n      control with that entity. For the purposes of this definition,\n      \"control\" means (i) the power, direct or indirect, to cause the\n      direction or management of such entity, whether by contract or\n      otherwise, or (ii) ownership of fifty percent (50%) or more of the\n      outstanding shares, or (iii) beneficial ownership of such entity.\n\n      \"You\" (or \"Your\") shall mean an individual or Legal Entity\n      exercising permissions granted by this License.\n\n      \"Source\" form shall mean the preferred form for making modifications,\n      including but not limited to software source code, documentation\n      source, and configuration files.\n\n      \"Object\" form shall mean any form resulting from mechanical\n      transformation or translation of a Source form, including but\n      not limited to compiled object code, generated documentation,\n      and conversions to other media types.\n\n      \"Work\" shall mean the work of authorship, whether in Source or\n      Object form, made available under the License, as indicated by a\n      copyright notice that is included in or attached to the work\n      (an example is provided in the Appendix below).\n\n      \"Derivative Works\" shall mean any work, whether in Source or Object\n      form, that is based on (or derived from) the Work and for which the\n      editorial revisions, annotations, elaborations, or other modifications\n      represent, as a whole, an original work of authorship. For the purposes\n      of this License, Derivative Works shall not include works that remain\n      separable from, or merely link (or bind by name) to the interfaces of,\n      the Work and Derivative Works thereof.\n\n      \"Contribution\" shall mean any work of authorship, including\n      the original version of the Work and any modifications or additions\n      to that Work or Derivative Works thereof, that is intentionally\n      submitted to Licensor for inclusion in the Work by the copyright owner\n      or by an individual or Legal Entity authorized to submit on behalf of\n      the copyright owner. For the purposes of this definition, \"submitted\"\n      means any form of electronic, verbal, or written communication sent\n      to the Licensor or its representatives, including but not limited to\n      communication on electronic mailing lists, source code control systems,\n      and issue tracking systems that are managed by, or on behalf of, the\n      Licensor for the purpose of discussing and improving the Work, but\n      excluding communication that is conspicuously marked or otherwise\n      designated in writing by the copyright owner as \"Not a Contribution.\"\n\n      \"Contributor\" shall mean Licensor and any individual or Legal Entity\n      on behalf of whom a Contribution has been received by Licensor and\n      subsequently incorporated within the Work.\n\n   2. Grant of Copyright License. Subject to the terms and conditions of\n      this License, each Contributor hereby grants to You a perpetual,\n      worldwide, non-exclusive, no-charge, royalty-free, irrevocable\n      copyright license to reproduce, prepare Derivative Works of,\n      publicly display, publicly perform, sublicense, and distribute the\n      Work and such Derivative Works in Source or Object form.\n\n   3. Grant of Patent License. Subject to the terms and conditions of\n      this License, each Contributor hereby grants to You a perpetual,\n      worldwide, non-exclusive, no-charge, royalty-free, irrevocable\n      (except as stated in this section) patent license to make, have made,\n      use, offer to sell, sell, import, and otherwise transfer the Work,\n      where such license applies only to those patent claims licensable\n      by such Contributor that are necessarily infringed by their\n      Contribution(s) alone or by combination of their Contribution(s)\n      with the Work to which such Contribution(s) was submitted. If You\n      institute patent litigation against any entity (including a\n      cross-claim or counterclaim in a lawsuit) alleging that the Work\n      or a Contribution incorporated within the Work constitutes direct\n      or contributory patent infringement, then any patent licenses\n      granted to You under this License for that Work shall terminate\n      as of the date such litigation is filed.\n\n   4. Redistribution. You may reproduce and distribute copies of the\n      Work or Derivative Works thereof in any medium, with or without\n      modifications, and in Source or Object form, provided that You\n      meet the following conditions:\n\n      (a) You must give any other recipients of the Work or\n          Derivative Works a copy of this License; and\n\n      (b) You must cause any modified files to carry prominent notices\n          stating that You changed the files; and\n\n      (c) You must retain, in the Source form of any Derivative Works\n          that You distribute, all copyright, patent, trademark, and\n          attribution notices from the Source form of the Work,\n          excluding those notices that do not pertain to any part of\n          the Derivative Works; and\n\n      (d) If the Work includes a \"NOTICE\" text file as part of its\n          distribution, then any Derivative Works that You distribute must\n          include a readable copy of the attribution notices contained\n          within such NOTICE file, excluding those notices that do not\n          pertain to any part of the Derivative Works, in at least one\n          of the following places: within a NOTICE text file distributed\n          as part of the Derivative Works; within the Source form or\n          documentation, if provided along with the Derivative Works; or,\n          within a display generated by the Derivative Works, if and\n          wherever such third-party notices normally appear. The contents\n          of the NOTICE file are for informational purposes only and\n          do not modify the License. You may add Your own attribution\n          notices within Derivative Works that You distribute, alongside\n          or as an addendum to the NOTICE text from the Work, provided\n          that such additional attribution notices cannot be construed\n          as modifying the License.\n\n      You may add Your own copyright statement to Your modifications and\n      may provide additional or different license terms and conditions\n      for use, reproduction, or distribution of Your modifications, or\n      for any such Derivative Works as a whole, provided Your use,\n      reproduction, and distribution of the Work otherwise complies with\n      the conditions stated in this License.\n\n   5. Submission of Contributions. Unless You explicitly state otherwise,\n      any Contribution intentionally submitted for inclusion in the Work\n      by You to the Licensor shall be under the terms and conditions of\n      this License, without any additional terms or conditions.\n      Notwithstanding the above, nothing herein shall supersede or modify\n      the terms of any separate license agreement you may have executed\n      with Licensor regarding such Contributions.\n\n   6. Trademarks. This License does not grant permission to use the trade\n      names, trademarks, service marks, or product names of the Licensor,\n      except as required for reasonable and customary use in describing the\n      origin of the Work and reproducing the content of the NOTICE file.\n\n   7. Disclaimer of Warranty. Unless required by applicable law or\n      agreed to in writing, Licensor provides the Work (and each\n      Contributor provides its Contributions) on an \"AS IS\" BASIS,\n      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or\n      implied, including, without limitation, any warranties or conditions\n      of TITLE, NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A\n      PARTICULAR PURPOSE. You are solely responsible for determining the\n      appropriateness of using or redistributing the Work and assume any\n      risks associated with Your exercise of permissions under this License.\n\n   8. Limitation of Liability. In no event and under no legal theory,\n      whether in tort (including negligence), contract, or otherwise,\n      unless required by applicable law (such as deliberate and grossly\n      negligent acts) or agreed to in writing, shall any Contributor be\n      liable to You for damages, including any direct, indirect, special,\n      incidental, or consequential damages of any character arising as a\n      result of this License or out of the use or inability to use the\n      Work (including but not limited to damages for loss of goodwill,\n      work stoppage, computer failure or malfunction, or any and all\n      other commercial damages or losses), even if such Contributor\n      has been advised of the possibility of such damages.\n\n   9. Accepting Warranty or Additional Liability. While redistributing\n      the Work or Derivative Works thereof, You may choose to offer,\n      and charge a fee for, acceptance of support, warranty, indemnity,\n      or other liability obligations and/or rights consistent with this\n      License. However, in accepting such obligations, You may act only\n      on Your own behalf and on Your sole responsibility, not on behalf\n      of any other Contributor, and only if You agree to indemnify,\n      defend, and hold each Contributor harmless for any liability\n      incurred by, or claims asserted against, such Contributor by reason\n      of your accepting any such warranty or additional liability.\n\n   END OF TERMS AND CONDITIONS\n\n   APPENDIX: How to apply the Apache License to your work.\n\n      To apply the Apache License to your work, attach the following\n      boilerplate notice, with the fields enclosed by brackets \"[]\"\n      replaced with your own identifying information. (Don't include\n      the brackets!)  The text should be enclosed in the appropriate\n      comment syntax for the file format. We also recommend that a\n      file or class name and description of purpose be included on the\n      same \"printed page\" as the copyright notice for easier\n      identification within third-party archives.\n\n   Copyright 2024 Quary Inc.\n\n   Licensed under the Apache License, Version 2.0 (the \"License\");\n   you may not use this file except in compliance with the License.\n   You may obtain a copy of the License at\n\n       http://www.apache.org/licenses/LICENSE-2.0\n\n   Unless required by applicable law or agreed to in writing, software\n   distributed under the License is distributed on an \"AS IS\" BASIS,\n   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n   See the License for the specific language governing permissions and\n   limitations under the License."
+    },
+    {
+     "path": "editors/zed/LICENSE",
+     "sha256": "954c30259208c39cf74febfd8e7466e1a9bf6479c6aa7a7e85f1e39afce7bda7",
+     "lines": 201,
+     "first_line": "Apache License",
+     "copyright": [
+      "Copyright 2024 Quary Inc."
+     ],
+     "text": "                                 Apache License\n                           Version 2.0, January 2004\n                        http://www.apache.org/licenses/\n\n   TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION\n\n   1. Definitions.\n\n      \"License\" shall mean the terms and conditions for use, reproduction,\n      and distribution as defined by Sections 1 through 9 of this document.\n\n      \"Licensor\" shall mean the copyright owner or entity authorized by\n      the copyright owner that is granting the License.\n\n      \"Legal Entity\" shall mean the union of the acting entity and all\n      other entities that control, are controlled by, or are under common\n      control with that entity. For the purposes of this definition,\n      \"control\" means (i) the power, direct or indirect, to cause the\n      direction or management of such entity, whether by contract or\n      otherwise, or (ii) ownership of fifty percent (50%) or more of the\n      outstanding shares, or (iii) beneficial ownership of such entity.\n\n      \"You\" (or \"Your\") shall mean an individual or Legal Entity\n      exercising permissions granted by this License.\n\n      \"Source\" form shall mean the preferred form for making modifications,\n      including but not limited to software source code, documentation\n      source, and configuration files.\n\n      \"Object\" form shall mean any form resulting from mechanical\n      transformation or translation of a Source form, including but\n      not limited to compiled object code, generated documentation,\n      and conversions to other media types.\n\n      \"Work\" shall mean the work of authorship, whether in Source or\n      Object form, made available under the License, as indicated by a\n      copyright notice that is included in or attached to the work\n      (an example is provided in the Appendix below).\n\n      \"Derivative Works\" shall mean any work, whether in Source or Object\n      form, that is based on (or derived from) the Work and for which the\n      editorial revisions, annotations, elaborations, or other modifications\n      represent, as a whole, an original work of authorship. For the purposes\n      of this License, Derivative Works shall not include works that remain\n      separable from, or merely link (or bind by name) to the interfaces of,\n      the Work and Derivative Works thereof.\n\n      \"Contribution\" shall mean any work of authorship, including\n      the original version of the Work and any modifications or additions\n      to that Work or Derivative Works thereof, that is intentionally\n      submitted to Licensor for inclusion in the Work by the copyright owner\n      or by an individual or Legal Entity authorized to submit on behalf of\n      the copyright owner. For the purposes of this definition, \"submitted\"\n      means any form of electronic, verbal, or written communication sent\n      to the Licensor or its representatives, including but not limited to\n      communication on electronic mailing lists, source code control systems,\n      and issue tracking systems that are managed by, or on behalf of, the\n      Licensor for the purpose of discussing and improving the Work, but\n      excluding communication that is conspicuously marked or otherwise\n      designated in writing by the copyright owner as \"Not a Contribution.\"\n\n      \"Contributor\" shall mean Licensor and any individual or Legal Entity\n      on behalf of whom a Contribution has been received by Licensor and\n      subsequently incorporated within the Work.\n\n   2. Grant of Copyright License. Subject to the terms and conditions of\n      this License, each Contributor hereby grants to You a perpetual,\n      worldwide, non-exclusive, no-charge, royalty-free, irrevocable\n      copyright license to reproduce, prepare Derivative Works of,\n      publicly display, publicly perform, sublicense, and distribute the\n      Work and such Derivative Works in Source or Object form.\n\n   3. Grant of Patent License. Subject to the terms and conditions of\n      this License, each Contributor hereby grants to You a perpetual,\n      worldwide, non-exclusive, no-charge, royalty-free, irrevocable\n      (except as stated in this section) patent license to make, have made,\n      use, offer to sell, sell, import, and otherwise transfer the Work,\n      where such license applies only to those patent claims licensable\n      by such Contributor that are necessarily infringed by their\n      Contribution(s) alone or by combination of their Contribution(s)\n      with the Work to which such Contribution(s) was submitted. If You\n      institute patent litigation against any entity (including a\n      cross-claim or counterclaim in a lawsuit) alleging that the Work\n      or a Contribution incorporated within the Work constitutes direct\n      or contributory patent infringement, then any patent licenses\n      granted to You under this License for that Work shall terminate\n      as of the date such litigation is filed.\n\n   4. Redistribution. You may reproduce and distribute copies of the\n      Work or Derivative Works thereof in any medium, with or without\n      modifications, and in Source or Object form, provided that You\n      meet the following conditions:\n\n      (a) You must give any other recipients of the Work or\n          Derivative Works a copy of this License; and\n\n      (b) You must cause any modified files to carry prominent notices\n          stating that You changed the files; and\n\n      (c) You must retain, in the Source form of any Derivative Works\n          that You distribute, all copyright, patent, trademark, and\n          attribution notices from the Source form of the Work,\n          excluding those notices that do not pertain to any part of\n          the Derivative Works; and\n\n      (d) If the Work includes a \"NOTICE\" text file as part of its\n          distribution, then any Derivative Works that You distribute must\n          include a readable copy of the attribution notices contained\n          within such NOTICE file, excluding those notices that do not\n          pertain to any part of the Derivative Works, in at least one\n          of the following places: within a NOTICE text file distributed\n          as part of the Derivative Works; within the Source form or\n          documentation, if provided along with the Derivative Works; or,\n          within a display generated by the Derivative Works, if and\n          wherever such third-party notices normally appear. The contents\n          of the NOTICE file are for informational purposes only and\n          do not modify the License. You may add Your own attribution\n          notices within Derivative Works that You distribute, alongside\n          or as an addendum to the NOTICE text from the Work, provided\n          that such additional attribution notices cannot be construed\n          as modifying the License.\n\n      You may add Your own copyright statement to Your modifications and\n      may provide additional or different license terms and conditions\n      for use, reproduction, or distribution of Your modifications, or\n      for any such Derivative Works as a whole, provided Your use,\n      reproduction, and distribution of the Work otherwise complies with\n      the conditions stated in this License.\n\n   5. Submission of Contributions. Unless You explicitly state otherwise,\n      any Contribution intentionally submitted for inclusion in the Work\n      by You to the Licensor shall be under the terms and conditions of\n      this License, without any additional terms or conditions.\n      Notwithstanding the above, nothing herein shall supersede or modify\n      the terms of any separate license agreement you may have executed\n      with Licensor regarding such Contributions.\n\n   6. Trademarks. This License does not grant permission to use the trade\n      names, trademarks, service marks, or product names of the Licensor,\n      except as required for reasonable and customary use in describing the\n      origin of the Work and reproducing the content of the NOTICE file.\n\n   7. Disclaimer of Warranty. Unless required by applicable law or\n      agreed to in writing, Licensor provides the Work (and each\n      Contributor provides its Contributions) on an \"AS IS\" BASIS,\n      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or\n      implied, including, without limitation, any warranties or conditions\n      of TITLE, NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A\n      PARTICULAR PURPOSE. You are solely responsible for determining the\n      appropriateness of using or redistributing the Work and assume any\n      risks associated with Your exercise of permissions under this License.\n\n   8. Limitation of Liability. In no event and under no legal theory,\n      whether in tort (including negligence), contract, or otherwise,\n      unless required by applicable law (such as deliberate and grossly\n      negligent acts) or agreed to in writing, shall any Contributor be\n      liable to You for damages, including any direct, indirect, special,\n      incidental, or consequential damages of any character arising as a\n      result of this License or out of the use or inability to use the\n      Work (including but not limited to damages for loss of goodwill,\n      work stoppage, computer failure or malfunction, or any and all\n      other commercial damages or losses), even if such Contributor\n      has been advised of the possibility of such damages.\n\n   9. Accepting Warranty or Additional Liability. While redistributing\n      the Work or Derivative Works thereof, You may choose to offer,\n      and charge a fee for, acceptance of support, warranty, indemnity,\n      or other liability obligations and/or rights consistent with this\n      License. However, in accepting such obligations, You may act only\n      on Your own behalf and on Your sole responsibility, not on behalf\n      of any other Contributor, and only if You agree to indemnify,\n      defend, and hold each Contributor harmless for any liability\n      incurred by, or claims asserted against, such Contributor by reason\n      of your accepting any such warranty or additional liability.\n\n   END OF TERMS AND CONDITIONS\n\n   APPENDIX: How to apply the Apache License to your work.\n\n      To apply the Apache License to your work, attach the following\n      boilerplate notice, with the fields enclosed by brackets \"[]\"\n      replaced with your own identifying information. (Don't include\n      the brackets!)  The text should be enclosed in the appropriate\n      comment syntax for the file format. We also recommend that a\n      file or class name and description of purpose be included on the\n      same \"printed page\" as the copyright notice for easier\n      identification within third-party archives.\n\n   Copyright 2024 Quary Inc.\n\n   Licensed under the Apache License, Version 2.0 (the \"License\");\n   you may not use this file except in compliance with the License.\n   You may obtain a copy of the License at\n\n       http://www.apache.org/licenses/LICENSE-2.0\n\n   Unless required by applicable law or agreed to in writing, software\n   distributed under the License is distributed on an \"AS IS\" BASIS,\n   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n   See the License for the specific language governing permissions and\n   limitations under the License."
+    }
+   ],
+   "files_with_mit_grant": [
+    {
+     "path": "crates/cli-python/python/sqruff/templaters/sqlmesh_templater.LICENSE.md",
+     "copyright": [
+      "Copyright (c) 2018-2026 Alan Cruickshank"
+     ]
+    },
+    {
+     "path": "crates/cli-python/python/sqruff/templaters/sqlmesh_templater.py",
+     "copyright": [
+      "Copyright (c) 2018-2026 Alan Cruickshank"
+     ]
+    },
+    {
+     "path": "playground/src/Editor/Icons.tsx",
+     "copyright": []
+    }
+   ],
+   "sqlfluff_sha": "4d6da1abcfbd4fff7bcb9a5f0a7b710815f73313",
+   "sqlfluff_sha_history": {
+    "commits_only_in_sqlfluff_sha": 6912,
+    "commits_only_in_pin": 1,
+    "is_ancestor_of_pin": false,
+    "sqlfluff_sha_date": "2026-08-13T15:43:36+00:00",
+    "pin_date": "2026-10-02T19:51:59+01:00"
+   }
+  },
+  "dependencies": {
+   "installed": {
+    "what": "the sqruff binary of S1 and S2 (tools/sqruff/install.sh)",
+    "command": "cargo tree --locked -e normal,build --target all --prefix none --format {p}|{l} --features parser,python",
+    "packages": [
+     {
+      "name": "aho-corasick",
+      "version": "1.1.4",
+      "license": "Unlicense OR MIT",
+      "license_file": null,
+      "license_like_files": [
+       "COPYING",
+       "LICENSE-MIT",
+       "UNLICENSE"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "allocator-api2",
+      "version": "0.2.21",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "anstream",
+      "version": "1.0.0",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "anstyle",
+      "version": "1.0.14",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "anstyle-parse",
+      "version": "1.0.0",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "anstyle-query",
+      "version": "1.1.5",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "anstyle-wincon",
+      "version": "3.0.11",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "bit-set",
+      "version": "0.8.0",
+      "license": "Apache-2.0 OR MIT",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "bit-vec",
+      "version": "0.8.0",
+      "license": "Apache-2.0 OR MIT",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "bitflags",
+      "version": "1.3.2",
+      "license": "MIT/Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "bstr",
+      "version": "1.12.1",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "COPYING",
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "bumpalo",
+      "version": "3.20.2",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "cc",
+      "version": "1.2.57",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "cfg-if",
+      "version": "1.0.4",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "clap",
+      "version": "4.6.7",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "clap_builder",
+      "version": "4.6.7",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "clap_derive",
+      "version": "4.6.7",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "clap_lex",
+      "version": "1.1.0",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "colorchoice",
+      "version": "1.0.5",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "common-path",
+      "version": "1.0.0",
+      "license": "MIT/Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "configparser",
+      "version": "3.3.0",
+      "license": "MIT OR LGPL-3.0-or-later",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-LGPL",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "console_error_panic_hook",
+      "version": "0.1.7",
+      "license": "Apache-2.0/MIT",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "crossbeam-channel",
+      "version": "0.5.15",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT",
+       "LICENSE-THIRD-PARTY"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "crossbeam-deque",
+      "version": "0.8.6",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "crossbeam-epoch",
+      "version": "0.9.18",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "crossbeam-utils",
+      "version": "0.8.21",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "diff",
+      "version": "0.1.13",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "either",
+      "version": "1.15.0",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "enum_dispatch",
+      "version": "0.3.13",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "equivalent",
+      "version": "1.0.2",
+      "license": "Apache-2.0 OR MIT",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "fancy-regex",
+      "version": "0.19.2",
+      "license": "MIT",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "fern",
+      "version": "0.7.1",
+      "license": "MIT",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "find-msvc-tools",
+      "version": "0.1.9",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "fluent-uri",
+      "version": "0.1.4",
+      "license": "MIT",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "foldhash",
+      "version": "0.2.0",
+      "license": "Zlib",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "getrandom",
+      "version": "0.2.17",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "glob",
+      "version": "0.3.4",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "globset",
+      "version": "0.4.18",
+      "license": "Unlicense OR MIT",
+      "license_file": null,
+      "license_like_files": [
+       "COPYING",
+       "LICENSE-MIT",
+       "UNLICENSE"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "hashbrown",
+      "version": "0.17.1",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "heck",
+      "version": "0.5.0",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "ignore",
+      "version": "0.4.33",
+      "license": "Unlicense OR MIT",
+      "license_file": null,
+      "license_like_files": [
+       "COPYING",
+       "LICENSE-MIT",
+       "UNLICENSE"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "indexmap",
+      "version": "2.14.2",
+      "license": "Apache-2.0 OR MIT",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "is_terminal_polyfill",
+      "version": "1.70.2",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "itertools",
+      "version": "0.15.0",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "itoa",
+      "version": "1.0.17",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "js-sys",
+      "version": "0.3.82",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "lazy-regex",
+      "version": "3.6.1",
+      "license": "MIT",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "lazy-regex-proc_macros",
+      "version": "3.6.1",
+      "license": "MIT",
+      "license_file": null,
+      "license_like_files": [],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "libc",
+      "version": "0.2.183",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "libmimalloc-sys",
+      "version": "0.1.49",
+      "license": "MIT",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE.txt"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "log",
+      "version": "0.4.34",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "lsp-server",
+      "version": "0.10.0",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "lsp-types",
+      "version": "0.97.0",
+      "license": "MIT",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "memchr",
+      "version": "2.8.0",
+      "license": "Unlicense OR MIT",
+      "license_file": null,
+      "license_like_files": [
+       "COPYING",
+       "LICENSE-MIT",
+       "UNLICENSE"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "mimalloc",
+      "version": "0.1.52",
+      "license": "MIT",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE.txt"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "nohash-hasher",
+      "version": "0.2.0",
+      "license": "Apache-2.0 OR MIT",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "once_cell",
+      "version": "1.21.4",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "once_cell_polyfill",
+      "version": "1.70.2",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "portable-atomic",
+      "version": "1.13.1",
+      "license": "Apache-2.0 OR MIT",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "pretty_assertions",
+      "version": "1.4.1",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "proc-macro2",
+      "version": "1.0.106",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "pyo3",
+      "version": "0.29.3",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "pyo3-build-config",
+      "version": "0.29.3",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "pyo3-ffi",
+      "version": "0.29.3",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "pyo3-macros",
+      "version": "0.29.3",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "pyo3-macros-backend",
+      "version": "0.29.3",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "quote",
+      "version": "1.0.45",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "rayon",
+      "version": "1.12.0",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "rayon-core",
+      "version": "1.13.0",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "regex",
+      "version": "1.13.1",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "regex-automata",
+      "version": "0.4.18",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "regex-syntax",
+      "version": "0.8.11",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "rustversion",
+      "version": "1.0.22",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "ryu",
+      "version": "1.0.23",
+      "license": "Apache-2.0 OR BSL-1.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-BOOST"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "same-file",
+      "version": "1.0.6",
+      "license": "Unlicense/MIT",
+      "license_file": null,
+      "license_like_files": [
+       "COPYING",
+       "LICENSE-MIT",
+       "UNLICENSE"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "serde",
+      "version": "1.0.229",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "serde-wasm-bindgen",
+      "version": "0.6.5",
+      "license": "MIT",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "serde_core",
+      "version": "1.0.229",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "serde_derive",
+      "version": "1.0.229",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "serde_json",
+      "version": "1.0.151",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "serde_repr",
+      "version": "0.1.20",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "serde_spanned",
+      "version": "1.1.1",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "serde_yaml",
+      "version": "0.9.34+deprecated",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "shlex",
+      "version": "1.3.0",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "smallvec",
+      "version": "1.15.1",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "smol_str",
+      "version": "0.3.6",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "sqruff",
+      "version": "0.41.0",
+      "license": "Apache-2.0",
+      "license_file": null,
+      "license_like_files": [],
+      "source": "path",
+      "own": true
+     },
+     {
+      "name": "sqruff-cli-lib",
+      "version": "0.41.0",
+      "license": "Apache-2.0",
+      "license_file": null,
+      "license_like_files": [],
+      "source": "crates.io",
+      "own": true
+     },
+     {
+      "name": "sqruff-lib",
+      "version": "0.41.0",
+      "license": "Apache-2.0",
+      "license_file": null,
+      "license_like_files": [],
+      "source": "crates.io",
+      "own": true
+     },
+     {
+      "name": "sqruff-lib-core",
+      "version": "0.41.0",
+      "license": "Apache-2.0",
+      "license_file": null,
+      "license_like_files": [],
+      "source": "crates.io",
+      "own": true
+     },
+     {
+      "name": "sqruff-lib-dialects",
+      "version": "0.41.0",
+      "license": "Apache-2.0",
+      "license_file": null,
+      "license_like_files": [],
+      "source": "crates.io",
+      "own": true
+     },
+     {
+      "name": "sqruff-lsp",
+      "version": "0.41.0",
+      "license": "Apache-2.0",
+      "license_file": null,
+      "license_like_files": [],
+      "source": "crates.io",
+      "own": true
+     },
+     {
+      "name": "strsim",
+      "version": "0.11.1",
+      "license": "MIT",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "strum",
+      "version": "0.28.0",
+      "license": "MIT",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "strum_macros",
+      "version": "0.28.0",
+      "license": "MIT",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "syn",
+      "version": "2.0.117",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "syn",
+      "version": "3.0.5",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "target-lexicon",
+      "version": "0.13.5",
+      "license": "Apache-2.0 WITH LLVM-exception",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "thiserror",
+      "version": "2.0.21",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "thiserror-impl",
+      "version": "2.0.21",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "toml",
+      "version": "1.1.6+spec-1.1.0",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "toml_datetime",
+      "version": "1.1.1+spec-1.1.0",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "toml_parser",
+      "version": "1.1.3+spec-1.1.0",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "toml_writer",
+      "version": "1.1.2+spec-1.1.0",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "unicode-ident",
+      "version": "1.0.24",
+      "license": "(MIT OR Apache-2.0) AND Unicode-3.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT",
+       "LICENSE-UNICODE"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "unsafe-libyaml",
+      "version": "0.2.11",
+      "license": "MIT",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "utf8parse",
+      "version": "0.2.2",
+      "license": "Apache-2.0 OR MIT",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "walkdir",
+      "version": "2.5.0",
+      "license": "Unlicense/MIT",
+      "license_file": null,
+      "license_like_files": [
+       "COPYING",
+       "LICENSE-MIT",
+       "UNLICENSE"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "wasi",
+      "version": "0.11.1+wasi-snapshot-preview1",
+      "license": "Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-Apache-2.0_WITH_LLVM-exception",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "wasm-bindgen",
+      "version": "0.2.105",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "wasm-bindgen-macro",
+      "version": "0.2.105",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "wasm-bindgen-macro-support",
+      "version": "0.2.105",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "wasm-bindgen-shared",
+      "version": "0.2.105",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "winapi-util",
+      "version": "0.1.11",
+      "license": "Unlicense OR MIT",
+      "license_file": null,
+      "license_like_files": [
+       "COPYING",
+       "LICENSE-MIT",
+       "UNLICENSE"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "windows-link",
+      "version": "0.2.1",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "license-apache-2.0",
+       "license-mit"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "windows-sys",
+      "version": "0.61.2",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "license-apache-2.0",
+       "license-mit"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "winnow",
+      "version": "1.0.3",
+      "license": "MIT",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "yansi",
+      "version": "1.0.1",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "zmij",
+      "version": "1.0.21",
+      "license": "MIT",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     }
+    ]
+   },
+   "libraries": {
+    "what": "the rule, core, and dialect crates with the default features of the sqruff crate (no Python)",
+    "command": "cargo tree --locked -e normal,build --target all --prefix none --format {p}|{l} -p sqruff-lib -p sqruff-lib-core -p sqruff-lib-dialects",
+    "packages": [
+     {
+      "name": "aho-corasick",
+      "version": "1.1.4",
+      "license": "Unlicense OR MIT",
+      "license_file": null,
+      "license_like_files": [
+       "COPYING",
+       "LICENSE-MIT",
+       "UNLICENSE"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "allocator-api2",
+      "version": "0.2.21",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "bit-set",
+      "version": "0.8.0",
+      "license": "Apache-2.0 OR MIT",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "bit-vec",
+      "version": "0.8.0",
+      "license": "Apache-2.0 OR MIT",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "bstr",
+      "version": "1.12.1",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "COPYING",
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "bumpalo",
+      "version": "3.20.2",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "cfg-if",
+      "version": "1.0.4",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "common-path",
+      "version": "1.0.0",
+      "license": "MIT/Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "configparser",
+      "version": "3.3.0",
+      "license": "MIT OR LGPL-3.0-or-later",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-LGPL",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "crossbeam-deque",
+      "version": "0.8.6",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "crossbeam-epoch",
+      "version": "0.9.18",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "crossbeam-utils",
+      "version": "0.8.21",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "diff",
+      "version": "0.1.13",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "either",
+      "version": "1.15.0",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "enum_dispatch",
+      "version": "0.3.13",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "equivalent",
+      "version": "1.0.2",
+      "license": "Apache-2.0 OR MIT",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "fancy-regex",
+      "version": "0.19.2",
+      "license": "MIT",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "foldhash",
+      "version": "0.2.0",
+      "license": "Zlib",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "getrandom",
+      "version": "0.2.17",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "glob",
+      "version": "0.3.4",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "globset",
+      "version": "0.4.18",
+      "license": "Unlicense OR MIT",
+      "license_file": null,
+      "license_like_files": [
+       "COPYING",
+       "LICENSE-MIT",
+       "UNLICENSE"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "hashbrown",
+      "version": "0.17.1",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "heck",
+      "version": "0.5.0",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "ignore",
+      "version": "0.4.33",
+      "license": "Unlicense OR MIT",
+      "license_file": null,
+      "license_like_files": [
+       "COPYING",
+       "LICENSE-MIT",
+       "UNLICENSE"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "indexmap",
+      "version": "2.14.2",
+      "license": "Apache-2.0 OR MIT",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "itertools",
+      "version": "0.15.0",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "itoa",
+      "version": "1.0.17",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "js-sys",
+      "version": "0.3.82",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "lazy-regex",
+      "version": "3.6.1",
+      "license": "MIT",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "lazy-regex-proc_macros",
+      "version": "3.6.1",
+      "license": "MIT",
+      "license_file": null,
+      "license_like_files": [],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "libc",
+      "version": "0.2.183",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "log",
+      "version": "0.4.34",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "memchr",
+      "version": "2.8.0",
+      "license": "Unlicense OR MIT",
+      "license_file": null,
+      "license_like_files": [
+       "COPYING",
+       "LICENSE-MIT",
+       "UNLICENSE"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "nohash-hasher",
+      "version": "0.2.0",
+      "license": "Apache-2.0 OR MIT",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "once_cell",
+      "version": "1.21.4",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "pretty_assertions",
+      "version": "1.4.1",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "proc-macro2",
+      "version": "1.0.106",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "quote",
+      "version": "1.0.45",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "rayon",
+      "version": "1.12.0",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "rayon-core",
+      "version": "1.13.0",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "regex",
+      "version": "1.13.1",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "regex-automata",
+      "version": "0.4.18",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "regex-syntax",
+      "version": "0.8.11",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "rustversion",
+      "version": "1.0.22",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "ryu",
+      "version": "1.0.23",
+      "license": "Apache-2.0 OR BSL-1.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-BOOST"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "same-file",
+      "version": "1.0.6",
+      "license": "Unlicense/MIT",
+      "license_file": null,
+      "license_like_files": [
+       "COPYING",
+       "LICENSE-MIT",
+       "UNLICENSE"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "serde",
+      "version": "1.0.229",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "serde_core",
+      "version": "1.0.229",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "serde_derive",
+      "version": "1.0.229",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "serde_json",
+      "version": "1.0.151",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "serde_spanned",
+      "version": "1.1.1",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "serde_yaml",
+      "version": "0.9.34+deprecated",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "smallvec",
+      "version": "1.15.1",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "smol_str",
+      "version": "0.3.6",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "sqruff-lib",
+      "version": "0.41.0",
+      "license": "Apache-2.0",
+      "license_file": null,
+      "license_like_files": [],
+      "source": "crates.io",
+      "own": true
+     },
+     {
+      "name": "sqruff-lib-core",
+      "version": "0.41.0",
+      "license": "Apache-2.0",
+      "license_file": null,
+      "license_like_files": [],
+      "source": "crates.io",
+      "own": true
+     },
+     {
+      "name": "sqruff-lib-dialects",
+      "version": "0.41.0",
+      "license": "Apache-2.0",
+      "license_file": null,
+      "license_like_files": [],
+      "source": "crates.io",
+      "own": true
+     },
+     {
+      "name": "strum",
+      "version": "0.28.0",
+      "license": "MIT",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "strum_macros",
+      "version": "0.28.0",
+      "license": "MIT",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "syn",
+      "version": "2.0.117",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "syn",
+      "version": "3.0.5",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "thiserror",
+      "version": "2.0.21",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "thiserror-impl",
+      "version": "2.0.21",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "toml",
+      "version": "1.1.6+spec-1.1.0",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "toml_datetime",
+      "version": "1.1.1+spec-1.1.0",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "toml_parser",
+      "version": "1.1.3+spec-1.1.0",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "toml_writer",
+      "version": "1.1.2+spec-1.1.0",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "unicode-ident",
+      "version": "1.0.24",
+      "license": "(MIT OR Apache-2.0) AND Unicode-3.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT",
+       "LICENSE-UNICODE"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "unsafe-libyaml",
+      "version": "0.2.11",
+      "license": "MIT",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "walkdir",
+      "version": "2.5.0",
+      "license": "Unlicense/MIT",
+      "license_file": null,
+      "license_like_files": [
+       "COPYING",
+       "LICENSE-MIT",
+       "UNLICENSE"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "wasi",
+      "version": "0.11.1+wasi-snapshot-preview1",
+      "license": "Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-Apache-2.0_WITH_LLVM-exception",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "wasm-bindgen",
+      "version": "0.2.105",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "wasm-bindgen-macro",
+      "version": "0.2.105",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "wasm-bindgen-macro-support",
+      "version": "0.2.105",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "wasm-bindgen-shared",
+      "version": "0.2.105",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "winapi-util",
+      "version": "0.1.11",
+      "license": "Unlicense OR MIT",
+      "license_file": null,
+      "license_like_files": [
+       "COPYING",
+       "LICENSE-MIT",
+       "UNLICENSE"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "windows-link",
+      "version": "0.2.1",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "license-apache-2.0",
+       "license-mit"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "windows-sys",
+      "version": "0.61.2",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "license-apache-2.0",
+       "license-mit"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "winnow",
+      "version": "1.0.3",
+      "license": "MIT",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "yansi",
+      "version": "1.0.1",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "zmij",
+      "version": "1.0.21",
+      "license": "MIT",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     }
+    ]
+   }
+  }
+ },
+ "sqlfluffrs": {
+  "version": "4.4.0",
+  "sqlfluff_ref": "0348222a3bcdb0226563f7349c5a39beb0641955",
+  "cargo_license_fields": {
+   "sqlfluffrs": null,
+   "sqlfluffrs_types": null,
+   "sqlfluffrs_dialects": null,
+   "sqlfluffrs_lexer": null,
+   "sqlfluffrs_parser": null,
+   "sqlfluffrs_rules": null,
+   "sqlfluffrs_python": null,
+   "sqlfluffrs_benchmarks": null
+  },
+  "pyproject_license": "{ file = \"LICENSE.md\" }",
+  "generated_files": [
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/ansi/matcher.rs",
+    "lines": 674,
+    "bytes": 18425,
+    "sha256": "ae8d4b7f358698368676d0e0f0600ffbf3e4e3b2b66035af5e5f46e46015d424"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/ansi/mod.rs",
+    "lines": 7,
+    "bytes": 238,
+    "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/ansi/parser.rs",
+    "lines": 9529,
+    "bytes": 1316043,
+    "sha256": "3ed15e8427051cf05e461326c3878f8773b9bbbb88c245200e6c35ebf0d0c2cc",
+    "grammar_instructions": 3074
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/athena/matcher.rs",
+    "lines": 799,
+    "bytes": 21656,
+    "sha256": "1bd669d23b8e3e81d588340998ab2e93e0f38764564b491a1d8504b33d336cec"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/athena/mod.rs",
+    "lines": 7,
+    "bytes": 238,
+    "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/athena/parser.rs",
+    "lines": 10891,
+    "bytes": 1527154,
+    "sha256": "5a6a75a6da54569d10c1ff32c5610fed503e0d932fb515a1cb4335fcbc27f1bb",
+    "grammar_instructions": 3583
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/bigquery/matcher.rs",
+    "lines": 832,
+    "bytes": 23017,
+    "sha256": "b046f32a005adec15129e4c0a087fdb079341a9e44d5855b42b53a6ca2ece0a3"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/bigquery/mod.rs",
+    "lines": 7,
+    "bytes": 238,
+    "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/bigquery/parser.rs",
+    "lines": 9565,
+    "bytes": 1438891,
+    "sha256": "f56fd14fb7185bbf2eb4e36dc5eb04af418bc68e49d62c5c6300d30a61ff7355",
+    "grammar_instructions": 3861
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/clickhouse/matcher.rs",
+    "lines": 753,
+    "bytes": 20612,
+    "sha256": "e1f736336b3a658c6dc4172bb1923dd95d3b43df0e4951fe402e926c93313b97"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/clickhouse/mod.rs",
+    "lines": 7,
+    "bytes": 238,
+    "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/clickhouse/parser.rs",
+    "lines": 13043,
+    "bytes": 1893480,
+    "sha256": "68f50a22fa41797acaddce8c0b579958229e86bb8577b717f442c77c1f09665f",
+    "grammar_instructions": 4634
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/databricks/matcher.rs",
+    "lines": 1178,
+    "bytes": 31746,
+    "sha256": "d1620af535aa1a91bd0ea59e4d842340d3a5d484c4203567ec88619a9b6dfaf7"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/databricks/mod.rs",
+    "lines": 7,
+    "bytes": 238,
+    "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/databricks/parser.rs",
+    "lines": 14805,
+    "bytes": 2202819,
+    "sha256": "38d8f390d10e1807b885ae1ddb4fdbd3156cb1dd2f4a89f48812a71ff352121a",
+    "grammar_instructions": 5526
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/db2/matcher.rs",
+    "lines": 688,
+    "bytes": 18716,
+    "sha256": "3b624f0fb30f50c13c159cf7ee76bc826ce51a3ac9e1d80c1c4249cb80a27dce"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/db2/mod.rs",
+    "lines": 7,
+    "bytes": 238,
+    "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/db2/parser.rs",
+    "lines": 11300,
+    "bytes": 1571515,
+    "sha256": "6c96141e84928186c95c65ee8bb36823c232272b3c56aef33fc8723b75b445cf",
+    "grammar_instructions": 3685
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/doris/matcher.rs",
+    "lines": 960,
+    "bytes": 25967,
+    "sha256": "0cf048d9573c8b8f1b83229eb4c727c63e1615361b1db7936bc91cfd30735d2d"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/doris/mod.rs",
+    "lines": 7,
+    "bytes": 238,
+    "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/doris/parser.rs",
+    "lines": 15893,
+    "bytes": 2316307,
+    "sha256": "91887583878da5c7eec9fd3aedf0232d0268bf643598891bf8c684712cb78d55",
+    "grammar_instructions": 5630
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/duckdb/matcher.rs",
+    "lines": 1106,
+    "bytes": 29838,
+    "sha256": "16dedad5f3b1834fe5742be0a4449ea046dcff7a7245f591b350a3382ff712ff"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/duckdb/mod.rs",
+    "lines": 7,
+    "bytes": 238,
+    "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/duckdb/parser.rs",
+    "lines": 18162,
+    "bytes": 2887852,
+    "sha256": "6b36ce5f2a5b2260a36e5fdac138452df00a2b0a92413e748b54e47fba60940d",
+    "grammar_instructions": 7796
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/exasol/matcher.rs",
+    "lines": 1301,
+    "bytes": 35212,
+    "sha256": "2b5c279c14882349279407654bc1ca28c9deffaf264d175dff094ed7603e3e2d"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/exasol/mod.rs",
+    "lines": 7,
+    "bytes": 238,
+    "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/exasol/parser.rs",
+    "lines": 11629,
+    "bytes": 1693487,
+    "sha256": "d63d57649ae2044676a6354abd50d7cae814213ec1b2fb8b6c3c310cb6ad0408",
+    "grammar_instructions": 4179
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/flink/matcher.rs",
+    "lines": 775,
+    "bytes": 21079,
+    "sha256": "8451028c846a1dcd681dec2323cc7a8279a745eaaaf545707dcd2736ce7e0669"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/flink/mod.rs",
+    "lines": 7,
+    "bytes": 238,
+    "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/flink/parser.rs",
+    "lines": 10244,
+    "bytes": 1428834,
+    "sha256": "812e120402979df3d3d882df06a91937fbf384c3607ef16c5378f18daa7b5335",
+    "grammar_instructions": 3355
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/greenplum/matcher.rs",
+    "lines": 1056,
+    "bytes": 28648,
+    "sha256": "c7d697a980acfa516d1fd9976546abb6dd9931177ae560225c29e48fdf6b510c"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/greenplum/mod.rs",
+    "lines": 7,
+    "bytes": 238,
+    "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/greenplum/parser.rs",
+    "lines": 18396,
+    "bytes": 2939381,
+    "sha256": "b3304babe8622eb073a785203140972782467b6a5a36f1a527f486d252e89522",
+    "grammar_instructions": 7939
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/hive/matcher.rs",
+    "lines": 811,
+    "bytes": 21964,
+    "sha256": "f204e18897b9fcb1943abe2aaba98569f251d5d703a4d19f840239a7916a65cc"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/hive/mod.rs",
+    "lines": 7,
+    "bytes": 238,
+    "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/hive/parser.rs",
+    "lines": 10965,
+    "bytes": 1544873,
+    "sha256": "4cd6a319ff73654dcad934d619dc111741b536b10823cd1ac0b0e3ec5656788c",
+    "grammar_instructions": 3667
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/impala/matcher.rs",
+    "lines": 1102,
+    "bytes": 30146,
+    "sha256": "3760d24a70dda826c1ece7eb6bd81bb6c449bb024731aba6dd77ad6fcbe7afd0"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/impala/mod.rs",
+    "lines": 7,
+    "bytes": 238,
+    "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/impala/parser.rs",
+    "lines": 11531,
+    "bytes": 1626963,
+    "sha256": "706707006a9cac172de4964e9009fbc676291bf58b063dc504d8066a613a12ae",
+    "grammar_instructions": 3821
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/mariadb/matcher.rs",
+    "lines": 1031,
+    "bytes": 28178,
+    "sha256": "af2d36f6300178a946c7b2c89f2a648dfd50812818e104df9d9dea94b891a6df"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/mariadb/mod.rs",
+    "lines": 7,
+    "bytes": 238,
+    "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/mariadb/parser.rs",
+    "lines": 15877,
+    "bytes": 2356710,
+    "sha256": "1afe38a0b70fcb6102beb43df4cbd54144d8095962b5cdf2c1d518766aa72c15",
+    "grammar_instructions": 5840
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/materialize/matcher.rs",
+    "lines": 1011,
+    "bytes": 27384,
+    "sha256": "60a14eab6ed30175802e4b020faa622aa407e0bf2ff32136b27219b7919554d6"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/materialize/mod.rs",
+    "lines": 7,
+    "bytes": 238,
+    "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/materialize/parser.rs",
+    "lines": 18792,
+    "bytes": 3018448,
+    "sha256": "566ff8b9c3f4c8a3b41d995c0361b4b2eb8895ad9c5be8ff7fff74d371f07a42",
+    "grammar_instructions": 8135
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/mod.rs",
+    "lines": 337,
+    "bytes": 18401,
+    "sha256": "1c0f2ef6eefc36ab5cbdb7fd9c36ffa8e40c252dfa86201e20389f8cb7e85939"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/mysql/matcher.rs",
+    "lines": 1036,
+    "bytes": 28198,
+    "sha256": "27703ba3c827ed97cfee22b2b82f7eb10e98bfaf657a0cd79353a30242d78cab"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/mysql/mod.rs",
+    "lines": 7,
+    "bytes": 238,
+    "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/mysql/parser.rs",
+    "lines": 14946,
+    "bytes": 2198942,
+    "sha256": "f246cfc10ebe4f91c54f4094ffd028551f957860eb560a7a2296871c40981ca8",
+    "grammar_instructions": 5425
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/oracle/matcher.rs",
+    "lines": 935,
+    "bytes": 25253,
+    "sha256": "2bcaf2cab17407fe1125d7498431c06ae5b4795b6748e4d1f55d7cd1e2df137c"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/oracle/mod.rs",
+    "lines": 7,
+    "bytes": 238,
+    "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/oracle/parser.rs",
+    "lines": 15724,
+    "bytes": 2355534,
+    "sha256": "1d1218e458f0060304d7b41983e89e15d4a5f467bf5a9d028e21afa19eb6c419",
+    "grammar_instructions": 5956
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/postgres/matcher.rs",
+    "lines": 1052,
+    "bytes": 28537,
+    "sha256": "ef707828098ee4ac431877facb0f23299a9b2d725b7f8866b9e356c6c9832493"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/postgres/mod.rs",
+    "lines": 7,
+    "bytes": 238,
+    "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/postgres/parser.rs",
+    "lines": 17888,
+    "bytes": 2863110,
+    "sha256": "ba568f3bfa071f5032d77b29a24647a3e0d306b3b5dbcdd9aa10403ba988ba5e",
+    "grammar_instructions": 7759
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/redshift/matcher.rs",
+    "lines": 1107,
+    "bytes": 30028,
+    "sha256": "d1dd1d9345529b0c5aa05e02a4d6c42913467698b841eb614022595865946dfa"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/redshift/mod.rs",
+    "lines": 7,
+    "bytes": 238,
+    "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/redshift/parser.rs",
+    "lines": 19961,
+    "bytes": 3136593,
+    "sha256": "72263735d5f47ac3137ad3c36f1d339b4f3190408596fc2945d35f1a2b1711d8",
+    "grammar_instructions": 8326
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/snowflake/matcher.rs",
+    "lines": 938,
+    "bytes": 25116,
+    "sha256": "55dc82ee043c0673d5e9bb1c6137c8b08ae20ec41116e8dddd26584b9fc05c72"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/snowflake/mod.rs",
+    "lines": 7,
+    "bytes": 238,
+    "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/snowflake/parser.rs",
+    "lines": 23802,
+    "bytes": 3859989,
+    "sha256": "fbe420a1fc6127adcab11978a99b2071286be016af8797af5e34b5dd7725bbe1",
+    "grammar_instructions": 10667
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/soql/matcher.rs",
+    "lines": 745,
+    "bytes": 20547,
+    "sha256": "ea71b46e374a634b92511fa524d114ad3846de3270b90ff8c3252c013f939531"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/soql/mod.rs",
+    "lines": 7,
+    "bytes": 238,
+    "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/soql/parser.rs",
+    "lines": 9606,
+    "bytes": 1332421,
+    "sha256": "311aaf662731a4a22ce1b635d70393d3988f0e59a675a944d3de0a52ce8ab6de",
+    "grammar_instructions": 3093
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/sparksql/matcher.rs",
+    "lines": 866,
+    "bytes": 23306,
+    "sha256": "f943fafed103d6f4a9d29ef0599e651eb93b6291bebb41050ac479f13e40c41b"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/sparksql/mod.rs",
+    "lines": 7,
+    "bytes": 238,
+    "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/sparksql/parser.rs",
+    "lines": 13038,
+    "bytes": 1898356,
+    "sha256": "96404d6eca5fad63bb48057c0dc28fc08e5619f67291a7689b9c14157c3e6765",
+    "grammar_instructions": 4665
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/sqlite/matcher.rs",
+    "lines": 928,
+    "bytes": 25019,
+    "sha256": "77a830a226d28d5660961b89a85aa00ea7b1b3e1f2bdf6b400e8b65975c8d00a"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/sqlite/mod.rs",
+    "lines": 7,
+    "bytes": 238,
+    "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/sqlite/parser.rs",
+    "lines": 6243,
+    "bytes": 931222,
+    "sha256": "9ba5048f0e6af1a53f9f01cc4b6e510d5cd984b265b909f5f6ce16da573babd5",
+    "grammar_instructions": 2500
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/starrocks/matcher.rs",
+    "lines": 1035,
+    "bytes": 28300,
+    "sha256": "6eec6de02b1f8ff28794a3083979b1129532fed6b3a60d1ebdc44313cac1e44c"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/starrocks/mod.rs",
+    "lines": 7,
+    "bytes": 238,
+    "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/starrocks/parser.rs",
+    "lines": 15562,
+    "bytes": 2291749,
+    "sha256": "1bae2a7175975f8b0f96198208ea5b2b22b4ec0a3fd02a02c11914c14bb97163",
+    "grammar_instructions": 5620
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/teradata/matcher.rs",
+    "lines": 681,
+    "bytes": 18626,
+    "sha256": "c12a8d0606b47665a4c49b7a057ffd78fc811747e296bdaf4431dd3296d2b527"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/teradata/mod.rs",
+    "lines": 7,
+    "bytes": 238,
+    "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/teradata/parser.rs",
+    "lines": 10686,
+    "bytes": 1513028,
+    "sha256": "1bde233ef3bd9820de7304d98055a6b94e4b2541d740cc7d9046b7696a257d67",
+    "grammar_instructions": 3605
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/trino/matcher.rs",
+    "lines": 765,
+    "bytes": 20797,
+    "sha256": "49cb2c206513d95d8a28a01900db4caddba39b987254ddee19f64ad0f154026a"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/trino/mod.rs",
+    "lines": 7,
+    "bytes": 238,
+    "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/trino/parser.rs",
+    "lines": 7127,
+    "bytes": 1059804,
+    "sha256": "609c59f3d018f56db24bbae60cf8c69049cd08b43b9d7db5f2b9e03ecae22260",
+    "grammar_instructions": 2810
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/tsql/matcher.rs",
+    "lines": 941,
+    "bytes": 26112,
+    "sha256": "82d0171af829b751c2db4d34efbd877840c8f56aa7506ba3642e44c1edeea416"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/tsql/mod.rs",
+    "lines": 7,
+    "bytes": 238,
+    "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/tsql/parser.rs",
+    "lines": 19802,
+    "bytes": 3100102,
+    "sha256": "61586fc17753ca25e0cb34c1803f26f5e2dbb6e6433cdd2ada239d0741c9c88f",
+    "grammar_instructions": 8240
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/vertica/matcher.rs",
+    "lines": 828,
+    "bytes": 22489,
+    "sha256": "1b95475943db08bcb4d2184e87d81c88df68455ff69e6321c8a10a3981c51e44"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/vertica/mod.rs",
+    "lines": 7,
+    "bytes": 238,
+    "sha256": "0aad76ed5188b41c3d58ad926055214ea905fddf0ea1152083a13ac3e2183ea0"
+   },
+   {
+    "path": "sqlfluffrs/sqlfluffrs_dialects/src/dialect/vertica/parser.rs",
+    "lines": 12878,
+    "bytes": 1838182,
+    "sha256": "11c4efdde3eb871b4f4fb9a92516c073fa3167ccf115b34b5eaf3d450643a457",
+    "grammar_instructions": 4366
+   }
+  ],
+  "lines": {
+   "sqlfluffrs": {
+    "hand_written": {
+     "files": 17,
+     "lines": 4496,
+     "by_part": {
+      "benches": {
+       "files": 3,
+       "lines": 720
+      },
+      "src": {
+       "files": 3,
+       "lines": 467
+      },
+      "tests": {
+       "files": 11,
+       "lines": 3309
+      }
+     }
+    },
+    "generated": {
+     "files": 0,
+     "lines": 0,
+     "by_part": {}
+    }
+   },
+   "sqlfluffrs_types": {
+    "hand_written": {
+     "files": 24,
+     "lines": 5743,
+     "by_part": {
+      "src": {
+       "files": 24,
+       "lines": 5743
+      }
+     }
+    },
+    "generated": {
+     "files": 0,
+     "lines": 0,
+     "by_part": {}
+    }
+   },
+   "sqlfluffrs_dialects": {
+    "generated": {
+     "files": 85,
+     "lines": 414352,
+     "by_part": {
+      "src": {
+       "files": 85,
+       "lines": 414352
+      }
+     }
+    },
+    "hand_written": {
+     "files": 3,
+     "lines": 357,
+     "by_part": {
+      "build.rs": {
+       "files": 1,
+       "lines": 263
+      },
+      "src": {
+       "files": 2,
+       "lines": 94
+      }
+     }
+    }
+   },
+   "sqlfluffrs_lexer": {
+    "hand_written": {
+     "files": 2,
+     "lines": 977,
+     "by_part": {
+      "src": {
+       "files": 2,
+       "lines": 977
+      }
+     }
+    },
+    "generated": {
+     "files": 0,
+     "lines": 0,
+     "by_part": {}
+    }
+   },
+   "sqlfluffrs_parser": {
+    "hand_written": {
+     "files": 23,
+     "lines": 12744,
+     "by_part": {
+      "src": {
+       "files": 23,
+       "lines": 12744
+      }
+     }
+    },
+    "generated": {
+     "files": 0,
+     "lines": 0,
+     "by_part": {}
+    }
+   },
+   "sqlfluffrs_rules": {
+    "hand_written": {
+     "files": 6,
+     "lines": 535,
+     "by_part": {
+      "src": {
+       "files": 6,
+       "lines": 535
+      }
+     }
+    },
+    "generated": {
+     "files": 0,
+     "lines": 0,
+     "by_part": {}
+    }
+   },
+   "sqlfluffrs_python": {
+    "hand_written": {
+     "files": 9,
+     "lines": 1699,
+     "by_part": {
+      "src": {
+       "files": 9,
+       "lines": 1699
+      }
+     }
+    },
+    "generated": {
+     "files": 0,
+     "lines": 0,
+     "by_part": {}
+    }
+   },
+   "sqlfluffrs_benchmarks": {
+    "hand_written": {
+     "files": 4,
+     "lines": 572,
+     "by_part": {
+      "benches": {
+       "files": 1,
+       "lines": 114
+      },
+      "build.rs": {
+       "files": 1,
+       "lines": 117
+      },
+      "examples/time_tpc.rs": {
+       "files": 1,
+       "lines": 304
+      },
+      "src": {
+       "files": 1,
+       "lines": 37
+      }
+     }
+    },
+    "generated": {
+     "files": 0,
+     "lines": 0,
+     "by_part": {}
+    }
+   }
+  },
+  "structure": {
+   "rule_modules": [
+    "cp01.rs",
+    "cp03.rs",
+    "cp04.rs"
+   ],
+   "arena_is_type": "pub fn is_type(&self, id: NodeId, target: &str) -> bool {",
+   "generated_dialects": 28,
+   "generated_files_per_dialect": [
+    {
+     "files": [
+      "matcher.rs",
+      "mod.rs",
+      "parser.rs"
+     ],
+     "dialects": 28
+    }
+   ]
+  },
+  "dependencies": {
+   "standalone": {
+    "what": "the lexer, parser, dialects, rules, and types crates, no Python (the crates of the T5 probe)",
+    "command": "cargo tree --locked -e normal,build --target all --prefix none --format {p}|{l} -p sqlfluffrs_lexer -p sqlfluffrs_parser -p sqlfluffrs_dialects -p sqlfluffrs_rules -p sqlfluffrs_types",
+    "packages": [
+     {
+      "name": "aho-corasick",
+      "version": "1.1.4",
+      "license": "Unlicense OR MIT",
+      "license_file": null,
+      "license_like_files": [
+       "COPYING",
+       "LICENSE-MIT",
+       "UNLICENSE"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "allocator-api2",
+      "version": "0.2.21",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "anstream",
+      "version": "1.0.0",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "anstyle",
+      "version": "1.0.14",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "anstyle-parse",
+      "version": "1.0.0",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "anstyle-query",
+      "version": "1.1.5",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "anstyle-wincon",
+      "version": "3.0.11",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "bit-set",
+      "version": "0.8.0",
+      "license": "Apache-2.0 OR MIT",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "bit-vec",
+      "version": "0.8.0",
+      "license": "Apache-2.0 OR MIT",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "cfg-if",
+      "version": "1.0.4",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "colorchoice",
+      "version": "1.0.5",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "either",
+      "version": "1.15.0",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "env_filter",
+      "version": "1.0.1",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "env_logger",
+      "version": "0.11.10",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "equivalent",
+      "version": "1.0.2",
+      "license": "Apache-2.0 OR MIT",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "fancy-regex",
+      "version": "0.17.0",
+      "license": "MIT",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "foldhash",
+      "version": "0.2.0",
+      "license": "Zlib",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "getrandom",
+      "version": "0.4.2",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "hashbrown",
+      "version": "0.16.1",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "indexmap",
+      "version": "2.13.0",
+      "license": "Apache-2.0 OR MIT",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "is_terminal_polyfill",
+      "version": "1.70.2",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "itertools",
+      "version": "0.14.0",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "itoa",
+      "version": "1.0.18",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "jiff",
+      "version": "0.2.23",
+      "license": "Unlicense OR MIT",
+      "license_file": null,
+      "license_like_files": [
+       "COPYING",
+       "LICENSE-MIT",
+       "UNLICENSE"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "jiff-static",
+      "version": "0.2.23",
+      "license": "Unlicense OR MIT",
+      "license_file": null,
+      "license_like_files": [
+       "COPYING",
+       "LICENSE-MIT",
+       "UNLICENSE"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "libc",
+      "version": "0.2.183",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "log",
+      "version": "0.4.29",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "memchr",
+      "version": "2.8.0",
+      "license": "Unlicense OR MIT",
+      "license_file": null,
+      "license_like_files": [
+       "COPYING",
+       "LICENSE-MIT",
+       "UNLICENSE"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "once_cell",
+      "version": "1.21.4",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "once_cell_polyfill",
+      "version": "1.70.2",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "portable-atomic",
+      "version": "1.13.1",
+      "license": "Apache-2.0 OR MIT",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "portable-atomic-util",
+      "version": "0.2.6",
+      "license": "Apache-2.0 OR MIT",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "proc-macro2",
+      "version": "1.0.106",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "quote",
+      "version": "1.0.45",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "r-efi",
+      "version": "6.0.0",
+      "license": "MIT OR Apache-2.0 OR LGPL-2.1-or-later",
+      "license_file": null,
+      "license_like_files": [],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "regex",
+      "version": "1.12.3",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "regex-automata",
+      "version": "0.4.14",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "regex-syntax",
+      "version": "0.8.10",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "ryu",
+      "version": "1.0.23",
+      "license": "Apache-2.0 OR BSL-1.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-BOOST"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "serde",
+      "version": "1.0.228",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "serde_core",
+      "version": "1.0.228",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "serde_derive",
+      "version": "1.0.228",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "serde_yaml_ng",
+      "version": "0.10.0",
+      "license": "MIT",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "smallvec",
+      "version": "1.15.1",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "sqlfluffrs_dialects",
+      "version": "4.4.0",
+      "license": null,
+      "license_file": null,
+      "license_like_files": [],
+      "source": "path",
+      "own": true
+     },
+     {
+      "name": "sqlfluffrs_lexer",
+      "version": "4.4.0",
+      "license": null,
+      "license_file": null,
+      "license_like_files": [],
+      "source": "path",
+      "own": true
+     },
+     {
+      "name": "sqlfluffrs_parser",
+      "version": "4.4.0",
+      "license": null,
+      "license_file": null,
+      "license_like_files": [],
+      "source": "path",
+      "own": true
+     },
+     {
+      "name": "sqlfluffrs_rules",
+      "version": "4.4.0",
+      "license": null,
+      "license_file": null,
+      "license_like_files": [],
+      "source": "path",
+      "own": true
+     },
+     {
+      "name": "sqlfluffrs_types",
+      "version": "4.4.0",
+      "license": null,
+      "license_file": null,
+      "license_like_files": [],
+      "source": "path",
+      "own": true
+     },
+     {
+      "name": "syn",
+      "version": "2.0.117",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "unicode-ident",
+      "version": "1.0.24",
+      "license": "(MIT OR Apache-2.0) AND Unicode-3.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT",
+       "LICENSE-UNICODE"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "unsafe-libyaml",
+      "version": "0.2.11",
+      "license": "MIT",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "utf8parse",
+      "version": "0.2.2",
+      "license": "Apache-2.0 OR MIT",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "uuid",
+      "version": "1.22.0",
+      "license": "Apache-2.0 OR MIT",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "wasip2",
+      "version": "1.0.2+wasi-0.2.9",
+      "license": "Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT",
+      "license_file": null,
+      "license_like_files": [],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "wasip3",
+      "version": "0.4.0+wasi-0.3.0-rc-2026-01-06",
+      "license": "Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT",
+      "license_file": null,
+      "license_like_files": [],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "windows-link",
+      "version": "0.2.1",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "license-apache-2.0",
+       "license-mit"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "windows-sys",
+      "version": "0.61.2",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "license-apache-2.0",
+       "license-mit"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "wit-bindgen",
+      "version": "0.51.0",
+      "license": "Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-Apache-2.0_WITH_LLVM-exception",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     }
+    ]
+   },
+   "python": {
+    "what": "the Python extension of PyPI sqlfluffrs (sqlfluff[rs])",
+    "command": "cargo tree --locked -e normal,build --target all --prefix none --format {p}|{l} -p sqlfluffrs --features python",
+    "packages": [
+     {
+      "name": "aho-corasick",
+      "version": "1.1.4",
+      "license": "Unlicense OR MIT",
+      "license_file": null,
+      "license_like_files": [
+       "COPYING",
+       "LICENSE-MIT",
+       "UNLICENSE"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "allocator-api2",
+      "version": "0.2.21",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "anstream",
+      "version": "1.0.0",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "anstyle",
+      "version": "1.0.14",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "anstyle-parse",
+      "version": "1.0.0",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "anstyle-query",
+      "version": "1.1.5",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "anstyle-wincon",
+      "version": "3.0.11",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "bincode",
+      "version": "1.3.3",
+      "license": "MIT",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE.md"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "bit-set",
+      "version": "0.8.0",
+      "license": "Apache-2.0 OR MIT",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "bit-vec",
+      "version": "0.8.0",
+      "license": "Apache-2.0 OR MIT",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "blake2",
+      "version": "0.10.6",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "block-buffer",
+      "version": "0.10.4",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "cfg-if",
+      "version": "1.0.4",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "colorchoice",
+      "version": "1.0.5",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "crypto-common",
+      "version": "0.1.7",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "digest",
+      "version": "0.10.7",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "either",
+      "version": "1.15.0",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "env_filter",
+      "version": "1.0.1",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "env_logger",
+      "version": "0.11.10",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "equivalent",
+      "version": "1.0.2",
+      "license": "Apache-2.0 OR MIT",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "fancy-regex",
+      "version": "0.17.0",
+      "license": "MIT",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "foldhash",
+      "version": "0.2.0",
+      "license": "Zlib",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "generic-array",
+      "version": "0.14.7",
+      "license": "MIT",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "getrandom",
+      "version": "0.4.2",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "hashbrown",
+      "version": "0.16.1",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "heck",
+      "version": "0.5.0",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "indexmap",
+      "version": "2.13.0",
+      "license": "Apache-2.0 OR MIT",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "is_terminal_polyfill",
+      "version": "1.70.2",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "itertools",
+      "version": "0.14.0",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "itoa",
+      "version": "1.0.18",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "jiff",
+      "version": "0.2.23",
+      "license": "Unlicense OR MIT",
+      "license_file": null,
+      "license_like_files": [
+       "COPYING",
+       "LICENSE-MIT",
+       "UNLICENSE"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "jiff-static",
+      "version": "0.2.23",
+      "license": "Unlicense OR MIT",
+      "license_file": null,
+      "license_like_files": [
+       "COPYING",
+       "LICENSE-MIT",
+       "UNLICENSE"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "libc",
+      "version": "0.2.183",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "log",
+      "version": "0.4.29",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "memchr",
+      "version": "2.8.0",
+      "license": "Unlicense OR MIT",
+      "license_file": null,
+      "license_like_files": [
+       "COPYING",
+       "LICENSE-MIT",
+       "UNLICENSE"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "once_cell",
+      "version": "1.21.4",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "once_cell_polyfill",
+      "version": "1.70.2",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "portable-atomic",
+      "version": "1.13.1",
+      "license": "Apache-2.0 OR MIT",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "portable-atomic-util",
+      "version": "0.2.6",
+      "license": "Apache-2.0 OR MIT",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "proc-macro2",
+      "version": "1.0.106",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "pyo3",
+      "version": "0.29.0",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "pyo3-build-config",
+      "version": "0.29.0",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "pyo3-ffi",
+      "version": "0.29.0",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "pyo3-macros",
+      "version": "0.29.0",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "pyo3-macros-backend",
+      "version": "0.29.0",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "quote",
+      "version": "1.0.45",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "r-efi",
+      "version": "6.0.0",
+      "license": "MIT OR Apache-2.0 OR LGPL-2.1-or-later",
+      "license_file": null,
+      "license_like_files": [],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "regex",
+      "version": "1.12.3",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "regex-automata",
+      "version": "0.4.14",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "regex-syntax",
+      "version": "0.8.10",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "ryu",
+      "version": "1.0.23",
+      "license": "Apache-2.0 OR BSL-1.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-BOOST"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "serde",
+      "version": "1.0.228",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "serde_core",
+      "version": "1.0.228",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "serde_derive",
+      "version": "1.0.228",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "serde_yaml_ng",
+      "version": "0.10.0",
+      "license": "MIT",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "smallvec",
+      "version": "1.15.1",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "sqlfluffrs",
+      "version": "4.4.0",
+      "license": null,
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE.md"
+      ],
+      "source": "path",
+      "own": true
+     },
+     {
+      "name": "sqlfluffrs_dialects",
+      "version": "4.4.0",
+      "license": null,
+      "license_file": null,
+      "license_like_files": [],
+      "source": "path",
+      "own": true
+     },
+     {
+      "name": "sqlfluffrs_lexer",
+      "version": "4.4.0",
+      "license": null,
+      "license_file": null,
+      "license_like_files": [],
+      "source": "path",
+      "own": true
+     },
+     {
+      "name": "sqlfluffrs_parser",
+      "version": "4.4.0",
+      "license": null,
+      "license_file": null,
+      "license_like_files": [],
+      "source": "path",
+      "own": true
+     },
+     {
+      "name": "sqlfluffrs_python",
+      "version": "4.4.0",
+      "license": null,
+      "license_file": null,
+      "license_like_files": [],
+      "source": "path",
+      "own": true
+     },
+     {
+      "name": "sqlfluffrs_rules",
+      "version": "4.4.0",
+      "license": null,
+      "license_file": null,
+      "license_like_files": [],
+      "source": "path",
+      "own": true
+     },
+     {
+      "name": "sqlfluffrs_types",
+      "version": "4.4.0",
+      "license": null,
+      "license_file": null,
+      "license_like_files": [],
+      "source": "path",
+      "own": true
+     },
+     {
+      "name": "subtle",
+      "version": "2.6.1",
+      "license": "BSD-3-Clause",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "syn",
+      "version": "2.0.117",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "target-lexicon",
+      "version": "0.13.5",
+      "license": "Apache-2.0 WITH LLVM-exception",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "typenum",
+      "version": "1.19.0",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE",
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "unicode-ident",
+      "version": "1.0.24",
+      "license": "(MIT OR Apache-2.0) AND Unicode-3.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT",
+       "LICENSE-UNICODE"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "unsafe-libyaml",
+      "version": "0.2.11",
+      "license": "MIT",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "utf8parse",
+      "version": "0.2.2",
+      "license": "Apache-2.0 OR MIT",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "uuid",
+      "version": "1.22.0",
+      "license": "Apache-2.0 OR MIT",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "version_check",
+      "version": "0.9.5",
+      "license": "MIT/Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "wasip2",
+      "version": "1.0.2+wasi-0.2.9",
+      "license": "Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT",
+      "license_file": null,
+      "license_like_files": [],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "wasip3",
+      "version": "0.4.0+wasi-0.3.0-rc-2026-01-06",
+      "license": "Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT",
+      "license_file": null,
+      "license_like_files": [],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "windows-link",
+      "version": "0.2.1",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "license-apache-2.0",
+       "license-mit"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "windows-sys",
+      "version": "0.61.2",
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "license_like_files": [
+       "license-apache-2.0",
+       "license-mit"
+      ],
+      "source": "crates.io",
+      "own": false
+     },
+     {
+      "name": "wit-bindgen",
+      "version": "0.51.0",
+      "license": "Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT",
+      "license_file": null,
+      "license_like_files": [
+       "LICENSE-APACHE",
+       "LICENSE-Apache-2.0_WITH_LLVM-exception",
+       "LICENSE-MIT"
+      ],
+      "source": "crates.io",
+      "own": false
+     }
+    ]
+   }
+  }
+ },
+ "sqlfluff": {
+  "version": "4.4.0",
+  "sqlfluff_ref": "0348222a3bcdb0226563f7349c5a39beb0641955",
+  "license_files": [
+   {
+    "path": "LICENSE.md",
+    "sha256": "22dce2dc3663d299ccc2606289647982d757e6157393081e59736a9db335c77f",
+    "lines": 21,
+    "first_line": "MIT License",
+    "copyright": [
+     "Copyright (c) 2018-2026 Alan Cruickshank"
+    ],
+    "text": "MIT License\n\nCopyright (c) 2018-2026 Alan Cruickshank\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.\n"
+   },
+   {
+    "path": "plugins/sqlfluff-templater-dbt/LICENSE.md",
+    "sha256": "22dce2dc3663d299ccc2606289647982d757e6157393081e59736a9db335c77f",
+    "lines": 21,
+    "first_line": "MIT License",
+    "copyright": [
+     "Copyright (c) 2018-2026 Alan Cruickshank"
+    ],
+    "text": "MIT License\n\nCopyright (c) 2018-2026 Alan Cruickshank\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.\n"
+   },
+   {
+    "path": "plugins/sqlfluff-templater-sqlmesh/LICENSE.md",
+    "sha256": "22dce2dc3663d299ccc2606289647982d757e6157393081e59736a9db335c77f",
+    "lines": 21,
+    "first_line": "MIT License",
+    "copyright": [
+     "Copyright (c) 2018-2026 Alan Cruickshank"
+    ],
+    "text": "MIT License\n\nCopyright (c) 2018-2026 Alan Cruickshank\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.\n"
+   },
+   {
+    "path": "sqlfluffrs/LICENSE.md",
+    "sha256": "22dce2dc3663d299ccc2606289647982d757e6157393081e59736a9db335c77f",
+    "lines": 21,
+    "first_line": "MIT License",
+    "copyright": [
+     "Copyright (c) 2018-2026 Alan Cruickshank"
+    ],
+    "text": "MIT License\n\nCopyright (c) 2018-2026 Alan Cruickshank\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.\n"
+   }
+  ],
+  "python_lines": {
+   "dialects": {
+    "folder": "src/sqlfluff/dialects",
+    "files": 54,
+    "lines": 94120,
+    "dialect_modules": 53,
+    "keyword_modules": 25
+   },
+   "rules": {
+    "folder": "src/sqlfluff/rules",
+    "files": 91,
+    "lines": 15601
+   },
+   "parser": {
+    "folder": "src/sqlfluff/core/parser",
+    "files": 29,
+    "lines": 8769
+   },
+   "templaters": {
+    "folder": "src/sqlfluff/core/templaters",
+    "files": 10,
+    "lines": 4529
+   }
+  },
+  "generator_python": {
+   "sqlfluff_version": "4.4.0",
+   "python": "3.13.16"
+  },
+  "generator_environment": [
+   {
+    "name": "chardet",
+    "version": "7.6.0",
+    "license_expression": "0BSD",
+    "license_field": null,
+    "license_classifiers": [],
+    "license_like_files": [
+     "LICENSE"
+    ]
+   },
+   {
+    "name": "click",
+    "version": "8.4.2",
+    "license_expression": "BSD-3-Clause",
+    "license_field": null,
+    "license_classifiers": [],
+    "license_like_files": [
+     "LICENSE.txt"
+    ]
+   },
+   {
+    "name": "colorama",
+    "version": "0.4.6",
+    "license_expression": null,
+    "license_field": null,
+    "license_classifiers": [
+     "License :: OSI Approved :: BSD License"
+    ],
+    "license_like_files": [
+     "LICENSE.txt"
+    ]
+   },
+   {
+    "name": "diff_cover",
+    "version": "10.6.0",
+    "license_expression": "Apache-2.0",
+    "license_field": null,
+    "license_classifiers": [],
+    "license_like_files": [
+     "LICENSE",
+     "NOTICE"
+    ]
+   },
+   {
+    "name": "Jinja2",
+    "version": "3.1.6",
+    "license_expression": null,
+    "license_field": null,
+    "license_classifiers": [
+     "License :: OSI Approved :: BSD License"
+    ],
+    "license_like_files": [
+     "LICENSE.txt"
+    ]
+   },
+   {
+    "name": "MarkupSafe",
+    "version": "3.0.4",
+    "license_expression": "BSD-3-Clause",
+    "license_field": null,
+    "license_classifiers": [],
+    "license_like_files": [
+     "LICENSE.txt"
+    ]
+   },
+   {
+    "name": "pathspec",
+    "version": "1.1.1",
+    "license_expression": null,
+    "license_field": null,
+    "license_classifiers": [
+     "License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)"
+    ],
+    "license_like_files": [
+     "LICENSE"
+    ]
+   },
+   {
+    "name": "platformdirs",
+    "version": "4.13.0",
+    "license_expression": "MIT",
+    "license_field": null,
+    "license_classifiers": [
+     "License :: OSI Approved :: MIT License"
+    ],
+    "license_like_files": [
+     "LICENSE"
+    ]
+   },
+   {
+    "name": "pluggy",
+    "version": "1.6.0",
+    "license_expression": null,
+    "license_field": "MIT",
+    "license_classifiers": [
+     "License :: OSI Approved :: MIT License"
+    ],
+    "license_like_files": [
+     "LICENSE"
+    ]
+   },
+   {
+    "name": "Pygments",
+    "version": "2.21.0",
+    "license_expression": "BSD-2-Clause",
+    "license_field": null,
+    "license_classifiers": [],
+    "license_like_files": [
+     "AUTHORS",
+     "LICENSE"
+    ]
+   },
+   {
+    "name": "PyYAML",
+    "version": "6.0.3",
+    "license_expression": null,
+    "license_field": "MIT",
+    "license_classifiers": [
+     "License :: OSI Approved :: MIT License"
+    ],
+    "license_like_files": [
+     "LICENSE"
+    ]
+   },
+   {
+    "name": "regex",
+    "version": "2026.9.29",
+    "license_expression": "Apache-2.0 AND CNRI-Python",
+    "license_field": null,
+    "license_classifiers": [],
+    "license_like_files": [
+     "LICENSE.txt"
+    ]
+   },
+   {
+    "name": "sqlfluff",
+    "version": "4.4.0",
+    "license_expression": null,
+    "license_field": "MIT License",
+    "license_classifiers": [
+     "License :: OSI Approved :: MIT License"
+    ],
+    "license_like_files": [
+     "LICENSE.md"
+    ]
+   },
+   {
+    "name": "tblib",
+    "version": "3.2.2",
+    "license_expression": "BSD-2-Clause",
+    "license_field": null,
+    "license_classifiers": [],
+    "license_like_files": [
+     "LICENSE"
+    ]
+   },
+   {
+    "name": "tqdm",
+    "version": "4.70.1",
+    "license_expression": null,
+    "license_field": "MPL-2.0 AND MIT",
+    "license_classifiers": [],
+    "license_like_files": [
+     "LICENCE"
+    ]
+   }
+  ]
+ },
+ "steps": [
+  {
+   "step": "check the submodule before",
+   "cwd": "$REPO",
+   "argv": [
+    "$REPO/scripts/check-submodule",
+    "before the T7 collect"
+   ],
+   "env": {},
+   "unset": [],
+   "exit_code": 0,
+   "wall_s": 0.025
+  },
+  {
+   "step": "sqll commit",
+   "cwd": "$REPO",
+   "argv": [
+    "git",
+    "rev-parse",
+    "HEAD"
+   ],
+   "env": {},
+   "unset": [],
+   "exit_code": 0,
+   "wall_s": 0.003
+  },
+  {
+   "step": "sqll root files",
+   "cwd": "$REPO",
+   "argv": [
+    "git",
+    "ls-tree",
+    "--name-only",
+    "HEAD"
+   ],
+   "env": {},
+   "unset": [],
+   "exit_code": 0,
+   "wall_s": 0.003
+  },
+  {
+   "step": "cargo version",
+   "cwd": "$SCRATCH",
+   "argv": [
+    "cargo",
+    "--version"
+   ],
+   "env": {},
+   "unset": [],
+   "exit_code": 0,
+   "wall_s": 0.015
+  },
+  {
+   "step": "git version",
+   "cwd": "$SCRATCH",
+   "argv": [
+    "git",
+    "--version"
+   ],
+   "env": {},
+   "unset": [],
+   "exit_code": 0,
+   "wall_s": 0.003
+  },
+  {
+   "step": "clone sqruff",
+   "cwd": "$SCRATCH",
+   "argv": [
+    "git",
+    "clone",
+    "--quiet",
+    "--filter=blob:none",
+    "--no-checkout",
+    "https://github.com/quarylabs/sqruff.git",
+    "$SCRATCH/sqruff"
+   ],
+   "env": {},
+   "unset": [],
+   "exit_code": 0,
+   "wall_s": 1.715
+  },
+  {
+   "step": "sqruff tag commit",
+   "cwd": "$SCRATCH/sqruff",
+   "argv": [
+    "git",
+    "rev-parse",
+    "v0.41.0^{commit}"
+   ],
+   "env": {},
+   "unset": [],
+   "exit_code": 0,
+   "wall_s": 0.005
+  },
+  {
+   "step": "check out the tag",
+   "cwd": "$SCRATCH/sqruff",
+   "argv": [
+    "git",
+    "checkout",
+    "--quiet",
+    "aa4c5730d697794ffaf72a4c187d64522e5820c7"
+   ],
+   "env": {},
+   "unset": [],
+   "exit_code": 0,
+   "wall_s": 1.966
+  },
+  {
+   "step": "tracked files",
+   "cwd": "$SCRATCH/sqruff",
+   "argv": [
+    "git",
+    "ls-files",
+    "-z"
+   ],
+   "env": {},
+   "unset": [],
+   "exit_code": 0,
+   "wall_s": 0.005
+  },
+  {
+   "step": "commits only in .sqlfluff-sha, only in the pinned sqlfluff",
+   "cwd": "$REPO",
+   "argv": [
+    "git",
+    "-C",
+    "$REPO/third_party/sqlfluff",
+    "rev-list",
+    "--left-right",
+    "--count",
+    "4d6da1abcfbd4fff7bcb9a5f0a7b710815f73313...HEAD"
+   ],
+   "env": {},
+   "unset": [],
+   "exit_code": 0,
+   "wall_s": 0.083
+  },
+  {
+   "step": "commit dates",
+   "cwd": "$REPO",
+   "argv": [
+    "git",
+    "-C",
+    "$REPO/third_party/sqlfluff",
+    "show",
+    "-s",
+    "--format=%cI",
+    "4d6da1abcfbd4fff7bcb9a5f0a7b710815f73313",
+    "HEAD"
+   ],
+   "env": {},
+   "unset": [],
+   "exit_code": 0,
+   "wall_s": 0.021
+  },
+  {
+   "step": "unpack the sqruff crate",
+   "cwd": "$SCRATCH",
+   "argv": [
+    "tar",
+    "-xzf",
+    "$CRATE",
+    "-C",
+    "$SCRATCH/crates"
+   ],
+   "env": {
+    "CRATE": "$CARGO_HOME/registry/cache/*/sqruff-0.41.0.crate"
+   },
+   "unset": [],
+   "exit_code": 0,
+   "wall_s": 0.01
+  },
+  {
+   "step": "cargo metadata",
+   "cwd": "$SCRATCH/crates/sqruff-0.41.0",
+   "argv": [
+    "cargo",
+    "metadata",
+    "--locked",
+    "--all-features",
+    "--format-version",
+    "1"
+   ],
+   "env": {},
+   "unset": [],
+   "exit_code": 0,
+   "wall_s": 0.395
+  },
+  {
+   "step": "cargo tree (installed)",
+   "cwd": "$SCRATCH/crates/sqruff-0.41.0",
+   "argv": [
+    "cargo",
+    "tree",
+    "--locked",
+    "-e",
+    "normal,build",
+    "--target",
+    "all",
+    "--prefix",
+    "none",
+    "--format",
+    "{p}|{l}",
+    "--features",
+    "parser,python"
+   ],
+   "env": {},
+   "unset": [],
+   "exit_code": 0,
+   "wall_s": 0.301
+  },
+  {
+   "step": "cargo tree (libraries)",
+   "cwd": "$SCRATCH/crates/sqruff-0.41.0",
+   "argv": [
+    "cargo",
+    "tree",
+    "--locked",
+    "-e",
+    "normal,build",
+    "--target",
+    "all",
+    "--prefix",
+    "none",
+    "--format",
+    "{p}|{l}",
+    "-p",
+    "sqruff-lib",
+    "-p",
+    "sqruff-lib-core",
+    "-p",
+    "sqruff-lib-dialects"
+   ],
+   "env": {},
+   "unset": [],
+   "exit_code": 0,
+   "wall_s": 0.325
+  },
+  {
+   "step": "copy the submodule",
+   "cwd": "$SCRATCH",
+   "argv": [
+    "sh",
+    "-c",
+    "git -C \"$REPO/third_party/sqlfluff\" archive --format=tar --prefix=sqlfluff/ HEAD | tar -x -C \"$SCRATCH\""
+   ],
+   "env": {
+    "REPO": "$REPO",
+    "SCRATCH": "$SCRATCH"
+   },
+   "unset": [],
+   "exit_code": 0,
+   "wall_s": 0.538
+  },
+  {
+   "step": "python (installed sqlfluff)",
+   "cwd": "$SCRATCH/sqlfluff",
+   "argv": [
+    "$REPO/.tools/sqlfluff/bin/python",
+    "-c",
+    "import json, sys, sqlfluff;print(json.dumps({'sqlfluff_version': sqlfluff.__version__, 'sqlfluff_file': sqlfluff.__file__, 'python': sys.version.split()[0]}))"
+   ],
+   "env": {},
+   "unset": [
+    "MATURIN_PYTHON_INTERPRETER",
+    "PYO3_PYTHON",
+    "PYTHONHOME",
+    "PYTHONPATH",
+    "VIRTUAL_ENV"
+   ],
+   "exit_code": 0,
+   "wall_s": 0.262
+  },
+  {
+   "step": "generate the dialect tables",
+   "cwd": "$SCRATCH/sqlfluff",
+   "argv": [
+    "$REPO/.tools/sqlfluff/bin/python",
+    "utils/rustify.py",
+    "build"
+   ],
+   "env": {},
+   "unset": [
+    "MATURIN_PYTHON_INTERPRETER",
+    "PYO3_PYTHON",
+    "PYTHONHOME",
+    "PYTHONPATH",
+    "VIRTUAL_ENV"
+   ],
+   "exit_code": 0,
+   "wall_s": 32.932,
+   "log": "$SCRATCH/logs/generate.log"
+  },
+  {
+   "step": "cargo version (rust-toolchain.toml of sqlfluffrs)",
+   "cwd": "$SCRATCH/sqlfluff/sqlfluffrs",
+   "argv": [
+    "cargo",
+    "--version"
+   ],
+   "env": {},
+   "unset": [],
+   "exit_code": 0,
+   "wall_s": 0.052
+  },
+  {
+   "step": "cargo metadata",
+   "cwd": "$SCRATCH/sqlfluff/sqlfluffrs",
+   "argv": [
+    "cargo",
+    "metadata",
+    "--locked",
+    "--all-features",
+    "--format-version",
+    "1"
+   ],
+   "env": {},
+   "unset": [],
+   "exit_code": 0,
+   "wall_s": 0.341
+  },
+  {
+   "step": "cargo tree (standalone)",
+   "cwd": "$SCRATCH/sqlfluff/sqlfluffrs",
+   "argv": [
+    "cargo",
+    "tree",
+    "--locked",
+    "-e",
+    "normal,build",
+    "--target",
+    "all",
+    "--prefix",
+    "none",
+    "--format",
+    "{p}|{l}",
+    "-p",
+    "sqlfluffrs_lexer",
+    "-p",
+    "sqlfluffrs_parser",
+    "-p",
+    "sqlfluffrs_dialects",
+    "-p",
+    "sqlfluffrs_rules",
+    "-p",
+    "sqlfluffrs_types"
+   ],
+   "env": {},
+   "unset": [],
+   "exit_code": 0,
+   "wall_s": 0.195
+  },
+  {
+   "step": "cargo tree (python)",
+   "cwd": "$SCRATCH/sqlfluff/sqlfluffrs",
+   "argv": [
+    "cargo",
+    "tree",
+    "--locked",
+    "-e",
+    "normal,build",
+    "--target",
+    "all",
+    "--prefix",
+    "none",
+    "--format",
+    "{p}|{l}",
+    "-p",
+    "sqlfluffrs",
+    "--features",
+    "python"
+   ],
+   "env": {},
+   "unset": [],
+   "exit_code": 0,
+   "wall_s": 0.201
+  },
+  {
+   "step": "generator environment packages",
+   "cwd": "$SCRATCH",
+   "argv": [
+    "$REPO/.tools/sqlfluff/bin/python",
+    "-I",
+    "-c",
+    "\nimport importlib.metadata as m, json\nrows = []\nfor d in m.distributions():\n    md = d.metadata\n    text = md.get(\"License\") or \"\"\n    rows.append({\n        \"name\": md[\"Name\"],\n        \"version\": d.version,\n        \"license_expression\": md.get(\"License-Expression\"),\n        \"license_field\": text.strip().splitlines()[0] if text.strip() else None,\n        \"license_classifiers\": sorted(\n            c for c in (md.get_all(\"Classifier\") or []) if c.startswith(\"License ::\")\n        ),\n        \"license_like_files\": sorted(md.get_all(\"License-File\") or []),\n    })\nprint(json.dumps(sorted(rows, key=lambda r: r[\"name\"].lower())))\n"
+   ],
+   "env": {},
+   "unset": [
+    "MATURIN_PYTHON_INTERPRETER",
+    "PYO3_PYTHON",
+    "PYTHONHOME",
+    "PYTHONPATH",
+    "VIRTUAL_ENV"
+   ],
+   "exit_code": 0,
+   "wall_s": 0.141
+  },
+  {
+   "step": "check the submodule after",
+   "cwd": "$REPO",
+   "argv": [
+    "$REPO/scripts/check-submodule",
+    "after the T7 collect"
+   ],
+   "env": {},
+   "unset": [],
+   "exit_code": 0,
+   "wall_s": 0.032
+  }
+ ]
+}
