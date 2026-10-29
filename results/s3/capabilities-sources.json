@@ -2,9 +2,9 @@
  "kind": "sqll-s3-capabilities-sources",
  "task": "T8",
  "command": "uv run --frozen --project harness python scripts/s3/capabilities.py collect --scratch DIR",
- "started": "2026-10-29T10:35:45Z",
- "finished": "2026-10-29T10:35:52Z",
- "sqll_commit": "5cfb271f5d1113495a0a4970af2b931d7f63b14c",
+ "started": "2026-10-29T11:21:21Z",
+ "finished": "2026-10-29T11:21:27Z",
+ "sqll_commit": "9380fe30bb7bbdfefd316c3ee5836c2fc1b5dd21",
  "sqlfluff_ref": "0348222a3bcdb0226563f7349c5a39beb0641955",
  "tools": "$TOOLS is the tools folder of scripts/setup (SQLL_TOOLS_DIR)",
  "help_env": {
@@ -12,6 +12,9 @@
   "NO_COLOR": "1",
   "TERM": "dumb"
  },
+ "help_unset": [
+  "GITHUB_ACTIONS"
+ ],
  "commands": {
   "sqlfluff --version": {
    "step": "sqlfluff --version",
@@ -25,9 +28,11 @@
     "NO_COLOR": "1",
     "TERM": "dumb"
    },
-   "unset": [],
+   "unset": [
+    "GITHUB_ACTIONS"
+   ],
    "exit_code": 0,
-   "wall_s": 0.509,
+   "wall_s": 0.51,
    "stdout": "sqlfluff, version 4.4.0\n"
   },
   "sqruff --version": {
@@ -42,9 +47,11 @@
     "NO_COLOR": "1",
     "TERM": "dumb"
    },
-   "unset": [],
+   "unset": [
+    "GITHUB_ACTIONS"
+   ],
    "exit_code": 0,
-   "wall_s": 0.007,
+   "wall_s": 0.006,
    "stdout": "sqruff 0.41.0\n"
   },
   "sqlfluff --help": {
@@ -59,9 +66,11 @@
     "NO_COLOR": "1",
     "TERM": "dumb"
    },
-   "unset": [],
+   "unset": [
+    "GITHUB_ACTIONS"
+   ],
    "exit_code": 0,
-   "wall_s": 0.537,
+   "wall_s": 0.472,
    "stdout": "Usage: sqlfluff [OPTIONS] COMMAND [ARGS]...\n\n  SQLFluff is a modular SQL linter for humans.\n\nOptions:\n  --version   Show the version and exit.\n  -h, --help  Show this message and exit.\n\nCommands:\n  dialects  Show the current dialects available.\n  fix       Fix SQL files.\n  format    Autoformat SQL files.\n  lint      Lint SQL files via passing a list of files or using stdin.\n  parse     Parse SQL files and just spit out the result.\n  render    Render SQL files and just spit out the result.\n  rules     Show the current rules in use.\n  version   Show the version of sqlfluff.\n\n  Examples:\n\n  .. code-block:: sh\n\n     sqlfluff lint --dialect postgres .\n\n     sqlfluff lint --dialect mysql --rules ST05 my_query.sql\n\n     sqlfluff fix --dialect sqlite --rules LT10,ST05 src/queries\n\n     sqlfluff parse --dialect duckdb --templater jinja path/my_query.sql\n"
   },
   "sqlfluff dialects --help": {
@@ -77,9 +86,11 @@
     "NO_COLOR": "1",
     "TERM": "dumb"
    },
-   "unset": [],
+   "unset": [
+    "GITHUB_ACTIONS"
+   ],
    "exit_code": 0,
-   "wall_s": 0.629,
+   "wall_s": 0.478,
    "stdout": "Usage: sqlfluff dialects [OPTIONS]\n\n  Show the current dialects available.\n\nOptions:\n  -n, --nocolor / --color  No color - output will be without ANSI color codes.\n  -v, --verbose            Verbosity, how detailed should the output be. This\n                           is *stackable*, so `-vv` is more verbose than `-v`.\n                           For the most verbose option try `-vvvv` or\n                           `-vvvvv`.\n  --version                Show the version and exit.\n  -h, --help               Show this message and exit.\n"
   },
   "sqlfluff fix --help": {
@@ -95,9 +106,11 @@
     "NO_COLOR": "1",
     "TERM": "dumb"
    },
-   "unset": [],
+   "unset": [
+    "GITHUB_ACTIONS"
+   ],
    "exit_code": 0,
-   "wall_s": 0.598,
+   "wall_s": 0.453,
    "stdout": "Usage: sqlfluff fix [OPTIONS] [PATHS]...\n\n  Fix SQL files.\n\n  PATH is the path to a sql file or directory to lint. This can be either a\n  file ('path/to/file.sql'), a path ('directory/of/sql/files'), a single ('-')\n  character to indicate reading from *stdin* or a dot/blank ('.'/' ') which\n  will be interpreted like passing the current working directory as a path\n  argument.\n\nOptions:\n  -n, --nocolor / --color         No color - output will be without ANSI color\n                                  codes.\n  -v, --verbose                   Verbosity, how detailed should the output\n                                  be. This is *stackable*, so `-vv` is more\n                                  verbose than `-v`. For the most verbose\n                                  option try `-vvvv` or `-vvvvv`.\n  --version                       Show the version and exit.\n  --stdin-filename PATH           When using stdin as an input, load the\n                                  configuration as if the contents of stdin\n                                  was in a file in the listed location. This\n                                  is useful for some editors that pass file\n                                  contents from the editor that might not\n                                  match the content on disk.\n  --library-path TEXT             Override the `library_path` value from the\n                                  [sqlfluff:templater:jinja] configuration\n                                  value. Set this to 'none' to disable\n                                  entirely. This overrides any values set by\n                                  users in configuration files or inline\n                                  directives.\n  --disable-noqa-except TEXT      Ignore all but the listed rules inline noqa\n                                  comments.\n  --disable-noqa                  Set this flag to ignore inline noqa\n                                  comments.\n  --logger [templater|lexer|parser|linter|rules|config]\n                                  Choose to limit the logging to one of the\n                                  loggers.\n  --bench                         Set this flag to engage the benchmarking\n                                  tool output.\n  -i, --ignore TEXT               Ignore particular families of errors so that\n                                  they don't cause a failed run. For example\n                                  `--ignore parsing` would mean that any\n                                  parsing errors are ignored and don't\n                                  influence the success or fail of a run.\n                                  `--ignore` behaves somewhat like `noqa`\n                                  comments, except it applies globally.\n                                  Multiple options are possible if comma\n                                  separated: e.g. `--ignore\n                                  parsing,templating`.\n  --encoding TEXT                 Specify encoding to use when reading and\n                                  writing files. Defaults to autodetect.\n  --ignore-local-config           Ignore config files in default search path\n                                  locations. This option allows the user to\n                                  lint with the default config or can be used\n                                  in conjunction with --config to only\n                                  reference the custom config file.\n  --config PATH                   Include additional config file. By default\n                                  the config is generated from the standard\n                                  configuration files described in the\n                                  documentation. This argument allows you to\n                                  specify an additional configuration file\n                                  that overrides the standard configuration\n                                  files. N.B. cfg format is required.\n  -e, --exclude-rules TEXT        Exclude specific rules. For example\n                                  specifying `--exclude-rules LT01` will\n                                  remove rule `LT01` (Unnecessary trailing\n                                  whitespace) from the set of considered\n                                  rules. This could either be the allowlist,\n                                  or the general set if there is no specific\n                                  allowlist. Multiple rules can be specified\n                                  with commas e.g. `--exclude-rules LT01,LT02`\n                                  will exclude violations of rule `LT01` and\n                                  rule `LT02`.\n  -r, --rules TEXT                Narrow the search to only specific rules.\n                                  For example specifying `--rules LT01` will\n                                  only search for rule `LT01` (Unnecessary\n                                  trailing whitespace). Multiple rules can be\n                                  specified with commas e.g. `--rules\n                                  LT01,LT02` will specify only looking for\n                                  violations of rule `LT01` and rule `LT02`.\n  -t, --templater [raw|jinja|python|placeholder]\n                                  The templater to use (default=jinja)\n  -d, --dialect TEXT              The dialect of SQL to lint\n  --disregard-sqlfluffignores     Perform the operation regardless of\n                                  .sqlfluffignore configurations\n  --warn-unused-ignores           Warn about unneeded '-- noqa:' comments.\n  --persist-timing TEXT           A filename to persist the timing information\n                                  for a linting run to in csv format for\n                                  external analysis. NOTE: This feature should\n                                  be treated as beta, and the format of the\n                                  csv file may change in future releases\n                                  without warning.\n  --disable-progress-bar          Disables progress bars.\n  -p, --processes INTEGER         The number of parallel processes to run.\n                                  Positive numbers work as expected. Zero and\n                                  negative numbers will work as number_of_cpus\n                                  - number. e.g  -1 means all cpus except one.\n                                  0 means all cpus.\n  -q, --quiet                     Suppresses routine status and progress\n                                  output while preserving diagnostics and\n                                  command results. NOTE: It cannot be used\n                                  together with -v/--verbose.\n  -f, --force                     [DEPRECATED - From 3.0 onward this is the\n                                  default behaviour] Apply fixes will also be\n                                  applied file by file, during the linting\n                                  process, rather than waiting until all files\n                                  are linted before fixing.\n  --check                         Analyse all files and ask for confirmation\n                                  before applying any fixes. Fixes will be\n                                  applied all together at the end of the\n                                  operation.\n  -x, --fixed-suffix TEXT         An optional suffix to add to fixed files.\n  --FIX-EVEN-UNPARSABLE           Enables fixing of files that have templating\n                                  or parse errors. Note that the similar-\n                                  sounding '--ignore' or 'noqa' features\n                                  merely prevent errors from being\n                                  *displayed*. For safety reasons, the\n                                  'fix'command will not make any fixes in\n                                  files that have templating or parse errors\n                                  unless '--FIX-EVEN-UNPARSABLE' is enabled on\n                                  the command lineor in the .sqlfluff config\n                                  file.\n  --show-lint-violations          Show lint violations\n  --recursion-limit INTEGER       Set the Python recursion limit before\n                                  fixing.\n  -h, --help                      Show this message and exit.\n"
   },
   "sqlfluff format --help": {
@@ -113,9 +126,11 @@
     "NO_COLOR": "1",
     "TERM": "dumb"
    },
-   "unset": [],
+   "unset": [
+    "GITHUB_ACTIONS"
+   ],
    "exit_code": 0,
-   "wall_s": 0.498,
+   "wall_s": 0.521,
    "stdout": "Usage: sqlfluff format [OPTIONS] [PATHS]...\n\n  Autoformat SQL files.\n\n  This effectively force applies `sqlfluff fix` with a known subset of fairly\n  stable rules. Enabled rules are ignored, but rule exclusions (via CLI) or\n  config are still respected.\n\n  PATH is the path to a sql file or directory to lint. This can be either a\n  file ('path/to/file.sql'), a path ('directory/of/sql/files'), a single ('-')\n  character to indicate reading from *stdin* or a dot/blank ('.'/' ') which\n  will be interpreted like passing the current working directory as a path\n  argument.\n\nOptions:\n  -n, --nocolor / --color         No color - output will be without ANSI color\n                                  codes.\n  -v, --verbose                   Verbosity, how detailed should the output\n                                  be. This is *stackable*, so `-vv` is more\n                                  verbose than `-v`. For the most verbose\n                                  option try `-vvvv` or `-vvvvv`.\n  --version                       Show the version and exit.\n  --stdin-filename PATH           When using stdin as an input, load the\n                                  configuration as if the contents of stdin\n                                  was in a file in the listed location. This\n                                  is useful for some editors that pass file\n                                  contents from the editor that might not\n                                  match the content on disk.\n  --library-path TEXT             Override the `library_path` value from the\n                                  [sqlfluff:templater:jinja] configuration\n                                  value. Set this to 'none' to disable\n                                  entirely. This overrides any values set by\n                                  users in configuration files or inline\n                                  directives.\n  --disable-noqa-except TEXT      Ignore all but the listed rules inline noqa\n                                  comments.\n  --disable-noqa                  Set this flag to ignore inline noqa\n                                  comments.\n  --logger [templater|lexer|parser|linter|rules|config]\n                                  Choose to limit the logging to one of the\n                                  loggers.\n  --bench                         Set this flag to engage the benchmarking\n                                  tool output.\n  -i, --ignore TEXT               Ignore particular families of errors so that\n                                  they don't cause a failed run. For example\n                                  `--ignore parsing` would mean that any\n                                  parsing errors are ignored and don't\n                                  influence the success or fail of a run.\n                                  `--ignore` behaves somewhat like `noqa`\n                                  comments, except it applies globally.\n                                  Multiple options are possible if comma\n                                  separated: e.g. `--ignore\n                                  parsing,templating`.\n  --encoding TEXT                 Specify encoding to use when reading and\n                                  writing files. Defaults to autodetect.\n  --ignore-local-config           Ignore config files in default search path\n                                  locations. This option allows the user to\n                                  lint with the default config or can be used\n                                  in conjunction with --config to only\n                                  reference the custom config file.\n  --config PATH                   Include additional config file. By default\n                                  the config is generated from the standard\n                                  configuration files described in the\n                                  documentation. This argument allows you to\n                                  specify an additional configuration file\n                                  that overrides the standard configuration\n                                  files. N.B. cfg format is required.\n  -e, --exclude-rules TEXT        Exclude specific rules. For example\n                                  specifying `--exclude-rules LT01` will\n                                  remove rule `LT01` (Unnecessary trailing\n                                  whitespace) from the set of considered\n                                  rules. This could either be the allowlist,\n                                  or the general set if there is no specific\n                                  allowlist. Multiple rules can be specified\n                                  with commas e.g. `--exclude-rules LT01,LT02`\n                                  will exclude violations of rule `LT01` and\n                                  rule `LT02`.\n  -r, --rules TEXT                Narrow the search to only specific rules.\n                                  For example specifying `--rules LT01` will\n                                  only search for rule `LT01` (Unnecessary\n                                  trailing whitespace). Multiple rules can be\n                                  specified with commas e.g. `--rules\n                                  LT01,LT02` will specify only looking for\n                                  violations of rule `LT01` and rule `LT02`.\n  -t, --templater [raw|jinja|python|placeholder]\n                                  The templater to use (default=jinja)\n  -d, --dialect TEXT              The dialect of SQL to lint\n  --disregard-sqlfluffignores     Perform the operation regardless of\n                                  .sqlfluffignore configurations\n  --warn-unused-ignores           Warn about unneeded '-- noqa:' comments.\n  --persist-timing TEXT           A filename to persist the timing information\n                                  for a linting run to in csv format for\n                                  external analysis. NOTE: This feature should\n                                  be treated as beta, and the format of the\n                                  csv file may change in future releases\n                                  without warning.\n  --disable-progress-bar          Disables progress bars.\n  -p, --processes INTEGER         The number of parallel processes to run.\n                                  Positive numbers work as expected. Zero and\n                                  negative numbers will work as number_of_cpus\n                                  - number. e.g  -1 means all cpus except one.\n                                  0 means all cpus.\n  -q, --quiet                     Suppresses routine status and progress\n                                  output while preserving diagnostics and\n                                  command results. NOTE: It cannot be used\n                                  together with -v/--verbose.\n  -x, --fixed-suffix TEXT         An optional suffix to add to fixed files.\n  --recursion-limit INTEGER       Set the Python recursion limit before\n                                  formatting.\n  -h, --help                      Show this message and exit.\n"
   },
   "sqlfluff lint --help": {
@@ -131,9 +146,11 @@
     "NO_COLOR": "1",
     "TERM": "dumb"
    },
-   "unset": [],
+   "unset": [
+    "GITHUB_ACTIONS"
+   ],
    "exit_code": 0,
-   "wall_s": 0.554,
+   "wall_s": 0.469,
    "stdout": "Usage: sqlfluff lint [OPTIONS] [PATHS]...\n\n  Lint SQL files via passing a list of files or using stdin.\n\n  PATH is the path to a sql file or directory to lint. This can be either a\n  file ('path/to/file.sql'), a path ('directory/of/sql/files'), a single ('-')\n  character to indicate reading from *stdin* or a dot/blank ('.'/' ') which\n  will be interpreted like passing the current working directory as a path\n  argument.\n\n  Linting SQL files:\n\n      sqlfluff lint path/to/file.sql     sqlfluff lint directory/of/sql/files\n\n  Linting a file via stdin (note the lone '-' character):\n\n      cat path/to/file.sql | sqlfluff lint -     echo 'select col from tbl' |\n      sqlfluff lint -\n\nOptions:\n  -n, --nocolor / --color         No color - output will be without ANSI color\n                                  codes.\n  -v, --verbose                   Verbosity, how detailed should the output\n                                  be. This is *stackable*, so `-vv` is more\n                                  verbose than `-v`. For the most verbose\n                                  option try `-vvvv` or `-vvvvv`.\n  --version                       Show the version and exit.\n  --stdin-filename PATH           When using stdin as an input, load the\n                                  configuration as if the contents of stdin\n                                  was in a file in the listed location. This\n                                  is useful for some editors that pass file\n                                  contents from the editor that might not\n                                  match the content on disk.\n  --library-path TEXT             Override the `library_path` value from the\n                                  [sqlfluff:templater:jinja] configuration\n                                  value. Set this to 'none' to disable\n                                  entirely. This overrides any values set by\n                                  users in configuration files or inline\n                                  directives.\n  --disable-noqa-except TEXT      Ignore all but the listed rules inline noqa\n                                  comments.\n  --disable-noqa                  Set this flag to ignore inline noqa\n                                  comments.\n  --logger [templater|lexer|parser|linter|rules|config]\n                                  Choose to limit the logging to one of the\n                                  loggers.\n  --bench                         Set this flag to engage the benchmarking\n                                  tool output.\n  -i, --ignore TEXT               Ignore particular families of errors so that\n                                  they don't cause a failed run. For example\n                                  `--ignore parsing` would mean that any\n                                  parsing errors are ignored and don't\n                                  influence the success or fail of a run.\n                                  `--ignore` behaves somewhat like `noqa`\n                                  comments, except it applies globally.\n                                  Multiple options are possible if comma\n                                  separated: e.g. `--ignore\n                                  parsing,templating`.\n  --encoding TEXT                 Specify encoding to use when reading and\n                                  writing files. Defaults to autodetect.\n  --ignore-local-config           Ignore config files in default search path\n                                  locations. This option allows the user to\n                                  lint with the default config or can be used\n                                  in conjunction with --config to only\n                                  reference the custom config file.\n  --config PATH                   Include additional config file. By default\n                                  the config is generated from the standard\n                                  configuration files described in the\n                                  documentation. This argument allows you to\n                                  specify an additional configuration file\n                                  that overrides the standard configuration\n                                  files. N.B. cfg format is required.\n  -e, --exclude-rules TEXT        Exclude specific rules. For example\n                                  specifying `--exclude-rules LT01` will\n                                  remove rule `LT01` (Unnecessary trailing\n                                  whitespace) from the set of considered\n                                  rules. This could either be the allowlist,\n                                  or the general set if there is no specific\n                                  allowlist. Multiple rules can be specified\n                                  with commas e.g. `--exclude-rules LT01,LT02`\n                                  will exclude violations of rule `LT01` and\n                                  rule `LT02`.\n  -r, --rules TEXT                Narrow the search to only specific rules.\n                                  For example specifying `--rules LT01` will\n                                  only search for rule `LT01` (Unnecessary\n                                  trailing whitespace). Multiple rules can be\n                                  specified with commas e.g. `--rules\n                                  LT01,LT02` will specify only looking for\n                                  violations of rule `LT01` and rule `LT02`.\n  -t, --templater [raw|jinja|python|placeholder]\n                                  The templater to use (default=jinja)\n  -d, --dialect TEXT              The dialect of SQL to lint\n  --disregard-sqlfluffignores     Perform the operation regardless of\n                                  .sqlfluffignore configurations\n  --warn-unused-ignores           Warn about unneeded '-- noqa:' comments.\n  --persist-timing TEXT           A filename to persist the timing information\n                                  for a linting run to in csv format for\n                                  external analysis. NOTE: This feature should\n                                  be treated as beta, and the format of the\n                                  csv file may change in future releases\n                                  without warning.\n  --disable-progress-bar          Disables progress bars.\n  -p, --processes INTEGER         The number of parallel processes to run.\n                                  Positive numbers work as expected. Zero and\n                                  negative numbers will work as number_of_cpus\n                                  - number. e.g  -1 means all cpus except one.\n                                  0 means all cpus.\n  -q, --quiet                     Suppresses routine status and progress\n                                  output while preserving diagnostics and\n                                  command results. NOTE: It cannot be used\n                                  together with -v/--verbose.\n  -f, --format [human|json|yaml|sarif|github-annotation|github-annotation-native|gitlab|none]\n                                  What format to return the lint result in\n                                  (default=human).\n  --write-output TEXT             Optionally provide a filename to write the\n                                  results to, mostly used in tandem with\n                                  --format. NB: Setting an output file re-\n                                  enables normal stdout logging.\n  --annotation-level [notice|warning|failure|error]\n                                  When format is set to \"github-annotation\" or\n                                  \"github-annotation-native\", default\n                                  annotation level (default=\"warning\").\n                                  \"failure\" and \"error\" are equivalent. Any\n                                  rules configured only as warnings will\n                                  always come through with type \"notice\"\n                                  regardless of this option.\n  --nofail                        If set, the exit code will always be zero,\n                                  regardless of violations found. This is\n                                  potentially useful during rollout.\n  --recursion-limit INTEGER       Set the Python recursion limit before\n                                  linting.\n  -h, --help                      Show this message and exit.\n"
   },
   "sqlfluff parse --help": {
@@ -149,9 +166,11 @@
     "NO_COLOR": "1",
     "TERM": "dumb"
    },
-   "unset": [],
+   "unset": [
+    "GITHUB_ACTIONS"
+   ],
    "exit_code": 0,
-   "wall_s": 0.524,
+   "wall_s": 0.548,
    "stdout": "Usage: sqlfluff parse [OPTIONS] PATH\n\n  Parse SQL files and just spit out the result.\n\n  PATH is the path to a sql file or directory to lint. This can be either a\n  file ('path/to/file.sql'), a path ('directory/of/sql/files'), a single ('-')\n  character to indicate reading from *stdin* or a dot/blank ('.'/' ') which\n  will be interpreted like passing the current working directory as a path\n  argument.\n\nOptions:\n  -n, --nocolor / --color         No color - output will be without ANSI color\n                                  codes.\n  -v, --verbose                   Verbosity, how detailed should the output\n                                  be. This is *stackable*, so `-vv` is more\n                                  verbose than `-v`. For the most verbose\n                                  option try `-vvvv` or `-vvvvv`.\n  --version                       Show the version and exit.\n  --stdin-filename PATH           When using stdin as an input, load the\n                                  configuration as if the contents of stdin\n                                  was in a file in the listed location. This\n                                  is useful for some editors that pass file\n                                  contents from the editor that might not\n                                  match the content on disk.\n  --library-path TEXT             Override the `library_path` value from the\n                                  [sqlfluff:templater:jinja] configuration\n                                  value. Set this to 'none' to disable\n                                  entirely. This overrides any values set by\n                                  users in configuration files or inline\n                                  directives.\n  --disable-noqa-except TEXT      Ignore all but the listed rules inline noqa\n                                  comments.\n  --disable-noqa                  Set this flag to ignore inline noqa\n                                  comments.\n  --logger [templater|lexer|parser|linter|rules|config]\n                                  Choose to limit the logging to one of the\n                                  loggers.\n  --bench                         Set this flag to engage the benchmarking\n                                  tool output.\n  -i, --ignore TEXT               Ignore particular families of errors so that\n                                  they don't cause a failed run. For example\n                                  `--ignore parsing` would mean that any\n                                  parsing errors are ignored and don't\n                                  influence the success or fail of a run.\n                                  `--ignore` behaves somewhat like `noqa`\n                                  comments, except it applies globally.\n                                  Multiple options are possible if comma\n                                  separated: e.g. `--ignore\n                                  parsing,templating`.\n  --encoding TEXT                 Specify encoding to use when reading and\n                                  writing files. Defaults to autodetect.\n  --ignore-local-config           Ignore config files in default search path\n                                  locations. This option allows the user to\n                                  lint with the default config or can be used\n                                  in conjunction with --config to only\n                                  reference the custom config file.\n  --config PATH                   Include additional config file. By default\n                                  the config is generated from the standard\n                                  configuration files described in the\n                                  documentation. This argument allows you to\n                                  specify an additional configuration file\n                                  that overrides the standard configuration\n                                  files. N.B. cfg format is required.\n  -e, --exclude-rules TEXT        Exclude specific rules. For example\n                                  specifying `--exclude-rules LT01` will\n                                  remove rule `LT01` (Unnecessary trailing\n                                  whitespace) from the set of considered\n                                  rules. This could either be the allowlist,\n                                  or the general set if there is no specific\n                                  allowlist. Multiple rules can be specified\n                                  with commas e.g. `--exclude-rules LT01,LT02`\n                                  will exclude violations of rule `LT01` and\n                                  rule `LT02`.\n  -r, --rules TEXT                Narrow the search to only specific rules.\n                                  For example specifying `--rules LT01` will\n                                  only search for rule `LT01` (Unnecessary\n                                  trailing whitespace). Multiple rules can be\n                                  specified with commas e.g. `--rules\n                                  LT01,LT02` will specify only looking for\n                                  violations of rule `LT01` and rule `LT02`.\n  -t, --templater [raw|jinja|python|placeholder]\n                                  The templater to use (default=jinja)\n  -d, --dialect TEXT              The dialect of SQL to lint\n  --recursion-limit INTEGER       Set the Python recursion limit before\n                                  parsing.\n  -c, --code-only                 Output only the code elements of the parse\n                                  tree.\n  -m, --include-meta              Include meta segments (indents, dedents and\n                                  placeholders) in the output. When outputting\n                                  JSON or YAML, this also includes position\n                                  information for each segment with six\n                                  fields: start_line_no, start_line_pos,\n                                  start_file_pos, end_line_no, end_line_pos,\n                                  and end_file_pos.\n  -f, --format [human|json|yaml|none]\n                                  What format to return the parse result in.\n  --write-output TEXT             Optionally provide a filename to write the\n                                  results to, mostly used in tandem with\n                                  --format. NB: Setting an output file re-\n                                  enables normal stdout logging.\n  --parse-statistics              Set this flag to enabled detailed debugging\n                                  readout on the use of terminators in the\n                                  parser.\n  --nofail                        If set, the exit code will always be zero,\n                                  regardless of violations found. This is\n                                  potentially useful during rollout.\n  -h, --help                      Show this message and exit.\n"
   },
   "sqlfluff render --help": {
@@ -167,9 +186,11 @@
     "NO_COLOR": "1",
     "TERM": "dumb"
    },
-   "unset": [],
+   "unset": [
+    "GITHUB_ACTIONS"
+   ],
    "exit_code": 0,
-   "wall_s": 0.54,
+   "wall_s": 0.551,
    "stdout": "Usage: sqlfluff render [OPTIONS] PATH\n\n  Render SQL files and just spit out the result.\n\n  PATH is the path to a sql file. This should be either a single file file\n  ('path/to/file.sql') or a single ('-') character to indicate reading from\n  *stdin*.\n\nOptions:\n  -n, --nocolor / --color         No color - output will be without ANSI color\n                                  codes.\n  -v, --verbose                   Verbosity, how detailed should the output\n                                  be. This is *stackable*, so `-vv` is more\n                                  verbose than `-v`. For the most verbose\n                                  option try `-vvvv` or `-vvvvv`.\n  --version                       Show the version and exit.\n  --stdin-filename PATH           When using stdin as an input, load the\n                                  configuration as if the contents of stdin\n                                  was in a file in the listed location. This\n                                  is useful for some editors that pass file\n                                  contents from the editor that might not\n                                  match the content on disk.\n  --library-path TEXT             Override the `library_path` value from the\n                                  [sqlfluff:templater:jinja] configuration\n                                  value. Set this to 'none' to disable\n                                  entirely. This overrides any values set by\n                                  users in configuration files or inline\n                                  directives.\n  --disable-noqa-except TEXT      Ignore all but the listed rules inline noqa\n                                  comments.\n  --disable-noqa                  Set this flag to ignore inline noqa\n                                  comments.\n  --logger [templater|lexer|parser|linter|rules|config]\n                                  Choose to limit the logging to one of the\n                                  loggers.\n  --bench                         Set this flag to engage the benchmarking\n                                  tool output.\n  -i, --ignore TEXT               Ignore particular families of errors so that\n                                  they don't cause a failed run. For example\n                                  `--ignore parsing` would mean that any\n                                  parsing errors are ignored and don't\n                                  influence the success or fail of a run.\n                                  `--ignore` behaves somewhat like `noqa`\n                                  comments, except it applies globally.\n                                  Multiple options are possible if comma\n                                  separated: e.g. `--ignore\n                                  parsing,templating`.\n  --encoding TEXT                 Specify encoding to use when reading and\n                                  writing files. Defaults to autodetect.\n  --ignore-local-config           Ignore config files in default search path\n                                  locations. This option allows the user to\n                                  lint with the default config or can be used\n                                  in conjunction with --config to only\n                                  reference the custom config file.\n  --config PATH                   Include additional config file. By default\n                                  the config is generated from the standard\n                                  configuration files described in the\n                                  documentation. This argument allows you to\n                                  specify an additional configuration file\n                                  that overrides the standard configuration\n                                  files. N.B. cfg format is required.\n  -e, --exclude-rules TEXT        Exclude specific rules. For example\n                                  specifying `--exclude-rules LT01` will\n                                  remove rule `LT01` (Unnecessary trailing\n                                  whitespace) from the set of considered\n                                  rules. This could either be the allowlist,\n                                  or the general set if there is no specific\n                                  allowlist. Multiple rules can be specified\n                                  with commas e.g. `--exclude-rules LT01,LT02`\n                                  will exclude violations of rule `LT01` and\n                                  rule `LT02`.\n  -r, --rules TEXT                Narrow the search to only specific rules.\n                                  For example specifying `--rules LT01` will\n                                  only search for rule `LT01` (Unnecessary\n                                  trailing whitespace). Multiple rules can be\n                                  specified with commas e.g. `--rules\n                                  LT01,LT02` will specify only looking for\n                                  violations of rule `LT01` and rule `LT02`.\n  -t, --templater [raw|jinja|python|placeholder]\n                                  The templater to use (default=jinja)\n  -d, --dialect TEXT              The dialect of SQL to lint\n  -h, --help                      Show this message and exit.\n"
   },
   "sqlfluff rules --help": {
@@ -185,9 +206,11 @@
     "NO_COLOR": "1",
     "TERM": "dumb"
    },
-   "unset": [],
+   "unset": [
+    "GITHUB_ACTIONS"
+   ],
    "exit_code": 0,
-   "wall_s": 0.47,
+   "wall_s": 0.441,
    "stdout": "Usage: sqlfluff rules [OPTIONS]\n\n  Show the current rules in use.\n\nOptions:\n  -n, --nocolor / --color  No color - output will be without ANSI color codes.\n  -v, --verbose            Verbosity, how detailed should the output be. This\n                           is *stackable*, so `-vv` is more verbose than `-v`.\n                           For the most verbose option try `-vvvv` or\n                           `-vvvvv`.\n  --version                Show the version and exit.\n  -h, --help               Show this message and exit.\n"
   },
   "sqlfluff version --help": {
@@ -203,9 +226,11 @@
     "NO_COLOR": "1",
     "TERM": "dumb"
    },
-   "unset": [],
+   "unset": [
+    "GITHUB_ACTIONS"
+   ],
    "exit_code": 0,
-   "wall_s": 0.462,
+   "wall_s": 0.548,
    "stdout": "Usage: sqlfluff version [OPTIONS]\n\n  Show the version of sqlfluff.\n\nOptions:\n  -n, --nocolor / --color  No color - output will be without ANSI color codes.\n  -v, --verbose            Verbosity, how detailed should the output be. This\n                           is *stackable*, so `-vv` is more verbose than `-v`.\n                           For the most verbose option try `-vvvv` or\n                           `-vvvvv`.\n  --version                Show the version and exit.\n  -h, --help               Show this message and exit.\n"
   },
   "sqruff --help": {
@@ -220,9 +245,11 @@
     "NO_COLOR": "1",
     "TERM": "dumb"
    },
-   "unset": [],
+   "unset": [
+    "GITHUB_ACTIONS"
+   ],
    "exit_code": 0,
-   "wall_s": 0.007,
+   "wall_s": 0.008,
    "stdout": "sqruff is a sql formatter and linter\n\nUsage: sqruff [OPTIONS] <COMMAND>\n\nCommands:\n  lint        Lint SQL files via passing a list of files or using stdin\n  fix         Fix SQL files via passing a list of files or using stdin\n  lsp         Run an LSP server\n  info        Print information about sqruff and the current environment\n  rules       Explain the available rules\n  dialects    List available dialects\n  templaters  List available templaters\n  parse       Parse SQL and output the parse tree for debugging\n  help        Print this message or the help of the given subcommand(s)\n\nOptions:\n  -n, --nocolor\n          Output without ANSI color codes\n      --color\n          Force color output, even when redirected or NO_COLOR is set\n      --config <CONFIG>\n          Path to a configuration file\n      --dialect <DIALECT>\n          Override the dialect (e.g., bigquery, clickhouse, ansi)\n      --library-path <LIBRARY_PATH>\n          Override the `library_path` value for the jinja templater. Set this to 'none' to disable it entirely. This overrides any values set by users in configuration files or inline directives\n      --stdin-filename <STDIN_FILENAME>\n          Load configuration for stdin as if it came from this file\n      --parsing-errors\n          Show parse errors\n      --disable-noqa-except <DISABLE_NOQA_EXCEPT>\n          Ignore all but the listed rules in inline `noqa` comments\n      --disable-noqa\n          Disable all inline `noqa` comments\n  -h, --help\n          Print help\n  -V, --version\n          Print version\n"
   },
   "sqruff lint --help": {
@@ -238,9 +265,11 @@
     "NO_COLOR": "1",
     "TERM": "dumb"
    },
-   "unset": [],
+   "unset": [
+    "GITHUB_ACTIONS"
+   ],
    "exit_code": 0,
-   "wall_s": 0.007,
+   "wall_s": 0.006,
    "stdout": "Lint SQL files via passing a list of files or using stdin\n\nUsage: sqruff lint [OPTIONS] [PATHS]...\n\nArguments:\n  [PATHS]...\n          Files or directories to fix. Use `-` to read from stdin\n\nOptions:\n  -q, --quiet\n          Suppress routine status output while preserving diagnostics and results\n\n  -v, --verbose...\n          Show more detail about processed files. Repeat for higher verbosity\n\n      --disregard-sqruffignores\n          Perform the operation regardless of .sqruffignore and .sqlfluffignore configurations\n          \n          [alias: --disregard-sqlfluffignores]\n\n  -f, --format <FORMAT>\n          Possible values:\n          - human\n          - github-annotation-native\n          - json\n          - sarif\n          - none:                     Produce no output. Used mostly for testing\n          \n          [default: human]\n\n  -n, --nocolor\n          Output without ANSI color codes\n\n      --color\n          Force color output, even when redirected or NO_COLOR is set\n\n      --config <CONFIG>\n          Path to a configuration file\n\n      --dialect <DIALECT>\n          Override the dialect (e.g., bigquery, clickhouse, ansi)\n\n      --library-path <LIBRARY_PATH>\n          Override the `library_path` value for the jinja templater. Set this to 'none' to disable it entirely. This overrides any values set by users in configuration files or inline directives\n\n      --stdin-filename <STDIN_FILENAME>\n          Load configuration for stdin as if it came from this file\n\n      --parsing-errors\n          Show parse errors\n\n      --disable-noqa-except <DISABLE_NOQA_EXCEPT>\n          Ignore all but the listed rules in inline `noqa` comments\n\n      --disable-noqa\n          Disable all inline `noqa` comments\n\n  -h, --help\n          Print help (see a summary with '-h')\n"
   },
   "sqruff fix --help": {
@@ -256,9 +285,11 @@
     "NO_COLOR": "1",
     "TERM": "dumb"
    },
-   "unset": [],
+   "unset": [
+    "GITHUB_ACTIONS"
+   ],
    "exit_code": 0,
-   "wall_s": 0.007,
+   "wall_s": 0.006,
    "stdout": "Fix SQL files via passing a list of files or using stdin\n\nUsage: sqruff fix [OPTIONS] [PATHS]...\n\nArguments:\n  [PATHS]...\n          Files or directories to fix. Use `-` to read from stdin\n\nOptions:\n  -q, --quiet\n          Suppress routine status output while preserving diagnostics and results\n\n  -v, --verbose...\n          Show more detail about processed files. Repeat for higher verbosity\n\n      --disregard-sqruffignores\n          Perform the operation regardless of .sqruffignore and .sqlfluffignore configurations\n          \n          [alias: --disregard-sqlfluffignores]\n\n  -f, --format <FORMAT>\n          The output format for the results\n\n          Possible values:\n          - human\n          - github-annotation-native\n          - json\n          - sarif\n          - none:                     Produce no output. Used mostly for testing\n          \n          [default: human]\n\n  -n, --nocolor\n          Output without ANSI color codes\n\n      --color\n          Force color output, even when redirected or NO_COLOR is set\n\n      --config <CONFIG>\n          Path to a configuration file\n\n      --dialect <DIALECT>\n          Override the dialect (e.g., bigquery, clickhouse, ansi)\n\n      --library-path <LIBRARY_PATH>\n          Override the `library_path` value for the jinja templater. Set this to 'none' to disable it entirely. This overrides any values set by users in configuration files or inline directives\n\n      --stdin-filename <STDIN_FILENAME>\n          Load configuration for stdin as if it came from this file\n\n      --parsing-errors\n          Show parse errors\n\n      --disable-noqa-except <DISABLE_NOQA_EXCEPT>\n          Ignore all but the listed rules in inline `noqa` comments\n\n      --disable-noqa\n          Disable all inline `noqa` comments\n\n  -h, --help\n          Print help (see a summary with '-h')\n"
   },
   "sqruff lsp --help": {
@@ -274,7 +305,9 @@
     "NO_COLOR": "1",
     "TERM": "dumb"
    },
-   "unset": [],
+   "unset": [
+    "GITHUB_ACTIONS"
+   ],
    "exit_code": 0,
    "wall_s": 0.005,
    "stdout": "Run an LSP server\n\nUsage: sqruff lsp [OPTIONS]\n\nOptions:\n  -n, --nocolor\n          Output without ANSI color codes\n      --color\n          Force color output, even when redirected or NO_COLOR is set\n      --config <CONFIG>\n          Path to a configuration file\n      --dialect <DIALECT>\n          Override the dialect (e.g., bigquery, clickhouse, ansi)\n      --library-path <LIBRARY_PATH>\n          Override the `library_path` value for the jinja templater. Set this to 'none' to disable it entirely. This overrides any values set by users in configuration files or inline directives\n      --stdin-filename <STDIN_FILENAME>\n          Load configuration for stdin as if it came from this file\n      --parsing-errors\n          Show parse errors\n      --disable-noqa-except <DISABLE_NOQA_EXCEPT>\n          Ignore all but the listed rules in inline `noqa` comments\n      --disable-noqa\n          Disable all inline `noqa` comments\n  -h, --help\n          Print help\n"
@@ -292,9 +325,11 @@
     "NO_COLOR": "1",
     "TERM": "dumb"
    },
-   "unset": [],
+   "unset": [
+    "GITHUB_ACTIONS"
+   ],
    "exit_code": 0,
-   "wall_s": 0.007,
+   "wall_s": 0.006,
    "stdout": "Print information about sqruff and the current environment\n\nUsage: sqruff info [OPTIONS]\n\nOptions:\n  -n, --nocolor\n          Output without ANSI color codes\n      --color\n          Force color output, even when redirected or NO_COLOR is set\n      --config <CONFIG>\n          Path to a configuration file\n      --dialect <DIALECT>\n          Override the dialect (e.g., bigquery, clickhouse, ansi)\n      --library-path <LIBRARY_PATH>\n          Override the `library_path` value for the jinja templater. Set this to 'none' to disable it entirely. This overrides any values set by users in configuration files or inline directives\n      --stdin-filename <STDIN_FILENAME>\n          Load configuration for stdin as if it came from this file\n      --parsing-errors\n          Show parse errors\n      --disable-noqa-except <DISABLE_NOQA_EXCEPT>\n          Ignore all but the listed rules in inline `noqa` comments\n      --disable-noqa\n          Disable all inline `noqa` comments\n  -h, --help\n          Print help\n"
   },
   "sqruff rules --help": {
@@ -310,9 +345,11 @@
     "NO_COLOR": "1",
     "TERM": "dumb"
    },
-   "unset": [],
+   "unset": [
+    "GITHUB_ACTIONS"
+   ],
    "exit_code": 0,
-   "wall_s": 0.007,
+   "wall_s": 0.006,
    "stdout": "Explain the available rules\n\nUsage: sqruff rules [OPTIONS]\n\nOptions:\n  -n, --nocolor\n          Output without ANSI color codes\n      --color\n          Force color output, even when redirected or NO_COLOR is set\n      --config <CONFIG>\n          Path to a configuration file\n      --dialect <DIALECT>\n          Override the dialect (e.g., bigquery, clickhouse, ansi)\n      --library-path <LIBRARY_PATH>\n          Override the `library_path` value for the jinja templater. Set this to 'none' to disable it entirely. This overrides any values set by users in configuration files or inline directives\n      --stdin-filename <STDIN_FILENAME>\n          Load configuration for stdin as if it came from this file\n      --parsing-errors\n          Show parse errors\n      --disable-noqa-except <DISABLE_NOQA_EXCEPT>\n          Ignore all but the listed rules in inline `noqa` comments\n      --disable-noqa\n          Disable all inline `noqa` comments\n  -h, --help\n          Print help\n"
   },
   "sqruff dialects --help": {
@@ -328,9 +365,11 @@
     "NO_COLOR": "1",
     "TERM": "dumb"
    },
-   "unset": [],
+   "unset": [
+    "GITHUB_ACTIONS"
+   ],
    "exit_code": 0,
-   "wall_s": 0.006,
+   "wall_s": 0.005,
    "stdout": "List available dialects\n\nUsage: sqruff dialects [OPTIONS]\n\nOptions:\n  -n, --nocolor\n          Output without ANSI color codes\n      --color\n          Force color output, even when redirected or NO_COLOR is set\n      --config <CONFIG>\n          Path to a configuration file\n      --dialect <DIALECT>\n          Override the dialect (e.g., bigquery, clickhouse, ansi)\n      --library-path <LIBRARY_PATH>\n          Override the `library_path` value for the jinja templater. Set this to 'none' to disable it entirely. This overrides any values set by users in configuration files or inline directives\n      --stdin-filename <STDIN_FILENAME>\n          Load configuration for stdin as if it came from this file\n      --parsing-errors\n          Show parse errors\n      --disable-noqa-except <DISABLE_NOQA_EXCEPT>\n          Ignore all but the listed rules in inline `noqa` comments\n      --disable-noqa\n          Disable all inline `noqa` comments\n  -h, --help\n          Print help\n"
   },
   "sqruff templaters --help": {
@@ -346,7 +385,9 @@
     "NO_COLOR": "1",
     "TERM": "dumb"
    },
-   "unset": [],
+   "unset": [
+    "GITHUB_ACTIONS"
+   ],
    "exit_code": 0,
    "wall_s": 0.005,
    "stdout": "List available templaters\n\nUsage: sqruff templaters [OPTIONS]\n\nOptions:\n  -n, --nocolor\n          Output without ANSI color codes\n      --color\n          Force color output, even when redirected or NO_COLOR is set\n      --config <CONFIG>\n          Path to a configuration file\n      --dialect <DIALECT>\n          Override the dialect (e.g., bigquery, clickhouse, ansi)\n      --library-path <LIBRARY_PATH>\n          Override the `library_path` value for the jinja templater. Set this to 'none' to disable it entirely. This overrides any values set by users in configuration files or inline directives\n      --stdin-filename <STDIN_FILENAME>\n          Load configuration for stdin as if it came from this file\n      --parsing-errors\n          Show parse errors\n      --disable-noqa-except <DISABLE_NOQA_EXCEPT>\n          Ignore all but the listed rules in inline `noqa` comments\n      --disable-noqa\n          Disable all inline `noqa` comments\n  -h, --help\n          Print help\n"
@@ -364,9 +405,11 @@
     "NO_COLOR": "1",
     "TERM": "dumb"
    },
-   "unset": [],
+   "unset": [
+    "GITHUB_ACTIONS"
+   ],
    "exit_code": 0,
-   "wall_s": 0.005,
+   "wall_s": 0.007,
    "stdout": "Parse SQL and output the parse tree for debugging\n\nUsage: sqruff parse [OPTIONS] [PATHS]...\n\nArguments:\n  [PATHS]...\n          Files or directories to parse. Use `-` to read from stdin\n\nOptions:\n  -f, --format <FORMAT>\n          The output format for the parse tree\n\n          Possible values:\n          - json\n          - yaml\n          - pretty\n          - none:   Produce no output. Used mostly for testing\n          \n          [default: pretty]\n\n      --include-meta\n          Include meta segments and source position information in JSON or YAML output\n\n  -n, --nocolor\n          Output without ANSI color codes\n\n      --color\n          Force color output, even when redirected or NO_COLOR is set\n\n      --config <CONFIG>\n          Path to a configuration file\n\n      --dialect <DIALECT>\n          Override the dialect (e.g., bigquery, clickhouse, ansi)\n\n      --library-path <LIBRARY_PATH>\n          Override the `library_path` value for the jinja templater. Set this to 'none' to disable it entirely. This overrides any values set by users in configuration files or inline directives\n\n      --stdin-filename <STDIN_FILENAME>\n          Load configuration for stdin as if it came from this file\n\n      --parsing-errors\n          Show parse errors\n\n      --disable-noqa-except <DISABLE_NOQA_EXCEPT>\n          Ignore all but the listed rules in inline `noqa` comments\n\n      --disable-noqa\n          Disable all inline `noqa` comments\n\n  -h, --help\n          Print help (see a summary with '-h')\n"
   },
   "sqruff templaters": {
@@ -381,9 +424,11 @@
     "NO_COLOR": "1",
     "TERM": "dumb"
    },
-   "unset": [],
+   "unset": [
+    "GITHUB_ACTIONS"
+   ],
    "exit_code": 0,
-   "wall_s": 0.017,
+   "wall_s": 0.014,
    "stdout": "raw\nplaceholder\npython\njinja\ndbt\nsqlmesh\n"
   },
   "sqlfluff facts": {
@@ -396,9 +441,11 @@
     "PY_FACTS (scripts/s3/capabilities.py)"
    ],
    "env": {},
-   "unset": [],
+   "unset": [
+    "GITHUB_ACTIONS"
+   ],
    "exit_code": 0,
-   "wall_s": 0.545,
+   "wall_s": 0.459,
    "stdout": "{\"sqlfluff_version\": \"4.4.0\", \"sqlfluff_file\": \"$TOOLS/sqlfluff/lib/python3.13/site-packages/sqlfluff/__init__.py\", \"commands\": {\"dialects\": {\"hidden\": false, \"params\": [{\"kind\": \"option\", \"name\": \"nocolor\", \"names\": [\"-n\", \"--nocolor\", \"--color\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"verbose\", \"names\": [\"-v\", \"--verbose\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"version\", \"names\": [\"--version\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"help\", \"names\": [\"--help\", \"-h\"], \"choices\": null, \"hidden\": false}]}, \"fix\": {\"hidden\": false, \"params\": [{\"kind\": \"option\", \"name\": \"nocolor\", \"names\": [\"-n\", \"--nocolor\", \"--color\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"verbose\", \"names\": [\"-v\", \"--verbose\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"version\", \"names\": [\"--version\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"stdin_filename\", \"names\": [\"--stdin-filename\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"library_path\", \"names\": [\"--library-path\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"disable_noqa_except\", \"names\": [\"--disable-noqa-except\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"disable_noqa\", \"names\": [\"--disable-noqa\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"logger\", \"names\": [\"--logger\"], \"choices\": [\"templater\", \"lexer\", \"parser\", \"linter\", \"rules\", \"config\"], \"hidden\": false}, {\"kind\": \"option\", \"name\": \"bench\", \"names\": [\"--bench\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"ignore\", \"names\": [\"-i\", \"--ignore\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"encoding\", \"names\": [\"--encoding\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"ignore_local_config\", \"names\": [\"--ignore-local-config\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"extra_config_path\", \"names\": [\"--config\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"exclude_rules\", \"names\": [\"-e\", \"--exclude-rules\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"rules\", \"names\": [\"-r\", \"--rules\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"templater\", \"names\": [\"-t\", \"--templater\"], \"choices\": [\"raw\", \"jinja\", \"python\", \"placeholder\"], \"hidden\": false}, {\"kind\": \"option\", \"name\": \"dialect\", \"names\": [\"-d\", \"--dialect\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"disregard_sqlfluffignores\", \"names\": [\"--disregard-sqlfluffignores\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"warn_unused_ignores\", \"names\": [\"--warn-unused-ignores\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"persist_timing\", \"names\": [\"--persist-timing\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"disable_progress_bar\", \"names\": [\"--disable-progress-bar\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"processes\", \"names\": [\"-p\", \"--processes\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"quiet\", \"names\": [\"-q\", \"--quiet\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"force\", \"names\": [\"-f\", \"--force\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"check\", \"names\": [\"--check\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"fixed_suffix\", \"names\": [\"-x\", \"--fixed-suffix\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"fix_even_unparsable\", \"names\": [\"--FIX-EVEN-UNPARSABLE\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"show_lint_violations\", \"names\": [\"--show-lint-violations\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"recursion_limit\", \"names\": [\"--recursion-limit\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"argument\", \"name\": \"paths\", \"names\": [\"paths\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"help\", \"names\": [\"--help\", \"-h\"], \"choices\": null, \"hidden\": false}]}, \"format\": {\"hidden\": false, \"params\": [{\"kind\": \"option\", \"name\": \"nocolor\", \"names\": [\"-n\", \"--nocolor\", \"--color\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"verbose\", \"names\": [\"-v\", \"--verbose\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"version\", \"names\": [\"--version\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"stdin_filename\", \"names\": [\"--stdin-filename\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"library_path\", \"names\": [\"--library-path\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"disable_noqa_except\", \"names\": [\"--disable-noqa-except\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"disable_noqa\", \"names\": [\"--disable-noqa\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"logger\", \"names\": [\"--logger\"], \"choices\": [\"templater\", \"lexer\", \"parser\", \"linter\", \"rules\", \"config\"], \"hidden\": false}, {\"kind\": \"option\", \"name\": \"bench\", \"names\": [\"--bench\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"ignore\", \"names\": [\"-i\", \"--ignore\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"encoding\", \"names\": [\"--encoding\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"ignore_local_config\", \"names\": [\"--ignore-local-config\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"extra_config_path\", \"names\": [\"--config\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"exclude_rules\", \"names\": [\"-e\", \"--exclude-rules\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"rules\", \"names\": [\"-r\", \"--rules\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"templater\", \"names\": [\"-t\", \"--templater\"], \"choices\": [\"raw\", \"jinja\", \"python\", \"placeholder\"], \"hidden\": false}, {\"kind\": \"option\", \"name\": \"dialect\", \"names\": [\"-d\", \"--dialect\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"disregard_sqlfluffignores\", \"names\": [\"--disregard-sqlfluffignores\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"warn_unused_ignores\", \"names\": [\"--warn-unused-ignores\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"persist_timing\", \"names\": [\"--persist-timing\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"disable_progress_bar\", \"names\": [\"--disable-progress-bar\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"processes\", \"names\": [\"-p\", \"--processes\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"quiet\", \"names\": [\"-q\", \"--quiet\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"fixed_suffix\", \"names\": [\"-x\", \"--fixed-suffix\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"recursion_limit\", \"names\": [\"--recursion-limit\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"argument\", \"name\": \"paths\", \"names\": [\"paths\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"help\", \"names\": [\"--help\", \"-h\"], \"choices\": null, \"hidden\": false}]}, \"lint\": {\"hidden\": false, \"params\": [{\"kind\": \"option\", \"name\": \"nocolor\", \"names\": [\"-n\", \"--nocolor\", \"--color\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"verbose\", \"names\": [\"-v\", \"--verbose\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"version\", \"names\": [\"--version\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"stdin_filename\", \"names\": [\"--stdin-filename\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"library_path\", \"names\": [\"--library-path\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"disable_noqa_except\", \"names\": [\"--disable-noqa-except\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"disable_noqa\", \"names\": [\"--disable-noqa\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"logger\", \"names\": [\"--logger\"], \"choices\": [\"templater\", \"lexer\", \"parser\", \"linter\", \"rules\", \"config\"], \"hidden\": false}, {\"kind\": \"option\", \"name\": \"bench\", \"names\": [\"--bench\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"ignore\", \"names\": [\"-i\", \"--ignore\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"encoding\", \"names\": [\"--encoding\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"ignore_local_config\", \"names\": [\"--ignore-local-config\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"extra_config_path\", \"names\": [\"--config\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"exclude_rules\", \"names\": [\"-e\", \"--exclude-rules\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"rules\", \"names\": [\"-r\", \"--rules\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"templater\", \"names\": [\"-t\", \"--templater\"], \"choices\": [\"raw\", \"jinja\", \"python\", \"placeholder\"], \"hidden\": false}, {\"kind\": \"option\", \"name\": \"dialect\", \"names\": [\"-d\", \"--dialect\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"disregard_sqlfluffignores\", \"names\": [\"--disregard-sqlfluffignores\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"warn_unused_ignores\", \"names\": [\"--warn-unused-ignores\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"persist_timing\", \"names\": [\"--persist-timing\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"disable_progress_bar\", \"names\": [\"--disable-progress-bar\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"processes\", \"names\": [\"-p\", \"--processes\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"quiet\", \"names\": [\"-q\", \"--quiet\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"format\", \"names\": [\"-f\", \"--format\"], \"choices\": [\"human\", \"json\", \"yaml\", \"sarif\", \"github-annotation\", \"github-annotation-native\", \"gitlab\", \"none\"], \"hidden\": false}, {\"kind\": \"option\", \"name\": \"write_output\", \"names\": [\"--write-output\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"annotation_level\", \"names\": [\"--annotation-level\"], \"choices\": [\"notice\", \"warning\", \"failure\", \"error\"], \"hidden\": false}, {\"kind\": \"option\", \"name\": \"nofail\", \"names\": [\"--nofail\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"recursion_limit\", \"names\": [\"--recursion-limit\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"argument\", \"name\": \"paths\", \"names\": [\"paths\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"help\", \"names\": [\"--help\", \"-h\"], \"choices\": null, \"hidden\": false}]}, \"parse\": {\"hidden\": false, \"params\": [{\"kind\": \"option\", \"name\": \"nocolor\", \"names\": [\"-n\", \"--nocolor\", \"--color\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"verbose\", \"names\": [\"-v\", \"--verbose\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"version\", \"names\": [\"--version\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"stdin_filename\", \"names\": [\"--stdin-filename\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"library_path\", \"names\": [\"--library-path\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"disable_noqa_except\", \"names\": [\"--disable-noqa-except\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"disable_noqa\", \"names\": [\"--disable-noqa\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"logger\", \"names\": [\"--logger\"], \"choices\": [\"templater\", \"lexer\", \"parser\", \"linter\", \"rules\", \"config\"], \"hidden\": false}, {\"kind\": \"option\", \"name\": \"bench\", \"names\": [\"--bench\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"ignore\", \"names\": [\"-i\", \"--ignore\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"encoding\", \"names\": [\"--encoding\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"ignore_local_config\", \"names\": [\"--ignore-local-config\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"extra_config_path\", \"names\": [\"--config\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"exclude_rules\", \"names\": [\"-e\", \"--exclude-rules\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"rules\", \"names\": [\"-r\", \"--rules\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"templater\", \"names\": [\"-t\", \"--templater\"], \"choices\": [\"raw\", \"jinja\", \"python\", \"placeholder\"], \"hidden\": false}, {\"kind\": \"option\", \"name\": \"dialect\", \"names\": [\"-d\", \"--dialect\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"argument\", \"name\": \"path\", \"names\": [\"path\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"recursion_limit\", \"names\": [\"--recursion-limit\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"code_only\", \"names\": [\"-c\", \"--code-only\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"include_meta\", \"names\": [\"-m\", \"--include-meta\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"format\", \"names\": [\"-f\", \"--format\"], \"choices\": [\"human\", \"json\", \"yaml\", \"none\"], \"hidden\": false}, {\"kind\": \"option\", \"name\": \"write_output\", \"names\": [\"--write-output\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"parse_statistics\", \"names\": [\"--parse-statistics\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"nofail\", \"names\": [\"--nofail\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"help\", \"names\": [\"--help\", \"-h\"], \"choices\": null, \"hidden\": false}]}, \"render\": {\"hidden\": false, \"params\": [{\"kind\": \"option\", \"name\": \"nocolor\", \"names\": [\"-n\", \"--nocolor\", \"--color\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"verbose\", \"names\": [\"-v\", \"--verbose\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"version\", \"names\": [\"--version\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"stdin_filename\", \"names\": [\"--stdin-filename\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"library_path\", \"names\": [\"--library-path\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"disable_noqa_except\", \"names\": [\"--disable-noqa-except\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"disable_noqa\", \"names\": [\"--disable-noqa\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"logger\", \"names\": [\"--logger\"], \"choices\": [\"templater\", \"lexer\", \"parser\", \"linter\", \"rules\", \"config\"], \"hidden\": false}, {\"kind\": \"option\", \"name\": \"bench\", \"names\": [\"--bench\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"ignore\", \"names\": [\"-i\", \"--ignore\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"encoding\", \"names\": [\"--encoding\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"ignore_local_config\", \"names\": [\"--ignore-local-config\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"extra_config_path\", \"names\": [\"--config\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"exclude_rules\", \"names\": [\"-e\", \"--exclude-rules\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"rules\", \"names\": [\"-r\", \"--rules\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"templater\", \"names\": [\"-t\", \"--templater\"], \"choices\": [\"raw\", \"jinja\", \"python\", \"placeholder\"], \"hidden\": false}, {\"kind\": \"option\", \"name\": \"dialect\", \"names\": [\"-d\", \"--dialect\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"argument\", \"name\": \"path\", \"names\": [\"path\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"help\", \"names\": [\"--help\", \"-h\"], \"choices\": null, \"hidden\": false}]}, \"rules\": {\"hidden\": false, \"params\": [{\"kind\": \"option\", \"name\": \"nocolor\", \"names\": [\"-n\", \"--nocolor\", \"--color\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"verbose\", \"names\": [\"-v\", \"--verbose\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"version\", \"names\": [\"--version\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"help\", \"names\": [\"--help\", \"-h\"], \"choices\": null, \"hidden\": false}]}, \"version\": {\"hidden\": false, \"params\": [{\"kind\": \"option\", \"name\": \"nocolor\", \"names\": [\"-n\", \"--nocolor\", \"--color\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"verbose\", \"names\": [\"-v\", \"--verbose\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"version\", \"names\": [\"--version\"], \"choices\": null, \"hidden\": false}, {\"kind\": \"option\", \"name\": \"help\", \"names\": [\"--help\", \"-h\"], \"choices\": null, \"hidden\": false}]}}, \"core_templaters\": [\"raw\", \"jinja\", \"python\", \"placeholder\"], \"plugin_templaters\": [\"jinja\", \"placeholder\", \"python\", \"raw\"], \"placeholder_styles\": {\"colon\": \"(?<![:\\\\w\\\\x5c]):(?P<param_name>\\\\w+)\", \"colon_optional_quotes\": \"(?<![:\\\\w\\\\x5c]):(?P<quotation>['\\\\\\\"]?)(?P<param_name>[\\\\w_]+)\\\\1\", \"colon_nospaces\": \"(?<!:):(?P<param_name>\\\\w+)\", \"numeric_colon\": \"(?<![:\\\\w\\\\x5c]):(?P<param_name>\\\\d+)\", \"pyformat\": \"(?<![:\\\\w\\\\x5c])%\\\\((?P<param_name>[\\\\w_]+)\\\\)s\", \"dollar\": \"(?<![:\\\\w\\\\x5c])\\\\${?(?P<param_name>[\\\\w_]+)}?\", \"dollar_surround\": \"(?<![:\\\\w\\\\x5c])\\\\$(?P<param_name>[-\\\\w]+)\\\\$\", \"flyway_var\": \"\\\\${(?P<param_name>\\\\w+[:\\\\w_]+)}\", \"question_mark\": \"(?<![:\\\\w\\\\x5c])\\\\?\", \"numeric_dollar\": \"(?<![:\\\\w\\\\x5c])\\\\${?(?P<param_name>[\\\\d]+)}?\", \"percent\": \"(?<![:\\\\w\\\\x5c])%s\", \"ampersand\": \"(?<!&)&{?(?P<param_name>[\\\\w]+)}?\"}, \"default_config_keys\": [\"core.dialect\", \"core.disable_noqa\", \"core.disable_noqa_except\", \"core.encoding\", \"core.exclude_rules\", \"core.fix_even_unparsable\", \"core.ignore\", \"core.ignore_templated_areas\", \"core.large_file_skip_byte_limit\", \"core.large_file_skip_char_limit\", \"core.large_file_skip_fail\", \"core.max_line_length\", \"core.max_parse_depth\", \"core.max_parse_nodes\", \"core.nocolor\", \"core.output_line_length\", \"core.processes\", \"core.recursion_limit\", \"core.render_variant_limit\", \"core.rules\", \"core.runaway_limit\", \"core.rust_parser_max_iterations\", \"core.rust_parser_warn_threshold\", \"core.sql_file_exts\", \"core.templater\", \"core.use_rust_parser\", \"core.use_rust_rules\", \"core.verbose\", \"core.warn_unused_ignores\", \"core.warnings\", \"indentation.ignore_comment_lines\", \"indentation.implicit_indents\", \"indentation.indent_unit\", \"indentation.indented_ctes\", \"indentation.indented_joins\", \"indentation.indented_on_contents\", \"indentation.indented_then\", \"indentation.indented_then_contents\", \"indentation.indented_using_on\", \"indentation.skip_implicit_indents_in\", \"indentation.skip_indentation_in\", \"indentation.tab_space_size\", \"indentation.template_blocks_indent\", \"indentation.trailing_comments\", \"layout.type.alias_column_list.spacing_before\", \"layout.type.array_accessor.spacing_before\", \"layout.type.array_type.spacing_within\", \"layout.type.array_type_suffix.spacing_before\", \"layout.type.assignment_operator.line_position\", \"layout.type.assignment_operator.spacing_within\", \"layout.type.at_sign.spacing_after\", \"layout.type.at_sign.spacing_before\", \"layout.type.attribute_indicator.spacing_after\", \"layout.type.attribute_indicator.spacing_before\", \"layout.type.binary_operator.line_position\", \"layout.type.binary_operator.spacing_within\", \"layout.type.bind_variable.spacing_within\", \"layout.type.bracketed_arguments.spacing_before\", \"layout.type.casting_operator.spacing_after\", \"layout.type.casting_operator.spacing_before\", \"layout.type.colon.spacing_before\", \"layout.type.colon_delimiter.spacing_after\", \"layout.type.colon_delimiter.spacing_before\", \"layout.type.column_path_operator.line_position\", \"layout.type.column_path_operator.spacing_within\", \"layout.type.comma.line_position\", \"layout.type.comma.spacing_before\", \"layout.type.comment.spacing_after\", \"layout.type.comment.spacing_before\", \"layout.type.common_table_expression.spacing_within\", \"layout.type.comparison_operator.line_position\", \"layout.type.comparison_operator.spacing_within\", \"layout.type.dot.spacing_after\", \"layout.type.dot.spacing_before\", \"layout.type.end_angle_bracket.spacing_before\", \"layout.type.end_bracket.spacing_before\", \"layout.type.end_of_file.spacing_before\", \"layout.type.end_square_bracket.spacing_before\", \"layout.type.from_clause.line_position\", \"layout.type.function_contents.spacing_before\", \"layout.type.function_name.spacing_within\", \"layout.type.function_parameter_list.spacing_before\", \"layout.type.groupby_clause.keyword_line_position\", \"layout.type.groupby_clause.line_position\", \"layout.type.having_clause.keyword_line_position\", \"layout.type.having_clause.line_position\", \"layout.type.join_clause.line_position\", \"layout.type.limit_clause.line_position\", \"layout.type.match_condition.spacing_within\", \"layout.type.numeric_literal.spacing_within\", \"layout.type.object_reference.spacing_within\", \"layout.type.orderby_clause.keyword_line_position\", \"layout.type.orderby_clause.keyword_line_position_exclusions\", \"layout.type.orderby_clause.line_position\", \"layout.type.path_segment.spacing_within\", \"layout.type.pattern_expression.spacing_within\", \"layout.type.pipe_operator.line_position\", \"layout.type.placeholder.spacing_after\", \"layout.type.placeholder.spacing_before\", \"layout.type.psql_variable.spacing_within\", \"layout.type.select_clause.line_position\", \"layout.type.semantic_view.spacing_within\", \"layout.type.semi_structured_expression.spacing_before\", \"layout.type.semi_structured_expression.spacing_within\", \"layout.type.set_operator.line_position\", \"layout.type.sign_indicator.spacing_after\", \"layout.type.sized_array_type.spacing_within\", \"layout.type.slash.spacing_after\", \"layout.type.slash.spacing_before\", \"layout.type.slice.spacing_after\", \"layout.type.slice.spacing_before\", \"layout.type.sql_conf_option.spacing_within\", \"layout.type.sqlcmd_operator.spacing_before\", \"layout.type.start_angle_bracket.spacing_after\", \"layout.type.start_bracket.spacing_after\", \"layout.type.start_square_bracket.spacing_after\", \"layout.type.statement_terminator.line_position\", \"layout.type.statement_terminator.spacing_before\", \"layout.type.struct_type.spacing_within\", \"layout.type.substitution_variable.spacing_after\", \"layout.type.substitution_variable.spacing_before\", \"layout.type.substitution_variable.spacing_within\", \"layout.type.template_loop.spacing_after\", \"layout.type.template_loop.spacing_before\", \"layout.type.tilde.spacing_after\", \"layout.type.try_casting_operator.spacing_after\", \"layout.type.try_casting_operator.spacing_before\", \"layout.type.typed_array_literal.spacing_within\", \"layout.type.typed_struct_literal.spacing_within\", \"layout.type.where_clause.keyword_line_position\", \"layout.type.where_clause.keyword_line_position_exclusions\", \"layout.type.where_clause.line_position\", \"rules.aliasing.column.aliasing\", \"rules.aliasing.forbid.force_enable\", \"rules.aliasing.length.max_alias_length\", \"rules.aliasing.length.min_alias_length\", \"rules.aliasing.table.aliasing\", \"rules.aliasing.unused.alias_case_check\", \"rules.allow_scalar\", \"rules.ambiguous.column_references.group_by_and_order_by_style\", \"rules.ambiguous.join.fully_qualify_join_types\", \"rules.capitalisation.functions.extended_capitalisation_policy\", \"rules.capitalisation.functions.ignore_words\", \"rules.capitalisation.functions.ignore_words_regex\", \"rules.capitalisation.identifiers.extended_capitalisation_policy\", \"rules.capitalisation.identifiers.ignore_words\", \"rules.capitalisation.identifiers.ignore_words_regex\", \"rules.capitalisation.keywords.capitalisation_policy\", \"rules.capitalisation.keywords.ignore_words\", \"rules.capitalisation.keywords.ignore_words_regex\", \"rules.capitalisation.literals.capitalisation_policy\", \"rules.capitalisation.literals.ignore_words\", \"rules.capitalisation.literals.ignore_words_regex\", \"rules.capitalisation.types.extended_capitalisation_policy\", \"rules.capitalisation.types.ignore_words\", \"rules.capitalisation.types.ignore_words_regex\", \"rules.convention.blocked_words.blocked_regex\", \"rules.convention.blocked_words.blocked_words\", \"rules.convention.blocked_words.match_source\", \"rules.convention.casting_style.preferred_type_casting_style\", \"rules.convention.count_rows.prefer_count_0\", \"rules.convention.count_rows.prefer_count_1\", \"rules.convention.last_select_star.force_enable\", \"rules.convention.not_equal.preferred_not_equal_style\", \"rules.convention.quoted_literals.force_enable\", \"rules.convention.quoted_literals.preferred_quoted_literal_style\", \"rules.convention.select_trailing_comma.select_clause_trailing_comma\", \"rules.convention.terminator.multiline_newline\", \"rules.convention.terminator.require_final_semicolon\", \"rules.layout.long_lines.ignore_comment_clauses\", \"rules.layout.long_lines.ignore_comment_lines\", \"rules.layout.newlines.maximum_empty_lines_between_batches\", \"rules.layout.newlines.maximum_empty_lines_between_statements\", \"rules.layout.newlines.maximum_empty_lines_inside_statements\", \"rules.layout.newlines.minimum_empty_lines_between_statements\", \"rules.layout.select_targets.single_target_policy\", \"rules.layout.select_targets.wildcard_policy\", \"rules.postgres.excessive_locks.force_enable\", \"rules.postgres.not_valid_foreign_key.force_enable\", \"rules.references.consistent.force_enable\", \"rules.references.from.force_enable\", \"rules.references.keywords.ignore_words\", \"rules.references.keywords.ignore_words_regex\", \"rules.references.keywords.quoted_identifiers_policy\", \"rules.references.keywords.unquoted_identifiers_policy\", \"rules.references.qualification.ignore_words\", \"rules.references.qualification.ignore_words_regex\", \"rules.references.qualification.subqueries_ignore_external_references\", \"rules.references.quoting.case_sensitive\", \"rules.references.quoting.ignore_words\", \"rules.references.quoting.ignore_words_regex\", \"rules.references.quoting.prefer_quoted_identifiers\", \"rules.references.quoting.prefer_quoted_keyword_style\", \"rules.references.quoting.prefer_quoted_keywords\", \"rules.references.special_chars.additional_allowed_characters\", \"rules.references.special_chars.allow_space_in_identifier\", \"rules.references.special_chars.ignore_words\", \"rules.references.special_chars.ignore_words_regex\", \"rules.references.special_chars.quoted_identifiers_policy\", \"rules.references.special_chars.unquoted_identifiers_policy\", \"rules.references.window_alias.force_enable\", \"rules.single_table_references\", \"rules.structure.join_condition_order.preferred_first_table_in_join_clause\", \"rules.structure.subquery.forbid_subquery_in\", \"rules.tsql.prefer_as_alias.force_enable\", \"rules.unquoted_identifiers_policy\", \"templater.jinja.apply_dbt_builtins\", \"templater.unwrap_wrapped_queries\"]}\n"
   }
  },
@@ -413,7 +460,7 @@
    "env": {},
    "unset": [],
    "exit_code": 0,
-   "wall_s": 0.024
+   "wall_s": 0.039
   },
   {
    "step": "sqll commit",
@@ -426,7 +473,7 @@
    "env": {},
    "unset": [],
    "exit_code": 0,
-   "wall_s": 0.003
+   "wall_s": 0.004
   },
   {
    "step": "sqlfluff --version",
@@ -440,9 +487,11 @@
     "NO_COLOR": "1",
     "TERM": "dumb"
    },
-   "unset": [],
+   "unset": [
+    "GITHUB_ACTIONS"
+   ],
    "exit_code": 0,
-   "wall_s": 0.509
+   "wall_s": 0.51
   },
   {
    "step": "sqruff --version",
@@ -456,9 +505,11 @@
     "NO_COLOR": "1",
     "TERM": "dumb"
    },
-   "unset": [],
+   "unset": [
+    "GITHUB_ACTIONS"
+   ],
    "exit_code": 0,
-   "wall_s": 0.007
+   "wall_s": 0.006
   },
   {
    "step": "sqlfluff --help",
@@ -472,9 +523,11 @@
     "NO_COLOR": "1",
     "TERM": "dumb"
    },
-   "unset": [],
+   "unset": [
+    "GITHUB_ACTIONS"
+   ],
    "exit_code": 0,
-   "wall_s": 0.537
+   "wall_s": 0.472
   },
   {
    "step": "sqlfluff dialects --help",
@@ -489,9 +542,11 @@
     "NO_COLOR": "1",
     "TERM": "dumb"
    },
-   "unset": [],
+   "unset": [
+    "GITHUB_ACTIONS"
+   ],
    "exit_code": 0,
-   "wall_s": 0.629
+   "wall_s": 0.478
   },
   {
    "step": "sqlfluff fix --help",
@@ -506,9 +561,11 @@
     "NO_COLOR": "1",
     "TERM": "dumb"
    },
-   "unset": [],
+   "unset": [
+    "GITHUB_ACTIONS"
+   ],
    "exit_code": 0,
-   "wall_s": 0.598
+   "wall_s": 0.453
   },
   {
    "step": "sqlfluff format --help",
@@ -523,9 +580,11 @@
     "NO_COLOR": "1",
     "TERM": "dumb"
    },
-   "unset": [],
+   "unset": [
+    "GITHUB_ACTIONS"
+   ],
    "exit_code": 0,
-   "wall_s": 0.498
+   "wall_s": 0.521
   },
   {
    "step": "sqlfluff lint --help",
@@ -540,9 +599,11 @@
     "NO_COLOR": "1",
     "TERM": "dumb"
    },
-   "unset": [],
+   "unset": [
+    "GITHUB_ACTIONS"
+   ],
    "exit_code": 0,
-   "wall_s": 0.554
+   "wall_s": 0.469
   },
   {
    "step": "sqlfluff parse --help",
@@ -557,9 +618,11 @@
     "NO_COLOR": "1",
     "TERM": "dumb"
    },
-   "unset": [],
+   "unset": [
+    "GITHUB_ACTIONS"
+   ],
    "exit_code": 0,
-   "wall_s": 0.524
+   "wall_s": 0.548
   },
   {
    "step": "sqlfluff render --help",
@@ -574,9 +637,11 @@
     "NO_COLOR": "1",
     "TERM": "dumb"
    },
-   "unset": [],
+   "unset": [
+    "GITHUB_ACTIONS"
+   ],
    "exit_code": 0,
-   "wall_s": 0.54
+   "wall_s": 0.551
   },
   {
    "step": "sqlfluff rules --help",
@@ -591,9 +656,11 @@
     "NO_COLOR": "1",
     "TERM": "dumb"
    },
-   "unset": [],
+   "unset": [
+    "GITHUB_ACTIONS"
+   ],
    "exit_code": 0,
-   "wall_s": 0.47
+   "wall_s": 0.441
   },
   {
    "step": "sqlfluff version --help",
@@ -608,9 +675,11 @@
     "NO_COLOR": "1",
     "TERM": "dumb"
    },
-   "unset": [],
+   "unset": [
+    "GITHUB_ACTIONS"
+   ],
    "exit_code": 0,
-   "wall_s": 0.462
+   "wall_s": 0.548
   },
   {
    "step": "sqruff --help",
@@ -624,9 +693,11 @@
     "NO_COLOR": "1",
     "TERM": "dumb"
    },
-   "unset": [],
+   "unset": [
+    "GITHUB_ACTIONS"
+   ],
    "exit_code": 0,
-   "wall_s": 0.007
+   "wall_s": 0.008
   },
   {
    "step": "sqruff lint --help",
@@ -641,9 +712,11 @@
     "NO_COLOR": "1",
     "TERM": "dumb"
    },
-   "unset": [],
+   "unset": [
+    "GITHUB_ACTIONS"
+   ],
    "exit_code": 0,
-   "wall_s": 0.007
+   "wall_s": 0.006
   },
   {
    "step": "sqruff fix --help",
@@ -658,9 +731,11 @@
     "NO_COLOR": "1",
     "TERM": "dumb"
    },
-   "unset": [],
+   "unset": [
+    "GITHUB_ACTIONS"
+   ],
    "exit_code": 0,
-   "wall_s": 0.007
+   "wall_s": 0.006
   },
   {
    "step": "sqruff lsp --help",
@@ -675,7 +750,9 @@
     "NO_COLOR": "1",
     "TERM": "dumb"
    },
-   "unset": [],
+   "unset": [
+    "GITHUB_ACTIONS"
+   ],
    "exit_code": 0,
    "wall_s": 0.005
   },
@@ -692,9 +769,11 @@
     "NO_COLOR": "1",
     "TERM": "dumb"
    },
-   "unset": [],
+   "unset": [
+    "GITHUB_ACTIONS"
+   ],
    "exit_code": 0,
-   "wall_s": 0.007
+   "wall_s": 0.006
   },
   {
    "step": "sqruff rules --help",
@@ -709,9 +788,11 @@
     "NO_COLOR": "1",
     "TERM": "dumb"
    },
-   "unset": [],
+   "unset": [
+    "GITHUB_ACTIONS"
+   ],
    "exit_code": 0,
-   "wall_s": 0.007
+   "wall_s": 0.006
   },
   {
    "step": "sqruff dialects --help",
@@ -726,9 +807,11 @@
     "NO_COLOR": "1",
     "TERM": "dumb"
    },
-   "unset": [],
+   "unset": [
+    "GITHUB_ACTIONS"
+   ],
    "exit_code": 0,
-   "wall_s": 0.006
+   "wall_s": 0.005
   },
   {
    "step": "sqruff templaters --help",
@@ -743,7 +826,9 @@
     "NO_COLOR": "1",
     "TERM": "dumb"
    },
-   "unset": [],
+   "unset": [
+    "GITHUB_ACTIONS"
+   ],
    "exit_code": 0,
    "wall_s": 0.005
   },
@@ -760,9 +845,11 @@
     "NO_COLOR": "1",
     "TERM": "dumb"
    },
-   "unset": [],
+   "unset": [
+    "GITHUB_ACTIONS"
+   ],
    "exit_code": 0,
-   "wall_s": 0.005
+   "wall_s": 0.007
   },
   {
    "step": "sqruff templaters",
@@ -776,9 +863,11 @@
     "NO_COLOR": "1",
     "TERM": "dumb"
    },
-   "unset": [],
+   "unset": [
+    "GITHUB_ACTIONS"
+   ],
    "exit_code": 0,
-   "wall_s": 0.017
+   "wall_s": 0.014
   },
   {
    "step": "sqlfluff facts",
@@ -790,9 +879,11 @@
     "PY_FACTS (scripts/s3/capabilities.py)"
    ],
    "env": {},
-   "unset": [],
+   "unset": [
+    "GITHUB_ACTIONS"
+   ],
    "exit_code": 0,
-   "wall_s": 0.545
+   "wall_s": 0.459
   },
   {
    "step": "check the submodule after",
@@ -804,7 +895,7 @@
    "env": {},
    "unset": [],
    "exit_code": 0,
-   "wall_s": 0.031
+   "wall_s": 0.043
   }
  ],
  "sqlfluff": {

@@ -82,6 +82,8 @@ BASES = ("sqruff", "sqlfluffrs", "new-parser")
 TOOLS = "$TOOLS"
 # The help text must not depend on the terminal.
 HELP_ENV = {"COLUMNS": "80", "NO_COLOR": "1", "TERM": "dumb"}
+# With GITHUB_ACTIONS set, sqruff gives another default output format.
+HELP_UNSET = ("GITHUB_ACTIONS",)
 TEMPLATER_NAMES = ("raw", "jinja", "python", "placeholder", "dbt", "sqlmesh")
 SCHEMA_SEARCH = re.compile(r"json[ _-]?schema", re.I)
 
@@ -413,7 +415,7 @@ class Recorder:
     def run(self, cid: str, argv: list, env: dict | None = None) -> str:
         if cid in self.outputs:
             raise DataError(f"two commands with the id {cid!r}")
-        proc = self.st.run(cid, argv, self.scratch, set_env=env)
+        proc = self.st.run(cid, argv, self.scratch, set_env=env, unset=HELP_UNSET)
         entry = self.st.entries[-1]
         shown = self.st.show(str(self.tools))
         entry["argv"] = [a.replace(shown, TOOLS) for a in entry["argv"]]
@@ -698,6 +700,7 @@ def collect(scratch: Path) -> dict:
         "sqlfluff_ref": sqlfluff_ref(SQLFLUFF_ROOT),
         "tools": "$TOOLS is the tools folder of scripts/setup (SQLL_TOOLS_DIR)",
         "help_env": HELP_ENV,
+        "help_unset": list(HELP_UNSET),
         "commands": rec.outputs,
         "steps": rec.st.entries,
         "sqlfluff": {k: v for k, v in py.items() if k != "sqlfluff_file"},

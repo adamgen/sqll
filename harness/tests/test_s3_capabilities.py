@@ -405,7 +405,8 @@ def _run_recorded(cid):
     argv = [a.replace("$TOOLS", str(tools_dir())) for a in rec["argv"]]
     if cid == "sqlfluff facts":
         argv[3] = cap.PY_FACTS
-    env = {**os.environ, **SOURCES["help_env"]}
+    env = {k: v for k, v in os.environ.items() if k not in SOURCES["help_unset"]}
+    env.update(SOURCES["help_env"])
     proc = subprocess.run(argv, capture_output=True, text=True, env=env, timeout=120)
     return proc.returncode, proc.stdout.replace(str(tools_dir()), "$TOOLS")
 

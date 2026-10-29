@@ -15,7 +15,7 @@
   "report": "uv run --frozen --project harness python scripts/s3/capabilities.py report"
  },
  "inputs": {
-  "results/s3/capabilities-sources.json": "3421900c2296ab42a132fa22faa6e47c9402fdb3059bc512fc6f618b2671f443",
+  "results/s3/capabilities-sources.json": "acc7af534a0827a80c13fe938555af5471f80f7950e723f87992a5d43d3cf4c9",
   "results/s3/capabilities-start.json": "d53dc7776b21fde4eb5fbada45d2dcaf353a8111b04dd52739a6596d7c7213e6",
   "results/s3/s1-by-base.json": "e6f67398893b8e31fe62038dd4aa80d5e27f81f21bba3dc6254ba43b37108a41",
   "results/s3/sqlfluffrs-probe.json": "1f3776d2b67505c37060a475c755f9ba558f30755f049c62e934623a6d6d61a0",
