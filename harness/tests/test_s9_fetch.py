@@ -359,3 +359,69 @@ def test_cli_validate_repository_manifest(capsys):
     assert corpus_main.main(["validate"]) == 0
     out = json.loads(capsys.readouterr().out)
     assert out["manifest_sha256"] == m.load().sha256
+
+
+def test_notices_has_the_manifest_and_each_license_file(tmp_path, cache, source):
+    man = make_manifest()
+    out = tmp_path / "notices"
+    result = f.notices(man, cache, out, download=source, sleep=[].append)
+    assert files_in(out) == ["_sources.json", "demo/LICENSE", "demo/NOTICE"]
+    assert (out / "_sources.json").read_bytes() == man.text
+    assert (out / "demo" / "NOTICE").read_bytes() == FILES["NOTICE"]
+    assert result["license_files"] == 2 and result["downloaded"] == 2
+    assert sorted(source.calls) == [RAW + "LICENSE", RAW + "NOTICE"]
+    source.calls.clear()
+    (out / "demo" / "old").write_text("x")
+    result = f.notices(man, cache, out, download=source, sleep=[].append)
+    assert source.calls == [] and result["cached"] == 2
+    assert files_in(out) == ["_sources.json", "demo/LICENSE", "demo/NOTICE"]
+    assert not [p for p in tmp_path.iterdir() if p.name.startswith(".notices.")]
+
+
+def test_notices_checks_the_sha256(tmp_path, cache, source):
+    source.put("NOTICE", b"Another notice.\n")
+    out = tmp_path / "notices"
+    with pytest.raises(f.FetchError, match="sha256"):
+        f.notices(make_manifest(), cache, out, download=source, sleep=[].append)
+    assert not out.exists()
+    assert not [p for p in tmp_path.iterdir() if p.name.startswith(".notices.")]
+
+
+@pytest.mark.parametrize("kind", ["file", "other folder"])
+def test_notices_does_not_replace_another_folder(tmp_path, cache, source, kind):
+    out = tmp_path / "notices"
+    if kind == "file":
+        out.write_text("x")
+    else:
+        out.mkdir()
+        (out / "keep.txt").write_text("x")
+    with pytest.raises(f.FetchError, match="not a notices folder"):
+        f.notices(make_manifest(), cache, out, download=source, sleep=[].append)
+    assert source.calls == []
+    assert out.exists()
+
+
+def test_cli_notices(tmp_path, source, monkeypatch, capsys):
+    monkeypatch.setattr(f, "http_download", source)
+    path = write_manifest(tmp_path, manifest_data())
+    out = tmp_path / "n"
+    argv = ["notices", "--manifest", str(path), "--cache", str(tmp_path / "c")]
+    assert corpus_main.main([*argv, "--out", str(out)]) == 0
+    result = json.loads(capsys.readouterr().out)
+    assert result["out"] == str(out) and result["license_files"] == 2
+    assert files_in(out) == ["_sources.json", "demo/LICENSE", "demo/NOTICE"]
+    source.put("LICENSE", b"y" * len(FILES["LICENSE"]))
+    (tmp_path / "c" / "demo" / COMMIT / "LICENSE").unlink()
+    assert corpus_main.main([*argv, "--out", str(out)]) == 2
+    assert "sha256" in capsys.readouterr().err
+    assert (out / "demo" / "LICENSE").read_bytes() == FILES["LICENSE"]
+
+
+def test_cli_notices_default_folder():
+    args = corpus_main._parser().parse_args(["notices"])
+    assert args.out == f.DEFAULT_NOTICES
+    assert f.DEFAULT_NOTICES.parent.name == "out"
+
+
+def test_notices_manifest_name_is_not_a_source_id():
+    assert not m._SOURCE_ID.fullmatch(f.NOTICES_MANIFEST)

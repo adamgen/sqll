@@ -10,13 +10,16 @@ and write the report.
 merge REPORT... [--expect FILE] [--out FILE]: merge the shard reports.
 check REPORT [--baseline FILE [--full]]: check the schema and completeness
 of a report, and its stable data against the baseline.
+notices [--manifest FILE] [--cache DIR] [--out DIR]: write the manifest and
+the license and notice files of all sources to one folder (default
+out/corpus-notices), for a CI artifact with a report.
 tables REPORT: print the Markdown tables of a report for status/S9.md.
 select [--sources FILE] [--cache DIR] [--download] [--check]: make the
 manifest from the source list and the cache (--download first fills the
 cache with git), and write it to --manifest, or with --check compare it with
 --manifest.
 
-validate and fetch write a JSON object on stdout. Exit code 2 if the
+validate, fetch, and notices write a JSON object on stdout. Exit code 2 if the
 manifest is not valid, or if a fetch, run, or merge cannot start or
 complete; 1 if a report has an error.
 """
@@ -54,7 +57,7 @@ def _shard(text: str) -> tuple[int, int]:
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="python -m sqll_harness.corpus")
     commands = parser.add_subparsers(dest="command", required=True)
-    for name in ("validate", "fetch", "run", "merge", "check", "select"):
+    for name in ("validate", "fetch", "notices", "run", "merge", "check", "select"):
         sub = commands.add_parser(name)
         sub.add_argument("--manifest", type=Path, default=MANIFEST)
     commands.add_parser("tables").add_argument("report", type=Path)
@@ -64,6 +67,14 @@ def _parser() -> argparse.ArgumentParser:
         "--smoke", action="store_true", help="Fetch only the smoke files."
     )
     fetch_parser.add_argument("--cache", help=cache_help)
+    notices_parser = commands.choices["notices"]
+    notices_parser.add_argument("--cache", help=cache_help)
+    notices_parser.add_argument(
+        "--out",
+        type=Path,
+        default=fetch_module.DEFAULT_NOTICES,
+        help="The folder to write. Default: out/corpus-notices.",
+    )
     run_parser = commands.choices["run"]
     run_parser.add_argument(
         "--profile", required=True, choices=sorted(corpus_run.PROFILES)
@@ -270,6 +281,9 @@ def main(argv: list[str] | None = None) -> int:
                 "files": len(manifest.files),
                 "smoke_files": len(manifest.selected(smoke=True)),
             }
+        elif args.command == "notices":
+            cache = fetch_module.cache_dir(args.cache)
+            out = fetch_module.notices(manifest, cache, args.out)
         else:
             cache = fetch_module.cache_dir(args.cache)
             result = fetch_module.fetch(manifest, cache, smoke=args.smoke)

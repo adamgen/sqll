@@ -259,6 +259,35 @@ def test_ci_bench_matrix_has_a_dialect_in_each_shard():
     assert 1 <= len(include) <= len(dialects)
 
 
+corpus_matrix = _load("corpus_matrix")
+
+
+def test_corpus_matrix_reads_the_s9_shard_file(capsys):
+    assert corpus_matrix.DEFAULT == REPO_ROOT / "corpus" / "ci-shards.json"
+    assert corpus_matrix.main([]) == 0
+    data = json.loads(corpus_matrix.DEFAULT.read_text())
+    assert json.loads(capsys.readouterr().out) == bench_matrix.expand(data)
+
+
+def test_corpus_matrix_has_a_file_in_each_shard():
+    from sqll_harness.corpus import manifest
+    from sqll_harness.corpus import run as corpus_run
+
+    files = manifest.load()
+    n = corpus_run.expected_shards(corpus_matrix.DEFAULT)
+    include = bench_matrix.expand({"shards": n})["include"]
+    assert 2 <= len(include) <= len(files.files)
+    for k in range(1, n + 1):
+        assert corpus_run.select(files, "full", (k, n)), k
+
+
+def test_corpus_matrix_refuses_bad_data(tmp_path):
+    path = tmp_path / "shards.json"
+    path.write_text('{"shards": 0}')
+    with pytest.raises(ValueError):
+        corpus_matrix.main([str(path)])
+
+
 # ci/changes.py: the documents-only test
 
 changes = _load("changes")
@@ -423,7 +452,7 @@ def test_main_writes_the_output(tmp_path, monkeypatch, capsys):
     assert "Event push: not a pull request" in text
     assert "not known (git failed)" in text
     assert "Result: full run" in text
-    assert "the dialect oracles, and the smoke benchmark." in text
+    assert "the dialect oracles, the smoke benchmark, and the corpus smoke run." in text
 
 
 def test_a_non_ascii_path_is_not_quoted(repo):

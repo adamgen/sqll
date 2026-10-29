@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Tell if CI must run the full jobs: test shards, report, dialect oracles,
-smoke benchmark.
+smoke benchmark, corpus smoke run.
 
 Only a pull request can skip the full jobs: if each file that the pull
 request changes is a document in DOCS. The image and lint jobs always run:
@@ -97,8 +97,8 @@ def main(argv: list[str]) -> int:
     else:
         text.append(
             "Result: documents only. CI runs the image and lint jobs and skips"
-            " the test shards, the report, the dialect oracles, and the smoke"
-            " benchmark."
+            " the test shards, the report, the dialect oracles, the smoke"
+            " benchmark, and the corpus smoke run."
         )
     print("\n".join(text))
     for name, line in (

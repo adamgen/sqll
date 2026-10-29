@@ -1,7 +1,7 @@
 # S9 decision: the external corpus
 
 Status: design (T1); run and report (T3); untemplated content (T4);
-templated content (T5); recorded results (T6). Scope: STONES.md S9;
+templated content (T5); recorded results (T6); CI (T7). Scope: STONES.md S9;
 CONSTITUTION.md G1.3, G3, G4.2, G4.3, G4.5. "Measured": `parse` runs of
 the `scripts/setup` tools on 2026-10-28 (4 CPUs, 16 GiB, machine lock),
 in a new folder with no config file above it. PR #29 (T1) and the T3 pull
@@ -290,7 +290,10 @@ needs a new full run. T8 decides if S9 lifts it. No other setting changes.
 - CI (T7, cross-track): smoke on each pull request that is not documents
   only (a small download, a baseline check, no timing gate). Full on push
   to main and `workflow_dispatch`, sharded by file, with a merge job and a
-  baseline check, as `bench-full`. A download cache keyed by the manifest
-  sha256.
+  baseline check, as `bench-full`. A download cache keyed by a hash of the
+  manifest. `corpus/ci-shards.json` has 6 shards: with the T6 times, the
+  longest shard has 849 s of tool runs (4 shards: 1177 s; 8: 626 s).
+  Each artifact with a report also has the manifest and the license files
+  (`notices`).
 - sqll joins after S3b with its bench registry entry, with no change to
   the corpus files. T3 proves this with a test-double tool.
