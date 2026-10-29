@@ -1,0 +1,981 @@
+// This file is a port of sqlfluff 4.4.0 code (sqlfluffrs):
+// sqlfluffrs/sqlfluffrs_parser/src/parser/table_driven/iterative.rs
+// Source: https://github.com/sqlfluff/sqlfluff, tag 4.4.0,
+// commit 0348222a3bcdb0226563f7349c5a39beb0641955.
+// Copyright (c) 2018-2026 Alan Cruickshank. MIT License: see
+// crates/LICENSE-sqlfluffrs.md. See THIRD_PARTY.md and crates/ported.json.
+
+#[cfg(feature = "verbose-debug")]
+use crate::vdebug;
+use sqlfluffrs_types::GrammarId;
+use sqlfluffrs_types::ParseMode;
+// Only the verbose-debug tracing blocks in this module reference GrammarVariant directly;
+// the default build's uses live behind function-local imports. cfg-gating avoids an
+// unused-import warning in non-verbose builds.
+#[cfg(feature = "verbose-debug")]
+use sqlfluffrs_types::GrammarVariant;
+use std::sync::Arc;
+
+use crate::parser::{
+    cache::TableCacheKey,
+    table_driven::frame::{TableFrameResult, TableParseFrame, TableParseFrameStack},
+    table_driven::parity,
+    FrameContext, FrameState, MatchResult, Node, ParseError, Parser,
+};
+
+impl Parser<'_> {
+    fn store_sync_match_result(
+        &self,
+        stack: &mut TableParseFrameStack,
+        frame: &TableParseFrame,
+        match_result: MatchResult,
+    ) -> Result<TableFrameResult, ParseError> {
+        self.check_parse_subtree_limit(&match_result)?;
+        vdebug!(
+            "[SYNC INSERT] frame_id={} result at pos {} -> MatchResult",
+            frame.frame_id,
+            self.pos
+        );
+        stack.insert_result(frame.frame_id, match_result, self.pos);
+        Ok(TableFrameResult::Done)
+    }
+
+    /// Store a terminal handler's result synchronously, propagating any error.
+    ///
+    /// The terminal/simple grammar variants (StringParser, Token, Meta, …) all match
+    /// synchronously and then hand their `MatchResult` to the parent frame. This wraps the
+    /// `Ok => store, Err => propagate` plumbing so each dispatch arm is a single line.
+    #[inline]
+    fn store_sync(
+        &self,
+        stack: &mut TableParseFrameStack,
+        frame: &TableParseFrame,
+        res: Result<MatchResult, ParseError>,
+    ) -> Result<TableFrameResult, ParseError> {
+        self.store_sync_match_result(stack, frame, res?)
+    }
+
+    // ========================================================================
+    // Main Iterative Parser
+    // ========================================================================
+
+    /// Fully iterative parser using explicit stack - returns Node
+    ///
+    /// This is a convenience wrapper around `parse_table_iterative_match_result`
+    /// that materializes the AST by calling `apply()` on the MatchResult.
+    ///
+    /// For Python interop where Python handles apply(), use
+    /// `parse_table_iterative_match_result` directly.
+    pub fn parse_table_iterative(
+        &mut self,
+        grammar: GrammarId,
+        parent_terminators: &[GrammarId],
+    ) -> Result<Node, ParseError> {
+        vdebug!(
+            "parse_table_iterative: delegating to match_result version for grammar {} at pos {}",
+            grammar,
+            self.pos
+        );
+
+        // Delegate to the MatchResult version
+        let match_result = self.parse_table_iterative_match_result(grammar, parent_terminators)?;
+
+        // Materialize the AST by calling apply() - now returns a single Node
+        let node = match_result.apply(self.tokens);
+
+        Ok(node.first().cloned().unwrap_or(Node::Empty))
+    }
+
+    /// Primary iterative parser - returns MatchResult for lazy AST construction
+    ///
+    /// This is the main entry point for table-driven parsing. It returns a
+    /// MatchResult which describes what matched without materializing the full
+    /// AST. This allows:
+    ///
+    /// 1. Python to call its own apply() method for Python-native segment construction
+    /// 2. Rust to call apply() when a Node is needed
+    /// 3. Efficient caching of parse results (MatchResult is lighter than Node)
+    ///
+    /// The MatchResult follows Python's match() semantics:
+    /// - matched_slice: Range of token indices that matched
+    /// - matched_class: The segment class to construct (Ref, Sequence, etc.)
+    /// - child_matches: Nested MatchResults for compound grammars
+    pub fn parse_table_iterative_match_result(
+        &mut self,
+        grammar: GrammarId,
+        parent_terminators: &[GrammarId],
+    ) -> Result<MatchResult, ParseError> {
+        vdebug!(
+            "Starting iterative parse (match_result mode) for grammar: {} at pos {}",
+            grammar,
+            self.pos
+        );
+
+        // DON'T check cache here at the entry point!
+        // Python's cache is checked INSIDE each grammar handler (via longest_match)
+        // AFTER they've calculated their trimmed max_idx based on terminators.
+        // We need to do the same - let the Initial state handler check cache
+        // after calculating max_idx with terminators.
+        //
+        // The issue: Different grammars have different parse modes and terminators.
+        // We can't calculate the "right" max_idx here without knowing which grammar
+        // handler will run and what terminators it will use.
+
+        // Stack of parse frames and state
+        let mut stack = TableParseFrameStack::new();
+        let initial_frame_id = stack.frame_id_counter;
+        stack.frame_id_counter += 1;
+        stack.push(TableParseFrame {
+            frame_id: initial_frame_id,
+            grammar_id: grammar,
+            pos: self.pos,
+            table_terminators: smallvec::SmallVec::from_slice(parent_terminators),
+            state: FrameState::Initial,
+            context: FrameContext::None,
+            parent_max_idx: None, // No parent constraint at top level - let handler calculate
+            calculated_max_idx: None, // Will be set by handler after calculation
+            end_pos: None,
+            element_key: None,
+            parse_mode_override: None, // No override for top-level frame
+        });
+
+        let mut iteration_count = 0_usize;
+        let max_iterations = self.max_parser_iterations;
+        let warn_threshold = self.parser_warn_threshold;
+        let mut warn_threshold_triggered = false;
+
+        while let Some(frame_from_stack) = stack.pop() {
+            iteration_count += 1;
+
+            if !warn_threshold_triggered && iteration_count > warn_threshold {
+                warn_threshold_triggered = true;
+                log::warn!(
+                    "Parser exceeded prior iteration limit of {} (now at {}). \
+                     Complex grammar detected; continuing up to {}.",
+                    warn_threshold,
+                    iteration_count,
+                    max_iterations
+                );
+            }
+
+            // Max parse depth (DoS mitigation): frame we're processing was at depth stack.len()+1
+            if self.max_parse_depth > 0 && stack.len() + 1 > self.max_parse_depth {
+                return Err(ParseError::with_context(
+                    format!(
+                        "Maximum parse depth exceeded (limit {}). This may indicate deeply nested SQL or a malicious input.",
+                        self.max_parse_depth
+                    ),
+                    Some(frame_from_stack.pos),
+                    Some(frame_from_stack.grammar_id),
+                ));
+            }
+
+            // Re-check the cache ONLY for Initial frames
+            // WaitingForChild frames have already started processing and have a child computing the result
+            let mut frame = if matches!(frame_from_stack.state, FrameState::Initial) {
+                match self.check_and_handle_table_frame_cache(frame_from_stack, &mut stack)? {
+                    TableFrameResult::Done => continue,
+                    TableFrameResult::Push(frame) => frame, // Cache miss - process this frame
+                }
+            } else {
+                frame_from_stack
+            };
+
+            if iteration_count > max_iterations {
+                self.handle_table_max_iterations_exceeded(&mut stack, max_iterations, &mut frame);
+            }
+
+            vdebug!(
+                "Processing frame {}: grammar={}, pos={}, state={:?}, stack_size={} (BEFORE pop: {})",
+                frame.frame_id,
+                frame.grammar_id,
+                frame.pos,
+                frame.state,
+                stack.len(),
+                stack.len() + 1  // Add 1 because we just popped
+            );
+
+            match frame.state {
+                FrameState::Initial => {
+                    // Log grammar path when trying a match
+                    vdebug!(
+                        "🔍 Trying match at pos {}: {}",
+                        frame.pos,
+                        self.build_table_grammar_path(&frame, &stack)
+                    );
+
+                    match self.handle_initial(frame, &mut stack, iteration_count)? {
+                        TableFrameResult::Done => continue,
+                        TableFrameResult::Push(updated_frame) => {
+                            stack.push(updated_frame);
+                        }
+                    }
+                }
+                FrameState::WaitingForChild { .. } => {
+                    match self.handle_waiting_for_child(frame, &mut stack, iteration_count)? {
+                        TableFrameResult::Done => continue,
+                        TableFrameResult::Push(updated_frame) => {
+                            stack.push(updated_frame);
+                        }
+                    }
+                }
+
+                FrameState::Combining => {
+                    // Log that we're combining child results, include range
+                    #[cfg(feature = "verbose-debug")]
+                    let combine_end = frame.end_pos.unwrap_or(self.pos);
+                    vdebug!(
+                        "🔨 Combining at pos {}-{}: {}",
+                        frame.pos,
+                        combine_end.saturating_sub(1),
+                        self.build_table_grammar_path(&frame, &stack)
+                    );
+
+                    // Delegate to specific handler based on grammar type
+                    match self.handle_combining(frame, &mut stack)? {
+                        TableFrameResult::Done => {}
+                        TableFrameResult::Push(updated_frame) => {
+                            stack.push(updated_frame);
+                        }
+                    }
+                }
+
+                FrameState::Complete(ref match_result) => {
+                    // This state is reached when a handler has finished producing a result.
+                    // The handler transitions the frame to Complete(match_result) and returns Push(frame).
+                    // The main loop then stores the result in stack.results for parent frames to access.
+                    // This separation keeps handlers focused on producing results, while the main
+                    // loop coordinates result storage.
+                    self.commit_table_frame_result(&mut stack, &frame, match_result)?;
+                }
+            }
+        }
+
+        // Return the result from the initial frame
+        if warn_threshold_triggered {
+            log::warn!(
+                "Parser main loop completed in {} iterations.",
+                iteration_count
+            );
+        }
+        vdebug!("DEBUG: Main loop ended. Stack has {} frames left. Result pending: {}. Looking for frame_id={}",
+            stack.len(),
+            stack.result_pending(),
+            initial_frame_id
+        );
+
+        // Debug: Show what frames are left on the stack
+        #[cfg(feature = "verbose-debug")]
+        for (i, frame) in stack.iter().enumerate() {
+            let grammar_desc = match self.grammar_ctx.variant(frame.grammar_id) {
+                GrammarVariant::Ref => {
+                    format!("Ref({})", self.grammar_ctx.ref_name(frame.grammar_id))
+                }
+                GrammarVariant::Bracketed => "Bracketed".to_string(),
+                GrammarVariant::Delimited => "Delimited".to_string(),
+                GrammarVariant::OneOf => {
+                    format!(
+                        "OneOf({} elements)",
+                        self.grammar_ctx.children_count(frame.grammar_id)
+                    )
+                }
+                GrammarVariant::Sequence => {
+                    format!(
+                        "Sequence({} elements)",
+                        self.grammar_ctx.children_count(frame.grammar_id)
+                    )
+                }
+                GrammarVariant::AnyNumberOf => "AnyNumberOf".to_string(),
+                GrammarVariant::AnySetOf => "AnySetOf".to_string(),
+                GrammarVariant::StringParser => {
+                    format!(
+                        "StringParser('{}')",
+                        self.grammar_ctx.template(frame.grammar_id)
+                    )
+                }
+                GrammarVariant::Token => {
+                    format!("Token({})", self.grammar_ctx.template(frame.grammar_id))
+                }
+                _ => "Other".to_string(),
+            };
+
+            // Also show which child frame ID we're waiting for
+            let waiting_for = get_waiting_for_frame_id(frame);
+
+            vdebug!(
+                "  Stack[{}]: frame_id={}, state={:?}, pos={}, grammar={}, waiting_for={}",
+                i,
+                frame.frame_id,
+                frame.state,
+                frame.pos,
+                grammar_desc,
+                waiting_for
+            );
+        }
+
+        vdebug!(
+            "Main loop ended. Stack empty. Result pending: {}. Looking for frame_id={}",
+            stack.result_pending(),
+            initial_frame_id
+        );
+        if let Some((match_result, end_pos, _element_key)) = stack.take_pending(initial_frame_id) {
+            vdebug!(
+                "DEBUG: Found result for frame_id={}, end_pos={}",
+                initial_frame_id,
+                end_pos
+            );
+            self.pos = end_pos;
+
+            // If the parse failed (returned Empty), provide diagnostic information
+            #[cfg(feature = "verbose-debug")]
+            if match_result.is_empty() {
+                vdebug!("\n=== PARSE FAILED ===");
+                vdebug!("Parser stopped at position: {}", end_pos);
+                vdebug!("Total tokens: {}", self.tokens.len());
+
+                if end_pos < self.tokens.len() {
+                    vdebug!("\nTokens around failure point:");
+                    let start = end_pos.saturating_sub(3);
+                    let end = (end_pos + 4).min(self.tokens.len());
+                    for i in start..end {
+                        let marker = if i == end_pos { " <<< HERE" } else { "" };
+                        if let Some(tok) = self.tokens.get(i) {
+                            vdebug!(
+                                "  [{}]: '{}' (type: {}){}",
+                                i,
+                                tok.raw(),
+                                tok.get_type(),
+                                marker
+                            );
+                        }
+                    }
+                }
+
+                vdebug!("\nGrammar that failed to match:");
+                vdebug!("  {}", grammar);
+                vdebug!("===================\n");
+            }
+
+            // Extract result — try_unwrap avoids a full deep clone when refcount==1
+            Ok(Arc::try_unwrap(match_result).unwrap_or_else(|arc| (*arc).clone()))
+        } else {
+            // Parse error - don't cache errors for now (to keep it simple)
+            let error = ParseError::new(format!(
+                "Iterative parse produced no result (initial_frame_id={}, result_pending={})",
+                initial_frame_id,
+                stack.result_pending()
+            ));
+            Err(error)
+        }
+    }
+
+    /// Dispatch handler for table-driven Initial state.
+    pub fn handle_initial(
+        &mut self,
+        frame: TableParseFrame,
+        stack: &mut TableParseFrameStack,
+        _iteration_count: usize,
+    ) -> Result<TableFrameResult, ParseError> {
+        use sqlfluffrs_types::GrammarVariant;
+
+        let grammar_id = frame.grammar_id;
+        let inst = self.grammar_ctx.inst(grammar_id);
+        let variant = inst.variant;
+
+        vdebug!(
+            "Table-driven Initial: frame_id={}, grammar_id={}, variant={:?}",
+            frame.frame_id,
+            grammar_id.0,
+            variant
+        );
+
+        // Ensure parser's current position reflects the frame's start position
+        // so all table-driven handlers that use `self.pos` operate on the
+        // intended token index. This keeps behavior consistent with
+        // non-table-driven handlers which set `self.pos = frame.pos`.
+        self.pos = frame.pos;
+
+        match variant {
+            GrammarVariant::OneOf => self.handle_oneof_initial(frame, stack),
+            GrammarVariant::Sequence => self.handle_sequence_initial(frame, stack),
+            GrammarVariant::Delimited => self.handle_delimited_initial(frame, stack),
+            GrammarVariant::Bracketed => self.handle_bracketed_initial(frame, stack),
+            GrammarVariant::AnyNumberOf | GrammarVariant::AnySetOf => {
+                // AnySetOf currently delegates to AnyNumberOf semantics in table-driven handlers
+                self.handle_anynumberof_initial(frame, stack)
+            }
+            GrammarVariant::Ref => self.handle_ref_initial(frame, stack),
+            // Terminal/simple variants should be handled synchronously here
+            GrammarVariant::StringParser => {
+                // Synchronous match: call the table-driven string parser and store result for parent
+                let res = self.handle_string_parser(grammar_id);
+                self.store_sync(stack, &frame, res)
+            }
+            GrammarVariant::TypedParser => self.handle_typed_parser(frame),
+            GrammarVariant::MultiStringParser => {
+                let res = self.handle_multi_string_parser(grammar_id);
+                self.store_sync(stack, &frame, res)
+            }
+            GrammarVariant::RegexParser => {
+                let res = self.handle_regex_parser(grammar_id);
+                self.store_sync(stack, &frame, res)
+            }
+            GrammarVariant::Nothing => {
+                let res = self.handle_nothing();
+                self.store_sync(stack, &frame, res)
+            }
+            GrammarVariant::Empty => {
+                let res = self.handle_empty();
+                self.store_sync(stack, &frame, res)
+            }
+            GrammarVariant::Missing => {
+                let res = self.handle_missing();
+                self.store_sync(stack, &frame, res)
+            }
+            GrammarVariant::Token => {
+                let res = self.handle_token(grammar_id);
+                self.store_sync(stack, &frame, res)
+            }
+            GrammarVariant::PrecededBy => {
+                let res = self.handle_preceded_by(grammar_id);
+                self.store_sync(stack, &frame, res)
+            }
+            GrammarVariant::Meta => {
+                let res = self.handle_meta(grammar_id);
+                let parent_frame = stack.last_mut().unwrap();
+                let variant = self.grammar_ctx.inst(parent_frame.grammar_id).variant;
+                log::warn!(
+                    "Meta grammar should be consumed by a sequence or bracketed, not matched in {:?}:{} for Meta {:?}",
+                    variant,
+                    parent_frame.grammar_id.0,
+                    frame.grammar_id.0
+
+                );
+                self.store_sync(stack, &frame, res)
+            }
+            GrammarVariant::NonCodeMatcher => {
+                let res = self.handle_noncode_matcher();
+                self.store_sync(stack, &frame, res)
+            }
+            GrammarVariant::Anything => {
+                let res = self.handle_anything(
+                    grammar_id,
+                    &frame.table_terminators,
+                    frame.parent_max_idx,
+                );
+                self.store_sync(stack, &frame, res)
+            }
+        }
+    }
+
+    /// Dispatch handler for WaitingForChild state.
+    fn handle_waiting_for_child(
+        &mut self,
+        mut frame: TableParseFrame,
+        stack: &mut TableParseFrameStack,
+        iteration_count: usize,
+    ) -> Result<TableFrameResult, ParseError> {
+        // A child parse just completed - get its result. In WaitingForChild a compound
+        // frame always recorded the child it pushed, so this is Some; a missing id means
+        // a frame reached this state without tracking a child (should never happen).
+        let child_frame_id = match frame.context.last_child_frame_id() {
+            Some(id) => id,
+            None => {
+                log::error!("WaitingForChild state without child frame ID tracking");
+                return Ok(TableFrameResult::Done);
+            }
+        };
+
+        let child = stack.take_pending(child_frame_id);
+        vdebug!(
+            "[RESULT GET] parent_frame_id={}, child_frame_id={}, child_found={}",
+            frame.frame_id,
+            child_frame_id,
+            child.is_some()
+        );
+
+        if let Some((child_node, child_end_pos, _child_element_key)) = &child {
+            vdebug!(
+                "[RESULT FOUND] parent_frame_id={}, child_frame_id={}, child_end_pos={}",
+                frame.frame_id,
+                child_frame_id,
+                child_end_pos
+            );
+            vdebug!(
+                "Child completed (frame_id={}): pos {} -> {}",
+                child_frame_id,
+                frame.pos,
+                child_end_pos
+            );
+
+            // Note: We intentionally do NOT mark transparent positions globally here.
+            // Marking happens only when frames commit their results, not when results are retrieved.
+            // This prevents interference between speculative parses while still preventing duplicates
+            // in the final committed AST.
+
+            match &mut frame.context {
+                FrameContext::OneOf(_) => {
+                    match self.handle_oneof_waiting_for_child(
+                        frame,
+                        child_node,
+                        child_end_pos,
+                        stack,
+                    )? {
+                        TableFrameResult::Done => {}
+                        TableFrameResult::Push(updated_frame) => {
+                            stack.push(updated_frame);
+                        }
+                    }
+                    Ok(TableFrameResult::Done)
+                }
+                FrameContext::Sequence(_) => {
+                    match self.handle_sequence_waiting_for_child(
+                        frame,
+                        child_node,
+                        child_end_pos,
+                        stack,
+                    )? {
+                        TableFrameResult::Done => {}
+                        TableFrameResult::Push(updated_frame) => {
+                            stack.push(updated_frame);
+                        }
+                    }
+                    Ok(TableFrameResult::Done)
+                }
+                FrameContext::Ref(_) => {
+                    match self.handle_ref_waiting_for_child(frame, child_node, child_end_pos)? {
+                        TableFrameResult::Done => {}
+                        TableFrameResult::Push(updated_frame) => {
+                            stack.push(updated_frame);
+                        }
+                    }
+                    Ok(TableFrameResult::Done)
+                }
+                FrameContext::Delimited(_) => {
+                    match self.handle_delimited_waiting_for_child(
+                        frame,
+                        child_node,
+                        child_end_pos,
+                        stack,
+                    )? {
+                        TableFrameResult::Done => {}
+                        TableFrameResult::Push(updated_frame) => {
+                            stack.push(updated_frame);
+                        }
+                    }
+                    Ok(TableFrameResult::Done)
+                }
+                FrameContext::Bracketed(_) => {
+                    match self.handle_bracketed_waiting_for_child(
+                        frame,
+                        child_node,
+                        child_end_pos,
+                        stack,
+                    )? {
+                        TableFrameResult::Done => {}
+                        TableFrameResult::Push(updated_frame) => {
+                            stack.push(updated_frame);
+                        }
+                    }
+                    Ok(TableFrameResult::Done)
+                }
+                FrameContext::AnyNumberOf(_) => {
+                    match self.handle_anynumberof_waiting_for_child(
+                        frame,
+                        child_node,
+                        child_end_pos,
+                        stack,
+                    )? {
+                        TableFrameResult::Done => {}
+                        TableFrameResult::Push(updated_frame) => {
+                            stack.push(updated_frame);
+                        }
+                    }
+                    Ok(TableFrameResult::Done)
+                }
+                _ => {
+                    // TODO: Handle other grammar types
+                    unimplemented!("WaitingForChild for grammar type: {:?}", frame.grammar_id);
+                }
+            }
+        } else {
+            // Child result not found yet - push frame back onto stack and continue
+            let last_child_frame_id = frame.context.last_child_frame_id();
+            vdebug!(
+                "Child result not found for frame_id={}, last_child_frame_id={:?}, pushing frame back onto stack",
+                frame.frame_id,
+                last_child_frame_id
+            );
+
+            // Check if we're in an infinite loop - frame waiting for child that doesn't exist
+            if iteration_count > 100 && iteration_count.is_multiple_of(100) {
+                vdebug!(
+                    "WARNING: Frame {} waiting for child {:?} but result not found (iteration {})",
+                    frame.frame_id,
+                    last_child_frame_id,
+                    iteration_count
+                );
+
+                // Check if child is on stack
+                if let Some(child_id) = last_child_frame_id {
+                    let child_on_stack = stack.iter().any(|f| f.frame_id == child_id);
+                    if child_on_stack {
+                        vdebug!(
+                            "  -> Child frame {} IS on stack (still being processed)",
+                            child_id
+                        );
+                    } else {
+                        panic!("  -> Child frame {} NOT on stack (may have been lost or never created)", child_id);
+                    }
+                }
+            }
+
+            // Push frame back onto stack so it can be re-checked after child completes
+            Ok(TableFrameResult::Push(frame))
+        }
+    }
+
+    fn handle_combining(
+        &mut self,
+        frame: TableParseFrame,
+        stack: &mut TableParseFrameStack,
+    ) -> Result<TableFrameResult, ParseError> {
+        use sqlfluffrs_types::GrammarVariant;
+
+        let grammar_id = frame.grammar_id;
+        let inst = self.grammar_ctx.inst(grammar_id);
+        let variant = inst.variant;
+
+        vdebug!(
+            "Table-driven Combining: frame_id={}, grammar_id={}, variant={:?}",
+            frame.frame_id,
+            grammar_id.0,
+            variant
+        );
+
+        match variant {
+            GrammarVariant::OneOf => self.handle_oneof_combining(frame, stack),
+            GrammarVariant::Sequence => self.handle_sequence_combining(frame, stack),
+            GrammarVariant::Delimited => self.handle_delimited_combining(frame, stack),
+            GrammarVariant::Bracketed => self.handle_bracketed_combining(frame, stack),
+            GrammarVariant::AnyNumberOf | GrammarVariant::AnySetOf => {
+                self.handle_anynumberof_combining(frame, stack)
+            }
+            GrammarVariant::Ref => self.handle_ref_combining(frame),
+            _ => {
+                // Combining should not be reached for terminal/simple variants
+                unimplemented!(
+                    "Combining not implemented for grammar variant: {:?}",
+                    variant
+                );
+            }
+        }
+    }
+
+    fn commit_table_frame_result(
+        &mut self,
+        stack: &mut TableParseFrameStack,
+        frame: &TableParseFrame,
+        match_result: &Arc<MatchResult>,
+    ) -> Result<(), ParseError> {
+        self.check_parse_subtree_limit(match_result)?;
+
+        // Log grammar path - different indicator for Empty vs matched nodes
+        #[cfg(feature = "verbose-debug")]
+        let end_pos = frame.end_pos.unwrap_or(self.pos);
+        if match_result.is_empty() {
+            vdebug!(
+                "❌ No match at pos {}: {}",
+                frame.pos,
+                self.build_table_grammar_path(frame, stack)
+            );
+        } else {
+            vdebug!(
+                "✅ Match at pos {}-{}: {}",
+                frame.pos,
+                end_pos.saturating_sub(1),
+                self.build_table_grammar_path(frame, stack)
+            );
+        }
+
+        // Use the end_pos stored in the frame (or fall back to self.pos)
+        let end_pos = frame.end_pos.unwrap_or(self.pos);
+
+        // Get element_key if any (set by OneOf for AnyNumberOf tracking)
+        let element_key = frame.element_key;
+
+        // This frame is done - insert result
+        stack.insert_arc_result_with_key(
+            frame.frame_id,
+            Arc::clone(match_result),
+            end_pos,
+            element_key,
+        );
+
+        // Cache the result for future reuse
+        // Cache non-empty results always, but only cache Empty results when
+        // terminators are empty (otherwise the Empty might become non-Empty
+        // with different terminator context)
+        if self.cache_enabled {
+            let should_cache_empty = match_result.is_empty() && frame.table_terminators.is_empty();
+            let should_cache_success = !match_result.is_empty();
+
+            if should_cache_empty || should_cache_success {
+                // The cacheable-variant check and max_idx derivation live in frame_cache_key
+                // (shared with the lookup site). `Ok(None)` = not cacheable and `Err` =
+                // max_idx calculation failed; in both cases we simply skip caching (caching
+                // is best-effort and must never fail the parse).
+                if let Ok(Some(cache_key)) = self.frame_cache_key(frame) {
+                    // Cache as Arc<MatchResult> (cheap to clone later)
+                    self.table_cache
+                        .put(cache_key, (Arc::clone(match_result), end_pos));
+                }
+            }
+        }
+
+        Ok(())
+    }
+
+    /// Compute the frame cache key for `frame`, identically at store and lookup time.
+    ///
+    /// Returns `Ok(None)` when the grammar is not frame-cacheable (the caller skips the
+    /// cache), `Ok(Some(key))` otherwise, and `Err` only if `max_idx` calculation fails.
+    /// The cacheable-set and the `max_idx` formula both live in `parity.rs` and are reached
+    /// only through this one method, so the store key and the lookup key cannot drift —
+    /// see the optimization preconditions in `ENGINE.md` (a drift here would silently corrupt the cache).
+    #[inline]
+    fn frame_cache_key(
+        &mut self,
+        frame: &TableParseFrame,
+    ) -> Result<Option<TableCacheKey>, ParseError> {
+        if !parity::is_frame_cacheable(self.grammar_ctx.variant(frame.grammar_id)) {
+            return Ok(None);
+        }
+        // PYTHON PARITY: skip caching GREEDY-family frames. They trim on their
+        // *inherited* terminators internally, so the same (pos, grammar_id,
+        // max_idx) key can map to different results by context; Python never
+        // caches them either. A STRICT `Ref` forwarding a GREEDY-family target
+        // (e.g. `Ref("SelectClauseSegment")`) inherits the same dependence.
+        let parse_mode =
+            parity::effective_parse_mode(frame, self.grammar_ctx.inst(frame.grammar_id));
+        if self.is_greedy_family_for_cache(frame, parse_mode) {
+            return Ok(None);
+        }
+        // Prefer the handler-calculated max_idx; fall back to computing it the same way the
+        // handler would (CRITICAL: honour parse_mode_override for Bracketed inheritance).
+        let max_idx = match frame.calculated_max_idx {
+            Some(calc_max) => calc_max,
+            None => self.calculate_max_idx(
+                frame.pos,
+                &frame.table_terminators,
+                parse_mode,
+                frame.parent_max_idx,
+            )?,
+        };
+        Ok(Some(TableCacheKey::new(
+            frame.pos,
+            frame.grammar_id,
+            max_idx,
+        )))
+    }
+
+    /// Whether `frame` is (or, for a `Ref`, forwards) a GREEDY-family frame and
+    /// so must not be cached. A `Ref` is itself STRICT but forwards its target's
+    /// match, so we resolve and inspect the target's parse mode.
+    #[inline]
+    fn is_greedy_family_for_cache(
+        &mut self,
+        frame: &TableParseFrame,
+        parse_mode: ParseMode,
+    ) -> bool {
+        // Own mode (already accounts for parse_mode_override) is cheap; check it.
+        if matches!(parse_mode, ParseMode::Greedy | ParseMode::GreedyOnceStarted) {
+            return true;
+        }
+        // Else: a STRICT `Ref` forwarding a GREEDY target. Inspect the resolved
+        // target's parse mode; resolution is memoized in `ref_child_cache`, so this
+        // is O(1) on the hot path after the first hit per Ref.
+        if self.grammar_ctx.variant(frame.grammar_id) != sqlfluffrs_types::GrammarVariant::Ref {
+            return false;
+        }
+        match self.resolve_ref_target(frame.grammar_id) {
+            Some(child_id) => matches!(
+                self.grammar_ctx.inst(child_id).parse_mode,
+                ParseMode::Greedy | ParseMode::GreedyOnceStarted
+            ),
+            None => false,
+        }
+    }
+
+    /// Resolve a `Ref` grammar to the grammar it matches against, mirroring the
+    /// resolution in `handle_ref_initial`: an explicit element child if present,
+    /// otherwise the segment grammar looked up by the ref's name in the dialect.
+    /// Backed by `ref_child_cache` (shared with `handle_ref_initial`) so the
+    /// by-name dialect lookup runs at most once per Ref.
+    #[inline]
+    pub(crate) fn resolve_ref_target(&mut self, grammar_id: GrammarId) -> Option<GrammarId> {
+        if let Some(&cached) = self.ref_child_cache.get(&grammar_id.0) {
+            return cached.map(GrammarId);
+        }
+        let resolved = self
+            .grammar_ctx
+            .element_children(grammar_id)
+            .next()
+            .or_else(|| {
+                let rule_name = self.grammar_ctx.ref_name(grammar_id);
+                self.dialect
+                    .get_segment_grammar(rule_name)
+                    .map(|root| root.grammar_id)
+            });
+        self.ref_child_cache
+            .insert(grammar_id.0, resolved.map(|g| g.0));
+        resolved
+    }
+
+    /// Checks the cache for a frame and handles cache hits. Returns FrameResult indicating what to do next.
+    ///
+    /// Cache hits are special: they bypass the normal state machine and insert results directly
+    /// into stack.results. This is an optimization that avoids the overhead of pushing the frame
+    /// back through the Complete state when we already have the result.
+    ///
+    /// - FrameResult::Done: Cache hit, result stored directly in stack.results, skip this frame
+    /// - FrameResult::Push(frame): Cache miss, push frame back to process normally
+    fn check_and_handle_table_frame_cache(
+        &mut self,
+        frame: TableParseFrame,
+        stack: &mut TableParseFrameStack,
+    ) -> Result<TableFrameResult, ParseError> {
+        if self.cache_enabled {
+            // The cacheable-variant check and max_idx derivation live in frame_cache_key
+            // (shared with the store site in commit_table_frame_result, so the keys cannot
+            // drift). `None` means this grammar isn't cached.
+            if let Some(cache_key) = self.frame_cache_key(&frame)? {
+                if let Some((match_result, end_pos)) = self.table_cache.get(&cache_key) {
+                    vdebug!(
+                        "[LOOP] TableCache HIT for grammar {} at pos {} -> end_pos {} (frame_id={})",
+                        frame.grammar_id,
+                        frame.pos,
+                        end_pos,
+                        frame.frame_id
+                    );
+                    self.pos = *end_pos;
+                    // Insert cached MatchResult - match_result is &Arc, clone the Arc (cheap refcount)
+                    stack.insert_arc_result(frame.frame_id, Arc::clone(match_result), *end_pos);
+                    return Ok(TableFrameResult::Done);
+                }
+            }
+        }
+        // Cache miss or cache disabled or non-cacheable grammar - push frame back to process normally
+        Ok(TableFrameResult::Push(frame))
+    }
+
+    fn handle_table_max_iterations_exceeded(
+        &mut self,
+        _stack: &mut TableParseFrameStack,
+        max_iterations: usize,
+        _frame: &mut TableParseFrame,
+    ) -> ! {
+        vdebug!("ERROR: Exceeded max iterations ({})", max_iterations);
+        vdebug!("Last frame: {:?}", _frame.grammar_id);
+        vdebug!("Stack depth: {}", _stack.len());
+        vdebug!("Result pending: {}", _stack.result_pending());
+
+        // Print last 20 frames on stack for diagnosis
+        vdebug!("\n=== Last 20 frames on stack ===");
+        #[cfg(feature = "verbose-debug")]
+        for (i, f) in _stack.iter().rev().take(20).enumerate() {
+            vdebug!(
+                "  [{}] state={:?}, pos={}, grammar={}",
+                i,
+                f.state,
+                f.pos,
+                match self.grammar_ctx.variant(f.grammar_id) {
+                    GrammarVariant::Ref =>
+                        format!("Ref({})", self.grammar_ctx.ref_name(f.grammar_id)),
+                    GrammarVariant::Bracketed => "Bracketed".to_string(),
+                    GrammarVariant::Delimited => "Delimited".to_string(),
+                    GrammarVariant::OneOf => format!(
+                        "OneOf({} elements)",
+                        self.grammar_ctx.children_count(f.grammar_id)
+                    ),
+                    GrammarVariant::Sequence => format!(
+                        "Sequence({} elements)",
+                        self.grammar_ctx.children_count(f.grammar_id)
+                    ),
+                    GrammarVariant::AnyNumberOf => "AnyNumberOf".to_string(),
+                    GrammarVariant::AnySetOf => "AnySetOf".to_string(),
+                    _ => "Other".to_string(),
+                }
+            );
+        }
+
+        self.print_cache_stats();
+
+        println!("Parser at position: {}", self.pos);
+
+        println!("\nTokens around failure point:");
+        let start = self.pos.saturating_sub(3);
+        let end = (self.pos + 4).min(self.tokens.len());
+        for i in start..end {
+            let marker = if i == self.pos { " <<< HERE" } else { "" };
+            if let Some(tok) = self.tokens.get(i) {
+                println!(
+                    "  [{}]: '{}' (type: {}){}",
+                    i,
+                    tok.raw(),
+                    tok.get_type(),
+                    marker
+                );
+            }
+        }
+
+        panic!(
+            "Parser exceeded maximum iteration limit ({}). This may be caused by \
+             runaway parser logic or a very complex SQL query.",
+            max_iterations
+        );
+    }
+
+    /// Logs debug information about the current frame and stack.
+    /// Build a grammar path string showing the hierarchy of grammars being parsed.
+    /// Supports both Arc<Grammar> and table-driven (GrammarId) frames.
+    /// Format: "file -> statement -> select_statement -> ..."
+    #[cfg(feature = "verbose-debug")]
+    fn build_table_grammar_path(
+        &self,
+        frame: &TableParseFrame,
+        stack: &TableParseFrameStack,
+    ) -> String {
+        let mut path_parts = Vec::new();
+
+        // Helper to get a name for either Grammar or GrammarId
+        fn grammar_id_name(parser: &Parser, frame: &TableParseFrame) -> String {
+            // Table-driven: show grammar_id and its name if available
+            let ctx = &parser.grammar_ctx;
+            let name = match ctx.variant(frame.grammar_id) {
+                sqlfluffrs_types::GrammarVariant::Ref => ctx.ref_name(frame.grammar_id),
+                sqlfluffrs_types::GrammarVariant::StringParser
+                | sqlfluffrs_types::GrammarVariant::TypedParser
+                | sqlfluffrs_types::GrammarVariant::MultiStringParser
+                | sqlfluffrs_types::GrammarVariant::RegexParser => ctx.template(frame.grammar_id),
+                _ => &format!("{:?}", ctx.variant(frame.grammar_id)),
+            };
+            format!("id[{}:{:?}]", frame.grammar_id.0, name)
+        }
+
+        // Add the current frame's grammar first (most specific)
+        path_parts.push(grammar_id_name(self, frame));
+
+        // Walk up the stack to build the full path, adding ancestors in order
+        // Stack is in reverse order (top of stack is most recent), so we iterate in reverse
+        for ancestor_frame in stack.iter().rev() {
+            path_parts.push(grammar_id_name(self, ancestor_frame));
+        }
+
+        path_parts.join(" -> ")
+    }
+}
+#[cfg(feature = "verbose-debug")]
+fn get_waiting_for_frame_id(frame: &TableParseFrame) -> String {
+    format!("{:?}", frame.context.last_child_frame_id())
+}

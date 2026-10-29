@@ -125,8 +125,8 @@ jobs:
             scripts/sqlfluff-autofix-oracle scripts/sqlfluff-templater-oracle
             scripts/sqlfluff-dialect-oracle scripts/sqlfluff-case-ids
         run: |
-          uv run --frozen --project harness ruff check harness ci $ORACLES
-          uv run --frozen --project harness ruff format --check harness ci $ORACLES
+          uv run --frozen --project harness ruff check harness ci $ORACLES scripts/build-sqll
+          uv run --frozen --project harness ruff format --check harness ci $ORACLES scripts/build-sqll
 
       - name: Unit tests
         env:
@@ -177,6 +177,52 @@ jobs:
 
       - name: Check that the sqlfluff submodule is clean
         run: scripts/check-submodule "after the tests"
+
+  # Build sqll (scripts/build-sqll): generate the dialect tables with the
+  # pinned generator, compare them with crates/sqll_dialects/generated.json,
+  # build the workspace (release, --locked) with no Python, and run the Rust
+  # tests. The artifact has out/sqll/build.json and the binaries.
+  build:
+    needs: [changes, image]
+    if: needs.changes.outputs.full != 'false'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+      packages: read
+    container:
+      image: ${{ needs.image.outputs.image }}
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: true
+
+      # The runner user owns the workspace, not the container user.
+      - run: git config --global --add safe.directory '*'
+
+      - name: Check that the sqlfluff submodule is clean before the build
+        run: scripts/check-submodule "before the build"
+
+      - name: Build sqll
+        run: scripts/build-sqll
+
+      - name: Check that the sqlfluff submodule is clean after the build
+        run: scripts/check-submodule "after the build"
+
+      - name: Run the Rust tests
+        run: cargo test --locked
+
+      - name: Check that the sqlfluff submodule is clean after the Rust tests
+        run: scripts/check-submodule "after the Rust tests"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: sqll-build
+          path: out/sqll/
+          if-no-files-found: error
 
   test:
     needs: [changes, image]

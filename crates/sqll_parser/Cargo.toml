@@ -1,0 +1,29 @@
+# This file is a port of sqlfluff 4.4.0 code (sqlfluffrs):
+# sqlfluffrs/sqlfluffrs_parser/Cargo.toml
+# Source: https://github.com/sqlfluff/sqlfluff, tag 4.4.0,
+# commit 0348222a3bcdb0226563f7349c5a39beb0641955.
+# Copyright (c) 2018-2026 Alan Cruickshank. MIT License: see
+# crates/LICENSE-sqlfluffrs.md. See THIRD_PARTY.md and crates/ported.json.
+# sqll changed this file. crates/ported.json gives the reason.
+
+[package]
+name = "sqll_parser"
+version.workspace = true
+edition = "2021"
+rust-version.workspace = true
+publish = false
+
+# The ported code uses the sqlfluffrs crate names.
+[dependencies]
+env_logger.workspace = true
+log.workspace = true
+hashbrown.workspace = true
+smallvec.workspace = true
+sqlfluffrs_types = { package = "sqll_types", path = "../sqll_types" }
+sqlfluffrs_dialects = { package = "sqll_dialects", path = "../sqll_dialects" }
+sqlfluffrs_lexer = { package = "sqll_lexer", path = "../sqll_lexer" }
+uuid.workspace = true
+serde_yaml_ng.workspace = true
+
+[features]
+verbose-debug = []

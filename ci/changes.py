@@ -28,7 +28,9 @@ from fnmatch import fnmatchcase
 
 # The paths of the documents. A "*" does not match "/". Do not add a path
 # that a harness, script, tool, or CI command reads, other than the unit
-# tests of the lint job.
+# tests of the lint job. Thus the sqll Rust workspace (Cargo.toml,
+# Cargo.lock, rust-toolchain.toml, and each file in crates/, also a .md
+# file) is code.
 DOCS = ("*.md", "harness/*.md", "status/*.md")
 
 
