@@ -1,0 +1,4105 @@
+{
+ "kind": "sqll-s3-capabilities",
+ "format": 1,
+ "task": "T8",
+ "criterion": "C7",
+ "sqlfluff_ref": "0348222a3bcdb0226563f7349c5a39beb0641955",
+ "versions": {
+  "sqlfluff": "4.4.0",
+  "sqruff": "0.41.0",
+  "sqlfluffrs": "4.4.0"
+ },
+ "commands": {
+  "collect": "uv run --frozen --project harness python scripts/s3/capabilities.py collect --scratch DIR",
+  "time": "flock /tmp/sqll-machine.lock uv run --frozen --project harness python scripts/s3/capabilities.py time --scratch DIR",
+  "report": "uv run --frozen --project harness python scripts/s3/capabilities.py report"
+ },
+ "inputs": {
+  "results/s3/capabilities-sources.json": "3421900c2296ab42a132fa22faa6e47c9402fdb3059bc512fc6f618b2671f443",
+  "results/s3/capabilities-start.json": "d53dc7776b21fde4eb5fbada45d2dcaf353a8111b04dd52739a6596d7c7213e6",
+  "results/s3/s1-by-base.json": "e6f67398893b8e31fe62038dd4aa80d5e27f81f21bba3dc6254ba43b37108a41",
+  "results/s3/sqlfluffrs-probe.json": "1f3776d2b67505c37060a475c755f9ba558f30755f049c62e934623a6d6d61a0",
+  "results/s3/speed-by-base.json": "1be51b4191063687c74e9a529c88093a666fac634c6fd0e267ca8174cb5d76f7",
+  "results/s3/license-size.json": "ad36704380e3dc9bc7dcd32b7f5ccb3fb78b7f86289d7735ab10b2386dd76dd3",
+  "results/s3/license-size-sources.json": "519efb1d5e84730bfe478d141a6175040731632754dff3054bb2ec8a91e201c0",
+  "results/s2/baseline.json": "62b501293e2eb344df50fb9ada188741997a0d50deddda7bd3dcc25831eeadd4",
+  "known_failures/sqruff.txt": "7e533bee7594cb6d7a5f5850aeba7d516326e790ff5f0c0b094a0d230a92869d"
+ },
+ "evidence": {
+  "command": "a command of the sources file (help text, tool output) or of the start session; its argv, exit code, and output are there",
+  "source": "a file of a base at the pinned version: the crate (sqruff) or the submodule commit (sqlfluff, sqlfluffrs), the sha256, and the cited lines",
+  "result": "a committed result file and a key in it",
+  "search": "a search over the files of a base; its pattern and hits",
+  "document": "a quote of a file of this repository",
+  "estimate": "an entry with estimate true is a judgement; 'judgement' gives the reason"
+ },
+ "tables": {
+  "S6": {
+   "columns": [
+    "item",
+    "scope",
+    "sqlfluff 4.4.0",
+    "1 sqruff",
+    "2 sqlfluffrs",
+    "3 new parser"
+   ],
+   "rows": [
+    [
+     "raw",
+     "S6 (no templating; the base class of the other sqlfluff templaters) (estimate)",
+     "core",
+     "native",
+     "no (estimate)",
+     "no (estimate)"
+    ],
+    [
+     "jinja",
+     "S6",
+     "core",
+     "Python (pyo3)",
+     "no (estimate)",
+     "no (estimate)"
+    ],
+    [
+     "python",
+     "S6",
+     "core",
+     "Python (pyo3)",
+     "no (estimate)",
+     "no (estimate)"
+    ],
+    [
+     "placeholder",
+     "S6",
+     "core",
+     "native",
+     "no (estimate)",
+     "no (estimate)"
+    ],
+    [
+     "dbt",
+     "excluded (G1.3: needs a Python runtime)",
+     "plugin (sqlfluff-templater-dbt)",
+     "Python (pyo3)",
+     "no (estimate)",
+     "no (estimate)"
+    ],
+    [
+     "sqlmesh",
+     "excluded (G1.3: needs a Python runtime) (estimate)",
+     "plugin (sqlfluff-templater-sqlmesh)",
+     "Python (pyo3)",
+     "no (estimate)",
+     "no (estimate)"
+    ],
+    [
+     "placeholder styles",
+     "S6, G2.3",
+     "12",
+     "11 of 12 with the same regex (other: colon_optional_quotes); more: apache_camel, at",
+     "0",
+     "0 (estimate)"
+    ],
+    [
+     "source map",
+     "S6",
+     "TemplatedFile",
+     "TemplatedFile (sqruff-lib-core)",
+     "TemplatedFile; lexer input String, TemplatedFile",
+     "reuse of sqlfluffrs (estimate)"
+    ]
+   ]
+  },
+  "S7": {
+   "columns": [
+    "item",
+    "1 sqruff",
+    "2 sqlfluffrs",
+    "3 new parser"
+   ],
+   "rows": [
+    [
+     "commands of sqlfluff",
+     "5 of 8 (no format, render, version)",
+     "0",
+     "0 (estimate)"
+    ],
+    [
+     "option names of the 5 shared commands (sum)",
+     "42 of 97",
+     "0",
+     "0 (estimate)"
+    ],
+    [
+     "config files in a folder",
+     "2 of 5 (no pep8.ini, setup.cfg, tox.ini); +.sqruff, .sqruff.ini, sqruff.toml",
+     "none (Python reads them; estimate)",
+     "none (estimate)"
+    ],
+    [
+     "default config keys",
+     "197 of 208",
+     "4 fields (estimate)",
+     "0 (estimate)"
+    ],
+    [
+     "S1 cases with an unsupported setting",
+     "122",
+     "no CLI",
+     "no CLI (estimate)"
+    ]
+   ]
+  },
+  "G2_S8": {
+   "columns": [
+    "item",
+    "1 sqruff",
+    "2 sqlfluffrs",
+    "3 new parser"
+   ],
+   "rows": [
+    [
+     "segment type",
+     "SyntaxKind enum (1359 kinds)",
+     "string",
+     "enum from the generator (estimate)"
+    ],
+    [
+     "typed node view",
+     "no (estimate)",
+     "no (estimate)",
+     "no (estimate)"
+    ],
+    [
+     "one parse for lint and code generation",
+     "possible (estimate)",
+     "possible (estimate)",
+     "possible (estimate)"
+    ],
+    [
+     "parameter styles",
+     "14",
+     "0",
+     "0 (estimate)"
+    ],
+    [
+     "schema output (G2.2)",
+     "no (estimate)",
+     "no (estimate)",
+     "no (estimate)"
+    ]
+   ]
+  },
+  "G3_start": {
+   "columns": [
+    "item",
+    "1 sqruff",
+    "2 sqlfluffrs",
+    "3 new parser",
+    "sqlfluff"
+   ],
+   "rows": [
+    [
+     "cause",
+     "native binary",
+     "native binary (T5 probe)",
+     "native binary (estimate)",
+     "Python"
+    ],
+    [
+     "start / sqruff start",
+     "1",
+     "0.6199 (median, T5)",
+     "0.3259 (sum, T6 low, estimate)",
+     "35.3"
+    ],
+    [
+     "share of start",
+     "process start and loader 0.184",
+     "dialect table setup 0.6803",
+     "no setup phase (estimate)",
+     "Python 0.035, import of the CLI 0.464, rest 0.501"
+    ]
+   ]
+  }
+ },
+ "S6": {
+  "templaters": [
+   {
+    "templater": "raw",
+    "scope": {
+     "value": "S6 (no templating; the base class of the other sqlfluff templaters)",
+     "estimate": true,
+     "judgement": "S6 does not name raw. It is the templater with no templating, and in sqlfluff the other templaters are subclasses of it, so a sqll templater set needs it.",
+     "evidence": [
+      {
+       "source": {
+        "base": "sqlfluff",
+        "version": "4.4.0",
+        "commit": "0348222a3bcdb0226563f7349c5a39beb0641955",
+        "file": "third_party/sqlfluff/src/sqlfluff/core/templaters/base.py",
+        "sha256": "3b3bdddd1b1f37bd52d650c341b8545d6bdee580a73423ac2f04ac7e2b3859c3",
+        "lines": {
+         "512": "name = \"raw\""
+        }
+       }
+      },
+      {
+       "document": "third_party/sqlfluff/src/sqlfluff/core/templaters/placeholder.py",
+       "text": "class PlaceholderTemplater(RawTemplater):"
+      }
+     ]
+    },
+    "sqlfluff_4_4_0": {
+     "value": "core",
+     "evidence": [
+      {
+       "command": "sqlfluff facts"
+      },
+      {
+       "source": {
+        "base": "sqlfluff",
+        "version": "4.4.0",
+        "commit": "0348222a3bcdb0226563f7349c5a39beb0641955",
+        "file": "third_party/sqlfluff/src/sqlfluff/core/templaters/__init__.py",
+        "sha256": "489f220331e484834a255588375c061b923d04c1bf81557f613c9aeef62e400e",
+        "lines": {
+         "16": "RawTemplater,",
+         "17": "JinjaTemplater,",
+         "18": "PythonTemplater,",
+         "19": "PlaceholderTemplater,"
+        }
+       }
+      },
+      {
+       "source": {
+        "base": "sqlfluff",
+        "version": "4.4.0",
+        "commit": "0348222a3bcdb0226563f7349c5a39beb0641955",
+        "file": "third_party/sqlfluff/src/sqlfluff/core/templaters/base.py",
+        "sha256": "3b3bdddd1b1f37bd52d650c341b8545d6bdee580a73423ac2f04ac7e2b3859c3",
+        "lines": {
+         "512": "name = \"raw\""
+        }
+       }
+      }
+     ]
+    },
+    "sqruff": {
+     "value": {
+      "exists": true,
+      "native": true,
+      "needs_python_runtime": false,
+      "pyo3_use_lines": 0
+     },
+     "evidence": [
+      {
+       "command": "sqruff templaters"
+      },
+      {
+       "source": {
+        "base": "sqruff",
+        "crate": "sqruff-lib",
+        "version": "0.41.0",
+        "crate_sha256": "e6ed07488aab52e7f03a803be9ab4dc1c1f4c0d46ab6f392d8ac6ae0a3cce611",
+        "file": "src/templaters.rs",
+        "sha256": "f3c0174374717179e5a3f4463a157bd7ccdf03af5a4b4a089e98906064787061",
+        "lines": {
+         "46": "#[cfg(feature = \"python\")]",
+         "47": "pub static TEMPLATERS: [&'static dyn Templater; 6] = [",
+         "54": "];"
+        }
+       }
+      },
+      {
+       "source": {
+        "base": "sqruff",
+        "crate": "sqruff-lib",
+        "version": "0.41.0",
+        "crate_sha256": "e6ed07488aab52e7f03a803be9ab4dc1c1f4c0d46ab6f392d8ac6ae0a3cce611",
+        "file": "src/templaters.rs",
+        "sha256": "f3c0174374717179e5a3f4463a157bd7ccdf03af5a4b4a089e98906064787061",
+        "lines": {
+         "56": "#[cfg(not(feature = \"python\"))]",
+         "57": "pub static TEMPLATERS: [&'static dyn Templater; 2] = [&RAW_TEMPLATER, &PLACEHOLDER_TEMPLATER];"
+        }
+       }
+      },
+      {
+       "source": {
+        "base": "sqruff",
+        "crate": "sqruff-lib",
+        "version": "0.41.0",
+        "crate_sha256": "e6ed07488aab52e7f03a803be9ab4dc1c1f4c0d46ab6f392d8ac6ae0a3cce611",
+        "file": "src/templaters/raw.rs",
+        "sha256": "0e79c562531da09386c0301b6ef4f036e13897a5dd3fa8180de4f2cd765153ca",
+        "lines": {
+         "1": "use std::sync::Arc;"
+        }
+       }
+      }
+     ]
+    },
+    "sqlfluffrs": {
+     "value": {
+      "exists": false,
+      "native": false,
+      "needs_python_runtime": false
+     },
+     "estimate": true,
+     "judgement": "The only templater files of sqlfluffrs hold the source map types (TemplatedFile and the slices). sqlfluff[rs] renders each template in Python sqlfluff.",
+     "evidence": [
+      {
+       "search": "the tracked .rs files of sqlfluffrs/ with 'templat' in the path",
+       "hits": [
+        "sqlfluffrs/sqlfluffrs_python/src/templater/fileslice.rs",
+        "sqlfluffrs/sqlfluffrs_python/src/templater/mod.rs",
+        "sqlfluffrs/sqlfluffrs_python/src/templater/templatefile.rs",
+        "sqlfluffrs/sqlfluffrs_types/src/templater/fileslice.rs",
+        "sqlfluffrs/sqlfluffrs_types/src/templater/mod.rs",
+        "sqlfluffrs/sqlfluffrs_types/src/templater/templatefile.rs"
+       ]
+      },
+      {
+       "source": {
+        "base": "sqlfluffrs",
+        "version": "4.4.0",
+        "commit": "0348222a3bcdb0226563f7349c5a39beb0641955",
+        "file": "third_party/sqlfluff/sqlfluffrs/sqlfluffrs_types/src/templater/mod.rs",
+        "sha256": "c4bbc4d59348fcaf14f8d514b14a3d3a7f38369fbadcd0d821b5d702a3581dcd",
+        "lines": {
+         "1": "pub mod fileslice;",
+         "2": "pub mod templatefile;"
+        }
+       }
+      },
+      {
+       "source": {
+        "base": "sqlfluffrs",
+        "version": "4.4.0",
+        "commit": "0348222a3bcdb0226563f7349c5a39beb0641955",
+        "file": "third_party/sqlfluff/sqlfluffrs/sqlfluffrs_types/src/templater/templatefile.rs",
+        "sha256": "3d3842992052fdf7c83d363bc143bc45332f18268e54f52d6f2aa3dc16b4bd81",
+        "lines": {
+         "14": "pub struct TemplatedFile {"
+        }
+       }
+      },
+      {
+       "source": {
+        "base": "sqlfluffrs",
+        "version": "4.4.0",
+        "commit": "0348222a3bcdb0226563f7349c5a39beb0641955",
+        "file": "third_party/sqlfluff/sqlfluffrs/sqlfluffrs_types/src/templater/fileslice.rs",
+        "sha256": "27ea643c992744d76c72ba88f0bfa6b078bd69058099760a7ea99dd2f696559d",
+        "lines": {
+         "6": "pub struct RawFileSlice {",
+         "61": "pub struct TemplatedFileSlice {"
+        }
+       }
+      }
+     ]
+    },
+    "new-parser": {
+     "value": {
+      "exists": false,
+      "native": false,
+      "needs_python_runtime": false
+     },
+     "estimate": true,
+     "judgement": "Option 3 is a parser only. Its templaters are new work, as for option 2.",
+     "evidence": [
+      {
+       "result": "results/s3/s1-by-base.json",
+       "key": "bases.new-parser.note"
+      }
+     ]
+    }
+   },
+   {
+    "templater": "jinja",
+    "scope": {
+     "value": "S6",
+     "evidence": [
+      {
+       "document": "STONES.md",
+       "text": "Support the Jinja, placeholder, and Python format-string templaters."
+      }
+     ]
+    },
+    "sqlfluff_4_4_0": {
+     "value": "core",
+     "evidence": [
+      {
+       "command": "sqlfluff facts"
+      },
+      {
+       "source": {
+        "base": "sqlfluff",
+        "version": "4.4.0",
+        "commit": "0348222a3bcdb0226563f7349c5a39beb0641955",
+        "file": "third_party/sqlfluff/src/sqlfluff/core/templaters/__init__.py",
+        "sha256": "489f220331e484834a255588375c061b923d04c1bf81557f613c9aeef62e400e",
+        "lines": {
+         "16": "RawTemplater,",
+         "17": "JinjaTemplater,",
+         "18": "PythonTemplater,",
+         "19": "PlaceholderTemplater,"
+        }
+       }
+      },
+      {
+       "source": {
+        "base": "sqlfluff",
+        "version": "4.4.0",
+        "commit": "0348222a3bcdb0226563f7349c5a39beb0641955",
+        "file": "third_party/sqlfluff/src/sqlfluff/core/templaters/jinja.py",
+        "sha256": "e316ab98cafa99e66520aca3e6ecdebb5c749525c0ee34ef82487e41f4f025b0",
+        "lines": {
+         "99": "name = \"jinja\""
+        }
+       }
+      }
+     ]
+    },
+    "sqruff": {
+     "value": {
+      "exists": true,
+      "native": false,
+      "needs_python_runtime": true,
+      "pyo3_use_lines": 2
+     },
+     "evidence": [
+      {
+       "command": "sqruff templaters"
+      },
+      {
+       "source": {
+        "base": "sqruff",
+        "crate": "sqruff-lib",
+        "version": "0.41.0",
+        "crate_sha256": "e6ed07488aab52e7f03a803be9ab4dc1c1f4c0d46ab6f392d8ac6ae0a3cce611",
+        "file": "src/templaters.rs",
+        "sha256": "f3c0174374717179e5a3f4463a157bd7ccdf03af5a4b4a089e98906064787061",
+        "lines": {
+         "46": "#[cfg(feature = \"python\")]",
+         "47": "pub static TEMPLATERS: [&'static dyn Templater; 6] = [",
+         "54": "];"
+        }
+       }
+      },
+      {
+       "source": {
+        "base": "sqruff",
+        "crate": "sqruff-lib",
+        "version": "0.41.0",
+        "crate_sha256": "e6ed07488aab52e7f03a803be9ab4dc1c1f4c0d46ab6f392d8ac6ae0a3cce611",
+        "file": "src/templaters.rs",
+        "sha256": "f3c0174374717179e5a3f4463a157bd7ccdf03af5a4b4a089e98906064787061",
+        "lines": {
+         "56": "#[cfg(not(feature = \"python\"))]",
+         "57": "pub static TEMPLATERS: [&'static dyn Templater; 2] = [&RAW_TEMPLATER, &PLACEHOLDER_TEMPLATER];"
+        }
+       }
+      },
+      {
+       "source": {
+        "base": "sqruff",
+        "crate": "sqruff-lib",
+        "version": "0.41.0",
+        "crate_sha256": "e6ed07488aab52e7f03a803be9ab4dc1c1f4c0d46ab6f392d8ac6ae0a3cce611",
+        "file": "src/templaters/jinja.rs",
+        "sha256": "fb0969b10add167f9b2a5fd17a06af20748ecbbfdae13accf4fa87094215ea9c",
+        "lines": {
+         "13": "use pyo3::prelude::*;",
+         "15": "use pyo3::{Py, PyAny, Python};"
+        }
+       }
+      }
+     ]
+    },
+    "sqlfluffrs": {
+     "value": {
+      "exists": false,
+      "native": false,
+      "needs_python_runtime": false
+     },
+     "estimate": true,
+     "judgement": "The only templater files of sqlfluffrs hold the source map types (TemplatedFile and the slices). sqlfluff[rs] renders each template in Python sqlfluff.",
+     "evidence": [
+      {
+       "search": "the tracked .rs files of sqlfluffrs/ with 'templat' in the path",
+       "hits": [
+        "sqlfluffrs/sqlfluffrs_python/src/templater/fileslice.rs",
+        "sqlfluffrs/sqlfluffrs_python/src/templater/mod.rs",
+        "sqlfluffrs/sqlfluffrs_python/src/templater/templatefile.rs",
+        "sqlfluffrs/sqlfluffrs_types/src/templater/fileslice.rs",
+        "sqlfluffrs/sqlfluffrs_types/src/templater/mod.rs",
+        "sqlfluffrs/sqlfluffrs_types/src/templater/templatefile.rs"
+       ]
+      },
+      {
+       "source": {
+        "base": "sqlfluffrs",
+        "version": "4.4.0",
+        "commit": "0348222a3bcdb0226563f7349c5a39beb0641955",
+        "file": "third_party/sqlfluff/sqlfluffrs/sqlfluffrs_types/src/templater/mod.rs",
+        "sha256": "c4bbc4d59348fcaf14f8d514b14a3d3a7f38369fbadcd0d821b5d702a3581dcd",
+        "lines": {
+         "1": "pub mod fileslice;",
+         "2": "pub mod templatefile;"
+        }
+       }
+      },
+      {
+       "source": {
+        "base": "sqlfluffrs",
+        "version": "4.4.0",
+        "commit": "0348222a3bcdb0226563f7349c5a39beb0641955",
+        "file": "third_party/sqlfluff/sqlfluffrs/sqlfluffrs_types/src/templater/templatefile.rs",
+        "sha256": "3d3842992052fdf7c83d363bc143bc45332f18268e54f52d6f2aa3dc16b4bd81",
+        "lines": {
+         "14": "pub struct TemplatedFile {"
+        }
+       }
+      },
+      {
+       "source": {
+        "base": "sqlfluffrs",
+        "version": "4.4.0",
+        "commit": "0348222a3bcdb0226563f7349c5a39beb0641955",
+        "file": "third_party/sqlfluff/sqlfluffrs/sqlfluffrs_types/src/templater/fileslice.rs",
+        "sha256": "27ea643c992744d76c72ba88f0bfa6b078bd69058099760a7ea99dd2f696559d",
+        "lines": {
+         "6": "pub struct RawFileSlice {",
+         "61": "pub struct TemplatedFileSlice {"
+        }
+       }
+      }
+     ]
+    },
+    "new-parser": {
+     "value": {
+      "exists": false,
+      "native": false,
+      "needs_python_runtime": false
+     },
+     "estimate": true,
+     "judgement": "Option 3 is a parser only. Its templaters are new work, as for option 2.",
+     "evidence": [
+      {
+       "result": "results/s3/s1-by-base.json",
+       "key": "bases.new-parser.note"
+      }
+     ]
+    }
+   },
+   {
+    "templater": "python",
+    "scope": {
+     "value": "S6",
+     "evidence": [
+      {
+       "document": "STONES.md",
+       "text": "Support the Jinja, placeholder, and Python format-string templaters."
+      }
+     ]
+    },
+    "sqlfluff_4_4_0": {
+     "value": "core",
+     "evidence": [
+      {
+       "command": "sqlfluff facts"
+      },
+      {
+       "source": {
+        "base": "sqlfluff",
+        "version": "4.4.0",
+        "commit": "0348222a3bcdb0226563f7349c5a39beb0641955",
+        "file": "third_party/sqlfluff/src/sqlfluff/core/templaters/__init__.py",
+        "sha256": "489f220331e484834a255588375c061b923d04c1bf81557f613c9aeef62e400e",
+        "lines": {
+         "16": "RawTemplater,",
+         "17": "JinjaTemplater,",
+         "18": "PythonTemplater,",
+         "19": "PlaceholderTemplater,"
+        }
+       }
+      },
+      {
+       "source": {
+        "base": "sqlfluff",
+        "version": "4.4.0",
+        "commit": "0348222a3bcdb0226563f7349c5a39beb0641955",
+        "file": "third_party/sqlfluff/src/sqlfluff/core/templaters/python.py",
+        "sha256": "66ff04abfc25e90f3aae98353d6d4bd67e4669ac88c3dfa0cd4a8e6abcc5a834",
+        "lines": {
+         "164": "name = \"python\""
+        }
+       }
+      }
+     ]
+    },
+    "sqruff": {
+     "value": {
+      "exists": true,
+      "native": false,
+      "needs_python_runtime": true,
+      "pyo3_use_lines": 3
+     },
+     "evidence": [
+      {
+       "command": "sqruff templaters"
+      },
+      {
+       "source": {
+        "base": "sqruff",
+        "crate": "sqruff-lib",
+        "version": "0.41.0",
+        "crate_sha256": "e6ed07488aab52e7f03a803be9ab4dc1c1f4c0d46ab6f392d8ac6ae0a3cce611",
+        "file": "src/templaters.rs",
+        "sha256": "f3c0174374717179e5a3f4463a157bd7ccdf03af5a4b4a089e98906064787061",
+        "lines": {
+         "46": "#[cfg(feature = \"python\")]",
+         "47": "pub static TEMPLATERS: [&'static dyn Templater; 6] = [",
+         "54": "];"
+        }
+       }
+      },
+      {
+       "source": {
+        "base": "sqruff",
+        "crate": "sqruff-lib",
+        "version": "0.41.0",
+        "crate_sha256": "e6ed07488aab52e7f03a803be9ab4dc1c1f4c0d46ab6f392d8ac6ae0a3cce611",
+        "file": "src/templaters.rs",
+        "sha256": "f3c0174374717179e5a3f4463a157bd7ccdf03af5a4b4a089e98906064787061",
+        "lines": {
+         "56": "#[cfg(not(feature = \"python\"))]",
+         "57": "pub static TEMPLATERS: [&'static dyn Templater; 2] = [&RAW_TEMPLATER, &PLACEHOLDER_TEMPLATER];"
+        }
+       }
+      },
+      {
+       "source": {
+        "base": "sqruff",
+        "crate": "sqruff-lib",
+        "version": "0.41.0",
+        "crate_sha256": "e6ed07488aab52e7f03a803be9ab4dc1c1f4c0d46ab6f392d8ac6ae0a3cce611",
+        "file": "src/templaters/python.rs",
+        "sha256": "008c67087e12daca192c52b5571d58e800c2c1a45f4c28a50fd2c10752d565be",
+        "lines": {
+         "2": "use pyo3::prelude::*;",
+         "4": "use pyo3::types::PySlice;",
+         "6": "use pyo3::{Borrowed, Py, PyAny, Python};"
+        }
+       }
+      }
+     ]
+    },
+    "sqlfluffrs": {
+     "value": {
+      "exists": false,
+      "native": false,
+      "needs_python_runtime": false
+     },
+     "estimate": true,
+     "judgement": "The only templater files of sqlfluffrs hold the source map types (TemplatedFile and the slices). sqlfluff[rs] renders each template in Python sqlfluff.",
+     "evidence": [
+      {
+       "search": "the tracked .rs files of sqlfluffrs/ with 'templat' in the path",
+       "hits": [
+        "sqlfluffrs/sqlfluffrs_python/src/templater/fileslice.rs",
+        "sqlfluffrs/sqlfluffrs_python/src/templater/mod.rs",
+        "sqlfluffrs/sqlfluffrs_python/src/templater/templatefile.rs",
+        "sqlfluffrs/sqlfluffrs_types/src/templater/fileslice.rs",
+        "sqlfluffrs/sqlfluffrs_types/src/templater/mod.rs",
+        "sqlfluffrs/sqlfluffrs_types/src/templater/templatefile.rs"
+       ]
+      },
+      {
+       "source": {
+        "base": "sqlfluffrs",
+        "version": "4.4.0",
+        "commit": "0348222a3bcdb0226563f7349c5a39beb0641955",
+        "file": "third_party/sqlfluff/sqlfluffrs/sqlfluffrs_types/src/templater/mod.rs",
+        "sha256": "c4bbc4d59348fcaf14f8d514b14a3d3a7f38369fbadcd0d821b5d702a3581dcd",
+        "lines": {
+         "1": "pub mod fileslice;",
+         "2": "pub mod templatefile;"
+        }
+       }
+      },
+      {
+       "source": {
+        "base": "sqlfluffrs",
+        "version": "4.4.0",
+        "commit": "0348222a3bcdb0226563f7349c5a39beb0641955",
+        "file": "third_party/sqlfluff/sqlfluffrs/sqlfluffrs_types/src/templater/templatefile.rs",
+        "sha256": "3d3842992052fdf7c83d363bc143bc45332f18268e54f52d6f2aa3dc16b4bd81",
+        "lines": {
+         "14": "pub struct TemplatedFile {"
+        }
+       }
+      },
+      {
+       "source": {
+        "base": "sqlfluffrs",
+        "version": "4.4.0",
+        "commit": "0348222a3bcdb0226563f7349c5a39beb0641955",
+        "file": "third_party/sqlfluff/sqlfluffrs/sqlfluffrs_types/src/templater/fileslice.rs",
+        "sha256": "27ea643c992744d76c72ba88f0bfa6b078bd69058099760a7ea99dd2f696559d",
+        "lines": {
+         "6": "pub struct RawFileSlice {",
+         "61": "pub struct TemplatedFileSlice {"
+        }
+       }
+      }
+     ]
+    },
+    "new-parser": {
+     "value": {
+      "exists": false,
+      "native": false,
+      "needs_python_runtime": false
+     },
+     "estimate": true,
+     "judgement": "Option 3 is a parser only. Its templaters are new work, as for option 2.",
+     "evidence": [
+      {
+       "result": "results/s3/s1-by-base.json",
+       "key": "bases.new-parser.note"
+      }
+     ]
+    }
+   },
+   {
+    "templater": "placeholder",
+    "scope": {
+     "value": "S6",
+     "evidence": [
+      {
+       "document": "STONES.md",
+       "text": "Support the Jinja, placeholder, and Python format-string templaters."
+      }
+     ]
+    },
+    "sqlfluff_4_4_0": {
+     "value": "core",
+     "evidence": [
+      {
+       "command": "sqlfluff facts"
+      },
+      {
+       "source": {
+        "base": "sqlfluff",
+        "version": "4.4.0",
+        "commit": "0348222a3bcdb0226563f7349c5a39beb0641955",
+        "file": "third_party/sqlfluff/src/sqlfluff/core/templaters/__init__.py",
+        "sha256": "489f220331e484834a255588375c061b923d04c1bf81557f613c9aeef62e400e",
+        "lines": {
+         "16": "RawTemplater,",
+         "17": "JinjaTemplater,",
+         "18": "PythonTemplater,",
+         "19": "PlaceholderTemplater,"
+        }
+       }
+      },
+      {
+       "source": {
+        "base": "sqlfluff",
+        "version": "4.4.0",
+        "commit": "0348222a3bcdb0226563f7349c5a39beb0641955",
+        "file": "third_party/sqlfluff/src/sqlfluff/core/templaters/placeholder.py",
+        "sha256": "987e368688505c8741caa9517c982d9f16def741524de08bc99af2766a5ea311",
+        "lines": {
+         "78": "name = \"placeholder\""
+        }
+       }
+      }
+     ]
+    },
+    "sqruff": {
+     "value": {
+      "exists": true,
+      "native": true,
+      "needs_python_runtime": false,
+      "pyo3_use_lines": 0
+     },
+     "evidence": [
+      {
+       "command": "sqruff templaters"
+      },
+      {
+       "source": {
+        "base": "sqruff",
+        "crate": "sqruff-lib",
+        "version": "0.41.0",
+        "crate_sha256": "e6ed07488aab52e7f03a803be9ab4dc1c1f4c0d46ab6f392d8ac6ae0a3cce611",
+        "file": "src/templaters.rs",
+        "sha256": "f3c0174374717179e5a3f4463a157bd7ccdf03af5a4b4a089e98906064787061",
+        "lines": {
+         "46": "#[cfg(feature = \"python\")]",
+         "47": "pub static TEMPLATERS: [&'static dyn Templater; 6] = [",
+         "54": "];"
+        }
+       }
+      },
+      {
+       "source": {
+        "base": "sqruff",
+        "crate": "sqruff-lib",
+        "version": "0.41.0",
+        "crate_sha256": "e6ed07488aab52e7f03a803be9ab4dc1c1f4c0d46ab6f392d8ac6ae0a3cce611",
+        "file": "src/templaters.rs",
+        "sha256": "f3c0174374717179e5a3f4463a157bd7ccdf03af5a4b4a089e98906064787061",
+        "lines": {
+         "56": "#[cfg(not(feature = \"python\"))]",
+         "57": "pub static TEMPLATERS: [&'static dyn Templater; 2] = [&RAW_TEMPLATER, &PLACEHOLDER_TEMPLATER];"
+        }
+       }
+      },
+      {
+       "source": {
+        "base": "sqruff",
+        "crate": "sqruff-lib",
+        "version": "0.41.0",
+        "crate_sha256": "e6ed07488aab52e7f03a803be9ab4dc1c1f4c0d46ab6f392d8ac6ae0a3cce611",
+        "file": "src/templaters/placeholder.rs",
+        "sha256": "60172d751c8190f45aa8de9a8f19511fec90369f6a6c893fdad7624aeb44ff3d",
+        "lines": {
+         "1": "use hashbrown::HashMap;"
+        }
+       }
+      }
+     ]
+    },
+    "sqlfluffrs": {
+     "value": {
+      "exists": false,
+      "native": false,
+      "needs_python_runtime": false
+     },
+     "estimate": true,
+     "judgement": "The only templater files of sqlfluffrs hold the source map types (TemplatedFile and the slices). sqlfluff[rs] renders each template in Python sqlfluff.",
+     "evidence": [
+      {
+       "search": "the tracked .rs files of sqlfluffrs/ with 'templat' in the path",
+       "hits": [
+        "sqlfluffrs/sqlfluffrs_python/src/templater/fileslice.rs",
+        "sqlfluffrs/sqlfluffrs_python/src/templater/mod.rs",
+        "sqlfluffrs/sqlfluffrs_python/src/templater/templatefile.rs",
+        "sqlfluffrs/sqlfluffrs_types/src/templater/fileslice.rs",
+        "sqlfluffrs/sqlfluffrs_types/src/templater/mod.rs",
+        "sqlfluffrs/sqlfluffrs_types/src/templater/templatefile.rs"
+       ]
+      },
+      {
+       "source": {
+        "base": "sqlfluffrs",
+        "version": "4.4.0",
+        "commit": "0348222a3bcdb0226563f7349c5a39beb0641955",
+        "file": "third_party/sqlfluff/sqlfluffrs/sqlfluffrs_types/src/templater/mod.rs",
+        "sha256": "c4bbc4d59348fcaf14f8d514b14a3d3a7f38369fbadcd0d821b5d702a3581dcd",
+        "lines": {
+         "1": "pub mod fileslice;",
+         "2": "pub mod templatefile;"
+        }
+       }
+      },
+      {
+       "source": {
+        "base": "sqlfluffrs",
+        "version": "4.4.0",
+        "commit": "0348222a3bcdb0226563f7349c5a39beb0641955",
+        "file": "third_party/sqlfluff/sqlfluffrs/sqlfluffrs_types/src/templater/templatefile.rs",
+        "sha256": "3d3842992052fdf7c83d363bc143bc45332f18268e54f52d6f2aa3dc16b4bd81",
+        "lines": {
+         "14": "pub struct TemplatedFile {"
+        }
+       }
+      },
+      {
+       "source": {
+        "base": "sqlfluffrs",
+        "version": "4.4.0",
+        "commit": "0348222a3bcdb0226563f7349c5a39beb0641955",
+        "file": "third_party/sqlfluff/sqlfluffrs/sqlfluffrs_types/src/templater/fileslice.rs",
+        "sha256": "27ea643c992744d76c72ba88f0bfa6b078bd69058099760a7ea99dd2f696559d",
+        "lines": {
+         "6": "pub struct RawFileSlice {",
+         "61": "pub struct TemplatedFileSlice {"
+        }
+       }
+      }
+     ]
+    },
+    "new-parser": {
+     "value": {
+      "exists": false,
+      "native": false,
+      "needs_python_runtime": false
+     },
+     "estimate": true,
+     "judgement": "Option 3 is a parser only. Its templaters are new work, as for option 2.",
+     "evidence": [
+      {
+       "result": "results/s3/s1-by-base.json",
+       "key": "bases.new-parser.note"
+      }
+     ]
+    }
+   },
+   {
+    "templater": "dbt",
+    "scope": {
+     "value": "excluded (G1.3: needs a Python runtime)",
+     "evidence": [
+      {
+       "document": "CONSTITUTION.md",
+       "text": "Exclusions: Python plugins, and features that need a Python runtime. An example is the dbt templater."
+      }
+     ]
+    },
+    "sqlfluff_4_4_0": {
+     "value": "plugin (sqlfluff-templater-dbt)",
+     "evidence": [
+      {
+       "source": {
+        "base": "sqlfluff",
+        "version": "4.4.0",
+        "commit": "0348222a3bcdb0226563f7349c5a39beb0641955",
+        "file": "third_party/sqlfluff/plugins/sqlfluff-templater-dbt/sqlfluff_templater_dbt/templater.py",
+        "sha256": "6a6b4aca2f04877e5498acf89e908ba84e24d1735870639cb497a4ccb08ae687",
+        "lines": {
+         "174": "name = \"dbt\""
+        }
+       }
+      }
+     ]
+    },
+    "sqruff": {
+     "value": {
+      "exists": true,
+      "native": false,
+      "needs_python_runtime": true,
+      "pyo3_use_lines": 3
+     },
+     "evidence": [
+      {
+       "command": "sqruff templaters"
+      },
+      {
+       "source": {
+        "base": "sqruff",
+        "crate": "sqruff-lib",
+        "version": "0.41.0",
+        "crate_sha256": "e6ed07488aab52e7f03a803be9ab4dc1c1f4c0d46ab6f392d8ac6ae0a3cce611",
+        "file": "src/templaters.rs",
+        "sha256": "f3c0174374717179e5a3f4463a157bd7ccdf03af5a4b4a089e98906064787061",
+        "lines": {
+         "46": "#[cfg(feature = \"python\")]",
+         "47": "pub static TEMPLATERS: [&'static dyn Templater; 6] = [",
+         "54": "];"
+        }
+       }
+      },
+      {
+       "source": {
+        "base": "sqruff",
+        "crate": "sqruff-lib",
+        "version": "0.41.0",
+        "crate_sha256": "e6ed07488aab52e7f03a803be9ab4dc1c1f4c0d46ab6f392d8ac6ae0a3cce611",
+        "file": "src/templaters.rs",
+        "sha256": "f3c0174374717179e5a3f4463a157bd7ccdf03af5a4b4a089e98906064787061",
+        "lines": {
+         "56": "#[cfg(not(feature = \"python\"))]",
+         "57": "pub static TEMPLATERS: [&'static dyn Templater; 2] = [&RAW_TEMPLATER, &PLACEHOLDER_TEMPLATER];"
+        }
+       }
+      },
+      {
+       "source": {
+        "base": "sqruff",
+        "crate": "sqruff-lib",
+        "version": "0.41.0",
+        "crate_sha256": "e6ed07488aab52e7f03a803be9ab4dc1c1f4c0d46ab6f392d8ac6ae0a3cce611",
+        "file": "src/templaters/dbt.rs",
+        "sha256": "51aaa8739b6964c5ee6efe41f3f0e75250c09918ec1163d5274f746d897dbfa9",
+        "lines": {
+         "13": "use pyo3::prelude::*;",
+         "15": "use pyo3::types::PyList;",
+         "17": "use pyo3::{Py, PyAny, Python};"
+        }
+       }
+      }
+     ]
+    },
+    "sqlfluffrs": {
+     "value": {
+      "exists": false,
+      "native": false,
+      "needs_python_runtime": false
+     },
+     "estimate": true,
+     "judgement": "The only templater files of sqlfluffrs hold the source map types (TemplatedFile and the slices). sqlfluff[rs] renders each template in Python sqlfluff.",
+     "evidence": [
+      {
+       "search": "the tracked .rs files of sqlfluffrs/ with 'templat' in the path",
+       "hits": [
+        "sqlfluffrs/sqlfluffrs_python/src/templater/fileslice.rs",
+        "sqlfluffrs/sqlfluffrs_python/src/templater/mod.rs",
+        "sqlfluffrs/sqlfluffrs_python/src/templater/templatefile.rs",
+        "sqlfluffrs/sqlfluffrs_types/src/templater/fileslice.rs",
+        "sqlfluffrs/sqlfluffrs_types/src/templater/mod.rs",
+        "sqlfluffrs/sqlfluffrs_types/src/templater/templatefile.rs"
+       ]
+      },
+      {
+       "source": {
+        "base": "sqlfluffrs",
+        "version": "4.4.0",
+        "commit": "0348222a3bcdb0226563f7349c5a39beb0641955",
+        "file": "third_party/sqlfluff/sqlfluffrs/sqlfluffrs_types/src/templater/mod.rs",
+        "sha256": "c4bbc4d59348fcaf14f8d514b14a3d3a7f38369fbadcd0d821b5d702a3581dcd",
+        "lines": {
+         "1": "pub mod fileslice;",
+         "2": "pub mod templatefile;"
+        }
+       }
+      },
+      {
+       "source": {
+        "base": "sqlfluffrs",
+        "version": "4.4.0",
+        "commit": "0348222a3bcdb0226563f7349c5a39beb0641955",
+        "file": "third_party/sqlfluff/sqlfluffrs/sqlfluffrs_types/src/templater/templatefile.rs",
+        "sha256": "3d3842992052fdf7c83d363bc143bc45332f18268e54f52d6f2aa3dc16b4bd81",
+        "lines": {
+         "14": "pub struct TemplatedFile {"
+        }
+       }
+      },
+      {
+       "source": {
+        "base": "sqlfluffrs",
+        "version": "4.4.0",
+        "commit": "0348222a3bcdb0226563f7349c5a39beb0641955",
+        "file": "third_party/sqlfluff/sqlfluffrs/sqlfluffrs_types/src/templater/fileslice.rs",
+        "sha256": "27ea643c992744d76c72ba88f0bfa6b078bd69058099760a7ea99dd2f696559d",
+        "lines": {
+         "6": "pub struct RawFileSlice {",
+         "61": "pub struct TemplatedFileSlice {"
+        }
+       }
+      }
+     ]
+    },
+    "new-parser": {
+     "value": {
+      "exists": false,
+      "native": false,
+      "needs_python_runtime": false
+     },
+     "estimate": true,
+     "judgement": "Option 3 is a parser only. Its templaters are new work, as for option 2.",
+     "evidence": [
+      {
+       "result": "results/s3/s1-by-base.json",
+       "key": "bases.new-parser.note"
+      }
+     ]
+    }
+   },
+   {
+    "templater": "sqlmesh",
+    "scope": {
+     "value": "excluded (G1.3: needs a Python runtime)",
+     "estimate": true,
+     "judgement": "The plugin runs sqlmesh, a Python tool, as the dbt plugin runs dbt.",
+     "evidence": [
+      {
+       "document": "CONSTITUTION.md",
+       "text": "Exclusions: Python plugins, and features that need a Python runtime. An example is the dbt templater."
+      },
+      {
+       "source": {
+        "base": "sqlfluff",
+        "version": "4.4.0",
+        "commit": "0348222a3bcdb0226563f7349c5a39beb0641955",
+        "file": "third_party/sqlfluff/plugins/sqlfluff-templater-sqlmesh/sqlfluff_templater_sqlmesh/templater.py",
+        "sha256": "22914ee855e48446d802eea8b9788d36933d48d431d145e8f57018a602e9ea6e",
+        "lines": {
+         "147": "name = \"sqlmesh\""
+        }
+       }
+      }
+     ]
+    },
+    "sqlfluff_4_4_0": {
+     "value": "plugin (sqlfluff-templater-sqlmesh)",
+     "evidence": [
+      {
+       "source": {
+        "base": "sqlfluff",
+        "version": "4.4.0",
+        "commit": "0348222a3bcdb0226563f7349c5a39beb0641955",
+        "file": "third_party/sqlfluff/plugins/sqlfluff-templater-sqlmesh/sqlfluff_templater_sqlmesh/templater.py",
+        "sha256": "22914ee855e48446d802eea8b9788d36933d48d431d145e8f57018a602e9ea6e",
+        "lines": {
+         "147": "name = \"sqlmesh\""
+        }
+       }
+      }
+     ]
+    },
+    "sqruff": {
+     "value": {
+      "exists": true,
+      "native": false,
+      "needs_python_runtime": true,
+      "pyo3_use_lines": 2
+     },
+     "evidence": [
+      {
+       "command": "sqruff templaters"
+      },
+      {
+       "source": {
+        "base": "sqruff",
+        "crate": "sqruff-lib",
+        "version": "0.41.0",
+        "crate_sha256": "e6ed07488aab52e7f03a803be9ab4dc1c1f4c0d46ab6f392d8ac6ae0a3cce611",
+        "file": "src/templaters.rs",
+        "sha256": "f3c0174374717179e5a3f4463a157bd7ccdf03af5a4b4a089e98906064787061",
+        "lines": {
+         "46": "#[cfg(feature = \"python\")]",
+         "47": "pub static TEMPLATERS: [&'static dyn Templater; 6] = [",
+         "54": "];"
+        }
+       }
+      },
+      {
+       "source": {
+        "base": "sqruff",
+        "crate": "sqruff-lib",
+        "version": "0.41.0",
+        "crate_sha256": "e6ed07488aab52e7f03a803be9ab4dc1c1f4c0d46ab6f392d8ac6ae0a3cce611",
+        "file": "src/templaters.rs",
+        "sha256": "f3c0174374717179e5a3f4463a157bd7ccdf03af5a4b4a089e98906064787061",
+        "lines": {
+         "56": "#[cfg(not(feature = \"python\"))]",
+         "57": "pub static TEMPLATERS: [&'static dyn Templater; 2] = [&RAW_TEMPLATER, &PLACEHOLDER_TEMPLATER];"
+        }
+       }
+      },
+      {
+       "source": {
+        "base": "sqruff",
+        "crate": "sqruff-lib",
+        "version": "0.41.0",
+        "crate_sha256": "e6ed07488aab52e7f03a803be9ab4dc1c1f4c0d46ab6f392d8ac6ae0a3cce611",
+        "file": "src/templaters/sqlmesh.rs",
+        "sha256": "b4221478f5e45c3bbca1f08d83ec01080612cf9fc3a2c41447d686cee9b9c424",
+        "lines": {
+         "5": "use pyo3::prelude::*;",
+         "7": "use pyo3::types::PyList;"
+        }
+       }
+      }
+     ]
+    },
+    "sqlfluffrs": {
+     "value": {
+      "exists": false,
+      "native": false,
+      "needs_python_runtime": false
+     },
+     "estimate": true,
+     "judgement": "The only templater files of sqlfluffrs hold the source map types (TemplatedFile and the slices). sqlfluff[rs] renders each template in Python sqlfluff.",
+     "evidence": [
+      {
+       "search": "the tracked .rs files of sqlfluffrs/ with 'templat' in the path",
+       "hits": [
+        "sqlfluffrs/sqlfluffrs_python/src/templater/fileslice.rs",
+        "sqlfluffrs/sqlfluffrs_python/src/templater/mod.rs",
+        "sqlfluffrs/sqlfluffrs_python/src/templater/templatefile.rs",
+        "sqlfluffrs/sqlfluffrs_types/src/templater/fileslice.rs",
+        "sqlfluffrs/sqlfluffrs_types/src/templater/mod.rs",
+        "sqlfluffrs/sqlfluffrs_types/src/templater/templatefile.rs"
+       ]
+      },
+      {
+       "source": {
+        "base": "sqlfluffrs",
+        "version": "4.4.0",
+        "commit": "0348222a3bcdb0226563f7349c5a39beb0641955",
+        "file": "third_party/sqlfluff/sqlfluffrs/sqlfluffrs_types/src/templater/mod.rs",
+        "sha256": "c4bbc4d59348fcaf14f8d514b14a3d3a7f38369fbadcd0d821b5d702a3581dcd",
+        "lines": {
+         "1": "pub mod fileslice;",
+         "2": "pub mod templatefile;"
+        }
+       }
+      },
+      {
+       "source": {
+        "base": "sqlfluffrs",
+        "version": "4.4.0",
+        "commit": "0348222a3bcdb0226563f7349c5a39beb0641955",
+        "file": "third_party/sqlfluff/sqlfluffrs/sqlfluffrs_types/src/templater/templatefile.rs",
+        "sha256": "3d3842992052fdf7c83d363bc143bc45332f18268e54f52d6f2aa3dc16b4bd81",
+        "lines": {
+         "14": "pub struct TemplatedFile {"
+        }
+       }
+      },
+      {
+       "source": {
+        "base": "sqlfluffrs",
+        "version": "4.4.0",
+        "commit": "0348222a3bcdb0226563f7349c5a39beb0641955",
+        "file": "third_party/sqlfluff/sqlfluffrs/sqlfluffrs_types/src/templater/fileslice.rs",
+        "sha256": "27ea643c992744d76c72ba88f0bfa6b078bd69058099760a7ea99dd2f696559d",
+        "lines": {
+         "6": "pub struct RawFileSlice {",
+         "61": "pub struct TemplatedFileSlice {"
+        }
+       }
+      }
+     ]
+    },
+    "new-parser": {
+     "value": {
+      "exists": false,
+      "native": false,
+      "needs_python_runtime": false
+     },
+     "estimate": true,
+     "judgement": "Option 3 is a parser only. Its templaters are new work, as for option 2.",
+     "evidence": [
+      {
+       "result": "results/s3/s1-by-base.json",
+       "key": "bases.new-parser.note"
+      }
+     ]
+    }
+   }
+  ],
+  "placeholder_styles": {
+   "rows": [
+    {
+     "style": "colon",
+     "sqlfluff_pattern": {
+      "value": "(?<![:\\w\\x5c]):(?P<param_name>\\w+)",
+      "evidence": [
+       {
+        "command": "sqlfluff facts"
+       },
+       {
+        "source": {
+         "base": "sqlfluff",
+         "version": "4.4.0",
+         "commit": "0348222a3bcdb0226563f7349c5a39beb0641955",
+         "file": "third_party/sqlfluff/src/sqlfluff/core/templaters/placeholder.py",
+         "sha256": "987e368688505c8741caa9517c982d9f16def741524de08bc99af2766a5ea311",
+         "lines": {
+          "25": "\"colon\": regex.compile(r\"(?<![:\\w\\x5c]):(?P<param_name>\\w+)\", regex.UNICODE),"
+         }
+        }
+       }
+      ]
+     },
+     "sqruff": {
+      "value": {
+       "exists": true,
+       "same_pattern": true
+      },
+      "evidence": [
+       {
+        "source": {
+         "base": "sqruff",
+         "crate": "sqruff-lib",
+         "version": "0.41.0",
+         "crate_sha256": "e6ed07488aab52e7f03a803be9ab4dc1c1f4c0d46ab6f392d8ac6ae0a3cce611",
+         "file": "src/templaters/types.rs",
+         "sha256": "83489dacca75d45fe3a7143ad4d9e4dfb5918a558192bd5ac71e98cf43ec3a9a",
+         "lines": {
+          "136": "Self::Colon => \"colon\",",
+          "137": "Self::ColonOptionalQuotes => \"colon_optional_quotes\",",
+          "138": "Self::ColonNoSpaces => \"colon_nospaces\",",
+          "139": "Self::NumericColon => \"numeric_colon\",",
+          "140": "Self::At => \"at\",",
+          "141": "Self::Pyformat => \"pyformat\",",
+          "142": "Self::Dollar => \"dollar\",",
+          "143": "Self::DollarSurround => \"dollar_surround\",",
+          "144": "Self::FlywayVar => \"flyway_var\",",
+          "145": "Self::QuestionMark => \"question_mark\",",
+          "146": "Self::NumericDollar => \"numeric_dollar\",",
+          "147": "Self::Percent => \"percent\",",
+          "148": "Self::Ampersand => \"ampersand\",",
+          "149": "Self::ApacheCamel => \"apache_camel\",",
+          "155": "Self::Colon => r\"(?<![:\\w\\\\]):(?P<param_name>\\w+)\",",
+          "156": "Self::ColonOptionalQuotes => r#\"(?<!:):(?P<quotation>['\"]?)(?P<param_name>[\\w_]+)\\1\"#,",
+          "157": "Self::ColonNoSpaces => r\"(?<!:):(?P<param_name>\\w+)\",",
+          "158": "Self::NumericColon => r\"(?<![:\\w\\\\]):(?P<param_name>\\d+)\",",
+          "159": "Self::At => r\"(?<![:\\w\\\\])@(?P<param_name>\\w+)\",",
+          "160": "Self::Pyformat => r\"(?<![:\\w\\\\])%\\((?P<param_name>[\\w_]+)\\)s\",",
+          "161": "Self::Dollar => r\"(?<![:\\w\\\\])\\${?(?P<param_name>[\\w_]+)}?\",",
+          "162": "Self::DollarSurround => r\"(?<![:\\w\\\\])\\$(?P<param_name>[-\\w]+)\\$\",",
+          "163": "Self::FlywayVar => r#\"\\${(?P<param_name>\\w+[:\\w_]+)}\"#,",
+          "164": "Self::QuestionMark => r\"(?<![:\\w\\\\])\\?\",",
+          "165": "Self::NumericDollar => r\"(?<![:\\w\\\\])\\${?(?P<param_name>[\\d]+)}?\",",
+          "166": "Self::Percent => r\"(?<![:\\w\\\\])%s\",",
+          "167": "Self::Ampersand => r\"(?<!&)&{?(?P<param_name>[\\w]+)}?\",",
+          "168": "Self::ApacheCamel => r\":#\\$\\{(?P<param_name>.+)}\","
+         }
+        }
+       }
+      ]
+     }
+    },
+    {
+     "style": "colon_optional_quotes",
+     "sqlfluff_pattern": {
+      "value": "(?<![:\\w\\x5c]):(?P<quotation>['\\\"]?)(?P<param_name>[\\w_]+)\\1",
+      "evidence": [
+       {
+        "command": "sqlfluff facts"
+       },
+       {
+        "source": {
+         "base": "sqlfluff",
+         "version": "4.4.0",
+         "commit": "0348222a3bcdb0226563f7349c5a39beb0641955",
+         "file": "third_party/sqlfluff/src/sqlfluff/core/templaters/placeholder.py",
+         "sha256": "987e368688505c8741caa9517c982d9f16def741524de08bc99af2766a5ea311",
+         "lines": {
+          "27": "\"colon_optional_quotes\": regex.compile("
+         }
+        }
+       }
+      ]
+     },
+     "sqruff": {
+      "value": {
+       "exists": true,
+       "same_pattern": false
+      },
+      "evidence": [
+       {
+        "source": {
+         "base": "sqruff",
+         "crate": "sqruff-lib",
+         "version": "0.41.0",
+         "crate_sha256": "e6ed07488aab52e7f03a803be9ab4dc1c1f4c0d46ab6f392d8ac6ae0a3cce611",
+         "file": "src/templaters/types.rs",
+         "sha256": "83489dacca75d45fe3a7143ad4d9e4dfb5918a558192bd5ac71e98cf43ec3a9a",
+         "lines": {
+          "136": "Self::Colon => \"colon\",",
+          "137": "Self::ColonOptionalQuotes => \"colon_optional_quotes\",",
+          "138": "Self::ColonNoSpaces => \"colon_nospaces\",",
+          "139": "Self::NumericColon => \"numeric_colon\",",
+          "140": "Self::At => \"at\",",
+          "141": "Self::Pyformat => \"pyformat\",",
+          "142": "Self::Dollar => \"dollar\",",
+          "143": "Self::DollarSurround => \"dollar_surround\",",
+          "144": "Self::FlywayVar => \"flyway_var\",",
+          "145": "Self::QuestionMark => \"question_mark\",",
+          "146": "Self::NumericDollar => \"numeric_dollar\",",
+          "147": "Self::Percent => \"percent\",",
+          "148": "Self::Ampersand => \"ampersand\",",
+          "149": "Self::ApacheCamel => \"apache_camel\",",
+          "155": "Self::Colon => r\"(?<![:\\w\\\\]):(?P<param_name>\\w+)\",",
+          "156": "Self::ColonOptionalQuotes => r#\"(?<!:):(?P<quotation>['\"]?)(?P<param_name>[\\w_]+)\\1\"#,",
+          "157": "Self::ColonNoSpaces => r\"(?<!:):(?P<param_name>\\w+)\",",
+          "158": "Self::NumericColon => r\"(?<![:\\w\\\\]):(?P<param_name>\\d+)\",",
+          "159": "Self::At => r\"(?<![:\\w\\\\])@(?P<param_name>\\w+)\",",
+          "160": "Self::Pyformat => r\"(?<![:\\w\\\\])%\\((?P<param_name>[\\w_]+)\\)s\",",
+          "161": "Self::Dollar => r\"(?<![:\\w\\\\])\\${?(?P<param_name>[\\w_]+)}?\",",
+          "162": "Self::DollarSurround => r\"(?<![:\\w\\\\])\\$(?P<param_name>[-\\w]+)\\$\",",
+          "163": "Self::FlywayVar => r#\"\\${(?P<param_name>\\w+[:\\w_]+)}\"#,",
+          "164": "Self::QuestionMark => r\"(?<![:\\w\\\\])\\?\",",
+          "165": "Self::NumericDollar => r\"(?<![:\\w\\\\])\\${?(?P<param_name>[\\d]+)}?\",",
+          "166": "Self::Percent => r\"(?<![:\\w\\\\])%s\",",
+          "167": "Self::Ampersand => r\"(?<!&)&{?(?P<param_name>[\\w]+)}?\",",
+          "168": "Self::ApacheCamel => r\":#\\$\\{(?P<param_name>.+)}\","
+         }
+        }
+       }
+      ]
+     }
+    },
+    {
+     "style": "colon_nospaces",
+     "sqlfluff_pattern": {
+      "value": "(?<!:):(?P<param_name>\\w+)",
+      "evidence": [
+       {
+        "command": "sqlfluff facts"
+       },
+       {
+        "source": {
+         "base": "sqlfluff",
+         "version": "4.4.0",
+         "commit": "0348222a3bcdb0226563f7349c5a39beb0641955",
+         "file": "third_party/sqlfluff/src/sqlfluff/core/templaters/placeholder.py",
+         "sha256": "987e368688505c8741caa9517c982d9f16def741524de08bc99af2766a5ea311",
+         "lines": {
+          "31": "\"colon_nospaces\": regex.compile(r\"(?<!:):(?P<param_name>\\w+)\", regex.UNICODE),"
+         }
+        }
+       }
+      ]
+     },
+     "sqruff": {
+      "value": {
+       "exists": true,
+       "same_pattern": true
+      },
+      "evidence": [
+       {
+        "source": {
+         "base": "sqruff",
+         "crate": "sqruff-lib",
+         "version": "0.41.0",
+         "crate_sha256": "e6ed07488aab52e7f03a803be9ab4dc1c1f4c0d46ab6f392d8ac6ae0a3cce611",
+         "file": "src/templaters/types.rs",
+         "sha256": "83489dacca75d45fe3a7143ad4d9e4dfb5918a558192bd5ac71e98cf43ec3a9a",
+         "lines": {
+          "136": "Self::Colon => \"colon\",",
+          "137": "Self::ColonOptionalQuotes => \"colon_optional_quotes\",",
+          "138": "Self::ColonNoSpaces => \"colon_nospaces\",",
+          "139": "Self::NumericColon => \"numeric_colon\",",
+          "140": "Self::At => \"at\",",
+          "141": "Self::Pyformat => \"pyformat\",",
+          "142": "Self::Dollar => \"dollar\",",
+          "143": "Self::DollarSurround => \"dollar_surround\",",
+          "144": "Self::FlywayVar => \"flyway_var\",",
+          "145": "Self::QuestionMark => \"question_mark\",",
+          "146": "Self::NumericDollar => \"numeric_dollar\",",
+          "147": "Self::Percent => \"percent\",",
+          "148": "Self::Ampersand => \"ampersand\",",
+          "149": "Self::ApacheCamel => \"apache_camel\",",
+          "155": "Self::Colon => r\"(?<![:\\w\\\\]):(?P<param_name>\\w+)\",",
+          "156": "Self::ColonOptionalQuotes => r#\"(?<!:):(?P<quotation>['\"]?)(?P<param_name>[\\w_]+)\\1\"#,",
+          "157": "Self::ColonNoSpaces => r\"(?<!:):(?P<param_name>\\w+)\",",
+          "158": "Self::NumericColon => r\"(?<![:\\w\\\\]):(?P<param_name>\\d+)\",",
+          "159": "Self::At => r\"(?<![:\\w\\\\])@(?P<param_name>\\w+)\",",
+          "160": "Self::Pyformat => r\"(?<![:\\w\\\\])%\\((?P<param_name>[\\w_]+)\\)s\",",
+          "161": "Self::Dollar => r\"(?<![:\\w\\\\])\\${?(?P<param_name>[\\w_]+)}?\",",
+          "162": "Self::DollarSurround => r\"(?<![:\\w\\\\])\\$(?P<param_name>[-\\w]+)\\$\",",
+          "163": "Self::FlywayVar => r#\"\\${(?P<param_name>\\w+[:\\w_]+)}\"#,",
+          "164": "Self::QuestionMark => r\"(?<![:\\w\\\\])\\?\",",
+          "165": "Self::NumericDollar => r\"(?<![:\\w\\\\])\\${?(?P<param_name>[\\d]+)}?\",",
+          "166": "Self::Percent => r\"(?<![:\\w\\\\])%s\",",
+          "167": "Self::Ampersand => r\"(?<!&)&{?(?P<param_name>[\\w]+)}?\",",
+          "168": "Self::ApacheCamel => r\":#\\$\\{(?P<param_name>.+)}\","
+         }
+        }
+       }
+      ]
+     }
+    },
+    {
+     "style": "numeric_colon",
+     "sqlfluff_pattern": {
+      "value": "(?<![:\\w\\x5c]):(?P<param_name>\\d+)",
+      "evidence": [
+       {
+        "command": "sqlfluff facts"
+       },
+       {
+        "source": {
+         "base": "sqlfluff",
+         "version": "4.4.0",
+         "commit": "0348222a3bcdb0226563f7349c5a39beb0641955",
+         "file": "third_party/sqlfluff/src/sqlfluff/core/templaters/placeholder.py",
+         "sha256": "987e368688505c8741caa9517c982d9f16def741524de08bc99af2766a5ea311",
+         "lines": {
+          "33": "\"numeric_colon\": regex.compile("
+         }
+        }
+       }
+      ]
+     },
+     "sqruff": {
+      "value": {
+       "exists": true,
+       "same_pattern": true
+      },
+      "evidence": [
+       {
+        "source": {
+         "base": "sqruff",
+         "crate": "sqruff-lib",
+         "version": "0.41.0",
+         "crate_sha256": "e6ed07488aab52e7f03a803be9ab4dc1c1f4c0d46ab6f392d8ac6ae0a3cce611",
+         "file": "src/templaters/types.rs",
+         "sha256": "83489dacca75d45fe3a7143ad4d9e4dfb5918a558192bd5ac71e98cf43ec3a9a",
+         "lines": {
+          "136": "Self::Colon => \"colon\",",
+          "137": "Self::ColonOptionalQuotes => \"colon_optional_quotes\",",
+          "138": "Self::ColonNoSpaces => \"colon_nospaces\",",
+          "139": "Self::NumericColon => \"numeric_colon\",",
+          "140": "Self::At => \"at\",",
+          "141": "Self::Pyformat => \"pyformat\",",
+          "142": "Self::Dollar => \"dollar\",",
+          "143": "Self::DollarSurround => \"dollar_surround\",",
+          "144": "Self::FlywayVar => \"flyway_var\",",
+          "145": "Self::QuestionMark => \"question_mark\",",
+          "146": "Self::NumericDollar => \"numeric_dollar\",",
+          "147": "Self::Percent => \"percent\",",
+          "148": "Self::Ampersand => \"ampersand\",",
+          "149": "Self::ApacheCamel => \"apache_camel\",",
+          "155": "Self::Colon => r\"(?<![:\\w\\\\]):(?P<param_name>\\w+)\",",
+          "156": "Self::ColonOptionalQuotes => r#\"(?<!:):(?P<quotation>['\"]?)(?P<param_name>[\\w_]+)\\1\"#,",
+          "157": "Self::ColonNoSpaces => r\"(?<!:):(?P<param_name>\\w+)\",",
+          "158": "Self::NumericColon => r\"(?<![:\\w\\\\]):(?P<param_name>\\d+)\",",
+          "159": "Self::At => r\"(?<![:\\w\\\\])@(?P<param_name>\\w+)\",",
+          "160": "Self::Pyformat => r\"(?<![:\\w\\\\])%\\((?P<param_name>[\\w_]+)\\)s\",",
+          "161": "Self::Dollar => r\"(?<![:\\w\\\\])\\${?(?P<param_name>[\\w_]+)}?\",",
+          "162": "Self::DollarSurround => r\"(?<![:\\w\\\\])\\$(?P<param_name>[-\\w]+)\\$\",",
+          "163": "Self::FlywayVar => r#\"\\${(?P<param_name>\\w+[:\\w_]+)}\"#,",
+          "164": "Self::QuestionMark => r\"(?<![:\\w\\\\])\\?\",",
+          "165": "Self::NumericDollar => r\"(?<![:\\w\\\\])\\${?(?P<param_name>[\\d]+)}?\",",
+          "166": "Self::Percent => r\"(?<![:\\w\\\\])%s\",",
+          "167": "Self::Ampersand => r\"(?<!&)&{?(?P<param_name>[\\w]+)}?\",",
+          "168": "Self::ApacheCamel => r\":#\\$\\{(?P<param_name>.+)}\","
+         }
+        }
+       }
+      ]
+     }
+    },
+    {
+     "style": "pyformat",
+     "sqlfluff_pattern": {
+      "value": "(?<![:\\w\\x5c])%\\((?P<param_name>[\\w_]+)\\)s",
+      "evidence": [
+       {
+        "command": "sqlfluff facts"
+       },
+       {
+        "source": {
+         "base": "sqlfluff",
+         "version": "4.4.0",
+         "commit": "0348222a3bcdb0226563f7349c5a39beb0641955",
+         "file": "third_party/sqlfluff/src/sqlfluff/core/templaters/placeholder.py",
+         "sha256": "987e368688505c8741caa9517c982d9f16def741524de08bc99af2766a5ea311",
+         "lines": {
+          "37": "\"pyformat\": regex.compile("
+         }
+        }
+       }
+      ]
+     },
+     "sqruff": {
+      "value": {
+       "exists": true,
+       "same_pattern": true
+      },
+      "evidence": [
+       {
+        "source": {
+         "base": "sqruff",
+         "crate": "sqruff-lib",
+         "version": "0.41.0",
+         "crate_sha256": "e6ed07488aab52e7f03a803be9ab4dc1c1f4c0d46ab6f392d8ac6ae0a3cce611",
+         "file": "src/templaters/types.rs",
+         "sha256": "83489dacca75d45fe3a7143ad4d9e4dfb5918a558192bd5ac71e98cf43ec3a9a",
+         "lines": {
+          "136": "Self::Colon => \"colon\",",
+          "137": "Self::ColonOptionalQuotes => \"colon_optional_quotes\",",
+          "138": "Self::ColonNoSpaces => \"colon_nospaces\",",
+          "139": "Self::NumericColon => \"numeric_colon\",",
+          "140": "Self::At => \"at\",",
+          "141": "Self::Pyformat => \"pyformat\",",
+          "142": "Self::Dollar => \"dollar\",",
+          "143": "Self::DollarSurround => \"dollar_surround\",",
+          "144": "Self::FlywayVar => \"flyway_var\",",
+          "145": "Self::QuestionMark => \"question_mark\",",
+          "146": "Self::NumericDollar => \"numeric_dollar\",",
+          "147": "Self::Percent => \"percent\",",
+          "148": "Self::Ampersand => \"ampersand\",",
+          "149": "Self::ApacheCamel => \"apache_camel\",",
+          "155": "Self::Colon => r\"(?<![:\\w\\\\]):(?P<param_name>\\w+)\",",
+          "156": "Self::ColonOptionalQuotes => r#\"(?<!:):(?P<quotation>['\"]?)(?P<param_name>[\\w_]+)\\1\"#,",
+          "157": "Self::ColonNoSpaces => r\"(?<!:):(?P<param_name>\\w+)\",",
+          "158": "Self::NumericColon => r\"(?<![:\\w\\\\]):(?P<param_name>\\d+)\",",
+          "159": "Self::At => r\"(?<![:\\w\\\\])@(?P<param_name>\\w+)\",",
+          "160": "Self::Pyformat => r\"(?<![:\\w\\\\])%\\((?P<param_name>[\\w_]+)\\)s\",",
+          "161": "Self::Dollar => r\"(?<![:\\w\\\\])\\${?(?P<param_name>[\\w_]+)}?\",",
+          "162": "Self::DollarSurround => r\"(?<![:\\w\\\\])\\$(?P<param_name>[-\\w]+)\\$\",",
+          "163": "Self::FlywayVar => r#\"\\${(?P<param_name>\\w+[:\\w_]+)}\"#,",
+          "164": "Self::QuestionMark => r\"(?<![:\\w\\\\])\\?\",",
+          "165": "Self::NumericDollar => r\"(?<![:\\w\\\\])\\${?(?P<param_name>[\\d]+)}?\",",
+          "166": "Self::Percent => r\"(?<![:\\w\\\\])%s\",",
+          "167": "Self::Ampersand => r\"(?<!&)&{?(?P<param_name>[\\w]+)}?\",",
+          "168": "Self::ApacheCamel => r\":#\\$\\{(?P<param_name>.+)}\","
+         }
+        }
+       }
+      ]
+     }
+    },
+    {
+     "style": "dollar",
+     "sqlfluff_pattern": {
+      "value": "(?<![:\\w\\x5c])\\${?(?P<param_name>[\\w_]+)}?",
+      "evidence": [
+       {
+        "command": "sqlfluff facts"
+       },
+       {
+        "source": {
+         "base": "sqlfluff",
+         "version": "4.4.0",
+         "commit": "0348222a3bcdb0226563f7349c5a39beb0641955",
+         "file": "third_party/sqlfluff/src/sqlfluff/core/templaters/placeholder.py",
+         "sha256": "987e368688505c8741caa9517c982d9f16def741524de08bc99af2766a5ea311",
+         "lines": {
+          "41": "\"dollar\": regex.compile("
+         }
+        }
+       }
+      ]
+     },
+     "sqruff": {
+      "value": {
+       "exists": true,
+       "same_pattern": true
+      },
+      "evidence": [
+       {
+        "source": {
+         "base": "sqruff",
+         "crate": "sqruff-lib",
+         "version": "0.41.0",
+         "crate_sha256": "e6ed07488aab52e7f03a803be9ab4dc1c1f4c0d46ab6f392d8ac6ae0a3cce611",
+         "file": "src/templaters/types.rs",
+         "sha256": "83489dacca75d45fe3a7143ad4d9e4dfb5918a558192bd5ac71e98cf43ec3a9a",
+         "lines": {
+          "136": "Self::Colon => \"colon\",",
+          "137": "Self::ColonOptionalQuotes => \"colon_optional_quotes\",",
+          "138": "Self::ColonNoSpaces => \"colon_nospaces\",",
+          "139": "Self::NumericColon => \"numeric_colon\",",
+          "140": "Self::At => \"at\",",
+          "141": "Self::Pyformat => \"pyformat\",",
+          "142": "Self::Dollar => \"dollar\",",
+          "143": "Self::DollarSurround => \"dollar_surround\",",
+          "144": "Self::FlywayVar => \"flyway_var\",",
+          "145": "Self::QuestionMark => \"question_mark\",",
+          "146": "Self::NumericDollar => \"numeric_dollar\",",
+          "147": "Self::Percent => \"percent\",",
+          "148": "Self::Ampersand => \"ampersand\",",
+          "149": "Self::ApacheCamel => \"apache_camel\",",
+          "155": "Self::Colon => r\"(?<![:\\w\\\\]):(?P<param_name>\\w+)\",",
+          "156": "Self::ColonOptionalQuotes => r#\"(?<!:):(?P<quotation>['\"]?)(?P<param_name>[\\w_]+)\\1\"#,",
+          "157": "Self::ColonNoSpaces => r\"(?<!:):(?P<param_name>\\w+)\",",
+          "158": "Self::NumericColon => r\"(?<![:\\w\\\\]):(?P<param_name>\\d+)\",",
+          "159": "Self::At => r\"(?<![:\\w\\\\])@(?P<param_name>\\w+)\",",
+          "160": "Self::Pyformat => r\"(?<![:\\w\\\\])%\\((?P<param_name>[\\w_]+)\\)s\",",
+          "161": "Self::Dollar => r\"(?<![:\\w\\\\])\\${?(?P<param_name>[\\w_]+)}?\",",
+          "162": "Self::DollarSurround => r\"(?<![:\\w\\\\])\\$(?P<param_name>[-\\w]+)\\$\",",
+          "163": "Self::FlywayVar => r#\"\\${(?P<param_name>\\w+[:\\w_]+)}\"#,",
+          "164": "Self::QuestionMark => r\"(?<![:\\w\\\\])\\?\",",
+          "165": "Self::NumericDollar => r\"(?<![:\\w\\\\])\\${?(?P<param_name>[\\d]+)}?\",",
+          "166": "Self::Percent => r\"(?<![:\\w\\\\])%s\",",
+          "167": "Self::Ampersand => r\"(?<!&)&{?(?P<param_name>[\\w]+)}?\",",
+          "168": "Self::ApacheCamel => r\":#\\$\\{(?P<param_name>.+)}\","
+         }
+        }
+       }
+      ]
+     }
+    },
+    {
+     "style": "dollar_surround",
+     "sqlfluff_pattern": {
+      "value": "(?<![:\\w\\x5c])\\$(?P<param_name>[-\\w]+)\\$",
+      "evidence": [
+       {
+        "command": "sqlfluff facts"
+       },
+       {
+        "source": {
+         "base": "sqlfluff",
+         "version": "4.4.0",
+         "commit": "0348222a3bcdb0226563f7349c5a39beb0641955",
+         "file": "third_party/sqlfluff/src/sqlfluff/core/templaters/placeholder.py",
+         "sha256": "987e368688505c8741caa9517c982d9f16def741524de08bc99af2766a5ea311",
+         "lines": {
+          "45": "\"dollar_surround\": regex.compile("
+         }
+        }
+       }
+      ]
+     },
+     "sqruff": {
+      "value": {
+       "exists": true,
+       "same_pattern": true
+      },
+      "evidence": [
+       {
+        "source": {
+         "base": "sqruff",
+         "crate": "sqruff-lib",
+         "version": "0.41.0",
+         "crate_sha256": "e6ed07488aab52e7f03a803be9ab4dc1c1f4c0d46ab6f392d8ac6ae0a3cce611",
+         "file": "src/templaters/types.rs",
+         "sha256": "83489dacca75d45fe3a7143ad4d9e4dfb5918a558192bd5ac71e98cf43ec3a9a",
+         "lines": {
+          "136": "Self::Colon => \"colon\",",
+          "137": "Self::ColonOptionalQuotes => \"colon_optional_quotes\",",
+          "138": "Self::ColonNoSpaces => \"colon_nospaces\",",
+          "139": "Self::NumericColon => \"numeric_colon\",",
+          "140": "Self::At => \"at\",",
+          "141": "Self::Pyformat => \"pyformat\",",
+          "142": "Self::Dollar => \"dollar\",",
+          "143": "Self::DollarSurround => \"dollar_surround\",",
+          "144": "Self::FlywayVar => \"flyway_var\",",
+          "145": "Self::QuestionMark => \"question_mark\",",
+          "146": "Self::NumericDollar => \"numeric_dollar\",",
+          "147": "Self::Percent => \"percent\",",
+          "148": "Self::Ampersand => \"ampersand\",",
+          "149": "Self::ApacheCamel => \"apache_camel\",",
+          "155": "Self::Colon => r\"(?<![:\\w\\\\]):(?P<param_name>\\w+)\",",
+          "156": "Self::ColonOptionalQuotes => r#\"(?<!:):(?P<quotation>['\"]?)(?P<param_name>[\\w_]+)\\1\"#,",
+          "157": "Self::ColonNoSpaces => r\"(?<!:):(?P<param_name>\\w+)\",",
+          "158": "Self::NumericColon => r\"(?<![:\\w\\\\]):(?P<param_name>\\d+)\",",
+          "159": "Self::At => r\"(?<![:\\w\\\\])@(?P<param_name>\\w+)\",",
+          "160": "Self::Pyformat => r\"(?<![:\\w\\\\])%\\((?P<param_name>[\\w_]+)\\)s\",",
+          "161": "Self::Dollar => r\"(?<![:\\w\\\\])\\${?(?P<param_name>[\\w_]+)}?\",",
+          "162": "Self::DollarSurround => r\"(?<![:\\w\\\\])\\$(?P<param_name>[-\\w]+)\\$\",",
+          "163": "Self::FlywayVar => r#\"\\${(?P<param_name>\\w+[:\\w_]+)}\"#,",
+          "164": "Self::QuestionMark => r\"(?<![:\\w\\\\])\\?\",",
+          "165": "Self::NumericDollar => r\"(?<![:\\w\\\\])\\${?(?P<param_name>[\\d]+)}?\",",
+          "166": "Self::Percent => r\"(?<![:\\w\\\\])%s\",",
+          "167": "Self::Ampersand => r\"(?<!&)&{?(?P<param_name>[\\w]+)}?\",",
+          "168": "Self::ApacheCamel => r\":#\\$\\{(?P<param_name>.+)}\","
+         }
+        }
+       }
+      ]
+     }
+    },
+    {
+     "style": "flyway_var",
+     "sqlfluff_pattern": {
+      "value": "\\${(?P<param_name>\\w+[:\\w_]+)}",
+      "evidence": [
+       {
+        "command": "sqlfluff facts"
+       },
+       {
+        "source": {
+         "base": "sqlfluff",
+         "version": "4.4.0",
+         "commit": "0348222a3bcdb0226563f7349c5a39beb0641955",
+         "file": "third_party/sqlfluff/src/sqlfluff/core/templaters/placeholder.py",
+         "sha256": "987e368688505c8741caa9517c982d9f16def741524de08bc99af2766a5ea311",
+         "lines": {
+          "49": "\"flyway_var\": regex.compile(r\"\\${(?P<param_name>\\w+[:\\w_]+)}\", regex.UNICODE),"
+         }
+        }
+       }
+      ]
+     },
+     "sqruff": {
+      "value": {
+       "exists": true,
+       "same_pattern": true
+      },
+      "evidence": [
+       {
+        "source": {
+         "base": "sqruff",
+         "crate": "sqruff-lib",
+         "version": "0.41.0",
+         "crate_sha256": "e6ed07488aab52e7f03a803be9ab4dc1c1f4c0d46ab6f392d8ac6ae0a3cce611",
+         "file": "src/templaters/types.rs",
+         "sha256": "83489dacca75d45fe3a7143ad4d9e4dfb5918a558192bd5ac71e98cf43ec3a9a",
+         "lines": {
+          "136": "Self::Colon => \"colon\",",
+          "137": "Self::ColonOptionalQuotes => \"colon_optional_quotes\",",
+          "138": "Self::ColonNoSpaces => \"colon_nospaces\",",
+          "139": "Self::NumericColon => \"numeric_colon\",",
+          "140": "Self::At => \"at\",",
+          "141": "Self::Pyformat => \"pyformat\",",
+          "142": "Self::Dollar => \"dollar\",",
+          "143": "Self::DollarSurround => \"dollar_surround\",",
+          "144": "Self::FlywayVar => \"flyway_var\",",
+          "145": "Self::QuestionMark => \"question_mark\",",
+          "146": "Self::NumericDollar => \"numeric_dollar\",",
+          "147": "Self::Percent => \"percent\",",
+          "148": "Self::Ampersand => \"ampersand\",",
+          "149": "Self::ApacheCamel => \"apache_camel\",",
+          "155": "Self::Colon => r\"(?<![:\\w\\\\]):(?P<param_name>\\w+)\",",
+          "156": "Self::ColonOptionalQuotes => r#\"(?<!:):(?P<quotation>['\"]?)(?P<param_name>[\\w_]+)\\1\"#,",
+          "157": "Self::ColonNoSpaces => r\"(?<!:):(?P<param_name>\\w+)\",",
+          "158": "Self::NumericColon => r\"(?<![:\\w\\\\]):(?P<param_name>\\d+)\",",
+          "159": "Self::At => r\"(?<![:\\w\\\\])@(?P<param_name>\\w+)\",",
+          "160": "Self::Pyformat => r\"(?<![:\\w\\\\])%\\((?P<param_name>[\\w_]+)\\)s\",",
+          "161": "Self::Dollar => r\"(?<![:\\w\\\\])\\${?(?P<param_name>[\\w_]+)}?\",",
+          "162": "Self::DollarSurround => r\"(?<![:\\w\\\\])\\$(?P<param_name>[-\\w]+)\\$\",",
+          "163": "Self::FlywayVar => r#\"\\${(?P<param_name>\\w+[:\\w_]+)}\"#,",
+          "164": "Self::QuestionMark => r\"(?<![:\\w\\\\])\\?\",",
+          "165": "Self::NumericDollar => r\"(?<![:\\w\\\\])\\${?(?P<param_name>[\\d]+)}?\",",
+          "166": "Self::Percent => r\"(?<![:\\w\\\\])%s\",",
+          "167": "Self::Ampersand => r\"(?<!&)&{?(?P<param_name>[\\w]+)}?\",",
+          "168": "Self::ApacheCamel => r\":#\\$\\{(?P<param_name>.+)}\","
+         }
+        }
+       }
+      ]
+     }
+    },
+    {
+     "style": "question_mark",
+     "sqlfluff_pattern": {
+      "value": "(?<![:\\w\\x5c])\\?",
+      "evidence": [
+       {
+        "command": "sqlfluff facts"
+       },
+       {
+        "source": {
+         "base": "sqlfluff",
+         "version": "4.4.0",
+         "commit": "0348222a3bcdb0226563f7349c5a39beb0641955",
+         "file": "third_party/sqlfluff/src/sqlfluff/core/templaters/placeholder.py",
+         "sha256": "987e368688505c8741caa9517c982d9f16def741524de08bc99af2766a5ea311",
+         "lines": {
+          "51": "\"question_mark\": regex.compile(r\"(?<![:\\w\\x5c])\\?\", regex.UNICODE),"
+         }
+        }
+       }
+      ]
+     },
+     "sqruff": {
+      "value": {
+       "exists": true,
+       "same_pattern": true
+      },
+      "evidence": [
+       {
+        "source": {
+         "base": "sqruff",
+         "crate": "sqruff-lib",
+         "version": "0.41.0",
+         "crate_sha256": "e6ed07488aab52e7f03a803be9ab4dc1c1f4c0d46ab6f392d8ac6ae0a3cce611",
+         "file": "src/templaters/types.rs",
+         "sha256": "83489dacca75d45fe3a7143ad4d9e4dfb5918a558192bd5ac71e98cf43ec3a9a",
+         "lines": {
+          "136": "Self::Colon => \"colon\",",
+          "137": "Self::ColonOptionalQuotes => \"colon_optional_quotes\",",
+          "138": "Self::ColonNoSpaces => \"colon_nospaces\",",
+          "139": "Self::NumericColon => \"numeric_colon\",",
+          "140": "Self::At => \"at\",",
+          "141": "Self::Pyformat => \"pyformat\",",
+          "142": "Self::Dollar => \"dollar\",",
+          "143": "Self::DollarSurround => \"dollar_surround\",",
+          "144": "Self::FlywayVar => \"flyway_var\",",
+          "145": "Self::QuestionMark => \"question_mark\",",
+          "146": "Self::NumericDollar => \"numeric_dollar\",",
+          "147": "Self::Percent => \"percent\",",
+          "148": "Self::Ampersand => \"ampersand\",",
+          "149": "Self::ApacheCamel => \"apache_camel\",",
+          "155": "Self::Colon => r\"(?<![:\\w\\\\]):(?P<param_name>\\w+)\",",
+          "156": "Self::ColonOptionalQuotes => r#\"(?<!:):(?P<quotation>['\"]?)(?P<param_name>[\\w_]+)\\1\"#,",
+          "157": "Self::ColonNoSpaces => r\"(?<!:):(?P<param_name>\\w+)\",",
+          "158": "Self::NumericColon => r\"(?<![:\\w\\\\]):(?P<param_name>\\d+)\",",
+          "159": "Self::At => r\"(?<![:\\w\\\\])@(?P<param_name>\\w+)\",",
+          "160": "Self::Pyformat => r\"(?<![:\\w\\\\])%\\((?P<param_name>[\\w_]+)\\)s\",",
+          "161": "Self::Dollar => r\"(?<![:\\w\\\\])\\${?(?P<param_name>[\\w_]+)}?\",",
+          "162": "Self::DollarSurround => r\"(?<![:\\w\\\\])\\$(?P<param_name>[-\\w]+)\\$\",",
+          "163": "Self::FlywayVar => r#\"\\${(?P<param_name>\\w+[:\\w_]+)}\"#,",
+          "164": "Self::QuestionMark => r\"(?<![:\\w\\\\])\\?\",",
+          "165": "Self::NumericDollar => r\"(?<![:\\w\\\\])\\${?(?P<param_name>[\\d]+)}?\",",
+          "166": "Self::Percent => r\"(?<![:\\w\\\\])%s\",",
+          "167": "Self::Ampersand => r\"(?<!&)&{?(?P<param_name>[\\w]+)}?\",",
+          "168": "Self::ApacheCamel => r\":#\\$\\{(?P<param_name>.+)}\","
+         }
+        }
+       }
+      ]
+     }
+    },
+    {
+     "style": "numeric_dollar",
+     "sqlfluff_pattern": {
+      "value": "(?<![:\\w\\x5c])\\${?(?P<param_name>[\\d]+)}?",
+      "evidence": [
+       {
+        "command": "sqlfluff facts"
+       },
+       {
+        "source": {
+         "base": "sqlfluff",
+         "version": "4.4.0",
+         "commit": "0348222a3bcdb0226563f7349c5a39beb0641955",
+         "file": "third_party/sqlfluff/src/sqlfluff/core/templaters/placeholder.py",
+         "sha256": "987e368688505c8741caa9517c982d9f16def741524de08bc99af2766a5ea311",
+         "lines": {
+          "53": "\"numeric_dollar\": regex.compile("
+         }
+        }
+       }
+      ]
+     },
+     "sqruff": {
+      "value": {
+       "exists": true,
+       "same_pattern": true
+      },
+      "evidence": [
+       {
+        "source": {
+         "base": "sqruff",
+         "crate": "sqruff-lib",
+         "version": "0.41.0",
+         "crate_sha256": "e6ed07488aab52e7f03a803be9ab4dc1c1f4c0d46ab6f392d8ac6ae0a3cce611",
+         "file": "src/templaters/types.rs",
+         "sha256": "83489dacca75d45fe3a7143ad4d9e4dfb5918a558192bd5ac71e98cf43ec3a9a",
+         "lines": {
+          "136": "Self::Colon => \"colon\",",
+          "137": "Self::ColonOptionalQuotes => \"colon_optional_quotes\",",
+          "138": "Self::ColonNoSpaces => \"colon_nospaces\",",
+          "139": "Self::NumericColon => \"numeric_colon\",",
+          "140": "Self::At => \"at\",",
+          "141": "Self::Pyformat => \"pyformat\",",
+          "142": "Self::Dollar => \"dollar\",",
+          "143": "Self::DollarSurround => \"dollar_surround\",",
+          "144": "Self::FlywayVar => \"flyway_var\",",
+          "145": "Self::QuestionMark => \"question_mark\",",
+          "146": "Self::NumericDollar => \"numeric_dollar\",",
+          "147": "Self::Percent => \"percent\",",
+          "148": "Self::Ampersand => \"ampersand\",",
+          "149": "Self::ApacheCamel => \"apache_camel\",",
+          "155": "Self::Colon => r\"(?<![:\\w\\\\]):(?P<param_name>\\w+)\",",
+          "156": "Self::ColonOptionalQuotes => r#\"(?<!:):(?P<quotation>['\"]?)(?P<param_name>[\\w_]+)\\1\"#,",
+          "157": "Self::ColonNoSpaces => r\"(?<!:):(?P<param_name>\\w+)\",",
+          "158": "Self::NumericColon => r\"(?<![:\\w\\\\]):(?P<param_name>\\d+)\",",
+          "159": "Self::At => r\"(?<![:\\w\\\\])@(?P<param_name>\\w+)\",",
+          "160": "Self::Pyformat => r\"(?<![:\\w\\\\])%\\((?P<param_name>[\\w_]+)\\)s\",",
+          "161": "Self::Dollar => r\"(?<![:\\w\\\\])\\${?(?P<param_name>[\\w_]+)}?\",",
+          "162": "Self::DollarSurround => r\"(?<![:\\w\\\\])\\$(?P<param_name>[-\\w]+)\\$\",",
+          "163": "Self::FlywayVar => r#\"\\${(?P<param_name>\\w+[:\\w_]+)}\"#,",
+          "164": "Self::QuestionMark => r\"(?<![:\\w\\\\])\\?\",",
+          "165": "Self::NumericDollar => r\"(?<![:\\w\\\\])\\${?(?P<param_name>[\\d]+)}?\",",
+          "166": "Self::Percent => r\"(?<![:\\w\\\\])%s\",",
+          "167": "Self::Ampersand => r\"(?<!&)&{?(?P<param_name>[\\w]+)}?\",",
+          "168": "Self::ApacheCamel => r\":#\\$\\{(?P<param_name>.+)}\","
+         }
+        }
+       }
+      ]
+     }
+    },
+    {
+     "style": "percent",
+     "sqlfluff_pattern": {
+      "value": "(?<![:\\w\\x5c])%s",
+      "evidence": [
+       {
+        "command": "sqlfluff facts"
+       },
+       {
+        "source": {
+         "base": "sqlfluff",
+         "version": "4.4.0",
+         "commit": "0348222a3bcdb0226563f7349c5a39beb0641955",
+         "file": "third_party/sqlfluff/src/sqlfluff/core/templaters/placeholder.py",
+         "sha256": "987e368688505c8741caa9517c982d9f16def741524de08bc99af2766a5ea311",
+         "lines": {
+          "57": "\"percent\": regex.compile(r\"(?<![:\\w\\x5c])%s\", regex.UNICODE),"
+         }
+        }
+       }
+      ]
+     },
+     "sqruff": {
+      "value": {
+       "exists": true,
+       "same_pattern": true
+      },
+      "evidence": [
+       {
+        "source": {
+         "base": "sqruff",
+         "crate": "sqruff-lib",
+         "version": "0.41.0",
+         "crate_sha256": "e6ed07488aab52e7f03a803be9ab4dc1c1f4c0d46ab6f392d8ac6ae0a3cce611",
+         "file": "src/templaters/types.rs",
+         "sha256": "83489dacca75d45fe3a7143ad4d9e4dfb5918a558192bd5ac71e98cf43ec3a9a",
+         "lines": {
+          "136": "Self::Colon => \"colon\",",
+          "137": "Self::ColonOptionalQuotes => \"colon_optional_quotes\",",
+          "138": "Self::ColonNoSpaces => \"colon_nospaces\",",
+          "139": "Self::NumericColon => \"numeric_colon\",",
+          "140": "Self::At => \"at\",",
+          "141": "Self::Pyformat => \"pyformat\",",
+          "142": "Self::Dollar => \"dollar\",",
+          "143": "Self::DollarSurround => \"dollar_surround\",",
+          "144": "Self::FlywayVar => \"flyway_var\",",
+          "145": "Self::QuestionMark => \"question_mark\",",
+          "146": "Self::NumericDollar => \"numeric_dollar\",",
+          "147": "Self::Percent => \"percent\",",
+          "148": "Self::Ampersand => \"ampersand\",",
+          "149": "Self::ApacheCamel => \"apache_camel\",",
+          "155": "Self::Colon => r\"(?<![:\\w\\\\]):(?P<param_name>\\w+)\",",
+          "156": "Self::ColonOptionalQuotes => r#\"(?<!:):(?P<quotation>['\"]?)(?P<param_name>[\\w_]+)\\1\"#,",
+          "157": "Self::ColonNoSpaces => r\"(?<!:):(?P<param_name>\\w+)\",",
+          "158": "Self::NumericColon => r\"(?<![:\\w\\\\]):(?P<param_name>\\d+)\",",
+          "159": "Self::At => r\"(?<![:\\w\\\\])@(?P<param_name>\\w+)\",",
+          "160": "Self::Pyformat => r\"(?<![:\\w\\\\])%\\((?P<param_name>[\\w_]+)\\)s\",",
+          "161": "Self::Dollar => r\"(?<![:\\w\\\\])\\${?(?P<param_name>[\\w_]+)}?\",",
+          "162": "Self::DollarSurround => r\"(?<![:\\w\\\\])\\$(?P<param_name>[-\\w]+)\\$\",",
+          "163": "Self::FlywayVar => r#\"\\${(?P<param_name>\\w+[:\\w_]+)}\"#,",
+          "164": "Self::QuestionMark => r\"(?<![:\\w\\\\])\\?\",",
+          "165": "Self::NumericDollar => r\"(?<![:\\w\\\\])\\${?(?P<param_name>[\\d]+)}?\",",
+          "166": "Self::Percent => r\"(?<![:\\w\\\\])%s\",",
+          "167": "Self::Ampersand => r\"(?<!&)&{?(?P<param_name>[\\w]+)}?\",",
+          "168": "Self::ApacheCamel => r\":#\\$\\{(?P<param_name>.+)}\","
+         }
+        }
+       }
+      ]
+     }
+    },
+    {
+     "style": "ampersand",
+     "sqlfluff_pattern": {
+      "value": "(?<!&)&{?(?P<param_name>[\\w]+)}?",
+      "evidence": [
+       {
+        "command": "sqlfluff facts"
+       },
+       {
+        "source": {
+         "base": "sqlfluff",
+         "version": "4.4.0",
+         "commit": "0348222a3bcdb0226563f7349c5a39beb0641955",
+         "file": "third_party/sqlfluff/src/sqlfluff/core/templaters/placeholder.py",
+         "sha256": "987e368688505c8741caa9517c982d9f16def741524de08bc99af2766a5ea311",
+         "lines": {
+          "59": "\"ampersand\": regex.compile(r\"(?<!&)&{?(?P<param_name>[\\w]+)}?\", regex.UNICODE),"
+         }
+        }
+       }
+      ]
+     },
+     "sqruff": {
+      "value": {
+       "exists": true,
+       "same_pattern": true
+      },
+      "evidence": [
+       {
+        "source": {
+         "base": "sqruff",
+         "crate": "sqruff-lib",
+         "version": "0.41.0",
+         "crate_sha256": "e6ed07488aab52e7f03a803be9ab4dc1c1f4c0d46ab6f392d8ac6ae0a3cce611",
+         "file": "src/templaters/types.rs",
+         "sha256": "83489dacca75d45fe3a7143ad4d9e4dfb5918a558192bd5ac71e98cf43ec3a9a",
+         "lines": {
+          "136": "Self::Colon => \"colon\",",
+          "137": "Self::ColonOptionalQuotes => \"colon_optional_quotes\",",
+          "138": "Self::ColonNoSpaces => \"colon_nospaces\",",
+          "139": "Self::NumericColon => \"numeric_colon\",",
+          "140": "Self::At => \"at\",",
+          "141": "Self::Pyformat => \"pyformat\",",
+          "142": "Self::Dollar => \"dollar\",",
+          "143": "Self::DollarSurround => \"dollar_surround\",",
+          "144": "Self::FlywayVar => \"flyway_var\",",
+          "145": "Self::QuestionMark => \"question_mark\",",
+          "146": "Self::NumericDollar => \"numeric_dollar\",",
+          "147": "Self::Percent => \"percent\",",
+          "148": "Self::Ampersand => \"ampersand\",",
+          "149": "Self::ApacheCamel => \"apache_camel\",",
+          "155": "Self::Colon => r\"(?<![:\\w\\\\]):(?P<param_name>\\w+)\",",
+          "156": "Self::ColonOptionalQuotes => r#\"(?<!:):(?P<quotation>['\"]?)(?P<param_name>[\\w_]+)\\1\"#,",
+          "157": "Self::ColonNoSpaces => r\"(?<!:):(?P<param_name>\\w+)\",",
+          "158": "Self::NumericColon => r\"(?<![:\\w\\\\]):(?P<param_name>\\d+)\",",
+          "159": "Self::At => r\"(?<![:\\w\\\\])@(?P<param_name>\\w+)\",",
+          "160": "Self::Pyformat => r\"(?<![:\\w\\\\])%\\((?P<param_name>[\\w_]+)\\)s\",",
+          "161": "Self::Dollar => r\"(?<![:\\w\\\\])\\${?(?P<param_name>[\\w_]+)}?\",",
+          "162": "Self::DollarSurround => r\"(?<![:\\w\\\\])\\$(?P<param_name>[-\\w]+)\\$\",",
+          "163": "Self::FlywayVar => r#\"\\${(?P<param_name>\\w+[:\\w_]+)}\"#,",
+          "164": "Self::QuestionMark => r\"(?<![:\\w\\\\])\\?\",",
+          "165": "Self::NumericDollar => r\"(?<![:\\w\\\\])\\${?(?P<param_name>[\\d]+)}?\",",
+          "166": "Self::Percent => r\"(?<![:\\w\\\\])%s\",",
+          "167": "Self::Ampersand => r\"(?<!&)&{?(?P<param_name>[\\w]+)}?\",",
+          "168": "Self::ApacheCamel => r\":#\\$\\{(?P<param_name>.+)}\","
+         }
+        }
+       }
+      ]
+     }
+    }
+   ],
+   "sqruff_only": {
+    "value": [
+     "apache_camel",
+     "at"
+    ],
+    "evidence": [
+     {
+      "source": {
+       "base": "sqruff",
+       "crate": "sqruff-lib",
+       "version": "0.41.0",
+       "crate_sha256": "e6ed07488aab52e7f03a803be9ab4dc1c1f4c0d46ab6f392d8ac6ae0a3cce611",
+       "file": "src/templaters/types.rs",
+       "sha256": "83489dacca75d45fe3a7143ad4d9e4dfb5918a558192bd5ac71e98cf43ec3a9a",
+       "lines": {
+        "136": "Self::Colon => \"colon\",",
+        "137": "Self::ColonOptionalQuotes => \"colon_optional_quotes\",",
+        "138": "Self::ColonNoSpaces => \"colon_nospaces\",",
+        "139": "Self::NumericColon => \"numeric_colon\",",
+        "140": "Self::At => \"at\",",
+        "141": "Self::Pyformat => \"pyformat\",",
+        "142": "Self::Dollar => \"dollar\",",
+        "143": "Self::DollarSurround => \"dollar_surround\",",
+        "144": "Self::FlywayVar => \"flyway_var\",",
+        "145": "Self::QuestionMark => \"question_mark\",",
+        "146": "Self::NumericDollar => \"numeric_dollar\",",
+        "147": "Self::Percent => \"percent\",",
+        "148": "Self::Ampersand => \"ampersand\",",
+        "149": "Self::ApacheCamel => \"apache_camel\",",
+        "155": "Self::Colon => r\"(?<![:\\w\\\\]):(?P<param_name>\\w+)\",",
+        "156": "Self::ColonOptionalQuotes => r#\"(?<!:):(?P<quotation>['\"]?)(?P<param_name>[\\w_]+)\\1\"#,",
+        "157": "Self::ColonNoSpaces => r\"(?<!:):(?P<param_name>\\w+)\",",
+        "158": "Self::NumericColon => r\"(?<![:\\w\\\\]):(?P<param_name>\\d+)\",",
+        "159": "Self::At => r\"(?<![:\\w\\\\])@(?P<param_name>\\w+)\",",
+        "160": "Self::Pyformat => r\"(?<![:\\w\\\\])%\\((?P<param_name>[\\w_]+)\\)s\",",
+        "161": "Self::Dollar => r\"(?<![:\\w\\\\])\\${?(?P<param_name>[\\w_]+)}?\",",
+        "162": "Self::DollarSurround => r\"(?<![:\\w\\\\])\\$(?P<param_name>[-\\w]+)\\$\",",
+        "163": "Self::FlywayVar => r#\"\\${(?P<param_name>\\w+[:\\w_]+)}\"#,",
+        "164": "Self::QuestionMark => r\"(?<![:\\w\\\\])\\?\",",
+        "165": "Self::NumericDollar => r\"(?<![:\\w\\\\])\\${?(?P<param_name>[\\d]+)}?\",",
+        "166": "Self::Percent => r\"(?<![:\\w\\\\])%s\",",
+        "167": "Self::Ampersand => r\"(?<!&)&{?(?P<param_name>[\\w]+)}?\",",
+        "168": "Self::ApacheCamel => r\":#\\$\\{(?P<param_name>.+)}\","
+       }
+      }
+     }
+    ]
+   },
+   "rule": "same_pattern: the sqruff regex text is the sqlfluff regex text after same_regex_text (scripts/s3/capabilities.py): '\\x5c' as '\\\\' and '\\\"' as '\"'"
+  },
+  "templater_suite": {
+   "sqruff": {
+    "value": {
+     "cases": 43,
+     "pass": 28,
+     "needs_python": 3,
+     "needs_python_pass": 1,
+     "no_python_cases": 40,
+     "no_python_pass": 27,
+     "groups": [
+      "jinja_a",
+      "jinja_b",
+      "jinja_c_dbt",
+      "jinja_e",
+      "jinja_exclude_macro_path",
+      "jinja_f",
+      "jinja_g_macros",
+      "jinja_h_macros",
+      "jinja_i_raw",
+      "jinja_j_libraries",
+      "jinja_k_config_override_path_macros",
+      "jinja_l_metas",
+      "jinja_m_libraries_module",
+      "jinja_n_nested_macros",
+      "jinja_o_config_override_dbt_builtins",
+      "jinja_p_disable_dbt_builtins",
+      "jinja_q_multiple_path_macros",
+      "jinja_s_filters_in_library",
+      "jinja_t_loader_search_path"
+     ]
+    },
+    "evidence": [
+     {
+      "result": "results/s3/s1-by-base.json",
+      "key": "bases.sqruff.suites.templater"
+     },
+     {
+      "result": "results/s3/s1-by-base.json",
+      "key": "bases.sqruff.templater"
+     }
+    ]
+   },
+   "sqlfluffrs": {
+    "value": {
+     "cases": 43,
+     "pass": 43,
+     "needs_python": 3,
+     "needs_python_pass": 3,
+     "no_python_cases": 40,
+     "no_python_pass": 40,
+     "groups": [
+      "jinja_a",
+      "jinja_b",
+      "jinja_c_dbt",
+      "jinja_e",
+      "jinja_exclude_macro_path",
+      "jinja_f",
+      "jinja_g_macros",
+      "jinja_h_macros",
+      "jinja_i_raw",
+      "jinja_j_libraries",
+      "jinja_k_config_override_path_macros",
+      "jinja_l_metas",
+      "jinja_m_libraries_module",
+      "jinja_n_nested_macros",
+      "jinja_o_config_override_dbt_builtins",
+      "jinja_p_disable_dbt_builtins",
+      "jinja_q_multiple_path_macros",
+      "jinja_s_filters_in_library",
+      "jinja_t_loader_search_path"
+     ]
+    },
+    "evidence": [
+     {
+      "result": "results/s3/s1-by-base.json",
+      "key": "bases.sqlfluffrs.suites.templater"
+     },
+     {
+      "result": "results/s3/s1-by-base.json",
+      "key": "bases.sqlfluffrs.templater"
+     }
+    ]
+   },
+   "note": {
+    "value": "All groups of the templater suite are Jinja. sqruff passes them with Jinja in Python (pyo3); sqlfluff-rs passes them with the Python templaters of sqlfluff. Thus the suite shows no native templater of a base.",
+    "estimate": true,
+    "judgement": "The pass counts are of the tools of S1, not of a standalone base.",
+    "evidence": [
+     {
+      "result": "results/s3/s1-by-base.json",
+      "key": "bases.sqruff.templater"
+     },
+     {
+      "result": "results/s3/s1-by-base.json",
+      "key": "bases.sqlfluffrs.note"
+     }
+    ]
+   }
+  },
+  "source_map": {
+   "sqruff": {
+    "value": "TemplatedFile (sqruff-lib-core)",
+    "evidence": [
+     {
+      "source": {
+       "base": "sqruff",
+       "crate": "sqruff-lib-core",
+       "version": "0.41.0",
+       "crate_sha256": "c2d60b53c5c4c072cd0a79cfea1c5307f053f96b2d81921d444577c19455c0a8",
+       "file": "src/templaters.rs",
+       "sha256": "ab889453ab7a96408cd3ad47fed2a50b2905db608727000f7da1a846e2c1d95e",
+       "lines": {
+        "104": "pub struct TemplatedFile {"
+       }
+      }
+     }
+    ]
+   },
+   "sqlfluffrs": {
+    "value": {
+     "types": "TemplatedFile, RawFileSlice, TemplatedFileSlice",
+     "lexer_input": [
+      "String",
+      "TemplatedFile"
+     ]
+    },
+    "evidence": [
+     {
+      "source": {
+       "base": "sqlfluffrs",
+       "version": "4.4.0",
+       "commit": "0348222a3bcdb0226563f7349c5a39beb0641955",
+       "file": "third_party/sqlfluff/sqlfluffrs/sqlfluffrs_types/src/templater/mod.rs",
+       "sha256": "c4bbc4d59348fcaf14f8d514b14a3d3a7f38369fbadcd0d821b5d702a3581dcd",
+       "lines": {
+        "1": "pub mod fileslice;",
+        "2": "pub mod templatefile;"
+       }
+      }
+     },
+     {
+      "source": {
+       "base": "sqlfluffrs",
+       "version": "4.4.0",
+       "commit": "0348222a3bcdb0226563f7349c5a39beb0641955",
+       "file": "third_party/sqlfluff/sqlfluffrs/sqlfluffrs_types/src/templater/templatefile.rs",
+       "sha256": "3d3842992052fdf7c83d363bc143bc45332f18268e54f52d6f2aa3dc16b4bd81",
+       "lines": {
+        "14": "pub struct TemplatedFile {"
+       }
+      }
+     },
+     {
+      "source": {
+       "base": "sqlfluffrs",
+       "version": "4.4.0",
+       "commit": "0348222a3bcdb0226563f7349c5a39beb0641955",
+       "file": "third_party/sqlfluff/sqlfluffrs/sqlfluffrs_types/src/templater/fileslice.rs",
+       "sha256": "27ea643c992744d76c72ba88f0bfa6b078bd69058099760a7ea99dd2f696559d",
+       "lines": {
+        "6": "pub struct RawFileSlice {",
+        "61": "pub struct TemplatedFileSlice {"
+       }
+      }
+     },
+     {
+      "source": {
+       "base": "sqlfluffrs",
+       "version": "4.4.0",
+       "commit": "0348222a3bcdb0226563f7349c5a39beb0641955",
+       "file": "third_party/sqlfluff/sqlfluffrs/sqlfluffrs_lexer/src/lexer.rs",
+       "sha256": "d37d1b1b6b59e31afe116cc4b7e3c3601e1fcdeb08564c462480c8f0b2095188",
+       "lines": {
+        "773": "pub enum LexInput {",
+        "774": "String(String),",
+        "775": "TemplatedFile(Arc<TemplatedFile>),",
+        "776": "}"
+       }
+      }
+     }
+    ]
+   },
+   "new-parser": {
+    "value": "none; can reuse the sqlfluffrs_types source map (MIT)",
+    "estimate": true,
+    "judgement": "Option 3 can take the sqlfluffrs source map types, as it takes the generator (T5).",
+    "evidence": [
+     {
+      "source": {
+       "base": "sqlfluffrs",
+       "version": "4.4.0",
+       "commit": "0348222a3bcdb0226563f7349c5a39beb0641955",
+       "file": "third_party/sqlfluff/sqlfluffrs/sqlfluffrs_types/src/templater/mod.rs",
+       "sha256": "c4bbc4d59348fcaf14f8d514b14a3d3a7f38369fbadcd0d821b5d702a3581dcd",
+       "lines": {
+        "1": "pub mod fileslice;",
+        "2": "pub mod templatefile;"
+       }
+      }
+     },
+     {
+      "source": {
+       "base": "sqlfluffrs",
+       "version": "4.4.0",
+       "commit": "0348222a3bcdb0226563f7349c5a39beb0641955",
+       "file": "third_party/sqlfluff/sqlfluffrs/sqlfluffrs_types/src/templater/templatefile.rs",
+       "sha256": "3d3842992052fdf7c83d363bc143bc45332f18268e54f52d6f2aa3dc16b4bd81",
+       "lines": {
+        "14": "pub struct TemplatedFile {"
+       }
+      }
+     },
+     {
+      "source": {
+       "base": "sqlfluffrs",
+       "version": "4.4.0",
+       "commit": "0348222a3bcdb0226563f7349c5a39beb0641955",
+       "file": "third_party/sqlfluff/sqlfluffrs/sqlfluffrs_types/src/templater/fileslice.rs",
+       "sha256": "27ea643c992744d76c72ba88f0bfa6b078bd69058099760a7ea99dd2f696559d",
+       "lines": {
+        "6": "pub struct RawFileSlice {",
+        "61": "pub struct TemplatedFileSlice {"
+       }
+      }
+     }
+    ]
+   }
+  }
+ },
+ "S7": {
+  "commands": [
+   {
+    "command": "dialects",
+    "sqlfluff": {
+     "value": true,
+     "evidence": [
+      {
+       "command": "sqlfluff --help"
+      }
+     ]
+    },
+    "sqruff": {
+     "value": true,
+     "evidence": [
+      {
+       "command": "sqruff --help"
+      }
+     ]
+    }
+   },
+   {
+    "command": "fix",
+    "sqlfluff": {
+     "value": true,
+     "evidence": [
+      {
+       "command": "sqlfluff --help"
+      }
+     ]
+    },
+    "sqruff": {
+     "value": true,
+     "evidence": [
+      {
+       "command": "sqruff --help"
+      }
+     ]
+    }
+   },
+   {
+    "command": "format",
+    "sqlfluff": {
+     "value": true,
+     "evidence": [
+      {
+       "command": "sqlfluff --help"
+      }
+     ]
+    },
+    "sqruff": {
+     "value": false,
+     "evidence": [
+      {
+       "command": "sqruff --help"
+      }
+     ]
+    }
+   },
+   {
+    "command": "info",
+    "sqlfluff": {
+     "value": false,
+     "evidence": [
+      {
+       "command": "sqlfluff --help"
+      }
+     ]
+    },
+    "sqruff": {
+     "value": true,
+     "evidence": [
+      {
+       "command": "sqruff --help"
+      }
+     ]
+    }
+   },
+   {
+    "command": "lint",
+    "sqlfluff": {
+     "value": true,
+     "evidence": [
+      {
+       "command": "sqlfluff --help"
+      }
+     ]
+    },
+    "sqruff": {
+     "value": true,
+     "evidence": [
+      {
+       "command": "sqruff --help"
+      }
+     ]
+    }
+   },
+   {
+    "command": "lsp",
+    "sqlfluff": {
+     "value": false,
+     "evidence": [
+      {
+       "command": "sqlfluff --help"
+      }
+     ]
+    },
+    "sqruff": {
+     "value": true,
+     "evidence": [
+      {
+       "command": "sqruff --help"
+      }
+     ]
+    }
+   },
+   {
+    "command": "parse",
+    "sqlfluff": {
+     "value": true,
+     "evidence": [
+      {
+       "command": "sqlfluff --help"
+      }
+     ]
+    },
+    "sqruff": {
+     "value": true,
+     "evidence": [
+      {
+       "command": "sqruff --help"
+      }
+     ]
+    }
+   },
+   {
+    "command": "render",
+    "sqlfluff": {
+     "value": true,
+     "evidence": [
+      {
+       "command": "sqlfluff --help"
+      }
+     ]
+    },
+    "sqruff": {
+     "value": false,
+     "evidence": [
+      {
+       "command": "sqruff --help"
+      }
+     ]
+    }
+   },
+   {
+    "command": "rules",
+    "sqlfluff": {
+     "value": true,
+     "evidence": [
+      {
+       "command": "sqlfluff --help"
+      }
+     ]
+    },
+    "sqruff": {
+     "value": true,
+     "evidence": [
+      {
+       "command": "sqruff --help"
+      }
+     ]
+    }
+   },
+   {
+    "command": "templaters",
+    "sqlfluff": {
+     "value": false,
+     "evidence": [
+      {
+       "command": "sqlfluff --help"
+      }
+     ]
+    },
+    "sqruff": {
+     "value": true,
+     "evidence": [
+      {
+       "command": "sqruff --help"
+      }
+     ]
+    }
+   },
+   {
+    "command": "version",
+    "sqlfluff": {
+     "value": true,
+     "evidence": [
+      {
+       "command": "sqlfluff --help"
+      }
+     ]
+    },
+    "sqruff": {
+     "value": false,
+     "evidence": [
+      {
+       "command": "sqruff --help"
+      }
+     ]
+    }
+   }
+  ],
+  "no_cli": {
+   "sqlfluffrs": {
+    "value": {
+     "cli": false,
+     "bin_targets": []
+    },
+    "evidence": [
+     {
+      "search": "the tracked Cargo.toml files of sqlfluffrs/ with [[bin]], and the tracked src/main.rs and src/bin/ files",
+      "hits": []
+     }
+    ]
+   },
+   "new-parser": {
+    "value": {
+     "cli": false
+    },
+    "estimate": true,
+    "judgement": "Option 3 has no implementation (docs/decisions/s3-base.md).",
+    "evidence": [
+     {
+      "result": "results/s3/s1-by-base.json",
+      "key": "bases.new-parser.note"
+     }
+    ]
+   }
+  },
+  "command_mapping": {
+   "value": {
+    "version": "sqruff --version",
+    "format": "none (sqruff fix with all rules is not the same)",
+    "render": "none"
+   },
+   "estimate": true,
+   "judgement": "A command of sqlfluff that sqruff does not have, and the nearest sqruff command. From the help text, not from a test.",
+   "evidence": [
+    {
+     "command": "sqlfluff --help"
+    },
+    {
+     "command": "sqruff --help"
+    }
+   ]
+  },
+  "options": {
+   "dialects": {
+    "value": {
+     "sqlfluff": 5,
+     "sqruff": 10,
+     "both": [
+      "--color",
+      "--help",
+      "--nocolor"
+     ],
+     "only_sqlfluff": [
+      "--verbose",
+      "--version"
+     ],
+     "only_sqruff": [
+      "--config",
+      "--dialect",
+      "--disable-noqa",
+      "--disable-noqa-except",
+      "--library-path",
+      "--parsing-errors",
+      "--stdin-filename"
+     ],
+     "choices": {},
+     "short_names_that_differ": {},
+     "args": {
+      "sqlfluff": [],
+      "sqruff": []
+     }
+    },
+    "evidence": [
+     {
+      "command": "sqlfluff dialects --help"
+     },
+     {
+      "command": "sqruff dialects --help"
+     },
+     {
+      "command": "sqlfluff facts"
+     }
+    ]
+   },
+   "fix": {
+    "value": {
+     "sqlfluff": 31,
+     "sqruff": 15,
+     "both": [
+      "--color",
+      "--config",
+      "--dialect",
+      "--disable-noqa",
+      "--disable-noqa-except",
+      "--disregard-sqlfluffignores",
+      "--help",
+      "--library-path",
+      "--nocolor",
+      "--quiet",
+      "--stdin-filename",
+      "--verbose"
+     ],
+     "only_sqlfluff": [
+      "--FIX-EVEN-UNPARSABLE",
+      "--bench",
+      "--check",
+      "--disable-progress-bar",
+      "--encoding",
+      "--exclude-rules",
+      "--fixed-suffix",
+      "--force",
+      "--ignore",
+      "--ignore-local-config",
+      "--logger",
+      "--persist-timing",
+      "--processes",
+      "--recursion-limit",
+      "--rules",
+      "--show-lint-violations",
+      "--templater",
+      "--version",
+      "--warn-unused-ignores"
+     ],
+     "only_sqruff": [
+      "--disregard-sqruffignores",
+      "--format",
+      "--parsing-errors"
+     ],
+     "choices": {},
+     "short_names_that_differ": {
+      "--dialect": {
+       "sqlfluff": "-d",
+       "sqruff": null
+      }
+     },
+     "args": {
+      "sqlfluff": [
+       "[PATHS]..."
+      ],
+      "sqruff": [
+       "[PATHS]..."
+      ]
+     }
+    },
+    "evidence": [
+     {
+      "command": "sqlfluff fix --help"
+     },
+     {
+      "command": "sqruff fix --help"
+     },
+     {
+      "command": "sqlfluff facts"
+     }
+    ]
+   },
+   "lint": {
+    "value": {
+     "sqlfluff": 30,
+     "sqruff": 15,
+     "both": [
+      "--color",
+      "--config",
+      "--dialect",
+      "--disable-noqa",
+      "--disable-noqa-except",
+      "--disregard-sqlfluffignores",
+      "--format",
+      "--help",
+      "--library-path",
+      "--nocolor",
+      "--quiet",
+      "--stdin-filename",
+      "--verbose"
+     ],
+     "only_sqlfluff": [
+      "--annotation-level",
+      "--bench",
+      "--disable-progress-bar",
+      "--encoding",
+      "--exclude-rules",
+      "--ignore",
+      "--ignore-local-config",
+      "--logger",
+      "--nofail",
+      "--persist-timing",
+      "--processes",
+      "--recursion-limit",
+      "--rules",
+      "--templater",
+      "--version",
+      "--warn-unused-ignores",
+      "--write-output"
+     ],
+     "only_sqruff": [
+      "--disregard-sqruffignores",
+      "--parsing-errors"
+     ],
+     "choices": {
+      "--format": {
+       "both": [
+        "github-annotation-native",
+        "human",
+        "json",
+        "none",
+        "sarif"
+       ],
+       "only_sqlfluff": [
+        "github-annotation",
+        "gitlab",
+        "yaml"
+       ],
+       "only_sqruff": []
+      }
+     },
+     "short_names_that_differ": {
+      "--dialect": {
+       "sqlfluff": "-d",
+       "sqruff": null
+      }
+     },
+     "args": {
+      "sqlfluff": [
+       "[PATHS]..."
+      ],
+      "sqruff": [
+       "[PATHS]..."
+      ]
+     }
+    },
+    "evidence": [
+     {
+      "command": "sqlfluff lint --help"
+     },
+     {
+      "command": "sqruff lint --help"
+     },
+     {
+      "command": "sqlfluff facts"
+     }
+    ]
+   },
+   "parse": {
+    "value": {
+     "sqlfluff": 26,
+     "sqruff": 12,
+     "both": [
+      "--color",
+      "--config",
+      "--dialect",
+      "--disable-noqa",
+      "--disable-noqa-except",
+      "--format",
+      "--help",
+      "--include-meta",
+      "--library-path",
+      "--nocolor",
+      "--stdin-filename"
+     ],
+     "only_sqlfluff": [
+      "--bench",
+      "--code-only",
+      "--encoding",
+      "--exclude-rules",
+      "--ignore",
+      "--ignore-local-config",
+      "--logger",
+      "--nofail",
+      "--parse-statistics",
+      "--recursion-limit",
+      "--rules",
+      "--templater",
+      "--verbose",
+      "--version",
+      "--write-output"
+     ],
+     "only_sqruff": [
+      "--parsing-errors"
+     ],
+     "choices": {
+      "--format": {
+       "both": [
+        "json",
+        "none",
+        "yaml"
+       ],
+       "only_sqlfluff": [
+        "human"
+       ],
+       "only_sqruff": [
+        "pretty"
+       ]
+      }
+     },
+     "short_names_that_differ": {
+      "--dialect": {
+       "sqlfluff": "-d",
+       "sqruff": null
+      },
+      "--include-meta": {
+       "sqlfluff": "-m",
+       "sqruff": null
+      }
+     },
+     "args": {
+      "sqlfluff": [
+       "PATH"
+      ],
+      "sqruff": [
+       "[PATHS]..."
+      ]
+     }
+    },
+    "evidence": [
+     {
+      "command": "sqlfluff parse --help"
+     },
+     {
+      "command": "sqruff parse --help"
+     },
+     {
+      "command": "sqlfluff facts"
+     }
+    ]
+   },
+   "rules": {
+    "value": {
+     "sqlfluff": 5,
+     "sqruff": 10,
+     "both": [
+      "--color",
+      "--help",
+      "--nocolor"
+     ],
+     "only_sqlfluff": [
+      "--verbose",
+      "--version"
+     ],
+     "only_sqruff": [
+      "--config",
+      "--dialect",
+      "--disable-noqa",
+      "--disable-noqa-except",
+      "--library-path",
+      "--parsing-errors",
+      "--stdin-filename"
+     ],
+     "choices": {},
+     "short_names_that_differ": {},
+     "args": {
+      "sqlfluff": [],
+      "sqruff": []
+     }
+    },
+    "evidence": [
+     {
+      "command": "sqlfluff rules --help"
+     },
+     {
+      "command": "sqruff rules --help"
+     },
+     {
+      "command": "sqlfluff facts"
+     }
+    ]
+   }
+  },
+  "options_in_cli_tests": {
+   "value": {
+    "only_sqlfluff_options": {
+     "--FIX-EVEN-UNPARSABLE": 2,
+     "--annotation-level": 6,
+     "--bench": 5,
+     "--check": 5,
+     "--code-only": 0,
+     "--disable-progress-bar": 31,
+     "--encoding": 1,
+     "--exclude-rules": 6,
+     "--fixed-suffix": 11,
+     "--force": 1,
+     "--ignore": 2,
+     "--ignore-local-config": 1,
+     "--logger": 1,
+     "--nofail": 2,
+     "--parse-statistics": 0,
+     "--persist-timing": 2,
+     "--processes": 1,
+     "--recursion-limit": 0,
+     "--rules": 19,
+     "--show-lint-violations": 3,
+     "--templater": 0,
+     "--verbose": 2,
+     "--version": 0,
+     "--warn-unused-ignores": 1,
+     "--write-output": 3
+    },
+    "options_of_commands_that_sqruff_does_not_have": {
+     "format": {
+      "--bench": 5,
+      "--color": 4,
+      "--config": 7,
+      "--dialect": 27,
+      "--disable-noqa": 2,
+      "--disable-noqa-except": 2,
+      "--disable-progress-bar": 31,
+      "--disregard-sqlfluffignores": 2,
+      "--encoding": 1,
+      "--exclude-rules": 6,
+      "--fixed-suffix": 11,
+      "--help": 2,
+      "--ignore": 2,
+      "--ignore-local-config": 1,
+      "--library-path": 2,
+      "--logger": 1,
+      "--nocolor": 4,
+      "--persist-timing": 2,
+      "--processes": 1,
+      "--quiet": 13,
+      "--recursion-limit": 0,
+      "--rules": 19,
+      "--stdin-filename": 2,
+      "--templater": 0,
+      "--verbose": 2,
+      "--version": 0,
+      "--warn-unused-ignores": 1
+     },
+     "render": {
+      "--bench": 5,
+      "--color": 4,
+      "--config": 7,
+      "--dialect": 27,
+      "--disable-noqa": 2,
+      "--disable-noqa-except": 2,
+      "--encoding": 1,
+      "--exclude-rules": 6,
+      "--help": 2,
+      "--ignore": 2,
+      "--ignore-local-config": 1,
+      "--library-path": 2,
+      "--logger": 1,
+      "--nocolor": 4,
+      "--rules": 19,
+      "--stdin-filename": 2,
+      "--templater": 0,
+      "--verbose": 2,
+      "--version": 0
+     },
+     "version": {
+      "--color": 4,
+      "--help": 2,
+      "--nocolor": 4,
+      "--verbose": 2,
+      "--version": 0
+     }
+    }
+   },
+   "estimate": true,
+   "judgement": "A count of string literals in test/cli/*.py that are the option name (or '<name>=...'). A literal is not a test, and a name can be of more than one command. It shows which missing options the S7 tests use.",
+   "evidence": [
+    {
+     "source": {
+      "base": "sqlfluff",
+      "version": "4.4.0",
+      "commit": "0348222a3bcdb0226563f7349c5a39beb0641955",
+      "file": "third_party/sqlfluff/test/cli/commands_test.py",
+      "sha256": "bac43e20ff49fc6003f3b9254ba62d634978590aea2cb027b30f3bad599b8179",
+      "lines": {
+       "1": "\"\"\"The Test file for CLI (General).\"\"\""
+      }
+     }
+    }
+   ]
+  },
+  "config": {
+   "files_in_each_folder": {
+    "sqlfluff": {
+     "value": [
+      "setup.cfg",
+      "tox.ini",
+      "pep8.ini",
+      ".sqlfluff",
+      "pyproject.toml"
+     ],
+     "evidence": [
+      {
+       "source": {
+        "base": "sqlfluff",
+        "version": "4.4.0",
+        "commit": "0348222a3bcdb0226563f7349c5a39beb0641955",
+        "file": "third_party/sqlfluff/src/sqlfluff/core/config/loader.py",
+        "sha256": "31b9e16a1b5cca6a5c83582f1bf140cdf1657d62fa4c463be0e873d5be5fee2a",
+        "lines": {
+         "225": "filename_options = [",
+         "226": "\"setup.cfg\",",
+         "227": "\"tox.ini\",",
+         "228": "\"pep8.ini\",",
+         "229": "\".sqlfluff\",",
+         "230": "\"pyproject.toml\",",
+         "231": "]"
+        }
+       }
+      }
+     ]
+    },
+    "sqruff": {
+     "value": {
+      "read": [
+       ".sqlfluff",
+       ".sqruff",
+       ".sqruff.ini",
+       "pyproject.toml",
+       "sqruff.toml"
+      ],
+      "commented_out": [
+       "setup.cfg",
+       "tox.ini",
+       "pep8.ini"
+      ]
+     },
+     "evidence": [
+      {
+       "source": {
+        "base": "sqruff",
+        "crate": "sqruff-lib",
+        "version": "0.41.0",
+        "crate_sha256": "e6ed07488aab52e7f03a803be9ab4dc1c1f4c0d46ab6f392d8ac6ae0a3cce611",
+        "file": "src/core/config.rs",
+        "sha256": "35beffc5107c63aead2de9b203aff62d90f110719090a056bb3dd8806cb71533",
+        "lines": {
+         "593": "let filename_options = [",
+         "594": "/* \"setup.cfg\", \"tox.ini\", \"pep8.ini\", */",
+         "595": "\".sqlfluff\",",
+         "596": "\".sqruff\",",
+         "597": "\".sqruff.ini\",",
+         "598": "\"pyproject.toml\",",
+         "599": "\"sqruff.toml\",",
+         "600": "];"
+        }
+       }
+      }
+     ]
+    },
+    "both": [
+     ".sqlfluff",
+     "pyproject.toml"
+    ],
+    "only_sqlfluff": [
+     "pep8.ini",
+     "setup.cfg",
+     "tox.ini"
+    ],
+    "only_sqruff": [
+     ".sqruff",
+     ".sqruff.ini",
+     "sqruff.toml"
+    ]
+   },
+   "section_roots": {
+    "sqlfluff": {
+     "value": {
+      "ini": [
+       "sqlfluff"
+      ],
+      "toml": [
+       "tool.sqlfluff"
+      ]
+     },
+     "evidence": [
+      {
+       "source": {
+        "base": "sqlfluff",
+        "version": "4.4.0",
+        "commit": "0348222a3bcdb0226563f7349c5a39beb0641955",
+        "file": "third_party/sqlfluff/src/sqlfluff/core/config/ini.py",
+        "sha256": "cadf44ad72509db0f5a0f296480e5d9c1156f49ab5b3e94b5e486b0deae56af3",
+        "lines": {
+         "67": "if k == \"sqlfluff\":",
+         "69": "elif k.startswith(\"sqlfluff:\"):"
+        }
+       }
+      },
+      {
+       "source": {
+        "base": "sqlfluff",
+        "version": "4.4.0",
+        "commit": "0348222a3bcdb0226563f7349c5a39beb0641955",
+        "file": "third_party/sqlfluff/src/sqlfluff/core/config/toml.py",
+        "sha256": "3515b00c394a8e80b9239e7e36871e7695799d2e33ed7a3082c84d4ed0faadf9",
+        "lines": {
+         "122": "config_dict = _validate_structure(toml_dict.get(\"tool\", {}).get(\"sqlfluff\", {}))"
+        }
+       }
+      }
+     ]
+    },
+    "sqruff": {
+     "value": {
+      "ini": [
+       "sqlfluff",
+       "sqruff"
+      ],
+      "toml": [
+       "tool.sqlfluff",
+       "tool.sqruff"
+      ]
+     },
+     "evidence": [
+      {
+       "source": {
+        "base": "sqruff",
+        "crate": "sqruff-lib",
+        "version": "0.41.0",
+        "crate_sha256": "e6ed07488aab52e7f03a803be9ab4dc1c1f4c0d46ab6f392d8ac6ae0a3cce611",
+        "file": "src/core/config.rs",
+        "sha256": "35beffc5107c63aead2de9b203aff62d90f110719090a056bb3dd8806cb71533",
+        "lines": {
+         "1128": "let key = if section == \"sqlfluff\" || section == \"sqruff\" {",
+         "1131": ".strip_prefix(\"sqlfluff:\")",
+         "1132": ".or_else(|| section.strip_prefix(\"sqruff:\"))"
+        }
+       }
+      },
+      {
+       "source": {
+        "base": "sqruff",
+        "crate": "sqruff-lib",
+        "version": "0.41.0",
+        "crate_sha256": "e6ed07488aab52e7f03a803be9ab4dc1c1f4c0d46ab6f392d8ac6ae0a3cce611",
+        "file": "src/core/config.rs",
+        "sha256": "35beffc5107c63aead2de9b203aff62d90f110719090a056bb3dd8806cb71533",
+        "lines": {
+         "1192": "if let Some(tool) = root.get(\"tool\").and_then(toml::Value::as_table) {",
+         "1193": "for config_root in [\"sqlfluff\", \"sqruff\"] {"
+        }
+       }
+      }
+     ]
+    }
+   },
+   "inline_prefixes": {
+    "sqlfluff": {
+     "value": [
+      "-- sqlfluff",
+      "--sqlfluff"
+     ],
+     "evidence": [
+      {
+       "source": {
+        "base": "sqlfluff",
+        "version": "4.4.0",
+        "commit": "0348222a3bcdb0226563f7349c5a39beb0641955",
+        "file": "third_party/sqlfluff/src/sqlfluff/core/config/fluffconfig.py",
+        "sha256": "318eb81cf436589d67a0b47fd350082a1d8b6a9159bf32c4f8faefe393ff90a6",
+        "lines": {
+         "780": "if raw_line.startswith((\"-- sqlfluff\", \"--sqlfluff\")):"
+        }
+       }
+      }
+     ]
+    },
+    "sqruff": {
+     "value": [
+      "-- sqlfluff:",
+      "-- sqruff:"
+     ],
+     "evidence": [
+      {
+       "source": {
+        "base": "sqruff",
+        "crate": "sqruff-lib",
+        "version": "0.41.0",
+        "crate_sha256": "e6ed07488aab52e7f03a803be9ab4dc1c1f4c0d46ab6f392d8ac6ae0a3cce611",
+        "file": "src/core/config.rs",
+        "sha256": "35beffc5107c63aead2de9b203aff62d90f110719090a056bb3dd8806cb71533",
+        "lines": {
+         "356": "if line.starts_with(\"-- sqlfluff:\") || line.starts_with(\"-- sqruff:\") {"
+        }
+       }
+      }
+     ]
+    }
+   },
+   "ignore_files": {
+    "sqlfluff": {
+     "value": {
+      "ignore_files": [
+       ".sqlfluffignore"
+      ],
+      "config_files_with_ignore_paths": [
+       "pyproject.toml",
+       ".sqlfluff"
+      ]
+     },
+     "evidence": [
+      {
+       "source": {
+        "base": "sqlfluff",
+        "version": "4.4.0",
+        "commit": "0348222a3bcdb0226563f7349c5a39beb0641955",
+        "file": "third_party/sqlfluff/src/sqlfluff/core/linter/discovery.py",
+        "sha256": "7a6c9567806aa3dcd20fee37dd0e316f3f25ace52332d7decb3fdefc19625142",
+        "lines": {
+         "109": "ignore_file_loaders: dict[str, Callable[[str, str], Optional[IgnoreSpecRecord]]] = {",
+         "110": "\".sqlfluffignore\": _load_ignorefile,",
+         "111": "\"pyproject.toml\": _load_configfile,",
+         "112": "\".sqlfluff\": _load_configfile,"
+        }
+       }
+      }
+     ]
+    },
+    "sqruff": {
+     "value": {
+      "ignore_files": [
+       ".sqlfluffignore",
+       ".sqruffignore"
+      ],
+      "config_files_with_ignore_paths": [
+       "pyproject.toml",
+       ".sqlfluff"
+      ]
+     },
+     "evidence": [
+      {
+       "source": {
+        "base": "sqruff",
+        "crate": "sqruff-lib",
+        "version": "0.41.0",
+        "crate_sha256": "e6ed07488aab52e7f03a803be9ab4dc1c1f4c0d46ab6f392d8ac6ae0a3cce611",
+        "file": "src/ignore.rs",
+        "sha256": "2cb5293f109731ec23d19f3c74ca7c0065569ada9d5bf76db33577275db49f17",
+        "lines": {
+         "6": "const IGNORE_FILE_NAME: &str = \".sqruffignore\";"
+        }
+       }
+      },
+      {
+       "source": {
+        "base": "sqruff",
+        "crate": "sqruff-lib",
+        "version": "0.41.0",
+        "crate_sha256": "e6ed07488aab52e7f03a803be9ab4dc1c1f4c0d46ab6f392d8ac6ae0a3cce611",
+        "file": "src/core/linter/discovery.rs",
+        "sha256": "ce94fa3a0f605cf34522df1f4946787aafa880213725679dd0a7046e73cfa67e",
+        "lines": {
+         "17": "const CONFIG_IGNORE_FILE_NAMES: [&str; 2] = [\"pyproject.toml\", \".sqlfluff\"];",
+         "308": "let ignore_file_name = ignore_file_name.unwrap_or_else(|| String::from(\".sqlfluffignore\"));"
+        }
+       }
+      }
+     ]
+    }
+   },
+   "sqlfluffrs": {
+    "value": {
+     "fields": [
+      "dialect",
+      "template_blocks_indent",
+      "max_parser_iterations",
+      "parser_warn_threshold"
+     ],
+     "reads_files": false
+    },
+    "estimate": true,
+    "judgement": "The FluffConfig of sqlfluffrs has only these fields; Python sqlfluff reads the config files and gives the values to it.",
+    "evidence": [
+     {
+      "source": {
+       "base": "sqlfluffrs",
+       "version": "4.4.0",
+       "commit": "0348222a3bcdb0226563f7349c5a39beb0641955",
+       "file": "third_party/sqlfluff/sqlfluffrs/sqlfluffrs_types/src/config/fluffconfig.rs",
+       "sha256": "f837090feddd86c30532d5532c1db8f232cb1149c3c9ed37b2cece16ffaa9967",
+       "lines": {
+        "2": "pub struct FluffConfig {",
+        "3": "pub dialect: Option<String>,",
+        "4": "pub template_blocks_indent: bool,",
+        "6": "pub max_parser_iterations: Option<usize>,",
+        "8": "pub parser_warn_threshold: Option<usize>,",
+        "9": "}"
+       }
+      }
+     }
+    ]
+   },
+   "new-parser": {
+    "value": "none",
+    "estimate": true,
+    "judgement": "Option 3 has no implementation (docs/decisions/s3-base.md).",
+    "evidence": [
+     {
+      "result": "results/s3/s1-by-base.json",
+      "key": "bases.new-parser.note"
+     }
+    ]
+   }
+  },
+  "config_keys": {
+   "sqlfluff_defaults": {
+    "value": 208,
+    "evidence": [
+     {
+      "command": "sqlfluff facts"
+     }
+    ]
+   },
+   "sqruff_defaults": {
+    "value": 208,
+    "evidence": [
+     {
+      "source": {
+       "base": "sqruff",
+       "crate": "sqruff-lib",
+       "version": "0.41.0",
+       "crate_sha256": "e6ed07488aab52e7f03a803be9ab4dc1c1f4c0d46ab6f392d8ac6ae0a3cce611",
+       "file": "src/core/default_config.cfg",
+       "sha256": "c8e7b8b0776a4fea7662b897c86861fff5cb2f22ffbda6cfb90849e87f2c8f04",
+       "lines": {
+        "1": "[sqruff]",
+        "537": "preferred_first_table_in_join_clause = earlier"
+       }
+      }
+     }
+    ]
+   },
+   "in_both_defaults": {
+    "value": 197,
+    "evidence": [
+     {
+      "command": "sqlfluff facts"
+     },
+     {
+      "source": {
+       "base": "sqruff",
+       "crate": "sqruff-lib",
+       "version": "0.41.0",
+       "crate_sha256": "e6ed07488aab52e7f03a803be9ab4dc1c1f4c0d46ab6f392d8ac6ae0a3cce611",
+       "file": "src/core/default_config.cfg",
+       "sha256": "c8e7b8b0776a4fea7662b897c86861fff5cb2f22ffbda6cfb90849e87f2c8f04",
+       "lines": {
+        "1": "[sqruff]",
+        "537": "preferred_first_table_in_join_clause = earlier"
+       }
+      }
+     }
+    ]
+   },
+   "only_sqlfluff_defaults": {
+    "value": [
+     "core.processes",
+     "core.recursion_limit",
+     "core.rust_parser_max_iterations",
+     "core.rust_parser_warn_threshold",
+     "core.use_rust_parser",
+     "core.use_rust_rules",
+     "layout.type.alias_column_list.spacing_before",
+     "layout.type.match_condition.spacing_within",
+     "layout.type.semantic_view.spacing_within",
+     "rules.convention.last_select_star.force_enable",
+     "rules.layout.newlines.minimum_empty_lines_between_statements"
+    ],
+    "evidence": [
+     {
+      "command": "sqlfluff facts"
+     },
+     {
+      "source": {
+       "base": "sqruff",
+       "crate": "sqruff-lib",
+       "version": "0.41.0",
+       "crate_sha256": "e6ed07488aab52e7f03a803be9ab4dc1c1f4c0d46ab6f392d8ac6ae0a3cce611",
+       "file": "src/core/default_config.cfg",
+       "sha256": "c8e7b8b0776a4fea7662b897c86861fff5cb2f22ffbda6cfb90849e87f2c8f04",
+       "lines": {
+        "1": "[sqruff]",
+        "537": "preferred_first_table_in_join_clause = earlier"
+       }
+      }
+     }
+    ]
+   },
+   "only_sqruff_defaults": {
+    "value": [
+     "layout.type.block_comment.spacing_after",
+     "layout.type.block_comment.spacing_before",
+     "layout.type.date_part_week.spacing_within",
+     "layout.type.inline_comment.spacing_after",
+     "layout.type.inline_comment.spacing_before",
+     "layout.type.match_condition_clause.spacing_within",
+     "layout.type.referenced_column_list.spacing_before",
+     "layout.type.select_apply_clause.spacing_within",
+     "layout.type.start_angle_bracket.spacing_before",
+     "layout.type.tuple_element_access.spacing_before",
+     "layout.type.tuple_element_access.spacing_within"
+    ],
+    "evidence": [
+     {
+      "command": "sqlfluff facts"
+     },
+     {
+      "source": {
+       "base": "sqruff",
+       "crate": "sqruff-lib",
+       "version": "0.41.0",
+       "crate_sha256": "e6ed07488aab52e7f03a803be9ab4dc1c1f4c0d46ab6f392d8ac6ae0a3cce611",
+       "file": "src/core/default_config.cfg",
+       "sha256": "c8e7b8b0776a4fea7662b897c86861fff5cb2f22ffbda6cfb90849e87f2c8f04",
+       "lines": {
+        "1": "[sqruff]",
+        "537": "preferred_first_table_in_join_clause = earlier"
+       }
+      }
+     }
+    ]
+   },
+   "harness_supported": {
+    "value": {
+     "of_sqlfluff_defaults": 196,
+     "not_supported": [
+      "core.output_line_length",
+      "core.processes",
+      "core.recursion_limit",
+      "core.rust_parser_max_iterations",
+      "core.rust_parser_warn_threshold",
+      "core.use_rust_parser",
+      "core.use_rust_rules",
+      "indentation.template_blocks_indent",
+      "rules.capitalisation.types.ignore_words",
+      "rules.capitalisation.types.ignore_words_regex",
+      "rules.convention.last_select_star.force_enable",
+      "rules.layout.newlines.minimum_empty_lines_between_statements"
+     ]
+    },
+    "evidence": [
+     {
+      "command": "sqlfluff facts"
+     },
+     {
+      "document": "harness/sqll_harness/adapters/sqruff_config.py",
+      "text": "def is_supported("
+     }
+    ]
+   },
+   "s1_unsupported_settings": {
+    "value": {
+     "cases": 122,
+     "by_suite": {
+      "autofix": 6,
+      "rules": 109,
+      "templater": 7
+     },
+     "by_group": {
+      "layout.type.*.align_within": 39,
+      "rules.layout.newlines.minimum_empty_lines_between_statements": 32,
+      "layout.type.*.align_scope": 28,
+      "rules.references.consistent.single_table_references": 18,
+      "templater.jinja.macros.*": 13,
+      "rules.capitalisation.identifiers.unquoted_identifiers_policy": 10,
+      "indentation.template_blocks_indent": 7,
+      "rules.indent_unit": 4,
+      "rules.capitalisation.identifiers.capitalisation_policy": 2,
+      "rules.tab_space_size": 2,
+      "templater.jinja.library_path": 2,
+      "core.output_line_length": 1,
+      "indentation.allow_implicit_indents": 1,
+      "rules.AL03.allow_scalar": 1,
+      "rules.layout.newlines.maximum_empty_lines_within_statements": 1
+     },
+     "by_setting": {
+      "rules.layout.newlines.minimum_empty_lines_between_statements": 32,
+      "layout.type.alias_expression.align_scope": 20,
+      "layout.type.alias_expression.align_within": 20,
+      "rules.references.consistent.single_table_references": 18,
+      "rules.capitalisation.identifiers.unquoted_identifiers_policy": 10,
+      "layout.type.alias_operator.align_scope": 8,
+      "layout.type.alias_operator.align_within": 8,
+      "indentation.template_blocks_indent": 7,
+      "layout.type.column_constraint_segment.align_within": 5,
+      "layout.type.data_type.align_within": 5,
+      "rules.indent_unit": 4,
+      "templater.jinja.macros.foo2_def": 3,
+      "templater.jinja.macros.foo3_def": 3,
+      "rules.capitalisation.identifiers.capitalisation_policy": 2,
+      "rules.tab_space_size": 2,
+      "templater.jinja.library_path": 2,
+      "templater.jinja.macros.a_macro_def": 2,
+      "core.output_line_length": 1,
+      "indentation.allow_implicit_indents": 1,
+      "layout.type.binary_operator.align_within": 1,
+      "rules.AL03.allow_scalar": 1,
+      "rules.layout.newlines.maximum_empty_lines_within_statements": 1,
+      "templater.jinja.macros.dbt_is_incremental": 1,
+      "templater.jinja.macros.my_macro": 1,
+      "templater.jinja.macros.par_wrap": 1,
+      "templater.jinja.macros.snapshot_date": 1,
+      "templater.jinja.macros.some_macro": 1
+     }
+    },
+    "evidence": [
+     {
+      "result": "known_failures/sqruff.txt",
+      "key": "lines with '# unsupported: setting'"
+     },
+     {
+      "result": "results/s3/s1-by-base.json",
+      "key": "bases.sqruff.failure_reasons.unsupported: setting"
+     }
+    ]
+   }
+  }
+ },
+ "G2_S8": {
+  "typed_tree": {
+   "sqruff": {
+    "value": {
+     "segment_type": "SyntaxKind enum",
+     "syntax_kinds": 1359
+    },
+    "evidence": [
+     {
+      "source": {
+       "base": "sqruff",
+       "crate": "sqruff-lib-core",
+       "version": "0.41.0",
+       "crate_sha256": "c2d60b53c5c4c072cd0a79cfea1c5307f053f96b2d81921d444577c19455c0a8",
+       "file": "src/dialects/syntax.rs",
+       "sha256": "ff04a40156c048105b9527f4b8da2583e430a9a444ff8e98b8ab7012d6cdcb11",
+       "lines": {
+        "23": "pub enum SyntaxKind {",
+        "1386": "}"
+       }
+      }
+     },
+     {
+      "source": {
+       "base": "sqruff",
+       "crate": "sqruff-lib-core",
+       "version": "0.41.0",
+       "crate_sha256": "c2d60b53c5c4c072cd0a79cfea1c5307f053f96b2d81921d444577c19455c0a8",
+       "file": "src/parser/segments.rs",
+       "sha256": "c7cefbcccfd279216d0e32ec35e1b3c02bc4bdd0d7020e0abcdf9946a9a3b684",
+       "lines": {
+        "202": "pub fn get_type(&self) -> SyntaxKind {"
+       }
+      }
+     }
+    ]
+   },
+   "sqlfluffrs": {
+    "value": {
+     "segment_type": "string"
+    },
+    "evidence": [
+     {
+      "source": {
+       "base": "sqlfluffrs",
+       "version": "4.4.0",
+       "commit": "0348222a3bcdb0226563f7349c5a39beb0641955",
+       "file": "third_party/sqlfluff/sqlfluffrs/sqlfluffrs_parser/src/parser/types.rs",
+       "sha256": "e3bb1323d6603691709e884e90f0cccd7d5143e07f2030678f93febfbd9a5f9b",
+       "lines": {
+        "45": "pub enum Node {",
+        "49": "segment_type: Cow<'static, str>,  // \"keyword\", \"literal\", \"whitespace\""
+       }
+      }
+     }
+    ]
+   },
+   "new-parser": {
+    "value": "a type enum can come from the generator",
+    "estimate": true,
+    "judgement": "The generator reads the segment classes of each dialect (T5), so it can write a type enum. Not tried.",
+    "evidence": [
+     {
+      "result": "results/s3/sqlfluffrs-probe.json",
+      "key": "generator"
+     }
+    ]
+   },
+   "typed_node_view": {
+    "value": {
+     "sqruff": false,
+     "sqlfluffrs": false,
+     "new-parser": false
+    },
+    "estimate": true,
+    "judgement": "No base has a typed view of each node kind (for example a select statement with its columns); S3b makes it (STONES.md). A segment type tells the kind of a node, not its fields.",
+    "evidence": [
+     {
+      "source": {
+       "base": "sqruff",
+       "crate": "sqruff-lib-core",
+       "version": "0.41.0",
+       "crate_sha256": "c2d60b53c5c4c072cd0a79cfea1c5307f053f96b2d81921d444577c19455c0a8",
+       "file": "src/parser/segments.rs",
+       "sha256": "c7cefbcccfd279216d0e32ec35e1b3c02bc4bdd0d7020e0abcdf9946a9a3b684",
+       "lines": {
+        "202": "pub fn get_type(&self) -> SyntaxKind {"
+       }
+      }
+     },
+     {
+      "source": {
+       "base": "sqlfluffrs",
+       "version": "4.4.0",
+       "commit": "0348222a3bcdb0226563f7349c5a39beb0641955",
+       "file": "third_party/sqlfluff/sqlfluffrs/sqlfluffrs_parser/src/parser/types.rs",
+       "sha256": "e3bb1323d6603691709e884e90f0cccd7d5143e07f2030678f93febfbd9a5f9b",
+       "lines": {
+        "45": "pub enum Node {",
+        "49": "segment_type: Cow<'static, str>,  // \"keyword\", \"literal\", \"whitespace\""
+       }
+      }
+     }
+    ]
+   }
+  },
+  "one_parse": {
+   "sqruff": {
+    "value": "possible",
+    "estimate": true,
+    "judgement": "parse_string gives the tree, and lint_parsed takes it. A command can keep a clone of the tree for code generation. A Jinja file can have more than one rendered variant, each with its own parse.",
+    "evidence": [
+     {
+      "source": {
+       "base": "sqruff",
+       "crate": "sqruff-lib",
+       "version": "0.41.0",
+       "crate_sha256": "e6ed07488aab52e7f03a803be9ab4dc1c1f4c0d46ab6f392d8ac6ae0a3cce611",
+       "file": "src/core/linter/core.rs",
+       "sha256": "d4e955fac332cf2d0cc0e887d5279e19020671a8777bb3c96d0dc620d321fd19",
+       "lines": {
+        "75": "pub fn parse_string(",
+        "80": ") -> Result<ParsedString, SQLFluffUserError> {",
+        "119": "pub fn lint_string(",
+        "128": "let parsed = linter.parse_string_with_config(&tables, sql, filename)?;",
+        "129": "linter.lint_parsed(&tables, parsed, fix)",
+        "472": "pub fn lint_parsed(",
+        "475": "parsed_string: ParsedString,"
+       }
+      }
+     },
+     {
+      "source": {
+       "base": "sqruff",
+       "crate": "sqruff-lib",
+       "version": "0.41.0",
+       "crate_sha256": "e6ed07488aab52e7f03a803be9ab4dc1c1f4c0d46ab6f392d8ac6ae0a3cce611",
+       "file": "src/core/linter/common.rs",
+       "sha256": "6c22922abcc39c60581df4727eb610771f3139234a1593e8ebd87bb04157f4f4",
+       "lines": {
+        "35": "pub struct ParsedString {",
+        "36": "pub tree: Option<ErasedSegment>,",
+        "42": "pub alternate_variants: Vec<ParsedVariant>,"
+       }
+      }
+     }
+    ]
+   },
+   "sqlfluffrs": {
+    "value": "possible",
+    "estimate": true,
+    "judgement": "root_parse gives the tree to the caller; the caller owns the lint and code generation steps.",
+    "evidence": [
+     {
+      "source": {
+       "base": "sqlfluffrs",
+       "version": "4.4.0",
+       "commit": "0348222a3bcdb0226563f7349c5a39beb0641955",
+       "file": "third_party/sqlfluff/sqlfluffrs/sqlfluffrs_parser/src/parser/core.rs",
+       "sha256": "4cc29db5d877491584d8286653851208631365c402f746fac32f67206a981ea6",
+       "lines": {
+        "384": "pub fn root_parse(&mut self) -> Result<Node, ParseError> {"
+       }
+      }
+     }
+    ]
+   },
+   "new-parser": {
+    "value": "possible",
+    "estimate": true,
+    "judgement": "A design choice of S3b.",
+    "evidence": [
+     {
+      "result": "results/s3/s1-by-base.json",
+      "key": "bases.new-parser.note"
+     }
+    ]
+   }
+  },
+  "parameter_styles": {
+   "sqruff": {
+    "value": 14,
+    "evidence": [
+     {
+      "source": {
+       "base": "sqruff",
+       "crate": "sqruff-lib",
+       "version": "0.41.0",
+       "crate_sha256": "e6ed07488aab52e7f03a803be9ab4dc1c1f4c0d46ab6f392d8ac6ae0a3cce611",
+       "file": "src/templaters/types.rs",
+       "sha256": "83489dacca75d45fe3a7143ad4d9e4dfb5918a558192bd5ac71e98cf43ec3a9a",
+       "lines": {
+        "136": "Self::Colon => \"colon\",",
+        "137": "Self::ColonOptionalQuotes => \"colon_optional_quotes\",",
+        "138": "Self::ColonNoSpaces => \"colon_nospaces\",",
+        "139": "Self::NumericColon => \"numeric_colon\",",
+        "140": "Self::At => \"at\",",
+        "141": "Self::Pyformat => \"pyformat\",",
+        "142": "Self::Dollar => \"dollar\",",
+        "143": "Self::DollarSurround => \"dollar_surround\",",
+        "144": "Self::FlywayVar => \"flyway_var\",",
+        "145": "Self::QuestionMark => \"question_mark\",",
+        "146": "Self::NumericDollar => \"numeric_dollar\",",
+        "147": "Self::Percent => \"percent\",",
+        "148": "Self::Ampersand => \"ampersand\",",
+        "149": "Self::ApacheCamel => \"apache_camel\",",
+        "155": "Self::Colon => r\"(?<![:\\w\\\\]):(?P<param_name>\\w+)\",",
+        "156": "Self::ColonOptionalQuotes => r#\"(?<!:):(?P<quotation>['\"]?)(?P<param_name>[\\w_]+)\\1\"#,",
+        "157": "Self::ColonNoSpaces => r\"(?<!:):(?P<param_name>\\w+)\",",
+        "158": "Self::NumericColon => r\"(?<![:\\w\\\\]):(?P<param_name>\\d+)\",",
+        "159": "Self::At => r\"(?<![:\\w\\\\])@(?P<param_name>\\w+)\",",
+        "160": "Self::Pyformat => r\"(?<![:\\w\\\\])%\\((?P<param_name>[\\w_]+)\\)s\",",
+        "161": "Self::Dollar => r\"(?<![:\\w\\\\])\\${?(?P<param_name>[\\w_]+)}?\",",
+        "162": "Self::DollarSurround => r\"(?<![:\\w\\\\])\\$(?P<param_name>[-\\w]+)\\$\",",
+        "163": "Self::FlywayVar => r#\"\\${(?P<param_name>\\w+[:\\w_]+)}\"#,",
+        "164": "Self::QuestionMark => r\"(?<![:\\w\\\\])\\?\",",
+        "165": "Self::NumericDollar => r\"(?<![:\\w\\\\])\\${?(?P<param_name>[\\d]+)}?\",",
+        "166": "Self::Percent => r\"(?<![:\\w\\\\])%s\",",
+        "167": "Self::Ampersand => r\"(?<!&)&{?(?P<param_name>[\\w]+)}?\",",
+        "168": "Self::ApacheCamel => r\":#\\$\\{(?P<param_name>.+)}\","
+       }
+      }
+     }
+    ]
+   },
+   "sqlfluffrs": {
+    "value": 0,
+    "evidence": [
+     {
+      "search": "the tracked .rs files of sqlfluffrs/ with 'templat' in the path",
+      "hits": [
+       "sqlfluffrs/sqlfluffrs_python/src/templater/fileslice.rs",
+       "sqlfluffrs/sqlfluffrs_python/src/templater/mod.rs",
+       "sqlfluffrs/sqlfluffrs_python/src/templater/templatefile.rs",
+       "sqlfluffrs/sqlfluffrs_types/src/templater/fileslice.rs",
+       "sqlfluffrs/sqlfluffrs_types/src/templater/mod.rs",
+       "sqlfluffrs/sqlfluffrs_types/src/templater/templatefile.rs"
+      ]
+     }
+    ]
+   },
+   "new-parser": {
+    "value": 0,
+    "estimate": true,
+    "judgement": "Option 3 is a parser only.",
+    "evidence": [
+     {
+      "search": "the tracked .rs files of sqlfluffrs/ with 'templat' in the path",
+      "hits": [
+       "sqlfluffrs/sqlfluffrs_python/src/templater/fileslice.rs",
+       "sqlfluffrs/sqlfluffrs_python/src/templater/mod.rs",
+       "sqlfluffrs/sqlfluffrs_python/src/templater/templatefile.rs",
+       "sqlfluffrs/sqlfluffrs_types/src/templater/fileslice.rs",
+       "sqlfluffrs/sqlfluffrs_types/src/templater/mod.rs",
+       "sqlfluffrs/sqlfluffrs_types/src/templater/templatefile.rs"
+      ]
+     }
+    ]
+   },
+   "note": "The styles are those of the placeholder templater (S6 table)."
+  },
+  "schema_output": {
+   "value": {
+    "sqruff": false,
+    "sqlfluffrs": false,
+    "new-parser": false
+   },
+   "estimate": true,
+   "judgement": "No base writes a schema of the parameters and the columns (G2.2). The search finds no JSON Schema code; code generation is new work for each base.",
+   "evidence": [
+    {
+     "search": {
+      "pattern": "json[ _-]?schema",
+      "flags": "IGNORECASE",
+      "files": "the .rs files of the 6 sqruff crates",
+      "scanned": 282,
+      "hits": []
+     }
+    },
+    {
+     "search": {
+      "pattern": "json[ _-]?schema",
+      "flags": "IGNORECASE",
+      "files": "the tracked .rs files of sqlfluffrs/",
+      "scanned": 88,
+      "hits": []
+     }
+    }
+   ]
+  }
+ },
+ "G3_start": {
+  "session": {
+   "sqlfluff_start_median_s": {
+    "value": 0.854521,
+    "evidence": [
+     {
+      "command": "timing session"
+     }
+    ]
+   },
+   "sqruff_start_median_s": {
+    "value": 0.024236,
+    "evidence": [
+     {
+      "command": "timing session"
+     }
+    ]
+   },
+   "python_start_s": {
+    "value": 0.02979,
+    "evidence": [
+     {
+      "command": "timing session"
+     }
+    ]
+   },
+   "import_cli_s": {
+    "value": 0.426033,
+    "evidence": [
+     {
+      "command": "timing session"
+     }
+    ]
+   },
+   "sqruff_version_s": {
+    "value": 0.004461,
+    "evidence": [
+     {
+      "command": "timing session"
+     }
+    ]
+   },
+   "machine": {
+    "value": {
+     "cpu_model": "Intel(R) Xeon(R) Processor @ 2.80GHz",
+     "cpu_count": 4,
+     "memory_kib": 16477352,
+     "os": "Debian GNU/Linux 13 (trixie)",
+     "kernel": "6.18.44-fc-v185",
+     "arch": "x86_64",
+     "python": "3.13.16"
+    },
+    "evidence": [
+     {
+      "command": "timing session"
+     }
+    ]
+   },
+   "note": "Each value: the median over the dialects of the median wall time of a start benchmark, or the median of a series. Ratios inside this session only."
+  },
+  "sqlfluff_reference": {
+   "value": {
+    "python_share_of_start": 0.035,
+    "import_cli_share_of_start": 0.499,
+    "import_only_share_of_start": 0.464,
+    "rest_share_of_start": 0.501
+   },
+   "evidence": [
+    {
+     "command": "timing session"
+    }
+   ]
+  },
+  "s2_start_median_s": {
+   "value": {
+    "sqlfluff": 0.524541,
+    "sqlfluff-rs": 0.480955,
+    "sqruff": 0.016692
+   },
+   "evidence": [
+    {
+     "result": "results/s2/baseline.json",
+     "key": "results"
+    }
+   ]
+  },
+  "session_over_s2": {
+   "value": {
+    "sqlfluff": 1.629,
+    "sqruff": 1.452
+   },
+   "evidence": [
+    {
+     "command": "timing session"
+    },
+    {
+     "result": "results/s2/baseline.json",
+     "key": "results"
+    }
+   ]
+  },
+  "bases": {
+   "sqruff": {
+    "value": {
+     "cause": "native binary",
+     "process_share_of_start": 0.184,
+     "links_libpython": true,
+     "needed_libraries": [
+      "ld-linux-x86-64.so.2",
+      "libc.so.6",
+      "libgcc_s.so.1",
+      "libpython3.13.so.1.0"
+     ]
+    },
+    "evidence": [
+     {
+      "command": "timing session"
+     },
+     {
+      "command": "readelf of sqruff in the CI image"
+     }
+    ]
+   },
+   "sqlfluffrs": {
+    "value": {
+     "cause": "native binary (T5 probe)",
+     "probe_over_sqruff_start_median": 0.6199,
+     "setup_share_of_probe_start": 0.6803
+    },
+    "evidence": [
+     {
+      "result": "results/s3/sqlfluffrs-probe.json",
+      "key": "speed.summary.start"
+     }
+    ]
+   },
+   "new-parser": {
+    "value": {
+     "cause": "native binary",
+     "low_over_sqruff_start_sum": 0.3259
+    },
+    "estimate": true,
+    "judgement": "The T6 low bound: the probe time with no setup phase.",
+    "evidence": [
+     {
+      "result": "results/s3/speed-by-base.json",
+      "key": "bases.new-parser-low.summary.start.g3_5_total"
+     }
+    ]
+   },
+   "sqlfluff-rs": {
+    "value": {
+     "cause": "Python start and the import of sqlfluff, as sqlfluff",
+     "s2_start_over_sqlfluff": 0.917
+    },
+    "estimate": true,
+    "judgement": "sqlfluff-rs is the Python sqlfluff with the Rust extension; its S2 start time is near that of sqlfluff. Not measured in this session.",
+    "evidence": [
+     {
+      "result": "results/s2/baseline.json",
+      "key": "results"
+     }
+    ]
+   }
+  }
+ }
+}
