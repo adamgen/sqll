@@ -31,18 +31,19 @@ the run. CI runs it after the tests and after each shard.
 
 `scripts/verify [--jobs N] [--quick | --full-bench]` runs each CI check
 locally: the lint job, one unsharded run of all tools and suites, the
-report and dialect-oracle checks, and the smoke benchmark
-(`out/bench.json`) and its baseline check. Exit code 0 only if all pass;
+report and dialect-oracle checks, the smoke benchmark
+(`out/bench.json`), the corpus smoke run (`out/corpus.json`), and their
+baseline checks. Exit code 0 only if all pass;
 details in `out/verify.json` and `out/verify/*.log`. `--quick` (fast
 checks only) is not the full verification; it writes
 `out/verify-quick.json` and `out/verify-quick/*.log`. Only one run at a
 time can use a checkout. A warning line shows a worktree with changes.
 `scripts/verify --full-bench` is the one command of G4.4 (all tests and
 benchmarks): the full verification, then the full benchmark
-(`out/bench-full.json`, as the `bench-full` job) and its baseline check (as
-`bench-merge`). Its result, `out/verify-full-bench.json`, has `reports`:
-the path of each report (`out/report.json`, `out/bench.json`,
-`out/bench-full.json`).
+(`out/bench-full.json`, as the `bench-full` job) and the full corpus run
+(`out/corpus-full.json`, as `corpus-full`), each with its baseline check
+(as `bench-merge` and `corpus-merge`). Its result,
+`out/verify-full-bench.json`, has `reports`: the path of each report.
 CI-only steps (checkout, image, artifacts, shard merges)
 are in `CI_ONLY` in `sqll_harness/verify.py`. `tests/test_verify.py` fails if
 a CI step is in no list, or if the command lines of a CI step (with its env
@@ -125,16 +126,26 @@ CI (`.github/workflows/ci.yml`):
 5. `dialect-oracle`: `scripts/sqlfluff-dialect-oracle` on the merged report,
    one job for `sqlfluff` and one for `sqlfluff-rs` (`--rust`). It takes some
    minutes.
+6. The S9 corpus (`../corpus/README.md`; `python -m sqll_harness.corpus`):
+   `corpus-smoke` (each full run) does `fetch --smoke`, `notices`, `run
+   --profile smoke`, and `check --baseline results/S9/baseline.json`.
+   `corpus-full` (push to main, `workflow_dispatch`) runs one job for each
+   shard of `corpus/ci-shards.json` (`ci/corpus_matrix.py`); `corpus-merge`
+   does `merge --expect corpus/ci-shards.json` and `check --baseline
+   results/S9/baseline.json --full`. A cache keyed by a hash of
+   `corpus/sources.json` keeps the downloaded files; the fetch checks the
+   sha256 of each. Each artifact also has `out/corpus-notices/` (the
+   manifest and the license files). No job compares timings.
 
 To add a suite or a tool to CI, add an entry to the fragment of your track,
 `ci/matrix.d/<track>.json` (PROCESS.md, "Tracks").
 
 The `changes` job runs `ci/changes.py` first. If each file that a pull
 request changes is a document in its `DOCS` list (`*.md`, `harness/*.md`,
-and `status/*.md`; a `*` does not match `/`), CI does not run `test`, `report`, and
-`dialect-oracle`. The `image` job (a registry lookup, because no document is
-an image input) and `lint` always run: the unit tests read some documents,
-for example STATUS.md. Each other change, a change that is not known, and
+and `status/*.md`; a `*` does not match `/`), CI does not run `test`,
+`report`, `dialect-oracle`, `bench-smoke`, and `corpus-smoke`. The `image`
+job (a registry lookup, because no document is an image input) and `lint`
+always run: the unit tests read some documents, for example STATUS.md. Each other change, a change that is not known, and
 each push to main run all jobs. The full jobs run unless the `changes` job
 output is `full=false`. A new pull request run stops the old run of the same
 pull request. A push to main does not stop a run that has started.

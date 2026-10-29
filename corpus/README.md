@@ -13,6 +13,7 @@ The code: `harness/sqll_harness/corpus/`.
 cd harness
 uv run python -m sqll_harness.corpus validate
 uv run python -m sqll_harness.corpus fetch [--smoke] [--cache DIR]
+uv run python -m sqll_harness.corpus notices [--cache DIR] [--out DIR]
 uv run python -m sqll_harness.corpus run --profile smoke|full \
     [--shard K/N] [--tool T]... [--cache DIR] [--out FILE]
 uv run python -m sqll_harness.corpus merge REPORT... [--expect FILE] [--out FILE]
@@ -21,7 +22,7 @@ uv run python -m sqll_harness.corpus tables REPORT
 uv run python -m sqll_harness.corpus select [--download] [--check] [--cache DIR]
 ```
 
-`validate` and `fetch` write a JSON object. Exit code 2 if the manifest is
+`validate`, `fetch`, and `notices` write a JSON object. Exit code 2 if the manifest is
 not valid, or if a fetch, run, or merge cannot start or complete.
 
 `run` fetches the files of the profile (smoke: 32 KiB or less) and shard,
@@ -35,6 +36,16 @@ code 1 if a report has an error. `tables` prints the Markdown tables of a
 report for `status/S9.md`. The report schema and the statuses:
 `docs/decisions/s9-corpus.md`, "Report". The recorded baseline:
 `results/S9/baseline.json`.
+
+`notices` writes the manifest (`_sources.json`) and each license and
+notice file of each source (`<source id>/<path>`, from the cache, sha256
+checked) to one folder (default `out/corpus-notices`). It replaces an old
+folder only if that folder has `_sources.json`. Each CI artifact with a
+corpus report also has this folder.
+
+CI (`harness/README.md`, "Shards and CI"): the `corpus-smoke` job, and on
+a push to main the `corpus-full` and `corpus-merge` jobs.
+`ci-shards.json` (`{"shards": N}`) is the shard count of `corpus-full`.
 
 ## Manifest format
 

@@ -7,11 +7,14 @@ after its size and sha256 are correct, so each file at such a path is a
 correct copy. A file in the cache is used again only if its sha256 is
 correct; else it is deleted and downloaded again. A wrong size or sha256,
 or a download that fails after the retries, stops the fetch (FetchError).
+notices() writes the manifest and the license and notice files of all
+sources to one folder, for the CI artifacts.
 """
 
 import hashlib
 import http.client
 import os
+import shutil
 import sys
 import tempfile
 import time
@@ -29,6 +32,10 @@ from .manifest import Blob, CorpusFile, Manifest, Source
 CACHE_ENV = "SQLL_CORPUS_CACHE"
 # A source id cannot start with "_" (manifest.py), so no source uses it.
 MANIFESTS_DIR = "_manifests"
+# The manifest copy in a notices folder (notices()). A source id cannot
+# start with "_", so no source folder has this name.
+NOTICES_MANIFEST = "_sources.json"
+DEFAULT_NOTICES = OUT_DIR / "corpus-notices"
 DEFAULT_CACHE = OUT_DIR / "corpus" / "cache"
 RAW_URL = "https://raw.githubusercontent.com/{owner}/{repo}/{commit}/{path}"
 # The waits in seconds before each new attempt: 4 attempts in all.
@@ -228,3 +235,49 @@ def fetch(
         write_file(copy, manifest.text)
     result.downloaded, result.cached = f.downloaded, f.cached
     return result
+
+
+def notices(
+    manifest: Manifest,
+    cache: Path,
+    out: Path,
+    download: Download | None = None,
+    sleep: Callable[[float], None] = time.sleep,
+) -> dict:
+    """Write the manifest (NOTICES_MANIFEST) and each license and notice file
+    of each source (<source>/<path>) to the folder out, from the cache (the
+    fetch checks each sha256). A CI artifact with a report also has this
+    folder (docs/decisions/s9-corpus.md, "Licenses"). An old out folder is
+    replaced only if it has NOTICES_MANIFEST. Raise FetchError."""
+    cache, out = Path(cache).absolute(), Path(out).absolute()
+    check_folder(cache)
+    if os.path.lexists(out) and not (
+        out.is_dir() and not out.is_symlink() and (out / NOTICES_MANIFEST).is_file()
+    ):
+        raise FetchError(f"{out} exists and is not a notices folder")
+    f = _Fetcher(cache, download or http_download, sleep)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    new = Path(tempfile.mkdtemp(dir=out.parent, prefix=f".{out.name}."))
+    try:
+        (new / NOTICES_MANIFEST).write_bytes(manifest.text)
+        count = 0
+        for sid, source in manifest.sources.items():
+            for blob in source.license_files:
+                dest = new / sid / blob.path
+                dest.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(f.get(source, blob), dest)
+                count += 1
+        if os.path.lexists(out):
+            shutil.rmtree(out)
+        os.replace(new, out)
+    finally:
+        if new.exists():
+            shutil.rmtree(new)
+    return {
+        "out": str(out),
+        "manifest_sha256": manifest.sha256,
+        "sources": len(manifest.sources),
+        "license_files": count,
+        "downloaded": f.downloaded,
+        "cached": f.cached,
+    }

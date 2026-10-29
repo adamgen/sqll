@@ -15,7 +15,8 @@ Output: one line for each check, a log for each check in out/verify/, and
 out/verify.json. With --quick: out/verify-quick/ and out/verify-quick.json,
 so a quick run does not delete the result of a full run. With --full-bench
 (G4.4: all tests and all benchmarks in one command): also the full benchmark
-and its baseline check, as the CI jobs bench-full and bench-merge;
+and the full corpus run, and their baseline checks, as the CI jobs
+bench-full, bench-merge, corpus-full, and corpus-merge;
 out/verify-full-bench/ and out/verify-full-bench.json. The result names the
 reports of the checks ("reports").
 """
@@ -58,6 +59,7 @@ def result_paths(quick: bool, full_bench: bool = False) -> tuple[Path, Path]:
 
 
 UV = "uv run --frozen --project harness"
+CORPUS = f"{UV} python -m sqll_harness.corpus"
 
 # CI steps that have no local check: CI mechanics only, and the shard merge.
 CI_ONLY = {
@@ -96,6 +98,20 @@ CI_ONLY = {
     "bench-merge: Merge": "merge of the full benchmark shards; locally"
     " scripts/bench writes one report",
     "bench-merge: actions/upload-artifact": "artifact upload",
+    "corpus-smoke: actions/checkout": "checkout",
+    "corpus-smoke: git config --global --add safe.directory '*'": "container user",
+    "corpus-smoke: actions/cache": "download cache; locally out/corpus/cache",
+    "corpus-smoke: actions/upload-artifact": "artifact upload",
+    "corpus-full: actions/checkout": "checkout",
+    "corpus-full: git config --global --add safe.directory '*'": "container user",
+    "corpus-full: actions/cache": "download cache; locally out/corpus/cache",
+    "corpus-full: actions/upload-artifact": "artifact upload",
+    "corpus-merge: actions/checkout": "checkout",
+    "corpus-merge: git config --global --add safe.directory '*'": "container user",
+    "corpus-merge: actions/download-artifact": "artifact download",
+    "corpus-merge: Merge": "merge of the full corpus shards; locally one"
+    " unsharded run writes one report",
+    "corpus-merge: actions/upload-artifact": "artifact upload",
 }
 
 _SAFE_DIRECTORY = "git config --global --add safe.directory '*'"
@@ -108,7 +124,8 @@ CI_ONLY_RUN = {
     "image: tag": (
         'echo "image=$IMAGE_REPO:$(python3 ci/image_tag.py)" >> "$GITHUB_OUTPUT"\n'
         'echo "matrix=$(python3 ci/matrix.py)" >> "$GITHUB_OUTPUT"\n'
-        'echo "bench_matrix=$(python3 ci/bench_matrix.py)" >> "$GITHUB_OUTPUT"'
+        'echo "bench_matrix=$(python3 ci/bench_matrix.py)" >> "$GITHUB_OUTPUT"\n'
+        'echo "corpus_matrix=$(python3 ci/corpus_matrix.py)" >> "$GITHUB_OUTPUT"'
     ),
     "image: find": (
         'if docker buildx imagetools inspect "$IMAGE" > /dev/null 2>&1; then\n'
@@ -128,6 +145,9 @@ CI_ONLY_RUN = {
             "dialect-oracle",
             "bench-smoke",
             "bench-full",
+            "corpus-smoke",
+            "corpus-full",
+            "corpus-merge",
         )
     },
     "report: Merge": (
@@ -140,6 +160,10 @@ CI_ONLY_RUN = {
     "bench-merge: Merge": (
         f"{UV} sqll-harness bench merge --expect ci/bench-matrix.json"
         " out/bench-shards/*.json --out out/bench.json"
+    ),
+    "corpus-merge: Merge": (
+        f"{CORPUS} merge --expect corpus/ci-shards.json"
+        " out/corpus-shards/*.json --out out/corpus.json"
     ),
 }
 CI_ONLY_RUN_ENV = {
@@ -160,6 +184,9 @@ JOB_IF = {
     "bench-smoke": _FULL,
     "bench-full": _NOT_PR,
     "bench-merge": _NOT_PR,
+    "corpus-smoke": _FULL,
+    "corpus-full": _NOT_PR,
+    "corpus-merge": _NOT_PR,
 }
 
 # The needs of each CI job that has needs. A job "if" and the order of
@@ -172,6 +199,9 @@ JOB_NEEDS = {
     "bench-smoke": ["changes", "image"],
     "bench-full": ["image"],
     "bench-merge": ["image", "bench-full"],
+    "corpus-smoke": ["changes", "image"],
+    "corpus-full": ["image"],
+    "corpus-merge": ["image", "corpus-full"],
 }
 
 # The outputs of each CI job that has outputs, and the id of each CI step
@@ -183,6 +213,7 @@ JOB_OUTPUTS = {
         "image": "${{ steps.tag.outputs.image }}",
         "matrix": "${{ steps.tag.outputs.matrix }}",
         "bench_matrix": "${{ steps.tag.outputs.bench_matrix }}",
+        "corpus_matrix": "${{ steps.tag.outputs.corpus_matrix }}",
     },
 }
 STEP_IDS = {
@@ -204,6 +235,9 @@ STEP_IF = {
     "bench-smoke: actions/upload-artifact": "always()",
     "bench-full: actions/upload-artifact": "always()",
     "bench-merge: actions/upload-artifact": "always()",
+    "corpus-smoke: actions/upload-artifact": "always()",
+    "corpus-full: actions/upload-artifact": "always()",
+    "corpus-merge: actions/upload-artifact": "always()",
 }
 
 # The events and the concurrency of the workflow. An event filter (for
@@ -276,6 +310,10 @@ BENCH_SHARD_ARGS = (
 SETUP = "setup"
 REPORT_FILE = "report"
 BENCH_FULL = "out/bench-full.json"
+CORPUS_SMOKE = "out/corpus.json"
+CORPUS_FULL = "out/corpus-full.json"
+CORPUS_BASELINE = "results/S9/baseline.json"
+NOTICES = "Copy the manifest and the license files"
 
 
 @dataclass(frozen=True)
@@ -538,6 +576,43 @@ def checks(jobs: int | None = None) -> list[Check]:
             'scripts/check-submodule "after the benchmarks"',
             ("bench-smoke: Check that the sqlfluff submodule is clean",),
         ),
+        # The corpus smoke run. The notices check is also the notices step
+        # of the full corpus jobs.
+        Check(
+            "corpus-fetch-smoke",
+            f"{CORPUS} fetch --smoke",
+            ("corpus-smoke: Fetch the smoke files of the corpus",),
+            needs=(SETUP,),
+        ),
+        Check(
+            "corpus-notices",
+            f"{CORPUS} notices --out out/corpus-notices",
+            (
+                f"corpus-smoke: {NOTICES}",
+                f"corpus-full: {NOTICES}",
+                f"corpus-merge: {NOTICES}",
+            ),
+            needs=(SETUP,),
+        ),
+        Check(
+            "corpus-smoke",
+            f"{CORPUS} run --profile smoke --out {CORPUS_SMOKE}",
+            ("corpus-smoke: Run the corpus smoke profile",),
+            needs=(SETUP,),
+            removes=(CORPUS_SMOKE,),
+            report=CORPUS_SMOKE,
+        ),
+        Check(
+            "corpus-baseline",
+            f"{CORPUS} check {CORPUS_SMOKE} --baseline {CORPUS_BASELINE}",
+            ("corpus-smoke: Check the corpus smoke report against the baseline",),
+            needs=(SETUP,),
+        ),
+        Check(
+            "submodule-after-corpus",
+            'scripts/check-submodule "after the corpus run"',
+            ("corpus-smoke: Check that the sqlfluff submodule is clean",),
+        ),
         # The full benchmark (--full-bench): all shards in one report.
         Check(
             "bench-full",
@@ -568,6 +643,36 @@ def checks(jobs: int | None = None) -> list[Check]:
             needs=(SETUP,),
             full_bench=True,
             ci_diff=((" out/bench.json ", f" {BENCH_FULL} "),),
+        ),
+        # The full corpus run (--full-bench): all shards in one report.
+        Check(
+            "corpus-full",
+            f"{CORPUS} run --profile full --out {CORPUS_FULL}",
+            ("corpus-full: Run the corpus shard",),
+            needs=(SETUP,),
+            removes=(CORPUS_FULL,),
+            report=CORPUS_FULL,
+            full_bench=True,
+            ci_diff=(
+                (
+                    " --shard {} --out out/corpus-shards/{}.json",
+                    f" --out {CORPUS_FULL}",
+                ),
+            ),
+        ),
+        Check(
+            "submodule-after-full-corpus",
+            'scripts/check-submodule "after the corpus run"',
+            ("corpus-full: Check that the sqlfluff submodule is clean",),
+            full_bench=True,
+        ),
+        Check(
+            "corpus-full-baseline",
+            f"{CORPUS} check {CORPUS_FULL} --baseline {CORPUS_BASELINE} --full",
+            ("corpus-merge: Check the merged corpus report against the baseline",),
+            needs=(SETUP,),
+            full_bench=True,
+            ci_diff=((f" {CORPUS_SMOKE} ", f" {CORPUS_FULL} "),),
         ),
     ]
 
@@ -1030,9 +1135,10 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument(
         "--full-bench",
         action="store_true",
-        help="Also run the full benchmark (about 2 hours) and compare it with the"
-        " baseline, as the CI jobs bench-full and bench-merge. With the other"
-        " checks, this runs all tests and benchmarks (G4.4).",
+        help="Also run the full benchmark (about 2 hours) and the full corpus"
+        " (about 75 minutes), and compare them with their baselines, as the CI"
+        " jobs bench-full, bench-merge, corpus-full, and corpus-merge. With the"
+        " other checks, this runs all tests and benchmarks (G4.4).",
     )
     p.add_argument("--list", action="store_true", help="Print the checks and stop.")
     args = p.parse_args(argv)

@@ -71,6 +71,15 @@ def _merge_check_run(d, old: str, new: str):
     step["run"] = step["run"].replace(old, new)
 
 
+CORPUS_MERGE_CHECK = "Check the merged corpus report against the baseline"
+
+
+def _corpus_run(d, job: str, name: str, old: str, new: str):
+    step = _step(d, job, name)
+    assert old in step["run"]
+    step["run"] = step["run"].replace(old, new)
+
+
 CI_CHANGES = {
     "no baseline check step": lambda d: _without_step(d, "bench-smoke", BASELINE_STEP),
     "baseline check of a smoke run without --baseline": lambda d: _step(
@@ -299,6 +308,100 @@ CI_CHANGES = {
             "run"
         ].split('echo "bench_matrix')[0]
     ),
+    # The corpus jobs.
+    "corpus smoke with the full profile": lambda d: _corpus_run(
+        d, "corpus-smoke", "Run the corpus smoke profile", "smoke", "full"
+    ),
+    "corpus smoke of one tool": lambda d: _corpus_run(
+        d,
+        "corpus-smoke",
+        "Run the corpus smoke profile",
+        "smoke",
+        "smoke --tool sqruff",
+    ),
+    "corpus smoke fetch of all files": lambda d: _corpus_run(
+        d, "corpus-smoke", "Fetch the smoke files of the corpus", " --smoke", ""
+    ),
+    "corpus smoke check without --baseline": lambda d: _corpus_run(
+        d,
+        "corpus-smoke",
+        "Check the corpus smoke report against the baseline",
+        " --baseline results/S9/baseline.json",
+        "",
+    ),
+    "corpus smoke check of the S2 baseline": lambda d: _corpus_run(
+        d,
+        "corpus-smoke",
+        "Check the corpus smoke report against the baseline",
+        "results/S9/",
+        "results/s2/",
+    ),
+    "corpus smoke check removed": lambda d: _without_step(
+        d, "corpus-smoke", "Check the corpus smoke report against the baseline"
+    ),
+    "corpus smoke notices removed": lambda d: _without_step(
+        d, "corpus-smoke", "Copy the manifest and the license files"
+    ),
+    "corpus smoke notices to another folder": lambda d: _corpus_run(
+        d,
+        "corpus-smoke",
+        "Copy the manifest and the license files",
+        "out/corpus-notices",
+        "out/x",
+    ),
+    "corpus-smoke runs on a docs-only pull request": lambda d: d["jobs"][
+        "corpus-smoke"
+    ].pop("if"),
+    "corpus-smoke upload if removed": lambda d: d["jobs"]["corpus-smoke"]["steps"][
+        -1
+    ].pop("if"),
+    "corpus-full runs on each pull request": lambda d: d["jobs"]["corpus-full"].pop(
+        "if"
+    ),
+    "corpus-full shard of the smoke profile": lambda d: _corpus_run(
+        d, "corpus-full", "Run the corpus shard", "--profile full", "--profile smoke"
+    ),
+    "corpus-full shard of one tool": lambda d: _corpus_run(
+        d,
+        "corpus-full",
+        "Run the corpus shard",
+        "--profile full",
+        "--tool x --profile full",
+    ),
+    "corpus-full submodule check removed": lambda d: _without_step(
+        d, "corpus-full", "Check that the sqlfluff submodule is clean"
+    ),
+    "corpus-full notices removed": lambda d: _without_step(
+        d, "corpus-full", "Copy the manifest and the license files"
+    ),
+    "corpus-merge does not need corpus-full": lambda d: d["jobs"][
+        "corpus-merge"
+    ].update(needs=["image"]),
+    "corpus-merge without --expect": lambda d: _corpus_run(
+        d, "corpus-merge", "Merge", "--expect corpus/ci-shards.json ", ""
+    ),
+    "corpus-merge expects the bench shards": lambda d: _corpus_run(
+        d, "corpus-merge", "Merge", "corpus/ci-shards.json", "ci/bench-matrix.json"
+    ),
+    "corpus-merge check without --full": lambda d: _corpus_run(
+        d, "corpus-merge", CORPUS_MERGE_CHECK, " --full", ""
+    ),
+    "corpus-merge check of a shard": lambda d: _corpus_run(
+        d, "corpus-merge", CORPUS_MERGE_CHECK, " out/corpus.json ", " out/x.json "
+    ),
+    "corpus-merge notices removed": lambda d: _without_step(
+        d, "corpus-merge", "Copy the manifest and the license files"
+    ),
+    "corpus_matrix output changed": lambda d: d["jobs"]["image"]["outputs"].update(
+        corpus_matrix='{"include": [{"shard": "1/1", "name": "x"}]}'
+    ),
+    "corpus_matrix line removed from the tag step": lambda d: next(
+        s for s in d["jobs"]["image"]["steps"] if s.get("id") == "tag"
+    ).update(
+        run=next(s for s in d["jobs"]["image"]["steps"] if s.get("id") == "tag")[
+            "run"
+        ].split('echo "corpus_matrix')[0]
+    ),
     "ruff check --check": lambda d: _step(d, "lint", "Lint").update(
         run=_step(d, "lint", "Lint")["run"].replace(
             "ruff check harness", "ruff check --check harness"
@@ -356,6 +459,43 @@ LOCAL_CHANGES = {
     "full baseline check of the smoke report": (
         "bench-full-baseline",
         lambda c: c.replace("out/bench-full.json", "out/bench.json"),
+    ),
+    "corpus smoke of one tool": ("corpus-smoke", lambda c: c + " --tool sqruff"),
+    "corpus smoke full profile": (
+        "corpus-smoke",
+        lambda c: c.replace("--profile smoke", "--profile full"),
+    ),
+    "corpus fetch of all files": (
+        "corpus-fetch-smoke",
+        lambda c: c[: -len(" --smoke")],
+    ),
+    "corpus notices to another folder": (
+        "corpus-notices",
+        lambda c: c.replace("out/corpus-notices", "out/x"),
+    ),
+    "corpus smoke check without --baseline": (
+        "corpus-baseline",
+        lambda c: c.replace(" --baseline results/S9/baseline.json", ""),
+    ),
+    "corpus smoke check of the full report": (
+        "corpus-baseline",
+        lambda c: c.replace("out/corpus.json", "out/corpus-full.json"),
+    ),
+    "full corpus with the smoke profile": (
+        "corpus-full",
+        lambda c: c.replace("--profile full", "--profile smoke"),
+    ),
+    "full corpus check without --full": (
+        "corpus-full-baseline",
+        lambda c: c.replace(" --full", ""),
+    ),
+    "full corpus check of the smoke report": (
+        "corpus-full-baseline",
+        lambda c: c.replace("out/corpus-full.json", "out/corpus.json"),
+    ),
+    "submodule check after the full corpus run": (
+        "submodule-after-full-corpus",
+        lambda c: c.replace("corpus run", "tests"),
     ),
     "submodule check after the full benchmark": (
         "submodule-after-full-bench",
@@ -468,8 +608,15 @@ def test_each_upload_fails_if_a_file_is_missing():
         for key, step, _ in verify.ci_steps(CI)
         if str(step.get("uses", "")).startswith(verify.UPLOAD)
     ]
-    assert len(uploads) == 6
-    for job in ("bench-smoke", "bench-full", "bench-merge"):
+    assert len(uploads) == 9
+    for job in (
+        "bench-smoke",
+        "bench-full",
+        "bench-merge",
+        "corpus-smoke",
+        "corpus-full",
+        "corpus-merge",
+    ):
         assert f"{job}: actions/upload-artifact" in uploads
 
     def change(d):
@@ -558,13 +705,25 @@ def test_only_the_unsharded_runs_have_a_ci_diff():
         "run",
         "bench-full",
         "bench-full-baseline",
+        "corpus-full",
+        "corpus-full-baseline",
     ]
+
+
+FULL_BENCH = [
+    "bench-full",
+    "submodule-after-full-bench",
+    "bench-full-baseline",
+    "corpus-full",
+    "submodule-after-full-corpus",
+    "corpus-full-baseline",
+]
 
 
 def test_the_full_benchmark_checks_are_last_and_only_in_full_bench():
     full = [c.name for c in CHECKS if c.full_bench]
-    assert full == ["bench-full", "submodule-after-full-bench", "bench-full-baseline"]
-    assert [c.name for c in CHECKS[-3:]] == full
+    assert full == FULL_BENCH
+    assert [c.name for c in CHECKS[-len(FULL_BENCH) :]] == full
     assert not any(c.quick for c in CHECKS if c.full_bench)
 
 
@@ -575,7 +734,7 @@ def _listed(capsys, *args) -> list[str]:
 
 def test_full_bench_adds_the_full_benchmark_to_the_full_verification(capsys):
     names = [c.name for c in CHECKS]
-    assert _listed(capsys) == names[:-3]
+    assert _listed(capsys) == names[: -len(FULL_BENCH)]
     assert _listed(capsys, "--full-bench") == names
     assert _listed(capsys, "--quick") == [c.name for c in CHECKS if c.quick]
 
@@ -593,6 +752,8 @@ def test_the_reports_of_the_checks():
         "run": "out/report.json",
         "bench-smoke": "out/bench.json",
         "bench-full": "out/bench-full.json",
+        "corpus-smoke": "out/corpus.json",
+        "corpus-full": "out/corpus-full.json",
     }
 
 
@@ -739,3 +900,49 @@ def test_preflight_failure_stops_verify(root, monkeypatch):
     monkeypatch.setattr(verify.preflight, "check", lambda: 2)
     assert verify.main(["--quick"]) == 2
     assert not (root / "out" / "verify-quick.json").exists()
+
+
+CORPUS_JOBS = ("corpus-smoke", "corpus-full", "corpus-merge")
+
+
+def test_the_corpus_cache_is_keyed_by_the_manifest():
+    for job in ("corpus-smoke", "corpus-full"):
+        steps = CI["jobs"][job]["steps"]
+        cache = [s for s in steps if s.get("uses", "").startswith("actions/cache@")]
+        assert len(cache) == 1, job
+        assert cache[0]["with"]["path"] == "out/corpus/cache"
+        key = cache[0]["with"]["key"]
+        assert key.startswith(f"{job}-") and key.endswith(
+            "-${{ hashFiles('corpus/sources.json') }}"
+        )
+        names = [verify.step_label(s) for s in steps]
+        assert names.index("actions/cache") < names.index(
+            "Copy the manifest and the license files"
+        )
+    assert "actions/cache" not in [
+        verify.step_label(s) for s in CI["jobs"]["corpus-merge"]["steps"]
+    ]
+
+
+def test_each_corpus_artifact_has_the_manifest_and_the_license_files():
+    for job in CORPUS_JOBS:
+        steps = CI["jobs"][job]["steps"]
+        upload = steps[-1]
+        assert upload["uses"].startswith(verify.UPLOAD)
+        paths = upload["with"]["path"].splitlines()
+        assert "out/corpus-notices/" in paths and len(paths) == 2, job
+        names = [verify.step_label(s) for s in steps]
+        assert "Copy the manifest and the license files" in names
+
+
+def test_the_corpus_smoke_checks_are_in_the_full_verification(capsys):
+    names = _listed(capsys)
+    for name in (
+        "corpus-fetch-smoke",
+        "corpus-notices",
+        "corpus-smoke",
+        "corpus-baseline",
+        "submodule-after-corpus",
+    ):
+        assert name in names
+    assert not [c.name for c in CHECKS if c.quick and "corpus" in c.name]

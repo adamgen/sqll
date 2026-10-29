@@ -20,8 +20,8 @@ env:
 
 jobs:
   # If a pull request changes only documents (ci/changes.py), the test,
-  # report, dialect-oracle, and bench-smoke jobs do not run. The image and
-  # lint jobs always run. A push always runs all jobs. The heavy jobs run
+  # report, dialect-oracle, bench-smoke, and corpus-smoke jobs do not run.
+  # The image and lint jobs always run. A push always runs all jobs. The heavy jobs run
   # unless full is 'false', so an empty output gives a full run.
   changes:
     runs-on: ubuntu-latest
@@ -51,6 +51,7 @@ jobs:
       image: ${{ steps.tag.outputs.image }}
       matrix: ${{ steps.tag.outputs.matrix }}
       bench_matrix: ${{ steps.tag.outputs.bench_matrix }}
+      corpus_matrix: ${{ steps.tag.outputs.corpus_matrix }}
     steps:
       - uses: actions/checkout@v7
 
@@ -59,6 +60,7 @@ jobs:
           echo "image=$IMAGE_REPO:$(python3 ci/image_tag.py)" >> "$GITHUB_OUTPUT"
           echo "matrix=$(python3 ci/matrix.py)" >> "$GITHUB_OUTPUT"
           echo "bench_matrix=$(python3 ci/bench_matrix.py)" >> "$GITHUB_OUTPUT"
+          echo "corpus_matrix=$(python3 ci/corpus_matrix.py)" >> "$GITHUB_OUTPUT"
 
       - uses: docker/login-action@v4
         with:
@@ -518,4 +520,183 @@ jobs:
         with:
           name: bench-full
           path: out/bench.json
+          if-no-files-found: error
+
+  # The S9 corpus smoke run (docs/decisions/s9-corpus.md, "Profiles"): the
+  # files of 32 KiB or less, all tools, 1 timed run. Locally: scripts/verify.
+  # The cache has the downloaded files; the fetch checks the sha256 of each.
+  # Each artifact with a report also has the manifest and the license files.
+  corpus-smoke:
+    needs: [changes, image]
+    if: needs.changes.outputs.full != 'false'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: read
+    container:
+      image: ${{ needs.image.outputs.image }}
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: true
+
+      # The runner user owns the workspace, not the container user.
+      - run: git config --global --add safe.directory '*'
+
+      - uses: actions/cache@v6
+        with:
+          path: out/corpus/cache
+          key: corpus-smoke-${{ hashFiles('corpus/sources.json') }}
+
+      - name: Fetch the smoke files of the corpus
+        run: >-
+          uv run --frozen --project harness python -m sqll_harness.corpus
+          fetch --smoke
+
+      - name: Copy the manifest and the license files
+        run: >-
+          uv run --frozen --project harness python -m sqll_harness.corpus
+          notices --out out/corpus-notices
+
+      - name: Run the corpus smoke profile
+        run: >-
+          uv run --frozen --project harness python -m sqll_harness.corpus
+          run --profile smoke --out out/corpus.json
+
+      # The stable data (sqlfluff ref, tool versions and settings, inputs, and
+      # the status and unparsable segments of each result) must be that of
+      # the recorded baseline. No timing is compared.
+      - name: Check the corpus smoke report against the baseline
+        run: >-
+          uv run --frozen --project harness python -m sqll_harness.corpus
+          check out/corpus.json --baseline results/S9/baseline.json
+
+      - name: Check that the sqlfluff submodule is clean
+        run: scripts/check-submodule "after the corpus run"
+
+      - if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: corpus-smoke
+          path: |
+            out/corpus.json
+            out/corpus-notices/
+          if-no-files-found: error
+
+  # The S9 full corpus run on a push to main and on workflow_dispatch, sharded
+  # by file (corpus/ci-shards.json, ci/corpus_matrix.py). Locally:
+  # scripts/verify --full-bench (no sharding).
+  corpus-full:
+    needs: image
+    if: github.event_name != 'pull_request'
+    name: corpus-full (${{ matrix.name }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      packages: read
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.image.outputs.corpus_matrix) }}
+    container:
+      image: ${{ needs.image.outputs.image }}
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: true
+
+      # The runner user owns the workspace, not the container user.
+      - run: git config --global --add safe.directory '*'
+
+      - uses: actions/cache@v6
+        with:
+          path: out/corpus/cache
+          key: corpus-full-${{ matrix.name }}-${{ hashFiles('corpus/sources.json') }}
+
+      - name: Copy the manifest and the license files
+        run: >-
+          uv run --frozen --project harness python -m sqll_harness.corpus
+          notices --out out/corpus-notices
+
+      # The run fetches the files of its shard.
+      - name: Run the corpus shard
+        run: >-
+          uv run --frozen --project harness python -m sqll_harness.corpus
+          run --profile full --shard ${{ matrix.shard }}
+          --out out/corpus-shards/${{ matrix.name }}.json
+
+      - name: Check that the sqlfluff submodule is clean
+        run: scripts/check-submodule "after the corpus run"
+
+      - if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: corpus-shard-${{ matrix.name }}
+          path: |
+            out/corpus-shards/${{ matrix.name }}.json
+            out/corpus-notices/
+          if-no-files-found: error
+
+  # Merge the shard reports of the full corpus run into one report, and
+  # compare it with the baseline.
+  corpus-merge:
+    needs: [image, corpus-full]
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      packages: read
+    container:
+      image: ${{ needs.image.outputs.image }}
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      # The manifest check reads the dialects of the sqlfluff submodule.
+      - uses: actions/checkout@v7
+        with:
+          submodules: true
+
+      # The runner user owns the workspace, not the container user.
+      - run: git config --global --add safe.directory '*'
+
+      - uses: actions/download-artifact@v7
+        with:
+          pattern: corpus-shard-*
+          path: out
+          merge-multiple: true
+
+      - name: Copy the manifest and the license files
+        run: >-
+          uv run --frozen --project harness python -m sqll_harness.corpus
+          notices --out out/corpus-notices
+
+      - name: Merge
+        run: >-
+          uv run --frozen --project harness python -m sqll_harness.corpus
+          merge --expect corpus/ci-shards.json out/corpus-shards/*.json
+          --out out/corpus.json
+
+      # The stable data of the full run must be that of the recorded
+      # baseline, with each result of it (--full). No timing is compared.
+      - name: Check the merged corpus report against the baseline
+        run: >-
+          uv run --frozen --project harness python -m sqll_harness.corpus
+          check out/corpus.json --baseline results/S9/baseline.json --full
+
+      - if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: corpus-full
+          path: |
+            out/corpus.json
+            out/corpus-notices/
           if-no-files-found: error
