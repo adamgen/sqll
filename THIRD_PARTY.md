@@ -50,6 +50,13 @@ sha256, the crate names of `cargo tree`, and test names and counts.
 `scripts/s3/probe-sqlfluffrs/Cargo.lock` has the crate versions of
 `sqlfluffrs/Cargo.lock`. The probe is research code, not sqll.
 
+`scripts/s3/license_size.py` (S3 research, task T7) generates the
+sqlfluffrs tables in a scratch copy, as T5; the generated files stay there.
+`results/s3/license-size-sources.json` has the text of the license files of
+the submodule (MIT), the names, versions, and license fields of the
+dependencies of the sqlfluffrs workspace (cargo metadata), the license
+metadata of the Python packages of the sqlfluff tool venv, and line counts.
+
 Ported code (MIT, attribution in each file header):
 
 | sqll file | sqlfluff source |
@@ -79,6 +86,12 @@ Ported code (MIT, attribution in each file header):
   type names (`SyntaxKind` variants) that they name, and the layout type
   names of `default_config.cfg`. `scripts/s3/sqruff_rules.py` reads the
   crates from the cargo cache. No sqruff code is copied.
+- `results/s3/license-size-sources.json` (task T7) has the text of the
+  license files of the sqruff repository at tag `v0.41.0` (Apache-2.0), the
+  file names, line counts, and license fields of the crates.io crates of
+  sqruff 0.41.0, the names, versions, and license fields of their
+  dependencies (cargo metadata), and short comment lines of the crates that
+  name sqlfluff. No sqruff code is copied.
 
 ## S9 corpus
 
