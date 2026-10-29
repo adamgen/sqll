@@ -50,6 +50,24 @@ sha256, the crate names of `cargo tree`, and test names and counts.
 `scripts/s3/probe-sqlfluffrs/Cargo.lock` has the crate versions of
 `sqlfluffrs/Cargo.lock`. The probe is research code, not sqll.
 
+`scripts/s3/license_size.py` (S3 research, task T7) generates the
+sqlfluffrs tables in a scratch copy, as T5; the generated files stay there.
+`results/s3/license-size-sources.json` has the text of the license files of
+the submodule (MIT), the names, versions, and license fields of the
+dependencies of the sqlfluffrs workspace (cargo metadata), the license
+metadata of the Python packages of the sqlfluff tool venv, and line counts.
+`results/s3/license-size.json` (task T7) has the first line and the
+copyright line of `LICENSE.md` and `sqlfluffrs/LICENSE.md`, and it quotes
+the MIT condition
+("The above copyright notice and this permission notice shall be included
+in all copies or substantial portions of the Software.").
+`results/s3/license-size-sources.json` and `results/s3/license-size.json`
+quote one declaration line of
+`sqlfluffrs/sqlfluffrs_parser/src/parser/arena.rs` (MIT):
+`pub fn is_type(&self, id: NodeId, target: &str) -> bool {`.
+`results/s3/license-size.json` also has this line in the text of
+`structure.rules`. No other sqlfluffrs code is copied.
+
 Ported code (MIT, attribution in each file header):
 
 | sqll file | sqlfluff source |
@@ -79,6 +97,17 @@ Ported code (MIT, attribution in each file header):
   type names (`SyntaxKind` variants) that they name, and the layout type
   names of `default_config.cfg`. `scripts/s3/sqruff_rules.py` reads the
   crates from the cargo cache. No sqruff code is copied.
+- `results/s3/license-size-sources.json` (task T7) has the text of the
+  license files of the sqruff repository at tag `v0.41.0` (Apache-2.0).
+  `results/s3/license-size-sources.json` and `results/s3/license-size.json`
+  have: the first line and the copyright line of `LICENSE` of that tag; the
+  file names, line counts, and license fields of the crates.io crates of
+  sqruff 0.41.0; the names, versions, and license fields of their
+  dependencies (cargo metadata); 62 short comment lines of the crates that
+  name sqlfluff; the first line of `src/mariadb_keywords.rs` of
+  `sqruff-lib-dialects`; and one declaration line of `src/core/rules.rs` of
+  `sqruff-lib`: `pub trait Rule: Debug + 'static + Send + Sync {`.
+  No other sqruff code is copied.
 
 ## S9 corpus
 
