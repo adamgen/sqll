@@ -117,7 +117,7 @@ def _content_error(data: bytes, entry: CorpusFile) -> str | None:
     return None
 
 
-def _write(dest: Path, data: bytes) -> None:
+def write_file(dest: Path, data: bytes) -> None:
     """Write data to dest. A reader never sees a part of the data at dest."""
     dest.parent.mkdir(parents=True, exist_ok=True)
     fd, tmp = tempfile.mkstemp(dir=dest.parent, prefix=f".{dest.name}.", suffix=".part")
@@ -192,7 +192,7 @@ class _Fetcher:
                 f"{url}: sha256 {_sha256(data)}, the manifest has {blob.sha256}"
             )
         self._content(data, entry, dest)
-        _write(dest, data)
+        write_file(dest, data)
         self.downloaded += 1
         return dest
 
@@ -225,6 +225,6 @@ def fetch(
         blob = Blob(e.path, e.bytes, e.sha256)
         result.files[e.id] = f.get(manifest.sources[e.source], blob, e)
     if not (copy.is_file() and copy.read_bytes() == manifest.text):
-        _write(copy, manifest.text)
+        write_file(copy, manifest.text)
     result.downloaded, result.cached = f.downloaded, f.cached
     return result

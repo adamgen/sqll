@@ -1,5 +1,2310 @@
 {
   "format": 1,
-  "sources": {},
-  "files": []
+  "sources": {
+    "amazon-redshift-utils": {
+      "repository": "https://github.com/awslabs/amazon-redshift-utils",
+      "commit": "f208c1100370eebca8b38d3e7d0654fb337e3463",
+      "license": "Apache-2.0",
+      "copyright": [
+        "Amazon.com, Inc. or its affiliates"
+      ],
+      "license_files": [
+        {
+          "path": "LICENSE.txt",
+          "bytes": 10142,
+          "sha256": "09e8a9bcec8067104652c168685ab0931e7868f9c8284b66f5ae6edae5f1130b"
+        },
+        {
+          "path": "NOTICE.txt",
+          "bytes": 113,
+          "sha256": "ac5fecf46d305cd0c346a952afc316cd902048aa9d254abde8ac3604de5202f2"
+        }
+      ],
+      "globs": [
+        "src/AdminViews/*.sql",
+        "src/StoredProcedures/*.sql"
+      ],
+      "note": "Default branch on 2026-10-28. Only admin views and stored procedures: the benchmark folders have SQL derived from TPC-H and TPC-DS (out, see Licenses). Excluded: src/StoredProcedures/sp_sync_merge_changes.sql: It names the TPC-H database 'tpch_100g'. The TPC check refuses each mention of TPC-H or TPC-DS."
+    },
+    "bigquery-utils": {
+      "repository": "https://github.com/GoogleCloudPlatform/bigquery-utils",
+      "commit": "d5bde4fb0d2dbfa0477f1f2a6d87edda65bb7907",
+      "license": "Apache-2.0",
+      "copyright": [
+        "Google LLC"
+      ],
+      "license_files": [
+        {
+          "path": "LICENSE",
+          "bytes": 11358,
+          "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+        }
+      ],
+      "globs": [
+        "views/**/*.sql"
+      ],
+      "note": "Default branch on 2026-10-28. The copyright holder is in the header of each selected file."
+    },
+    "chinook-database": {
+      "repository": "https://github.com/lerocha/chinook-database",
+      "commit": "7f67772503d71ba90f19283c38e93923addb43fa",
+      "license": "MIT",
+      "copyright": [
+        "Luis Rocha"
+      ],
+      "license_files": [
+        {
+          "path": "LICENSE.md",
+          "bytes": 1117,
+          "sha256": "5064d720db431474b0a0b0cef9d2b5e362b6c6f80602b35c6443b07cbc979f77"
+        }
+      ],
+      "globs": [
+        "ChinookDatabase/DataSources/Chinook_Db2*.sql",
+        "ChinookDatabase/DataSources/Chinook_MySql*.sql",
+        "ChinookDatabase/DataSources/Chinook_Oracle*.sql",
+        "ChinookDatabase/DataSources/Chinook_PostgreSql*.sql",
+        "ChinookDatabase/DataSources/Chinook_SqlServer*.sql",
+        "ChinookDatabase/DataSources/Chinook_Sqlite*.sql"
+      ],
+      "note": "Default branch on 2026-10-28. The dialect comes from the database in the file name."
+    },
+    "clickhouse": {
+      "repository": "https://github.com/ClickHouse/ClickHouse",
+      "commit": "a1f4cd9c23f649b8891e952f973937f40eb9d273",
+      "license": "Apache-2.0",
+      "copyright": [
+        "ClickHouse, Inc."
+      ],
+      "license_files": [
+        {
+          "path": "LICENSE",
+          "bytes": 11389,
+          "sha256": "e276e9cd356772864ed82575f081ef1b8225914c3ac39a03c9112821a7e33f62"
+        }
+      ],
+      "globs": [
+        "tests/queries/0_stateless/00[0-2]*.sql"
+      ],
+      "note": "Tag v25.8.9.20-lts. Only the stateless tests 00000 to 00299. The full folder has 67 tests in the size range, 3.9 MB in total."
+    },
+    "db-sample-schemas": {
+      "repository": "https://github.com/oracle-samples/db-sample-schemas",
+      "commit": "6660bad68c07bd143430ace58565b3f727e17263",
+      "license": "MIT",
+      "copyright": [
+        "Oracle and/or its affiliates",
+        "Oracle"
+      ],
+      "license_files": [
+        {
+          "path": "LICENSE.txt",
+          "bytes": 1094,
+          "sha256": "2da4f8e1f04662e5db9b224a20dfd13db8bc396398271d607bda0343212fbce3"
+        }
+      ],
+      "globs": [
+        "customer_orders/*.sql",
+        "human_resources/*.sql",
+        "sales_history/*.sql"
+      ],
+      "note": "Default branch on 2026-10-28. Not order_entry: 39 files (3.4 MB) in the size range, most of them product text in many languages. The selected files have the notice 'Copyright (c) 2023 Oracle'."
+    },
+    "dbt-cerebro": {
+      "repository": "https://github.com/gnosischain/dbt-cerebro",
+      "commit": "b5e7f2ac0704707e33c980ac16bf9fea151a6834",
+      "license": "MIT",
+      "copyright": [
+        "hdser"
+      ],
+      "license_files": [
+        {
+          "path": "LICENSE",
+          "bytes": 1062,
+          "sha256": "573ff9bd7b42fb56f2828a23a92f9e531924dad13c47ee8f8bb38063d6b16abc"
+        }
+      ],
+      "globs": [
+        "models/**/*.sql"
+      ],
+      "note": "Default branch on 2026-10-28. A dbt project on ClickHouse (profiles.yml: type clickhouse). Only the models: the macro files define macros and render to almost no SQL. The Jinja rule takes the models that use only dbt builtins."
+    },
+    "emerging-solutions-toolbox": {
+      "repository": "https://github.com/Snowflake-Labs/emerging-solutions-toolbox",
+      "commit": "d9073a376b4c9479d444cff57becc9c98b26e7e3",
+      "license": "Apache-2.0",
+      "copyright": [
+        "Snowflake Inc."
+      ],
+      "license_files": [
+        {
+          "path": "LICENSE",
+          "bytes": 15333,
+          "sha256": "2c6595c0233011685b8d26fd692f75149d696aa4490f38b23d8ef6380e9f51b0"
+        }
+      ],
+      "globs": [
+        "**/*.sql"
+      ],
+      "note": "Default branch on 2026-10-28. The copyright holder is in the header of selected files."
+    },
+    "pagila": {
+      "repository": "https://github.com/devrimgunduz/pagila",
+      "commit": "ce6e114236bb828e5ec0dc835f65f1bf1b9179f5",
+      "license": "PostgreSQL",
+      "copyright": [
+        "Devrim Gündüz"
+      ],
+      "license_files": [
+        {
+          "path": "LICENSE.txt",
+          "bytes": 988,
+          "sha256": "dcc10ac50b94172e627f7a5ec9c08f9e4568e6dd51a952f96ec09506f70163fb"
+        }
+      ],
+      "globs": [
+        "*.sql"
+      ],
+      "note": "Default branch on 2026-10-28. The data files are more than 2 MiB."
+    },
+    "postgres": {
+      "repository": "https://github.com/postgres/postgres",
+      "commit": "7885b94dd81b98bbab9ed878680d156df7bf857f",
+      "license": "PostgreSQL",
+      "copyright": [
+        "PostgreSQL Global Development Group",
+        "The Regents of the University of California"
+      ],
+      "license_files": [
+        {
+          "path": "COPYRIGHT",
+          "bytes": 1198,
+          "sha256": "5ed3ce5c9373dff7f98b1fae7a6c7ccd98df7d734d46d24c1bcebf1240be8307"
+        }
+      ],
+      "globs": [
+        "src/test/regress/sql/*.sql"
+      ],
+      "note": "Tag REL_17_6. The regression tests have psql commands."
+    },
+    "sakila": {
+      "repository": "https://github.com/jOOQ/sakila",
+      "commit": "e089a5b1ec9af0df7a9c6a5d47d49fa1736a4e84",
+      "license": "BSD-2-Clause",
+      "copyright": [
+        "jOOQ Object Oriented Querying",
+        "DB Software Laboratory"
+      ],
+      "license_files": [
+        {
+          "path": "LICENSE",
+          "bytes": 1339,
+          "sha256": "1f1f3467bc7e7ba6277f20ddd7925e2ec2165d3bd56bdaf2eb26ea84c3953279"
+        },
+        {
+          "path": "README.md",
+          "bytes": 2413,
+          "sha256": "103a57a69702c3493fa8778d28a94d95588e6873107adbe2edbbd07d20944bae"
+        }
+      ],
+      "globs": [
+        "cockroachdb-sakila-db/*.sql",
+        "oracle-sakila-db/*.sql",
+        "postgres-sakila-db/*.sql",
+        "sql-server-sakila-db/*.sql",
+        "sqlite-sakila-db/*.sql",
+        "yugabytedb-sakila-db/*.sql"
+      ],
+      "note": "Default branch on 2026-10-28. The data files are more than 2 MiB. README.md names the second copyright holder. The files are ports of the MySQL AB original (BSD-3-Clause, see the source sakila-mysql): README.md says 'The Sakila example database was originally developed by Mike Hillyer of the MySQL AB documentation team. it was ported to other databases by DB Software Laboratory' and 'License: BSD'. The MySQL files are in the source sakila-mysql."
+    },
+    "sakila-mysql": {
+      "repository": "https://github.com/jOOQ/sakila",
+      "commit": "e089a5b1ec9af0df7a9c6a5d47d49fa1736a4e84",
+      "license": "BSD-3-Clause",
+      "copyright": [
+        "MySQL AB",
+        "jOOQ Object Oriented Querying"
+      ],
+      "license_files": [
+        {
+          "path": "mysql-sakila-db/mysql-sakila-schema.sql",
+          "bytes": 23088,
+          "sha256": "f2c41c3bf6d6c239941b4f98fb37afad21f6be12b82bf586202529a793ccc2ee"
+        },
+        {
+          "path": "LICENSE",
+          "bytes": 1339,
+          "sha256": "1f1f3467bc7e7ba6277f20ddd7925e2ec2165d3bd56bdaf2eb26ea84c3953279"
+        }
+      ],
+      "globs": [
+        "mysql-sakila-db/*.sql"
+      ],
+      "note": "The commit of sakila. mysql-sakila-schema.sql has its own BSD-3-Clause notice, 'Copyright (c) 2006, MySQL AB' (the first license file). The repository LICENSE is BSD-2-Clause (jOOQ); BSD-3-Clause has all its conditions."
+    },
+    "simple_ga4_dbt": {
+      "repository": "https://github.com/admindio/simple_ga4_dbt",
+      "commit": "6452a9ba7be2c269730be6596dff47cba9dcbdc5",
+      "license": "MIT",
+      "copyright": [
+        "Michael Query (Molly Data, LLC)"
+      ],
+      "license_files": [
+        {
+          "path": "LICENSE",
+          "bytes": 1091,
+          "sha256": "5cc256abf7515bef9d7a6eb669d4c19b851591c70b203693b6b6d2cb647cedfa"
+        }
+      ],
+      "globs": [
+        "models/*.sql"
+      ],
+      "note": "Default branch on 2026-10-28. A dbt package for GA4 data in BigQuery (README.md). Only the models. The Jinja rule takes the models that use only dbt builtins."
+    },
+    "spark": {
+      "repository": "https://github.com/apache/spark",
+      "commit": "617618396087429b5627a86ce933bb0f5d6645cb",
+      "license": "Apache-2.0",
+      "copyright": [
+        "The Apache Software Foundation"
+      ],
+      "license_files": [
+        {
+          "path": "LICENSE",
+          "bytes": 13640,
+          "sha256": "b8ea0873b8410497804dbb19dac00ffa5017d2ab33582b9e7ce46692fa4a0da1"
+        },
+        {
+          "path": "NOTICE",
+          "bytes": 2002,
+          "sha256": "9346e8e0a1e21cb45ac792b75ca4d3adfd858bc57dd6627e47714c761e917a0d"
+        }
+      ],
+      "globs": [
+        "sql/core/src/test/resources/sql-tests/inputs/*.sql",
+        "sql/core/src/test/resources/sql-tests/inputs/nonansi/*.sql",
+        "sql/core/src/test/resources/sql-tests/inputs/scripting/*.sql",
+        "sql/core/src/test/resources/sql-tests/inputs/subquery/**/*.sql",
+        "sql/core/src/test/resources/sql-tests/inputs/timestampNTZ/*.sql",
+        "sql/core/src/test/resources/sql-tests/inputs/typeCoercion/**/*.sql",
+        "sql/core/src/test/resources/sql-tests/inputs/udaf/*.sql",
+        "sql/core/src/test/resources/sql-tests/inputs/udf/*.sql",
+        "sql/core/src/test/resources/sql-tests/inputs/udtf/*.sql",
+        "sql/core/src/test/resources/sql-tests/inputs/variant/*.sql"
+      ],
+      "note": "Tag v4.2.1. The SQL test inputs of Spark SQL, but not the 2 postgreSQL folders: their files are ports of the PostgreSQL regression tests, with the notice 'Portions Copyright (c) 1996-2019, PostgreSQL Global Development Group'. The postgres source has the original tests. Excluded: sql/core/src/test/resources/sql-tests/inputs/pipe-operators.sql: From line 1265 it has TPC-DS queries Q1, Q2, Q3, Q12, Q44, and Q51 (out, see Licenses)."
+    },
+    "sql-server-maintenance-solution": {
+      "repository": "https://github.com/olahallengren/sql-server-maintenance-solution",
+      "commit": "41617578643e722b790ea4d57ef80f8de38ae747",
+      "license": "MIT",
+      "copyright": [
+        "Ola Hallengren"
+      ],
+      "license_files": [
+        {
+          "path": "LICENSE",
+          "bytes": 1071,
+          "sha256": "11a9e9cd4b1552936dcae48b1a6b1da0d083767f8b1a813cdf180b38c76ed60d"
+        }
+      ],
+      "globs": [
+        "*.sql"
+      ],
+      "note": "Tag 20260912_150238. Stored procedures."
+    },
+    "sql-server-samples": {
+      "repository": "https://github.com/microsoft/sql-server-samples",
+      "commit": "348bbbc25079785f93ea74be3dd0d6369a59358f",
+      "license": "MIT",
+      "copyright": [
+        "Microsoft Corporation",
+        "Microsoft, Inc."
+      ],
+      "license_files": [
+        {
+          "path": "license.txt",
+          "bytes": 1142,
+          "sha256": "201f3705979e932c92cd3c6ddbddf4dc3c71dcc5a82089a1e4018227cfe1cf09"
+        }
+      ],
+      "globs": [
+        "samples/databases/adventure-works/*/*.sql",
+        "samples/databases/futon-manufacturing/*.sql",
+        "samples/databases/northwind-pubs/*.sql",
+        "samples/features/in-memory-database/in-memory-oltp/t-sql-scripts/*.sql"
+      ],
+      "note": "Default branch on 2026-10-28. Not wide-world-importers: 33 files (6.8 MB) in the size range, most of them data. The northwind-pubs files have the notice 'Copyright Microsoft, Inc. 1994 - 2000'."
+    }
+  },
+  "files": [
+    {
+      "id": "amazon-redshift-utils/src/AdminViews/v_generate_user_grant_revoke_ddl.sql",
+      "source": "amazon-redshift-utils",
+      "path": "src/AdminViews/v_generate_user_grant_revoke_ddl.sql",
+      "dialect": "redshift",
+      "templater": "raw",
+      "bytes": 19499,
+      "lines": 249,
+      "sha256": "6ae84d4af2e562cb7d507455ecd3a5fd07cb1975178c8682e631e327c27d3042",
+      "smoke": true,
+      "selection": "glob src/AdminViews/*.sql (dialect redshift); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "bigquery-utils/views/audit/bigquery_audit_logs_v2.sql",
+      "source": "bigquery-utils",
+      "path": "views/audit/bigquery_audit_logs_v2.sql",
+      "dialect": "bigquery",
+      "templater": "raw",
+      "bytes": 50976,
+      "lines": 1034,
+      "sha256": "8fb0a74b2269550d373fb8f488f7221b840337ce4f8f83912585b36ba7239ea1",
+      "smoke": false,
+      "selection": "glob views/**/*.sql (dialect bigquery); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "bigquery-utils/views/audit/bigquery_script_logs_v2.sql",
+      "source": "bigquery-utils",
+      "path": "views/audit/bigquery_script_logs_v2.sql",
+      "dialect": "bigquery",
+      "templater": "raw",
+      "bytes": 36935,
+      "lines": 716,
+      "sha256": "87a60b95ab260b81cab9849107f51dfad7c2534aebac274c44d8f06d0830b43f",
+      "smoke": false,
+      "selection": "glob views/**/*.sql (dialect bigquery); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "chinook-database/ChinookDatabase/DataSources/Chinook_Db2.sql",
+      "source": "chinook-database",
+      "path": "ChinookDatabase/DataSources/Chinook_Db2.sql",
+      "dialect": "db2",
+      "templater": "raw",
+      "bytes": 604388,
+      "lines": 15862,
+      "sha256": "c3c02ef80b75ee31682c4c6e617ca62a0639cb024231fa6bed97cc1b8042047f",
+      "smoke": false,
+      "selection": "glob ChinookDatabase/DataSources/Chinook_Db2*.sql (dialect db2); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "chinook-database/ChinookDatabase/DataSources/Chinook_MySql.sql",
+      "source": "chinook-database",
+      "path": "ChinookDatabase/DataSources/Chinook_MySql.sql",
+      "dialect": "mysql",
+      "templater": "raw",
+      "bytes": 600574,
+      "lines": 15876,
+      "sha256": "68768623bac1fe6f92c317235735c706a54a28cc76ab175c194e99f994dadbd6",
+      "smoke": false,
+      "selection": "glob ChinookDatabase/DataSources/Chinook_MySql*.sql (dialect mysql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "chinook-database/ChinookDatabase/DataSources/Chinook_MySql_AutoIncrementPKs.sql",
+      "source": "chinook-database",
+      "path": "ChinookDatabase/DataSources/Chinook_MySql_AutoIncrementPKs.sql",
+      "dialect": "mysql",
+      "templater": "raw",
+      "bytes": 563074,
+      "lines": 15876,
+      "sha256": "947ba37b51c416b07423b6be5a5f7eb66ffc0a867bc133b1c3febef5fe8e05bd",
+      "smoke": false,
+      "selection": "glob ChinookDatabase/DataSources/Chinook_MySql*.sql (dialect mysql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "chinook-database/ChinookDatabase/DataSources/Chinook_Oracle.sql",
+      "source": "chinook-database",
+      "path": "ChinookDatabase/DataSources/Chinook_Oracle.sql",
+      "dialect": "oracle",
+      "templater": "raw",
+      "bytes": 613709,
+      "lines": 15853,
+      "sha256": "9f09481f725af60a98f57ecd526b97c56b65b0056729e96f35e2ab711ea248f7",
+      "smoke": false,
+      "selection": "glob ChinookDatabase/DataSources/Chinook_Oracle*.sql (dialect oracle); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "chinook-database/ChinookDatabase/DataSources/Chinook_PostgreSql.sql",
+      "source": "chinook-database",
+      "path": "ChinookDatabase/DataSources/Chinook_PostgreSql.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 600200,
+      "lines": 15876,
+      "sha256": "e3fde5c1a5b51a2a91429a702c9ca6e69ba56e6c7f5e112724d70c3d03db695e",
+      "smoke": false,
+      "selection": "glob ChinookDatabase/DataSources/Chinook_PostgreSql*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "chinook-database/ChinookDatabase/DataSources/Chinook_PostgreSql_AutoIncrementPKs.sql",
+      "source": "chinook-database",
+      "path": "ChinookDatabase/DataSources/Chinook_PostgreSql_AutoIncrementPKs.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 562854,
+      "lines": 15876,
+      "sha256": "a277ce8e5204cd7ef69fc5eef691726b46a22204ec9af210a77e004118f3696e",
+      "smoke": false,
+      "selection": "glob ChinookDatabase/DataSources/Chinook_PostgreSql*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "chinook-database/ChinookDatabase/DataSources/Chinook_PostgreSql_SerialPKs.sql",
+      "source": "chinook-database",
+      "path": "ChinookDatabase/DataSources/Chinook_PostgreSql_SerialPKs.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 562563,
+      "lines": 15876,
+      "sha256": "847361ebbd17aaa18b5423831bf3bfc7ab1f0ad3c62c5bfe4770242bec5ddaf1",
+      "smoke": false,
+      "selection": "glob ChinookDatabase/DataSources/Chinook_PostgreSql*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "chinook-database/ChinookDatabase/DataSources/Chinook_SqlServer.sql",
+      "source": "chinook-database",
+      "path": "ChinookDatabase/DataSources/Chinook_SqlServer.sql",
+      "dialect": "tsql",
+      "templater": "raw",
+      "bytes": 601344,
+      "lines": 15882,
+      "sha256": "5ea75c9e925ead917d3fabea6ed3cc8c1ff1d036b61e915c94631aafa2b0802b",
+      "smoke": false,
+      "selection": "glob ChinookDatabase/DataSources/Chinook_SqlServer*.sql (dialect tsql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "chinook-database/ChinookDatabase/DataSources/Chinook_SqlServer_AutoIncrementPKs.sql",
+      "source": "chinook-database",
+      "path": "ChinookDatabase/DataSources/Chinook_SqlServer_AutoIncrementPKs.sql",
+      "dialect": "tsql",
+      "templater": "raw",
+      "bytes": 563826,
+      "lines": 15882,
+      "sha256": "71c370fc0c55b638b1fee0b701bc7b6b97731d34caa3addc921160b5ad0bb610",
+      "smoke": false,
+      "selection": "glob ChinookDatabase/DataSources/Chinook_SqlServer*.sql (dialect tsql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "chinook-database/ChinookDatabase/DataSources/Chinook_Sqlite.sql",
+      "source": "chinook-database",
+      "path": "ChinookDatabase/DataSources/Chinook_Sqlite.sql",
+      "dialect": "sqlite",
+      "templater": "raw",
+      "bytes": 595545,
+      "lines": 15902,
+      "sha256": "caf31d698a4a79c628215b552dfe6575e71be052ae02b8f18e763498f55f5d44",
+      "smoke": false,
+      "selection": "glob ChinookDatabase/DataSources/Chinook_Sqlite*.sql (dialect sqlite); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "chinook-database/ChinookDatabase/DataSources/Chinook_Sqlite_AutoIncrementPKs.sql",
+      "source": "chinook-database",
+      "path": "ChinookDatabase/DataSources/Chinook_Sqlite_AutoIncrementPKs.sql",
+      "dialect": "sqlite",
+      "templater": "raw",
+      "bytes": 557539,
+      "lines": 15892,
+      "sha256": "31a4668886e3a71204053e7c41417ad9741a5d428f8c634b7ab205da52f50e44",
+      "smoke": false,
+      "selection": "glob ChinookDatabase/DataSources/Chinook_Sqlite*.sql (dialect sqlite); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "clickhouse/tests/queries/0_stateless/00024_random_counters.sql",
+      "source": "clickhouse",
+      "path": "tests/queries/0_stateless/00024_random_counters.sql",
+      "dialect": "clickhouse",
+      "templater": "raw",
+      "bytes": 75925,
+      "lines": 1011,
+      "sha256": "464dfea32316e0ec2b025b6bd8b5e3512e97bd572d6d15c9c8bc87a9202dc484",
+      "smoke": false,
+      "selection": "glob tests/queries/0_stateless/00[0-2]*.sql (dialect clickhouse); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "clickhouse/tests/queries/0_stateless/00182_functions_higher_order_and_consts.sql",
+      "source": "clickhouse",
+      "path": "tests/queries/0_stateless/00182_functions_higher_order_and_consts.sql",
+      "dialect": "clickhouse",
+      "templater": "raw",
+      "bytes": 19158,
+      "lines": 316,
+      "sha256": "a0f54ea18482a9f4fffa2e29df7f5b794cdf55ea0e633137740f7561a0caa449",
+      "smoke": true,
+      "selection": "glob tests/queries/0_stateless/00[0-2]*.sql (dialect clickhouse); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "clickhouse/tests/queries/0_stateless/00189_time_zones_long.sql",
+      "source": "clickhouse",
+      "path": "tests/queries/0_stateless/00189_time_zones_long.sql",
+      "dialect": "clickhouse",
+      "templater": "raw",
+      "bytes": 26825,
+      "lines": 442,
+      "sha256": "6262b34971fb406733b5e9f9096fda370b484a69c528facd6739f8f40305d34e",
+      "smoke": true,
+      "selection": "glob tests/queries/0_stateless/00[0-2]*.sql (dialect clickhouse); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "clickhouse/tests/queries/0_stateless/00223_shard_distributed_aggregation_memory_efficient.sql",
+      "source": "clickhouse",
+      "path": "tests/queries/0_stateless/00223_shard_distributed_aggregation_memory_efficient.sql",
+      "dialect": "clickhouse",
+      "templater": "raw",
+      "bytes": 23285,
+      "lines": 133,
+      "sha256": "c1178e07ae538dcad9ccba1f7b3a9ef9946dae29f33e0bbc0678f43b894d4c86",
+      "smoke": true,
+      "selection": "glob tests/queries/0_stateless/00[0-2]*.sql (dialect clickhouse); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "clickhouse/tests/queries/0_stateless/00233_position_function_family.sql",
+      "source": "clickhouse",
+      "path": "tests/queries/0_stateless/00233_position_function_family.sql",
+      "dialect": "clickhouse",
+      "templater": "raw",
+      "bytes": 30430,
+      "lines": 490,
+      "sha256": "48da950c9cf0f75d814f4d06506faa4884ed340c5988c16712fef2cce8a6d337",
+      "smoke": true,
+      "selection": "glob tests/queries/0_stateless/00[0-2]*.sql (dialect clickhouse); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "clickhouse/tests/queries/0_stateless/00276_sample.sql",
+      "source": "clickhouse",
+      "path": "tests/queries/0_stateless/00276_sample.sql",
+      "dialect": "clickhouse",
+      "templater": "raw",
+      "bytes": 17399,
+      "lines": 290,
+      "sha256": "0cc7addced9340fafd1e23c0ba1dd248e8b6aebf316aeb13849848daf3b07a71",
+      "smoke": true,
+      "selection": "glob tests/queries/0_stateless/00[0-2]*.sql (dialect clickhouse); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "db-sample-schemas/customer_orders/co_create.sql",
+      "source": "db-sample-schemas",
+      "path": "customer_orders/co_create.sql",
+      "dialect": "oracle",
+      "templater": "raw",
+      "bytes": 19570,
+      "lines": 591,
+      "sha256": "8ce42790ec255840bcaf22ff8bc4f53e53996ccecb318410a0b3a36a4c3d6cc1",
+      "smoke": true,
+      "selection": "glob customer_orders/*.sql (dialect oracle); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "db-sample-schemas/customer_orders/co_populate.sql",
+      "source": "db-sample-schemas",
+      "path": "customer_orders/co_populate.sql",
+      "dialect": "oracle",
+      "templater": "raw",
+      "bytes": 1274129,
+      "lines": 8980,
+      "sha256": "e636942e49d9f7cb586f779122ffa2b4da95b07cc7f314c0ef1dae60a5f0cefa",
+      "smoke": false,
+      "selection": "glob customer_orders/*.sql (dialect oracle); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "db-sample-schemas/human_resources/hr_create.sql",
+      "source": "db-sample-schemas",
+      "path": "human_resources/hr_create.sql",
+      "dialect": "oracle",
+      "templater": "raw",
+      "bytes": 17114,
+      "lines": 559,
+      "sha256": "19bb40fdad9ff31b66aad4bb2eff1a13b730fec2f39eb13f25bd157c980e023f",
+      "smoke": true,
+      "selection": "glob human_resources/*.sql (dialect oracle); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "db-sample-schemas/human_resources/hr_populate.sql",
+      "source": "db-sample-schemas",
+      "path": "human_resources/hr_populate.sql",
+      "dialect": "oracle",
+      "templater": "raw",
+      "bytes": 41301,
+      "lines": 2396,
+      "sha256": "420375c58700178b74949ccfc1a7b22bc2fd305c486fc558fca43f8ce3ddc4df",
+      "smoke": false,
+      "selection": "glob human_resources/*.sql (dialect oracle); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "db-sample-schemas/sales_history/sh_create.sql",
+      "source": "db-sample-schemas",
+      "path": "sales_history/sh_create.sql",
+      "dialect": "oracle",
+      "templater": "raw",
+      "bytes": 25051,
+      "lines": 734,
+      "sha256": "739357c74c101fb043b1cf20897829392902e8a1506fcdc1e7ff8adfac67b190",
+      "smoke": true,
+      "selection": "glob sales_history/*.sql (dialect oracle); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "db-sample-schemas/sales_history/sh_populate.sql",
+      "source": "db-sample-schemas",
+      "path": "sales_history/sh_populate.sql",
+      "dialect": "oracle",
+      "templater": "raw",
+      "bytes": 41072,
+      "lines": 784,
+      "sha256": "1581dabda1e0b482f0ec37c9ca5d2cb6968926b84df4f62a6e639d44cc9a3bcd",
+      "smoke": false,
+      "selection": "glob sales_history/*.sql (dialect oracle); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "dbt-cerebro/models/ESG/intermediate/int_esg_dynamic_power_consumption.sql",
+      "source": "dbt-cerebro",
+      "path": "models/ESG/intermediate/int_esg_dynamic_power_consumption.sql",
+      "dialect": "clickhouse",
+      "templater": "jinja",
+      "bytes": 10298,
+      "lines": 284,
+      "sha256": "7e32c7afe5dcabf1a44f905d74ab8abb84972c97075f1b200fa70e4c097c4e88",
+      "smoke": true,
+      "selection": "glob models/**/*.sql (dialect clickhouse); 8192 <= bytes <= 2097152; UTF-8; first file with its sha256; templater jinja: the Jinja code reads only [config, is_incremental, ref, this] (dbt builtins of the pinned sqlfluff and Jinja globals) and names that it sets"
+    },
+    {
+      "id": "dbt-cerebro/models/ESG/marts/fct_esg_carbon_footprint_uncertainty.sql",
+      "source": "dbt-cerebro",
+      "path": "models/ESG/marts/fct_esg_carbon_footprint_uncertainty.sql",
+      "dialect": "clickhouse",
+      "templater": "jinja",
+      "bytes": 15270,
+      "lines": 348,
+      "sha256": "b44523018e667cbad8084cdb17cd1db9c5a1c20738b7435f66ad0384eb305f56",
+      "smoke": true,
+      "selection": "glob models/**/*.sql (dialect clickhouse); 8192 <= bytes <= 2097152; UTF-8; first file with its sha256; templater jinja: the Jinja code reads only [config, is_incremental, ref, this] (dbt builtins of the pinned sqlfluff and Jinja globals) and names that it sets"
+    },
+    {
+      "id": "dbt-cerebro/models/celo/gpay/marts/fct_celo_gpay_cardholder_engagement.sql",
+      "source": "dbt-cerebro",
+      "path": "models/celo/gpay/marts/fct_celo_gpay_cardholder_engagement.sql",
+      "dialect": "clickhouse",
+      "templater": "jinja",
+      "bytes": 9692,
+      "lines": 190,
+      "sha256": "130f001f02a56953a6ba2c5f0f4113888959bf8cbfe0fae124baa349d88fba4b",
+      "smoke": true,
+      "selection": "glob models/**/*.sql (dialect clickhouse); 8192 <= bytes <= 2097152; UTF-8; first file with its sha256; templater jinja: the Jinja code reads only [config, ref] (dbt builtins of the pinned sqlfluff and Jinja globals) and names that it sets"
+    },
+    {
+      "id": "dbt-cerebro/models/celo/gpay/marts/fct_celo_gpay_settlement_batches.sql",
+      "source": "dbt-cerebro",
+      "path": "models/celo/gpay/marts/fct_celo_gpay_settlement_batches.sql",
+      "dialect": "clickhouse",
+      "templater": "jinja",
+      "bytes": 8792,
+      "lines": 171,
+      "sha256": "f87b644ab8ba92293c9caa957c015eac121e0d66cb8e578ff80b54bd3133226d",
+      "smoke": true,
+      "selection": "glob models/**/*.sql (dialect clickhouse); 8192 <= bytes <= 2097152; UTF-8; first file with its sha256; templater jinja: the Jinja code reads only [config, ref] (dbt builtins of the pinned sqlfluff and Jinja globals) and names that it sets"
+    },
+    {
+      "id": "dbt-cerebro/models/crawlers_data/staging/stg_crawlers_data__dune_labels.sql",
+      "source": "dbt-cerebro",
+      "path": "models/crawlers_data/staging/stg_crawlers_data__dune_labels.sql",
+      "dialect": "clickhouse",
+      "templater": "jinja",
+      "bytes": 9110,
+      "lines": 196,
+      "sha256": "4f79f61efbf9fcd73db8ff0a682545b50e43c8fb0a850e46ccac47b05b826a32",
+      "smoke": true,
+      "selection": "glob models/**/*.sql (dialect clickhouse); 8192 <= bytes <= 2097152; UTF-8; first file with its sha256; templater jinja: the Jinja code reads only [config, ref, source] (dbt builtins of the pinned sqlfluff and Jinja globals) and names that it sets"
+    },
+    {
+      "id": "dbt-cerebro/models/execution/Circles/intermediate/int_execution_circles_v2_avatar_metadata.sql",
+      "source": "dbt-cerebro",
+      "path": "models/execution/Circles/intermediate/int_execution_circles_v2_avatar_metadata.sql",
+      "dialect": "clickhouse",
+      "templater": "jinja",
+      "bytes": 9877,
+      "lines": 220,
+      "sha256": "136e061efdafaf2cfd3d5bc259f458fd83d5010bd2463a9df859d066eab2e6d5",
+      "smoke": true,
+      "selection": "glob models/**/*.sql (dialect clickhouse); 8192 <= bytes <= 2097152; UTF-8; first file with its sha256; templater jinja: the Jinja code reads only [config, is_incremental, ref, source, this, var] (dbt builtins of the pinned sqlfluff and Jinja globals) and names that it sets"
+    },
+    {
+      "id": "dbt-cerebro/models/execution/Circles/marts/api_execution_circles_v2_pool_explorer_liquidity_events.sql",
+      "source": "dbt-cerebro",
+      "path": "models/execution/Circles/marts/api_execution_circles_v2_pool_explorer_liquidity_events.sql",
+      "dialect": "clickhouse",
+      "templater": "jinja",
+      "bytes": 10017,
+      "lines": 176,
+      "sha256": "3977a7a76b82c1085448db961ec9d09cc7550d368aac06c56859a3269170178b",
+      "smoke": true,
+      "selection": "glob models/**/*.sql (dialect clickhouse); 8192 <= bytes <= 2097152; UTF-8; first file with its sha256; templater jinja: the Jinja code reads only [config, ref] (dbt builtins of the pinned sqlfluff and Jinja globals) and names that it sets"
+    },
+    {
+      "id": "dbt-cerebro/models/execution/accounts/marts/fct_execution_account_profile_latest.sql",
+      "source": "dbt-cerebro",
+      "path": "models/execution/accounts/marts/fct_execution_account_profile_latest.sql",
+      "dialect": "clickhouse",
+      "templater": "jinja",
+      "bytes": 9493,
+      "lines": 244,
+      "sha256": "a1a92efd592a46ecc8ef4b483615f4d283fabb296eff5376fbba5c73b9bdc0eb",
+      "smoke": true,
+      "selection": "glob models/**/*.sql (dialect clickhouse); 8192 <= bytes <= 2097152; UTF-8; first file with its sha256; templater jinja: the Jinja code reads only [config, ref] (dbt builtins of the pinned sqlfluff and Jinja globals) and names that it sets"
+    },
+    {
+      "id": "dbt-cerebro/models/execution/gnosis_app_gt/intermediate/int_execution_gnosis_app_gt_user_activity.sql",
+      "source": "dbt-cerebro",
+      "path": "models/execution/gnosis_app_gt/intermediate/int_execution_gnosis_app_gt_user_activity.sql",
+      "dialect": "clickhouse",
+      "templater": "jinja",
+      "bytes": 8907,
+      "lines": 131,
+      "sha256": "54f05fb3359fc971193c4ed2d213b7aa4ec0b2a10b7a992ad5a9fe8a2a486bc9",
+      "smoke": true,
+      "selection": "glob models/**/*.sql (dialect clickhouse); 8192 <= bytes <= 2097152; UTF-8; first file with its sha256; templater jinja: the Jinja code reads only [config, ref] (dbt builtins of the pinned sqlfluff and Jinja globals) and names that it sets"
+    },
+    {
+      "id": "dbt-cerebro/models/execution/hopr/intermediate/int_hopr_channels_events.sql",
+      "source": "dbt-cerebro",
+      "path": "models/execution/hopr/intermediate/int_hopr_channels_events.sql",
+      "dialect": "clickhouse",
+      "templater": "jinja",
+      "bytes": 13594,
+      "lines": 283,
+      "sha256": "d9e8d5750302fc28da3c03f29f8cdfd6c1ffc56a035ef20f4d9e381d6eeaa803",
+      "smoke": true,
+      "selection": "glob models/**/*.sql (dialect clickhouse); 8192 <= bytes <= 2097152; UTF-8; first file with its sha256; templater jinja: the Jinja code reads only [config, ref] (dbt builtins of the pinned sqlfluff and Jinja globals) and names that it sets"
+    },
+    {
+      "id": "dbt-cerebro/models/execution/hopr/intermediate/int_hopr_nodes.sql",
+      "source": "dbt-cerebro",
+      "path": "models/execution/hopr/intermediate/int_hopr_nodes.sql",
+      "dialect": "clickhouse",
+      "templater": "jinja",
+      "bytes": 21746,
+      "lines": 407,
+      "sha256": "0624f59e40673c6396ffffaec563090a838147924b178c7c60c1e5509512c0b2",
+      "smoke": true,
+      "selection": "glob models/**/*.sql (dialect clickhouse); 8192 <= bytes <= 2097152; UTF-8; first file with its sha256; templater jinja: the Jinja code reads only [config, ref] (dbt builtins of the pinned sqlfluff and Jinja globals) and names that it sets"
+    },
+    {
+      "id": "dbt-cerebro/models/execution/lending/intermediate/int_execution_lending_aave_daily.sql",
+      "source": "dbt-cerebro",
+      "path": "models/execution/lending/intermediate/int_execution_lending_aave_daily.sql",
+      "dialect": "clickhouse",
+      "templater": "jinja",
+      "bytes": 13524,
+      "lines": 337,
+      "sha256": "f3ff4426e6b95de5427f0d7b9606037eeb6c976a1d7c8e8acc9cf9ff40653a8c",
+      "smoke": true,
+      "selection": "glob models/**/*.sql (dialect clickhouse); 8192 <= bytes <= 2097152; UTF-8; first file with its sha256; templater jinja: the Jinja code reads only [config, is_incremental, ref, this, var] (dbt builtins of the pinned sqlfluff and Jinja globals) and names that it sets"
+    },
+    {
+      "id": "dbt-cerebro/models/execution/ubo/intermediate/int_ubo_claims_curve_daily.sql",
+      "source": "dbt-cerebro",
+      "path": "models/execution/ubo/intermediate/int_ubo_claims_curve_daily.sql",
+      "dialect": "clickhouse",
+      "templater": "jinja",
+      "bytes": 9311,
+      "lines": 246,
+      "sha256": "4a4531cd44e8545b9834440a320871e71203bc77d0a820a076437112198587f9",
+      "smoke": true,
+      "selection": "glob models/**/*.sql (dialect clickhouse); 8192 <= bytes <= 2097152; UTF-8; first file with its sha256; templater jinja: the Jinja code reads only [config, ref] (dbt builtins of the pinned sqlfluff and Jinja globals) and names that it sets"
+    },
+    {
+      "id": "dbt-cerebro/models/execution/yields/marts/fct_execution_yields_opportunities_latest.sql",
+      "source": "dbt-cerebro",
+      "path": "models/execution/yields/marts/fct_execution_yields_opportunities_latest.sql",
+      "dialect": "clickhouse",
+      "templater": "jinja",
+      "bytes": 9881,
+      "lines": 321,
+      "sha256": "cd2ed1122ab56aad145921407ca1b34ba8f9306a0f9e0dc99505ec330fdc31c5",
+      "smoke": true,
+      "selection": "glob models/**/*.sql (dialect clickhouse); 8192 <= bytes <= 2097152; UTF-8; first file with its sha256; templater jinja: the Jinja code reads only [config, ref] (dbt builtins of the pinned sqlfluff and Jinja globals) and names that it sets"
+    },
+    {
+      "id": "dbt-cerebro/models/execution/yields/marts/fct_execution_yields_overview_snapshot.sql",
+      "source": "dbt-cerebro",
+      "path": "models/execution/yields/marts/fct_execution_yields_overview_snapshot.sql",
+      "dialect": "clickhouse",
+      "templater": "jinja",
+      "bytes": 8301,
+      "lines": 289,
+      "sha256": "eca7b27b919adb4d54ff1aa1738f631ba9d62b760847e6631cf96f4eaddcc4a2",
+      "smoke": true,
+      "selection": "glob models/**/*.sql (dialect clickhouse); 8192 <= bytes <= 2097152; UTF-8; first file with its sha256; templater jinja: the Jinja code reads only [config, ref] (dbt builtins of the pinned sqlfluff and Jinja globals) and names that it sets"
+    },
+    {
+      "id": "dbt-cerebro/models/governance/intermediate/int_governance_gip.sql",
+      "source": "dbt-cerebro",
+      "path": "models/governance/intermediate/int_governance_gip.sql",
+      "dialect": "clickhouse",
+      "templater": "jinja",
+      "bytes": 9079,
+      "lines": 206,
+      "sha256": "e1bf9b7574df976b8061dfedb6c26fe860fcdf4fc3f2e150c949d986b449fb77",
+      "smoke": true,
+      "selection": "glob models/**/*.sql (dialect clickhouse); 8192 <= bytes <= 2097152; UTF-8; first file with its sha256; templater jinja: the Jinja code reads only [config, ref] (dbt builtins of the pinned sqlfluff and Jinja globals) and names that it sets"
+    },
+    {
+      "id": "dbt-cerebro/models/p2p/staging/stg_crawlers_data__ipinfo.sql",
+      "source": "dbt-cerebro",
+      "path": "models/p2p/staging/stg_crawlers_data__ipinfo.sql",
+      "dialect": "clickhouse",
+      "templater": "jinja",
+      "bytes": 10648,
+      "lines": 121,
+      "sha256": "ce18075a6703ec5b53e7a1b7003bd89d10158762c8348369239421c2cce1bdea",
+      "smoke": true,
+      "selection": "glob models/**/*.sql (dialect clickhouse); 8192 <= bytes <= 2097152; UTF-8; first file with its sha256; templater jinja: the Jinja code reads only [config, source] (dbt builtins of the pinned sqlfluff and Jinja globals) and names that it sets"
+    },
+    {
+      "id": "emerging-solutions-toolbox/framework-zamboni/demo/02_zamboni_demo.sql",
+      "source": "emerging-solutions-toolbox",
+      "path": "framework-zamboni/demo/02_zamboni_demo.sql",
+      "dialect": "snowflake",
+      "templater": "raw",
+      "bytes": 30257,
+      "lines": 1047,
+      "sha256": "a0641e252285c2e4a31ea8251f32c75c647fbfea7c7c931cf4a19a5dffca3664",
+      "smoke": true,
+      "selection": "glob **/*.sql (dialect snowflake); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "emerging-solutions-toolbox/framework-zamboni/setup/03_zamboni_load_process_types.sql",
+      "source": "emerging-solutions-toolbox",
+      "path": "framework-zamboni/setup/03_zamboni_load_process_types.sql",
+      "dialect": "snowflake",
+      "templater": "raw",
+      "bytes": 26794,
+      "lines": 683,
+      "sha256": "8cea3bfd63b04803f3994a1d2e149d7acd253a76c9a38ea229df930b0ae22649",
+      "smoke": true,
+      "selection": "glob **/*.sql (dialect snowflake); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "emerging-solutions-toolbox/framework-zamboni/setup/04_zamboni_create_procs.sql",
+      "source": "emerging-solutions-toolbox",
+      "path": "framework-zamboni/setup/04_zamboni_create_procs.sql",
+      "dialect": "snowflake",
+      "templater": "raw",
+      "bytes": 54033,
+      "lines": 1278,
+      "sha256": "71203c389158db9df3616567cda0ed5467f827bd833c764b520d6fba17fd70dd",
+      "smoke": false,
+      "selection": "glob **/*.sql (dialect snowflake); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "emerging-solutions-toolbox/helper-iceberg-migrator/iceberg-migrator/scripts/step_5_migrate_table_to_iceberg.sql",
+      "source": "emerging-solutions-toolbox",
+      "path": "helper-iceberg-migrator/iceberg-migrator/scripts/step_5_migrate_table_to_iceberg.sql",
+      "dialect": "snowflake",
+      "templater": "raw",
+      "bytes": 27257,
+      "lines": 678,
+      "sha256": "66b44c3ff4b98d6d72d1ab27a6a59e94a67da084ad0d33aa50f94d517bd967ef",
+      "smoke": true,
+      "selection": "glob **/*.sql (dialect snowflake); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "emerging-solutions-toolbox/helper-iceberg-migrator/iceberg-migrator/scripts/step_7_update_glue_metadata_location_template.sql",
+      "source": "emerging-solutions-toolbox",
+      "path": "helper-iceberg-migrator/iceberg-migrator/scripts/step_7_update_glue_metadata_location_template.sql",
+      "dialect": "snowflake",
+      "templater": "raw",
+      "bytes": 18067,
+      "lines": 409,
+      "sha256": "b18fd8a93f6325f90bed9a746f7fa5ed8deb88bf4776a9c7569c8df64b1bffd3",
+      "smoke": true,
+      "selection": "glob **/*.sql (dialect snowflake); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "emerging-solutions-toolbox/sfguide-alert-hub/alert_hub_setup.sql",
+      "source": "emerging-solutions-toolbox",
+      "path": "sfguide-alert-hub/alert_hub_setup.sql",
+      "dialect": "snowflake",
+      "templater": "raw",
+      "bytes": 82030,
+      "lines": 1851,
+      "sha256": "79672e2c68f7311a35b9f3baea4565e975d1c3b9ad03f6b27daf5a6e63407466",
+      "smoke": false,
+      "selection": "glob **/*.sql (dialect snowflake); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "emerging-solutions-toolbox/sfguide-application-control-framework/acf_acct/acf/02_create_acf_objects.sql",
+      "source": "emerging-solutions-toolbox",
+      "path": "sfguide-application-control-framework/acf_acct/acf/02_create_acf_objects.sql",
+      "dialect": "snowflake",
+      "templater": "raw",
+      "bytes": 30709,
+      "lines": 596,
+      "sha256": "016557f98bab87ae6890fb01706d2bbe7f66ce64947fe380c53478c71118423b",
+      "smoke": true,
+      "selection": "glob **/*.sql (dialect snowflake); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "emerging-solutions-toolbox/sfguide-application-control-framework/acf_acct/acf/03_create_process_consumer_events_procedure.sql",
+      "source": "emerging-solutions-toolbox",
+      "path": "sfguide-application-control-framework/acf_acct/acf/03_create_process_consumer_events_procedure.sql",
+      "dialect": "snowflake",
+      "templater": "raw",
+      "bytes": 24059,
+      "lines": 425,
+      "sha256": "9fe4692ffaeea3c2c0984a453ecc4df69da0769950dd4a92bcbd93200177bc39",
+      "smoke": true,
+      "selection": "glob **/*.sql (dialect snowflake); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "emerging-solutions-toolbox/sfguide-solution-installation-wizard/3-sol_inst_wzd_package_setup.sql",
+      "source": "emerging-solutions-toolbox",
+      "path": "sfguide-solution-installation-wizard/3-sol_inst_wzd_package_setup.sql",
+      "dialect": "snowflake",
+      "templater": "raw",
+      "bytes": 26182,
+      "lines": 621,
+      "sha256": "5d47659b987605ee16387ec68dece2275b1eaf3ca1fbc213f56549c1d712016c",
+      "smoke": true,
+      "selection": "glob **/*.sql (dialect snowflake); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "emerging-solutions-toolbox/sfguide-supply-chain-network-optimization/app_setup.sql",
+      "source": "emerging-solutions-toolbox",
+      "path": "sfguide-supply-chain-network-optimization/app_setup.sql",
+      "dialect": "snowflake",
+      "templater": "raw",
+      "bytes": 81130,
+      "lines": 1782,
+      "sha256": "c042d78b4e9d17ed094aee81670465d764e9c0f10db3643c07ec580f838fb7a8",
+      "smoke": false,
+      "selection": "glob **/*.sql (dialect snowflake); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "pagila/pagila-schema.sql",
+      "source": "pagila",
+      "path": "pagila-schema.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 89841,
+      "lines": 3035,
+      "sha256": "071ee940a73c8f4fad2997185788065291607e2c55559e3747959e8275391536",
+      "smoke": false,
+      "selection": "glob *.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "postgres/src/test/regress/sql/aggregates.sql",
+      "source": "postgres",
+      "path": "src/test/regress/sql/aggregates.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 50532,
+      "lines": 1599,
+      "sha256": "796e6b2386cf1202ae7cae7c3990e86b5f281fd677beff19e4379048ed9677fd",
+      "smoke": false,
+      "selection": "glob src/test/regress/sql/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "postgres/src/test/regress/sql/alter_generic.sql",
+      "source": "postgres",
+      "path": "src/test/regress/sql/alter_generic.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 28361,
+      "lines": 616,
+      "sha256": "00564daea2e39ce6665608cf295b6d2dc3b255fc505743d30dc92f943ffc331d",
+      "smoke": true,
+      "selection": "glob src/test/regress/sql/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "postgres/src/test/regress/sql/alter_table.sql",
+      "source": "postgres",
+      "path": "src/test/regress/sql/alter_table.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 116578,
+      "lines": 3102,
+      "sha256": "e97ce645d229c6d6bd4a8fd1e73c67b6fd9cdb017e2b5fb9cee694f157738bb3",
+      "smoke": false,
+      "selection": "glob src/test/regress/sql/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "postgres/src/test/regress/sql/arrays.sql",
+      "source": "postgres",
+      "path": "src/test/regress/sql/arrays.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 31071,
+      "lines": 851,
+      "sha256": "0350f488c47bd6bf6db27a8efbdd8946b0dc71d30feab10aee09eb555acd272f",
+      "smoke": true,
+      "selection": "glob src/test/regress/sql/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "postgres/src/test/regress/sql/brin.sql",
+      "source": "postgres",
+      "path": "src/test/regress/sql/brin.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 18488,
+      "lines": 525,
+      "sha256": "ce15ae541ef105a007b75c8fb4410a6ff7d36da8f2c541368d7ef7fd303340e0",
+      "smoke": true,
+      "selection": "glob src/test/regress/sql/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "postgres/src/test/regress/sql/brin_multi.sql",
+      "source": "postgres",
+      "path": "src/test/regress/sql/brin_multi.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 24854,
+      "lines": 706,
+      "sha256": "7927160a2fdfbc7eac6e2e15d44aa74eb0222836aa072d8d7155ff58c70adda1",
+      "smoke": true,
+      "selection": "glob src/test/regress/sql/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "postgres/src/test/regress/sql/collate.icu.utf8.sql",
+      "source": "postgres",
+      "path": "src/test/regress/sql/collate.icu.utf8.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 35153,
+      "lines": 866,
+      "sha256": "7c10ba63b1725c896dba09649ce13d40848042c78906bbd7fa6e8efc1619c085",
+      "smoke": false,
+      "selection": "glob src/test/regress/sql/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "postgres/src/test/regress/sql/constraints.sql",
+      "source": "postgres",
+      "path": "src/test/regress/sql/constraints.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 19390,
+      "lines": 640,
+      "sha256": "ff2a59bad62d4d1a190f2c5b6fdf39fb6cd38d8f8f89e3679209046d120fd526",
+      "smoke": true,
+      "selection": "glob src/test/regress/sql/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "postgres/src/test/regress/sql/create_index.sql",
+      "source": "postgres",
+      "path": "src/test/regress/sql/create_index.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 49440,
+      "lines": 1315,
+      "sha256": "e224d5c73b0275b1a7d1016bc3d04b6a85c2f5b37303cc4940bbed58149bcf15",
+      "smoke": false,
+      "selection": "glob src/test/regress/sql/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "postgres/src/test/regress/sql/create_index_spgist.sql",
+      "source": "postgres",
+      "path": "src/test/regress/sql/create_index_spgist.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 17028,
+      "lines": 437,
+      "sha256": "6ffef4ecc7cd0924cebf4db8f62e4d1fec3008bd2847c22cca8799735c085cdd",
+      "smoke": true,
+      "selection": "glob src/test/regress/sql/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "postgres/src/test/regress/sql/create_table.sql",
+      "source": "postgres",
+      "path": "src/test/regress/sql/create_table.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 29687,
+      "lines": 732,
+      "sha256": "2b1e8bfdbe736ac40ebc995c8e2b31df7668dd2724f6ee438726a4fc0b43520f",
+      "smoke": true,
+      "selection": "glob src/test/regress/sql/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "postgres/src/test/regress/sql/create_view.sql",
+      "source": "postgres",
+      "path": "src/test/regress/sql/create_view.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 26764,
+      "lines": 843,
+      "sha256": "2f1353de99bb13ff7994f53c975936b82b20a2cd6212acbee4d51dfed5a42f08",
+      "smoke": true,
+      "selection": "glob src/test/regress/sql/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "postgres/src/test/regress/sql/domain.sql",
+      "source": "postgres",
+      "path": "src/test/regress/sql/domain.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 26142,
+      "lines": 891,
+      "sha256": "01a43262a5a787c6a5aa9956f3b6e24dcc4cb1f103eba3841a4bd49bcecdb53d",
+      "smoke": true,
+      "selection": "glob src/test/regress/sql/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "postgres/src/test/regress/sql/event_trigger.sql",
+      "source": "postgres",
+      "path": "src/test/regress/sql/event_trigger.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 20301,
+      "lines": 587,
+      "sha256": "312ff3c95e9ea80898ce3b2aacfef38a69c1d639c8305910c928b18d78a753a3",
+      "smoke": true,
+      "selection": "glob src/test/regress/sql/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "postgres/src/test/regress/sql/fast_default.sql",
+      "source": "postgres",
+      "path": "src/test/regress/sql/fast_default.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 18149,
+      "lines": 617,
+      "sha256": "14bf3ec1b81007d2eb61b572a5f854f2040425533808d3c8e3d9bca66710abfe",
+      "smoke": true,
+      "selection": "glob src/test/regress/sql/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "postgres/src/test/regress/sql/float8.sql",
+      "source": "postgres",
+      "path": "src/test/regress/sql/float8.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 16661,
+      "lines": 514,
+      "sha256": "561b5d429ec23fccbeb6a393f98280d5afde3c92c6dd16956a5df1211888dcc4",
+      "smoke": true,
+      "selection": "glob src/test/regress/sql/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "postgres/src/test/regress/sql/foreign_data.sql",
+      "source": "postgres",
+      "path": "src/test/regress/sql/foreign_data.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 35674,
+      "lines": 868,
+      "sha256": "ca6254f52079da6a55c4d42973065126f0b8097f91334ec1042b16f7c9721224",
+      "smoke": false,
+      "selection": "glob src/test/regress/sql/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "postgres/src/test/regress/sql/foreign_key.sql",
+      "source": "postgres",
+      "path": "src/test/regress/sql/foreign_key.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 82117,
+      "lines": 2183,
+      "sha256": "5a802bfd52695eb5ea5e756bd677aadf1c4aa0671e23aa844350d1a94101cea0",
+      "smoke": false,
+      "selection": "glob src/test/regress/sql/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "postgres/src/test/regress/sql/generated.sql",
+      "source": "postgres",
+      "path": "src/test/regress/sql/generated.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 25725,
+      "lines": 703,
+      "sha256": "fb9c396f5d1c74266f3872ccc8de0741a958ed30f6fd6649bfa745280dcdc6ca",
+      "smoke": true,
+      "selection": "glob src/test/regress/sql/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "postgres/src/test/regress/sql/groupingsets.sql",
+      "source": "postgres",
+      "path": "src/test/regress/sql/groupingsets.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 21315,
+      "lines": 592,
+      "sha256": "f83ef60b59f5feaf95dfa1d72e7034758520b2420d3e3a4cd76a22677a9d1f72",
+      "smoke": true,
+      "selection": "glob src/test/regress/sql/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "postgres/src/test/regress/sql/horology.sql",
+      "source": "postgres",
+      "path": "src/test/regress/sql/horology.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 29258,
+      "lines": 689,
+      "sha256": "267ae2cbc4689c10c61da5151fffc7eb0e0b8148d5df97a83d4346d9d36ee837",
+      "smoke": true,
+      "selection": "glob src/test/regress/sql/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "postgres/src/test/regress/sql/identity.sql",
+      "source": "postgres",
+      "path": "src/test/regress/sql/identity.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 20229,
+      "lines": 539,
+      "sha256": "98a9c8abf1d163da16c70a05207f5e0fd93d80e16cdcb5a08cbb48145826974a",
+      "smoke": true,
+      "selection": "glob src/test/regress/sql/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "postgres/src/test/regress/sql/indexing.sql",
+      "source": "postgres",
+      "path": "src/test/regress/sql/indexing.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 45904,
+      "lines": 921,
+      "sha256": "b12ed731bbce8b878fbeb32bca7a2c1a913631977cdfd11d9109a4326653ef69",
+      "smoke": false,
+      "selection": "glob src/test/regress/sql/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "postgres/src/test/regress/sql/inherit.sql",
+      "source": "postgres",
+      "path": "src/test/regress/sql/inherit.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 48712,
+      "lines": 1163,
+      "sha256": "7d49cc37be96a336e6868c40965f07b19e1c21eba4ab70859d08b4b7c9a4753c",
+      "smoke": false,
+      "selection": "glob src/test/regress/sql/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "postgres/src/test/regress/sql/insert.sql",
+      "source": "postgres",
+      "path": "src/test/regress/sql/insert.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 28820,
+      "lines": 676,
+      "sha256": "198df2d14c3d1810a9071eb6ed8c3aff6cde97b0c1ee120d63f2b39d88c9740b",
+      "smoke": true,
+      "selection": "glob src/test/regress/sql/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "postgres/src/test/regress/sql/insert_conflict.sql",
+      "source": "postgres",
+      "path": "src/test/regress/sql/insert_conflict.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 28843,
+      "lines": 591,
+      "sha256": "ee96a15fdab3af5a2287f2b2e470f806a7ac0f1ccfb473535c9257d6d64944fe",
+      "smoke": true,
+      "selection": "glob src/test/regress/sql/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "postgres/src/test/regress/sql/interval.sql",
+      "source": "postgres",
+      "path": "src/test/regress/sql/interval.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 31331,
+      "lines": 800,
+      "sha256": "e20cf409976e030612e9da22fa8d2e1bca25d1dca81087738fdde72fcb2cd7bd",
+      "smoke": true,
+      "selection": "glob src/test/regress/sql/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "postgres/src/test/regress/sql/join.sql",
+      "source": "postgres",
+      "path": "src/test/regress/sql/join.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 86768,
+      "lines": 2967,
+      "sha256": "7b6092df6068bf9dd83526cd6668a0fdca32f86f064b598d711bfb28c066d311",
+      "smoke": false,
+      "selection": "glob src/test/regress/sql/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "postgres/src/test/regress/sql/join_hash.sql",
+      "source": "postgres",
+      "path": "src/test/regress/sql/join_hash.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 22915,
+      "lines": 625,
+      "sha256": "5bd0f5f2e74d282c77fa49cd628dfc120627bd546ecaca0adaec1b5c642a73bf",
+      "smoke": true,
+      "selection": "glob src/test/regress/sql/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "postgres/src/test/regress/sql/json.sql",
+      "source": "postgres",
+      "path": "src/test/regress/sql/json.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 36231,
+      "lines": 864,
+      "sha256": "021fa336d00f94afbc026e2d7d6eb6e526cc1af139452e7eb726a638fafe29a3",
+      "smoke": false,
+      "selection": "glob src/test/regress/sql/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "postgres/src/test/regress/sql/jsonb.sql",
+      "source": "postgres",
+      "path": "src/test/regress/sql/jsonb.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 73393,
+      "lines": 1558,
+      "sha256": "95a0df3b4d988d9db970c8feadd923481c9e3c037f3706af05d24b5a7a3b9213",
+      "smoke": false,
+      "selection": "glob src/test/regress/sql/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "postgres/src/test/regress/sql/jsonb_jsonpath.sql",
+      "source": "postgres",
+      "path": "src/test/regress/sql/jsonb_jsonpath.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 70170,
+      "lines": 1138,
+      "sha256": "fba67ee0ad923e2ef2b9c7acab6d8ea8031b178a6719eb64e3cce5794fa47bd0",
+      "smoke": false,
+      "selection": "glob src/test/regress/sql/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "postgres/src/test/regress/sql/merge.sql",
+      "source": "postgres",
+      "path": "src/test/regress/sql/merge.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 51260,
+      "lines": 1839,
+      "sha256": "947ab4c5413c87642762c6bb925e6cb038b4a94826157af3536b4bb8821704d7",
+      "smoke": false,
+      "selection": "glob src/test/regress/sql/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "postgres/src/test/regress/sql/multirangetypes.sql",
+      "source": "postgres",
+      "path": "src/test/regress/sql/multirangetypes.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 42558,
+      "lines": 884,
+      "sha256": "00b759d924e4aaa9e9592bcb66e7096af270481bbdff4bb751b4312ab0c8e1dc",
+      "smoke": false,
+      "selection": "glob src/test/regress/sql/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "postgres/src/test/regress/sql/numeric.sql",
+      "source": "postgres",
+      "path": "src/test/regress/sql/numeric.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 62541,
+      "lines": 1531,
+      "sha256": "8dfb0dd51f3d987938900bd12f193888873c11348c85147a88e250ea23531801",
+      "smoke": false,
+      "selection": "glob src/test/regress/sql/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "postgres/src/test/regress/sql/numeric_big.sql",
+      "source": "postgres",
+      "path": "src/test/regress/sql/numeric_big.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 305102,
+      "lines": 1366,
+      "sha256": "235b533f827a9155dc70896b88bd653e68297a8c40ac8098a5e59b92485cf032",
+      "smoke": false,
+      "selection": "glob src/test/regress/sql/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "postgres/src/test/regress/sql/opr_sanity.sql",
+      "source": "postgres",
+      "path": "src/test/regress/sql/opr_sanity.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 54772,
+      "lines": 1421,
+      "sha256": "a9af06187e52622c54b5ea9965cdedc06eeb2772ab8f189e35ecfa79bd5ada82",
+      "smoke": false,
+      "selection": "glob src/test/regress/sql/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "postgres/src/test/regress/sql/partition_aggregate.sql",
+      "source": "postgres",
+      "path": "src/test/regress/sql/partition_aggregate.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 17532,
+      "lines": 336,
+      "sha256": "24a1528991967ad90af6e17147b63a05a8ca474a0238846a9b78880784640bc1",
+      "smoke": true,
+      "selection": "glob src/test/regress/sql/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "postgres/src/test/regress/sql/partition_join.sql",
+      "source": "postgres",
+      "path": "src/test/regress/sql/partition_join.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 66606,
+      "lines": 1222,
+      "sha256": "5457ad51b8bd6c535c722f90ad0ef0e0d0ef7cef8824afb007836b80b962e6c6",
+      "smoke": false,
+      "selection": "glob src/test/regress/sql/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "postgres/src/test/regress/sql/partition_prune.sql",
+      "source": "postgres",
+      "path": "src/test/regress/sql/partition_prune.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 58419,
+      "lines": 1335,
+      "sha256": "88284e57bb9c6918e38ef1eba918f0c8565d7de732caafe563b68ff044879067",
+      "smoke": false,
+      "selection": "glob src/test/regress/sql/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "postgres/src/test/regress/sql/plpgsql.sql",
+      "source": "postgres",
+      "path": "src/test/regress/sql/plpgsql.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 122991,
+      "lines": 4776,
+      "sha256": "8cfd0577b7c5ca0bd1af36ca4a963bd893858c1ec9554d867ada55605357eb05",
+      "smoke": false,
+      "selection": "glob src/test/regress/sql/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "postgres/src/test/regress/sql/polymorphism.sql",
+      "source": "postgres",
+      "path": "src/test/regress/sql/polymorphism.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 38472,
+      "lines": 1137,
+      "sha256": "e98fabd96f51dbabb30e9f6f5772da977433a074ae1aaa57c2c54b1d44ab3b9c",
+      "smoke": false,
+      "selection": "glob src/test/regress/sql/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "postgres/src/test/regress/sql/privileges.sql",
+      "source": "postgres",
+      "path": "src/test/regress/sql/privileges.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 75353,
+      "lines": 1995,
+      "sha256": "ef357d044589860b0c4d231dc4364e5422b909a06440549dc23a26d1eb62c5b0",
+      "smoke": false,
+      "selection": "glob src/test/regress/sql/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "postgres/src/test/regress/sql/psql.sql",
+      "source": "postgres",
+      "path": "src/test/regress/sql/psql.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 43126,
+      "lines": 1893,
+      "sha256": "8821f92338347215d4ef0e9931fb5d18dcfc345fdaa505a93acfa810389c53cd",
+      "smoke": false,
+      "selection": "glob src/test/regress/sql/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "postgres/src/test/regress/sql/publication.sql",
+      "source": "postgres",
+      "path": "src/test/regress/sql/publication.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 49776,
+      "lines": 1133,
+      "sha256": "55e7b3c8feaef5f31db5efcad3ce52509b6c68dacd14776f22b1d2ebf50d2f84",
+      "smoke": false,
+      "selection": "glob src/test/regress/sql/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "postgres/src/test/regress/sql/rangefuncs.sql",
+      "source": "postgres",
+      "path": "src/test/regress/sql/rangefuncs.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 33861,
+      "lines": 827,
+      "sha256": "34feb69ff7be2b322569695ed0a8207dd1ab790cfe5e37b002fdd3f9c0b0d4e4",
+      "smoke": false,
+      "selection": "glob src/test/regress/sql/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "postgres/src/test/regress/sql/rangetypes.sql",
+      "source": "postgres",
+      "path": "src/test/regress/sql/rangetypes.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 28200,
+      "lines": 700,
+      "sha256": "d2c67aa5084a397a26753082e632840cb1eeb939743f7ce083215b60ced1163d",
+      "smoke": true,
+      "selection": "glob src/test/regress/sql/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "postgres/src/test/regress/sql/rowsecurity.sql",
+      "source": "postgres",
+      "path": "src/test/regress/sql/rowsecurity.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 80655,
+      "lines": 2362,
+      "sha256": "6cd0dbca81b9c2c6a440eccc91335192e03a810c59a5aab0a44fabc8fc94ab41",
+      "smoke": false,
+      "selection": "glob src/test/regress/sql/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "postgres/src/test/regress/sql/rowtypes.sql",
+      "source": "postgres",
+      "path": "src/test/regress/sql/rowtypes.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 18578,
+      "lines": 564,
+      "sha256": "b2ab6529278b567f30c06a9a73672a1749249ada2d624b920c8768b7198161ea",
+      "smoke": true,
+      "selection": "glob src/test/regress/sql/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "postgres/src/test/regress/sql/rules.sql",
+      "source": "postgres",
+      "path": "src/test/regress/sql/rules.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 45666,
+      "lines": 1430,
+      "sha256": "7a292618594c6d850df73953371f9a38d99105340bb48a88eef5cead97c23d67",
+      "smoke": false,
+      "selection": "glob src/test/regress/sql/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "postgres/src/test/regress/sql/select_parallel.sql",
+      "source": "postgres",
+      "path": "src/test/regress/sql/select_parallel.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 17723,
+      "lines": 552,
+      "sha256": "fad7c455e7503aaac1915a653030414fcbd515cede396140f5e46cff121d16f2",
+      "smoke": true,
+      "selection": "glob src/test/regress/sql/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "postgres/src/test/regress/sql/sqljson.sql",
+      "source": "postgres",
+      "path": "src/test/regress/sql/sqljson.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 18680,
+      "lines": 509,
+      "sha256": "01f44b8498b527d7a59ce977c0b4c1bb536178302a3075275315fabcd95166e5",
+      "smoke": true,
+      "selection": "glob src/test/regress/sql/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "postgres/src/test/regress/sql/sqljson_jsontable.sql",
+      "source": "postgres",
+      "path": "src/test/regress/sql/sqljson_jsontable.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 18505,
+      "lines": 563,
+      "sha256": "04b14e9feaef46597b1828a9f1e824a60a9a9a348a0a99c79acda71e78e9c952",
+      "smoke": true,
+      "selection": "glob src/test/regress/sql/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "postgres/src/test/regress/sql/sqljson_queryfuncs.sql",
+      "source": "postgres",
+      "path": "src/test/regress/sql/sqljson_queryfuncs.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 26998,
+      "lines": 502,
+      "sha256": "0e0a4544a18f83af82114f7eb2d230209547460a556b2c38115e08494f235a98",
+      "smoke": true,
+      "selection": "glob src/test/regress/sql/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "postgres/src/test/regress/sql/stats.sql",
+      "source": "postgres",
+      "path": "src/test/regress/sql/stats.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 35283,
+      "lines": 868,
+      "sha256": "794f5d6e2b7ac2c9d71041885117614a45a47931e1aac0f91a357c2de3dfd7ba",
+      "smoke": false,
+      "selection": "glob src/test/regress/sql/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "postgres/src/test/regress/sql/stats_ext.sql",
+      "source": "postgres",
+      "path": "src/test/regress/sql/stats_ext.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 77946,
+      "lines": 1731,
+      "sha256": "7210e1df0f67f437b4b5c251305c9da836fd717ca8ec11e2322d645345fea603",
+      "smoke": false,
+      "selection": "glob src/test/regress/sql/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "postgres/src/test/regress/sql/strings.sql",
+      "source": "postgres",
+      "path": "src/test/regress/sql/strings.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 31336,
+      "lines": 861,
+      "sha256": "43c94c3ab52744d873527e7997da69c01d905b1a7aa59bcdd68bb63eda82b685",
+      "smoke": true,
+      "selection": "glob src/test/regress/sql/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "postgres/src/test/regress/sql/subselect.sql",
+      "source": "postgres",
+      "path": "src/test/regress/sql/subselect.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 30788,
+      "lines": 1071,
+      "sha256": "21d8ecbd28d1fece81ad66f535f167be6213e5c083d03f202e00c52ebffc1e2e",
+      "smoke": true,
+      "selection": "glob src/test/regress/sql/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "postgres/src/test/regress/sql/tablespace.sql",
+      "source": "postgres",
+      "path": "src/test/regress/sql/tablespace.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 20159,
+      "lines": 439,
+      "sha256": "6936926d7b6fb34c90bad133d68a8ef5c4c4ba52fc42813effa4603c4e4c2832",
+      "smoke": true,
+      "selection": "glob src/test/regress/sql/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "postgres/src/test/regress/sql/timestamptz.sql",
+      "source": "postgres",
+      "path": "src/test/regress/sql/timestamptz.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 29869,
+      "lines": 674,
+      "sha256": "7612b4833135bef35c7aacc130212c185a6c7861cc47cacf4946f7141f262e16",
+      "smoke": true,
+      "selection": "glob src/test/regress/sql/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "postgres/src/test/regress/sql/transactions.sql",
+      "source": "postgres",
+      "path": "src/test/regress/sql/transactions.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 18026,
+      "lines": 644,
+      "sha256": "6889e30b2347e32933bec4b5d84c4bd699b2a2781d908a6bd848dd4172433252",
+      "smoke": true,
+      "selection": "glob src/test/regress/sql/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "postgres/src/test/regress/sql/triggers.sql",
+      "source": "postgres",
+      "path": "src/test/regress/sql/triggers.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 101806,
+      "lines": 2878,
+      "sha256": "c4a95a689043e865face4a63c09206a1adf6a8f332b527baf9f04df66cdb385c",
+      "smoke": false,
+      "selection": "glob src/test/regress/sql/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "postgres/src/test/regress/sql/tsearch.sql",
+      "source": "postgres",
+      "path": "src/test/regress/sql/tsearch.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 38080,
+      "lines": 895,
+      "sha256": "9fa703da8c75f6b1629111b0609d28e44a57ebd48fec3f7f288212318d3c5b91",
+      "smoke": false,
+      "selection": "glob src/test/regress/sql/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "postgres/src/test/regress/sql/type_sanity.sql",
+      "source": "postgres",
+      "path": "src/test/regress/sql/type_sanity.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 20469,
+      "lines": 568,
+      "sha256": "2cd56099a2a63f91cb09829bd3d4f59fc26f1354dfe3db1df85e5a7e275a9a8d",
+      "smoke": true,
+      "selection": "glob src/test/regress/sql/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "postgres/src/test/regress/sql/union.sql",
+      "source": "postgres",
+      "path": "src/test/regress/sql/union.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 18378,
+      "lines": 579,
+      "sha256": "6cb63f4e689dffe2f5e50950694a2b1c94b214bd63556d18ac5b17fb546d6b7c",
+      "smoke": true,
+      "selection": "glob src/test/regress/sql/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "postgres/src/test/regress/sql/updatable_views.sql",
+      "source": "postgres",
+      "path": "src/test/regress/sql/updatable_views.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 77872,
+      "lines": 2082,
+      "sha256": "533c0edd47e895c55a3395014a68bc82f35d77095397d801817d2de9ee2eef18",
+      "smoke": false,
+      "selection": "glob src/test/regress/sql/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "postgres/src/test/regress/sql/update.sql",
+      "source": "postgres",
+      "path": "src/test/regress/sql/update.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 26779,
+      "lines": 672,
+      "sha256": "e01c3819ff17baeeb4e28d45e46c6bf5db711a79f8064be5c5f1c69ed349addf",
+      "smoke": true,
+      "selection": "glob src/test/regress/sql/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "postgres/src/test/regress/sql/window.sql",
+      "source": "postgres",
+      "path": "src/test/regress/sql/window.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 73543,
+      "lines": 1960,
+      "sha256": "922af389278055be0d04e448a403fd709fcec5f102557217cd094564304c0359",
+      "smoke": false,
+      "selection": "glob src/test/regress/sql/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "postgres/src/test/regress/sql/with.sql",
+      "source": "postgres",
+      "path": "src/test/regress/sql/with.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 43347,
+      "lines": 1706,
+      "sha256": "364fa0456f02f16752eaf1caacc9c776be61b4659c229b3f3b96420d1a7fe62e",
+      "smoke": false,
+      "selection": "glob src/test/regress/sql/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "postgres/src/test/regress/sql/xml.sql",
+      "source": "postgres",
+      "path": "src/test/regress/sql/xml.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 32375,
+      "lines": 681,
+      "sha256": "3969506d0d8ffdd8adcf363fe041b9282ecefc67e886c51a34c45a462b4571cf",
+      "smoke": true,
+      "selection": "glob src/test/regress/sql/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "sakila/cockroachdb-sakila-db/cockroachdb-sakila-schema.sql",
+      "source": "sakila",
+      "path": "cockroachdb-sakila-db/cockroachdb-sakila-schema.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 23710,
+      "lines": 884,
+      "sha256": "1059e12da0c5193b3ed26e85be2650c6025cba0ce8dcb3084e1509df83c98f12",
+      "smoke": true,
+      "selection": "glob cockroachdb-sakila-db/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "sakila/oracle-sakila-db/oracle-sakila-schema.sql",
+      "source": "sakila",
+      "path": "oracle-sakila-db/oracle-sakila-schema.sql",
+      "dialect": "oracle",
+      "templater": "raw",
+      "bytes": 19768,
+      "lines": 792,
+      "sha256": "6d8943ba87103fcf50356e63727fd2b5be009b2061cfcec1a22db4054d809aa0",
+      "smoke": true,
+      "selection": "glob oracle-sakila-db/*.sql (dialect oracle); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "sakila/postgres-sakila-db/postgres-sakila-schema.sql",
+      "source": "sakila",
+      "path": "postgres-sakila-db/postgres-sakila-schema.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 50732,
+      "lines": 1711,
+      "sha256": "eaa8cfc2fd358e70617d31ed3638196982944749929f02e90b980457855bfa48",
+      "smoke": false,
+      "selection": "glob postgres-sakila-db/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "sakila/sqlite-sakila-db/sqlite-sakila-schema.sql",
+      "source": "sakila",
+      "path": "sqlite-sakila-db/sqlite-sakila-schema.sql",
+      "dialect": "sqlite",
+      "templater": "raw",
+      "bytes": 17860,
+      "lines": 645,
+      "sha256": "b1db76b3a5192f98493901a9ac40fecb9dba918feb5604b7ef6b74230a385f12",
+      "smoke": true,
+      "selection": "glob sqlite-sakila-db/*.sql (dialect sqlite); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "sakila/yugabytedb-sakila-db/yugabytedb-sakila-schema.sql",
+      "source": "sakila",
+      "path": "yugabytedb-sakila-db/yugabytedb-sakila-schema.sql",
+      "dialect": "postgres",
+      "templater": "raw",
+      "bytes": 48153,
+      "lines": 1557,
+      "sha256": "98da838c3f249038de560b76c40a15d2ffcf656e55ee0fac8a37d43eb68f2c6c",
+      "smoke": false,
+      "selection": "glob yugabytedb-sakila-db/*.sql (dialect postgres); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "sakila-mysql/mysql-sakila-db/mysql-sakila-schema.sql",
+      "source": "sakila-mysql",
+      "path": "mysql-sakila-db/mysql-sakila-schema.sql",
+      "dialect": "mysql",
+      "templater": "raw",
+      "bytes": 23088,
+      "lines": 644,
+      "sha256": "f2c41c3bf6d6c239941b4f98fb37afad21f6be12b82bf586202529a793ccc2ee",
+      "smoke": true,
+      "selection": "glob mysql-sakila-db/*.sql (dialect mysql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "simple_ga4_dbt/models/simple_ga4__sessions.sql",
+      "source": "simple_ga4_dbt",
+      "path": "models/simple_ga4__sessions.sql",
+      "dialect": "bigquery",
+      "templater": "jinja",
+      "bytes": 28649,
+      "lines": 361,
+      "sha256": "7ed6aa2418b006a41f6deb6be1a9ded90c82bdeed1f4bf3d42b9871083546413",
+      "smoke": true,
+      "selection": "glob models/*.sql (dialect bigquery); 8192 <= bytes <= 2097152; UTF-8; first file with its sha256; templater jinja: the Jinja code reads only [config, is_incremental, ref, var] (dbt builtins of the pinned sqlfluff and Jinja globals) and names that it sets"
+    },
+    {
+      "id": "simple_ga4_dbt/models/simple_ga4__users.sql",
+      "source": "simple_ga4_dbt",
+      "path": "models/simple_ga4__users.sql",
+      "dialect": "bigquery",
+      "templater": "jinja",
+      "bytes": 10547,
+      "lines": 103,
+      "sha256": "f4724a2c85b16ad2f8410c17a5e528d25dcd4a05267e0a80e29b61bff92595c5",
+      "smoke": true,
+      "selection": "glob models/*.sql (dialect bigquery); 8192 <= bytes <= 2097152; UTF-8; first file with its sha256; templater jinja: the Jinja code reads only [config, ref] (dbt builtins of the pinned sqlfluff and Jinja globals) and names that it sets"
+    },
+    {
+      "id": "spark/sql/core/src/test/resources/sql-tests/inputs/cte-recursion.sql",
+      "source": "spark",
+      "path": "sql/core/src/test/resources/sql-tests/inputs/cte-recursion.sql",
+      "dialect": "sparksql",
+      "templater": "raw",
+      "bytes": 19498,
+      "lines": 834,
+      "sha256": "97b245322d10e1b9f5b845fe5107a7f92577fc9559a34ce1067850336cf65254",
+      "smoke": true,
+      "selection": "glob sql/core/src/test/resources/sql-tests/inputs/*.sql (dialect sparksql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "spark/sql/core/src/test/resources/sql-tests/inputs/identifier-clause.sql",
+      "source": "spark",
+      "path": "sql/core/src/test/resources/sql-tests/inputs/identifier-clause.sql",
+      "dialect": "sparksql",
+      "templater": "raw",
+      "bytes": 18101,
+      "lines": 397,
+      "sha256": "8f7a31627ee06bdd6b1e445497f64c7de8bde8ccecc6810355bf1ae36f56f7f3",
+      "smoke": true,
+      "selection": "glob sql/core/src/test/resources/sql-tests/inputs/*.sql (dialect sparksql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "spark/sql/core/src/test/resources/sql-tests/inputs/join-lateral.sql",
+      "source": "spark",
+      "path": "sql/core/src/test/resources/sql-tests/inputs/join-lateral.sql",
+      "dialect": "sparksql",
+      "templater": "raw",
+      "bytes": 19640,
+      "lines": 589,
+      "sha256": "773ab1c453bdd5ab79f006e0e98c4fdcb1182c6e66733bb2fe9aeedd0621f6f9",
+      "smoke": true,
+      "selection": "glob sql/core/src/test/resources/sql-tests/inputs/*.sql (dialect sparksql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "spark/sql/core/src/test/resources/sql-tests/inputs/kllquantiles.sql",
+      "source": "spark",
+      "path": "sql/core/src/test/resources/sql-tests/inputs/kllquantiles.sql",
+      "dialect": "sparksql",
+      "templater": "raw",
+      "bytes": 26871,
+      "lines": 712,
+      "sha256": "7fc69381c5e6b02ac2b061067ba03cf1d29125e54150ec3557cb158aef2969b7",
+      "smoke": true,
+      "selection": "glob sql/core/src/test/resources/sql-tests/inputs/*.sql (dialect sparksql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "spark/sql/core/src/test/resources/sql-tests/inputs/order-by-and-having-on-top-of-aggregate-with-join.sql",
+      "source": "spark",
+      "path": "sql/core/src/test/resources/sql-tests/inputs/order-by-and-having-on-top-of-aggregate-with-join.sql",
+      "dialect": "sparksql",
+      "templater": "raw",
+      "bytes": 17902,
+      "lines": 244,
+      "sha256": "9406c324c3c361bcff8c58012192c5db3a389ebb727afa961f86b5ec95cb060b",
+      "smoke": true,
+      "selection": "glob sql/core/src/test/resources/sql-tests/inputs/*.sql (dialect sparksql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "spark/sql/core/src/test/resources/sql-tests/inputs/scripting/randomly_generated_scripts.sql",
+      "source": "spark",
+      "path": "sql/core/src/test/resources/sql-tests/inputs/scripting/randomly_generated_scripts.sql",
+      "dialect": "sparksql",
+      "templater": "raw",
+      "bytes": 314583,
+      "lines": 6882,
+      "sha256": "5bb4d1e979de50164d242a433b7e6ca467c883c40c49a1de6b77e908215b8f6d",
+      "smoke": false,
+      "selection": "glob sql/core/src/test/resources/sql-tests/inputs/scripting/*.sql (dialect sparksql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "spark/sql/core/src/test/resources/sql-tests/inputs/sql-udf.sql",
+      "source": "spark",
+      "path": "sql/core/src/test/resources/sql-tests/inputs/sql-udf.sql",
+      "dialect": "sparksql",
+      "templater": "raw",
+      "bytes": 38623,
+      "lines": 1035,
+      "sha256": "59bf33fde3a859e884b0c9786f54c3bc4e73b36faf35f7c0fa9c193b9d2b35e3",
+      "smoke": false,
+      "selection": "glob sql/core/src/test/resources/sql-tests/inputs/*.sql (dialect sparksql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "spark/sql/core/src/test/resources/sql-tests/inputs/subquery/in-subquery/in-set-operations.sql",
+      "source": "spark",
+      "path": "sql/core/src/test/resources/sql-tests/inputs/subquery/in-subquery/in-set-operations.sql",
+      "dialect": "sparksql",
+      "templater": "raw",
+      "bytes": 16946,
+      "lines": 583,
+      "sha256": "14951da1b63eb654c8a1d521227e4f417a80d13eb69106675f5a939e393f8aea",
+      "smoke": true,
+      "selection": "glob sql/core/src/test/resources/sql-tests/inputs/subquery/**/*.sql (dialect sparksql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "spark/sql/core/src/test/resources/sql-tests/inputs/thetasketch.sql",
+      "source": "spark",
+      "path": "sql/core/src/test/resources/sql-tests/inputs/thetasketch.sql",
+      "dialect": "sparksql",
+      "templater": "raw",
+      "bytes": 23821,
+      "lines": 539,
+      "sha256": "d5cd5c26ebab36b408d736d483d6bc52f33d5ce839d1e4548a583349403df715",
+      "smoke": true,
+      "selection": "glob sql/core/src/test/resources/sql-tests/inputs/*.sql (dialect sparksql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "spark/sql/core/src/test/resources/sql-tests/inputs/tuplesketch.sql",
+      "source": "spark",
+      "path": "sql/core/src/test/resources/sql-tests/inputs/tuplesketch.sql",
+      "dialect": "sparksql",
+      "templater": "raw",
+      "bytes": 79416,
+      "lines": 1751,
+      "sha256": "eff1b09473319e38018d41caf3789cbb5f3481b79ac54221c276571c8f1d65a0",
+      "smoke": false,
+      "selection": "glob sql/core/src/test/resources/sql-tests/inputs/*.sql (dialect sparksql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "spark/sql/core/src/test/resources/sql-tests/inputs/typeCoercion/native/decimalPrecision.sql",
+      "source": "spark",
+      "path": "sql/core/src/test/resources/sql-tests/inputs/typeCoercion/native/decimalPrecision.sql",
+      "dialect": "sparksql",
+      "templater": "raw",
+      "bytes": 77012,
+      "lines": 1448,
+      "sha256": "6b7f14d8085863ef4e9504d5ed64ad6797fa3dda31e5e8daa461ab332006e2ae",
+      "smoke": false,
+      "selection": "glob sql/core/src/test/resources/sql-tests/inputs/typeCoercion/**/*.sql (dialect sparksql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "spark/sql/core/src/test/resources/sql-tests/inputs/typeCoercion/native/inConversion.sql",
+      "source": "spark",
+      "path": "sql/core/src/test/resources/sql-tests/inputs/typeCoercion/native/inConversion.sql",
+      "dialect": "sparksql",
+      "templater": "raw",
+      "bytes": 22810,
+      "lines": 330,
+      "sha256": "3088e459dd1936527a12884aeb1ec92e63d53878028d9393ab77528f1e871a9e",
+      "smoke": true,
+      "selection": "glob sql/core/src/test/resources/sql-tests/inputs/typeCoercion/**/*.sql (dialect sparksql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "spark/sql/core/src/test/resources/sql-tests/inputs/typeCoercion/native/promoteStrings.sql",
+      "source": "spark",
+      "path": "sql/core/src/test/resources/sql-tests/inputs/typeCoercion/native/promoteStrings.sql",
+      "dialect": "sparksql",
+      "templater": "raw",
+      "bytes": 20937,
+      "lines": 364,
+      "sha256": "273338857fcf8e5acab0a3086b7191527e14f60e2931c11a63c0aa25bb72d9ff",
+      "smoke": true,
+      "selection": "glob sql/core/src/test/resources/sql-tests/inputs/typeCoercion/**/*.sql (dialect sparksql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "spark/sql/core/src/test/resources/sql-tests/inputs/window.sql",
+      "source": "spark",
+      "path": "sql/core/src/test/resources/sql-tests/inputs/window.sql",
+      "dialect": "sparksql",
+      "templater": "raw",
+      "bytes": 20127,
+      "lines": 519,
+      "sha256": "570e31bce936c41a861d765c34c175daabba8d999a64fa398cb552360b57cac5",
+      "smoke": true,
+      "selection": "glob sql/core/src/test/resources/sql-tests/inputs/*.sql (dialect sparksql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "sql-server-maintenance-solution/DatabaseBackup.sql",
+      "source": "sql-server-maintenance-solution",
+      "path": "DatabaseBackup.sql",
+      "dialect": "tsql",
+      "templater": "raw",
+      "bytes": 267445,
+      "lines": 4716,
+      "sha256": "1d69bd624c10cace994083006919df2c04bcaf084bb8a07e4f0b2c8ea43cb14b",
+      "smoke": false,
+      "selection": "glob *.sql (dialect tsql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "sql-server-maintenance-solution/DatabaseIntegrityCheck.sql",
+      "source": "sql-server-maintenance-solution",
+      "path": "DatabaseIntegrityCheck.sql",
+      "dialect": "tsql",
+      "templater": "raw",
+      "bytes": 107911,
+      "lines": 2032,
+      "sha256": "0a07ad49c18e17954114be8a8fb9c5c5fd022ae50b699462fba9a23e97e6b4ab",
+      "smoke": false,
+      "selection": "glob *.sql (dialect tsql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "sql-server-maintenance-solution/IndexOptimize.sql",
+      "source": "sql-server-maintenance-solution",
+      "path": "IndexOptimize.sql",
+      "dialect": "tsql",
+      "templater": "raw",
+      "bytes": 190055,
+      "lines": 3068,
+      "sha256": "ae23d8bd3d866c8c83a6ce27d982b0573e4f96a30e744b3549fa63a9548abed6",
+      "smoke": false,
+      "selection": "glob *.sql (dialect tsql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "sql-server-maintenance-solution/MaintenanceSolution.sql",
+      "source": "sql-server-maintenance-solution",
+      "path": "MaintenanceSolution.sql",
+      "dialect": "tsql",
+      "templater": "raw",
+      "bytes": 595994,
+      "lines": 10496,
+      "sha256": "d76b83a0a7b8317421d0d4c06aeab30d1e86c15d7ec857640109cccce858ce5f",
+      "smoke": false,
+      "selection": "glob *.sql (dialect tsql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "sql-server-maintenance-solution/MaintenanceSolutionAzureSQLDatabase.sql",
+      "source": "sql-server-maintenance-solution",
+      "path": "MaintenanceSolutionAzureSQLDatabase.sql",
+      "dialect": "tsql",
+      "templater": "raw",
+      "bytes": 312040,
+      "lines": 5453,
+      "sha256": "6d65a8bf11140272182cce5a7f8388632e270776ba6f039c0dbff5d98f6a0082",
+      "smoke": false,
+      "selection": "glob *.sql (dialect tsql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "sql-server-samples/samples/databases/adventure-works/data-warehouse-install-script/instawdbdw.sql",
+      "source": "sql-server-samples",
+      "path": "samples/databases/adventure-works/data-warehouse-install-script/instawdbdw.sql",
+      "dialect": "tsql",
+      "templater": "raw",
+      "bytes": 54095,
+      "lines": 1818,
+      "sha256": "908ed29f7412234a65c781b0573b8fe6161d164c5d873b197467a2317aae9172",
+      "smoke": false,
+      "selection": "glob samples/databases/adventure-works/*/*.sql (dialect tsql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "sql-server-samples/samples/databases/adventure-works/oltp-install-script/instawdb.sql",
+      "source": "sql-server-samples",
+      "path": "samples/databases/adventure-works/oltp-install-script/instawdb.sql",
+      "dialect": "tsql",
+      "templater": "raw",
+      "bytes": 329368,
+      "lines": 6627,
+      "sha256": "d979f036750f9c7b4fb7be3d58cdbb596a74f864a6325998501b3a96c6ad53f9",
+      "smoke": false,
+      "selection": "glob samples/databases/adventure-works/*/*.sql (dialect tsql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "sql-server-samples/samples/databases/futon-manufacturing/02-sample-data.sql",
+      "source": "sql-server-samples",
+      "path": "samples/databases/futon-manufacturing/02-sample-data.sql",
+      "dialect": "tsql",
+      "templater": "raw",
+      "bytes": 42196,
+      "lines": 673,
+      "sha256": "cd4597e75068a835c8da5ec72c79b28f9d5893cb46b5bc2210c62bb89b09bf76",
+      "smoke": false,
+      "selection": "glob samples/databases/futon-manufacturing/*.sql (dialect tsql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "sql-server-samples/samples/databases/futon-manufacturing/03-manufacturing-reports.sql",
+      "source": "sql-server-samples",
+      "path": "samples/databases/futon-manufacturing/03-manufacturing-reports.sql",
+      "dialect": "tsql",
+      "templater": "raw",
+      "bytes": 32940,
+      "lines": 883,
+      "sha256": "e621b5d7e8f2a87d74c67b7a801908dc27252f0a533d3935e642847fe5512da8",
+      "smoke": false,
+      "selection": "glob samples/databases/futon-manufacturing/*.sql (dialect tsql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "sql-server-samples/samples/databases/futon-manufacturing/06-sales-sample-data.sql",
+      "source": "sql-server-samples",
+      "path": "samples/databases/futon-manufacturing/06-sales-sample-data.sql",
+      "dialect": "tsql",
+      "templater": "raw",
+      "bytes": 23271,
+      "lines": 366,
+      "sha256": "6c91bc7bf0a61f47095de306147954417f1b64ed64664ca712d058a3f65f094d",
+      "smoke": true,
+      "selection": "glob samples/databases/futon-manufacturing/*.sql (dialect tsql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "sql-server-samples/samples/databases/futon-manufacturing/07-sales-reports.sql",
+      "source": "sql-server-samples",
+      "path": "samples/databases/futon-manufacturing/07-sales-reports.sql",
+      "dialect": "tsql",
+      "templater": "raw",
+      "bytes": 34141,
+      "lines": 908,
+      "sha256": "fcb59e41722ef14ae85c6404c4e96ffe10c6436e01d3bed9eeaa709af113695b",
+      "smoke": false,
+      "selection": "glob samples/databases/futon-manufacturing/*.sql (dialect tsql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "sql-server-samples/samples/databases/futon-manufacturing/08-sales-sample-queries.sql",
+      "source": "sql-server-samples",
+      "path": "samples/databases/futon-manufacturing/08-sales-sample-queries.sql",
+      "dialect": "tsql",
+      "templater": "raw",
+      "bytes": 17884,
+      "lines": 593,
+      "sha256": "2454dcc135fcd7c10cc2d3ba23a4ed42e532cafa94f553130a891bebbef9775d",
+      "smoke": true,
+      "selection": "glob samples/databases/futon-manufacturing/*.sql (dialect tsql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "sql-server-samples/samples/databases/northwind-pubs/instnwnd (Azure SQL Database).sql",
+      "source": "sql-server-samples",
+      "path": "samples/databases/northwind-pubs/instnwnd (Azure SQL Database).sql",
+      "dialect": "tsql",
+      "templater": "raw",
+      "bytes": 1049643,
+      "lines": 9350,
+      "sha256": "0722013fb25c4f7f9d3d6050bc76845568b465edd6f6848e1cb1e02094ee1cc5",
+      "smoke": false,
+      "selection": "glob samples/databases/northwind-pubs/*.sql (dialect tsql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "sql-server-samples/samples/databases/northwind-pubs/instnwnd.sql",
+      "source": "sql-server-samples",
+      "path": "samples/databases/northwind-pubs/instnwnd.sql",
+      "dialect": "tsql",
+      "templater": "raw",
+      "bytes": 1049720,
+      "lines": 9350,
+      "sha256": "3cc62b3fca6d244a47dbde698b809331e4f85988a0685b2b370717d431e94871",
+      "smoke": false,
+      "selection": "glob samples/databases/northwind-pubs/*.sql (dialect tsql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "sql-server-samples/samples/databases/northwind-pubs/instpubs.sql",
+      "source": "sql-server-samples",
+      "path": "samples/databases/northwind-pubs/instpubs.sql",
+      "dialect": "tsql",
+      "templater": "raw",
+      "bytes": 125718,
+      "lines": 2061,
+      "sha256": "c66479d429f482ef788290dd94bb315f2277327765f480b2b21be6f359eb4bad",
+      "smoke": false,
+      "selection": "glob samples/databases/northwind-pubs/*.sql (dialect tsql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "sql-server-samples/samples/features/in-memory-database/in-memory-oltp/t-sql-scripts/clustered_columnstore_sample_queries.sql",
+      "source": "sql-server-samples",
+      "path": "samples/features/in-memory-database/in-memory-oltp/t-sql-scripts/clustered_columnstore_sample_queries.sql",
+      "dialect": "tsql",
+      "templater": "raw",
+      "bytes": 17166,
+      "lines": 482,
+      "sha256": "619da45e9d9cc3dd1114e5f4ac80b7584ff2583628b9bf5b2e54ca17b20eba9b",
+      "smoke": true,
+      "selection": "glob samples/features/in-memory-database/in-memory-oltp/t-sql-scripts/*.sql (dialect tsql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "sql-server-samples/samples/features/in-memory-database/in-memory-oltp/t-sql-scripts/sql_in-memory_analytics_sample.sql",
+      "source": "sql-server-samples",
+      "path": "samples/features/in-memory-database/in-memory-oltp/t-sql-scripts/sql_in-memory_analytics_sample.sql",
+      "dialect": "tsql",
+      "templater": "raw",
+      "bytes": 19451,
+      "lines": 494,
+      "sha256": "aab1ef3509d29743b575e88880664e51dceb7e9029a346a2532f1cab1e9160e8",
+      "smoke": true,
+      "selection": "glob samples/features/in-memory-database/in-memory-oltp/t-sql-scripts/*.sql (dialect tsql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    },
+    {
+      "id": "sql-server-samples/samples/features/in-memory-database/in-memory-oltp/t-sql-scripts/sql_in-memory_oltp_sample.sql",
+      "source": "sql-server-samples",
+      "path": "samples/features/in-memory-database/in-memory-oltp/t-sql-scripts/sql_in-memory_oltp_sample.sql",
+      "dialect": "tsql",
+      "templater": "raw",
+      "bytes": 19068,
+      "lines": 769,
+      "sha256": "d14bdf8714514b69b57189e87437b570b3e5ae55c20afec78fe11782ef703cf7",
+      "smoke": true,
+      "selection": "glob samples/features/in-memory-database/in-memory-oltp/t-sql-scripts/*.sql (dialect tsql); 16384 <= bytes <= 2097152; UTF-8; first file with its sha256"
+    }
+  ]
 }

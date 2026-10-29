@@ -1,0 +1,204 @@
+{
+  "format": 1,
+  "sources": {
+    "amazon-redshift-utils": {
+      "repository": "https://github.com/awslabs/amazon-redshift-utils",
+      "commit": "f208c1100370eebca8b38d3e7d0654fb337e3463",
+      "license": "Apache-2.0",
+      "copyright": ["Amazon.com, Inc. or its affiliates"],
+      "license_files": ["LICENSE.txt", "NOTICE.txt"],
+      "include": [
+        {"glob": "src/AdminViews/*.sql", "dialect": "redshift"},
+        {"glob": "src/StoredProcedures/*.sql", "dialect": "redshift"}
+      ],
+      "exclude": {
+        "src/StoredProcedures/sp_sync_merge_changes.sql": "It names the TPC-H database 'tpch_100g'. The TPC check refuses each mention of TPC-H or TPC-DS."
+      },
+      "note": "Default branch on 2026-10-28. Only admin views and stored procedures: the benchmark folders have SQL derived from TPC-H and TPC-DS (out, see Licenses)."
+    },
+    "bigquery-utils": {
+      "repository": "https://github.com/GoogleCloudPlatform/bigquery-utils",
+      "commit": "d5bde4fb0d2dbfa0477f1f2a6d87edda65bb7907",
+      "license": "Apache-2.0",
+      "copyright": ["Google LLC"],
+      "license_files": ["LICENSE"],
+      "include": [
+        {"glob": "views/**/*.sql", "dialect": "bigquery"}
+      ],
+      "note": "Default branch on 2026-10-28. The copyright holder is in the header of each selected file."
+    },
+    "chinook-database": {
+      "repository": "https://github.com/lerocha/chinook-database",
+      "commit": "7f67772503d71ba90f19283c38e93923addb43fa",
+      "license": "MIT",
+      "copyright": ["Luis Rocha"],
+      "license_files": ["LICENSE.md"],
+      "include": [
+        {"glob": "ChinookDatabase/DataSources/Chinook_Db2*.sql", "dialect": "db2"},
+        {"glob": "ChinookDatabase/DataSources/Chinook_MySql*.sql", "dialect": "mysql"},
+        {"glob": "ChinookDatabase/DataSources/Chinook_Oracle*.sql", "dialect": "oracle"},
+        {"glob": "ChinookDatabase/DataSources/Chinook_PostgreSql*.sql", "dialect": "postgres"},
+        {"glob": "ChinookDatabase/DataSources/Chinook_SqlServer*.sql", "dialect": "tsql"},
+        {"glob": "ChinookDatabase/DataSources/Chinook_Sqlite*.sql", "dialect": "sqlite"}
+      ],
+      "note": "Default branch on 2026-10-28. The dialect comes from the database in the file name."
+    },
+    "clickhouse": {
+      "repository": "https://github.com/ClickHouse/ClickHouse",
+      "commit": "a1f4cd9c23f649b8891e952f973937f40eb9d273",
+      "license": "Apache-2.0",
+      "copyright": ["ClickHouse, Inc."],
+      "license_files": ["LICENSE"],
+      "include": [
+        {"glob": "tests/queries/0_stateless/00[0-2]*.sql", "dialect": "clickhouse"}
+      ],
+      "note": "Tag v25.8.9.20-lts. Only the stateless tests 00000 to 00299. The full folder has 67 tests in the size range, 3.9 MB in total."
+    },
+    "dbt-cerebro": {
+      "repository": "https://github.com/gnosischain/dbt-cerebro",
+      "commit": "b5e7f2ac0704707e33c980ac16bf9fea151a6834",
+      "license": "MIT",
+      "copyright": ["hdser"],
+      "license_files": ["LICENSE"],
+      "include": [
+        {"glob": "models/**/*.sql", "dialect": "clickhouse", "templater": "jinja"}
+      ],
+      "note": "Default branch on 2026-10-28. A dbt project on ClickHouse (profiles.yml: type clickhouse). Only the models: the macro files define macros and render to almost no SQL. The Jinja rule takes the models that use only dbt builtins."
+    },
+    "db-sample-schemas": {
+      "repository": "https://github.com/oracle-samples/db-sample-schemas",
+      "commit": "6660bad68c07bd143430ace58565b3f727e17263",
+      "license": "MIT",
+      "copyright": ["Oracle and/or its affiliates", "Oracle"],
+      "license_files": ["LICENSE.txt"],
+      "include": [
+        {"glob": "customer_orders/*.sql", "dialect": "oracle"},
+        {"glob": "human_resources/*.sql", "dialect": "oracle"},
+        {"glob": "sales_history/*.sql", "dialect": "oracle"}
+      ],
+      "note": "Default branch on 2026-10-28. Not order_entry: 39 files (3.4 MB) in the size range, most of them product text in many languages. The selected files have the notice 'Copyright (c) 2023 Oracle'."
+    },
+    "emerging-solutions-toolbox": {
+      "repository": "https://github.com/Snowflake-Labs/emerging-solutions-toolbox",
+      "commit": "d9073a376b4c9479d444cff57becc9c98b26e7e3",
+      "license": "Apache-2.0",
+      "copyright": ["Snowflake Inc."],
+      "license_files": ["LICENSE"],
+      "include": [
+        {"glob": "**/*.sql", "dialect": "snowflake"}
+      ],
+      "note": "Default branch on 2026-10-28. The copyright holder is in the header of selected files."
+    },
+    "pagila": {
+      "repository": "https://github.com/devrimgunduz/pagila",
+      "commit": "ce6e114236bb828e5ec0dc835f65f1bf1b9179f5",
+      "license": "PostgreSQL",
+      "copyright": ["Devrim Gündüz"],
+      "license_files": ["LICENSE.txt"],
+      "include": [
+        {"glob": "*.sql", "dialect": "postgres"}
+      ],
+      "note": "Default branch on 2026-10-28. The data files are more than 2 MiB."
+    },
+    "postgres": {
+      "repository": "https://github.com/postgres/postgres",
+      "commit": "7885b94dd81b98bbab9ed878680d156df7bf857f",
+      "license": "PostgreSQL",
+      "copyright": [
+        "PostgreSQL Global Development Group",
+        "The Regents of the University of California"
+      ],
+      "license_files": ["COPYRIGHT"],
+      "include": [
+        {"glob": "src/test/regress/sql/*.sql", "dialect": "postgres"}
+      ],
+      "note": "Tag REL_17_6. The regression tests have psql commands."
+    },
+    "sakila": {
+      "repository": "https://github.com/jOOQ/sakila",
+      "commit": "e089a5b1ec9af0df7a9c6a5d47d49fa1736a4e84",
+      "license": "BSD-2-Clause",
+      "copyright": ["jOOQ Object Oriented Querying", "DB Software Laboratory"],
+      "license_files": ["LICENSE", "README.md"],
+      "include": [
+        {"glob": "cockroachdb-sakila-db/*.sql", "dialect": "postgres"},
+        {"glob": "oracle-sakila-db/*.sql", "dialect": "oracle"},
+        {"glob": "postgres-sakila-db/*.sql", "dialect": "postgres"},
+        {"glob": "sql-server-sakila-db/*.sql", "dialect": "tsql"},
+        {"glob": "sqlite-sakila-db/*.sql", "dialect": "sqlite"},
+        {"glob": "yugabytedb-sakila-db/*.sql", "dialect": "postgres"}
+      ],
+      "note": "Default branch on 2026-10-28. The data files are more than 2 MiB. README.md names the second copyright holder. The files are ports of the MySQL AB original (BSD-3-Clause, see the source sakila-mysql): README.md says 'The Sakila example database was originally developed by Mike Hillyer of the MySQL AB documentation team. it was ported to other databases by DB Software Laboratory' and 'License: BSD'. The MySQL files are in the source sakila-mysql."
+    },
+    "sakila-mysql": {
+      "repository": "https://github.com/jOOQ/sakila",
+      "commit": "e089a5b1ec9af0df7a9c6a5d47d49fa1736a4e84",
+      "license": "BSD-3-Clause",
+      "copyright": ["MySQL AB", "jOOQ Object Oriented Querying"],
+      "license_files": ["mysql-sakila-db/mysql-sakila-schema.sql", "LICENSE"],
+      "include": [
+        {"glob": "mysql-sakila-db/*.sql", "dialect": "mysql"}
+      ],
+      "note": "The commit of sakila. mysql-sakila-schema.sql has its own BSD-3-Clause notice, 'Copyright (c) 2006, MySQL AB' (the first license file). The repository LICENSE is BSD-2-Clause (jOOQ); BSD-3-Clause has all its conditions."
+    },
+    "simple_ga4_dbt": {
+      "repository": "https://github.com/admindio/simple_ga4_dbt",
+      "commit": "6452a9ba7be2c269730be6596dff47cba9dcbdc5",
+      "license": "MIT",
+      "copyright": ["Michael Query (Molly Data, LLC)"],
+      "license_files": ["LICENSE"],
+      "include": [
+        {"glob": "models/*.sql", "dialect": "bigquery", "templater": "jinja"}
+      ],
+      "note": "Default branch on 2026-10-28. A dbt package for GA4 data in BigQuery (README.md). Only the models. The Jinja rule takes the models that use only dbt builtins."
+    },
+    "spark": {
+      "repository": "https://github.com/apache/spark",
+      "commit": "617618396087429b5627a86ce933bb0f5d6645cb",
+      "license": "Apache-2.0",
+      "copyright": ["The Apache Software Foundation"],
+      "license_files": ["LICENSE", "NOTICE"],
+      "include": [
+        {"glob": "sql/core/src/test/resources/sql-tests/inputs/*.sql", "dialect": "sparksql"},
+        {"glob": "sql/core/src/test/resources/sql-tests/inputs/nonansi/*.sql", "dialect": "sparksql"},
+        {"glob": "sql/core/src/test/resources/sql-tests/inputs/scripting/*.sql", "dialect": "sparksql"},
+        {"glob": "sql/core/src/test/resources/sql-tests/inputs/subquery/**/*.sql", "dialect": "sparksql"},
+        {"glob": "sql/core/src/test/resources/sql-tests/inputs/timestampNTZ/*.sql", "dialect": "sparksql"},
+        {"glob": "sql/core/src/test/resources/sql-tests/inputs/typeCoercion/**/*.sql", "dialect": "sparksql"},
+        {"glob": "sql/core/src/test/resources/sql-tests/inputs/udaf/*.sql", "dialect": "sparksql"},
+        {"glob": "sql/core/src/test/resources/sql-tests/inputs/udf/*.sql", "dialect": "sparksql"},
+        {"glob": "sql/core/src/test/resources/sql-tests/inputs/udtf/*.sql", "dialect": "sparksql"},
+        {"glob": "sql/core/src/test/resources/sql-tests/inputs/variant/*.sql", "dialect": "sparksql"}
+      ],
+      "exclude": {
+        "sql/core/src/test/resources/sql-tests/inputs/pipe-operators.sql": "From line 1265 it has TPC-DS queries Q1, Q2, Q3, Q12, Q44, and Q51 (out, see Licenses)."
+      },
+      "note": "Tag v4.2.1. The SQL test inputs of Spark SQL, but not the 2 postgreSQL folders: their files are ports of the PostgreSQL regression tests, with the notice 'Portions Copyright (c) 1996-2019, PostgreSQL Global Development Group'. The postgres source has the original tests."
+    },
+    "sql-server-maintenance-solution": {
+      "repository": "https://github.com/olahallengren/sql-server-maintenance-solution",
+      "commit": "41617578643e722b790ea4d57ef80f8de38ae747",
+      "license": "MIT",
+      "copyright": ["Ola Hallengren"],
+      "license_files": ["LICENSE"],
+      "include": [
+        {"glob": "*.sql", "dialect": "tsql"}
+      ],
+      "note": "Tag 20260912_150238. Stored procedures."
+    },
+    "sql-server-samples": {
+      "repository": "https://github.com/microsoft/sql-server-samples",
+      "commit": "348bbbc25079785f93ea74be3dd0d6369a59358f",
+      "license": "MIT",
+      "copyright": ["Microsoft Corporation", "Microsoft, Inc."],
+      "license_files": ["license.txt"],
+      "include": [
+        {"glob": "samples/databases/adventure-works/*/*.sql", "dialect": "tsql"},
+        {"glob": "samples/databases/futon-manufacturing/*.sql", "dialect": "tsql"},
+        {"glob": "samples/databases/northwind-pubs/*.sql", "dialect": "tsql"},
+        {"glob": "samples/features/in-memory-database/in-memory-oltp/t-sql-scripts/*.sql", "dialect": "tsql"}
+      ],
+      "note": "Default branch on 2026-10-28. Not wide-world-importers: 33 files (6.8 MB) in the size range, most of them data. The northwind-pubs files have the notice 'Copyright Microsoft, Inc. 1994 - 2000'."
+    }
+  }
+}
