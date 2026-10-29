@@ -61,6 +61,17 @@ tracks:
       - scripts/s3/**
       - docs/decisions/s3-*.md
       - harness/tests/test_s3_*.py
+      # The sqll code of S3 phase B. The S3 track owns it until the human
+      # approves S3. The move to the Core track is an open S3b question.
+      - Cargo.toml
+      - Cargo.lock
+      - rust-toolchain.toml
+      - crates/**
+      - scripts/build-sqll
+      - harness/sqll_harness/adapters/sqll.py
+      - harness/sqll_harness/bench/sqll.py
+      - harness/tests/test_sqll_*.py
+      - known_failures/sqll.txt
 
   S7-tests:
     stones: [S7]

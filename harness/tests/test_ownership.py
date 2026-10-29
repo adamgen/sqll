@@ -97,6 +97,48 @@ def test_s3_owns_its_work_paths():
         assert ownership.owner(path, TRACKS) == "S3", path
 
 
+SQLL_CODE = (
+    "Cargo.toml",
+    "Cargo.lock",
+    "rust-toolchain.toml",
+    "crates/x.rs",
+    "crates/sqll/src/main.rs",
+    "scripts/build-sqll",
+    "harness/sqll_harness/adapters/sqll.py",
+    "harness/sqll_harness/bench/sqll.py",
+    "harness/tests/test_sqll_adapter.py",
+    "known_failures/sqll.txt",
+)
+
+
+def test_s3_owns_the_sqll_code_until_s3_is_approved():
+    for path in SQLL_CODE:
+        assert ownership.owner(path, TRACKS) == "S3", path
+    # Only these paths move: the Core paths next to them stay with core.
+    for path in (
+        "scripts/build",
+        "scripts/build-sqll-x",
+        "scripts/verify",
+        "harness/sqll_harness/adapters/sqruff.py",
+        "harness/sqll_harness/bench/run.py",
+        "harness/tests/test_sqll.py",
+        "known_failures/sqruff.txt",
+        "THIRD_PARTY.md",
+    ):
+        assert ownership.owner(path, TRACKS) == "core", path
+    assert ownership.owner("crates", TRACKS) == "S3"
+    assert ownership.owner("x/Cargo.toml", TRACKS) is None
+
+
+def test_only_the_s3_track_can_change_the_sqll_code():
+    ok, text = ownership.check("claude/s3-sqll", [], list(SQLL_CODE), TRACKS)
+    assert ok, text
+    for branch in ("claude/core", "claude/s9-corpus", "claude/s5-rules"):
+        ok, text = ownership.check(branch, [], ["crates/x.rs"], TRACKS)
+        assert not ok, branch
+        assert "- crates/x.rs: owned by S3 (another track)" in text
+
+
 def test_no_path_has_two_owners():
     # A sample path for each pattern ("*" and "**" become "x"), and each
     # tracked file. owner() raises TracksError if two tracks own a path.
