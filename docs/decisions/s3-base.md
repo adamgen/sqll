@@ -47,7 +47,9 @@ inside that session. The lint and fix times of sqruff and sqlfluff come
 from the S2 baseline (`results/s2/baseline.json`). The T6 estimates
 (formulas `rule_time` and `total_all`) take only ratios inside each
 session. The T6 sensitivity check (formula `unscaled`) does not: it adds
-a time of the probe session to times of the baseline session.
+a time of the probe session to times of the baseline session. T8 uses one
+more session with the same setup for the cause of the start time; it
+compares only times of that session.
 
 Option 3 has no implementation. Each value for option 3 is an estimate. It
 comes from the sqlfluffrs generator and engine and from the sqruff rule
@@ -61,7 +63,7 @@ sizes. The record labels each such value as an estimate.
 | C4 | sqlfluffrs probe (`scripts/s3/probe-sqlfluffrs/`, research code, not sqll; made and run by `scripts/s3/sqlfluffrs_probe.py`): build without Python, exact trees of the dialect fixtures in a native binary, the generator outside the submodule, and the start and parse times of the probe, sqruff, and sqlfluff in one session. Inputs: `results/s3/sqlfluffrs-probe-build.json`, `results/s3/sqlfluffrs-probe-cases.json`, and `results/s3/sqlfluffrs-probe-bench.json` | `results/s3/sqlfluffrs-probe.json` | T5 | Measurement; the reuse of the generator by option 3 is a judgement |
 | C5 | For each base and benchmark (start, parse, lint, fix): the time, the ratios to sqlfluff and to sqruff, and the G3 result; the totals and the counts that miss a target (from `scripts/s3/speed_by_base.py`). Inputs: `results/s2/baseline.json` and `results/s3/sqlfluffrs-probe.json`; no new timing run | `results/s3/speed-by-base.json` | T6 | Measurement (option 1; option 2 start and parse); estimate with its formula (option 2 lint and fix; option 3, low and high bound) |
 | C6 | License and copyright of each base (the files of the pinned versions), the duties if sqll ports or generates from it, the dependency licenses of each base (cargo tree and cargo metadata), the lines of each crate (hand-written and generated), and the structure (crates, dialects, rules) (from `scripts/s3/license_size.py`). Input: `results/s3/license-size-sources.json` (the sqruff 0.41.0 crates and tag, a copy of the submodule with the generated tables) | `results/s3/license-size.json` | T7 | Measurement; the duties are paraphrases of the license texts (the MIT condition is an exact quote); the size of option 3 is an estimate; the legal questions are open for a human |
-| C7 | For each base: templaters, CLI commands, config, parameter styles, and type data for code generation | `results/s3/capabilities.json` | T8 | List from the code (options 1, 2); estimate (option 3) |
+| C7 | For each base: the templaters and the Python runtime that they need, the placeholder styles (also the G2 parameter styles), the CLI commands and options (parsed from the help text of sqlfluff 4.4.0 and sqruff 0.41.0), the config files and keys, the S1 cases with an unsupported setting, the segment type of the tree and the one-parse property (G2, S8), and the cause of the start time (G3). From `scripts/s3/capabilities.py`. Inputs: `results/s3/capabilities-sources.json` (the help commands and their output, the sqlfluff facts, the cited lines of the sqruff 0.41.0 crates) and `results/s3/capabilities-start.json` (a start session in the CI image) | `results/s3/capabilities.json` | T8 | Measurement (help text, cited source lines, session); each judgement has `estimate` and its reason; option 3 is an estimate |
 | C8 | Work for each base and stone, from C1 to C7 | `results/s3/estimates.json` | T9 | Estimate |
 
 T9 adds the data, the estimates, and the recommendation to this record.
