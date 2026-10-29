@@ -1,7 +1,7 @@
 # S9 decision: the external corpus
 
 Status: design (T1); run and report (T3); untemplated content (T4);
-templated content (T5). Scope: STONES.md S9;
+templated content (T5); recorded results (T6). Scope: STONES.md S9;
 CONSTITUTION.md G1.3, G3, G4.2, G4.3, G4.5. "Measured": `parse` runs of
 the `scripts/setup` tools on 2026-10-28 (4 CPUs, 16 GiB, machine lock),
 in a new folder with no config file above it. PR #29 (T1) and the T3 pull
@@ -184,7 +184,7 @@ result then measures the limit, not the parser. Measured on 87 files of
   it after 6.7 s, so the timeout, not 10^12, stops a runaway parse.
 - Lifted: each tool gives a tree on each file, but sqruff panics on
   `strings.sql` (`parsers.rs:333`) with the defaults and with lifted
-  limits. No run stops at `max_parse_depth`.
+  limits. No run of these 87 files stops at `max_parse_depth`.
 - T5 smoke run: each tool gives no tree (exit code 1) on the templated
   `dbt-cerebro/models/p2p/staging/stg_crawlers_data__ipinfo.sql`.
   `sqlfluff lint` and `sqlfluff[rs]` lint of its render say "Maximum parse
@@ -195,9 +195,9 @@ result then measures the limit, not the parser. Measured on 87 files of
 A parse is a success if: exit code 0, a tree that is not null, no
 unparsable segment, and leaf text = input (untemplated files; templated:
 "Templated files"). The report also records, for each file and tool: the
-count and bytes of unparsable segments, the reason, wall and CPU time,
-max RSS, and bytes per second. Totals and ratios use only the files where
-each compared tool succeeds (as S2).
+count and bytes of unparsable segments, the reason, wall and CPU time, max
+RSS (an upper bound: "Report"), and bytes per second. Totals and ratios
+use only the files where each compared tool succeeds (as S2).
 
 Line ends: the compare removes a first byte order mark and changes each
 `\r\n` and `\r` to `\n` in both texts. Reason: the pinned sqlfluff does
@@ -220,14 +220,17 @@ manifest record of each file, and `reference`: the status and sha256 of
 the sqlfluff render of a templated file).
 
 One result for each file and tool: `status` (`ok`, `unparsable`,
-`no_reference`, `invalid`, `unsupported`, `error`), `reason`,
-`exit_code` (warmup run), `unparsable` (`count` and `bytes` of the
-outer unparsable segments), `runs`, `samples`, `stats` (wall and CPU:
-n, median, min, max, MAD), `max_rss_kib`, and `bytes_per_s` (input bytes
-/ median wall). Only `ok`, `unparsable`, and `no_reference` have stats.
-`unparsable`: a tree with all the text and unparsable segments, exit code
-0 or 1. `invalid`: a crash, panic, timeout, no tree, other leaf text, or
-another exit code.
+`no_reference`, `invalid`, `unsupported`, `error`), `reason`, `exit_code`
+(warmup run), `unparsable` (`count` and `bytes` of the outer unparsable
+segments), `runs`, `samples`, `stats` (wall and CPU: n, median, min, max,
+MAD), `max_rss_kib`, and `bytes_per_s` (input bytes / median wall).
+`max_rss_kib` comes from the S2 timer (`os.wait4()`). On Linux it is the
+larger of the tool RSS and the RSS of the harness process when it starts
+the tool, so a value at or below the harness RSS is only an upper bound.
+Core issue [#38](https://github.com/adamgen/sqll/issues/38). Only `ok`,
+`unparsable`, and `no_reference` have stats. `unparsable`: a tree with all
+the text and unparsable segments, exit code 0 or 1. `invalid`: a crash,
+panic, timeout, no tree, other leaf text, or another exit code.
 
 `totals`: the count of each status for each tool. `compared`: for the
 files where each tool is `ok`, the count, the bytes, and for each tool the
@@ -258,6 +261,22 @@ Chinook file with sqlfluff); short runs get more to decrease the noise.
 sqlfluff takes more time per MB on larger files (187 s/MB at 0.6 MB,
 388 at 8 MB). At 388 s/MB a 2 MiB file takes 814 s, less than the
 timeout (1200 s). T6 confirms these values in the controlled run.
+
+T6 (controlled full run, `results/S9/baseline.json`): no run has a
+timeout. The longest run is 109.6 s (sqlfluff, `Chinook_PostgreSql.sql`).
+Max RSS: 1141 MiB (sqlfluff), 2022 MiB (`sqlfluff[rs]`), 590 MiB (sqruff).
+These are tool values: they are above the harness RSS of the run (251232
+KiB). 438 of the 492 results have exactly 251232 KiB, so they do not give
+the tool RSS ("Report").
+
+T6, `max_parse_depth = 600`: sqlfluff and `sqlfluff[rs]` give no tree
+(`invalid`) on 2 tsql files of `sql-server-maintenance-solution`:
+`DatabaseBackup.sql` and `MaintenanceSolution.sql`. A lint with the run
+settings says "Maximum parse depth exceeded (limit 600)" (status/S9.md).
+sqruff gives a tree for both. The setting stays 600 in T6. Reasons: 600 is
+the default of the pinned sqlfluff, a guard against deep input, and not a
+limit of the file size as `max_parse_nodes`; and a change of a setting
+needs a new full run. T8 decides if S9 lifts it. No other setting changes.
 
 ## Code, CI, and sqll
 

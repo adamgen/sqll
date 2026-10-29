@@ -10,6 +10,7 @@ and write the report.
 merge REPORT... [--expect FILE] [--out FILE]: merge the shard reports.
 check REPORT [--baseline FILE [--full]]: check the schema and completeness
 of a report, and its stable data against the baseline.
+tables REPORT: print the Markdown tables of a report for status/S9.md.
 select [--sources FILE] [--cache DIR] [--download] [--check]: make the
 manifest from the source list and the cache (--download first fills the
 cache with git), and write it to --manifest, or with --check compare it with
@@ -35,6 +36,7 @@ from . import fetch as fetch_module
 from . import report as corpus_report
 from . import run as corpus_run
 from . import select as corpus_select
+from . import tables as corpus_tables
 from .manifest import JINJA, MANIFEST, ManifestError, load
 from .reference import SqlfluffRender
 
@@ -55,6 +57,7 @@ def _parser() -> argparse.ArgumentParser:
     for name in ("validate", "fetch", "run", "merge", "check", "select"):
         sub = commands.add_parser(name)
         sub.add_argument("--manifest", type=Path, default=MANIFEST)
+    commands.add_parser("tables").add_argument("report", type=Path)
     cache_help = f"Default: ${fetch_module.CACHE_ENV}, else out/corpus/cache."
     fetch_parser = commands.choices["fetch"]
     fetch_parser.add_argument(
@@ -201,6 +204,21 @@ def check_command(args: argparse.Namespace, manifest) -> int:
     return 0
 
 
+def tables_command(args: argparse.Namespace) -> int:
+    try:
+        rep = corpus_report.load(args.report)
+    except (OSError, ValueError) as exc:
+        return _error(str(exc))
+    errors = corpus_report.check(rep)
+    if errors:
+        for line in errors:
+            print(line)
+        print(f"FAIL: {args.report} has {len(errors)} errors.")
+        return 1
+    print(corpus_tables.markdown(rep), end="")
+    return 0
+
+
 def select_command(args: argparse.Namespace) -> int:
     try:
         specs = corpus_select.load_sources(args.sources)
@@ -234,6 +252,8 @@ def main(argv: list[str] | None = None) -> int:
     args = _parser().parse_args(argv)
     if args.command == "select":
         return select_command(args)
+    if args.command == "tables":
+        return tables_command(args)
     try:
         manifest = load(args.manifest)
         if args.command == "run":

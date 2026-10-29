@@ -17,11 +17,14 @@ from collections.abc import Mapping
 from typing import Any
 
 from ..bench import registry
+from ..paths import REPO_ROOT
 from . import report
 from . import run as corpus_run
 from .manifest import Manifest
 
 PROFILE = "full"
+# The report of the controlled full run (status/S9.md, "S9 results").
+BASELINE = REPO_ROOT / "results" / "S9" / "baseline.json"
 
 
 def recorded(base: Mapping[str, Any], manifest: Manifest) -> list[str]:
