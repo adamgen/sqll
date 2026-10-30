@@ -182,8 +182,9 @@ jobs:
 
   # Build sqll (scripts/build-sqll): generate the dialect tables with the
   # pinned generator, compare them with crates/sqll_dialects/generated.json,
-  # build the workspace (release, --locked) with no Python, and run the Rust
-  # tests. The artifact has out/sqll/build.json and the binaries.
+  # build the workspace (release, --locked) with no Python, run the Rust
+  # tests and the S2 tree guard. The artifact has out/sqll/build.json and the
+  # binaries.
   build:
     needs: [changes, image]
     if: needs.changes.outputs.full != 'false'
@@ -219,6 +220,12 @@ jobs:
 
       - name: Check that the sqlfluff submodule is clean after the Rust tests
         run: scripts/check-submodule "after the Rust tests"
+
+      # The S2 tree guard (S3 T14): the output of sqll on each S2 parse input
+      # must be that of results/s3/tree-guard.json, the output of the port
+      # with no engine change. A speed change must not change a tree.
+      - name: Check the sqll trees of the S2 parse inputs
+        run: uv run --frozen --project harness python scripts/s3/tree_guard.py check
 
       - uses: actions/upload-artifact@v7
         with:
