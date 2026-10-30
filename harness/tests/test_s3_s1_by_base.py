@@ -13,7 +13,7 @@ from collections import Counter
 import pytest
 
 from sqll_harness import known_failures
-from sqll_harness.paths import KNOWN_FAILURES_DIR, RECORDED_SUMMARY, REPO_ROOT
+from sqll_harness.paths import KNOWN_FAILURES_DIR, REPO_ROOT
 
 _spec = importlib.util.spec_from_file_location(
     "s1_by_base", REPO_ROOT / "scripts" / "s3" / "s1_by_base.py"
@@ -21,7 +21,7 @@ _spec = importlib.util.spec_from_file_location(
 s1 = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(s1)
 
-SUMMARY = json.loads(RECORDED_SUMMARY.read_text("utf8"))
+SUMMARY = json.loads(s1.SUMMARY_FILE.read_text("utf8"))
 CASES = json.loads(s1.CASES_FILE.read_text("utf8"))
 OUT = json.loads(s1.OUT_FILE.read_text("utf8"))
 KNOWN = known_failures.load(KNOWN_FAILURES_DIR, "sqruff")

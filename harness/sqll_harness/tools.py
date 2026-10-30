@@ -8,6 +8,10 @@ the tools in tools_dir() (SQLL_TOOLS_DIR):
 - <tools_dir>/sqruff/bin/sqruff: sqruff built by tools/sqruff/install.sh.
 - <tools_dir>/sqruff/python: venv with the Python templaters of sqruff.
 
+sqll is not in tools_dir(): scripts/build-sqll builds it from the worktree
+to out/sqll/bin/sqll (SQLL_BIN sets another path). Its check also refuses a
+stale binary and a binary that needs libpython.
+
 The checks start each tool as a subprocess. The harness never imports a tool.
 """
 
@@ -19,6 +23,7 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
 
+from .adapters import sqll
 from .adapters.base import EmptyHome, isolated_env
 from .adapters.sqlfluff import CONFIG_NAME, sqlfluff_toml
 from .adapters.sqlfluff_rs import FALLBACK_WARNING, RUST_CONFIG
@@ -263,10 +268,79 @@ def check_sqruff(root: Path, specs: Path) -> ToolInfo:
     return info
 
 
+def needed_libraries(binary: Path) -> list[str] | str:
+    """Return the NEEDED libraries of an ELF binary (readelf -d), or an
+    error message."""
+    proc = _run(["readelf", "-d", binary])
+    if proc.returncode != 0:
+        return f"readelf failed: {_last_line(proc)}"
+    return sorted(
+        line.split("[", 1)[1].split("]", 1)[0]
+        for line in proc.stdout.splitlines()
+        if "(NEEDED)" in line and "[" in line
+    )
+
+
+def check_sqll(
+    root: Path,
+    specs: Path,
+    binary: Path | None = None,
+    worktree: Path | None = None,
+) -> ToolInfo:
+    """Check the sqll binary of a build of the worktree.
+
+    It fails if the binary is missing, if its version is not that of the
+    worktree (crate version and table manifest), if its source hash is not
+    that of the worktree (a stale build), if it needs libpython, or if it
+    does not parse "select 1". root and specs are not used: sqll is built
+    from the worktree, not installed.
+    """
+    worktree = worktree or sqll.REPO_ROOT
+    binary = binary or sqll.binary_path()
+    info = ToolInfo("sqll", str(binary), sqll.expected_version(worktree))
+    if not binary.exists():
+        info.errors.append(f"{binary} does not exist. {sqll.BUILD_HELP}")
+        return info
+    _version_of(info, [binary, "--version"])
+
+    proc = _run([binary, "version", "--build"])
+    try:
+        built = json.loads(proc.stdout)["source_sha256"]
+    except (ValueError, LookupError, TypeError):
+        built = None
+    want, _ = sqll.source_hash(worktree)
+    info.details["fresh_build"] = proc.returncode == 0 and built == want
+    if not info.details["fresh_build"]:
+        info.errors.append(
+            f"stale binary: its source hash {built} is not the hash {want} of "
+            f"the worktree. {sqll.BUILD_HELP}"
+        )
+
+    libs = needed_libraries(binary)
+    info.details["needs_libpython"] = isinstance(libs, str) or any(
+        lib.startswith("libpython") for lib in libs
+    )
+    if isinstance(libs, str):
+        info.errors.append(libs)
+    elif info.details["needs_libpython"]:
+        info.errors.append(f"the binary needs libpython: {', '.join(libs)}")
+
+    with tempfile.TemporaryDirectory(prefix="sqll-check-") as tmp:
+        (Path(tmp) / "check.sql").write_text("select 1\n")
+        proc = _run(
+            [binary, "parse", "-f", "json", "--dialect", "ansi", "check.sql"], cwd=tmp
+        )
+    info.details["parse"] = _has_tree(proc)
+    if not info.details["parse"]:
+        info.errors.append(f"parse does not work: {_last_line(proc)}")
+    return info
+
+
 CHECKS = {
     "sqlfluff": check_sqlfluff,
     "sqlfluff-rs": check_sqlfluff_rs,
     "sqruff": check_sqruff,
+    "sqll": check_sqll,
 }
 
 

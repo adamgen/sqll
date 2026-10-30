@@ -33,7 +33,7 @@
    "path": "Cargo.toml",
    "source": "sqlfluffrs/Cargo.toml",
    "source_sha256": "b732205a4911557a6a5ba76b40e4a6557e88166523450b5b01731760b337a3a8",
-   "changed": "Only the workspace parts are kept: the members are the 4 ported crates in crates/, the workspace dependencies that they use, and the release profile. The workspace version is the sqll version. New: serde_json and sha2 (for build.rs of sqll_dialects), and opt-level 3 for sha2. No root package, no feature \"python\", no pyo3."
+   "changed": "Only the workspace parts are kept: the members are the 4 ported crates in crates/ and the new sqll binary crate (crates/sqll), the workspace dependencies that they use, and the release profile. The workspace version is the sqll version. New: serde_json and sha2 (for build.rs of sqll_dialects), and opt-level 3 for sha2. No root package, no feature \"python\", no pyo3."
   },
   {
    "path": "crates/sqll_dialects/Cargo.toml",
@@ -99,7 +99,7 @@
    "path": "crates/sqll_parser/src/parser/core.rs",
    "source": "sqlfluffrs/sqlfluffrs_parser/src/parser/core.rs",
    "source_sha256": "4cc29db5d877491584d8286653851208631365c402f746fac32f67206a981ea6",
-   "changed": null
+   "changed": "Parser has the field limit_error: the first parser limit error (iterations, depth, or nodes) of the parse. check_parse_subtree_limit records its error there, and root_parse and call_rule_as_root clear it at the start. Parser has the field current_depth: the parse depth of the frame that the innermost parse loop processes. See the reason of iterative.rs."
   },
   {
    "path": "crates/sqll_parser/src/parser/frame.rs",
@@ -111,7 +111,7 @@
    "path": "crates/sqll_parser/src/parser/helpers.rs",
    "source": "sqlfluffrs/sqlfluffrs_parser/src/parser/helpers.rs",
    "source_sha256": "304a358c12923ef572546ed0d69084e7d375be909c241fa5425578ebf8dc7d17",
-   "changed": null
+   "changed": "Only a comment: the doc comment of terminator_matches_at says that a parser limit error stops the parse through Parser.limit_error (core.rs). See the reason of iterative.rs."
   },
   {
    "path": "crates/sqll_parser/src/parser/match_result.rs",
@@ -159,7 +159,7 @@
    "path": "crates/sqll_parser/src/parser/table_driven/iterative.rs",
    "source": "sqlfluffrs/sqlfluffrs_parser/src/parser/table_driven/iterative.rs",
    "source_sha256": "ec21b036c886d2f73d108bf9bb64dc5e9ad6769661a0cfba48d180dd2a0c1d1a",
-   "changed": null
+   "changed": "Above the iteration limit (rust_parser_max_iterations), the parser returns a ParseError, not a panic. Each sub-parse (the main parse and each probe) has its own count of iterations. A probe sub-parse starts at the parse depth of the frame that starts it (Parser.current_depth, core.rs), so max_parse_depth also limits nesting through probes (for example bracketed joins), and thus the native stack. In the source, each probe starts at depth 0, and about 36000 nested bracketed joins (612 KB) overflow the stack of the sqll command thread (256 MiB). Each parse loop stops with the first parser limit error (iterations, depth, or nodes) of the parse (Parser.limit_error, core.rs), because a probe for a terminator or a delimiter drops its error and counts it as no match. The diagnostic text (cache statistics and the tokens near the position) is only in the feature \"verbose-debug\", and the token lines go to stderr. That feature does not build: a borrow error in core.rs (about line 1566) that is also in the source. Thus \"sqll parse\" gives a parse error with exit code 1, and stdout has only the JSON record. sqlfluff with the Rust parser stops with a PanicException and exit code 1."
   },
   {
    "path": "crates/sqll_parser/src/parser/table_driven/match_algorithms.rs",
@@ -411,6 +411,34 @@
   {
    "path": "crates/sqll_dialects/tests/build_tables.rs",
    "reason": "The tests of the table check."
+  },
+  {
+   "path": "crates/sqll/Cargo.toml",
+   "reason": "The sqll binary crate (T12). New sqll code."
+  },
+  {
+   "path": "crates/sqll/build.rs",
+   "reason": "Build script of the sqll binary: the version (crate version and the sha256 of generated.json) and the source hash for the freshness check of the harness. No Python."
+  },
+  {
+   "path": "crates/sqll/src/main.rs",
+   "reason": "The sqll command line: parse, version, and the unsupported lint and fix commands, in the command shape of sqlfluff. New sqll code. normpath is a port of CPython v3.13.16 Lib/posixpath.py normpath (PSF-2.0, crates/LICENSE-cpython.txt, THIRD_PARTY.md)."
+  },
+  {
+   "path": "crates/sqll/src/output.rs",
+   "reason": "The JSON output of \"sqlfluff parse -f json\" (the separators and escapes of Python json.dumps). New sqll code."
+  },
+  {
+   "path": "crates/sqll/src/parse.rs",
+   "reason": "The lex and parse of one file. Parts are a port of sqlfluff 4.4.0 code by way of the T5 probe; the file header names the sources (THIRD_PARTY.md, \"Ported code\")."
+  },
+  {
+   "path": "crates/sqll/tests/cli.rs",
+   "reason": "Tests of the sqll command line on sqlfluff 4.4.0 dialect fixtures (read in place in the submodule). Parts are a port of sqlfluff 4.4.0 code (process_struct of test/conftest.py); the file header names the source (THIRD_PARTY.md, \"Ported code\")."
+  },
+  {
+   "path": "crates/LICENSE-cpython.txt",
+   "reason": "A copy of LICENSE of CPython tag v3.13.16 (sha256 78b12c3a81360b357002334f0e70ea0e92eebf7a9b358805c03c48484945f3bb): the PSF License Agreement of the normpath port in crates/sqll/src/main.rs (THIRD_PARTY.md, \"CPython\")."
   }
  ]
 }

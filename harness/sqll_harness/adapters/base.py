@@ -113,6 +113,10 @@ class Adapter(ABC):
     # The violation keys that lint() gives. None: all keys of
     # "sqlfluff lint -f json".
     lint_fields: frozenset[str] | None = None
+    # False: the tool has no lint command. Each rule case then fails with
+    # "unsupported: lint", also a case whose sqlfluff test checks nothing
+    # (for example an empty pass_str).
+    lints: bool = True
 
     @abstractmethod
     def version(self) -> str:

@@ -35,8 +35,11 @@ from sqll_harness.bench.compare import NOISE
 from sqll_harness.bench.timer import VALID
 from sqll_harness.paths import SQLFLUFF_ROOT, sqlfluff_ref
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import phase_a  # noqa: E402
+
 ROOT = Path(__file__).resolve().parents[2]
-BASELINE_FILE = ROOT / "results" / "s2" / "baseline.json"
+BASELINE_FILE = phase_a.read_path("results/s2/baseline.json")
 PROBE_FILE = ROOT / "results" / "s3" / "sqlfluffrs-probe.json"
 OUT_FILE = ROOT / "results" / "s3" / "speed-by-base.json"
 COMMAND = "uv run --frozen --project harness python scripts/s3/speed_by_base.py"
@@ -161,7 +164,7 @@ class DataError(Exception):
 
 def rel(path: Path) -> str:
     try:
-        return str(path.resolve().relative_to(ROOT))
+        return phase_a.name_of(path.resolve().relative_to(ROOT).as_posix())
     except ValueError:
         return str(path)
 

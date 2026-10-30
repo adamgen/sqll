@@ -330,6 +330,8 @@ def test_the_probe_is_not_a_harness_tool():
             "test_s3_sqlfluffrs_probe.py",
             "test_s3_speed_by_base.py",
             "test_s3_status.py",
+            # It checks the frozen inputs that the T5 record cites.
+            "test_s3_phase_a.py",
             # It compares the table manifest with the T5 build record.
             "test_sqll_build.py",
         )

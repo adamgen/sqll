@@ -141,6 +141,19 @@ causes.
   them over the config files of the case, and gives `error` if the case sets
   one of them. No 4.4.0 case sets them, so the 2 configs are equal.
 
+## sqll
+
+See [sqll.md](sqll.md). sqll counts the parse depth in frames of the
+sqlfluff Rust parser, and the sqlfluff test uses the Python parser. sqll
+can give a tree where the test stops with `Maximum parse depth exceeded`:
+in the 18 measured forms, for 2 to 65 more levels of nesting. An example
+is `select` and 35 nested brackets around `1` with the depth 600. Thus an
+invented dialect fixture with such a nesting and a YAML tree can give a
+false pass of sqll in the dialect suite. No check
+fails closed for it: CI runs no dialect oracle for sqll. No 4.4.0 dialect
+fixture has the pattern: sqlfluff passes 2306 of 2306 dialect cases and
+the dialect oracle agrees, and sqll gives the same tree in 2306 of 2306.
+
 ## sqruff
 
 No sqlfluff test runs sqruff, so the harness compares the sqruff output with

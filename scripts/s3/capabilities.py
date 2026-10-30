@@ -48,6 +48,7 @@ from sqll_harness.paths import SQLFLUFF_ROOT, sqlfluff_ref, tools_dir
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import license_size as ls  # noqa: E402
+import phase_a  # noqa: E402
 import sqlfluffrs_probe as probe  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -60,7 +61,7 @@ T5_FILE = RESULTS / "sqlfluffrs-probe.json"
 T6_FILE = RESULTS / "speed-by-base.json"
 T7_FILE = RESULTS / "license-size.json"
 T7_SOURCES = RESULTS / "license-size-sources.json"
-S2_FILE = ROOT / "results" / "s2" / "baseline.json"
+S2_FILE = phase_a.read_path("results/s2/baseline.json")
 KNOWN_FAILURES = ROOT / "known_failures" / "sqruff.txt"
 _SCRIPT = "uv run --frozen --project harness python scripts/s3/capabilities.py"
 COMMANDS = {
@@ -1975,7 +1976,7 @@ def check_evidence(out: dict, sources: dict, start: dict) -> None:
                 if ev["command"] not in commands:
                     raise DataError(f"an unknown command {ev['command']!r}")
             elif "result" in ev:
-                path = ROOT / ev["result"]
+                path = phase_a.read_path(ev["result"])
                 if not path.exists():
                     raise DataError(f"{ev['result']} does not exist")
                 if path.suffix == ".json":

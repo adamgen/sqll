@@ -134,12 +134,14 @@ def _fake_sqlfluff(root, name, version, python_body, parse_body=RUST_PARSE):
     _script(root / name / "bin" / "python3", python_body)
 
 
-def test_missing_tools(tmp_path):
+def test_missing_tools(tmp_path, monkeypatch):
+    monkeypatch.setenv("SQLL_BIN", str(tmp_path / "sqll"))
     infos = {i.name: i for i in tools.check(root=tmp_path)}
-    assert set(infos) == {"sqlfluff", "sqlfluff-rs", "sqruff"}
-    for info in infos.values():
+    assert set(infos) == {"sqlfluff", "sqlfluff-rs", "sqruff", "sqll"}
+    for name, info in infos.items():
         assert not info.ok
-        assert "does not exist. Run scripts/setup." in info.errors[0]
+        build = "scripts/build-sqll" if name == "sqll" else "scripts/setup"
+        assert f"does not exist. Run {build}." in info.errors[0]
         assert info.version is None
 
 
@@ -295,7 +297,10 @@ def test_run_fails_before_cases_when_a_tool_is_not_pinned(tmp_path, monkeypatch)
 
 @needs_all_tools
 def test_installed_tools(capsys):
-    assert cli.main(["tools"]) == 0
+    # The tools of scripts/setup, as the lint job checks them. sqll is built
+    # later (test_sqll_tool.py).
+    args = ["tools", "--tool=sqlfluff", "--tool=sqlfluff-rs", "--tool=sqruff"]
+    assert cli.main(args) == 0
     out = {t["name"]: t for t in json.loads(capsys.readouterr().out)["tools"]}
     assert {n: t["version"] for n, t in out.items()} == {
         "sqlfluff": "4.4.0",

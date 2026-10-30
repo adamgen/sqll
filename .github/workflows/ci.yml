@@ -113,9 +113,11 @@ jobs:
       # The runner user owns the workspace, not the container user.
       - run: git config --global --add safe.directory '*'
 
+      # The installed tools. The test jobs that run sqll check it with the
+      # binary of the build job (sqll-harness run checks each tool it runs).
       - name: Tools
         run: |
-          uv run --frozen --project harness sqll-harness tools
+          uv run --frozen --project harness sqll-harness tools --tool sqlfluff --tool sqlfluff-rs --tool sqruff
           "$SQLL_TOOLS_DIR/sqruff/bin/sqruff" templaters
 
       - name: Lint
@@ -224,8 +226,9 @@ jobs:
           path: out/sqll/
           if-no-files-found: error
 
+  # The jobs of sqll use the binary of the build job.
   test:
-    needs: [changes, image]
+    needs: [changes, image, build]
     if: needs.changes.outputs.full != 'false'
     name: test (${{ matrix.name }})
     runs-on: ubuntu-latest
@@ -248,6 +251,17 @@ jobs:
 
       # The runner user owns the workspace, not the container user.
       - run: git config --global --add safe.directory '*'
+
+      - if: matrix.tool == 'sqll'
+        uses: actions/download-artifact@v7
+        with:
+          name: sqll-build
+          path: out/sqll
+
+      # An artifact does not keep the file modes.
+      - name: Make the sqll binary executable
+        if: matrix.tool == 'sqll'
+        run: chmod +x out/sqll/bin/sqll
 
       - name: Run shard
         run: >-

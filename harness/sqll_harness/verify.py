@@ -78,6 +78,10 @@ CI_ONLY = {
     "build: actions/upload-artifact": "artifact upload",
     "test: actions/checkout": "checkout",
     "test: git config --global --add safe.directory '*'": "container user",
+    "test: actions/download-artifact": "artifact download; locally the build-sqll"
+    " check writes out/sqll",
+    "test: Make the sqll binary executable": "an artifact does not keep the file"
+    " modes; locally the build-sqll check copies the binary",
     "test: actions/upload-artifact": "artifact upload",
     "report: actions/checkout": "checkout",
     "report: git config --global --add safe.directory '*'": "container user",
@@ -154,6 +158,7 @@ CI_ONLY_RUN = {
             "corpus-merge",
         )
     },
+    "test: Make the sqll binary executable": "chmod +x out/sqll/bin/sqll",
     "report: Merge": (
         "uv run --frozen --project harness sqll-harness merge"
         " --expect ci/matrix.d out/shards/*.json"
@@ -199,7 +204,7 @@ JOB_IF = {
 JOB_NEEDS = {
     "lint": ["image"],
     "build": ["changes", "image"],
-    "test": ["changes", "image"],
+    "test": ["changes", "image", "build"],
     "report": ["changes", "image", "test"],
     "dialect-oracle": ["image", "report"],
     "bench-smoke": ["changes", "image"],
@@ -234,6 +239,8 @@ _NO_IMAGE = "steps.find.outputs.exists == 'false'"
 STEP_IF = {
     "image: docker/setup-buildx-action": _NO_IMAGE,
     "image: docker/build-push-action": _NO_IMAGE,
+    "test: actions/download-artifact": "matrix.tool == 'sqll'",
+    "test: Make the sqll binary executable": "matrix.tool == 'sqll'",
     "test: actions/upload-artifact": "always()",
     "report: actions/upload-artifact": "always()",
     "report: Check test jobs": "needs.test.result != 'success'",
@@ -348,6 +355,9 @@ ORACLES = (
     " scripts/sqlfluff-autofix-oracle scripts/sqlfluff-templater-oracle"
     " scripts/sqlfluff-dialect-oracle scripts/sqlfluff-case-ids"
 )
+# The tools of scripts/setup. The lint job checks them; the build job makes
+# sqll later.
+INSTALLED_TOOLS = "--tool sqlfluff --tool sqlfluff-rs --tool sqruff"
 # The Python files that the lint job checks with ruff, after harness and ci.
 LINTED = f"{ORACLES} scripts/build-sqll"
 ORACLE_PY = '"$SQLL_TOOLS_DIR/sqlfluff-oracle/bin/python"'
@@ -397,7 +407,8 @@ def checks(jobs: int | None = None) -> list[Check]:
         ),
         Check(
             "tools",
-            f'{UV} sqll-harness tools\n"$SQLL_TOOLS_DIR/sqruff/bin/sqruff" templaters',
+            f"{UV} sqll-harness tools {INSTALLED_TOOLS}\n"
+            '"$SQLL_TOOLS_DIR/sqruff/bin/sqruff" templaters',
             ("lint: Tools",),
             quick=True,
             needs=(SETUP,),

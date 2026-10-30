@@ -5,6 +5,7 @@ record crates/ported.json lists each of their files
 (harness/tests/test_sqll_ported.py checks it).
 """
 
+import hashlib
 import json
 import re
 
@@ -100,3 +101,75 @@ def test_third_party_names_the_ported_crates_and_the_generated_tables():
         assert word in section, word
     for source_crate, crate in record["crates"].items():
         assert f"| `{crate}` | `{source_crate}` |" in section, crate
+
+
+CPYTHON_LICENSE = "crates/LICENSE-cpython.txt"
+CPYTHON_LICENSE_SHA256 = (
+    "78b12c3a81360b357002334f0e70ea0e92eebf7a9b358805c03c48484945f3bb"
+)
+CPYTHON_TAG = "v3.13.16"
+CPYTHON_COMMIT = "cbc944f4bc59639a444dd971c737788ba2283a91"
+PSF_NOTICE = "Copyright (c) 2001-2024 Python Software Foundation; All Rights Reserved"
+
+
+def _cpython_section() -> str:
+    text = (REPO_ROOT / "THIRD_PARTY.md").read_text(encoding="utf-8")
+    return text.split("\n## CPython\n", 1)[1].split("\n## ", 1)[0]
+
+
+def test_the_cpython_port_keeps_the_psf_license_and_notice():
+    """PSF-2.0 clause 2: the License Agreement and the PSF notice stay with a
+    derivative version. Clause 3: a summary of the changes."""
+    license_path = REPO_ROOT / CPYTHON_LICENSE
+    data = license_path.read_bytes()
+    assert hashlib.sha256(data).hexdigest() == CPYTHON_LICENSE_SHA256
+    text = data.decode("utf-8")
+    assert "PYTHON SOFTWARE FOUNDATION LICENSE VERSION 2" in text
+    assert f'i.e., "{PSF_NOTICE}"' in text
+
+    section = " ".join(_cpython_section().split())
+    for word in (
+        f"tag `{CPYTHON_TAG}`",
+        f"commit `{CPYTHON_COMMIT}`",
+        PSF_NOTICE,
+        f"`{CPYTHON_LICENSE}`",
+        "Changes:",
+    ):
+        assert word in section, word
+
+    main = (REPO_ROOT / "crates/sqll/src/main.rs").read_text(encoding="utf-8")
+    comment = " ".join(
+        line.strip().removeprefix("///").strip()
+        for line in main.split("fn normpath", 1)[0].splitlines()[-12:]
+        if line.strip().startswith("///")
+    )
+    for word in (
+        "Lib/posixpath.py",
+        f"tag {CPYTHON_TAG}",
+        CPYTHON_COMMIT,
+        PSF_NOTICE,
+        CPYTHON_LICENSE,
+        "Changes:",
+    ):
+        assert word in comment, word
+
+    new = {n["path"]: n["reason"] for n in _ported_record()["new"]}
+    assert CPYTHON_LICENSE_SHA256 in new[CPYTHON_LICENSE]
+    assert CPYTHON_LICENSE in new["crates/sqll/src/main.rs"]
+
+
+def test_only_the_cpython_records_name_the_psf():
+    """Each file with the PSF notice is the license copy, its record, or the
+    port; a new port must add its own record."""
+    found = set()
+    for top in SEARCH_DIRS:
+        for path in (REPO_ROOT / top).rglob("*"):
+            if not path.is_file() or ".venv" in path.parts or path.suffix == ".pyc":
+                continue
+            try:
+                text = path.read_text(encoding="utf-8")
+            except UnicodeDecodeError:
+                continue
+            if "Python Software Foundation" in text:
+                found.add(str(path.relative_to(REPO_ROOT)))
+    assert found <= {CPYTHON_LICENSE, PORTED_RECORD, "crates/sqll/src/main.rs"}, found

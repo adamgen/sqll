@@ -31,10 +31,15 @@ from sqll_harness.cases import ERROR, FAIL, PASS, SKIP, CaseResult
 from sqll_harness.paths import RECORDED_SUMMARY, SQLFLUFF_ROOT, sqlfluff_ref
 from sqll_harness.suites import SUITES, autofix, rules, templater
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import phase_a  # noqa: E402
+
 ROOT = Path(__file__).resolve().parents[2]
 CASES_FILE = ROOT / "results" / "s3" / "sqruff-cases.json"
 OUT_FILE = ROOT / "results" / "s3" / "s1-by-base.json"
 KNOWN_FAILURES = ROOT / "known_failures"
+# The S1 summary as phase A read it (scripts/s3/phase_a.py).
+SUMMARY_FILE = phase_a.read_path(RECORDED_SUMMARY.relative_to(ROOT).as_posix())
 
 PARITY_SUITES = ("dialects", "rules", "autofix", "templater")
 # The checks of each suite, in the order of the per-case rows.
@@ -226,7 +231,7 @@ def _bit(value: bool | None) -> int | None:
 
 
 def _summary() -> dict:
-    return json.loads(RECORDED_SUMMARY.read_text("utf8"))
+    return json.loads(SUMMARY_FILE.read_text("utf8"))
 
 
 def _new_row(suite: str) -> dict:
@@ -437,7 +442,7 @@ def build(cases_file: Path = CASES_FILE) -> dict:
 
     inputs = {
         CASES_FILE: cases_file,
-        RECORDED_SUMMARY: RECORDED_SUMMARY,
+        RECORDED_SUMMARY: SUMMARY_FILE,
         KNOWN_FAILURES / "sqruff.txt": KNOWN_FAILURES / "sqruff.txt",
         KNOWN_FAILURES / "sqlfluff-rs.txt": KNOWN_FAILURES / "sqlfluff-rs.txt",
     }

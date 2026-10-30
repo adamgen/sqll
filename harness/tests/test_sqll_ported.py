@@ -208,7 +208,10 @@ def test_each_file_of_the_source_crates_is_ported_or_excluded():
         "crates/sqll_lexer/src/lib.rs",
         "crates/sqll_parser/Cargo.toml",
         "crates/sqll_parser/src/lib.rs",
+        "crates/sqll_parser/src/parser/core.rs",
+        "crates/sqll_parser/src/parser/helpers.rs",
         "crates/sqll_parser/src/parser/mod.rs",
+        "crates/sqll_parser/src/parser/table_driven/iterative.rs",
         "crates/sqll_types/Cargo.toml",
     ]
 
@@ -230,7 +233,7 @@ def _changed_but_equal(root, record):
 
 
 def _equal_but_changed_body(root, record):
-    path = root / "crates/sqll_parser/src/parser/core.rs"
+    path = root / "crates/sqll_parser/src/parser/match_result.rs"
     path.write_bytes(path.read_bytes().replace(b"fn ", b"fn  ", 1))
 
 
