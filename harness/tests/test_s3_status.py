@@ -99,3 +99,32 @@ def test_the_open_license_question_is_t7_question_1():
 def test_the_phase_b_part_is_short():
     # A 5-minute read (CONSTITUTION.md 2.4).
     assert len(phase_b().split()) <= 600
+
+
+def test_the_speed_target_is_that_of_the_t14_record():
+    record = json.loads(
+        (REPO_ROOT / "results" / "s3" / "speed-profile.json").read_text("utf8")
+    )
+    section = part("Speed target (T14)").strip()
+    assert len(section.splitlines()) <= 5
+    text = words(section)
+    target, groups, go = record["target"], record["groups"], record["go"]
+    worst = max(
+        (r for r in record["benchmarks"] if r["needed_factor"] is not None),
+        key=lambda r: r["needed_factor"],
+    )
+    assert f"1/(1 + m) = {target['ratio_below']:.3f}" in text
+    assert f"each of the {target['benchmarks']} start and parse benchmarks" in text
+    assert f"m = {target['margin']}" in text
+    assert f"Now: {groups['all']['below_target']} of 108 meet it." in text
+    assert f"at most {worst['needed_factor']:.2f} ({worst['id']})" in text
+    central = groups["all"]["in_reach"]["central"]
+    large = groups["parse/large"]["in_reach"]["central"]
+    assert f"on {central} of 108 ({large} of 27 parse/large)" in text
+    if go["result"] == "no-go":
+        assert "**No-go: human decision needed.**" in text
+        assert "T15 does not start." in text
+        (row,) = [line for line in INDEX.splitlines() if line.startswith("| S3 |")]
+        assert "(no-go): **human decision needed**" in row
+    else:
+        assert "No-go" not in text

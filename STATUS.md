@@ -10,7 +10,7 @@ sqlfluff reference: tag `4.4.0`, commit `0348222a3bcdb0226563f7349c5a39beb064195
 |---|---|---|---|
 | S1 | | Complete. The human owner approved it on 2026-10-19 | [status/S1.md](status/S1.md) |
 | S2 | | Complete. The human owner approved it on 2026-10-26 | [status/S2.md](status/S2.md) |
-| S3 | S3 | Phase B started: the base is sqlfluffrs (human owner, 2026-10-29); the phase B task list in [status/S3.md](status/S3.md). Decision record: [docs/decisions/s3-base.md](docs/decisions/s3-base.md). Open question for the human owner: the license of sqll (status/S3.md) | [status/S3.md](status/S3.md) |
+| S3 | S3 | Phase B started: the base is sqlfluffrs (human owner, 2026-10-29); the phase B task list in [status/S3.md](status/S3.md). T14: the speed target is not in reach (no-go): **human decision needed** (status/S3.md, "Speed target"). Decision record: [docs/decisions/s3-base.md](docs/decisions/s3-base.md). Open question for the human owner: the license of sqll (status/S3.md) | [status/S3.md](status/S3.md) |
 | S3b | core | Not started. Needs S3 | |
 | S7 test conversion | S7-tests | Ready to start: S1 is approved | |
 | S9 | S9 | Awaiting human approval for sqlfluff, `sqlfluff[rs]`, and sqruff (T1 to T8 merged: PRs #29, #31, #33, #34, #35, #36, #39, #41). sqll results after S3b | [status/S9.md](status/S9.md) |

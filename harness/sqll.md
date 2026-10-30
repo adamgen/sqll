@@ -139,6 +139,15 @@ tool"). `start` and `parse` run `sqll parse -f json --dialect D input.sql`.
 run. The S9 corpus does not run sqll by default until its corpus results
 after S3b (`LATER` in `sqll_harness/corpus/run.py`).
 
+## Tree guard
+
+`scripts/s3/tree_guard.py check` (S3 T14; CI job `build`, `scripts/verify`)
+runs sqll on each of the 84 S2 parse inputs, with no option and with `-m`.
+The stdout (sha256 and size), the stderr, and the exit code must be those of
+`results/s3/tree-guard.json`: the output of the T11 port with no engine
+change. Thus a speed change cannot change a tree or a meta segment. A new
+record (`tree_guard.py record`) needs a reason in the pull request.
+
 ## Tool check
 
 `sqll-harness tools --tool sqll` and each `sqll-harness run` with sqll

@@ -26,9 +26,9 @@ agree (DataError).
 """
 
 import argparse
+import concurrent.futures
 import json
 import math
-import os
 import re
 import shutil
 import statistics
@@ -255,6 +255,7 @@ def time_sessions(scratch: Path, image: str | None, sessions: int) -> dict:
 # The session data.
 
 SIZE_ORDER = {"small": 0, "medium": 1, "large": 2}
+GROUPS = ("start", "parse/small", "parse/medium", "parse/large")
 
 
 def group_of(bid: str) -> str:
@@ -330,36 +331,55 @@ def benchmark_rows(sessions: dict) -> list[dict]:
 # profile
 
 PROFILE_TOP = 15
+PROFILE_JOBS = 4
+# The phases that the profile collects alone (valgrind --toggle-collect):
+# the cost of each call of the function and its callees. Each function is
+# not recursive, and each run calls it once.
+PROFILE_PHASES = {
+    "setup": "*Dialect>::get_lexers",
+    "lex": "*Lexer>::lex",
+    "parse": "*Parser>::root_parse",
+}
 # callgrind_annotate: "<Ir> (<share>%)  <file>:<function> [<object>]".
 ANNOTATE_LINE = re.compile(
     r"^\s*([\d,]+)\s+\(\s*([\d.]+)%\)\s+(.+?)(?:\s+\[(.+)\])?\s*$"
 )
+TOTALS_LINE = re.compile(r"^\s*([\d,]+)\s+\(100\.0%\)\s+PROGRAM TOTALS")
+# A recursion level of a function in callgrind ("f'2").
+RECURSION = re.compile(r"'\d+$")
 # The cost classes of a function (self cost), in this order: the first
 # pattern that matches the function name gives its class.
 COST_CLASSES = (
     (
-        "allocation",
-        r"malloc|free|realloc|calloc|memcpy|memmove|memset|_int_|"
-        r"alloc::alloc|alloc::raw_vec|__rust_(alloc|dealloc|realloc)|cfree",
+        "copy",
+        r"^__mem(cpy|move|set)|^mem(cpy|move|set)|"
+        r"^<alloc::(string::String|vec::Vec<[^>]*>) as core::clone::Clone>::clone$",
     ),
-    ("drop", r"drop_in_place"),
-    ("hashing", r"hashbrown|core::hash|foldhash|ahash|Hasher|hash_one|BuildHasher"),
+    (
+        "allocator",
+        r"^(malloc|free|realloc|calloc|cfree|_int_malloc|_int_free\w*|"
+        r"_int_realloc|malloc_consolidate|unlink_chunk\S*|tcache\w*|"
+        r"alloc_perturb|_mid_memalign\S*|_int_memalign|posix_memalign|__rustc::__rd[lg]_\w+|__rustc::__rust_\w*alloc\w*|"
+        r"<alloc::raw_vec::RawVecInner(<_>)?>::\w+.*)$",
+    ),
+    ("drop", r"drop_glue|drop_in_place"),
+    ("hashing", r"hashbrown|core::hash|foldhash|ahash|Hasher|hash_one"),
     ("regex", r"regex_automata|regex_syntax|regex::|fancy_regex|aho_corasick|memchr"),
-    ("output", r"serde_json|serde_yaml|serde::|output::|PythonFormatter|as_record"),
-    ("lexer", r"sqll_lexer::|sqlfluffrs_lexer::|LexMatcher|lexer::"),
-    ("parser", r"sqll_parser::|sqlfluffrs_parser::|sqll_types::|sqlfluffrs_types::"),
-    ("dialect_tables", r"sqll_dialects::|sqlfluffrs_dialects::|once_cell|Lazy"),
-    ("process", r"_dl_|ld-linux|__libc_start|_start$|dl_main|mmap|clone|pthread"),
+    ("output", r"serde_json|serde_yaml|serde::|sqll::output|as_record"),
+    ("lexer", r"sqll_lexer::|LexMatcher|::lexer::"),
+    ("parser", r"sqll_parser::|sqll_types::"),
+    ("dialect_tables", r"sqll_dialects::|once_cell"),
+    ("loader", r"^_dl_|^dl_|_dl_relocate|^__libc_start|^_start$"),
 )
 
 
 def worst(sessions: dict) -> list[str]:
-    """The benchmarks to profile: in the controlled session, the worst start
-    benchmark, the worst parse benchmark of each size, and the second and
-    third worst parse/large (by the sqll/sqruff ratio)."""
+    """The benchmarks with the top functions in the record: in the
+    controlled session, the worst start benchmark, the worst parse benchmark
+    of each size, and the second and third worst parse/large (by R)."""
     rows = [r for r in benchmark_rows(sessions) if r["ratio"] is not None]
     out = []
-    for group in ("start", "parse/small", "parse/medium", "parse/large"):
+    for group in GROUPS:
         members = sorted(
             (r for r in rows if group_of(r["id"]) == group),
             key=lambda r: (-r["ratio"], r["id"]),
@@ -368,10 +388,38 @@ def worst(sessions: dict) -> list[str]:
     return out
 
 
-def annotate(path: Path, inclusive: bool) -> tuple[int, list[dict]]:
+def annotate_text(text: str) -> tuple[int, dict[str, int]]:
+    """The program total and the cost of each function (summed over the
+    files of the function) of callgrind_annotate --auto=no output."""
+    total, costs, in_table = None, {}, False
+    for line in text.splitlines():
+        m = TOTALS_LINE.match(line)
+        if m:
+            total = int(m[1].replace(",", ""))
+            continue
+        if line.startswith("Ir") and "file:function" in line:
+            in_table = True
+            continue
+        if not in_table or not line.strip() or line.startswith("-"):
+            continue
+        if line.split()[0] == ".":
+            continue
+        m = ANNOTATE_LINE.match(line)
+        if not m:
+            raise DataError(f"not a callgrind_annotate line: {line!r}")
+        where = m[3]
+        function = where.split(":", 1)[1] if ":" in where else where
+        costs[function] = costs.get(function, 0) + int(m[1].replace(",", ""))
+    if total is None:
+        raise DataError("no PROGRAM TOTALS in the callgrind_annotate output")
+    return total, costs
+
+
+def annotate(path: Path, inclusive: bool) -> tuple[int, dict[str, int]]:
     proc = subprocess.run(
         [
             "callgrind_annotate",
+            "--auto=no",
             f"--inclusive={'yes' if inclusive else 'no'}",
             "--threshold=100",
             str(path),
@@ -380,20 +428,7 @@ def annotate(path: Path, inclusive: bool) -> tuple[int, list[dict]]:
         text=True,
         check=True,
     )
-    total, rows = None, []
-    for line in proc.stdout.splitlines():
-        m = re.match(r"^\s*([\d,]+)\s+\(100\.0%\)\s+PROGRAM TOTALS", line)
-        if m:
-            total = int(m[1].replace(",", ""))
-            continue
-        m = ANNOTATE_LINE.match(line)
-        if m and total is not None:
-            where = m[3]
-            function = where.split(":", 1)[1] if ":" in where else where
-            rows.append({"function": function, "ir": int(m[1].replace(",", ""))})
-    if total is None:
-        raise DataError(f"no PROGRAM TOTALS in callgrind_annotate of {path}")
-    return total, rows
+    return annotate_text(proc.stdout)
 
 
 def cost_class(function: str) -> str:
@@ -403,9 +438,80 @@ def cost_class(function: str) -> str:
     return "other"
 
 
+def self_by_function(costs: dict[str, int]) -> dict[str, int]:
+    """Self costs with the recursion levels of a function added together."""
+    out: dict[str, int] = {}
+    for function, ir in costs.items():
+        name = RECURSION.sub("", function)
+        out[name] = out.get(name, 0) + ir
+    return out
+
+
+def classes_of(total: int, costs: dict[str, int]) -> dict[str, float]:
+    sums = {name: 0 for name, _ in COST_CLASSES} | {"other": 0}
+    for function, ir in costs.items():
+        sums[cost_class(function)] += ir
+    missing = total - sum(sums.values())
+    if abs(missing) > total * 0.001:
+        raise DataError(f"the functions give {total - missing} of {total} Ir")
+    return {name: rr(ir / total) for name, ir in sums.items()}
+
+
+def top(total: int, costs: dict[str, int]) -> list[dict]:
+    rows = sorted(costs.items(), key=lambda kv: (-kv[1], kv[0]))[:PROFILE_TOP]
+    return [{"function": f, "ir": ir, "share": rr(ir / total)} for f, ir in rows]
+
+
+def callgrind(binary: Path, argv: list, out: Path, toggle: str | None) -> list[str]:
+    cmd = ["valgrind", "--tool=callgrind", f"--callgrind-out-file={out}"]
+    cmd += [f"--toggle-collect={toggle}"] if toggle else []
+    return [*cmd, str(binary), *[str(a) for a in argv]]
+
+
+def profile_one(
+    st: probe.Steps, binary: Path, inputs: Path, bid: str, folder: Path, full: bool
+) -> dict:
+    dialect = bid.split("/")[1]
+    argv = [
+        "parse",
+        "-f",
+        "json",
+        "--dialect",
+        dialect,
+        inputs / f"{bench_input(bid)}.sql",
+    ]
+    stem = bid.replace("/", "-")
+    entry: dict[str, Any] = {"id": bid}
+    runs = {"all": None, **PROFILE_PHASES}
+    for phase, toggle in runs.items():
+        out = folder / f"{stem}.{phase}.out"
+        cmd = callgrind(binary, argv, out, toggle)
+        proc = subprocess.run(cmd, capture_output=True, text=True)
+        st.entries.append(
+            {
+                "step": f"{bid}: callgrind {phase}",
+                "argv": [st.show(a) for a in cmd],
+                "exit_code": proc.returncode,
+            }
+        )
+        if proc.returncode != 0:
+            raise DataError(f"{bid}: callgrind {phase}: exit code {proc.returncode}")
+        total, self_costs = annotate(out, inclusive=False)
+        self_costs = self_by_function(self_costs)
+        record = {"ir": total, "classes": classes_of(total, self_costs)}
+        if full:
+            record["self_top"] = top(total, self_costs)
+            if phase == "all":
+                _, incl = annotate(out, inclusive=True)
+                record["inclusive_top"] = top(total, incl)
+        entry[phase] = record
+    return entry
+
+
 def profile(scratch: Path) -> dict:
     scratch = scratch.absolute()
     sessions = json.loads(SESSIONS_FILE.read_text("utf8"))
+    rows = benchmark_rows(sessions)
     chosen = worst(sessions)
     st = probe.Steps(scratch)
     target = scratch / "target-profile"
@@ -434,65 +540,590 @@ def profile(scratch: Path) -> dict:
     valgrind = st.run(
         "valgrind version", ["valgrind", "--version"], ROOT
     ).stdout.strip()
-    out = []
-    for bid in chosen:
-        dialect, name = bid.split("/")[1], bench_input(bid)
-        sql = inputs / f"{name}.sql"
-        argv = ["parse", "-f", "json", "--dialect", dialect, sql]
-        same = (
-            st.run(f"{bid}: symbol build", [binary, *argv], ROOT).stdout
-            == st.run(f"{bid}: release build", [release, *argv], ROOT).stdout
-        )
-        if not same:
-            raise DataError(f"{bid}: the symbol build gives another output")
-        cg = scratch / "callgrind" / f"{bid.replace('/', '-')}.out"
-        cg.parent.mkdir(parents=True, exist_ok=True)
-        st.run(
-            f"{bid}: callgrind",
-            [
-                "valgrind",
-                "--tool=callgrind",
-                f"--callgrind-out-file={cg}",
+    for r in rows:
+        dialect = r["dialect"]
+        argv = ["parse", "-f", "json", "--dialect", dialect]
+        argv.append(inputs / f"{bench_input(r['id'])}.sql")
+        a = subprocess.run([binary, *argv], capture_output=True)
+        b = subprocess.run([release, *argv], capture_output=True)
+        if (a.stdout, a.returncode) != (b.stdout, b.returncode):
+            raise DataError(f"{r['id']}: the symbol build gives another output")
+    st.entries.append(
+        {
+            "step": "the symbol build and the release build give the same stdout and "
+            f"exit code on the {len(rows)} inputs",
+            "exit_code": 0,
+        }
+    )
+    folder = scratch / "callgrind"
+    folder.mkdir(parents=True, exist_ok=True)
+    with concurrent.futures.ThreadPoolExecutor(PROFILE_JOBS) as pool:
+        futures = [
+            pool.submit(
+                profile_one,
+                probe.Steps(scratch),
                 binary,
-                *argv,
-            ],
-            ROOT,
-            log=scratch / "logs" / f"{bid.replace('/', '-')}.log",
-        )
-        total, self_rows = annotate(cg, inclusive=False)
-        _, incl_rows = annotate(cg, inclusive=True)
-        classes: dict[str, int] = {}
-        for r in self_rows:
-            c = cost_class(r["function"])
-            classes[c] = classes.get(c, 0) + r["ir"]
-        classes["below_threshold"] = total - sum(r["ir"] for r in self_rows)
-        out.append(
-            {
-                "id": bid,
-                "total_ir": total,
-                "self_top": self_rows[:PROFILE_TOP],
-                "inclusive_top": incl_rows[:PROFILE_TOP],
-                "self_classes": dict(sorted(classes.items(), key=lambda kv: -kv[1])),
-            }
-        )
+                inputs,
+                r["id"],
+                folder,
+                r["id"] in chosen,
+            )
+            for r in rows
+        ]
+        out = [f.result() for f in futures]
     return {
         "kind": "sqll-s3-speed-profile-callgrind",
         "command": COMMAND_LINES["profile"] + " --scratch $SCRATCH",
-        "method": "valgrind callgrind (instruction counts, Ir) of one run of the "
-        "symbol build on the input of each benchmark. The symbol build is the "
-        "source of the sessions, built with debug line tables and no strip "
+        "method": "valgrind callgrind: the instruction count (Ir) of one run of "
+        "the symbol build on the input of each benchmark; for each phase of "
+        "PROFILE_PHASES, one more run that collects only the cost of that "
+        "function and its callees (--toggle-collect). The symbol build is the "
+        "source of the sessions with debug line tables and no strip "
         "(CARGO_PROFILE_RELEASE_DEBUG=line-tables-only, "
-        "CARGO_PROFILE_RELEASE_STRIP=none); its output is the output of the "
-        "release build. Self cost: the instructions of the function itself; "
-        "inclusive: with its callees. The cost classes (COST_CLASSES of the "
-        "script) group the functions of the self cost by name.",
+        "CARGO_PROFILE_RELEASE_STRIP=none); its stdout and exit code are those of "
+        "the release build on each input. Self cost: the instructions of the "
+        "function itself, summed over its files and recursion levels. The cost "
+        "classes (COST_CLASSES) group the self costs by function name. "
+        "Inclusive cost: with the callees; a recursive function can have more "
+        "than 100%. Limit: Ir is not time (a cache miss costs time, not "
+        "instructions); the estimates use Ir shares as time shares.",
         "valgrind": valgrind,
         "host": bench_report.machine(),
         "sqll_source_sha256": build["source_sha256"],
-        "chosen": chosen,
+        "phases": PROFILE_PHASES,
         "cost_classes": {name: pattern for name, pattern in COST_CLASSES},
+        "worst": chosen,
         "steps": st.entries,
         "benchmarks": out,
+    }
+
+
+# report
+
+FORMULAS = {
+    "ratio": "R = T / S: T and S are the median wall times of sqll and sqruff on "
+    "the benchmark in the controlled session (session 1).",
+    "spread": "the spread of a benchmark: the largest R of the sessions divided "
+    "by the smallest R of the sessions, minus 1.",
+    "margin": "m = the largest spread of a benchmark with a sqruff pair, rounded "
+    "up to 0.01. Thus, in the sessions that were measured, R of one session is "
+    "at most (1 + m) times R of another session.",
+    "target": "R < 1 / (1 + m) for each start and parse benchmark with a sqruff "
+    "pair, in one controlled session. Then another controlled session gives "
+    "R < 1 (G3.5), as far as the measured noise shows.",
+    "needed_factor": "F = max(1, R * (1 + m)): T must become T / F or less.",
+    "phases": "the median of each phase of the --timings runs of session 1 "
+    "(seconds), and total, the sum of these medians.",
+    "outside_fixed": "the time outside main of the dialect: T - total of the "
+    "start benchmark of the same dialect, at least 0 (process start and exit, "
+    "the loader, and the timer). The start benchmark has no other cost.",
+    "phase_time": "the phases as parts of T: each phase * k, with k = (T - "
+    "outside_fixed) / total. Thus the phases and outside_fixed add up to T. "
+    "Reason: the --timings runs are not the timed runs (k is from "
+    "{k_min} to {k_max}).",
+    "removable": "the cost that a class can remove (seconds), from the phase "
+    "times and the Ir shares of the profile of the phase (classes).",
+    "gain": "the gain of a class = r * removable. central: the r of the class; "
+    "upper: r = 1 (all of the removable cost goes).",
+    "estimate": "T_est = T - the sum of the gains; the reachable factor "
+    "A = T / T_est (central and upper).",
+    "lex_parse_factor": "the T6 formula speedup with the margin: k = LP / "
+    "(S / (1 + m) - (T - LP)), LP = lex + parse of the phase times. With m = 0 "
+    "it is the T6 formula. Unreachable if S / (1 + m) <= T - LP.",
+    "break_even_r": "the largest, over the benchmarks with a sqruff pair, of the "
+    "smallest r (the same r for each class with r < 1 in CLASSES) that gives "
+    "A >= F. in_reach_central_no_margin: the benchmarks where the central A >= "
+    "max(1, R), thus with m = 0.",
+    "go": "go if the central A >= F for each start and parse benchmark with a "
+    "sqruff pair; else no-go (status/S3.md, Stop rule).",
+}
+
+# The improvement classes. removable(row) gives the seconds; r is the central
+# fraction of it that the class removes (an estimate; "basis" gives the
+# reason). The upper bound uses r = 1.
+CLASSES = (
+    {
+        "id": "exit_without_free",
+        "task": "T15",
+        "what": "Exit with no drop of the parser, the tokens, the tree, and the "
+        "record: the operating system frees the memory of the process.",
+        "removable": "free",
+        "r": 1.0,
+        "basis": "measured phase free; the change removes all of it.",
+    },
+    {
+        "id": "direct_output",
+        "task": "T15",
+        "what": "Write the JSON from the parse tree, with no serde_yaml_ng Value "
+        "record between them.",
+        "removable": "max(0, record - write)",
+        "r": 1.0,
+        "basis": "measured phases: the record phase goes; a walk of the tree "
+        "that writes the JSON stays, at the cost of the write phase.",
+    },
+    {
+        "id": "lexer_tables",
+        "task": "T15",
+        "what": "Set up the lexer tables of the dialect at less cost: no clone of "
+        "the matcher list, and only the regexes that the run uses.",
+        "removable": "setup",
+        "r": 0.5,
+        "basis": "measured phase setup; regex compile is the largest class of its "
+        "profile. r = 0.5: an assumption (T15 measures it).",
+    },
+    {
+        "id": "process_start",
+        "task": "T15",
+        "what": "Less work outside main: fewer relocations of the static tables "
+        "(74k relocations of a position-independent binary), fewer page faults.",
+        "removable": "max(0, outside_fixed - timer overhead)",
+        "r": 0.5,
+        "basis": "measured: outside_fixed, and the timer overhead (/bin/true) of "
+        "the session. r = 0.5: an assumption.",
+    },
+    {
+        "id": "command_init",
+        "task": "T15",
+        "what": "Less work from main to the file read (the command thread with a "
+        "256 MiB stack, the arguments, the file).",
+        "removable": "init",
+        "r": 0.5,
+        "basis": "measured phase init. r = 0.5: an assumption.",
+    },
+    {
+        "id": "parse_allocation_copy",
+        "task": "T16",
+        "what": "Fewer allocations, frees, drops, and copies in the parser: frames "
+        "and match results by index or in an arena, with no move of large values "
+        "and no clone of strings.",
+        "removable": "parse * (copy + allocator + drop shares of the parse profile)",
+        "r": 0.5,
+        "basis": "the parse profile: memcpy, malloc and free, and drops. r = 0.5: "
+        "an assumption (Ir is not time; a part of the work stays).",
+    },
+    {
+        "id": "parse_hashing",
+        "task": "T16",
+        "what": "A faster hash for the parse cache (SipHash now).",
+        "removable": "parse * hashing share of the parse profile",
+        "r": 0.5,
+        "basis": "the parse profile. r = 0.5: an assumption.",
+    },
+    {
+        "id": "lex_allocation_copy",
+        "task": "T16",
+        "what": "Fewer allocations, frees, drops, and copies in the lexer.",
+        "removable": "lex * (copy + allocator + drop shares of the lex profile)",
+        "r": 0.5,
+        "basis": "the lex profile. r = 0.5: an assumption.",
+    },
+    {
+        "id": "lex_regex",
+        "task": "T16",
+        "what": "Less regex work in the lexer: direct matchers for the frequent "
+        "token types.",
+        "removable": "lex * regex share of the lex profile",
+        "r": 0.5,
+        "basis": "the lex profile. r = 0.5: an assumption.",
+    },
+)
+NOT_ESTIMATED = (
+    "The own instructions of the parser (class parser of the parse profile) and "
+    "changes of the parse algorithm have no estimate: no class gives them a gain."
+)
+REMOVABLE_CLASSES = ("copy", "allocator", "drop")
+
+
+def spread(ratios: list[float | None]) -> float | None:
+    values = [x for x in ratios if x is not None]
+    if not values:
+        return None
+    return max(values) / min(values) - 1
+
+
+def ceil2(x: float) -> float:
+    return math.ceil(round(x * 100, 6)) / 100
+
+
+def noise(rows: list[dict], sessions: dict) -> dict:
+    """The spread of R between the sessions, and of the median wall time of
+    each tool between the sessions."""
+    reports = [s["report"] for s in sessions["sessions"]]
+    meds = [medians(rep) for rep in reports]
+    paired = [r for r in rows if r["ratio"] is not None]
+    by_group: dict[str, dict] = {}
+    for group in GROUPS:
+        members = [r for r in paired if group_of(r["id"]) == group]
+        spreads = sorted(spread(r["session_ratios"]) for r in members)
+        tools = {}
+        for tool in TOOLS:
+            ts = sorted(spread([m[(r["id"], tool)] for m in meds]) for r in members)
+            tools[tool] = {"median": rr(statistics.median(ts)), "max": rr(max(ts))}
+        by_group[group] = {
+            "benchmarks": len(members),
+            "ratio_spread": {
+                "median": rr(statistics.median(spreads)),
+                "p90": rr(spreads[math.ceil(0.9 * len(spreads)) - 1]),
+                "max": rr(spreads[-1]),
+            },
+            "time_spread": tools,
+        }
+    widest = max(paired, key=lambda r: (spread(r["session_ratios"]), r["id"]))
+    largest = spread(widest["session_ratios"])
+    return {
+        "sessions": len(reports),
+        "by_group": by_group,
+        "largest_spread": {"id": widest["id"], "spread": rr(largest)},
+        "margin": ceil2(largest),
+        "formula": "margin",
+    }
+
+
+def phase_medians(samples: list[dict]) -> dict:
+    out = {p: statistics.median(s[f"{p}_s"] for s in samples) for p in PHASES}
+    out["total"] = sum(out[p] for p in PHASES)
+    return out
+
+
+def removable(row: dict, cls: dict, timer_overhead: float, shares_of) -> float:
+    ph = row["phase_time"]
+    q = shares_of(row["id"])
+    match cls["id"]:
+        case "exit_without_free":
+            return ph["free"]
+        case "direct_output":
+            return max(0.0, ph["record"] - ph["write"])
+        case "lexer_tables":
+            return ph["setup"]
+        case "process_start":
+            return max(0.0, ph["outside_fixed"] - timer_overhead)
+        case "command_init":
+            return ph["init"]
+        case "parse_allocation_copy":
+            return ph["parse"] * sum(q["parse"][c] for c in REMOVABLE_CLASSES)
+        case "parse_hashing":
+            return ph["parse"] * q["parse"]["hashing"]
+        case "lex_allocation_copy":
+            return ph["lex"] * sum(q["lex"][c] for c in REMOVABLE_CLASSES)
+        case "lex_regex":
+            return ph["lex"] * q["lex"]["regex"]
+    raise DataError(f"no formula for class {cls['id']}")
+
+
+def break_even_r(row: dict) -> float:
+    """The smallest r of the classes with r < 1 that gives A >= F (the
+    classes with r = 1 keep it). 0 if they are not necessary."""
+    t, f = row["sqll_s"], row["needed_factor"]
+    gains = row["estimate"]["gains"]
+    fixed = sum(gains[c["id"]]["removable_s"] for c in CLASSES if c["r"] == 1.0)
+    variable = sum(gains[c["id"]]["removable_s"] for c in CLASSES if c["r"] < 1.0)
+    need = t - t / f - fixed
+    return 0.0 if need <= 0 else need / variable
+
+
+def lex_parse_factor(row: dict, margin: float) -> float | str | None:
+    if row["sqruff_s"] is None:
+        return None
+    t, s = row["sqll_s"], row["sqruff_s"] / (1 + margin)
+    if t <= s:
+        return None
+    lp = row["phase_time"]["lex"] + row["phase_time"]["parse"]
+    room = s - (t - lp)
+    return "unreachable" if room <= 0 else rr(lp / room)
+
+
+def _factors(values: list) -> dict:
+    nums = sorted(v for v in values if isinstance(v, float))
+    return {
+        "needed": len([v for v in values if v is not None]),
+        "median_factor": rr(statistics.median(nums)) if nums else None,
+        "max_factor": rr(max(nums)) if nums else None,
+        "unreachable": sum(v == "unreachable" for v in values),
+    }
+
+
+def check_inputs(sessions: dict, prof: dict) -> None:
+    want = sqll_adapter.expected_version(ROOT)
+    if sessions["sqll"]["version"] != want:
+        raise DataError(
+            f"the sessions ran sqll {sessions['sqll']['version']}, not {want}"
+        )
+    if prof["sqll_source_sha256"] != sessions["sqll"]["source_sha256"]:
+        raise DataError("the profile is not of the sqll source of the sessions")
+    for s in sessions["sessions"]:
+        tools = s["report"]["tools"]
+        if set(tools) != set(TOOLS):
+            raise DataError(f"session {s['session']} has the tools {sorted(tools)}")
+        if tools["sqruff"]["version"] != "0.41.0":
+            raise DataError(f"session {s['session']}: sqruff version")
+        if s["report"]["harness"]["clean"] is not True:
+            raise DataError(f"session {s['session']} ran on a changed worktree")
+
+
+def make_report(
+    sessions_path: Path = SESSIONS_FILE,
+    profile_path: Path = PROFILE_FILE,
+    t6_path: Path = SPEED_BY_BASE_FILE,
+) -> dict:
+    sessions = json.loads(sessions_path.read_text("utf8"))
+    prof = json.loads(profile_path.read_text("utf8"))
+    t6 = json.loads(t6_path.read_text("utf8"))
+    check_inputs(sessions, prof)
+    rows = benchmark_rows(sessions)
+    nz = noise(rows, sessions)
+    m = nz["margin"]
+    control = sessions["sessions"][0]["report"]
+    timer_overhead = control["timer"]["overhead"]["stats"]["wall_s"]["median"]
+    samples = sessions["phases"]["samples"]
+    profiles = {b["id"]: b for b in prof["benchmarks"]}
+    if set(profiles) != {r["id"] for r in rows} or set(samples) != set(profiles):
+        raise DataError("the profile or the phases do not have each benchmark")
+
+    def shares_of(bid: str) -> dict:
+        return {ph: profiles[bid][ph]["classes"] for ph in PROFILE_PHASES}
+
+    raw = {r["id"]: phase_medians(samples[r["id"]]) for r in rows}
+    outside_fixed = {
+        r["dialect"]: max(0.0, r["sqll_s"] - raw[r["id"]]["total"])
+        for r in rows
+        if r["command"] == "start"
+    }
+    ks = []
+    for r in rows:
+        ph = raw[r["id"]]
+        fixed = outside_fixed[r["dialect"]]
+        if r["command"] == "start":
+            k = 1.0
+        else:
+            k = (r["sqll_s"] - fixed) / ph["total"]
+            ks.append(k)
+        r["phases"] = {p: rr(ph[p], 6) for p in (*PHASES, "total")}
+        r["phases"]["tokens"] = samples[r["id"]][0]["tokens"]
+        r["phase_time"] = {p: ph[p] * k for p in PHASES} | {"outside_fixed": fixed}
+        r["k"] = k
+    for r in rows:
+        pt = r["phase_time"]
+        r["shares"] = {p: rr(v / r["sqll_s"]) for p, v in pt.items()}
+        r["needed_factor"] = (
+            None
+            if r["ratio"] is None
+            else rr(max(1.0, r["sqll_s"] / r["sqruff_s"] * (1 + m)))
+        )
+        gains = {}
+        for cls in CLASSES:
+            rem = removable(r, cls, timer_overhead, shares_of)
+            gains[cls["id"]] = {
+                "removable_s": rr(rem, 6),
+                "central_s": rr(cls["r"] * rem, 6),
+            }
+        central = sum(cls["r"] * gains[cls["id"]]["removable_s"] for cls in CLASSES)
+        upper = sum(g["removable_s"] for g in gains.values())
+        t = r["sqll_s"]
+        r["estimate"] = {
+            "formula": "estimate",
+            "gains": gains,
+            "central": {"time_s": rr(t - central, 6), "factor": rr(t / (t - central))},
+            "upper": {"time_s": rr(t - upper, 6), "factor": rr(t / (t - upper))},
+        }
+        if r["needed_factor"] is not None:
+            f = r["needed_factor"]
+            r["in_reach"] = {
+                "central": t / (t - central) >= f,
+                "upper": t / (t - upper) >= f,
+            }
+        r["lex_parse_factor"] = {
+            "margin": lex_parse_factor(r, m),
+            "no_margin": lex_parse_factor(r, 0.0),
+        }
+        r["phase_time"] = {p: rr(v, 6) for p, v in pt.items()}
+        r["k"] = rr(r["k"])
+        q = profiles[r["id"]]
+        r["profile"] = {
+            "ir": {ph: q[ph]["ir"] for ph in ("all", *PROFILE_PHASES)},
+            "classes": {ph: q[ph]["classes"] for ph in ("all", *PROFILE_PHASES)},
+        }
+    paired = [r for r in rows if r["needed_factor"] is not None]
+    groups = {}
+    for group in (*GROUPS, "all"):
+        members = [r for r in paired if group == "all" or group_of(r["id"]) == group]
+        groups[group] = {
+            "benchmarks": len(members),
+            "ratio": {
+                "median": rr(statistics.median(r["ratio"] for r in members)),
+                "max": max(r["ratio"] for r in members),
+            },
+            "below_target": sum(r["ratio"] < 1 / (1 + m) for r in members),
+            "needed_factor": {
+                "median": rr(statistics.median(r["needed_factor"] for r in members)),
+                "max": max(r["needed_factor"] for r in members),
+            },
+            "reachable_factor_central": {
+                "median": rr(
+                    statistics.median(
+                        r["estimate"]["central"]["factor"] for r in members
+                    )
+                ),
+                "min": min(r["estimate"]["central"]["factor"] for r in members),
+            },
+            "in_reach": {
+                kind: sum(r["in_reach"][kind] for r in members)
+                for kind in ("central", "upper")
+            },
+            "mean_shares": {
+                p: rr(statistics.mean(r["shares"][p] for r in members))
+                for p in (*PHASES, "outside_fixed")
+            },
+        }
+    out_central = [r["id"] for r in paired if not r["in_reach"]["central"]]
+    no_margin = sum(
+        r["estimate"]["central"]["factor"] >= max(1.0, r["ratio"]) for r in paired
+    )
+    r_star = max(break_even_r(r) for r in paired)
+    out_upper = [r["id"] for r in paired if not r["in_reach"]["upper"]]
+    parse_rows = [r for r in paired if r["command"] == "parse"]
+    t6_parse = t6["bases"]["sqlfluffrs"]["lex_parse_speedup"]["parse"]
+    go = not out_central
+    worst_rows = sorted(paired, key=lambda r: (-r["needed_factor"], r["id"]))[:5]
+    reason = (
+        f"The central estimate reaches the needed factor F on "
+        f"{len(paired) - len(out_central)} of {len(paired)} benchmarks; the upper "
+        f"bound (r = 1 for each class) on {len(paired) - len(out_upper)}. "
+    )
+    reason += (
+        "Thus the target is in reach."
+        if go
+        else f"Not in reach (central): {len(out_central)} benchmarks, the largest F: "
+        + ", ".join(
+            f"{r['id']} F {r['needed_factor']}, A {r['estimate']['central']['factor']}"
+            for r in worst_rows
+        )
+        + ". Human decision needed (status/S3.md, Stop rule)."
+    )
+    k_values = [rr(k, 2) for k in ks]
+    formulas = dict(FORMULAS)
+    formulas["phase_time"] = formulas["phase_time"].format(
+        k_min=min(k_values), k_max=max(k_values)
+    )
+    return {
+        "kind": "sqll-s3-speed-profile",
+        "task": "T14",
+        "about": "Parse speed, part 1: the speed of sqll and sqruff on the 28 start "
+        "and 84 parse benchmarks, the noise and the margin, the target, the phase "
+        "times, the profile, the improvement classes, and the go or no-go. Each "
+        "value is measured (the session and profile files), or derived or "
+        "estimated with a formula of 'formulas'.",
+        "command": COMMAND_LINES["report"],
+        "inputs": {
+            probe.rel(p): probe.sha256_file(p)
+            for p in (sessions_path, profile_path, t6_path)
+        },
+        "method": {
+            "sessions": sessions["method"]["text"],
+            "profile": prof["method"],
+            "image": sessions["method"]["image"],
+            "host": sessions["method"]["host"],
+            "sqll": sessions["sqll"],
+            "sqruff": control["tools"]["sqruff"]["version"],
+            "timer_overhead_s": timer_overhead,
+        },
+        "formulas": formulas,
+        "noise": nz,
+        "target": {
+            "margin": m,
+            "ratio_below": rr(1 / (1 + m)),
+            "formula": "target",
+            "benchmarks": len(paired),
+            "no_sqruff_pair": [r["id"] for r in rows if r["needed_factor"] is None],
+        },
+        "groups": groups,
+        "t6_comparison": {
+            "t6": {
+                "from": "results/s3/speed-by-base.json, "
+                "bases.sqlfluffrs.lex_parse_speedup.parse",
+                "needed": t6_parse["needed"],
+                "median_factor": t6_parse["median_factor"],
+                "max_factor": t6_parse["max_factor"],
+            },
+            "now_no_margin": _factors(
+                [r["lex_parse_factor"]["no_margin"] for r in parse_rows]
+            ),
+            "now_margin": _factors(
+                [r["lex_parse_factor"]["margin"] for r in parse_rows]
+            ),
+            "formula": "lex_parse_factor",
+        },
+        "classes": [
+            {k: v for k, v in c.items()}
+            | {
+                "gain_s_central": {
+                    group: rr(
+                        statistics.mean(
+                            r["estimate"]["gains"][c["id"]]["central_s"]
+                            for r in paired
+                            if group == "all" or group_of(r["id"]) == group
+                        ),
+                        6,
+                    )
+                    for group in (*GROUPS, "all")
+                },
+            }
+            for c in CLASSES
+        ],
+        "not_estimated": NOT_ESTIMATED,
+        "go": {
+            "result": "go" if go else "no-go",
+            "formula": "go",
+            "reason": reason,
+            "not_in_reach_central": out_central,
+            "sensitivity": {
+                "in_reach_central_no_margin": no_margin,
+                "break_even_r": rr(r_star),
+                "formula": "break_even_r",
+            },
+            "not_in_reach_upper": out_upper,
+        },
+        "profile": {
+            "worst": prof["worst"],
+            "top": {
+                b: {
+                    "all": {
+                        k: profiles[b]["all"][k]
+                        for k in ("ir", "self_top", "inclusive_top")
+                    },
+                    **{
+                        ph: {
+                            "ir": profiles[b][ph]["ir"],
+                            "self_top": profiles[b][ph]["self_top"],
+                        }
+                        for ph in PROFILE_PHASES
+                    },
+                }
+                for b in prof["worst"]
+            },
+        },
+        "benchmarks": [
+            {
+                k: r[k]
+                for k in (
+                    "id",
+                    "sqll_s",
+                    "sqruff_s",
+                    "sqruff_status",
+                    "ratio",
+                    "session_ratios",
+                    "needed_factor",
+                    "phases",
+                    "k",
+                    "phase_time",
+                    "shares",
+                    "profile",
+                    "estimate",
+                    "lex_parse_factor",
+                )
+            }
+            | ({"in_reach": r["in_reach"]} if "in_reach" in r else {})
+            for r in rows
+        ],
     }
 
 
