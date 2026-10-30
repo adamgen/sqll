@@ -615,6 +615,43 @@ fn the_parse_depth_has_a_limit_that_the_stack_can_hold() {
     assert!(stderr(&out).contains("(limit 9985)"), "{}", stderr(&out));
 }
 
+/// "select" and n nested brackets around 1.
+fn nested_brackets(n: usize) -> String {
+    format!("select {}1{}\n", "(".repeat(n), ")".repeat(n))
+}
+
+/// sqll counts the parse depth in frames of the Rust parser. sqlfluff 4.4.0
+/// (Python parser) stops first at 35 brackets with the depth 600, sqll at 40
+/// (harness/sqll.md).
+#[test]
+fn the_parse_depth_is_that_of_the_rust_parser() {
+    let args = [
+        "parse",
+        "--dialect",
+        "ansi",
+        "--max-parse-depth",
+        "600",
+        "-",
+    ];
+    let out = sqll_stdin(&args, &nested_brackets(39));
+    assert_eq!(code(&out), 0, "{}", stderr(&out));
+    assert!(stdout_starts(
+        &out,
+        r#"[{"filepath": "stdin", "segments": {"file": "#
+    ));
+    let out = sqll_stdin(&args, &nested_brackets(40));
+    assert_eq!(code(&out), 1, "{}", stderr(&out));
+    assert!(
+        stderr(&out).starts_with("PRS: Maximum parse depth exceeded (limit 600)."),
+        "{}",
+        stderr(&out)
+    );
+    assert_eq!(
+        out.stdout,
+        b"[{\"filepath\": \"stdin\", \"segments\": null}]\n"
+    );
+}
+
 /// "select a=a=a...": n comparisons. sqlfluff 4.4.0 (Python parser) gives a
 /// tree for each n. The Rust parser stops above rust_parser_max_iterations
 /// (3000000): first at n = 7853 (15715 bytes), in the main parse.

@@ -4,6 +4,7 @@
 // commit 0348222a3bcdb0226563f7349c5a39beb0641955.
 // Copyright (c) 2018-2026 Alan Cruickshank. MIT License: see
 // crates/LICENSE-sqlfluffrs.md. See THIRD_PARTY.md and crates/ported.json.
+// sqll changed this file. crates/ported.json gives the reason.
 
 //! Helper methods for the Parser
 //!
@@ -605,7 +606,8 @@ impl<'a> Parser<'a> {
     /// `try_terminal_inline`; compound terminators fall back to a full
     /// sub-parse through `try_match_grammar`. The parser position is
     /// restored afterwards. A probe that errors counts as "no match",
-    /// matching the previous call sites' behaviour.
+    /// matching the previous call sites' behaviour. A parser limit error
+    /// stops the parse through Parser.limit_error (core.rs).
     #[inline]
     pub(crate) fn terminator_matches_at(
         &mut self,

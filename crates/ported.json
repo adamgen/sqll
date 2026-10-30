@@ -111,7 +111,7 @@
    "path": "crates/sqll_parser/src/parser/helpers.rs",
    "source": "sqlfluffrs/sqlfluffrs_parser/src/parser/helpers.rs",
    "source_sha256": "304a358c12923ef572546ed0d69084e7d375be909c241fa5425578ebf8dc7d17",
-   "changed": null
+   "changed": "Only a comment: the doc comment of terminator_matches_at says that a parser limit error stops the parse through Parser.limit_error (core.rs). See the reason of iterative.rs."
   },
   {
    "path": "crates/sqll_parser/src/parser/match_result.rs",
