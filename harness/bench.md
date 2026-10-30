@@ -196,12 +196,17 @@ result that is `valid` in both). Not the timings, reasons, or machine. A
 new tool or tool version needs a new baseline. The baseline of S3 T13 has
 4 tools (sqll joined); `status/S2.md` has the facts of its run.
 
-Controlled run (2026-10-20): the CI image, built from `ci/Dockerfile` on
-the local machine (4 CPUs, no other load), one container, serial. The
+Controlled run of the S2 exit (2026-10-20; now
+`results/s3/phase-a/s2-baseline.json`): the CI image, built from
+`ci/Dockerfile` on the local machine (4 CPUs, no other load), one
+container, serial. The
 egress proxy of that machine blocks `deb.debian.org` and the registry
 blobs, so the build used `PYTHON_IMAGE` `python:3.13.16-trixie` (the same
 Python, with git and gcc, thus no apt step) and the proxy CA. The tools
-have the pinned versions (`sqll-harness tools` passes).
+have the pinned versions (`sqll-harness tools` passes). The run of S3 T13
+(2026-10-30) used the same image build. A first container with network
+built sqll (`scripts/build-sqll`: cargo gets the crates); then the run
+had no network (`CARGO_NET_OFFLINE=true`, the same cargo registry).
 
 ## Add a tool
 
