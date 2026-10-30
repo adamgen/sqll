@@ -191,11 +191,17 @@ in `Cargo.lock`. Task T19 records the license of sqll and the notices.
 ## CPython
 
 - Source: https://github.com/python/cpython, `Lib/posixpath.py`
-  (`normpath`), Python 3.13.
-- License: PSF-2.0 (Python Software Foundation License Version 2).
-  Copyright (c) 2001-2026 Python Software Foundation.
+  (`normpath`).
+- Version: tag `v3.13.16`, commit
+  `cbc944f4bc59639a444dd971c737788ba2283a91`.
+- License: PSF-2.0 (Python Software Foundation License Version 2). Notice:
+  "Copyright (c) 2001-2024 Python Software Foundation; All Rights
+  Reserved". The license text is in `crates/LICENSE-cpython.txt`, a copy of
+  `LICENSE` of that tag.
 - `normpath` in `crates/sqll/src/main.rs` is a port of this function. sqll
-  uses it to print the file path as sqlfluff does.
+  uses it to print the file path as sqlfluff does. Changes: Rust in place
+  of Python; only `str` paths (no `bytes`); the root slashes are found in
+  the function, not with `splitroot`.
 
 ## S9 corpus
 

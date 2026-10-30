@@ -16,8 +16,10 @@
 //! reads stdin.
 //!
 //! Exit codes: 0, no error; 1, a lex error, a parse error, or an
-//! unparsable segment; 2, a usage or input error. A command that sqll does
-//! not support yet prints "unsupported: <item>" and gives exit code 2.
+//! unparsable segment; 2, a usage, input, or output error. A command or
+//! input that sqll does not support yet (for example an argument that is not
+//! UTF-8) prints "unsupported: <item>" and gives exit code 2. Only a panic
+//! (a sqll bug) gives another exit code (101).
 
 mod output;
 mod parse;
@@ -60,7 +62,8 @@ Options:
   -c, --code-only          Show only the code segments.
   -m, --include-meta       Show the meta segments (indents and dedents).
   --max-parse-depth INTEGER
-                           The maximum parse depth. Default: 600. 0: no limit.
+                           The maximum parse depth. Default: 600. 0 and each
+                           value above 10000 give 10000.
   -h, --help               Show this message and exit.
 ";
 
@@ -71,15 +74,44 @@ const EXIT_ERROR: u8 = 2;
 /// An error that stops a command with exit code 2.
 struct Error(String);
 
+/// The stack of the thread that runs the command. The parser is iterative,
+/// but the record, the output, and the drop of the tree recurse once for
+/// each level of the tree. At the parse depth limit
+/// (parse::MAX_PARSE_DEPTH_LIMIT), the deepest trees that were measured
+/// need about 10 MiB in a release build and 33 MiB in a debug build
+/// (tests/cli.rs, the_parse_depth_has_a_limit_that_the_stack_can_hold).
+/// Linux reserves the stack, but uses memory only for the pages that the
+/// thread touches.
+const STACK_SIZE: usize = 256 * 1024 * 1024;
+
 fn main() -> ExitCode {
-    let args: Vec<String> = std::env::args().skip(1).collect();
-    match run(&args) {
+    let result = utf8_args(std::env::args_os().skip(1)).and_then(|args| {
+        std::thread::Builder::new()
+            .stack_size(STACK_SIZE)
+            .spawn(move || run(&args))
+            .map_err(|e| Error(format!("cannot start the command thread: {e}")))?
+            .join()
+            .unwrap_or_else(|panic| std::panic::resume_unwind(panic))
+    });
+    match result {
         Ok(code) => ExitCode::from(code),
         Err(Error(message)) => {
             eprintln!("Error: {message}");
             ExitCode::from(EXIT_ERROR)
         }
     }
+}
+
+fn utf8_args(args: impl Iterator<Item = std::ffi::OsString>) -> Result<Vec<String>, Error> {
+    args.map(|arg| {
+        arg.into_string().map_err(|arg| {
+            unsupported(
+                &format!("non-UTF-8 argument {arg:?}"),
+                "sqll reads only UTF-8 arguments",
+            )
+        })
+    })
+    .collect()
 }
 
 fn run(args: &[String]) -> Result<u8, Error> {
@@ -256,11 +288,11 @@ fn parse_args(args: &[String]) -> Result<Option<ParseArgs>, Error> {
     }
     let max_parse_depth = match &raw.max_parse_depth {
         None => parse::MAX_PARSE_DEPTH,
-        Some(text) => text.parse().map_err(|_| {
+        Some(text) => parse::depth_limit(text.parse().map_err(|_| {
             Error(format!(
                 "Invalid value for '--max-parse-depth': '{text}' is not a valid integer."
             ))
-        })?,
+        })?),
     };
     if let Some(extra) = raw.paths.get(1) {
         return Err(Error(format!(
@@ -289,8 +321,15 @@ fn has_sql_extension(path: &str) -> bool {
 }
 
 /// The path as Python os.path.normpath (POSIX) gives it. sqlfluff prints
-/// this form of a file path. Port of normpath in CPython Lib/posixpath.py
-/// (PSF-2.0, THIRD_PARTY.md).
+/// this form of a file path.
+///
+/// Port of normpath in Lib/posixpath.py of CPython
+/// (https://github.com/python/cpython), tag v3.13.16, commit
+/// cbc944f4bc59639a444dd971c737788ba2283a91.
+/// Copyright (c) 2001-2024 Python Software Foundation; All Rights Reserved.
+/// PSF License Version 2: see crates/LICENSE-cpython.txt. See THIRD_PARTY.md.
+/// Changes: Rust in place of Python; only str paths; the root slashes are
+/// found here, not with splitroot.
 fn normpath(path: &str) -> String {
     if path.is_empty() {
         return ".".to_string();
@@ -412,6 +451,22 @@ mod tests {
         ];
         for (path, want) in cases {
             assert_eq!(normpath(path), want, "{path:?}");
+        }
+    }
+
+    #[test]
+    fn the_parse_depth_is_at_most_the_limit() {
+        use crate::parse::{depth_limit, MAX_PARSE_DEPTH_LIMIT};
+        assert_eq!(MAX_PARSE_DEPTH_LIMIT, 10_000);
+        for (value, want) in [
+            (0, 10_000),
+            (1, 1),
+            (600, 600),
+            (10_000, 10_000),
+            (10_001, 10_000),
+            (usize::MAX, 10_000),
+        ] {
+            assert_eq!(depth_limit(value), want, "{value}");
         }
     }
 

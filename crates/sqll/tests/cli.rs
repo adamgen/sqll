@@ -510,3 +510,107 @@ fn the_version_is_the_crate_version_and_the_table_manifest_hash() {
     assert_eq!(record["source_sha256"].as_str().map(str::len), Some(64));
     assert!(record["source_files"].as_u64().unwrap() > 0);
 }
+
+#[test]
+fn an_argument_that_is_not_utf8_gives_exit_code_2() {
+    use std::ffi::OsStr;
+    use std::os::unix::ffi::OsStrExt;
+    let file = OsStr::from_bytes(b"\xff.sql");
+    let dialect = OsStr::from_bytes(b"\xff");
+    let cases: [Vec<&OsStr>; 3] = [
+        vec![
+            "parse".as_ref(),
+            "--dialect".as_ref(),
+            "ansi".as_ref(),
+            file,
+        ],
+        vec!["parse".as_ref(), "--dialect".as_ref(), dialect, file],
+        vec![file],
+    ];
+    for args in cases {
+        let out = Command::new(SQLL).args(&args).output().expect("run sqll");
+        assert_eq!(code(&out), 2, "{args:?}");
+        assert!(out.stdout.is_empty(), "{args:?}");
+        assert!(
+            stderr(&out).starts_with("Error: unsupported: non-UTF-8 argument \""),
+            "{args:?}: {}",
+            stderr(&out)
+        );
+    }
+}
+
+/// The JSON readers of the tests stop at 128 levels, so a deep tree is
+/// checked by its start.
+fn stdout_starts(out: &Output, prefix: &str) -> bool {
+    out.stdout.starts_with(prefix.as_bytes())
+}
+
+/// "select" and n nested function calls around 1: "select f(f(1))".
+fn nested_calls(n: usize) -> String {
+    format!("select {}1{}\n", "f(".repeat(n), ")".repeat(n))
+}
+
+/// 474 nested calls need a parse depth of 9986: the deepest nesting that the
+/// parse depth limit (10000) lets through. Of the nested forms that were measured (brackets,
+/// subqueries, function calls, CASE, bracketed additions, arrays), it needs
+/// the most stack. The parse must give a tree or a parse error, not a stack
+/// overflow, for each --max-parse-depth value.
+#[test]
+fn the_parse_depth_has_a_limit_that_the_stack_can_hold() {
+    let deepest = nested_calls(474);
+    for depth in ["0", "10000", "100000"] {
+        let out = sqll_stdin(
+            &[
+                "parse",
+                "--dialect",
+                "ansi",
+                "--max-parse-depth",
+                depth,
+                "-",
+            ],
+            &deepest,
+        );
+        assert_eq!(code(&out), 0, "{depth}: {}", stderr(&out));
+        assert!(stdout_starts(
+            &out,
+            r#"[{"filepath": "stdin", "segments": {"file": "#
+        ));
+    }
+    let deeper = nested_calls(475);
+    for depth in ["0", "100000"] {
+        let out = sqll_stdin(
+            &[
+                "parse",
+                "--dialect",
+                "ansi",
+                "--max-parse-depth",
+                depth,
+                "-",
+            ],
+            &deeper,
+        );
+        assert_eq!(code(&out), 1, "{depth}: {}", stderr(&out));
+        assert!(
+            stderr(&out).starts_with("PRS: Maximum parse depth exceeded (limit 10000)."),
+            "{depth}: {}",
+            stderr(&out)
+        );
+        assert_eq!(
+            out.stdout,
+            b"[{\"filepath\": \"stdin\", \"segments\": null}]\n"
+        );
+    }
+    let out = sqll_stdin(
+        &[
+            "parse",
+            "--dialect",
+            "ansi",
+            "--max-parse-depth",
+            "9985",
+            "-",
+        ],
+        &deepest,
+    );
+    assert_eq!(code(&out), 1, "{}", stderr(&out));
+    assert!(stderr(&out).contains("(limit 9985)"), "{}", stderr(&out));
+}

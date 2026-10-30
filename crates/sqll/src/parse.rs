@@ -20,6 +20,10 @@ use sqll_parser::parser::Parser;
 
 /// The sqlfluff core default of max_parse_depth.
 pub const MAX_PARSE_DEPTH: usize = 600;
+/// The largest parse depth of sqll. A deeper tree can overflow the stack
+/// (main.rs, STACK_SIZE). sqlfluff stops such a parse with a RecursionError
+/// and exit code 1; sqll stops it with a parse error and exit code 1.
+pub const MAX_PARSE_DEPTH_LIMIT: usize = 10_000;
 // The sqlfluff core defaults: max_parse_nodes, rust_parser_max_iterations,
 // rust_parser_warn_threshold.
 const MAX_PARSE_NODES: usize = 100_000;
@@ -65,6 +69,16 @@ impl Parsed {
     /// an unparsable segment.
     pub fn ok(&self) -> bool {
         self.errors.is_empty() && !self.unparsable
+    }
+}
+
+/// The parse depth for a max_parse_depth value: the value, but 0 (no limit
+/// in sqlfluff) and each value above MAX_PARSE_DEPTH_LIMIT give the limit.
+pub fn depth_limit(max_parse_depth: usize) -> usize {
+    if max_parse_depth == 0 {
+        MAX_PARSE_DEPTH_LIMIT
+    } else {
+        max_parse_depth.min(MAX_PARSE_DEPTH_LIMIT)
     }
 }
 
