@@ -4,6 +4,7 @@
 // commit 0348222a3bcdb0226563f7349c5a39beb0641955.
 // Copyright (c) 2018-2026 Alan Cruickshank. MIT License: see
 // crates/LICENSE-sqlfluffrs.md. See THIRD_PARTY.md and crates/ported.json.
+// sqll changed this file. crates/ported.json gives the reason.
 
 #[cfg(feature = "verbose-debug")]
 use crate::vdebug;
@@ -182,7 +183,11 @@ impl Parser<'_> {
             };
 
             if iteration_count > max_iterations {
-                self.handle_table_max_iterations_exceeded(&mut stack, max_iterations, &mut frame);
+                return Err(self.handle_table_max_iterations_exceeded(
+                    &mut stack,
+                    max_iterations,
+                    &mut frame,
+                ));
             }
 
             vdebug!(
@@ -873,10 +878,10 @@ impl Parser<'_> {
         &mut self,
         _stack: &mut TableParseFrameStack,
         max_iterations: usize,
-        _frame: &mut TableParseFrame,
-    ) -> ! {
+        frame: &mut TableParseFrame,
+    ) -> ParseError {
         vdebug!("ERROR: Exceeded max iterations ({})", max_iterations);
-        vdebug!("Last frame: {:?}", _frame.grammar_id);
+        vdebug!("Last frame: {:?}", frame.grammar_id);
         vdebug!("Stack depth: {}", _stack.len());
         vdebug!("Result pending: {}", _stack.result_pending());
 
@@ -909,31 +914,38 @@ impl Parser<'_> {
             );
         }
 
-        self.print_cache_stats();
+        #[cfg(feature = "verbose-debug")]
+        {
+            self.print_cache_stats();
 
-        println!("Parser at position: {}", self.pos);
+            eprintln!("Parser at position: {}", self.pos);
 
-        println!("\nTokens around failure point:");
-        let start = self.pos.saturating_sub(3);
-        let end = (self.pos + 4).min(self.tokens.len());
-        for i in start..end {
-            let marker = if i == self.pos { " <<< HERE" } else { "" };
-            if let Some(tok) = self.tokens.get(i) {
-                println!(
-                    "  [{}]: '{}' (type: {}){}",
-                    i,
-                    tok.raw(),
-                    tok.get_type(),
-                    marker
-                );
+            eprintln!("\nTokens around failure point:");
+            let start = self.pos.saturating_sub(3);
+            let end = (self.pos + 4).min(self.tokens.len());
+            for i in start..end {
+                let marker = if i == self.pos { " <<< HERE" } else { "" };
+                if let Some(tok) = self.tokens.get(i) {
+                    eprintln!(
+                        "  [{}]: '{}' (type: {}){}",
+                        i,
+                        tok.raw(),
+                        tok.get_type(),
+                        marker
+                    );
+                }
             }
         }
 
-        panic!(
-            "Parser exceeded maximum iteration limit ({}). This may be caused by \
-             runaway parser logic or a very complex SQL query.",
-            max_iterations
-        );
+        ParseError::with_context(
+            format!(
+                "Parser exceeded maximum iteration limit ({}). This may be caused by \
+                 runaway parser logic or a very complex SQL query.",
+                max_iterations
+            ),
+            Some(self.pos),
+            Some(frame.grammar_id),
+        )
     }
 
     /// Logs debug information about the current frame and stack.

@@ -21,17 +21,18 @@ them.
 `sqll parse` prints the record of `sqlfluff parse -f json` with the raw
 templater and the default config. `--max-parse-depth` is a sqll option for
 the config value `max_parse_depth` (default 600); `sqlfluff parse` has no
-such option. The other parser limits are the sqlfluff defaults. Exit
-codes: 0; 1 for a lex error, a parse error, or an unparsable segment (the
-error lines go to stderr); 2 for a usage, input, or output error. Only a
-panic (a sqll bug) gives another exit code (101). The output has the bytes
-of the sqlfluff output (Python `json.dumps`) and a new line. The
-`filepath` is the path as `os.path.normpath` gives it (`stdin` for `-`). A
-file with an extension that is not `.sql`, `.sql.j2`, `.dml`, `.ddl`, or
-`.pkb` (`sql_file_exts` of the sqlfluff default config, in any case) gives
-`[]` and exit code 0, as in sqlfluff. As in click, sqll reads all
-arguments before `-h`: an unknown option or a missing value is an error
-also with `-h`.
+such option. The other parser limits are the sqlfluff defaults
+(`max_parse_nodes` 100000, `rust_parser_max_iterations` 3000000). Exit
+codes: 0; 1 for a lex error, a parse error (also at a parser limit), or an
+unparsable segment (the error lines go to stderr); 2 for a usage, input, or
+output error. Only a panic (a sqll bug) gives another exit code (101).
+stdout has only the JSON record: the bytes of the sqlfluff output (Python
+`json.dumps`) and a new line. The `filepath` is the path as
+`os.path.normpath` gives it (`stdin` for `-`). A file with an extension
+that is not `.sql`, `.sql.j2`, `.dml`, `.ddl`, or `.pkb` (`sql_file_exts`
+of the sqlfluff default config, in any case) gives `[]` and exit code 0, as
+in sqlfluff. As in click, sqll reads all arguments before `-h`: an unknown
+option or a missing value is an error also with `-h`.
 
 For the 2306 dialect files, sqll and `sqlfluff parse --templater raw
 --ignore-local-config` give the same output and exit code (status/S3.md,
@@ -65,16 +66,28 @@ T12). Differences from `sqlfluff parse`:
   stops with `PRS: Maximum parse depth exceeded (limit 10000)` and exit
   code 1. The limit keeps the tree in the stack of the command thread
   (256 MiB): at the limit, the deepest trees that were measured need about
-  10 MiB (33 MiB in a debug build). sqlfluff has no such
-  limit, but a deep tree stops it with a `RecursionError` and exit code 1
+  10 MiB (33 MiB in a debug build). sqlfluff has no such limit, but a deep
+  tree stops it with a `RecursionError` and exit code 1
   (for example 800 nested brackets with `max_parse_depth = 0`). The
   sqlfluff test gives each dialect file the depth 600, or 2000 for
   `ansi/expression_recursion.sql`.
+- The parser of sqll is a port of the sqlfluff Rust parser. After
+  3000000 iterations (`rust_parser_max_iterations`) it stops with `PRS:
+  Parser exceeded maximum iteration limit (3000000)...`, `"segments":
+  null`, and exit code 1. The sqlfluff Python parser has no such limit:
+  for a file of at most 20000 bytes, it gives the tree with exit code 0. A
+  long flat expression can reach the limit in a small file: for example `select a=a=...=a` with 7853 `=a`
+  (15715 bytes; 7852 give the tree). sqlfluff with the Rust parser stops
+  with a `PanicException` and exit code 1. No dialect file reaches the
+  limit.
 - An argument that is not UTF-8 (for example a file name) gives
   `unsupported: non-UTF-8 argument` and exit code 2. sqlfluff reads it.
 - sqll reads UTF-8 only (with or without a byte order mark). sqlfluff also
   detects other encodings.
-- sqll has no file size limit (as `large_file_skip_byte_limit = 0`).
+- sqll has no file size limit. With the default config
+  (`large_file_skip_byte_limit = 20000`), sqlfluff skips a larger file: it
+  gives `[]` and exit code 0. sqll parses the file. Such a file can reach
+  the iteration limit (above).
 - PATH is one file, or `-` (stdin). A folder gives `unsupported: folder`.
 
 ## Adapter

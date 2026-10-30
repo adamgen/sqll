@@ -209,6 +209,7 @@ def test_each_file_of_the_source_crates_is_ported_or_excluded():
         "crates/sqll_parser/Cargo.toml",
         "crates/sqll_parser/src/lib.rs",
         "crates/sqll_parser/src/parser/mod.rs",
+        "crates/sqll_parser/src/parser/table_driven/iterative.rs",
         "crates/sqll_types/Cargo.toml",
     ]
 

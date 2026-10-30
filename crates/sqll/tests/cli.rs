@@ -550,11 +550,11 @@ fn nested_calls(n: usize) -> String {
     format!("select {}1{}\n", "f(".repeat(n), ")".repeat(n))
 }
 
-/// 474 nested calls need a parse depth of 9986: the deepest nesting that the
-/// parse depth limit (10000) lets through. Of the nested forms that were measured (brackets,
-/// subqueries, function calls, CASE, bracketed additions, arrays), it needs
-/// the most stack. The parse must give a tree or a parse error, not a stack
-/// overflow, for each --max-parse-depth value.
+/// 474 nested calls need a parse depth of 9986: the deepest nesting that
+/// the parse depth limit (10000) lets through. Of the nested forms that were
+/// measured (brackets, subqueries, function calls, CASE, bracketed
+/// additions, arrays), it needs the most stack. The parse must give a tree
+/// or a parse error, not a stack overflow, for each --max-parse-depth value.
 #[test]
 fn the_parse_depth_has_a_limit_that_the_stack_can_hold() {
     let deepest = nested_calls(474);
@@ -613,4 +613,33 @@ fn the_parse_depth_has_a_limit_that_the_stack_can_hold() {
     );
     assert_eq!(code(&out), 1, "{}", stderr(&out));
     assert!(stderr(&out).contains("(limit 9985)"), "{}", stderr(&out));
+}
+
+/// "select a=a=a...": n comparisons. sqlfluff 4.4.0 (Python parser) gives a
+/// tree for each n. The Rust parser stops above rust_parser_max_iterations
+/// (3000000): first at n = 7853 (15715 bytes).
+fn comparisons(n: usize) -> String {
+    format!("select a{}\n", "=a".repeat(n))
+}
+
+#[test]
+fn the_parser_iteration_limit_gives_a_parse_error() {
+    let out = sqll_stdin(&["parse", "--dialect", "ansi", "-"], &comparisons(7852));
+    assert_eq!(code(&out), 0, "{}", stderr(&out));
+    assert!(stdout_starts(
+        &out,
+        r#"[{"filepath": "stdin", "segments": {"file": "#
+    ));
+
+    let out = sqll_stdin(&["parse", "--dialect", "ansi", "-"], &comparisons(7853));
+    assert_eq!(code(&out), 1, "{}", stderr(&out));
+    assert_eq!(
+        stderr(&out),
+        "PRS: Parser exceeded maximum iteration limit (3000000). This may be \
+         caused by runaway parser logic or a very complex SQL query.\n"
+    );
+    assert_eq!(
+        out.stdout,
+        b"[{\"filepath\": \"stdin\", \"segments\": null}]\n"
+    );
 }

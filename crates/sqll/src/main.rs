@@ -15,11 +15,12 @@
 //! harness/sqll.md lists each difference from "sqlfluff parse". PATH "-"
 //! reads stdin.
 //!
-//! Exit codes: 0, no error; 1, a lex error, a parse error, or an
-//! unparsable segment; 2, a usage, input, or output error. A command or
-//! input that sqll does not support yet (for example an argument that is not
-//! UTF-8) prints "unsupported: <item>" and gives exit code 2. Only a panic
-//! (a sqll bug) gives another exit code (101).
+//! Exit codes: 0, no error; 1, a lex error, a parse error (also at the
+//! parse depth limit or the parser iteration limit), or an unparsable
+//! segment; 2, a usage, input, or output error. A command or input that sqll
+//! does not support yet (for example an argument that is not UTF-8) prints
+//! "unsupported: <item>" and gives exit code 2. Only a panic (a sqll bug)
+//! gives another exit code (101).
 
 mod output;
 mod parse;
