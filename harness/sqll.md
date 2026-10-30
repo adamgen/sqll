@@ -15,13 +15,17 @@ them.
 |---|---|
 | `sqll --version` | `sqll, version <crate version>+tables.<sha256 of crates/sqll_dialects/generated.json>` |
 | `sqll version [--build]` | The version, or the build record (JSON): version, `tables_sha256`, `source_sha256`, `source_files` |
-| `sqll parse --dialect D [-f json] [-c] [-m] [--max-parse-depth N] PATH` | The record of `sqlfluff parse -f json` |
+| `sqll parse --dialect D [-f json] [-c] [-m] [--max-parse-depth N] [--timings] PATH` | The record of `sqlfluff parse -f json` |
 | `sqll lint`, `sqll fix` | `Error: unsupported: lint` (or `fix`), exit code 2 (rules come in S5) |
 
 `sqll parse` prints the record of `sqlfluff parse -f json` with the raw
 templater and the default config. `--max-parse-depth` is a sqll option for
 the config value `max_parse_depth` (default 600); `sqlfluff parse` has no
-such option. The other parser limits are the sqlfluff defaults
+such option. `--timings` (a sqll option for the speed work, S3 T14) adds
+one JSON line to the end of stderr: the seconds of each phase (`init`,
+`setup`, `lex`, `parse`, `record`, `write`, `free`; `crates/sqll/src/timings.rs`),
+their sum, and the token count. The output and the exit code do not change.
+The other parser limits are the sqlfluff defaults
 (`max_parse_nodes` 100000, `rust_parser_max_iterations` 3000000). Exit
 codes: 0; 1 for a lex error, a parse error (also at a parser limit), or an
 unparsable segment (the error lines go to stderr); 2 for a usage, input, or
