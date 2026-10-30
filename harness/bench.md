@@ -204,7 +204,9 @@ egress proxy of that machine blocks `deb.debian.org` and the registry
 blobs, so the build used `PYTHON_IMAGE` `python:3.13.16-trixie` (the same
 Python, with git and gcc, thus no apt step) and the proxy CA. The tools
 have the pinned versions (`sqll-harness tools` passes). The run of S3 T13
-(2026-10-30) used the same image build. A first container with network
+(2026-10-30) used the same build method, but a new image
+(`sqll-ci:c70a02195bc651c4bf38`, with the Rust toolchain of S3 T11). A first
+container with network
 built sqll (`scripts/build-sqll`: cargo gets the crates); then the run
 had no network (`CARGO_NET_OFFLINE=true`, the same cargo registry).
 

@@ -572,7 +572,9 @@ A new tool or a new tool version makes the CI check fail until a new
 baseline is recorded: do the controlled run, copy its `out/bench.json` to
 `results/s2/baseline.json`, and update `status/S2.md`. The record of sqll
 (the version: crate version and table manifest hash; the settings) does
-not change for each commit (`tests/test_sqll_bench.py`).
+not change for each commit (`tests/test_sqll_bench.py`). A change to the
+generated dialect tables changes the manifest hash, thus the sqll version,
+and needs a new controlled baseline.
 
 ## Benchmark compare
 
