@@ -146,6 +146,9 @@ impl Parser<'_> {
         let mut warn_threshold_triggered = false;
 
         while let Some(frame_from_stack) = stack.pop() {
+            if let Some(error) = self.limit_error.get() {
+                return Err(error.clone());
+            }
             iteration_count += 1;
 
             if !warn_threshold_triggered && iteration_count > warn_threshold {
@@ -161,14 +164,14 @@ impl Parser<'_> {
 
             // Max parse depth (DoS mitigation): frame we're processing was at depth stack.len()+1
             if self.max_parse_depth > 0 && stack.len() + 1 > self.max_parse_depth {
-                return Err(ParseError::with_context(
+                return Err(self.record_limit_error(ParseError::with_context(
                     format!(
                         "Maximum parse depth exceeded (limit {}). This may indicate deeply nested SQL or a malicious input.",
                         self.max_parse_depth
                     ),
                     Some(frame_from_stack.pos),
                     Some(frame_from_stack.grammar_id),
-                ));
+                )));
             }
 
             // Re-check the cache ONLY for Initial frames
@@ -254,6 +257,10 @@ impl Parser<'_> {
                     self.commit_table_frame_result(&mut stack, &frame, match_result)?;
                 }
             }
+        }
+
+        if let Some(error) = self.limit_error.get() {
+            return Err(error.clone());
         }
 
         // Return the result from the initial frame
@@ -937,7 +944,7 @@ impl Parser<'_> {
             }
         }
 
-        ParseError::with_context(
+        self.record_limit_error(ParseError::with_context(
             format!(
                 "Parser exceeded maximum iteration limit ({}). This may be caused by \
                  runaway parser logic or a very complex SQL query.",
@@ -945,7 +952,7 @@ impl Parser<'_> {
             ),
             Some(self.pos),
             Some(frame.grammar_id),
-        )
+        ))
     }
 
     /// Logs debug information about the current frame and stack.

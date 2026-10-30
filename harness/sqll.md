@@ -71,15 +71,22 @@ T12). Differences from `sqlfluff parse`:
   (for example 800 nested brackets with `max_parse_depth = 0`). The
   sqlfluff test gives each dialect file the depth 600, or 2000 for
   `ansi/expression_recursion.sql`.
-- The parser of sqll is a port of the sqlfluff Rust parser. After
-  3000000 iterations (`rust_parser_max_iterations`) it stops with `PRS:
-  Parser exceeded maximum iteration limit (3000000)...`, `"segments":
-  null`, and exit code 1. The sqlfluff Python parser has no such limit:
-  for a file of at most 20000 bytes, it gives the tree with exit code 0. A
-  long flat expression can reach the limit in a small file: for example `select a=a=...=a` with 7853 `=a`
-  (15715 bytes; 7852 give the tree). sqlfluff with the Rust parser stops
-  with a `PanicException` and exit code 1. No dialect file reaches the
-  limit.
+- The parser of sqll is a port of the sqlfluff Rust parser. Each
+  sub-parse (the main parse, and each probe for a terminator or a
+  delimiter) has its own count of iterations, with the limit 3000000
+  (`rust_parser_max_iterations`). When a sub-parse reaches the limit, the
+  full parse stops with `PRS: Parser exceeded maximum iteration limit
+  (3000000)...`, `"segments": null`, and exit code 1. A probe that reaches
+  a parser limit (iterations, depth, or nodes) also stops the full parse:
+  a probe does not drop the error. The sqlfluff Python parser has no
+  iteration limit. A long flat expression can reach the limit in a small
+  file. Examples: `select a=a=...=a` with 7853 `=a` (15715 bytes; 7852
+  give the tree) reaches it in the main parse, and `select a from t order
+  by a=a=...=a` with 7854 `=a` (15735 bytes; 7853 give the tree) reaches
+  it in a probe. For the two examples, the sqlfluff Python
+  parser gives the tree with exit code 0, and sqlfluff with the Rust
+  parser stops with a `PanicException` and exit code 1. No dialect file
+  reaches the limit.
 - An argument that is not UTF-8 (for example a file name) gives
   `unsupported: non-UTF-8 argument` and exit code 2. sqlfluff reads it.
 - sqll reads UTF-8 only (with or without a byte order mark). sqlfluff also

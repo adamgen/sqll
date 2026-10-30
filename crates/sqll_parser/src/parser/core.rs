@@ -4,6 +4,7 @@
 // commit 0348222a3bcdb0226563f7349c5a39beb0641955.
 // Copyright (c) 2018-2026 Alan Cruickshank. MIT License: see
 // crates/LICENSE-sqlfluffrs.md. See THIRD_PARTY.md and crates/ported.json.
+// sqll changed this file. crates/ported.json gives the reason.
 
 //! Core Parser struct and implementation
 //!
@@ -194,6 +195,10 @@ pub struct Parser<'a> {
     pub(crate) max_parse_depth: usize,
     /// Maximum parse nodes in the accepted parse tree. 0 = no limit.
     pub(crate) max_parse_nodes: usize,
+    /// The first parser limit error (depth, iterations, nodes) of this parse.
+    /// A probe sub-parse can drop its error, so each parse loop stops when
+    /// this is set.
+    pub(crate) limit_error: std::cell::OnceCell<ParseError>,
 }
 
 impl<'a> Parser<'a> {
@@ -243,6 +248,7 @@ impl<'a> Parser<'a> {
             parser_warn_threshold: 2_000_000,
             max_parse_depth,
             max_parse_nodes: 0,
+            limit_error: std::cell::OnceCell::new(),
         }
     }
 
@@ -297,17 +303,23 @@ impl<'a> Parser<'a> {
 
         let node_count = match_result.node_count();
         if node_count > self.max_parse_nodes {
-            return Err(ParseError::with_context(
+            return Err(self.record_limit_error(ParseError::with_context(
                 format!(
                     "Maximum parse node count exceeded (limit {}). This may indicate unusually large SQL or a malicious input.",
                     self.max_parse_nodes
                 ),
                 Some(match_result.start()),
                 None,
-            ));
+            )));
         }
 
         Ok(())
+    }
+
+    /// Record a parser limit error (the first one of the parse) and return it.
+    pub(crate) fn record_limit_error(&self, error: ParseError) -> ParseError {
+        let _ = self.limit_error.set(error.clone());
+        error
     }
 
     /// Enable or disable the parse cache (for debugging)
@@ -350,6 +362,7 @@ impl<'a> Parser<'a> {
     ///
     /// We can pass either Rust's or Python's implementation of `apply` to convert the MatchResult into a Node.
     pub fn call_rule_as_root(&mut self) -> Result<MatchResult, ParseError> {
+        self.limit_error = std::cell::OnceCell::new();
         // Obtain the root grammar for this dialect
         let root_grammar = self.dialect.get_root_grammar().clone();
 
@@ -389,6 +402,7 @@ impl<'a> Parser<'a> {
     }
 
     pub fn root_parse(&mut self) -> Result<Node, ParseError> {
+        self.limit_error = std::cell::OnceCell::new();
         // Obtain the root grammar for this dialect
         let root_grammar = self.dialect.get_root_grammar().clone();
 

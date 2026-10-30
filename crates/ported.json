@@ -99,7 +99,7 @@
    "path": "crates/sqll_parser/src/parser/core.rs",
    "source": "sqlfluffrs/sqlfluffrs_parser/src/parser/core.rs",
    "source_sha256": "4cc29db5d877491584d8286653851208631365c402f746fac32f67206a981ea6",
-   "changed": null
+   "changed": "Parser has the field limit_error: the first parser limit error (iterations, depth, or nodes) of the parse. check_parse_subtree_limit records its error there, and root_parse and call_rule_as_root clear it at the start. See the reason of iterative.rs."
   },
   {
    "path": "crates/sqll_parser/src/parser/frame.rs",
@@ -159,7 +159,7 @@
    "path": "crates/sqll_parser/src/parser/table_driven/iterative.rs",
    "source": "sqlfluffrs/sqlfluffrs_parser/src/parser/table_driven/iterative.rs",
    "source_sha256": "ec21b036c886d2f73d108bf9bb64dc5e9ad6769661a0cfba48d180dd2a0c1d1a",
-   "changed": "Above the iteration limit (rust_parser_max_iterations), the parser returns a ParseError, not a panic. The diagnostic text (cache statistics and the tokens near the position) is only in the feature \"verbose-debug\", and the token lines go to stderr. Thus \"sqll parse\" gives a parse error with exit code 1, and stdout has only the JSON record. sqlfluff with the Rust parser stops with a PanicException and exit code 1."
+   "changed": "Above the iteration limit (rust_parser_max_iterations), the parser returns a ParseError, not a panic. Each sub-parse (the main parse and each probe) has its own count. Each parse loop stops with the first parser limit error (iterations, depth, or nodes) of the parse (Parser.limit_error, core.rs), because a probe for a terminator or a delimiter drops its error and counts it as no match. The diagnostic text (cache statistics and the tokens near the position) is only in the feature \"verbose-debug\", and the token lines go to stderr. That feature does not build: a borrow error in core.rs (about line 1566) that is also in the source. Thus \"sqll parse\" gives a parse error with exit code 1, and stdout has only the JSON record. sqlfluff with the Rust parser stops with a PanicException and exit code 1."
   },
   {
    "path": "crates/sqll_parser/src/parser/table_driven/match_algorithms.rs",

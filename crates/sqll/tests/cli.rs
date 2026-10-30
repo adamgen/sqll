@@ -617,21 +617,27 @@ fn the_parse_depth_has_a_limit_that_the_stack_can_hold() {
 
 /// "select a=a=a...": n comparisons. sqlfluff 4.4.0 (Python parser) gives a
 /// tree for each n. The Rust parser stops above rust_parser_max_iterations
-/// (3000000): first at n = 7853 (15715 bytes).
+/// (3000000): first at n = 7853 (15715 bytes), in the main parse.
 fn comparisons(n: usize) -> String {
     format!("select a{}\n", "=a".repeat(n))
 }
 
-#[test]
-fn the_parser_iteration_limit_gives_a_parse_error() {
-    let out = sqll_stdin(&["parse", "--dialect", "ansi", "-"], &comparisons(7852));
-    assert_eq!(code(&out), 0, "{}", stderr(&out));
-    assert!(stdout_starts(
-        &out,
-        r#"[{"filepath": "stdin", "segments": {"file": "#
-    ));
+/// "... order by a=a=a...": the limit is first at n = 7854 (15735 bytes), in
+/// a probe for a terminator. A probe drops its error, but the parse must stop.
+fn order_by_comparisons(n: usize) -> String {
+    format!("select a from t order by a{}\n", "=a".repeat(n))
+}
 
-    let out = sqll_stdin(&["parse", "--dialect", "ansi", "-"], &comparisons(7853));
+fn assert_iteration_limit(sql: &str, limit: bool) {
+    let out = sqll_stdin(&["parse", "--dialect", "ansi", "-"], sql);
+    if !limit {
+        assert_eq!(code(&out), 0, "{}", stderr(&out));
+        assert!(stdout_starts(
+            &out,
+            r#"[{"filepath": "stdin", "segments": {"file": "#
+        ));
+        return;
+    }
     assert_eq!(code(&out), 1, "{}", stderr(&out));
     assert_eq!(
         stderr(&out),
@@ -642,4 +648,17 @@ fn the_parser_iteration_limit_gives_a_parse_error() {
         out.stdout,
         b"[{\"filepath\": \"stdin\", \"segments\": null}]\n"
     );
+}
+
+#[test]
+fn the_parser_iteration_limit_gives_a_parse_error() {
+    assert_iteration_limit(&comparisons(7852), false);
+    assert_iteration_limit(&comparisons(7853), true);
+}
+
+#[test]
+fn the_parser_iteration_limit_in_a_terminator_probe_gives_a_parse_error() {
+    assert_iteration_limit(&order_by_comparisons(7853), false);
+    assert_iteration_limit(&order_by_comparisons(7854), true);
+    assert_iteration_limit(&order_by_comparisons(8200), true);
 }
