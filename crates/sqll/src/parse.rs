@@ -18,6 +18,8 @@ use sqll_dialects::Dialect;
 use sqll_lexer::{LexInput, Lexer};
 use sqll_parser::parser::Parser;
 
+use crate::timings::Timer;
+
 /// The sqlfluff core default of max_parse_depth.
 pub const MAX_PARSE_DEPTH: usize = 600;
 /// The largest parse depth of sqll. A deeper tree can overflow the stack
@@ -97,10 +99,13 @@ fn has_unparsable(value: &Value) -> bool {
     }
 }
 
-pub fn parse(sql: String, dialect: Dialect, options: &Options) -> Parsed {
+pub fn parse(sql: String, dialect: Dialect, options: &Options, timer: &mut Timer) -> Parsed {
     let lexer = Lexer::new(None, dialect.get_lexers().clone())
         .with_bracket_pairs(dialect.get_bracket_pairs().clone());
+    timer.mark("setup");
     let (tokens, lex_errors) = lexer.lex(LexInput::String(sql), true);
+    timer.tokens = tokens.len();
+    timer.mark("lex");
     let mut errors: Vec<String> = lex_errors
         .iter()
         .map(|e| {
@@ -118,7 +123,9 @@ pub fn parse(sql: String, dialect: Dialect, options: &Options) -> Parsed {
         Parser::new_with_max_parse_depth(&tokens, dialect, indentation, options.max_parse_depth)
             .with_parser_limits(MAX_PARSER_ITERATIONS, PARSER_WARN_THRESHOLD)
             .with_node_limit(MAX_PARSE_NODES);
-    let record = match parser.root_parse() {
+    let parsed = parser.root_parse();
+    timer.mark("parse");
+    let record = match &parsed {
         Ok(node) => node
             .as_record(options.code_only, true, options.include_meta)
             .unwrap_or(Value::Null),
@@ -128,6 +135,11 @@ pub fn parse(sql: String, dialect: Dialect, options: &Options) -> Parsed {
         }
     };
     let unparsable = has_unparsable(&record);
+    timer.mark("record");
+    drop(parsed);
+    drop(parser);
+    drop(tokens);
+    timer.mark("free");
     Parsed {
         record,
         errors,
