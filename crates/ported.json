@@ -422,7 +422,7 @@
   },
   {
    "path": "crates/sqll/src/main.rs",
-   "reason": "The sqll command line: parse, version, and the unsupported lint and fix commands, in the command shape of sqlfluff. New sqll code."
+   "reason": "The sqll command line: parse, version, and the unsupported lint and fix commands, in the command shape of sqlfluff. New sqll code. normpath is a port of CPython Lib/posixpath.py normpath (PSF-2.0, THIRD_PARTY.md)."
   },
   {
    "path": "crates/sqll/src/output.rs",

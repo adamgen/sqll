@@ -314,7 +314,59 @@ fn short_options_can_be_in_a_group() {
         args.extend(*group);
         let out = sqll(&args);
         assert_eq!(code(&out), 2, "{group:?}");
-        assert!(stderr(&out).contains(message), "{group:?}: {}", stderr(&out));
+        assert!(
+            stderr(&out).contains(message),
+            "{group:?}: {}",
+            stderr(&out)
+        );
+    }
+}
+
+/// As click: all arguments are read first, so an unknown option or a missing
+/// value is an error also with "-h". Then the help has priority over each
+/// check of a value.
+#[test]
+fn the_help_comes_after_all_arguments_are_read() {
+    let file = dialects_dir().join("ansi/select_simple_a.sql");
+    let file = file.to_str().unwrap();
+    let errors: &[(&[&str], &str)] = &[
+        (&["-hx"], "No such option: -x"),
+        (&["-h", "--bad"], "No such option: --bad"),
+        (&["--bad", "-h"], "No such option: --bad"),
+        (
+            &["-h", "--dialect"],
+            "Option '--dialect' requires an argument",
+        ),
+        (&["-hf"], "Option '-f' requires an argument"),
+        (&["-fh"], "unsupported: format h"),
+    ];
+    for (group, message) in errors {
+        let mut args = vec!["parse", "--dialect", "ansi"];
+        args.extend(*group);
+        let out = sqll(&args);
+        assert_eq!(code(&out), 2, "{group:?}");
+        assert!(out.stdout.is_empty(), "{group:?}");
+        assert!(
+            stderr(&out).contains(message),
+            "{group:?}: {}",
+            stderr(&out)
+        );
+    }
+    let helps: &[&[&str]] = &[
+        &["-h"],
+        &["-ch"],
+        &["--help", "-f", "yaml"],
+        &["-f", "yaml", "--help"],
+        &["--max-parse-depth", "x", "-h"],
+        &["--help", file, file],
+    ];
+    for group in helps {
+        let mut args = vec!["parse", "--dialect", "ansi"];
+        args.extend(*group);
+        let out = sqll(&args);
+        assert_eq!(code(&out), 0, "{group:?}: {}", stderr(&out));
+        let text = String::from_utf8(out.stdout).unwrap();
+        assert!(text.starts_with("Usage: sqll parse"), "{group:?}: {text}");
     }
 }
 
@@ -338,7 +390,10 @@ fn a_flag_does_not_take_a_value() {
 fn filepath(out: &Output) -> String {
     let text = String::from_utf8(out.stdout.clone()).expect("UTF-8 output");
     let value: Value = serde_yaml_ng::from_str(&text).expect("JSON output");
-    value[0]["filepath"].as_str().expect("a filepath").to_string()
+    value[0]["filepath"]
+        .as_str()
+        .expect("a filepath")
+        .to_string()
 }
 
 /// A new empty folder for the files of one test.
@@ -380,15 +435,43 @@ fn a_file_with_no_sql_extension_gives_an_empty_list() {
     // Not UTF-8: sqll must not read the file.
     std::fs::write(dir.join("d.txt"), b"\xff\xfe").unwrap();
     std::fs::write(dir.join("d.DDL"), "select 1\n").unwrap();
-    let out = sqll(&["parse", "--dialect", "ansi", dir.join("d.txt").to_str().unwrap()]);
+    std::fs::write(dir.join("d.pkb"), "select 1\n").unwrap();
+    let out = sqll(&[
+        "parse",
+        "--dialect",
+        "ansi",
+        dir.join("d.txt").to_str().unwrap(),
+    ]);
     assert_eq!(code(&out), 0, "{}", stderr(&out));
     assert_eq!(out.stdout, b"[]\n");
-    let out = sqll(&["parse", "--dialect", "ansi", dir.join("d.DDL").to_str().unwrap()]);
+    let out = sqll(&[
+        "parse",
+        "--dialect",
+        "ansi",
+        dir.join("d.DDL").to_str().unwrap(),
+    ]);
     assert_eq!(code(&out), 0, "{}", stderr(&out));
     assert!(filepath(&out).ends_with("/d.DDL"));
-    let out = sqll(&["parse", "--dialect", "ansi", dir.join("sub").to_str().unwrap()]);
+    let out = sqll(&[
+        "parse",
+        "--dialect",
+        "ansi",
+        dir.join("d.pkb").to_str().unwrap(),
+    ]);
+    assert_eq!(code(&out), 0, "{}", stderr(&out));
+    assert!(filepath(&out).ends_with("/d.pkb"));
+    let out = sqll(&[
+        "parse",
+        "--dialect",
+        "ansi",
+        dir.join("sub").to_str().unwrap(),
+    ]);
     assert_eq!(code(&out), 2);
-    assert!(stderr(&out).contains("unsupported: folder"), "{}", stderr(&out));
+    assert!(
+        stderr(&out).contains("unsupported: folder"),
+        "{}",
+        stderr(&out)
+    );
 }
 
 #[test]

@@ -188,6 +188,15 @@ in `Cargo.lock`. Task T19 records the license of sqll and the notices.
   crate. These are facts for the S3 decision, not sqll code. No other
   sqruff code is copied.
 
+## CPython
+
+- Source: https://github.com/python/cpython, `Lib/posixpath.py`
+  (`normpath`), Python 3.13.
+- License: PSF-2.0 (Python Software Foundation License Version 2).
+  Copyright (c) 2001-2026 Python Software Foundation.
+- `normpath` in `crates/sqll/src/main.rs` is a port of this function. sqll
+  uses it to print the file path as sqlfluff does.
+
 ## S9 corpus
 
 The S9 corpus files are SQL files of public repositories with permissive

@@ -133,6 +133,17 @@ struct ParseArgs {
     options: parse::Options,
 }
 
+/// The arguments as they are read, before the values are checked.
+struct RawParseArgs {
+    help: bool,
+    dialect: Option<String>,
+    paths: Vec<String>,
+    format: Option<String>,
+    max_parse_depth: Option<String>,
+    code_only: bool,
+    include_meta: bool,
+}
+
 /// Split "--name=value" into ("--name", Some("value")).
 fn split_option(arg: &str) -> (&str, Option<&str>) {
     match arg.split_once('=') {
@@ -141,32 +152,18 @@ fn split_option(arg: &str) -> (&str, Option<&str>) {
     }
 }
 
-fn set_format(format: &str) -> Result<(), Error> {
-    if format == "json" {
-        Ok(())
-    } else {
-        Err(unsupported(
-            &format!("format {format}"),
-            "sqll parse has only the json format",
-        ))
-    }
-}
-
 /// Read a group of short options, as click does: "-cm" is "-c -m", and
-/// "-fjson" or "-cf json" gives the value of "-f". Return false for "-h".
+/// "-fjson" or "-cf json" gives the value of "-f".
 fn short_options<'a>(
     group: &str,
     rest: &mut impl Iterator<Item = &'a String>,
-    options: &mut parse::Options,
-) -> Result<bool, Error> {
+    raw: &mut RawParseArgs,
+) -> Result<(), Error> {
     for (i, c) in group.char_indices() {
         match c {
-            'c' => options.code_only = true,
-            'm' => options.include_meta = true,
-            'h' => {
-                print!("{PARSE_USAGE}");
-                return Ok(false);
-            }
+            'c' => raw.code_only = true,
+            'm' => raw.include_meta = true,
+            'h' => raw.help = true,
             'f' => {
                 let tail = &group[i + 1..];
                 let format = if tail.is_empty() {
@@ -176,42 +173,38 @@ fn short_options<'a>(
                 } else {
                     tail
                 };
-                set_format(format)?;
-                return Ok(true);
+                raw.format = Some(format.to_string());
+                return Ok(());
             }
             other => return Err(Error(format!("No such option: -{other}\n\n{PARSE_USAGE}"))),
         }
     }
-    Ok(true)
+    Ok(())
 }
 
+/// Read the arguments as click does: first read all of them (an unknown
+/// option or a missing value is an error), then "--help" has priority over
+/// each other check.
 fn parse_args(args: &[String]) -> Result<Option<ParseArgs>, Error> {
-    let mut out = ParseArgs {
+    let mut raw = RawParseArgs {
+        help: false,
         dialect: None,
-        path: None,
-        options: parse::Options {
-            code_only: false,
-            include_meta: false,
-            max_parse_depth: parse::MAX_PARSE_DEPTH,
-        },
+        paths: Vec::new(),
+        format: None,
+        max_parse_depth: None,
+        code_only: false,
+        include_meta: false,
     };
     let mut it = args.iter();
     let mut only_paths = false;
     while let Some(arg) = it.next() {
         if only_paths || arg == "-" || !arg.starts_with('-') {
-            if out.path.is_some() {
-                return Err(Error(format!(
-                    "Got unexpected extra argument ({arg}). sqll parses one file."
-                )));
-            }
-            out.path = Some(arg.clone());
+            raw.paths.push(arg.clone());
             continue;
         }
         if !arg.starts_with("--") {
-            if short_options(&arg[1..], &mut it, &mut out.options)? {
-                continue;
-            }
-            return Ok(None);
+            short_options(&arg[1..], &mut it, &mut raw)?;
+            continue;
         }
         let (name, inline) = split_option(arg);
         let mut value = |name: &str| -> Result<String, Error> {
@@ -233,36 +226,62 @@ fn parse_args(args: &[String]) -> Result<Option<ParseArgs>, Error> {
             "--" => only_paths = true,
             "--help" => {
                 flag(name)?;
-                print!("{PARSE_USAGE}");
-                return Ok(None);
+                raw.help = true;
             }
-            "--dialect" => out.dialect = Some(value(name)?),
-            "--format" => set_format(&value(name)?)?,
+            "--dialect" => raw.dialect = Some(value(name)?),
+            "--format" => raw.format = Some(value(name)?),
             "--code-only" => {
                 flag(name)?;
-                out.options.code_only = true;
+                raw.code_only = true;
             }
             "--include-meta" => {
                 flag(name)?;
-                out.options.include_meta = true;
+                raw.include_meta = true;
             }
-            "--max-parse-depth" => {
-                let text = value(name)?;
-                out.options.max_parse_depth = text.parse().map_err(|_| {
-                    Error(format!(
-                        "Invalid value for '--max-parse-depth': '{text}' is not a valid integer."
-                    ))
-                })?;
-            }
+            "--max-parse-depth" => raw.max_parse_depth = Some(value(name)?),
             _ => return Err(Error(format!("No such option: {name}\n\n{PARSE_USAGE}"))),
         }
     }
-    Ok(Some(out))
+    if raw.help {
+        print!("{PARSE_USAGE}");
+        return Ok(None);
+    }
+    if let Some(format) = &raw.format {
+        if format != "json" {
+            return Err(unsupported(
+                &format!("format {format}"),
+                "sqll parse has only the json format",
+            ));
+        }
+    }
+    let max_parse_depth = match &raw.max_parse_depth {
+        None => parse::MAX_PARSE_DEPTH,
+        Some(text) => text.parse().map_err(|_| {
+            Error(format!(
+                "Invalid value for '--max-parse-depth': '{text}' is not a valid integer."
+            ))
+        })?,
+    };
+    if let Some(extra) = raw.paths.get(1) {
+        return Err(Error(format!(
+            "Got unexpected extra argument ({extra}). sqll parses one file."
+        )));
+    }
+    Ok(Some(ParseArgs {
+        dialect: raw.dialect,
+        path: raw.paths.into_iter().next(),
+        options: parse::Options {
+            code_only: raw.code_only,
+            include_meta: raw.include_meta,
+            max_parse_depth,
+        },
+    }))
 }
 
-/// The file extensions of the sqlfluff default config (sql_file_exts).
-/// sqlfluff skips a file with another extension.
-const SQL_FILE_EXTS: [&str; 4] = [".sql", ".sql.j2", ".dml", ".ddl"];
+/// The file extensions of the sqlfluff default config (sql_file_exts in
+/// third_party/sqlfluff/src/sqlfluff/core/default_config.cfg). sqlfluff
+/// skips a file with another extension.
+const SQL_FILE_EXTS: [&str; 5] = [".sql", ".sql.j2", ".dml", ".ddl", ".pkb"];
 
 fn has_sql_extension(path: &str) -> bool {
     let lower = path.to_lowercase();
@@ -270,7 +289,8 @@ fn has_sql_extension(path: &str) -> bool {
 }
 
 /// The path as Python os.path.normpath (POSIX) gives it. sqlfluff prints
-/// this form of a file path.
+/// this form of a file path. Port of normpath in CPython Lib/posixpath.py
+/// (PSF-2.0, THIRD_PARTY.md).
 fn normpath(path: &str) -> String {
     if path.is_empty() {
         return ".".to_string();
@@ -336,7 +356,8 @@ fn parse_command(args: &[String]) -> Result<u8, Error> {
         .path
         .ok_or_else(|| Error("Missing argument 'PATH'.".to_string()))?;
     if path != "-" {
-        let meta = std::fs::metadata(&path).map_err(|e| Error(format!("cannot read {path}: {e}")))?;
+        let meta =
+            std::fs::metadata(&path).map_err(|e| Error(format!("cannot read {path}: {e}")))?;
         if meta.is_dir() {
             return Err(unsupported(
                 &format!("folder {path}"),
@@ -366,7 +387,7 @@ fn parse_command(args: &[String]) -> Result<u8, Error> {
 
 #[cfg(test)]
 mod tests {
-    use super::{has_sql_extension, normpath};
+    use super::{has_sql_extension, normpath, SQL_FILE_EXTS};
 
     #[test]
     fn normpath_is_that_of_python_posixpath() {
@@ -395,8 +416,25 @@ mod tests {
     }
 
     #[test]
+    fn sql_file_exts_is_the_value_of_the_pinned_default_config() {
+        let cfg = concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../../third_party/sqlfluff/src/sqlfluff/core/default_config.cfg"
+        );
+        let text = std::fs::read_to_string(cfg).expect("the sqlfluff submodule");
+        let value = text
+            .lines()
+            .find_map(|line| line.strip_prefix("sql_file_exts = "))
+            .expect("sql_file_exts in the default config");
+        let exts: Vec<&str> = value.trim().split(',').collect();
+        assert_eq!(exts, SQL_FILE_EXTS);
+    }
+
+    #[test]
     fn the_sql_extensions_are_those_of_the_sqlfluff_default_config() {
-        for path in ["a.sql", "A.SQL", "b.sql.j2", "c.DML", "d.ddl"] {
+        for path in [
+            "a.sql", "A.SQL", "b.sql.j2", "c.DML", "d.ddl", "e.pkb", "E.PKB",
+        ] {
             assert!(has_sql_extension(path), "{path}");
         }
         for path in ["a.txt", "a.sqlx", "a", "a.j2"] {

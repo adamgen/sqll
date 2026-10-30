@@ -19,15 +19,18 @@ them.
 | `sqll lint`, `sqll fix` | `Error: unsupported: lint` (or `fix`), exit code 2 (rules come in S5) |
 
 `sqll parse` prints the record of `sqlfluff parse -f json` with the raw
-templater and the default config. `max_parse_depth` has its option
-(default 600, 0: no limit); the other parser limits are the sqlfluff
-defaults. Exit codes: 0; 1 for a lex error, a parse error, or an
+templater and the default config. `--max-parse-depth` is a sqll option
+for the config value `max_parse_depth` (default 600, 0: no limit);
+`sqlfluff parse` has no such option. The other parser limits are the
+sqlfluff defaults. Exit codes: 0; 1 for a lex error, a parse error, or an
 unparsable segment (the error lines go to stderr); 2 for a usage or input
 error. The output has the bytes of the sqlfluff output (Python
 `json.dumps`) and a new line. The `filepath` is the path as
 `os.path.normpath` gives it (`stdin` for `-`). A file with an extension
-that is not `.sql`, `.sql.j2`, `.dml`, or `.ddl` gives `[]` and exit code
-0, as in sqlfluff.
+that is not `.sql`, `.sql.j2`, `.dml`, `.ddl`, or `.pkb` (`sql_file_exts`
+of the sqlfluff default config, in any case) gives `[]` and exit code 0,
+as in sqlfluff. As in click, sqll reads all arguments before `-h`: an
+unknown option or a missing value is an error also with `-h`.
 
 For the 2306 dialect files, sqll and `sqlfluff parse --templater raw
 --ignore-local-config` give the same output and exit code (status/S3.md,
@@ -45,8 +48,17 @@ T12). Differences from `sqlfluff parse`:
 - sqll reads no config file and no `.sqlfluffignore` file. sqlfluff gives
   `[]` for a file that a `.sqlfluffignore` file ignores.
 - `-f` has only `json`, and it is the default.
-- With `-m`, sqlfluff also adds the source position keys to each record.
-  sqll gives the meta segments but no position keys.
+- With `-m`, sqlfluff also adds the 6 source position keys
+  (`start_line_no`, `start_line_pos`, `start_file_pos`, `end_line_no`,
+  `end_line_pos`, `end_file_pos`) to each record. Thus the children of a
+  segment with 2 or more children have duplicate keys, and sqlfluff gives
+  them as a list of one-key records. sqll gives no position keys, and the
+  record shape of the output with no `-m` (one record with a key for each
+  child, if the keys are unique). For example, `ansi/commit.sql`: sqlfluff
+  gives `{"file": [{"statement": ...}, {"newline": "\n"}, {"end_of_file":
+  ""}]}` (with the position keys), and sqll gives `{"file": {"statement":
+  ..., "newline": "\n", "end_of_file": ""}}`. No parity case runs sqll with `-m` (the templater cases fail
+  before a run).
 - sqll reads UTF-8 only (with or without a byte order mark). sqlfluff also
   detects other encodings.
 - sqll has no file size limit (as `large_file_skip_byte_limit = 0`).
