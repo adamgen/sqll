@@ -518,13 +518,17 @@ def test_check_finds_inputs_that_are_not_those_of_the_definitions(parts, capsys)
     assert "input start: not that of the definitions" in capsys.readouterr().out
 
 
-# The real tools.
+# The real tools of scripts/setup. The lint job has no sqll build; the CI job
+# bench-smoke runs sqll with the binary of the build job.
+INSTALLED = ("sqlfluff", "sqlfluff-rs", "sqruff")
 
 
 @needs_all_tools
 def test_a_smoke_run_of_the_real_tools(tmp_path, capsys):
     out = tmp_path / "bench.json"
-    assert bench("run", "--profile", "smoke", "--dialect", "ansi", "--out", out) == 0
+    tools = [w for t in INSTALLED for w in ("--tool", t)]
+    args = ("run", "--profile", "smoke", "--dialect", "ansi", *tools, "--out", out)
+    assert bench(*args) == 0
     rep = report.load(out)
     assert report.check(rep) == [] and bench_run.incomplete(rep, DEFS) == []
     assert sorted(rep["tools"]) == ["sqlfluff", "sqlfluff-rs", "sqruff"]
@@ -543,5 +547,5 @@ def test_a_smoke_run_of_the_real_tools(tmp_path, capsys):
 
 
 def test_the_test_doubles_are_not_in_the_registry():
-    assert registry.names() == ["sqlfluff", "sqlfluff-rs", "sqruff"]
+    assert registry.names() == ["sqlfluff", "sqlfluff-rs", "sqll", "sqruff"]
     assert Path(registry.__file__).is_file()

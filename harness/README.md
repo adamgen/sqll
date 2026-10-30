@@ -440,12 +440,18 @@ the input. The input must have the sha256 of the definitions.
 |---|---|
 | `sqlfluff`, `sqlfluff-rs` | `sqlfluff parse -f json`, `lint -f json`, or `fix`, then `--ignore-local-config --config config/pyproject.toml input.sql` |
 | `sqruff` | `sqruff parse -f json`, `lint -f json --parsing-errors`, or `fix -f human`, then `--config config/.sqruff input.sql` |
+| `sqll` | `sqll parse -f json --dialect D input.sql`; `lint` and `fix`: `unsupported: lint` and `unsupported: fix`, no run |
 
 The env is that of S1 (`isolated_env`, empty `HOME`; sqruff:
 `sqruff_env`). A config file that sqlfluff or sqruff can read in the work
-folder or above it stops the run (`ConfigAbove`). A dialect or setting that
-the tool does not support gives `unsupported: <item>` and no run (sqruff:
-`dialect soql`).
+folder or above it stops the run (`ConfigAbove`). A command, dialect, or
+setting that the tool does not support gives `unsupported: <item>` and no
+run (sqruff: `dialect soql`). sqll (`bench/sqll.py`) reads no config file:
+`config/sqll-options.json` has its command-line options (the dialect, and
+`--max-parse-depth` for `max_parse_depth`). The other settings of the
+benchmarks are what sqll does with no option (`templater = raw`, `rules =
+all`, no size limit); another value or setting gives `unsupported: setting
+<section>.<key>`.
 
 `sqll-harness bench reference [--write] [--jobs N]` builds the inputs and
 runs sqlfluff `fix` (and thus `lint` and `parse`) on each input with the
@@ -513,7 +519,8 @@ full run). It does not compare timings, reasons, or the machine. Exit code
 2 if a file cannot be read, or for `--full` with no `--baseline`.
 
 `scripts/bench [ARGS]` is the one command of the S2 exit: the preflight,
-`scripts/setup`, `sqll-harness tools` (`out/tools.json`),
+`scripts/setup`, `scripts/build-sqll`, `sqll-harness tools`
+(`out/tools.json`),
 `scripts/check-submodule`, `sqll-harness bench inputs` (an early check of
 the inputs; `bench run` builds and checks them again), `sqll-harness bench
 run ARGS`, and
@@ -523,12 +530,13 @@ run ARGS`, and
 
 | Job | When | Command | Artifact |
 |---|---|---|---|
-| `bench-smoke` | each full run (pull request with a code change, push to main, `workflow_dispatch`) | `bench run --profile smoke --out out/bench.json`, then `bench check out/bench.json --baseline results/s2/baseline.json` | `bench-smoke` |
-| `bench-full` | push to main, `workflow_dispatch` | `bench run --profile full --shard K/N`, one job for each shard of `ci/bench-matrix.json` (`ci/bench_matrix.py`) | `bench-shard-K-of-N` |
+| `bench-smoke` | each full run (pull request with a code change, push to main, `workflow_dispatch`), after `build` | `bench run --profile smoke --out out/bench.json`, then `bench check out/bench.json --baseline results/s2/baseline.json` | `bench-smoke` |
+| `bench-full` | push to main, `workflow_dispatch`, after `build` | `bench run --profile full --shard K/N`, one job for each shard of `ci/bench-matrix.json` (`ci/bench_matrix.py`) | `bench-shard-K-of-N` |
 | `bench-merge` | after all `bench-full` jobs pass | `bench merge --expect ci/bench-matrix.json`, then `bench check out/bench.json --baseline results/s2/baseline.json --full` | `bench-full` (`out/bench.json`) |
 
-Each job runs in the CI image. `bench-smoke` and `bench-full` run
-`scripts/check-submodule` after the benchmarks. No job compares timings
+Each job runs in the CI image. `bench-smoke` and `bench-full` run sqll
+with the binary of the `sqll-build` artifact, and `scripts/check-submodule`
+after the benchmarks. No job compares timings
 ("Noise control" in [bench.md](bench.md)). `ci/bench-matrix.json` has 7
 shards (4 dialects each).
 
@@ -560,10 +568,11 @@ profile and each result of the baseline).
 `harness/tests/test_bench_baseline.py` checks the recorded file, the drift
 check, and that the S2 tables of `status/S2.md` are those of the file.
 
-A new tool (for example sqll in S3) or a new tool version makes the CI
-check fail until a new baseline is recorded: do the controlled run, copy
-its `out/bench.json` to `results/s2/baseline.json`, and update
-`status/S2.md`.
+A new tool or a new tool version makes the CI check fail until a new
+baseline is recorded: do the controlled run, copy its `out/bench.json` to
+`results/s2/baseline.json`, and update `status/S2.md`. The record of sqll
+(the version: crate version and table manifest hash; the settings) does
+not change for each commit (`tests/test_sqll_bench.py`).
 
 ## Benchmark compare
 

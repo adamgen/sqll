@@ -41,7 +41,8 @@ def test_the_baseline_is_a_full_run_of_all_tools_and_files():
     assert baseline.recorded(BASE, MANIFEST) == []
     assert BASE["profile"] == "full"
     assert BASE["parts"] is None and BASE["scope"]["shard"] is None
-    assert BASE["scope"]["tools"] == TOOLS == registry.names()
+    assert BASE["scope"]["tools"] == TOOLS == corpus_run.tool_names()
+    assert registry.names() == sorted([*TOOLS, *corpus_run.LATER])
     assert BASE["harness"]["clean"] is True
     assert re.fullmatch(r"[0-9a-f]{40}", BASE["harness"]["commit"])
     assert BASE["policy"] == corpus_run.PROFILES["full"].as_dict()

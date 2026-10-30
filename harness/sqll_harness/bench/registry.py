@@ -4,12 +4,14 @@ here (harness/bench.md, "Add a tool"). The definitions do not change."""
 from collections.abc import Callable
 
 from .adapter import BenchAdapter
+from .sqll import SqllBench
 from .tools import SqlfluffBench, SqlfluffRsBench, SqruffBench
 
 REGISTRY: dict[str, Callable[[], BenchAdapter]] = {
     SqlfluffBench.name: SqlfluffBench,
     SqlfluffRsBench.name: SqlfluffRsBench,
     SqruffBench.name: SqruffBench,
+    SqllBench.name: SqllBench,
 }
 
 

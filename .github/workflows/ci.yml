@@ -447,9 +447,9 @@ jobs:
           if-no-files-found: error
 
   # The S2 smoke benchmark (harness/bench.md): start and small, all tools,
-  # 1 timed run. Locally: scripts/verify.
+  # 1 timed run. sqll is the binary of the build job. Locally: scripts/verify.
   bench-smoke:
-    needs: [changes, image]
+    needs: [changes, image, build]
     if: needs.changes.outputs.full != 'false'
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -468,6 +468,15 @@ jobs:
 
       # The runner user owns the workspace, not the container user.
       - run: git config --global --add safe.directory '*'
+
+      - uses: actions/download-artifact@v7
+        with:
+          name: sqll-build
+          path: out/sqll
+
+      # An artifact does not keep the file modes.
+      - name: Make the sqll binary executable
+        run: chmod +x out/sqll/bin/sqll
 
       - name: Run the smoke benchmark
         run: >-
@@ -493,10 +502,10 @@ jobs:
           if-no-files-found: error
 
   # The S2 full benchmark on a push to main and on workflow_dispatch, sharded
-  # by dialect (ci/bench-matrix.json). Locally: scripts/verify --full-bench
-  # or scripts/bench (no sharding).
+  # by dialect (ci/bench-matrix.json). sqll is the binary of the build job.
+  # Locally: scripts/verify --full-bench or scripts/bench (no sharding).
   bench-full:
-    needs: image
+    needs: [image, build]
     if: github.event_name != 'pull_request'
     name: bench-full (${{ matrix.name }})
     runs-on: ubuntu-latest
@@ -519,6 +528,15 @@ jobs:
 
       # The runner user owns the workspace, not the container user.
       - run: git config --global --add safe.directory '*'
+
+      - uses: actions/download-artifact@v7
+        with:
+          name: sqll-build
+          path: out/sqll
+
+      # An artifact does not keep the file modes.
+      - name: Make the sqll binary executable
+        run: chmod +x out/sqll/bin/sqll
 
       - name: Run the benchmark shard
         run: >-

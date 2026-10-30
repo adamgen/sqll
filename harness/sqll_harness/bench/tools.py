@@ -37,6 +37,16 @@ _LIST_DIALECTS = (
 )
 
 
+def parse_record(stdout: bytes, sql: str) -> Any:
+    """Return the tree of the output of "sqlfluff parse -f json" for sql."""
+    records = json.loads(stdout)
+    if not isinstance(records, list) or len(records) != 1:
+        raise ValueError(f"not 1 parse record: {str(records)[:100]}")
+    if records[0]["filepath"] != sql:
+        raise ValueError(f"the record is for {records[0]['filepath']!r}")
+    return records[0]["segments"]
+
+
 class SqlfluffBench(BenchAdapter):
     name = "sqlfluff"
     venv_name = "sqlfluff"
@@ -118,12 +128,7 @@ class SqlfluffBench(BenchAdapter):
         return isolated_env(EmptyHome.path())
 
     def read_tree(self, stdout: bytes, sql: str) -> Any:
-        records = json.loads(stdout)
-        if not isinstance(records, list) or len(records) != 1:
-            raise ValueError(f"not 1 parse record: {str(records)[:100]}")
-        if records[0]["filepath"] != sql:
-            raise ValueError(f"the record is for {records[0]['filepath']!r}")
-        return records[0]["segments"]
+        return parse_record(stdout, sql)
 
     def read_violations(self, stdout: bytes, sql: str) -> list[dict] | None:
         records = json.loads(stdout)
