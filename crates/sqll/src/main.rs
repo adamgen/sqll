@@ -9,14 +9,15 @@
 //!              [--max-parse-depth N] PATH
 //!   sqll lint ..., sqll fix ...    not supported yet (stone S5)
 //!
-//! "sqll parse" prints the record of "sqlfluff parse -f json". It reads no
-//! config file and uses no templater (as "sqlfluff parse --templater raw
-//! --ignore-local-config"). PATH "-" reads stdin.
+//! "sqll parse" prints the record of "sqlfluff parse -f json" with the raw
+//! templater and the default config. It reads no config file, no
+//! .sqlfluffignore file, no in-file config line, and no noqa comment.
+//! harness/sqll.md lists each difference from "sqlfluff parse". PATH "-"
+//! reads stdin.
 //!
-//! Exit codes, as "sqlfluff parse": 0, no error; 1, a lex error, a parse
-//! error, or an unparsable segment; 2, a usage or input error. A command
-//! that sqll does not support yet prints "unsupported: <item>" and gives
-//! exit code 2.
+//! Exit codes: 0, no error; 1, a lex error, a parse error, or an
+//! unparsable segment; 2, a usage or input error. A command that sqll does
+//! not support yet prints "unsupported: <item>" and gives exit code 2.
 
 mod output;
 mod parse;
@@ -135,9 +136,53 @@ struct ParseArgs {
 /// Split "--name=value" into ("--name", Some("value")).
 fn split_option(arg: &str) -> (&str, Option<&str>) {
     match arg.split_once('=') {
-        Some((name, value)) if arg.starts_with("--") => (name, Some(value)),
+        Some((name, value)) if arg.starts_with("--") && name != "--" => (name, Some(value)),
         _ => (arg, None),
     }
+}
+
+fn set_format(format: &str) -> Result<(), Error> {
+    if format == "json" {
+        Ok(())
+    } else {
+        Err(unsupported(
+            &format!("format {format}"),
+            "sqll parse has only the json format",
+        ))
+    }
+}
+
+/// Read a group of short options, as click does: "-cm" is "-c -m", and
+/// "-fjson" or "-cf json" gives the value of "-f". Return false for "-h".
+fn short_options<'a>(
+    group: &str,
+    rest: &mut impl Iterator<Item = &'a String>,
+    options: &mut parse::Options,
+) -> Result<bool, Error> {
+    for (i, c) in group.char_indices() {
+        match c {
+            'c' => options.code_only = true,
+            'm' => options.include_meta = true,
+            'h' => {
+                print!("{PARSE_USAGE}");
+                return Ok(false);
+            }
+            'f' => {
+                let tail = &group[i + 1..];
+                let format = if tail.is_empty() {
+                    rest.next()
+                        .ok_or_else(|| Error("Option '-f' requires an argument.".to_string()))?
+                        .as_str()
+                } else {
+                    tail
+                };
+                set_format(format)?;
+                return Ok(true);
+            }
+            other => return Err(Error(format!("No such option: -{other}\n\n{PARSE_USAGE}"))),
+        }
+    }
+    Ok(true)
 }
 
 fn parse_args(args: &[String]) -> Result<Option<ParseArgs>, Error> {
@@ -162,6 +207,12 @@ fn parse_args(args: &[String]) -> Result<Option<ParseArgs>, Error> {
             out.path = Some(arg.clone());
             continue;
         }
+        if !arg.starts_with("--") {
+            if short_options(&arg[1..], &mut it, &mut out.options)? {
+                continue;
+            }
+            return Ok(None);
+        }
         let (name, inline) = split_option(arg);
         let mut value = |name: &str| -> Result<String, Error> {
             match inline {
@@ -172,24 +223,29 @@ fn parse_args(args: &[String]) -> Result<Option<ParseArgs>, Error> {
                     .ok_or_else(|| Error(format!("Option '{name}' requires an argument."))),
             }
         };
+        let flag = |name: &str| -> Result<(), Error> {
+            match inline {
+                Some(_) => Err(Error(format!("Option '{name}' does not take a value."))),
+                None => Ok(()),
+            }
+        };
         match name {
             "--" => only_paths = true,
-            "-h" | "--help" => {
+            "--help" => {
+                flag(name)?;
                 print!("{PARSE_USAGE}");
                 return Ok(None);
             }
             "--dialect" => out.dialect = Some(value(name)?),
-            "-f" | "--format" => {
-                let format = value(name)?;
-                if format != "json" {
-                    return Err(unsupported(
-                        &format!("format {format}"),
-                        "sqll parse has only the json format",
-                    ));
-                }
+            "--format" => set_format(&value(name)?)?,
+            "--code-only" => {
+                flag(name)?;
+                out.options.code_only = true;
             }
-            "-c" | "--code-only" => out.options.code_only = true,
-            "-m" | "--include-meta" => out.options.include_meta = true,
+            "--include-meta" => {
+                flag(name)?;
+                out.options.include_meta = true;
+            }
             "--max-parse-depth" => {
                 let text = value(name)?;
                 out.options.max_parse_depth = text.parse().map_err(|_| {
@@ -202,6 +258,46 @@ fn parse_args(args: &[String]) -> Result<Option<ParseArgs>, Error> {
         }
     }
     Ok(Some(out))
+}
+
+/// The file extensions of the sqlfluff default config (sql_file_exts).
+/// sqlfluff skips a file with another extension.
+const SQL_FILE_EXTS: [&str; 4] = [".sql", ".sql.j2", ".dml", ".ddl"];
+
+fn has_sql_extension(path: &str) -> bool {
+    let lower = path.to_lowercase();
+    SQL_FILE_EXTS.iter().any(|ext| lower.ends_with(ext))
+}
+
+/// The path as Python os.path.normpath (POSIX) gives it. sqlfluff prints
+/// this form of a file path.
+fn normpath(path: &str) -> String {
+    if path.is_empty() {
+        return ".".to_string();
+    }
+    let slashes = if path.starts_with("//") && !path.starts_with("///") {
+        2
+    } else if path.starts_with('/') {
+        1
+    } else {
+        0
+    };
+    let mut parts: Vec<&str> = Vec::new();
+    for part in path.split('/') {
+        match part {
+            "" | "." => {}
+            ".." if (slashes > 0 || !parts.is_empty()) && parts.last() != Some(&"..") => {
+                parts.pop();
+            }
+            other => parts.push(other),
+        }
+    }
+    let text = "/".repeat(slashes) + &parts.join("/");
+    if text.is_empty() {
+        ".".to_string()
+    } else {
+        text
+    }
 }
 
 /// Read a SQL file as sqlfluff does for a UTF-8 file: with no UTF-8 byte
@@ -239,14 +335,72 @@ fn parse_command(args: &[String]) -> Result<u8, Error> {
     let path = args
         .path
         .ok_or_else(|| Error("Missing argument 'PATH'.".to_string()))?;
+    if path != "-" {
+        let meta = std::fs::metadata(&path).map_err(|e| Error(format!("cannot read {path}: {e}")))?;
+        if meta.is_dir() {
+            return Err(unsupported(
+                &format!("folder {path}"),
+                "sqll parses one file",
+            ));
+        }
+        if !has_sql_extension(&path) {
+            println!("[]");
+            return Ok(EXIT_OK);
+        }
+    }
     let sql = read_sql(&path)?;
     let parsed = parse::parse(sql, dialect, &args.options);
     for e in &parsed.errors {
         eprintln!("{e}");
     }
 
-    let filepath = if path == "-" { "stdin" } else { path.as_str() };
-    let written = output::write_parse_json(std::io::stdout().lock(), filepath, &parsed.record);
+    let filepath = if path == "-" {
+        "stdin".to_string()
+    } else {
+        normpath(&path)
+    };
+    let written = output::write_parse_json(std::io::stdout().lock(), &filepath, &parsed.record);
     written.map_err(|e| Error(format!("cannot write the output: {e}")))?;
     Ok(if parsed.ok() { EXIT_OK } else { EXIT_FAIL })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{has_sql_extension, normpath};
+
+    #[test]
+    fn normpath_is_that_of_python_posixpath() {
+        // The values of Python 3.13 os.path.normpath.
+        let cases = [
+            ("", "."),
+            (".", "."),
+            ("./d.sql", "d.sql"),
+            (".//d.sql", "d.sql"),
+            ("sub/../d.sql", "d.sql"),
+            ("a/./b//c/", "a/b/c"),
+            ("../d.sql", "../d.sql"),
+            ("../../a/../d.sql", "../../d.sql"),
+            ("a/../../d.sql", "../d.sql"),
+            ("/../d.sql", "/d.sql"),
+            ("/a/b/../d.sql", "/a/d.sql"),
+            ("//a/./d.sql", "//a/d.sql"),
+            ("///a/d.sql", "/a/d.sql"),
+            ("..", ".."),
+            ("a/..", "."),
+            ("/", "/"),
+        ];
+        for (path, want) in cases {
+            assert_eq!(normpath(path), want, "{path:?}");
+        }
+    }
+
+    #[test]
+    fn the_sql_extensions_are_those_of_the_sqlfluff_default_config() {
+        for path in ["a.sql", "A.SQL", "b.sql.j2", "c.DML", "d.ddl"] {
+            assert!(has_sql_extension(path), "{path}");
+        }
+        for path in ["a.txt", "a.sqlx", "a", "a.j2"] {
+            assert!(!has_sql_extension(path), "{path}");
+        }
+    }
 }

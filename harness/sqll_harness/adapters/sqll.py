@@ -1,10 +1,10 @@
 """Adapter for the sqll binary (out/sqll/bin/sqll; scripts/build-sqll).
 
-sqll has only the parse command (S3). It reads no config file and uses no
-templater, as "sqlfluff parse --templater raw --ignore-local-config". The
-adapter raises Unsupported for each other item: lint, fix, a parse as a
-user (it needs the config files and the templater of the config), and each
-extra setting other than core.max_parse_depth. See harness/sqll.md.
+sqll has only the parse command (S3). It reads no config file and uses
+only the raw templater (harness/sqll.md lists the differences from
+"sqlfluff parse"). The adapter raises Unsupported for each other item:
+lint, fix, a parse as a user (it needs the config files and the templater
+of the config), and each extra setting other than core.max_parse_depth.
 
 This module also has the facts of the worktree that the tool check compares
 with the binary (tools.check_sqll): the expected version and the source

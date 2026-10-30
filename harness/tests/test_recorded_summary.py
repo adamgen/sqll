@@ -97,6 +97,21 @@ def test_sqll_passes_each_dialect_case_and_supports_no_other_case():
     }
 
 
+def test_the_other_tools_have_the_results_of_the_approved_summary():
+    # S1 was approved with the summary that is now
+    # results/s3/phase-a/s1-summary.json. S3 adds only the sqll entries.
+    approved = json.loads(
+        (REPO_ROOT / "results/s3/phase-a/s1-summary.json").read_text(encoding="utf8")
+    )
+    without_sqll = {
+        **RECORDED,
+        "tools": {k: v for k, v in RECORDED["tools"].items() if k != "sqll"},
+        "results": {k: v for k, v in RESULTS.items() if k != "sqll"},
+    }
+    assert without_sqll == approved
+    assert set(RECORDED["tools"]) - set(approved["tools"]) == {"sqll"}
+
+
 @pytest.mark.parametrize("tool", TOOLS)
 def test_known_failures_are_the_failed_cases(tool):
     suites = RESULTS[tool]["suites"]

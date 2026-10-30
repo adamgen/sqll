@@ -1,3 +1,11 @@
+// Parts of this file are a port of sqlfluff 4.4.0 code: process_struct of
+// test/conftest.py (the check tuple of a parse tree, and the text of a
+// scalar).
+// Source: https://github.com/sqlfluff/sqlfluff, tag 4.4.0,
+// commit 0348222a3bcdb0226563f7349c5a39beb0641955.
+// Copyright (c) 2018-2026 Alan Cruickshank. MIT License: see
+// crates/LICENSE-sqlfluffrs.md. See THIRD_PARTY.md.
+
 //! Tests of the sqll command line: the parse record of fixture files, the
 //! exit codes, and the commands that sqll does not support yet.
 //!
@@ -280,6 +288,107 @@ fn exit_code_2_for_a_usage_or_input_error() {
     }
     let out = sqll(&["parse", "--dialect=ansi", "--max-parse-depth=0", file]);
     assert_eq!(code(&out), 0, "{}", stderr(&out));
+}
+
+#[test]
+fn short_options_can_be_in_a_group() {
+    let file = dialects_dir().join("ansi/select_simple_a.sql");
+    let file = file.to_str().unwrap();
+    let apart = sqll(&["parse", "--dialect", "ansi", "-c", "-m", "-f", "json", file]);
+    assert_eq!(code(&apart), 0, "{}", stderr(&apart));
+    for group in [&["-cm"][..], &["-mc"], &["-cmfjson"], &["-cmf", "json"]] {
+        let mut args = vec!["parse", "--dialect", "ansi"];
+        args.extend(group);
+        args.push(file);
+        let out = sqll(&args);
+        assert_eq!(code(&out), 0, "{group:?}: {}", stderr(&out));
+        assert_eq!(out.stdout, apart.stdout, "{group:?}");
+    }
+    let cases: &[(&[&str], &str)] = &[
+        (&["-cx"], "No such option: -x"),
+        (&["-cf"], "Option '-f' requires an argument"),
+        (&["-cfyaml"], "unsupported: format yaml"),
+    ];
+    for (group, message) in cases {
+        let mut args = vec!["parse", "--dialect", "ansi", file];
+        args.extend(*group);
+        let out = sqll(&args);
+        assert_eq!(code(&out), 2, "{group:?}");
+        assert!(stderr(&out).contains(message), "{group:?}: {}", stderr(&out));
+    }
+}
+
+#[test]
+fn a_flag_does_not_take_a_value() {
+    let file = dialects_dir().join("ansi/select_simple_a.sql");
+    let file = file.to_str().unwrap();
+    for flag in ["--code-only", "--include-meta", "--help"] {
+        let option = format!("{flag}=1");
+        let out = sqll(&["parse", "--dialect", "ansi", &option, file]);
+        assert_eq!(code(&out), 2, "{flag}");
+        assert!(out.stdout.is_empty(), "{flag}");
+        assert!(
+            stderr(&out).contains(&format!("Option '{flag}' does not take a value.")),
+            "{flag}: {}",
+            stderr(&out)
+        );
+    }
+}
+
+fn filepath(out: &Output) -> String {
+    let text = String::from_utf8(out.stdout.clone()).expect("UTF-8 output");
+    let value: Value = serde_yaml_ng::from_str(&text).expect("JSON output");
+    value[0]["filepath"].as_str().expect("a filepath").to_string()
+}
+
+/// A new empty folder for the files of one test.
+fn scratch(name: &str) -> PathBuf {
+    let dir = Path::new(env!("CARGO_TARGET_TMPDIR")).join(name);
+    let _ = std::fs::remove_dir_all(&dir);
+    std::fs::create_dir_all(dir.join("sub")).unwrap();
+    dir
+}
+
+#[test]
+fn the_filepath_is_the_normalized_path_as_sqlfluff_gives_it() {
+    let dir = scratch("filepath");
+    std::fs::write(dir.join("d.sql"), "select 1\n").unwrap();
+    let cases = [
+        ("d.sql", "d.sql"),
+        ("./d.sql", "d.sql"),
+        (".//d.sql", "d.sql"),
+        ("sub/../d.sql", "d.sql"),
+        ("sub/./../d.sql", "d.sql"),
+    ];
+    for (path, want) in cases {
+        let out = Command::new(SQLL)
+            .args(["parse", "--dialect", "ansi", path])
+            .current_dir(&dir)
+            .output()
+            .unwrap();
+        assert_eq!(code(&out), 0, "{path}: {}", stderr(&out));
+        assert_eq!(filepath(&out), want, "{path}");
+    }
+    let absolute = format!("{}/sub/../d.sql", dir.display());
+    let out = sqll(&["parse", "--dialect", "ansi", &absolute]);
+    assert_eq!(filepath(&out), format!("{}/d.sql", dir.display()));
+}
+
+#[test]
+fn a_file_with_no_sql_extension_gives_an_empty_list() {
+    let dir = scratch("extension");
+    // Not UTF-8: sqll must not read the file.
+    std::fs::write(dir.join("d.txt"), b"\xff\xfe").unwrap();
+    std::fs::write(dir.join("d.DDL"), "select 1\n").unwrap();
+    let out = sqll(&["parse", "--dialect", "ansi", dir.join("d.txt").to_str().unwrap()]);
+    assert_eq!(code(&out), 0, "{}", stderr(&out));
+    assert_eq!(out.stdout, b"[]\n");
+    let out = sqll(&["parse", "--dialect", "ansi", dir.join("d.DDL").to_str().unwrap()]);
+    assert_eq!(code(&out), 0, "{}", stderr(&out));
+    assert!(filepath(&out).ends_with("/d.DDL"));
+    let out = sqll(&["parse", "--dialect", "ansi", dir.join("sub").to_str().unwrap()]);
+    assert_eq!(code(&out), 2);
+    assert!(stderr(&out).contains("unsupported: folder"), "{}", stderr(&out));
 }
 
 #[test]

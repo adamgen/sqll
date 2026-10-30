@@ -6,7 +6,12 @@ from pathlib import Path
 import pytest
 from conftest import needs_sqlfluff
 
-from sqll_harness.adapters.base import EmptyHome, FixResult, LintResult
+from sqll_harness.adapters.base import (
+    EmptyHome,
+    FixResult,
+    LintResult,
+    Unsupported,
+)
 from sqll_harness.adapters.sqlfluff import SqlfluffAdapter, sqlfluff_toml
 from sqll_harness.cases import ERROR, FAIL, PASS, SKIP
 from sqll_harness.paths import SQLFLUFF_ROOT
@@ -398,6 +403,7 @@ class FakeAdapter:
     """An adapter that gives fixed results and records its calls."""
 
     name = "fake"
+    lints = True
 
     def __init__(self, lint=None, fixed=None):
         self.lint_violations = lint or {}
@@ -428,6 +434,17 @@ def test_skip_runs_no_tool():
     result = rules.run(adapter, case, SQLFLUFF_ROOT)
     assert result.status == SKIP
     assert result.reason == "why"
+    assert adapter.calls == []
+
+
+def test_an_adapter_with_no_lint_command_runs_no_tool():
+    class NoLintAdapter(FakeAdapter):
+        lints = False
+
+    case = rules.RuleCase(id="rules/x/y", rule="LT01", pass_str="x")
+    adapter = NoLintAdapter()
+    with pytest.raises(Unsupported, match="^lint$"):
+        rules.run(adapter, case, SQLFLUFF_ROOT)
     assert adapter.calls == []
 
 

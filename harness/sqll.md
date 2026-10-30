@@ -18,22 +18,39 @@ them.
 | `sqll parse --dialect D [-f json] [-c] [-m] [--max-parse-depth N] PATH` | The record of `sqlfluff parse -f json` |
 | `sqll lint`, `sqll fix` | `Error: unsupported: lint` (or `fix`), exit code 2 (rules come in S5) |
 
-`sqll parse` is `sqlfluff parse --templater raw --ignore-local-config`: it
-reads no config file, no in-file config line, and no other setting.
-`max_parse_depth` has its option (default 600, 0: no limit); the other
-parser limits are the sqlfluff defaults. Exit codes are those of
-`sqlfluff parse`: 0; 1 for a lex error, a parse error, or an unparsable
-segment (the error lines go to stderr); 2 for a usage or input error. The
-output has the bytes of the sqlfluff output (Python `json.dumps`) and a new
-line. Differences from `sqlfluff parse`:
+`sqll parse` prints the record of `sqlfluff parse -f json` with the raw
+templater and the default config. `max_parse_depth` has its option
+(default 600, 0: no limit); the other parser limits are the sqlfluff
+defaults. Exit codes: 0; 1 for a lex error, a parse error, or an
+unparsable segment (the error lines go to stderr); 2 for a usage or input
+error. The output has the bytes of the sqlfluff output (Python
+`json.dumps`) and a new line. The `filepath` is the path as
+`os.path.normpath` gives it (`stdin` for `-`). A file with an extension
+that is not `.sql`, `.sql.j2`, `.dml`, or `.ddl` gives `[]` and exit code
+0, as in sqlfluff.
 
+For the 2306 dialect files, sqll and `sqlfluff parse --templater raw
+--ignore-local-config` give the same output and exit code (status/S3.md,
+T12). Differences from `sqlfluff parse`:
+
+- sqll reads no `noqa` comment. In sqlfluff, a `noqa` comment (for example
+  `-- noqa`, `-- noqa: PRS`, or `-- noqa: disable=all`) removes the lex or
+  parse error of its lines. Then sqlfluff gives exit code 0 and sqll gives
+  exit code 1. The output is the same.
+- sqll reads no in-file config line (`-- sqlfluff:...`). sqlfluff applies
+  them, also with `--ignore-local-config`. A line can change the dialect,
+  `max_parse_depth`, or another setting, so the tree and the exit code can
+  be different. Only 1 dialect file has such a line, with no effect
+  (`harness/not-reproduced.md`).
+- sqll reads no config file and no `.sqlfluffignore` file. sqlfluff gives
+  `[]` for a file that a `.sqlfluffignore` file ignores.
 - `-f` has only `json`, and it is the default.
 - With `-m`, sqlfluff also adds the source position keys to each record.
   sqll gives the meta segments but no position keys.
 - sqll reads UTF-8 only (with or without a byte order mark). sqlfluff also
   detects other encodings.
 - sqll has no file size limit (as `large_file_skip_byte_limit = 0`).
-- PATH is one file, or `-` (stdin).
+- PATH is one file, or `-` (stdin). A folder gives `unsupported: folder`.
 
 ## Adapter
 

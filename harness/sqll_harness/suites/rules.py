@@ -409,7 +409,7 @@ def run(adapter: Adapter, case: RuleCase, sqlfluff_root: Path) -> CaseResult:
     """Run one case as rules__test_helper in sqlfluff does."""
     if case.skip:
         return CaseResult(case.id, NAME, adapter.name, SKIP, reason=str(case.skip))
-    if not getattr(adapter, "lints", True):
+    if not adapter.lints:
         raise Unsupported("lint")
     if any("\r" in s for s in (case.pass_str, case.fail_str, case.fix_str) if s):
         # sqlfluff reads a file with universal newlines: "\r" becomes "\n".
