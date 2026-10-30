@@ -199,6 +199,10 @@ pub struct Parser<'a> {
     /// A probe sub-parse can drop its error, so each parse loop stops when
     /// this is set.
     pub(crate) limit_error: std::cell::OnceCell<ParseError>,
+    /// The parse depth of the frame that the innermost parse loop processes.
+    /// A probe sub-parse starts at this depth, so that max_parse_depth also
+    /// limits nesting through probes (and thus the native stack).
+    pub(crate) current_depth: std::cell::Cell<usize>,
 }
 
 impl<'a> Parser<'a> {
@@ -249,6 +253,7 @@ impl<'a> Parser<'a> {
             max_parse_depth,
             max_parse_nodes: 0,
             limit_error: std::cell::OnceCell::new(),
+            current_depth: std::cell::Cell::new(0),
         }
     }
 
@@ -363,6 +368,7 @@ impl<'a> Parser<'a> {
     /// We can pass either Rust's or Python's implementation of `apply` to convert the MatchResult into a Node.
     pub fn call_rule_as_root(&mut self) -> Result<MatchResult, ParseError> {
         self.limit_error = std::cell::OnceCell::new();
+        self.current_depth.set(0);
         // Obtain the root grammar for this dialect
         let root_grammar = self.dialect.get_root_grammar().clone();
 
@@ -403,6 +409,7 @@ impl<'a> Parser<'a> {
 
     pub fn root_parse(&mut self) -> Result<Node, ParseError> {
         self.limit_error = std::cell::OnceCell::new();
+        self.current_depth.set(0);
         // Obtain the root grammar for this dialect
         let root_grammar = self.dialect.get_root_grammar().clone();
 

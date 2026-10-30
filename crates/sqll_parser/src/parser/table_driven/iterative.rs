@@ -106,6 +106,18 @@ impl Parser<'_> {
         grammar: GrammarId,
         parent_terminators: &[GrammarId],
     ) -> Result<MatchResult, ParseError> {
+        let base_depth = self.current_depth.get();
+        let result = self.parse_table_iterative_loop(grammar, parent_terminators, base_depth);
+        self.current_depth.set(base_depth);
+        result
+    }
+
+    fn parse_table_iterative_loop(
+        &mut self,
+        grammar: GrammarId,
+        parent_terminators: &[GrammarId],
+        base_depth: usize,
+    ) -> Result<MatchResult, ParseError> {
         vdebug!(
             "Starting iterative parse (match_result mode) for grammar: {} at pos {}",
             grammar,
@@ -163,7 +175,10 @@ impl Parser<'_> {
             }
 
             // Max parse depth (DoS mitigation): frame we're processing was at depth stack.len()+1
-            if self.max_parse_depth > 0 && stack.len() + 1 > self.max_parse_depth {
+            // in this sub-parse, and a sub-parse starts at the depth of its caller.
+            let depth = base_depth + stack.len() + 1;
+            self.current_depth.set(depth);
+            if self.max_parse_depth > 0 && depth > self.max_parse_depth {
                 return Err(self.record_limit_error(ParseError::with_context(
                     format!(
                         "Maximum parse depth exceeded (limit {}). This may indicate deeply nested SQL or a malicious input.",

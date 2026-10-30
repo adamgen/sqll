@@ -553,8 +553,9 @@ fn nested_calls(n: usize) -> String {
 /// 474 nested calls need a parse depth of 9986: the deepest nesting that
 /// the parse depth limit (10000) lets through. Of the nested forms that were
 /// measured (brackets, subqueries, function calls, CASE, bracketed
-/// additions, arrays), it needs the most stack. The parse must give a tree
-/// or a parse error, not a stack overflow, for each --max-parse-depth value.
+/// additions, arrays, bracketed joins), it needs the most stack. The parse
+/// must give a tree or a parse error, not a stack overflow, for each
+/// --max-parse-depth value.
 #[test]
 fn the_parse_depth_has_a_limit_that_the_stack_can_hold() {
     let deepest = nested_calls(474);
@@ -650,6 +651,74 @@ fn the_parse_depth_is_that_of_the_rust_parser() {
         out.stdout,
         b"[{\"filepath\": \"stdin\", \"segments\": null}]\n"
     );
+}
+
+/// "select 1 from" and n nested bracketed joins: "(t join (t join u on true)
+/// on true)". The parser matches each level in a probe sub-parse.
+fn nested_joins(n: usize) -> String {
+    format!(
+        "select 1 from {}u{}\n",
+        "(t join ".repeat(n),
+        " on true)".repeat(n)
+    )
+}
+
+fn assert_depth_limit(out: &Output, limit: &str) {
+    assert_eq!(code(out), 1, "{}", stderr(out));
+    assert!(
+        stderr(out).starts_with(&format!(
+            "PRS: Maximum parse depth exceeded (limit {limit})."
+        )),
+        "{}",
+        stderr(out)
+    );
+    assert_eq!(
+        out.stdout,
+        b"[{\"filepath\": \"stdin\", \"segments\": null}]\n"
+    );
+}
+
+/// A probe sub-parse starts at the parse depth of its caller. sqlfluff
+/// 4.4.0 (Python parser) stops first at 37 joins with the depth 600, sqll at
+/// 47 (harness/sqll.md).
+#[test]
+fn the_parse_depth_counts_the_frames_of_probes() {
+    let args = ["parse", "--dialect", "ansi", "-"];
+    let out = sqll_stdin(&args, &nested_joins(46));
+    assert_eq!(code(&out), 0, "{}", stderr(&out));
+    assert!(stdout_starts(
+        &out,
+        r#"[{"filepath": "stdin", "segments": {"file": "#
+    ));
+    assert_depth_limit(&sqll_stdin(&args, &nested_joins(47)), "600");
+}
+
+/// 36000 nested joins (612 KB) overflowed the stack of a release build when
+/// the depth of each probe started at 0. Now they stop at the depth limit.
+#[test]
+fn deep_nesting_through_probes_stops_at_the_depth_limit() {
+    let sql = nested_joins(36000);
+    let out = sqll_stdin(&["parse", "--dialect", "ansi", "-"], &sql);
+    assert_depth_limit(&out, "600");
+    let out = sqll_stdin(
+        &["parse", "--dialect", "ansi", "--max-parse-depth", "0", "-"],
+        &sql,
+    );
+    assert_depth_limit(&out, "10000");
+    let out = sqll_stdin(
+        &["parse", "--dialect", "ansi", "--max-parse-depth", "0", "-"],
+        &nested_joins(829),
+    );
+    assert_eq!(code(&out), 0, "{}", stderr(&out));
+    assert!(stdout_starts(
+        &out,
+        r#"[{"filepath": "stdin", "segments": {"file": "#
+    ));
+    let out = sqll_stdin(
+        &["parse", "--dialect", "ansi", "--max-parse-depth", "0", "-"],
+        &nested_joins(830),
+    );
+    assert_depth_limit(&out, "10000");
 }
 
 /// "select a=a=a...": n comparisons. sqlfluff 4.4.0 (Python parser) gives a

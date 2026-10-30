@@ -64,26 +64,30 @@ T12). Differences from `sqlfluff parse`:
 - The parse depth of sqll is at most 10000: `--max-parse-depth 0` (no
   limit in sqlfluff) and each value above 10000 give 10000. A deeper parse
   stops with `PRS: Maximum parse depth exceeded (limit 10000)` and exit
-  code 1. The limit keeps the tree in the stack of the command thread
-  (256 MiB): at the limit, the deepest trees that were measured need about
-  10 MiB (33 MiB in a debug build). sqlfluff has no such limit, but a deep
-  tree stops it with a `RecursionError` and exit code 1
-  (for example 800 nested brackets with `max_parse_depth = 0`). The
+  code 1. The limit keeps the parse and the tree in the stack of the
+  command thread (256 MiB): at the limit, the deepest trees that were
+  measured need about 10 MiB (33 MiB in a debug build). sqlfluff has no
+  such limit, but a deep tree stops it with a `RecursionError` and exit
+  code 1 (for example 800 nested brackets with `max_parse_depth = 0`). The
   sqlfluff test gives each dialect file the depth 600, or 2000 for
   `ansi/expression_recursion.sql`.
 - The parser of sqll is a port of the sqlfluff Rust parser. It counts the
-  parse depth in frames of that parser, as sqlfluff with the Rust parser
-  does. The sqlfluff Python parser counts it in another way and gets to
-  the limit at a smaller nesting. Thus near the limit, sqll can give the
-  tree where sqlfluff stops with `PRS: Maximum parse depth exceeded` and
-  exit code 1. For example, `select ((...(1)...))` with 35 nested brackets
-  (79 bytes, `ansi`, depth 600): sqlfluff stops, and sqll gives the tree
-  of sqlfluff with the Rust parser. With 34 brackets, sqll and sqlfluff
-  give the same output. sqll stops first at 40 brackets. In 7 measured
-  forms (brackets after `select`, `where`, `order by`, and `group by`;
-  nested function calls, subqueries, and `case`), sqll stops 5 to 7
-  levels after sqlfluff, never before it. No dialect file shows the
-  difference: sqlfluff gives the tree for each one
+  parse depth in frames of that parser. A probe sub-parse (for a
+  terminator, a delimiter, or an exclusion) starts at the depth of the
+  frame that starts it. The sqlfluff Rust parser starts each probe at depth
+  0; thus nesting through probes, for example bracketed joins, has no depth
+  limit there. The sqlfluff Python parser counts the depth in another way
+  and gets to the limit at a smaller nesting. Thus sqll can give the tree
+  where sqlfluff stops with `PRS: Maximum parse depth exceeded` and exit
+  code 1. The first nesting that stops at depth 600 (sqlfluff / sqll), in
+  18 measured forms: brackets after `select` 35/40, after `where` 36/42,
+  after `order by` 35/40, after `group by` 35/40, after `from` 125/190;
+  function calls 23/28; subqueries 19/24; `case` 31/37; `in` subqueries
+  18/20; `exists` 21/27; `cast` 23/28; bracketed `union` 57/72; nested
+  CTEs 47/64; bracketed joins 37/47; postgres `array[` 44/58; bigquery
+  `struct(` 22/27; brackets in tsql 30/35 and snowflake 35/40. Thus sqll
+  stops 2 to 65 levels after sqlfluff, never before it. No dialect file
+  shows the difference: sqlfluff gives the tree for each one
   (`harness/not-reproduced.md`).
 - Each sub-parse of sqll (the main parse, and each probe for a terminator
   or a delimiter) has its own count of iterations, with the limit 3000000
