@@ -127,6 +127,14 @@ T12). Differences from `sqlfluff parse`:
 
 `known_failures/sqll.txt` lists these 2631 cases.
 
+## Benchmark adapter
+
+`sqll_harness/bench/sqll.py` (S2 benchmarks, [bench.md](bench.md), "Add a
+tool"). `start` and `parse` run `sqll parse -f json --dialect D input.sql`.
+`lint` and `fix` give `unsupported: lint` and `unsupported: fix` with no
+run. The S9 corpus does not run sqll by default until its corpus results
+after S3b (`LATER` in `sqll_harness/corpus/run.py`).
+
 ## Tool check
 
 `sqll-harness tools --tool sqll` and each `sqll-harness run` with sqll

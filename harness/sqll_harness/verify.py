@@ -96,9 +96,17 @@ CI_ONLY = {
     "dialect-oracle: actions/upload-artifact": "artifact upload",
     "bench-smoke: actions/checkout": "checkout",
     "bench-smoke: git config --global --add safe.directory '*'": "container user",
+    "bench-smoke: actions/download-artifact": "artifact download; locally the"
+    " build-sqll check writes out/sqll",
+    "bench-smoke: Make the sqll binary executable": "an artifact does not keep"
+    " the file modes; locally the build-sqll check copies the binary",
     "bench-smoke: actions/upload-artifact": "artifact upload",
     "bench-full: actions/checkout": "checkout",
     "bench-full: git config --global --add safe.directory '*'": "container user",
+    "bench-full: actions/download-artifact": "artifact download; locally the"
+    " build-sqll check writes out/sqll",
+    "bench-full: Make the sqll binary executable": "an artifact does not keep"
+    " the file modes; locally the build-sqll check copies the binary",
     "bench-full: actions/upload-artifact": "artifact upload",
     "bench-merge: actions/checkout": "checkout",
     "bench-merge: actions/download-artifact": "artifact download",
@@ -158,7 +166,10 @@ CI_ONLY_RUN = {
             "corpus-merge",
         )
     },
-    "test: Make the sqll binary executable": "chmod +x out/sqll/bin/sqll",
+    **{
+        f"{job}: Make the sqll binary executable": "chmod +x out/sqll/bin/sqll"
+        for job in ("test", "bench-smoke", "bench-full")
+    },
     "report: Merge": (
         "uv run --frozen --project harness sqll-harness merge"
         " --expect ci/matrix.d out/shards/*.json"
@@ -207,8 +218,8 @@ JOB_NEEDS = {
     "test": ["changes", "image", "build"],
     "report": ["changes", "image", "test"],
     "dialect-oracle": ["image", "report"],
-    "bench-smoke": ["changes", "image"],
-    "bench-full": ["image"],
+    "bench-smoke": ["changes", "image", "build"],
+    "bench-full": ["image", "build"],
     "bench-merge": ["image", "bench-full"],
     "corpus-smoke": ["changes", "image"],
     "corpus-full": ["image"],

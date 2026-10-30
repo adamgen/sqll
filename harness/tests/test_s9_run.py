@@ -256,6 +256,7 @@ class Env:
     def patch(self, mp: pytest.MonkeyPatch) -> None:
         """Use the stub tools, the stub render, and quick profiles."""
         mp.setattr(registry, "REGISTRY", dict(self.registry))
+        mp.setattr(corpus_run, "LATER", frozenset())
         mp.setattr(s1_tools, "CHECKS", {n: _ok(n) for n in self.registry})
         mp.setattr(corpus_main, "make_render", lambda: stub_render)
         mp.setattr(corpus_run, "PROFILES", QUICK)
@@ -518,6 +519,22 @@ def test_a_new_tool_runs_each_file_through_the_registry_alone(smoke):
     assert rep["tools"]["sqll"]["version"] == "1.0"
     assert all(r["runs"]["warmup"] == 1 for r in rep["results"] if r["tool"] == "sqll")
     assert "sqll" not in smoke["manifest"].text.decode()
+
+
+def test_a_tool_that_joins_later_runs_only_when_asked(tmp_path, monkeypatch):
+    """The real sqll is in the bench registry from S3 T13, but the corpus
+    runs it only with --tool until its results after S3b (LATER)."""
+    assert corpus_run.LATER == frozenset({"sqll"})
+    env = Env(tmp_path, monkeypatch, TOOLS3)
+    monkeypatch.setattr(corpus_run, "LATER", frozenset({"sqll"}))
+    assert corpus_run.tool_names() == ["sqlfluff", "sqruff"]
+    assert env.run("default.json", "--profile", "smoke") == 0
+    rep = env.load("default.json")
+    assert rep["scope"]["tools"] == ["sqlfluff", "sqruff"]
+    assert {r["tool"] for r in rep["results"]} == {"sqlfluff", "sqruff"}
+    args = ("--profile", "smoke", "--tool", "sqll")
+    assert env.run("asked.json", *args) == 0
+    assert {r["tool"] for r in env.load("asked.json")["results"]} == {"sqll"}
 
 
 def test_a_render_that_stops_gives_an_error_for_each_tool(tmp_path, monkeypatch):

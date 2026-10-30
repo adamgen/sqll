@@ -1,8 +1,8 @@
 #!/bin/sh
-# Run the S2 benchmarks in one command: install and check the tools, build
-# and check the inputs, then run "sqll-harness bench run" with the arguments
-# (default: the full profile, all tools). Output: out/bench.json (and
-# out/tools.json). See harness/README.md, "Benchmark runs".
+# Run the S2 benchmarks in one command: install the tools, build sqll, check
+# the tools, build and check the inputs, then run "sqll-harness bench run"
+# with the arguments (default: the full profile, all tools). Output:
+# out/bench.json (and out/tools.json). See harness/README.md, "Benchmark runs".
 set -eu
 
 root=$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)
@@ -20,6 +20,9 @@ uv run --quiet --frozen --project harness python -m sqll_harness.preflight "$roo
 SQLL_TOOLS_DIR=${SQLL_TOOLS_DIR:-$root/.tools}
 export SQLL_TOOLS_DIR
 scripts/setup
+# sqll: the dialect tables and the release build of the worktree
+# (out/sqll/bin/sqll). The tool check refuses a stale binary.
+scripts/build-sqll
 
 uv sync --quiet --frozen --project harness
 mkdir -p out

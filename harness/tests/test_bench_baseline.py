@@ -11,6 +11,7 @@ from collections import Counter
 import pytest
 
 from sqll_harness import cli
+from sqll_harness.adapters import sqll as sqll_adapter
 from sqll_harness.bench import baseline, definitions, registry, report
 from sqll_harness.bench import run as bench_run
 from sqll_harness.bench.timer import ERROR, INVALID, STATUSES, UNSUPPORTED, VALID
@@ -18,8 +19,16 @@ from sqll_harness.paths import REPO_ROOT
 
 DEFS = definitions.load()
 BASE = report.load(baseline.BASELINE)
-TOOLS = ["sqlfluff", "sqlfluff-rs", "sqruff"]
-VERSIONS = {"sqlfluff": "4.4.0", "sqlfluff-rs": "4.4.0", "sqruff": "0.41.0"}
+TOOLS = ["sqlfluff", "sqlfluff-rs", "sqll", "sqruff"]
+VERSIONS = {
+    "sqlfluff": "4.4.0",
+    "sqlfluff-rs": "4.4.0",
+    "sqll": sqll_adapter.expected_version(),
+    "sqruff": "0.41.0",
+}
+# The approved S2 baseline before sqll (S3 T13), as phase A of S3 read it.
+FROZEN = report.load(REPO_ROOT / "results" / "s3" / "phase-a" / "s2-baseline.json")
+OLD_TOOLS = ["sqlfluff", "sqlfluff-rs", "sqruff"]
 SMOKE_SIZES = bench_run.PROFILE_SIZES["smoke"]
 
 
@@ -68,7 +77,7 @@ def test_the_baseline_has_one_result_for_each_benchmark_and_tool():
     keys = Counter((r["id"], r["tool"]) for r in BASE["results"])
     assert set(keys.values()) == {1}
     assert set(keys) == {(b["id"], t) for b in DEFS["benchmarks"] for t in TOOLS}
-    assert len(keys) == 280 * 3
+    assert len(keys) == 280 * 4
     for r in BASE["results"]:
         assert r["status"] in STATUSES
         if r["status"] == VALID:
@@ -76,6 +85,41 @@ def test_the_baseline_has_one_result_for_each_benchmark_and_tool():
             assert 3 <= r["runs"]["timed"] <= 20
         else:
             assert r["stats"] is None and r["reason"], (r["id"], r["tool"])
+
+
+def test_sqll_is_valid_on_start_and_parse_and_unsupported_on_lint_and_fix():
+    counts = Counter(
+        (r["command"], r["status"], r["reason"])
+        for r in BASE["results"]
+        if r["tool"] == "sqll"
+    )
+    assert counts == {
+        ("start", VALID, None): 28,
+        ("parse", VALID, None): 84,
+        ("lint", UNSUPPORTED, "unsupported: lint"): 84,
+        ("fix", UNSUPPORTED, "unsupported: fix"): 84,
+    }
+    for r in BASE["results"]:
+        if r["tool"] == "sqll" and r["status"] == UNSUPPORTED:
+            assert r["samples"] == [] and r["runs"]["warmup"] == 0, r["id"]
+
+
+def test_the_other_tools_have_the_statuses_of_the_approved_baseline():
+    """The new baseline (with sqll) gives sqlfluff, sqlfluff-rs, and sqruff
+    the version, settings, input records, status, and work of the S2 exit
+    baseline."""
+    assert FROZEN["scope"]["tools"] == OLD_TOOLS
+    assert {t: BASE["tools"][t] for t in OLD_TOOLS} == FROZEN["tools"]
+    assert BASE["inputs"] == FROZEN["inputs"]
+    old = [r for r in BASE["results"] if r["tool"] in OLD_TOOLS]
+    part = _rebuild(
+        BASE,
+        scope={**BASE["scope"], "tools": OLD_TOOLS},
+        tools={t: BASE["tools"][t] for t in OLD_TOOLS},
+        results=old,
+    )
+    assert baseline.drift(part, FROZEN) == []
+    assert baseline.missing(part, FROZEN) == []
 
 
 # The drift check.
@@ -151,10 +195,10 @@ def _set_work(rep: dict) -> None:
 
 
 def _new_tool(rep: dict) -> None:
-    rep["tools"]["sqll"] = rep["tools"].pop("sqruff")
+    rep["tools"]["new-tool"] = rep["tools"].pop("sqruff")
     for r in rep["results"]:
         if r["tool"] == "sqruff":
-            r["tool"] = "sqll"
+            r["tool"] = "new-tool"
 
 
 def _new_result(rep: dict) -> None:
@@ -173,7 +217,7 @@ DRIFT = {
     "tool settings": (_set_settings, r"tool sqlfluff-rs: the settings are not"),
     "sqlfluff ref": (_set_ref, r"sqlfluff_ref 0+, baseline"),
     "work": (_set_work, r"sqruff lint/\S+: work .*baseline"),
-    "new tool": (_new_tool, r"tool sqll: not in the baseline"),
+    "new tool": (_new_tool, r"tool new-tool: not in the baseline"),
     "a result the baseline has not": (_new_result, r"-new: no result in the baseline"),
 }
 
@@ -182,7 +226,7 @@ def test_the_part_of_the_baseline_has_no_drift():
     assert report.check(PART) == []
     assert bench_run.incomplete(PART, DEFS) == []
     assert baseline.drift(PART, BASE) == []
-    assert len(PART["results"]) == 112 * 3
+    assert len(PART["results"]) == 112 * 4
 
 
 @pytest.mark.parametrize("name", DRIFT)
@@ -246,7 +290,7 @@ def test_check_passes_with_the_data_of_the_baseline(tmp_path, capsys):
     path = _write(tmp_path, PART)
     assert bench("check", path, "--baseline", baseline.BASELINE) == 0
     out = capsys.readouterr().out
-    assert f"The stable data of {112 * 3} results is that of the baseline" in out
+    assert f"The stable data of {112 * 4} results is that of the baseline" in out
 
 
 @pytest.mark.parametrize(
@@ -373,6 +417,12 @@ def test_status_lists_each_result_that_is_not_valid_with_its_reason():
     listed = []
     for tool, status, text, ids in rows:
         assert text, (tool, status)
+        # "all N `<command>/*`": each benchmark of the command.
+        m = re.fullmatch(r"all (\d+) `(\w+)/\*`", ids)
+        if m:
+            every = [b["id"] for b in DEFS["benchmarks"] if b["command"] == m[2]]
+            assert len(every) == int(m[1])
+            ids = ", ".join(f"`{i}`" for i in every)
         for i in ids.split(", "):
             r = by_key[(tool, i.strip("`"))]
             assert r["status"] == status, (tool, i)
@@ -396,7 +446,7 @@ def test_missing_finds_each_result_that_a_run_does_not_have():
         for r in BASE["results"]
         if r["size"] in ("medium", "large")
     )
-    assert len(lost) == (280 - 112) * 3
+    assert len(lost) == (280 - 112) * 4
     assert baseline.missing(PART, BASE) == [
         f"no result for {len(lost)} results of the baseline: "
         f"{', '.join(lost[:5])} and {len(lost) - 5} more"
@@ -413,7 +463,7 @@ def test_check_full_passes_on_a_full_run(tmp_path, capsys):
     path = _write(tmp_path, BASE)
     assert bench("check", path, "--baseline", baseline.BASELINE, "--full") == 0
     out = capsys.readouterr().out
-    assert f"The stable data of {280 * 3} results is that of the baseline" in out
+    assert f"The stable data of {280 * 4} results is that of the baseline" in out
     assert "The report has the profile and each result of the baseline." in out
 
 
@@ -421,7 +471,7 @@ def test_check_full_fails_on_a_part_of_the_baseline(tmp_path, capsys):
     path = _write(tmp_path, PART)
     assert bench("check", path, "--baseline", baseline.BASELINE, "--full") == 1
     out = capsys.readouterr().out
-    assert f"no result for {(280 - 112) * 3} results of the baseline" in out
+    assert f"no result for {(280 - 112) * 4} results of the baseline" in out
     assert "FAIL:" in out
 
 

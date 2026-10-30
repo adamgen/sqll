@@ -1,11 +1,12 @@
 """The corpus parse run, the shard merge, and the completeness check
 (docs/decisions/s9-corpus.md, "Parse check and report", "Profiles").
 
-For each selected file of the manifest, each tool of the bench registry
-parses the file through its S2 benchmark adapter (config, argv, env, and
-tree reader), with the corpus settings. The S2 timer runs the tools in turn
-(timer.run_in_turn): 1 warmup run, which is the check run, then the timed
-runs of the profile. The check of the warmup run gives the status:
+For each selected file of the manifest, each tool of the run (default: the
+bench registry without LATER) parses the file through its S2 benchmark
+adapter (config, argv, env, and tree reader), with the corpus settings.
+The S2 timer runs the tools in turn (timer.run_in_turn): 1 warmup run, which
+is the check run, then the timed runs of the profile. The check of the
+warmup run gives the status:
 
 - ok: exit code 0, a tree, no unparsable segment, and the leaf text is the
   input (or, for a templated file, the render of the pinned sqlfluff).
@@ -20,8 +21,8 @@ runs of the profile. The check of the warmup run gives the status:
 
 A file of the manifest is in shard i % N + 1, where i is its index (from 0)
 in the files of the profile. No code here knows a tool name, except the
-corpus layer of a tool (TOOL_LAYERS). Thus a new tool needs only its bench
-registry entry.
+corpus layer of a tool (TOOL_LAYERS) and the tools that join later (LATER).
+Thus a new tool needs only its bench registry entry.
 """
 
 import hashlib
@@ -37,9 +38,9 @@ from typing import Any
 from .. import paths
 from ..adapters.base import Unsupported
 from ..adapters.sqruff_config import nested_combine
+from ..bench import registry, timer
 from ..bench import report as bench_report
 from ..bench import run as bench_run
-from ..bench import timer
 from ..bench.adapter import BenchAdapter, config_files_above, find_problem
 from ..bench.adapter import settings as bench_settings
 from ..bench.timer import Job, Measurement, Policy, Run, Series, overhead, run_in_turn
@@ -66,6 +67,10 @@ RUST_ITERATIONS = 1_000_000_000_000
 TOOL_LAYERS: dict[str, dict[str, Any]] = {
     "sqlfluff-rs": {"core": {"rust_parser_max_iterations": RUST_ITERATIONS}},
 }
+# The tools of the bench registry that the corpus does not run by default
+# yet. sqll is in the registry from S3 (T13); its corpus results come after
+# S3b (status/S9.md). That task removes it here and records a new baseline.
+LATER = frozenset({"sqll"})
 # docs/decisions/s9-corpus.md, "Templated files": the render settings. The
 # dbt builtins, and no template variable, macro path, or library path: the
 # selection takes only files that need nothing more (jinja_names.py).
@@ -352,6 +357,11 @@ def select(
         return files
     k, n = shard
     return [f for i, f in enumerate(files) if i % n + 1 == k]
+
+
+def tool_names() -> list[str]:
+    """Return the default tools of a run: the bench registry without LATER."""
+    return [n for n in registry.names() if n not in LATER]
 
 
 def scope(tools: list[str], shard: tuple[int, int] | None) -> dict:

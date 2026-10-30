@@ -115,8 +115,8 @@ def bench(command: str, name: str, dialect: str = "ansi") -> dict:
 # Registry and settings.
 
 
-def test_the_registry_has_the_3_tools():
-    assert registry.names() == ["sqlfluff", "sqlfluff-rs", "sqruff"]
+def test_the_registry_has_the_4_tools():
+    assert registry.names() == ["sqlfluff", "sqlfluff-rs", "sqll", "sqruff"]
     for name in registry.names():
         assert registry.REGISTRY[name].name == name
 
@@ -124,7 +124,7 @@ def test_the_registry_has_the_3_tools():
 def test_register_adds_one_tool_and_refuses_a_repeated_name(monkeypatch):
     monkeypatch.setattr(registry, "REGISTRY", dict(registry.REGISTRY))
     registry.register("double", DoubleBench)
-    assert registry.names() == ["double", "sqlfluff", "sqlfluff-rs", "sqruff"]
+    assert registry.names() == ["double", "sqlfluff", "sqlfluff-rs", "sqll", "sqruff"]
     assert isinstance(registry.get("double"), DoubleBench)
     with pytest.raises(ValueError, match="already"):
         registry.register("sqruff", DoubleBench)

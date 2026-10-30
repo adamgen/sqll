@@ -84,7 +84,8 @@ def _parser() -> argparse.ArgumentParser:
         "--tool",
         action="append",
         choices=registry.names(),
-        help="A tool of the bench registry (repeat it). Default: all.",
+        help="A tool of the bench registry (repeat it). Default: all, except"
+        " the tools that join later (sqll).",
     )
     run_parser.add_argument("--cache", help=cache_help)
     run_parser.add_argument("--out", type=Path, default=corpus_report.DEFAULT_REPORT)
@@ -126,7 +127,7 @@ def _error(text: str) -> int:
 
 
 def run_command(args: argparse.Namespace, manifest) -> int:
-    names = sorted(set(args.tool or registry.names()))
+    names = sorted(set(args.tool or corpus_run.tool_names()))
     selected = corpus_run.select(manifest, args.profile, args.shard)
     templated = any(f.templater == JINJA for f in selected)
     checks = sorted(set(names) | ({REFERENCE_TOOL} if templated else set()))

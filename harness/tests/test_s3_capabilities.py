@@ -48,7 +48,7 @@ def test_the_check_fails_on_a_change(tmp_path, monkeypatch):
 
 def test_the_inputs_are_the_committed_files():
     for path, digest in OUT["inputs"].items():
-        assert cap.sha256_file(REPO_ROOT / path) == digest, path
+        assert cap.sha256_file(cap.phase_a.read_path(path)) == digest, path
     assert set(OUT["inputs"]) >= {
         "results/s3/capabilities-sources.json",
         "results/s3/capabilities-start.json",

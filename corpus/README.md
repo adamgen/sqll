@@ -26,7 +26,9 @@ uv run python -m sqll_harness.corpus select [--download] [--check] [--cache DIR]
 not valid, or if a fetch, run, or merge cannot start or complete.
 
 `run` fetches the files of the profile (smoke: 32 KiB or less) and shard,
-parses each file with each tool of the bench registry (default: all), and
+parses each file with each tool of the bench registry (default: all, except
+sqll until its corpus results after S3b: `LATER` in
+`harness/sqll_harness/corpus/run.py`), and
 writes the report (default `out/corpus.json`). A templated file also gets
 the render of the pinned sqlfluff. The jinja settings: `templater = jinja`
 and `apply_dbt_builtins = True`, with no variable, macro, or library

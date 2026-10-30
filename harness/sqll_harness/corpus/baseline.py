@@ -2,7 +2,7 @@
 (docs/decisions/s9-corpus.md, "Report"), as in S2 (bench/baseline.py).
 
 recorded() returns each reason why a report cannot be the baseline: it must
-be a complete full run of all tools of the bench registry on all files of
+be a complete full run of the default tools (run.tool_names()) on all files of
 the manifest, from a worktree with no change. drift() compares the stable
 data of a run with the baseline: the sqlfluff ref, the tool versions and
 settings, the input records (with their sha256 and the reference render),
@@ -16,7 +16,6 @@ profile and each result of the baseline.
 from collections.abc import Mapping
 from typing import Any
 
-from ..bench import registry
 from ..paths import REPO_ROOT
 from . import report
 from . import run as corpus_run
@@ -35,9 +34,9 @@ def recorded(base: Mapping[str, Any], manifest: Manifest) -> list[str]:
     if base["profile"] != PROFILE:
         errors.append(f"profile {base['profile']}, not {PROFILE}")
         return errors
-    if base["scope"] != corpus_run.scope(registry.names(), None):
+    if base["scope"] != corpus_run.scope(corpus_run.tool_names(), None):
         errors.append(
-            f"the scope is not all tools of the registry, not sharded: {base['scope']}"
+            f"the scope is not the default tools, not sharded: {base['scope']}"
         )
     if not base["harness"]["clean"]:
         errors.append("the harness worktree had changes")

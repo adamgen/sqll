@@ -193,14 +193,22 @@ and each full run with it, fail closed (`sqll-harness bench check
 must be in the report): the sqlfluff ref, the tool versions and settings,
 the input records, and the status of each result (and the `work` of a
 result that is `valid` in both). Not the timings, reasons, or machine. A
-new tool (sqll in S3) or tool version needs a new baseline.
+new tool or tool version needs a new baseline. The baseline of S3 T13 has
+4 tools (sqll joined); `status/S2.md` has the facts of its run.
 
-Controlled run (2026-10-20): the CI image, built from `ci/Dockerfile` on
-the local machine (4 CPUs, no other load), one container, serial. The
+Controlled run of the S2 exit (2026-10-20; now
+`results/s3/phase-a/s2-baseline.json`): the CI image, built from
+`ci/Dockerfile` on the local machine (4 CPUs, no other load), one
+container, serial. The
 egress proxy of that machine blocks `deb.debian.org` and the registry
 blobs, so the build used `PYTHON_IMAGE` `python:3.13.16-trixie` (the same
 Python, with git and gcc, thus no apt step) and the proxy CA. The tools
-have the pinned versions (`sqll-harness tools` passes).
+have the pinned versions (`sqll-harness tools` passes). The run of S3 T13
+(2026-10-30) used the same build method, but a new image
+(`sqll-ci:c70a02195bc651c4bf38`, with the Rust toolchain of S3 T11). A first
+container with network
+built sqll (`scripts/build-sqll`: cargo gets the crates); then the run
+had no network (`CARGO_NET_OFFLINE=true`, the same cargo registry).
 
 ## Add a tool
 
@@ -208,9 +216,17 @@ The definitions have no tool entry; they store the reference data of the
 pinned sqlfluff. A tool is a benchmark adapter (`BenchAdapter`: config
 file, command lines, env, and the readers of its tree and lint output) and
 a registry entry (`sqll_harness/bench/registry.py`). The validity checks
-are the same for each tool. sqll (S3) needs no change to the definitions.
-Proof: through the registry, a test-double tool runs all 280 benchmarks,
-valid, and the definitions do not change.
+are the same for each tool. Proof: through the registry, a test-double tool
+runs all 280 benchmarks, valid, and the definitions do not change.
+
+sqll (S3 T13, `bench/sqll.py`) joined with no change to the definitions.
+It has only `parse` until S5: `start` and `parse` run `sqll parse -f json
+--dialect D`; `lint` and `fix` are `unsupported: lint` and `unsupported:
+fix`, with no run (`unsupported_command`). Thus G3.4 and G3.5 for lint and
+fix, and the G3.5 total, are for later stones. sqll has the settings of
+all tools: the raw templater, no size limit, and no rule in a parse. A
+fake sqll binary runs all 280 benchmarks through the registry
+(`tests/test_sqll_bench.py`).
 
 ## CI and slowdowns
 

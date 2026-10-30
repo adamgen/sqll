@@ -308,4 +308,7 @@ in the baseline: sqlfluff and `sqlfluff[rs]` on `DatabaseBackup.sql` and
   Each artifact with a report also has the manifest and the license files
   (`notices`).
 - sqll joins after S3b with its bench registry entry, with no change to
-  the corpus files. T3 proves this with a test-double tool.
+  the corpus files. T3 proves this with a test-double tool. The bench
+  registry has sqll from S3 (T13), so the corpus run leaves it out by
+  default until then (`LATER` in `corpus/run.py`). The sqll task of S9
+  removes it from `LATER` and records a new baseline.
