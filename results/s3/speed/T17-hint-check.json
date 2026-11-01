@@ -1,0 +1,19 @@
+{
+ "kind": "sqll-s3-hint-check",
+ "commit": "464a754a0ea868df81e7e09fb6894837ce20c32a",
+ "patch_sha256": "3a9c37ba2805dd57d1f9efef615bbbc166d10fddc1187ec1ec846bec48114615",
+ "reference_sha256": "13ac2f4dc03cd64f41b408e08c8251039d33917262de94c07902cad77d8f80ab",
+ "options": [],
+ "summary": {
+  "inputs": 2390,
+  "fixtures": 2306,
+  "parse_inputs": 84,
+  "exclusions": 974128,
+  "probe_matches": 0,
+  "probe_limits": 0,
+  "different_runs": 0
+ },
+ "matches": [],
+ "limits": [],
+ "different": []
+}

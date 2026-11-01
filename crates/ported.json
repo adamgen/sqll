@@ -165,7 +165,7 @@
    "path": "crates/sqll_parser/src/parser/table_driven/match_algorithms.rs",
    "source": "sqlfluffrs/sqlfluffrs_parser/src/parser/table_driven/match_algorithms.rs",
    "source_sha256": "58c67dd92872a6ae91465f3477c9aeaedb8ea5165845b390041dd7637a4d79df",
-   "changed": "S3 T17 (parse speed, terminator checks): greedy_match does not probe a terminator at a position where its simple hint matches no token from that position to the first code token (terminator_hint_excludes); the result is false, as the probe gives. Python's next_match also tries only the matchers that the simple hints allow. A check of all 2390 parse inputs (each hint exclusion against the probe) found no exclusion where the probe matches. The parse does not change."
+   "changed": "S3 T17 (parse speed, terminator checks): greedy_match does not probe a terminator at a position where its simple hint matches no token from that position to the first code token (terminator_hint_excludes); the result is false, as the probe gives if it does not reach a parser limit. Python's next_match also tries only the matchers that the simple hints allow. The check scripts/s3/hint_check.py (results/s3/speed/T17-hint-check.json) also runs each excluded probe on the 2306 dialect fixtures and the 84 S2 parse inputs: 974128 exclusions, no probe match, no probe at a parser limit, and the same output. Thus the trees do not change on these 2390 inputs. A probe that is not run cannot reach a parser limit (depth, iterations, or nodes). Thus on such an input sqll can give a tree where the source stops the parse (harness/sqll.md); the sqlfluff Python parser also does not run these probes."
   },
   {
    "path": "crates/sqll_parser/src/parser/table_driven/mod.rs",
