@@ -17,8 +17,8 @@ DECISION = (REPO_ROOT / "docs" / "decisions" / "s9-corpus.md").read_text(
     encoding="utf8"
 )
 STATE = (
-    "- State: S9 (sqlfluff, sqlfluff[rs], sqruff) awaiting human approval; "
-    "sqll results after S3b"
+    "- State: S9 approved (human owner, 2026-11-01) for sqlfluff, "
+    "`sqlfluff[rs]`, and sqruff. The sqll results come after S3b"
 )
 LARGE = 500_000
 BY_KEY = {(r["file"], r["tool"]): r for r in BASE["results"]}
