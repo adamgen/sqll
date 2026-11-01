@@ -210,8 +210,17 @@ def test_each_file_of_the_source_crates_is_ported_or_excluded():
         "crates/sqll_parser/src/lib.rs",
         "crates/sqll_parser/src/parser/core.rs",
         "crates/sqll_parser/src/parser/helpers.rs",
+        "crates/sqll_parser/src/parser/match_result.rs",
         "crates/sqll_parser/src/parser/mod.rs",
+        "crates/sqll_parser/src/parser/table_driven/anynumberof.rs",
+        "crates/sqll_parser/src/parser/table_driven/bracketed.rs",
+        "crates/sqll_parser/src/parser/table_driven/delimited.rs",
+        "crates/sqll_parser/src/parser/table_driven/frame.rs",
         "crates/sqll_parser/src/parser/table_driven/iterative.rs",
+        "crates/sqll_parser/src/parser/table_driven/oneof.rs",
+        "crates/sqll_parser/src/parser/table_driven/ref_grammar.rs",
+        "crates/sqll_parser/src/parser/table_driven/sequence.rs",
+        "crates/sqll_parser/src/parser/types.rs",
         "crates/sqll_types/Cargo.toml",
         "crates/sqll_types/src/matcher.rs",
     ]
@@ -234,7 +243,7 @@ def _changed_but_equal(root, record):
 
 
 def _equal_but_changed_body(root, record):
-    path = root / "crates/sqll_parser/src/parser/match_result.rs"
+    path = root / "crates/sqll_parser/src/parser/cache.rs"
     path.write_bytes(path.read_bytes().replace(b"fn ", b"fn  ", 1))
 
 

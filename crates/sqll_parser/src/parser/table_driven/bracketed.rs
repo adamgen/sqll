@@ -4,6 +4,7 @@
 // commit 0348222a3bcdb0226563f7349c5a39beb0641955.
 // Copyright (c) 2018-2026 Alan Cruickshank. MIT License: see
 // crates/LICENSE-sqlfluffrs.md. See THIRD_PARTY.md and crates/ported.json.
+// sqll changed this file. crates/ported.json gives the reason.
 
 use crate::parser::match_result::MatchedClass;
 #[cfg(feature = "verbose-debug")]
@@ -13,7 +14,9 @@ use sqlfluffrs_types::{GrammarId, GrammarVariant, ParseMode};
 use std::sync::Arc;
 
 use crate::parser::{
-    table_driven::frame::{TableFrameResult, TableParseFrame, TableParseFrameStack},
+    table_driven::frame::{
+        TableFrameResult, TableParseFrame, TableParseFrameData, TableParseFrameStack,
+    },
     BracketedPhase, BracketedState, FrameContext, FrameState, MatchResult, ParseError, Parser,
 };
 
@@ -806,7 +809,7 @@ fn create_child_frame(
     parent_max_idx: Option<usize>,
     parse_mode_override: Option<ParseMode>,
 ) -> TableParseFrame {
-    TableParseFrame {
+    Box::new(TableParseFrameData {
         frame_id,
         grammar_id,
         pos: start_idx,
@@ -818,5 +821,5 @@ fn create_child_frame(
         end_pos: None,
         element_key: None,
         parse_mode_override, // Propagate parse mode override!
-    }
+    })
 }

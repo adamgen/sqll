@@ -4,6 +4,7 @@
 // commit 0348222a3bcdb0226563f7349c5a39beb0641955.
 // Copyright (c) 2018-2026 Alan Cruickshank. MIT License: see
 // crates/LICENSE-sqlfluffrs.md. See THIRD_PARTY.md and crates/ported.json.
+// sqll changed this file. crates/ported.json gives the reason.
 
 use crate::parser::{match_result::MatchedClass, MetaSegment};
 #[cfg(feature = "verbose-debug")]
@@ -12,7 +13,9 @@ use sqlfluffrs_types::{GrammarId, GrammarVariant, ParseMode};
 use std::sync::Arc;
 
 use crate::parser::{
-    table_driven::frame::{TableFrameResult, TableParseFrame, TableParseFrameStack},
+    table_driven::frame::{
+        TableFrameResult, TableParseFrame, TableParseFrameData, TableParseFrameStack,
+    },
     FrameContext, FrameState, MatchResult, ParseError, Parser, SequenceState,
 };
 
@@ -163,7 +166,7 @@ impl Parser<'_> {
         // Create child frame with potentially new element after meta buffering
         // PYTHON PARITY: Pass only parent terminators to children (not Sequence's own).
         let child_terms = Self::sequence_child_terminators(&mut frame);
-        let child_frame = TableParseFrame::new_child(
+        let child_frame = TableParseFrameData::new_child(
             child_frame_id,
             elements[current_element_idx],
             child_start_pos,
@@ -674,7 +677,7 @@ impl Parser<'_> {
                 // PYTHON PARITY: Use parent terminators (without Sequence's own) for children
                 let child_terms = Self::sequence_child_terminators(&mut frame);
                 let child_frame_id = stack.frame_id_counter;
-                let child_frame = TableParseFrame::new_child(
+                let child_frame = TableParseFrameData::new_child(
                     child_frame_id,
                     next_element,
                     matched_idx,
@@ -752,7 +755,7 @@ impl Parser<'_> {
         // PYTHON PARITY: Use parent terminators (without Sequence's own) for children
         let child_terms = Self::sequence_child_terminators(&mut frame);
         let child_frame_id = stack.frame_id_counter;
-        let child_frame = TableParseFrame::new_child(
+        let child_frame = TableParseFrameData::new_child(
             child_frame_id,
             next_element,
             child_start_pos,
@@ -785,7 +788,7 @@ impl Parser<'_> {
         // PYTHON PARITY: Use parent terminators (without Sequence's own) for children.
         // In Python, Sequence._match() does NOT call deeper_match(push_terminators=self.terminators),
         // so child elements never see the Sequence's own terminators.
-        TableParseFrame::new_child(
+        TableParseFrameData::new_child(
             child_frame_id,
             elements[next_element_idx],
             child_start_pos,

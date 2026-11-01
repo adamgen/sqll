@@ -4,6 +4,7 @@
 // commit 0348222a3bcdb0226563f7349c5a39beb0641955.
 // Copyright (c) 2018-2026 Alan Cruickshank. MIT License: see
 // crates/LICENSE-sqlfluffrs.md. See THIRD_PARTY.md and crates/ported.json.
+// sqll changed this file. crates/ported.json gives the reason.
 
 use sqlfluffrs_types::GrammarId;
 use std::borrow::Cow;
@@ -11,7 +12,9 @@ use std::sync::Arc;
 
 use crate::parser::{
     match_result::{MatchedClass, SegmentKwargs},
-    table_driven::frame::{TableFrameResult, TableParseFrame, TableParseFrameStack},
+    table_driven::frame::{
+        TableFrameResult, TableParseFrame, TableParseFrameData, TableParseFrameStack,
+    },
     FrameContext, FrameState, MatchResult, ParseError, Parser, RefState,
 };
 #[cfg(feature = "verbose-debug")]
@@ -172,7 +175,7 @@ impl Parser<'_> {
             reset_terminators,
         );
 
-        let child_frame = TableParseFrame::new_child(
+        let child_frame = TableParseFrameData::new_child(
             stack.frame_id_counter,
             child_grammar_id,
             child_start_pos,

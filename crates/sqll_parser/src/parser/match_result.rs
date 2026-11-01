@@ -4,6 +4,7 @@
 // commit 0348222a3bcdb0226563f7349c5a39beb0641955.
 // Copyright (c) 2018-2026 Alan Cruickshank. MIT License: see
 // crates/LICENSE-sqlfluffrs.md. See THIRD_PARTY.md and crates/ported.json.
+// sqll changed this file. crates/ported.json gives the reason.
 
 //! MatchResult type for the parser.
 //!
@@ -19,10 +20,10 @@ use crate::vdebug;
 use std::borrow::Cow;
 use std::fmt::Display;
 use std::ops::Range;
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 
 use crate::parser::types::{MetaType, Node, RawSegmentKwargs};
-use hashbrown::HashMap;
 use sqlfluffrs_types::regex::RegexModeGroup;
 use sqlfluffrs_types::token::CaseFold;
 use sqlfluffrs_types::{PositionMarker, Token};
@@ -99,12 +100,25 @@ impl MatchedClass {
     }
 }
 
+/// The memo of [`MatchResult::node_count`]: 0 if not known, else the count
+/// plus 1 (S3 T16). The parser checks the node limit of each completed frame,
+/// so without the memo it counts each subtree again for each ancestor. A
+/// match result does not change after it is made, so the memo stays valid.
+#[derive(Default)]
+pub struct NodeCountMemo(AtomicUsize);
+
+impl Clone for NodeCountMemo {
+    fn clone(&self) -> Self {
+        NodeCountMemo(AtomicUsize::new(self.0.load(Ordering::Relaxed)))
+    }
+}
+
 /// A match result describing what was matched and how to construct the AST.
 ///
 /// This is the functional alternative to mutating global state during parsing.
 /// Each match operation returns a MatchResult, which can be combined via
 /// `append()` and wrapped via `wrap()`. The final AST is built by calling `apply()`.
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct MatchResult {
     /// Range in the token array that this match spans [start, end)
     pub matched_slice: Range<usize>,
@@ -118,6 +132,20 @@ pub struct MatchResult {
 
     /// Child matches (recursive structure using Rc for cheap sharing)
     pub child_matches: Vec<Arc<MatchResult>>,
+
+    pub(crate) node_count_memo: NodeCountMemo,
+}
+
+// The derived format of the 4 match fields, without the memo.
+impl std::fmt::Debug for MatchResult {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("MatchResult")
+            .field("matched_slice", &self.matched_slice)
+            .field("matched_class", &self.matched_class)
+            .field("insert_segments", &self.insert_segments)
+            .field("child_matches", &self.child_matches)
+            .finish()
+    }
 }
 
 impl Default for MatchResult {
@@ -127,6 +155,7 @@ impl Default for MatchResult {
             matched_class: None,
             insert_segments: vec![],
             child_matches: vec![],
+            node_count_memo: NodeCountMemo::default(),
         }
     }
 }
@@ -192,6 +221,7 @@ impl MatchResult {
                             matched_class,
                             child_matches: owned.child_matches,
                             insert_segments: owned.insert_segments,
+                            node_count_memo: Default::default(),
                         };
                     }
                     Err(shared) => {
@@ -200,6 +230,7 @@ impl MatchResult {
                             matched_class,
                             child_matches: shared.child_matches.clone(),
                             insert_segments: shared.insert_segments.clone(),
+                            node_count_memo: Default::default(),
                         };
                     }
                 }
@@ -262,6 +293,7 @@ impl MatchResult {
             matched_class,
             child_matches: children,
             insert_segments,
+            node_count_memo: Default::default(),
         }
     }
 
@@ -321,15 +353,21 @@ impl MatchResult {
 
     /// Count the number of materialized nodes implied by this match tree.
     pub fn node_count(&self) -> usize {
+        let memo = self.node_count_memo.0.load(Ordering::Relaxed);
+        if memo != 0 {
+            return memo - 1;
+        }
         let class_count = usize::from(self.matched_class.is_some());
         let insert_count = self.insert_segments.len();
-        class_count
+        let count = class_count
             + insert_count
             + self
                 .child_matches
                 .iter()
                 .map(|child| child.node_count())
-                .sum::<usize>()
+                .sum::<usize>();
+        self.node_count_memo.0.store(count + 1, Ordering::Relaxed);
+        count
     }
 
     /// Combine another sequential match onto this one.
@@ -388,6 +426,7 @@ impl MatchResult {
             matched_class: None,
             insert_segments,
             child_matches,
+            node_count_memo: Default::default(),
         })
     }
 
@@ -425,6 +464,7 @@ impl MatchResult {
                 matched_class: Some(outer_class),
                 insert_segments,
                 child_matches: vec![Arc::new(self)],
+                node_count_memo: Default::default(),
             }
         } else {
             // No current class, flatten children into new wrapper.
@@ -436,6 +476,7 @@ impl MatchResult {
                 matched_class: Some(outer_class),
                 insert_segments: new_insert_segments,
                 child_matches: self.child_matches,
+                node_count_memo: Default::default(),
             }
         }
     }
@@ -444,7 +485,7 @@ impl MatchResult {
     ///
     /// This is where materialization happens - converting the match description
     /// into the actual nested Node structure.
-    pub fn apply(self, tokens: &[Token]) -> Vec<Node> {
+    pub fn apply(mut self, tokens: &[Token]) -> Vec<Node> {
         // DEBUG: Log apply() entry for all named segments
         #[cfg(feature = "verbose-debug")]
         if let Some(ref class) = self.matched_class {
@@ -475,34 +516,30 @@ impl MatchResult {
             return result;
         }
 
-        // Build a map of positions to things to insert/apply
-        let mut trigger_map: HashMap<usize, Vec<TriggerItem>> = HashMap::new();
-
-        // Add meta segments
+        // The things to insert or apply, in position order: at one position,
+        // the metas (in insert order), then the child matches (in order).
+        // A sorted list, not a hash map of lists (S3 T16). The child matches
+        // move out of self, so that a child that is not shared is not copied.
+        let has_child_matches = !self.child_matches.is_empty();
+        let mut triggers: Vec<(usize, TriggerItem)> =
+            Vec::with_capacity(self.insert_segments.len() + self.child_matches.len());
         for (idx, meta_type) in &self.insert_segments {
-            trigger_map
-                .entry(*idx)
-                .or_default()
-                .push(TriggerItem::Meta(*meta_type));
+            triggers.push((*idx, TriggerItem::Meta(*meta_type)));
         }
-
-        // Add child matches — store Arc directly, avoid deep clone
-        for child_rc in &self.child_matches {
-            trigger_map
-                .entry(child_rc.matched_slice.start)
-                .or_default()
-                .push(TriggerItem::ChildMatch(Arc::clone(child_rc)));
+        for child_rc in std::mem::take(&mut self.child_matches) {
+            triggers.push((
+                child_rc.matched_slice.start,
+                TriggerItem::ChildMatch(child_rc),
+            ));
         }
+        triggers.sort_by_key(|(pos, _)| *pos);
 
         // Walk through the slice, processing triggers at each position
         let mut result_nodes: Vec<Node> = vec![];
         let mut current_idx = self.matched_slice.start;
 
-        // Get sorted trigger positions
-        let mut positions: Vec<usize> = trigger_map.keys().copied().collect();
-        positions.sort();
-
-        for pos in positions {
+        let mut triggers = triggers.into_iter().peekable();
+        while let Some(&(pos, _)) = triggers.peek() {
             // PYTHON PARITY: Fill gap with all tokens between child matches.
             // Meta tokens become Node::Meta, non-meta become Node::Raw.
             // This matches Python's `result_segments += segments[max_idx:idx]`
@@ -521,24 +558,22 @@ impl MatchResult {
                 );
             }
 
-            // Process triggers at this position — remove from map to take ownership
-            if let Some(triggers) = trigger_map.remove(&pos) {
-                for trigger in triggers {
-                    match trigger {
-                        TriggerItem::Meta(meta_type) => {
-                            let pos_marker = get_point_pos_at_token_idx(tokens, pos);
-                            result_nodes.push(meta_to_node(&meta_type, pos_marker));
-                        }
-                        TriggerItem::ChildMatch(child_arc) => {
-                            let end = child_arc.matched_slice.end;
-                            // try_unwrap avoids a deep clone when refcount==1
-                            let child_owned =
-                                Arc::try_unwrap(child_arc).unwrap_or_else(|arc| (*arc).clone());
-                            let child_node = child_owned.apply(tokens);
-                            // Only add non-empty nodes
-                            result_nodes.extend(child_node);
-                            current_idx = end;
-                        }
+            // Process the triggers at this position
+            while let Some((_, trigger)) = triggers.next_if(|(p, _)| *p == pos) {
+                match trigger {
+                    TriggerItem::Meta(meta_type) => {
+                        let pos_marker = get_point_pos_at_token_idx(tokens, pos);
+                        result_nodes.push(meta_to_node(&meta_type, pos_marker));
+                    }
+                    TriggerItem::ChildMatch(child_arc) => {
+                        let end = child_arc.matched_slice.end;
+                        // try_unwrap avoids a deep clone when refcount==1
+                        let child_owned =
+                            Arc::try_unwrap(child_arc).unwrap_or_else(|arc| (*arc).clone());
+                        let child_node = child_owned.apply(tokens);
+                        // Only add non-empty nodes
+                        result_nodes.extend(child_node);
+                        current_idx = end;
                     }
                 }
             }
@@ -572,7 +607,7 @@ impl MatchResult {
             // This path fires for ALL single-token base parser matches (no
             // hardcoded allowlist) so that every parser-assigned type gets
             // correct class_types from the codegen-provided raw_class hierarchy.
-            if self.child_matches.is_empty()
+            if !has_child_matches
                 && self.insert_segments.is_empty()
                 && self.matched_slice.end == self.matched_slice.start + 1
                 && result_nodes.len() == 1
@@ -674,6 +709,7 @@ impl MatchResult {
             matched_class: Some(MatchedClass::root()),
             insert_segments: vec![],
             child_matches: vec![Arc::new(self)],
+            node_count_memo: Default::default(),
         };
         let root_nodes = file_mr.apply(tokens);
         if root_nodes.len() > 1 {

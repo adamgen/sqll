@@ -4,9 +4,12 @@
 // commit 0348222a3bcdb0226563f7349c5a39beb0641955.
 // Copyright (c) 2018-2026 Alan Cruickshank. MIT License: see
 // crates/LICENSE-sqlfluffrs.md. See THIRD_PARTY.md and crates/ported.json.
+// sqll changed this file. crates/ported.json gives the reason.
 
 use crate::parser::{
-    table_driven::frame::{TableFrameResult, TableParseFrame, TableParseFrameStack},
+    table_driven::frame::{
+        TableFrameResult, TableParseFrame, TableParseFrameData, TableParseFrameStack,
+    },
     AnyNumberOfState, FrameContext, FrameState, MatchResult, ParseError, Parser,
 };
 #[cfg(feature = "verbose-debug")]
@@ -206,7 +209,7 @@ impl Parser<'_> {
 
         // Create initial child frame for the first element candidate and
         // let the WaitingForChild handler iterate remaining candidates.
-        let child_frame = TableParseFrame::new_child(
+        let child_frame = TableParseFrameData::new_child(
             stack.frame_id_counter,
             first_element,
             start_pos,
@@ -333,7 +336,7 @@ impl Parser<'_> {
                     .expect("Expected AnyNumberOf context");
 
                 // Create and push child frame
-                let child_frame = TableParseFrame::new_child(
+                let child_frame = TableParseFrameData::new_child(
                     stack.frame_id_counter,
                     next_candidate,
                     ctx.working_idx,
@@ -503,7 +506,7 @@ impl Parser<'_> {
         ctx.reset_for_next_repetition(&repruned_children);
 
         let next_element = repruned_children[0];
-        let child_frame = TableParseFrame::new_child(
+        let child_frame = TableParseFrameData::new_child(
             stack.frame_id_counter,
             next_element,
             ctx.working_idx,

@@ -4,6 +4,7 @@
 // commit 0348222a3bcdb0226563f7349c5a39beb0641955.
 // Copyright (c) 2018-2026 Alan Cruickshank. MIT License: see
 // crates/LICENSE-sqlfluffrs.md. See THIRD_PARTY.md and crates/ported.json.
+// sqll changed this file. crates/ported.json gives the reason.
 
 #[cfg(feature = "verbose-debug")]
 use crate::vdebug;
@@ -12,7 +13,9 @@ use sqlfluffrs_types::{GrammarId, GrammarVariant};
 use std::sync::Arc;
 
 use crate::parser::{
-    table_driven::frame::{TableFrameResult, TableParseFrame, TableParseFrameStack},
+    table_driven::frame::{
+        TableFrameResult, TableParseFrame, TableParseFrameData, TableParseFrameStack,
+    },
     DelimitedPhase, DelimitedState, FrameContext, FrameState, MatchResult, ParseError, Parser,
 };
 
@@ -184,7 +187,7 @@ impl Parser<'_> {
             let FrameContext::Delimited(state) = &frame.context else {
                 unreachable!("Delimited context was just set");
             };
-            TableParseFrame::new_child(
+            TableParseFrameData::new_child(
                 stack.frame_id_counter,
                 elements_id,
                 start_pos,
@@ -426,7 +429,7 @@ impl Parser<'_> {
         // The delimiter should be matchable at the current position even if
         // max_idx was computed based on terminators. The delimiter itself
         // is filtered from terminators, so it should always be matchable.
-        let delimiter_frame = TableParseFrame::new_child(
+        let delimiter_frame = TableParseFrameData::new_child(
             stack.frame_id_counter,
             delimiter_id,
             delimiter_pos,
@@ -484,7 +487,7 @@ impl Parser<'_> {
                 let current_max_idx = *max_idx;
 
                 // Use child_terminators (excludes local terminators)
-                let element_frame = TableParseFrame::new_child(
+                let element_frame = TableParseFrameData::new_child(
                     stack.frame_id_counter,
                     elements_id,
                     *working_idx,
@@ -672,7 +675,7 @@ impl Parser<'_> {
             );
 
         // Use child_terminators (excludes local terminators)
-        let element_frame = TableParseFrame::new_child(
+        let element_frame = TableParseFrameData::new_child(
             stack.frame_id_counter,
             elements_id,
             *working_idx,
