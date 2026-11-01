@@ -20,7 +20,7 @@ use crate::vdebug;
 use std::borrow::Cow;
 use std::fmt::Display;
 use std::ops::Range;
-use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::atomic::{AtomicU8, AtomicUsize, Ordering};
 use std::sync::Arc;
 
 use crate::parser::types::{MetaType, Node, RawSegmentKwargs};
@@ -100,16 +100,25 @@ impl MatchedClass {
     }
 }
 
-/// The memo of [`MatchResult::node_count`]: 0 if not known, else the count
-/// plus 1 (S3 T16). The parser checks the node limit of each completed frame,
-/// so without the memo it counts each subtree again for each ancestor. A
-/// match result does not change after it is made, so the memo stays valid.
+/// The memos of [`MatchResult::node_count`] and
+/// [`MatchResult::contains_unparsable`]. node_count: 0 if not known, else the
+/// count plus 1 (S3 T16). The parser checks the node limit of each completed
+/// frame, so without the memo it counts each subtree again for each ancestor.
+/// unparsable: 0 if not known, 1 if false, 2 if true (S3 T17); OneOf compares
+/// its candidates with it. A match result does not change after it is made,
+/// so the memos stay valid.
 #[derive(Default)]
-pub struct NodeCountMemo(AtomicUsize);
+pub struct MatchMemo {
+    node_count: AtomicUsize,
+    unparsable: AtomicU8,
+}
 
-impl Clone for NodeCountMemo {
+impl Clone for MatchMemo {
     fn clone(&self) -> Self {
-        NodeCountMemo(AtomicUsize::new(self.0.load(Ordering::Relaxed)))
+        MatchMemo {
+            node_count: AtomicUsize::new(self.node_count.load(Ordering::Relaxed)),
+            unparsable: AtomicU8::new(self.unparsable.load(Ordering::Relaxed)),
+        }
     }
 }
 
@@ -133,7 +142,7 @@ pub struct MatchResult {
     /// Child matches (recursive structure using Rc for cheap sharing)
     pub child_matches: Vec<Arc<MatchResult>>,
 
-    pub(crate) node_count_memo: NodeCountMemo,
+    pub(crate) memo: MatchMemo,
 }
 
 // The derived format of the 4 match fields, without the memo.
@@ -155,7 +164,7 @@ impl Default for MatchResult {
             matched_class: None,
             insert_segments: vec![],
             child_matches: vec![],
-            node_count_memo: NodeCountMemo::default(),
+            memo: MatchMemo::default(),
         }
     }
 }
@@ -221,7 +230,7 @@ impl MatchResult {
                             matched_class,
                             child_matches: owned.child_matches,
                             insert_segments: owned.insert_segments,
-                            node_count_memo: Default::default(),
+                            memo: Default::default(),
                         };
                     }
                     Err(shared) => {
@@ -230,7 +239,7 @@ impl MatchResult {
                             matched_class,
                             child_matches: shared.child_matches.clone(),
                             insert_segments: shared.insert_segments.clone(),
-                            node_count_memo: Default::default(),
+                            memo: Default::default(),
                         };
                     }
                 }
@@ -293,7 +302,7 @@ impl MatchResult {
             matched_class,
             child_matches: children,
             insert_segments,
-            node_count_memo: Default::default(),
+            memo: Default::default(),
         }
     }
 
@@ -343,17 +352,25 @@ impl MatchResult {
 
     /// Check if this match or any children contain Unparsable
     pub fn contains_unparsable(&self) -> bool {
-        if let Some(ref class) = self.matched_class {
-            if class.is_unparsable() {
-                return true;
-            }
+        match self.memo.unparsable.load(Ordering::Relaxed) {
+            1 => return false,
+            2 => return true,
+            _ => {}
         }
-        self.child_matches.iter().any(|c| c.contains_unparsable())
+        let found = self
+            .matched_class
+            .as_ref()
+            .is_some_and(|class| class.is_unparsable())
+            || self.child_matches.iter().any(|c| c.contains_unparsable());
+        self.memo
+            .unparsable
+            .store(if found { 2 } else { 1 }, Ordering::Relaxed);
+        found
     }
 
     /// Count the number of materialized nodes implied by this match tree.
     pub fn node_count(&self) -> usize {
-        let memo = self.node_count_memo.0.load(Ordering::Relaxed);
+        let memo = self.memo.node_count.load(Ordering::Relaxed);
         if memo != 0 {
             return memo - 1;
         }
@@ -366,7 +383,7 @@ impl MatchResult {
                 .iter()
                 .map(|child| child.node_count())
                 .sum::<usize>();
-        self.node_count_memo.0.store(count + 1, Ordering::Relaxed);
+        self.memo.node_count.store(count + 1, Ordering::Relaxed);
         count
     }
 
@@ -426,7 +443,7 @@ impl MatchResult {
             matched_class: None,
             insert_segments,
             child_matches,
-            node_count_memo: Default::default(),
+            memo: Default::default(),
         })
     }
 
@@ -464,7 +481,7 @@ impl MatchResult {
                 matched_class: Some(outer_class),
                 insert_segments,
                 child_matches: vec![Arc::new(self)],
-                node_count_memo: Default::default(),
+                memo: Default::default(),
             }
         } else {
             // No current class, flatten children into new wrapper.
@@ -476,7 +493,7 @@ impl MatchResult {
                 matched_class: Some(outer_class),
                 insert_segments: new_insert_segments,
                 child_matches: self.child_matches,
-                node_count_memo: Default::default(),
+                memo: Default::default(),
             }
         }
     }
@@ -709,7 +726,7 @@ impl MatchResult {
             matched_class: Some(MatchedClass::root()),
             insert_segments: vec![],
             child_matches: vec![Arc::new(self)],
-            node_count_memo: Default::default(),
+            memo: Default::default(),
         };
         let root_nodes = file_mr.apply(tokens);
         if root_nodes.len() > 1 {
@@ -924,5 +941,26 @@ mod tests {
 
         assert!(m1.is_better_than(&m2));
         assert!(!m2.is_better_than(&m1));
+    }
+
+    // S3 T17: the memo gives the same answer as the scan, also for a clone.
+    #[test]
+    fn contains_unparsable_is_the_same_with_the_memo() {
+        let bad = Arc::new(MatchResult::with_error(1, 2, "x".to_string(), 1));
+        let good = Arc::new(MatchResult {
+            matched_slice: 0..1,
+            ..Default::default()
+        });
+        let parent = MatchResult {
+            matched_slice: 0..2,
+            child_matches: vec![Arc::clone(&good), bad],
+            ..Default::default()
+        };
+        for _ in 0..2 {
+            assert!(parent.contains_unparsable());
+            assert!(!good.contains_unparsable());
+        }
+        assert!(parent.clone().contains_unparsable());
+        assert!(!good.as_ref().clone().contains_unparsable());
     }
 }
