@@ -71,6 +71,9 @@ TASK_TITLES = {
     "T17b": "Parse speed, part 4b: close the gap",
     "T17c": "Parse speed, part 4c: close the gap",
 }
+# The rounds that close the gap: their report also lists the benchmarks
+# above the target and the worst ratio.
+CLOSE_THE_GAP = ("T17", "T17b", "T17c")
 SPEED_BY_BASE_FILE = RESULTS / "speed-by-base.json"
 TOOLS = ("sqll", "sqruff")
 COMMANDS = ("start", "parse")
@@ -1201,6 +1204,17 @@ def make_report(
         "sessions of this task, for information."
     )
     out["target"]["from"] = "results/s3/speed-profile.json, target.margin (T14)"
+    if task in CLOSE_THE_GAP:
+        # The T17 acceptance: the benchmarks that are not below the target,
+        # and the worst ratio.
+        out["target"]["above"] = sorted(
+            r["id"] for r in paired if not r["ratio"] < 1 / (1 + m)
+        )
+        worst_ratio = max(paired, key=lambda r: (r["ratio"], r["id"]))
+        out["target"]["worst"] = {
+            "id": worst_ratio["id"],
+            "ratio": worst_ratio["ratio"],
+        }
     out["change"] = change_from_t14(out, t14)
     return out
 

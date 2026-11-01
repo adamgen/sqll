@@ -8,8 +8,8 @@ from sqll_harness.paths import REPO_ROOT
 INDEX = (REPO_ROOT / "STATUS.md").read_text("utf8")
 STATUS = (REPO_ROOT / "status" / "S3.md").read_text("utf8")
 STATE = (
-    "Phase B: speed work continues (human owner, 2026-11-01): T17 next; the base"
-    " is sqlfluffrs (human owner, 2026-10-29)."
+    "Phase B: the speed target is reached (T17: 108 of 108 start and parse"
+    " benchmarks); T18 next; the base is sqlfluffrs (human owner, 2026-10-29)."
 )
 TASKS = (
     [f"T{i}" for i in range(10, 17)]

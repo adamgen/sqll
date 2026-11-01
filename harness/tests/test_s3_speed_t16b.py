@@ -196,7 +196,9 @@ def test_the_status_and_the_index_give_the_go_result():
             text
         )
         assert "Human owner decision after T16b (2026-11-01)" in STATUS
-        assert "speed work continues (human owner, 2026-11-01): T17 next" in row
+        # T17 reached the target (test_s3_speed_t17.py): the row gives that
+        # state, not the decision.
+        assert "T18 next" in row
         assert "human decision needed" not in row
     else:
         assert "**Go.**" in text
