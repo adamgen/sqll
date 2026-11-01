@@ -45,9 +45,15 @@ def test_the_index_row_has_the_phase_b_state():
     assert row.startswith(f"| S3 | S3 | {STATE} ")
     assert row.endswith(" | [status/S3.md](status/S3.md) |")
     assert "License: MIT (the human owner delegated the choice, 2026-11-01)." in row
-    # Both human decisions of 2026-11-01 are made (status/S3.md).
+    # Both human decisions of 2026-11-01 are made (status/S3.md). Only a
+    # no-go of the checkpoint T16b asks for a new human decision.
     assert "Open question" not in row
-    assert "human decision needed" not in row
+    t16b = json.loads(
+        (REPO_ROOT / "results" / "s3" / "speed" / "T16b.json").read_text("utf8")
+    )
+    asks = 1 if t16b["go"]["result"] == "no-go" else 0
+    assert row.count("human decision needed") == asks
+    assert row.count("T16b: the speed target is still not in reach") == asks
 
 
 def test_the_status_file_has_the_phase_b_state():
