@@ -14,6 +14,7 @@ them.
 | Command | Result |
 |---|---|
 | `sqll --version` | `sqll, version <crate version>+tables.<sha256 of crates/sqll_dialects/generated.json>` |
+| `sqll --license` | The sqll license (MIT) and the notices of the code in the binary (THIRD_PARTY.md, "sqll") |
 | `sqll version [--build]` | The version, or the build record (JSON): version, `tables_sha256`, `source_sha256`, `source_files` |
 | `sqll parse --dialect D [-f json] [-c] [-m] [--max-parse-depth N] [--timings] PATH` | The record of `sqlfluff parse -f json` |
 | `sqll lint`, `sqll fix` | `Error: unsupported: lint` (or `fix`), exit code 2 (rules come in S5) |
@@ -165,8 +166,8 @@ check the binary (`tools.check_sqll`). The check fails if:
 - the binary does not exist;
 - its version is not that of the worktree (`expected_version`);
 - its source hash is not that of the worktree (a stale build). The hash is
-  the sha256 of `Cargo.toml`, `Cargo.lock`, `rust-toolchain.toml`, and each
-  file under `crates/`: for each file, sorted by path, the path, a NUL byte,
+  the sha256 of `Cargo.toml`, `Cargo.lock`, `rust-toolchain.toml`,
+  `LICENSE`, and each file under `crates/`: for each file, sorted by path, the path, a NUL byte,
   the size, a NUL byte, and the bytes. `crates/sqll/build.rs` and
   `source_hash` compute it the same way;
 - `readelf -d` cannot read it, or it needs `libpython`;

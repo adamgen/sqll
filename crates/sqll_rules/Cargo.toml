@@ -11,6 +11,7 @@ name = "sqll_rules"
 version.workspace = true
 edition = "2021"
 rust-version.workspace = true
+license = "MIT"
 publish = false
 
 # Rust-native lint rules. Detection runs over the parse arena's public read API

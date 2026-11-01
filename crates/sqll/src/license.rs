@@ -1,0 +1,71 @@
+//! The text of "sqll --license" (S3 T19): the license of sqll and the
+//! notices of the code in the sqll binary. THIRD_PARTY.md gives the sources.
+
+/// The sqll license (MIT).
+pub const SQLL: &str = include_str!("../../../LICENSE");
+/// The sqlfluff MIT license: the ported sqlfluffrs crates and the generated
+/// dialect tables.
+pub const SQLFLUFF: &str = include_str!("../../LICENSE-sqlfluffrs.md");
+/// The CPython license of the normpath port (main.rs).
+pub const CPYTHON: &str = include_str!("../../LICENSE-cpython.txt");
+/// The MIT notice of the Rust project (the Rust standard library).
+pub const RUST: &str = include_str!("../../LICENSE-rust-MIT.txt");
+/// The tag of rust-lang/rust that RUST comes from: the toolchain of
+/// rust-toolchain.toml.
+pub const RUST_TAG: &str = "1.97.0";
+/// The rustc that built the binary ("rustc -V").
+pub const RUSTC: &str = env!("SQLL_RUSTC_VERSION");
+/// The dependency notice list that build.rs makes from cargo metadata.
+pub const DEPENDENCIES: &str = include_str!(concat!(env!("OUT_DIR"), "/dependencies.txt"));
+
+fn section(out: &mut String, title: &str, about: &str, text: &str) {
+    out.push_str(&format!("\n==== {title} ====\n\n"));
+    if !about.is_empty() {
+        out.push_str(about);
+        out.push_str("\n\n");
+    }
+    out.push_str(text.trim_end());
+    out.push('\n');
+}
+
+pub fn text(version: &str) -> String {
+    let mut out = format!(
+        "sqll, version {version}\n\nsqll is free software under the MIT license (below). \
+         The sqll binary also contains the code of other projects. Their \
+         licenses and notices follow.\n"
+    );
+    section(&mut out, "sqll", "", SQLL);
+    section(
+        &mut out,
+        "sqlfluff",
+        "The sqll binary contains a port of the sqlfluffrs crates of sqlfluff and the \
+         dialect tables that the sqlfluff generator makes.\n\
+         Source: https://github.com/sqlfluff/sqlfluff, tag 4.4.0, commit \
+         0348222a3bcdb0226563f7349c5a39beb0641955.\nLicense: MIT",
+        SQLFLUFF,
+    );
+    section(
+        &mut out,
+        "CPython",
+        "The sqll binary contains a port of normpath of Lib/posixpath.py of CPython.\n\
+         Source: https://github.com/python/cpython, tag v3.13.16, commit \
+         cbc944f4bc59639a444dd971c737788ba2283a91.\nLicense: PSF-2.0\n\
+         Changes: Rust in place of Python; only str paths; the root slashes are \
+         found in the function, not with splitroot.",
+        CPYTHON,
+    );
+    section(
+        &mut out,
+        "Rust standard library",
+        &format!(
+            "The sqll binary contains parts of the Rust standard library ({RUSTC}).\n\
+             Source: https://github.com/rust-lang/rust, tag {RUST_TAG}.\n\
+             License: MIT OR Apache-2.0\nChosen: MIT\n\
+             The file COPYRIGHT of that tag gives the notices of the parts with \
+             other licenses. The MIT notice (LICENSE-MIT of that tag):"
+        ),
+        RUST,
+    );
+    section(&mut out, "Rust crates", "", DEPENDENCIES);
+    out
+}
