@@ -4,6 +4,7 @@
 // commit 0348222a3bcdb0226563f7349c5a39beb0641955.
 // Copyright (c) 2018-2026 Alan Cruickshank. MIT License: see
 // crates/LICENSE-sqlfluffrs.md. See THIRD_PARTY.md and crates/ported.json.
+// sqll changed this file. crates/ported.json gives the reason.
 
 use smallvec::SmallVec;
 use sqlfluffrs_types::{GrammarId, GrammarVariant, ParseMode};
@@ -295,13 +296,18 @@ impl TableParseFrameStack {
     // Add more helper methods as needed for dispatch or state management
 }
 
+/// A parse frame on the heap. The parser moves each frame several times for
+/// each step (the stack, the handlers, the results); a box makes each move
+/// a pointer copy, not a copy of the whole frame (S3 T16).
+pub type TableParseFrame = Box<TableParseFrameData>;
+
 /// A parse frame represents a single parsing task in the iterative parser.
 ///
 /// Instead of using recursion, the parser maintains a stack of frames,
 /// where each frame represents parsing a particular grammar element at a
 /// specific position in the token stream.
 #[derive(Debug, Clone)]
-pub struct TableParseFrame {
+pub struct TableParseFrameData {
     /// Unique ID for this frame
     pub frame_id: usize,
     /// Table-driven grammar ID (for gradual migration to table-based parsing)
@@ -340,7 +346,7 @@ pub struct TableParseFrame {
     pub parse_mode_override: Option<ParseMode>,
 }
 
-impl TableParseFrame {
+impl TableParseFrameData {
     /// Create a new table-driven child frame
     pub fn new_child(
         frame_id: usize,
@@ -348,8 +354,8 @@ impl TableParseFrame {
         pos: usize,
         table_terminators: &[GrammarId],
         parent_max_idx: Option<usize>,
-    ) -> Self {
-        TableParseFrame {
+    ) -> TableParseFrame {
+        Box::new(TableParseFrameData {
             frame_id,
             grammar_id,
             pos,
@@ -361,7 +367,7 @@ impl TableParseFrame {
             end_pos: None,
             element_key: None,
             parse_mode_override: None,
-        }
+        })
     }
 
     fn transition_to_combining(&mut self, end_pos: Option<usize>) {

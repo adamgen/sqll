@@ -4,9 +4,12 @@
 // commit 0348222a3bcdb0226563f7349c5a39beb0641955.
 // Copyright (c) 2018-2026 Alan Cruickshank. MIT License: see
 // crates/LICENSE-sqlfluffrs.md. See THIRD_PARTY.md and crates/ported.json.
+// sqll changed this file. crates/ported.json gives the reason.
 
 use crate::parser::{
-    table_driven::frame::{TableFrameResult, TableParseFrame, TableParseFrameStack},
+    table_driven::frame::{
+        TableFrameResult, TableParseFrame, TableParseFrameData, TableParseFrameStack,
+    },
     table_driven::parity,
     FrameContext, FrameState, MatchResult, OneOfState, ParseError, Parser,
 };
@@ -176,7 +179,7 @@ impl Parser<'_> {
         }
 
         // Create table-driven child frame (copy terminators from frame)
-        let child_frame = TableParseFrame::new_child(
+        let child_frame = TableParseFrameData::new_child(
             stack.frame_id_counter,
             first_child,
             post_skip_pos,
@@ -471,7 +474,7 @@ impl Parser<'_> {
                 frame.state = FrameState::WaitingForChild { child_index: 0 };
 
                 // Build child frame using same table_terminators as parent
-                let child_frame = TableParseFrame::new_child(
+                let child_frame = TableParseFrameData::new_child(
                     stack.frame_id_counter,
                     next_child,
                     *post_skip_pos,

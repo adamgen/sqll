@@ -99,7 +99,7 @@
    "path": "crates/sqll_parser/src/parser/core.rs",
    "source": "sqlfluffrs/sqlfluffrs_parser/src/parser/core.rs",
    "source_sha256": "4cc29db5d877491584d8286653851208631365c402f746fac32f67206a981ea6",
-   "changed": "Parser has the field limit_error: the first parser limit error (iterations, depth, or nodes) of the parse. check_parse_subtree_limit records its error there, and root_parse and call_rule_as_root clear it at the start. Parser has the field current_depth: the parse depth of the frame that the innermost parse loop processes. See the reason of iterative.rs."
+   "changed": "Parser has the field limit_error: the first parser limit error (iterations, depth, or nodes) of the parse. check_parse_subtree_limit records its error there, and root_parse and call_rule_as_root clear it at the start. Parser has the field current_depth: the parse depth of the frame that the innermost parse loop processes. See the reason of iterative.rs. S3 T16 (parse speed, copy): each parse frame is in a box (TableParseFrame is Box<TableParseFrameData>), so that the stack and the handlers move a pointer, not the 312 bytes of the frame; new_child gives the box. The parse does not change."
   },
   {
    "path": "crates/sqll_parser/src/parser/frame.rs",
@@ -129,13 +129,13 @@
    "path": "crates/sqll_parser/src/parser/table_driven/anynumberof.rs",
    "source": "sqlfluffrs/sqlfluffrs_parser/src/parser/table_driven/anynumberof.rs",
    "source_sha256": "f6857d62e9f2037fd68847e1f18fdc7ad80c48c46f6c37ba82a1efe963d55705",
-   "changed": null
+   "changed": "S3 T16 (parse speed, copy): each parse frame is in a box (TableParseFrame is Box<TableParseFrameData>), so that the stack and the handlers move a pointer, not the 312 bytes of the frame; new_child gives the box. The parse does not change."
   },
   {
    "path": "crates/sqll_parser/src/parser/table_driven/bracketed.rs",
    "source": "sqlfluffrs/sqlfluffrs_parser/src/parser/table_driven/bracketed.rs",
    "source_sha256": "bc63bbe1b6870d66618e211097ad80fdf127b034a2fc03f8f50ae75292e5ba30",
-   "changed": null
+   "changed": "S3 T16 (parse speed, copy): each parse frame is in a box (TableParseFrame is Box<TableParseFrameData>), so that the stack and the handlers move a pointer, not the 312 bytes of the frame; new_child gives the box. The parse does not change."
   },
   {
    "path": "crates/sqll_parser/src/parser/table_driven/contexts.rs",
@@ -147,19 +147,19 @@
    "path": "crates/sqll_parser/src/parser/table_driven/delimited.rs",
    "source": "sqlfluffrs/sqlfluffrs_parser/src/parser/table_driven/delimited.rs",
    "source_sha256": "08b0a566373e77b47d0d455177d4a8072e2d7f6fac69524b15294feb23cb71f7",
-   "changed": null
+   "changed": "S3 T16 (parse speed, copy): each parse frame is in a box (TableParseFrame is Box<TableParseFrameData>), so that the stack and the handlers move a pointer, not the 312 bytes of the frame; new_child gives the box. The parse does not change."
   },
   {
    "path": "crates/sqll_parser/src/parser/table_driven/frame.rs",
    "source": "sqlfluffrs/sqlfluffrs_parser/src/parser/table_driven/frame.rs",
    "source_sha256": "bb50b9361179f1553e83ad4dc457def632848d925e48f0aa22f51d0e23ec20ee",
-   "changed": null
+   "changed": "S3 T16 (parse speed, copy): each parse frame is in a box (TableParseFrame is Box<TableParseFrameData>), so that the stack and the handlers move a pointer, not the 312 bytes of the frame; new_child gives the box. The parse does not change."
   },
   {
    "path": "crates/sqll_parser/src/parser/table_driven/iterative.rs",
    "source": "sqlfluffrs/sqlfluffrs_parser/src/parser/table_driven/iterative.rs",
    "source_sha256": "ec21b036c886d2f73d108bf9bb64dc5e9ad6769661a0cfba48d180dd2a0c1d1a",
-   "changed": "Above the iteration limit (rust_parser_max_iterations), the parser returns a ParseError, not a panic. Each sub-parse (the main parse and each probe) has its own count of iterations. A probe sub-parse starts at the parse depth of the frame that starts it (Parser.current_depth, core.rs), so max_parse_depth also limits nesting through probes (for example bracketed joins), and thus the native stack. In the source, each probe starts at depth 0, and about 36000 nested bracketed joins (612 KB) overflow the stack of the sqll command thread (256 MiB). Each parse loop stops with the first parser limit error (iterations, depth, or nodes) of the parse (Parser.limit_error, core.rs), because a probe for a terminator or a delimiter drops its error and counts it as no match. The diagnostic text (cache statistics and the tokens near the position) is only in the feature \"verbose-debug\", and the token lines go to stderr. That feature does not build: a borrow error in core.rs (about line 1566) that is also in the source. Thus \"sqll parse\" gives a parse error with exit code 1, and stdout has only the JSON record. sqlfluff with the Rust parser stops with a PanicException and exit code 1."
+   "changed": "Above the iteration limit (rust_parser_max_iterations), the parser returns a ParseError, not a panic. Each sub-parse (the main parse and each probe) has its own count of iterations. A probe sub-parse starts at the parse depth of the frame that starts it (Parser.current_depth, core.rs), so max_parse_depth also limits nesting through probes (for example bracketed joins), and thus the native stack. In the source, each probe starts at depth 0, and about 36000 nested bracketed joins (612 KB) overflow the stack of the sqll command thread (256 MiB). Each parse loop stops with the first parser limit error (iterations, depth, or nodes) of the parse (Parser.limit_error, core.rs), because a probe for a terminator or a delimiter drops its error and counts it as no match. The diagnostic text (cache statistics and the tokens near the position) is only in the feature \"verbose-debug\", and the token lines go to stderr. That feature does not build: a borrow error in core.rs (about line 1566) that is also in the source. Thus \"sqll parse\" gives a parse error with exit code 1, and stdout has only the JSON record. sqlfluff with the Rust parser stops with a PanicException and exit code 1. S3 T16 (parse speed, copy): each parse frame is in a box (TableParseFrame is Box<TableParseFrameData>), so that the stack and the handlers move a pointer, not the 312 bytes of the frame; new_child gives the box. The parse does not change."
   },
   {
    "path": "crates/sqll_parser/src/parser/table_driven/match_algorithms.rs",
@@ -177,7 +177,7 @@
    "path": "crates/sqll_parser/src/parser/table_driven/oneof.rs",
    "source": "sqlfluffrs/sqlfluffrs_parser/src/parser/table_driven/oneof.rs",
    "source_sha256": "538d4e918da50a1420fa624552230df040c9ef715a37cb49b1913dead70f2f5a",
-   "changed": null
+   "changed": "S3 T16 (parse speed, copy): each parse frame is in a box (TableParseFrame is Box<TableParseFrameData>), so that the stack and the handlers move a pointer, not the 312 bytes of the frame; new_child gives the box. The parse does not change."
   },
   {
    "path": "crates/sqll_parser/src/parser/table_driven/parity.rs",
@@ -189,13 +189,13 @@
    "path": "crates/sqll_parser/src/parser/table_driven/ref_grammar.rs",
    "source": "sqlfluffrs/sqlfluffrs_parser/src/parser/table_driven/ref_grammar.rs",
    "source_sha256": "feb60951a6b07d825f6d1546d6138ea1bbd32289f5affb44538cdb74bd240ef8",
-   "changed": null
+   "changed": "S3 T16 (parse speed, copy): each parse frame is in a box (TableParseFrame is Box<TableParseFrameData>), so that the stack and the handlers move a pointer, not the 312 bytes of the frame; new_child gives the box. The parse does not change."
   },
   {
    "path": "crates/sqll_parser/src/parser/table_driven/sequence.rs",
    "source": "sqlfluffrs/sqlfluffrs_parser/src/parser/table_driven/sequence.rs",
    "source_sha256": "956f4e573a6645e667191f7329d1bcfe81f0b7d3ca3faa935b8640e716a03f1f",
-   "changed": null
+   "changed": "S3 T16 (parse speed, copy): each parse frame is in a box (TableParseFrame is Box<TableParseFrameData>), so that the stack and the handlers move a pointer, not the 312 bytes of the frame; new_child gives the box. The parse does not change."
   },
   {
    "path": "crates/sqll_parser/src/parser/types.rs",

@@ -19,7 +19,9 @@ use std::sync::Arc;
 
 use crate::parser::{
     cache::TableCacheKey,
-    table_driven::frame::{TableFrameResult, TableParseFrame, TableParseFrameStack},
+    table_driven::frame::{
+        TableFrameResult, TableParseFrame, TableParseFrameData, TableParseFrameStack,
+    },
     table_driven::parity,
     FrameContext, FrameState, MatchResult, Node, ParseError, Parser,
 };
@@ -138,7 +140,7 @@ impl Parser<'_> {
         let mut stack = TableParseFrameStack::new();
         let initial_frame_id = stack.frame_id_counter;
         stack.frame_id_counter += 1;
-        stack.push(TableParseFrame {
+        stack.push(Box::new(TableParseFrameData {
             frame_id: initial_frame_id,
             grammar_id: grammar,
             pos: self.pos,
@@ -150,7 +152,7 @@ impl Parser<'_> {
             end_pos: None,
             element_key: None,
             parse_mode_override: None, // No override for top-level frame
-        });
+        }));
 
         let mut iteration_count = 0_usize;
         let max_iterations = self.max_parser_iterations;

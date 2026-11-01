@@ -17,7 +17,7 @@ use crate::vdebug;
 use std::borrow::Cow;
 use std::sync::Arc;
 
-use crate::parser::table_driven::frame::{TableFrameResult, TableParseFrame};
+use crate::parser::table_driven::frame::{TableFrameResult, TableParseFrame, TableParseFrameData};
 use crate::parser::FrameState;
 use crate::parser::{MatchResult, MetaSegment};
 
@@ -1701,7 +1701,8 @@ impl<'a> Parser<'a> {
         parent_max_idx: Option<usize>,
     ) -> Result<MatchResult, ParseError> {
         // Create a temporary table-driven frame to use the initial handler and then extract MatchResult
-        let frame = TableParseFrame::new_child(0, grammar_id, self.pos, parent_terminators, None);
+        let frame =
+            TableParseFrameData::new_child(0, grammar_id, self.pos, parent_terminators, None);
 
         match self.handle_anything_initial(frame, grammar_id, parent_terminators, parent_max_idx)? {
             TableFrameResult::Push(f) => {
