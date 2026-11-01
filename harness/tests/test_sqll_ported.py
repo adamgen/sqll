@@ -217,6 +217,7 @@ def test_each_file_of_the_source_crates_is_ported_or_excluded():
         "crates/sqll_parser/src/parser/table_driven/delimited.rs",
         "crates/sqll_parser/src/parser/table_driven/frame.rs",
         "crates/sqll_parser/src/parser/table_driven/iterative.rs",
+        "crates/sqll_parser/src/parser/table_driven/match_algorithms.rs",
         "crates/sqll_parser/src/parser/table_driven/oneof.rs",
         "crates/sqll_parser/src/parser/table_driven/ref_grammar.rs",
         "crates/sqll_parser/src/parser/table_driven/sequence.rs",

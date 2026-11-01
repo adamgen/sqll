@@ -4,6 +4,7 @@
 // commit 0348222a3bcdb0226563f7349c5a39beb0641955.
 // Copyright (c) 2018-2026 Alan Cruickshank. MIT License: see
 // crates/LICENSE-sqlfluffrs.md. See THIRD_PARTY.md and crates/ported.json.
+// sqll changed this file. crates/ported.json gives the reason.
 
 use sqlfluffrs_types::{BracketPairSet, GrammarId, GrammarVariant, Token};
 
@@ -149,6 +150,34 @@ fn find_mismatched_closing_bracket(
 }
 
 impl Parser<'_> {
+    /// True if the simple hint of `term_id` shows that it cannot match at
+    /// `i`: the hint matches no token from `i` to the first code token at or
+    /// after `i`. A match at `i` starts with one of these tokens (a match can
+    /// skip only non-code tokens). A grammar with no hint can always match.
+    /// Python's `next_match` also tries only the matchers that the simple
+    /// hints allow (S3 T17).
+    pub(crate) fn terminator_hint_excludes(&self, term_id: GrammarId, i: usize) -> bool {
+        let tables = self.grammar_ctx.tables();
+        let Some(hint) = tables.get_simple_hint_for_grammar(term_id) else {
+            return false;
+        };
+        if hint.is_empty() {
+            return false;
+        }
+        let mut j = i;
+        while j < self.tokens.len() {
+            let t = &self.tokens[j];
+            if tables.hint_can_match(hint, t.raw_upper(), &t.instance_types, &t.class_types) {
+                return false;
+            }
+            if t.is_code() {
+                return true;
+            }
+            j += 1;
+        }
+        true
+    }
+
     pub(crate) fn try_match_grammar(
         &mut self,
         grammar_id: GrammarId,
@@ -331,8 +360,10 @@ impl Parser<'_> {
                     hit
                 } else {
                     // Frame-free for terminal terminators (see
-                    // terminator_matches_at); full sub-parse otherwise.
-                    let result = self.terminator_matches_at(term_id, i, terminators);
+                    // terminator_matches_at); full sub-parse otherwise. No
+                    // sub-parse if the simple hint excludes a match (S3 T17).
+                    let result = !self.terminator_hint_excludes(term_id, i)
+                        && self.terminator_matches_at(term_id, i, terminators);
                     self.terminator_match_cache.insert(cache_key, result);
                     result
                 };
@@ -373,5 +404,44 @@ impl Parser<'_> {
             max_idx
         );
         Ok((start_idx, max_idx))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::str::FromStr;
+
+    use sqlfluffrs_dialects::Dialect;
+    use sqlfluffrs_lexer::{LexInput, Lexer};
+
+    use crate::parser::Parser;
+
+    // S3 T17: the simple hint of FromClauseSegment ("FROM") excludes a match
+    // only where no token from the position to the next code token is FROM.
+    #[test]
+    fn a_simple_hint_excludes_only_the_positions_where_the_hint_cannot_match() {
+        let dialect = Dialect::from_str("ansi").unwrap();
+        let lexer = Lexer::new(None, dialect.get_lexers().clone())
+            .with_bracket_pairs(dialect.get_bracket_pairs().clone());
+        let (tokens, errors) = lexer.lex(LexInput::String("SELECT a\n  FROM b\n".into()), true);
+        assert!(errors.is_empty());
+        let raws: Vec<&str> = tokens.iter().map(|t| t.raw()).collect();
+        assert_eq!(raws, ["SELECT", " ", "a", "\n", "  ", "FROM", " ", "b", "\n", ""]);
+        let from = dialect
+            .get_segment_grammar("FromClauseSegment")
+            .unwrap()
+            .grammar_id;
+        let parser = Parser::new(&tokens, dialect, Default::default());
+        let hint = parser.grammar_ctx.tables().get_simple_hint_for_grammar(from);
+        assert!(hint.is_some_and(|h| !h.is_empty()));
+        let excluded: Vec<bool> = (0..tokens.len())
+            .map(|i| parser.terminator_hint_excludes(from, i))
+            .collect();
+        // The whitespace and newline before FROM are not excluded: a match
+        // there can skip them.
+        assert_eq!(
+            excluded,
+            [true, true, true, false, false, false, true, true, true, true]
+        );
     }
 }
