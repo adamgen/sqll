@@ -33,7 +33,7 @@
    "path": "Cargo.toml",
    "source": "sqlfluffrs/Cargo.toml",
    "source_sha256": "b732205a4911557a6a5ba76b40e4a6557e88166523450b5b01731760b337a3a8",
-   "changed": "Only the workspace parts are kept: the members are the 4 ported crates in crates/ and the new sqll binary crate (crates/sqll), the workspace dependencies that they use, and the release profile. The workspace version is the sqll version. New: serde_json and sha2 (for build.rs of sqll_dialects), and opt-level 3 for sha2. No root package, no feature \"python\", no pyo3."
+   "changed": "Only the workspace parts are kept: the members are the 4 ported crates in crates/ and the new sqll binary crate (crates/sqll), the workspace dependencies that they use, and the release profile. The workspace version is the sqll version. New: serde_json and sha2 (for build.rs of sqll_dialects), and opt-level 3 for sha2; regex-syntax (S3 T15, the match prefixes of the lexer regexes in sqll_types matcher.rs), the version that regex uses. No root package, no feature \"python\", no pyo3."
   },
   {
    "path": "crates/sqll_dialects/Cargo.toml",
@@ -207,7 +207,7 @@
    "path": "crates/sqll_types/Cargo.toml",
    "source": "sqlfluffrs/sqlfluffrs_types/Cargo.toml",
    "source_sha256": "771f51011d9f23394d197bb2d07178f001bfb1a0637f1b70534a9ab07f66ed11",
-   "changed": "The package name is sqll_*, and the workspace gives the version. The dependencies keep the sqlfluffrs crate names (\"package\" key), so that the ported code and the generated tables do not change. No feature \"python\", no pyo3, and no sqlfluffrs_python."
+   "changed": "The package name is sqll_*, and the workspace gives the version. The dependencies keep the sqlfluffrs crate names (\"package\" key), so that the ported code and the generated tables do not change. No feature \"python\", no pyo3, and no sqlfluffrs_python. New dependency: regex-syntax (S3 T15, matcher.rs)."
   },
   {
    "path": "crates/sqll_types/src/config/fluffconfig.rs",
@@ -261,7 +261,7 @@
    "path": "crates/sqll_types/src/matcher.rs",
    "source": "sqlfluffrs/sqlfluffrs_types/src/matcher.rs",
    "source_sha256": "ef3b950c7f3e6546bcace88fa5e05e455363d75f13753315974674108d06953d",
-   "changed": null
+   "changed": "S3 T15 (parse speed, the fixed cost of each run): a lexer regex compiles at its first use, not when the dialect makes its matchers (LexerMode::Lazy and LazyRegex; the clones of a matcher share the compiled regex). The compile is that of the source: the regex crate, then fancy_regex, then the fallback function. Before the compile, scan_match also checks the match prefixes of the pattern (match_prefixes: the literal extraction of regex_syntax); if the input does not start with one of them, no match can start there, so the regex does not compile and the result is None, as in the source. A pattern with a fallback function compiles before the precheck, because the source does not apply the precheck to the function. A pattern that does not compile and has no fallback panics at its first use, not when the matchers are made (a test compiles each pattern of each dialect)."
   },
   {
    "path": "crates/sqll_types/src/parser.rs",
@@ -426,7 +426,7 @@
   },
   {
    "path": "crates/sqll/src/output.rs",
-   "reason": "The JSON output of \"sqlfluff parse -f json\" (the separators and escapes of Python json.dumps). New sqll code."
+   "reason": "The JSON output of \"sqlfluff parse -f json\" (the separators and escapes of Python json.dumps). Since S3 T15 it writes the JSON from the parse tree, with no record value between them; its tests compare it with the record of Node::as_record. New sqll code."
   },
   {
    "path": "crates/sqll/src/parse.rs",
@@ -434,11 +434,15 @@
   },
   {
    "path": "crates/sqll/src/timings.rs",
-   "reason": "The phase times of \"sqll parse --timings\" (S3 T14). New sqll code."
+   "reason": "The phase times of \"sqll parse --timings\" (S3 T14; T15 changed the record, write, and free phases). New sqll code."
   },
   {
    "path": "crates/sqll/tests/cli.rs",
    "reason": "Tests of the sqll command line on sqlfluff 4.4.0 dialect fixtures (read in place in the submodule). Parts are a port of sqlfluff 4.4.0 code (process_struct of test/conftest.py); the file header names the source (THIRD_PARTY.md, \"Ported code\")."
+  },
+  {
+   "path": "crates/sqll/tests/lazy_lexers.rs",
+   "reason": "Tests of the lexer regexes that compile at their first use (S3 T15, sqll_types matcher.rs). New sqll code."
   },
   {
    "path": "crates/LICENSE-cpython.txt",

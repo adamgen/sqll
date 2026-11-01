@@ -16,6 +16,7 @@ publish = false
 [dependencies]
 hashbrown.workspace = true
 regex.workspace = true
+regex-syntax.workspace = true
 log.workspace = true
 serde.workspace = true
 uuid.workspace = true

@@ -546,6 +546,7 @@ dependencies = [
  "sqll_dialects",
  "sqll_lexer",
  "sqll_parser",
+ "sqll_types",
 ]
 
 [[package]]
@@ -594,6 +595,7 @@ dependencies = [
  "log",
  "once_cell",
  "regex",
+ "regex-syntax",
  "serde",
  "uuid",
 ]

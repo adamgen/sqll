@@ -4,9 +4,10 @@
 // commit 0348222a3bcdb0226563f7349c5a39beb0641955.
 // Copyright (c) 2018-2026 Alan Cruickshank. MIT License: see
 // crates/LICENSE-sqlfluffrs.md. See THIRD_PARTY.md and crates/ported.json.
+// sqll changed this file. crates/ported.json gives the reason.
 
 use std::fmt::Display;
-use std::sync::Arc;
+use std::sync::{Arc, OnceLock};
 
 use fancy_regex::{Regex as FancyRegex, RegexBuilder as FancyRegexBuilder};
 use hashbrown::HashSet;
@@ -105,16 +106,118 @@ pub enum LexerMode {
     Regex(Regex, fn(&str) -> bool),           // Match using a regex
     FancyRegex(FancyRegex, fn(&str) -> bool), // Match using a regex
     Function(fn(&str) -> Option<&str>),
+    /// A regex that compiles at its first use (LazyRegex). The clones of a
+    /// matcher share it.
+    Lazy(Arc<LazyRegex>, fn(&str) -> bool),
 }
 
 impl Display for LexerMode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match *self {
+        match self {
             LexerMode::Regex(_, _) => write!(f, "RegexMatcher"),
             LexerMode::FancyRegex(_, _) => write!(f, "FancyRegexMatcher"),
             LexerMode::String(_) => write!(f, "StringMatcher"),
             LexerMode::Function(_) => write!(f, "FunctionMatcher"),
+            LexerMode::Lazy(lazy, _) => match lazy.get() {
+                CompiledRegex::Regex(_) => write!(f, "RegexMatcher"),
+                CompiledRegex::FancyRegex(_) => write!(f, "FancyRegexMatcher"),
+                CompiledRegex::Function(_) => write!(f, "FunctionMatcher"),
+            },
         }
+    }
+}
+
+/// The compiled form of a lexer regex: the mode that the source
+/// (base_regex_lexer) gives to the pattern.
+#[derive(Debug)]
+pub enum CompiledRegex {
+    Regex(Regex),
+    FancyRegex(FancyRegex),
+    Function(fn(&str) -> Option<&str>),
+}
+
+/// A lexer regex that compiles at its first use, so that a run compiles
+/// only the regexes that it uses. The source compiles each regex of the
+/// dialect when it makes the matchers. The compile is the same: first the
+/// regex crate, then fancy_regex, then the fallback function. A pattern
+/// that does not compile and has no fallback panics at its first use, not
+/// when the matchers are made.
+#[derive(Debug)]
+pub struct LazyRegex {
+    pattern: String,
+    fallback: Option<fn(&str) -> Option<&str>>,
+    compiled: OnceLock<CompiledRegex>,
+    prefixes: OnceLock<Option<Vec<Vec<u8>>>>,
+}
+
+/// The prefixes of the matches of a regex: each match starts with one of
+/// them. None if a match can start with any text, or if regex_syntax does
+/// not parse the pattern (for example a pattern for fancy_regex).
+/// regex_syntax gives the prefixes (literal extraction, which the regex
+/// crate uses to find the start of a match), and parses the pattern with
+/// the syntax config of the regex crate (its defaults).
+pub fn match_prefixes(pattern: &str) -> Option<Vec<Vec<u8>>> {
+    let hir = regex_syntax::ParserBuilder::new()
+        .build()
+        .parse(pattern)
+        .ok()?;
+    let seq = regex_syntax::hir::literal::Extractor::new().extract(&hir);
+    let literals = seq.literals()?;
+    if literals.iter().any(|l| l.as_bytes().is_empty()) {
+        return None;
+    }
+    Some(literals.iter().map(|l| l.as_bytes().to_vec()).collect())
+}
+
+impl LazyRegex {
+    pub fn new(pattern: String, fallback: Option<fn(&str) -> Option<&str>>) -> Self {
+        Self {
+            pattern,
+            fallback,
+            compiled: OnceLock::new(),
+            prefixes: OnceLock::new(),
+        }
+    }
+
+    /// False if no match can start at the start of the input: the input
+    /// does not start with a prefix of match_prefixes. The lexer regexes
+    /// match only at the start of the input (`\A`). Thus the lexer does not
+    /// compile a regex that cannot match there.
+    pub fn may_match_at_start(&self, input: &str) -> bool {
+        match self.prefixes.get_or_init(|| match_prefixes(&self.pattern)) {
+            None => true,
+            Some(prefixes) => prefixes.iter().any(|p| input.as_bytes().starts_with(p)),
+        }
+    }
+
+    pub fn has_fallback(&self) -> bool {
+        self.fallback.is_some()
+    }
+
+    /// The compiled regex. It compiles the pattern at the first call.
+    pub fn get(&self) -> &CompiledRegex {
+        self.compiled
+            .get_or_init(|| match RegexBuilder::new(&self.pattern).build() {
+                Ok(regex) => CompiledRegex::Regex(regex),
+                Err(_) => match FancyRegexBuilder::new(&self.pattern).build() {
+                    Ok(regex) => CompiledRegex::FancyRegex(regex),
+                    Err(_) => {
+                        if let Some(fallback) = self.fallback {
+                            CompiledRegex::Function(fallback)
+                        } else {
+                            panic!(
+                                "Unable to compile regex {} and no fallback function provided",
+                                self.pattern
+                            )
+                        }
+                    }
+                },
+            })
+    }
+
+    /// True if the pattern is compiled.
+    pub fn is_compiled(&self) -> bool {
+        self.compiled.get().is_some()
     }
 }
 
@@ -201,22 +304,10 @@ impl LexMatcher {
         precheck: fn(&str) -> bool,
         config: LexMatcherConfig,
     ) -> Self {
-        let mode = match RegexBuilder::new(pattern).build() {
-            Ok(regex) => LexerMode::Regex(regex, precheck),
-            Err(_) => match FancyRegexBuilder::new(pattern).build() {
-                Ok(regex) => LexerMode::FancyRegex(regex, precheck),
-                Err(_) => {
-                    if let Some(fallback) = fallback_lexer {
-                        LexerMode::Function(fallback)
-                    } else {
-                        panic!(
-                            "Unable to compile regex {} and no fallback function provided",
-                            pattern
-                        )
-                    }
-                }
-            },
-        };
+        let mode = LexerMode::Lazy(
+            Arc::new(LazyRegex::new(pattern.to_string(), fallback_lexer)),
+            precheck,
+        );
 
         Self {
             // dialect,
@@ -306,6 +397,39 @@ impl LexMatcher {
                     .map(|mat| LexedElement::new(mat.as_str(), self))
             }
             LexerMode::Function(function) => (function)(input).map(|s| LexedElement::new(s, self)),
+            LexerMode::Lazy(lazy, is_match_valid) => {
+                // The source applies the precheck only to a regex, not to a
+                // fallback function. Only a pattern with a fallback can
+                // become a function, so only such a pattern compiles before
+                // the precheck.
+                let checked = !lazy.has_fallback();
+                if checked && !((is_match_valid)(input) && lazy.may_match_at_start(input)) {
+                    return None;
+                }
+                match lazy.get() {
+                    CompiledRegex::Regex(regex) => {
+                        if !checked && !(is_match_valid)(input) {
+                            return None;
+                        }
+                        regex
+                            .find(input)
+                            .map(|mat| LexedElement::new(mat.as_str(), self))
+                    }
+                    CompiledRegex::FancyRegex(regex) => {
+                        if !checked && !(is_match_valid)(input) {
+                            return None;
+                        }
+                        regex
+                            .find(input)
+                            .ok()
+                            .flatten()
+                            .map(|mat| LexedElement::new(mat.as_str(), self))
+                    }
+                    CompiledRegex::Function(function) => {
+                        (function)(input).map(|s| LexedElement::new(s, self))
+                    }
+                }
+            }
         };
 
         // Handle subdivision and trimming
@@ -330,6 +454,17 @@ impl LexMatcher {
                 .ok()
                 .flatten()
                 .map(|mat| (mat.start(), mat.end())),
+            LexerMode::Lazy(lazy, _) => match lazy.get() {
+                CompiledRegex::Regex(regex) => {
+                    regex.find(input).map(|mat| (mat.start(), mat.end()))
+                }
+                CompiledRegex::FancyRegex(regex) => regex
+                    .find(input)
+                    .ok()
+                    .flatten()
+                    .map(|mat| (mat.start(), mat.end())),
+                CompiledRegex::Function(_) => todo!(),
+            },
             _ => todo!(),
         }
     }

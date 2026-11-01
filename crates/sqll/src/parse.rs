@@ -9,14 +9,13 @@
 // Copyright (c) 2018-2026 Alan Cruickshank. MIT License: see
 // crates/LICENSE-sqlfluffrs.md. See THIRD_PARTY.md.
 
-//! Lex and parse one SQL text, and make the record of "sqlfluff parse".
+//! Lex and parse one SQL text for "sqlfluff parse".
 
 use std::str::FromStr;
 
-use serde_yaml_ng::Value;
 use sqll_dialects::Dialect;
 use sqll_lexer::{LexInput, Lexer};
-use sqll_parser::parser::Parser;
+use sqll_parser::parser::{Node, Parser};
 
 use crate::timings::Timer;
 
@@ -58,20 +57,10 @@ pub struct Options {
 }
 
 pub struct Parsed {
-    /// The record of the root segment, or null if the parser gave an error.
-    pub record: Value,
+    /// The root segment, or None if the parser gave an error.
+    pub root: Option<Node>,
     /// The lex and parse errors, one line each, as "LXR ..." or "PRS ...".
     pub errors: Vec<String>,
-    /// True if the record has an unparsable segment.
-    pub unparsable: bool,
-}
-
-impl Parsed {
-    /// "sqlfluff parse" gives exit code 1 for a lex error, a parse error, or
-    /// an unparsable segment.
-    pub fn ok(&self) -> bool {
-        self.errors.is_empty() && !self.unparsable
-    }
 }
 
 /// The parse depth for a max_parse_depth value: the value, but 0 (no limit
@@ -89,17 +78,16 @@ pub fn dialect(name: &str) -> Option<Dialect> {
     Dialect::from_str(name).ok()
 }
 
-fn has_unparsable(value: &Value) -> bool {
-    match value {
-        Value::Mapping(map) => map
-            .iter()
-            .any(|(k, v)| k.as_str() == Some("unparsable") || has_unparsable(v)),
-        Value::Sequence(items) => items.iter().any(has_unparsable),
-        _ => false,
-    }
-}
-
-pub fn parse(sql: String, dialect: Dialect, options: &Options, timer: &mut Timer) -> Parsed {
+/// Lex and parse the SQL. If free is false, the lexer, the tokens, and the
+/// parser are not dropped: the command exits after the output, and the
+/// operating system frees the memory at less cost (S3 T15).
+pub fn parse(
+    sql: String,
+    dialect: Dialect,
+    options: &Options,
+    timer: &mut Timer,
+    free: bool,
+) -> Parsed {
     let lexer = Lexer::new(None, dialect.get_lexers().clone())
         .with_bracket_pairs(dialect.get_bracket_pairs().clone());
     timer.mark("setup");
@@ -123,26 +111,18 @@ pub fn parse(sql: String, dialect: Dialect, options: &Options, timer: &mut Timer
         Parser::new_with_max_parse_depth(&tokens, dialect, indentation, options.max_parse_depth)
             .with_parser_limits(MAX_PARSER_ITERATIONS, PARSER_WARN_THRESHOLD)
             .with_node_limit(MAX_PARSE_NODES);
-    let parsed = parser.root_parse();
-    timer.mark("parse");
-    let record = match &parsed {
-        Ok(node) => node
-            .as_record(options.code_only, true, options.include_meta)
-            .unwrap_or(Value::Null),
+    let root = match parser.root_parse() {
+        Ok(node) => Some(node),
         Err(e) => {
             errors.push(format!("PRS: {}", e.message));
-            Value::Null
+            None
         }
     };
-    let unparsable = has_unparsable(&record);
-    timer.mark("record");
-    drop(parsed);
-    drop(parser);
-    drop(tokens);
-    timer.mark("free");
-    Parsed {
-        record,
-        errors,
-        unparsable,
+    timer.mark("parse");
+    if !free {
+        std::mem::forget(parser);
+        std::mem::forget(tokens);
+        std::mem::forget(lexer);
     }
+    Parsed { root, errors }
 }

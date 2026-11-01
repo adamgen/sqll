@@ -1,6 +1,10 @@
 """S3 T14: parse speed, part 1. Measure and profile sqll, set the target, and
 decide if the target is in reach (status/S3.md, "Stop rule").
 
+The later speed tasks (T15 to T17c) run the same method again with --task
+TASK: the same sessions, profile, and report, with the target of T14 (its
+margin m). Their files are in results/s3/speed/ (task_files).
+
 Commands. Run them on the host with the harness Python. "time" and
 "profile" measure, so they take the machine lock (PROCESS.md, rule 7):
 
@@ -20,6 +24,8 @@ stripped) in DIR, and runs valgrind callgrind on the inputs of the worst
 benchmarks of session 1. Output: PROFILE_FILE.
 "report" reads only the committed files and writes OUT_FILE. With --check it
 writes nothing and fails if OUT_FILE is not the new text (the drift test).
+With --task TASK (not T14), the files are those of task_files(TASK), and the
+report of TASK also reads OUT_FILE for the target of T14.
 
 Each command stops with exit code 1 if a step fails or the data do not
 agree (DataError).
@@ -54,6 +60,17 @@ RESULTS = ROOT / "results" / "s3"
 SESSIONS_FILE = RESULTS / "speed-profile-sessions.json"
 PROFILE_FILE = RESULTS / "speed-profile-callgrind.json"
 OUT_FILE = RESULTS / "speed-profile.json"
+SPEED_DIR = RESULTS / "speed"
+# T14 sets the target. Each later task measures again with the T14 method.
+TASKS = ("T14", "T15", "T16", "T16b", "T17", "T17b", "T17c")
+TASK_TITLES = {
+    "T15": "Parse speed, part 2: start and fixed costs",
+    "T16": "Parse speed, part 3: lexer and parser hot path, round 1",
+    "T16b": "Speed checkpoint after T15 and T16",
+    "T17": "Parse speed, part 4: close the gap",
+    "T17b": "Parse speed, part 4b: close the gap",
+    "T17c": "Parse speed, part 4c: close the gap",
+}
 SPEED_BY_BASE_FILE = RESULTS / "speed-by-base.json"
 TOOLS = ("sqll", "sqruff")
 COMMANDS = ("start", "parse")
@@ -72,6 +89,21 @@ COMMAND_LINES = {
 
 def dump(data: Any) -> str:
     return probe.dump(data)
+
+
+def task_files(task: str) -> tuple[Path, Path, Path]:
+    """The sessions, profile, and report files of a task."""
+    if task == "T14":
+        return SESSIONS_FILE, PROFILE_FILE, OUT_FILE
+    return (
+        SPEED_DIR / f"{task}-sessions.json",
+        SPEED_DIR / f"{task}-callgrind.json",
+        SPEED_DIR / f"{task}.json",
+    )
+
+
+def task_flag(task: str) -> str:
+    return "" if task == "T14" else f" --task {task}"
 
 
 # time
@@ -151,7 +183,9 @@ def compact(report: dict) -> dict:
     return out
 
 
-def time_sessions(scratch: Path, image: str | None, sessions: int) -> dict:
+def time_sessions(
+    scratch: Path, image: str | None, sessions: int, task: str = "T14"
+) -> dict:
     """Run the sessions in the CI image: a new container for each session."""
     scratch = scratch.absolute()
     scratch.mkdir(parents=True, exist_ok=True)
@@ -223,7 +257,7 @@ def time_sessions(scratch: Path, image: str | None, sessions: int) -> dict:
     )
     return {
         "kind": "sqll-s3-speed-profile-sessions",
-        "command": COMMAND_LINES["time"] + " --scratch $SCRATCH",
+        "command": COMMAND_LINES["time"] + task_flag(task) + " --scratch $SCRATCH",
         "method": {
             "text": "harness/bench.md (the S2 baseline method): the CI image in "
             "docker, a new container for each session, serial, no network, no other "
@@ -508,9 +542,9 @@ def profile_one(
     return entry
 
 
-def profile(scratch: Path) -> dict:
+def profile(scratch: Path, task: str = "T14") -> dict:
     scratch = scratch.absolute()
-    sessions = json.loads(SESSIONS_FILE.read_text("utf8"))
+    sessions = json.loads(task_files(task)[0].read_text("utf8"))
     rows = benchmark_rows(sessions)
     chosen = worst(sessions)
     st = probe.Steps(scratch)
@@ -573,7 +607,7 @@ def profile(scratch: Path) -> dict:
         out = [f.result() for f in futures]
     return {
         "kind": "sqll-s3-speed-profile-callgrind",
-        "command": COMMAND_LINES["profile"] + " --scratch $SCRATCH",
+        "command": COMMAND_LINES["profile"] + task_flag(task) + " --scratch $SCRATCH",
         "method": "valgrind callgrind: the instruction count (Ir) of one run of "
         "the symbol build on the input of each benchmark; for each phase of "
         "PROFILE_PHASES, one more run that collects only the cost of that "
@@ -867,14 +901,26 @@ def make_report(
     sessions_path: Path = SESSIONS_FILE,
     profile_path: Path = PROFILE_FILE,
     t6_path: Path = SPEED_BY_BASE_FILE,
+    task: str = "T14",
+    t14_path: Path | None = None,
 ) -> dict:
+    """The report of a task. T14 sets the target: the margin m of its noise.
+    A later task keeps the margin of the T14 report (t14_path)."""
     sessions = json.loads(sessions_path.read_text("utf8"))
     prof = json.loads(profile_path.read_text("utf8"))
     t6 = json.loads(t6_path.read_text("utf8"))
     check_inputs(sessions, prof)
     rows = benchmark_rows(sessions)
     nz = noise(rows, sessions)
-    m = nz["margin"]
+    t14 = None
+    if task == "T14":
+        m = nz["margin"]
+    else:
+        t14_path = t14_path or OUT_FILE
+        t14 = json.loads(t14_path.read_text("utf8"))
+        if t14["task"] != "T14":
+            raise DataError(f"{probe.rel(t14_path)} is not the T14 report")
+        m = t14["target"]["margin"]
     control = sessions["sessions"][0]["report"]
     timer_overhead = control["timer"]["overhead"]["stats"]["wall_s"]["median"]
     samples = sessions["phases"]["samples"]
@@ -1000,22 +1046,34 @@ def make_report(
             f"{r['id']} F {r['needed_factor']}, A {r['estimate']['central']['factor']}"
             for r in worst_rows
         )
-        + ". Human decision needed (status/S3.md, Stop rule)."
+        + (
+            ". The human owner decided on 2026-11-01 that T15 and T16 run and that "
+            "the checkpoint T16b decides (status/S3.md)."
+            if task in ("T15", "T16")
+            else ". Human decision needed (status/S3.md, Stop rule)."
+        )
     )
     k_values = [rr(k, 2) for k in ks]
     formulas = dict(FORMULAS)
     formulas["phase_time"] = formulas["phase_time"].format(
         k_min=min(k_values), k_max=max(k_values)
     )
-    return {
+    out = {
         "kind": "sqll-s3-speed-profile",
-        "task": "T14",
+        "task": task,
         "about": "Parse speed, part 1: the speed of sqll and sqruff on the 28 start "
         "and 84 parse benchmarks, the noise and the margin, the target, the phase "
         "times, the profile, the improvement classes, and the go or no-go. Each "
         "value is measured (the session and profile files), or derived or "
+        "estimated with a formula of 'formulas'."
+        if task == "T14"
+        else f"{TASK_TITLES[task]}: the T14 method again, with the target of T14 "
+        "(its margin m). The speed of sqll and sqruff on the 28 start and 84 parse "
+        "benchmarks, the noise, the phase times, the profile, the improvement "
+        "classes of T14 and the new estimate, and the change from T14 ('change'). "
+        "Each value is measured (the session and profile files), or derived or "
         "estimated with a formula of 'formulas'.",
-        "command": COMMAND_LINES["report"],
+        "command": COMMAND_LINES["report"] + task_flag(task),
         "inputs": {
             probe.rel(p): probe.sha256_file(p)
             for p in (sessions_path, profile_path, t6_path)
@@ -1039,6 +1097,7 @@ def make_report(
             "no_sqruff_pair": [r["id"] for r in rows if r["needed_factor"] is None],
         },
         "groups": groups,
+        "change": None,
         "t6_comparison": {
             "t6": {
                 "from": "results/s3/speed-by-base.json, "
@@ -1128,6 +1187,57 @@ def make_report(
             for r in rows
         ],
     }
+    if t14 is None:
+        del out["change"]
+        return out
+    out["inputs"][probe.rel(t14_path)] = probe.sha256_file(t14_path)
+    out["formulas"]["margin"] = (
+        "m = the margin of T14 (results/s3/speed-profile.json, target.margin). "
+        "The target does not change after T14. 'noise' gives the spread of the "
+        "sessions of this task, for information."
+    )
+    out["target"]["from"] = "results/s3/speed-profile.json, target.margin (T14)"
+    out["change"] = change_from_t14(out, t14)
+    return out
+
+
+def change_from_t14(out: dict, t14: dict) -> dict:
+    """The change of each start and parse benchmark from the T14 report:
+    the ratio R and the sqll time T, and by group the count of benchmarks
+    below the target and in reach (central estimate)."""
+    before = {r["id"]: r for r in t14["benchmarks"]}
+    if set(before) != {r["id"] for r in out["benchmarks"]}:
+        raise DataError("the T14 report has other benchmarks")
+    groups = {}
+    for group in (*GROUPS, "all"):
+        g, g14 = out["groups"][group], t14["groups"][group]
+        groups[group] = {
+            "benchmarks": g["benchmarks"],
+            "below_target": {"t14": g14["below_target"], "now": g["below_target"]},
+            "in_reach_central": {
+                "t14": g14["in_reach"]["central"],
+                "now": g["in_reach"]["central"],
+            },
+            "ratio_median": {
+                "t14": g14["ratio"]["median"],
+                "now": g["ratio"]["median"],
+            },
+        }
+    return {
+        "from": "results/s3/speed-profile.json (T14)",
+        "formula": "speedup = T of T14 / T now (the sqll medians of the 2 "
+        "controlled sessions; another session and day, thus with noise)",
+        "groups": groups,
+        "benchmarks": [
+            {
+                "id": r["id"],
+                "ratio": {"t14": before[r["id"]]["ratio"], "now": r["ratio"]},
+                "sqll_s": {"t14": before[r["id"]]["sqll_s"], "now": r["sqll_s"]},
+                "speedup": rr(before[r["id"]]["sqll_s"] / r["sqll_s"]),
+            }
+            for r in out["benchmarks"]
+        ],
+    }
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -1137,36 +1247,47 @@ def main(argv: list[str] | None = None) -> int:
     t.add_argument("--scratch", type=Path, required=True)
     t.add_argument("--image", default=None, help="Default: sqll-ci:<ci/image_tag.py>.")
     t.add_argument("--sessions", type=int, default=SESSIONS)
+    t.add_argument("--task", choices=TASKS, default="T14")
     ti = sub.add_parser("time-inside", help="(In the CI image) one session.")
     ti.add_argument("--scratch", type=Path, required=True)
     ti.add_argument("--session", type=int, required=True)
     ti.add_argument("--phases", action="store_true")
     pr = sub.add_parser("profile", help="callgrind of the worst benchmarks.")
     pr.add_argument("--scratch", type=Path, required=True)
+    pr.add_argument("--task", choices=TASKS, default="T14")
     r = sub.add_parser("report", help="Write OUT_FILE from the committed files.")
     r.add_argument("--check", action="store_true")
+    r.add_argument("--task", choices=TASKS, default="T14")
     args = p.parse_args(argv)
     try:
         if args.command == "time":
-            record = time_sessions(args.scratch, args.image, args.sessions)
-            SESSIONS_FILE.write_text(dump(record), encoding="utf8")
-            print(f"wrote {probe.rel(SESSIONS_FILE)}")
+            sessions_file = task_files(args.task)[0]
+            record = time_sessions(args.scratch, args.image, args.sessions, args.task)
+            sessions_file.parent.mkdir(parents=True, exist_ok=True)
+            sessions_file.write_text(dump(record), encoding="utf8")
+            print(f"wrote {probe.rel(sessions_file)}")
         elif args.command == "time-inside":
             time_inside(args.scratch, args.session, args.phases)
         elif args.command == "profile":
-            record = profile(args.scratch)
-            PROFILE_FILE.write_text(dump(record), encoding="utf8")
-            print(f"wrote {probe.rel(PROFILE_FILE)}")
+            profile_file = task_files(args.task)[1]
+            record = profile(args.scratch, args.task)
+            profile_file.write_text(dump(record), encoding="utf8")
+            print(f"wrote {probe.rel(profile_file)}")
         else:
-            text = dump(make_report())
+            sessions_file, profile_file, out_file = task_files(args.task)
+            text = dump(
+                make_report(sessions_file, profile_file, task=args.task)
+                if args.task != "T14"
+                else make_report()
+            )
             if args.check:
-                if not OUT_FILE.exists() or OUT_FILE.read_text("utf8") != text:
-                    print(f"{probe.rel(OUT_FILE)} is not the report of the inputs")
+                if not out_file.exists() or out_file.read_text("utf8") != text:
+                    print(f"{probe.rel(out_file)} is not the report of the inputs")
                     return 1
-                print(f"{probe.rel(OUT_FILE)} is up to date")
+                print(f"{probe.rel(out_file)} is up to date")
             else:
-                OUT_FILE.write_text(text, encoding="utf8")
-                print(f"wrote {probe.rel(OUT_FILE)}")
+                out_file.write_text(text, encoding="utf8")
+                print(f"wrote {probe.rel(out_file)}")
     except DataError as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1
