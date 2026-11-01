@@ -13,7 +13,7 @@ import sys
 from collections import Counter
 
 import pytest
-from conftest import needs, needs_sqlfluff
+from conftest import needs, needs_sqlfluff, s3_record
 
 from sqll_harness import known_failures
 from sqll_harness.compare import load_yaml
@@ -543,7 +543,7 @@ def test_the_estimates_are_marked():
 
 
 def test_the_s3_status_file_and_the_decision_record_have_t4():
-    status = (REPO_ROOT / "status" / "S3.md").read_text("utf8")
+    status = s3_record()
     row = next(r for r in status.splitlines() if r.startswith("| T4 |"))
     assert "PR #" in row
     flat = " ".join(status.split())

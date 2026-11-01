@@ -102,8 +102,13 @@ T12). Differences from `sqlfluff parse`:
   full parse stops with `PRS: Parser exceeded maximum iteration limit
   (3000000)...`, `"segments": null`, and exit code 1. A probe that reaches
   a parser limit (iterations, depth, or nodes) also stops the full parse:
-  the parse does not continue after it. The sqlfluff Python parser has no
-  iteration limit. A long flat expression can reach the limit in a small
+  the parse does not continue after it. But sqll does not run a terminator
+  probe where the simple hint of the terminator cannot match (S3 T17), as
+  the sqlfluff Python parser; the sqlfluff Rust parser runs it. Thus where
+  such a probe reaches a limit, sqll can give the tree where the sqlfluff
+  Rust parser stops. No dialect file or S2 parse input has such a probe
+  (`scripts/s3/hint_check.py`, `results/s3/speed/T17-hint-check.json`).
+  The sqlfluff Python parser has no iteration limit. A long flat expression can reach the limit in a small
   file. Examples: `select a=a=...=a` with 7853 `=a` (15715 bytes; 7852 give
   the tree) reaches it in the main parse, and `select a from t order by
   a=a=...=a` with 7854 `=a` (15735 bytes; 7853 give the tree) reaches it

@@ -33,7 +33,7 @@
    "path": "Cargo.toml",
    "source": "sqlfluffrs/Cargo.toml",
    "source_sha256": "b732205a4911557a6a5ba76b40e4a6557e88166523450b5b01731760b337a3a8",
-   "changed": "Only the workspace parts are kept: the members are the 4 ported crates in crates/ and the new sqll binary crate (crates/sqll), the workspace dependencies that they use, and the release profile. The workspace version is the sqll version. New: serde_json and sha2 (for build.rs of sqll_dialects), and opt-level 3 for sha2; regex-syntax (S3 T15, the match prefixes of the lexer regexes in sqll_types matcher.rs), the version that regex uses. No root package, no feature \"python\", no pyo3."
+   "changed": "Only the workspace parts are kept: the members are the 4 ported crates in crates/ and the new sqll binary crate (crates/sqll), the workspace dependencies that they use, and the release profile. The workspace version is the sqll version. New: serde_json and sha2 (for build.rs of sqll_dialects), and opt-level 3 for sha2; regex-syntax (S3 T15, the match prefixes of the lexer regexes in sqll_types matcher.rs), the version that regex uses. No root package, no feature \"python\", no pyo3. S3 T17 (parse speed, build profile): the release profile has lto = \"fat\" and codegen-units = 1, so that the parser inlines the accessors of sqll_types; about 10% fewer instructions in the parse."
   },
   {
    "path": "crates/sqll_dialects/Cargo.toml",
@@ -99,7 +99,7 @@
    "path": "crates/sqll_parser/src/parser/core.rs",
    "source": "sqlfluffrs/sqlfluffrs_parser/src/parser/core.rs",
    "source_sha256": "4cc29db5d877491584d8286653851208631365c402f746fac32f67206a981ea6",
-   "changed": "Parser has the field limit_error: the first parser limit error (iterations, depth, or nodes) of the parse. check_parse_subtree_limit records its error there, and root_parse and call_rule_as_root clear it at the start. Parser has the field current_depth: the parse depth of the frame that the innermost parse loop processes. See the reason of iterative.rs. S3 T16 (parse speed, copy): each parse frame is in a box (TableParseFrame is Box<TableParseFrameData>), so that the stack and the handlers move a pointer, not the 312 bytes of the frame; new_child gives the box. The parse does not change. S3 T16 (parse speed, memo): MatchResult has a memo of node_count (NodeCountMemo), so that the node limit check of each completed frame does not count each subtree again; Debug prints the 4 match fields as before. The parse does not change. S3 T16 (parse speed, allocation): StringParser and TypedParser read the type id lists from the tables only on a match."
+   "changed": "Parser has the field limit_error: the first parser limit error (iterations, depth, or nodes) of the parse. check_parse_subtree_limit records its error there, and root_parse and call_rule_as_root clear it at the start. Parser has the field current_depth: the parse depth of the frame that the innermost parse loop processes. See the reason of iterative.rs. S3 T16 (parse speed, copy): each parse frame is in a box (TableParseFrame is Box<TableParseFrameData>), so that the stack and the handlers move a pointer, not the 312 bytes of the frame; new_child gives the box. The parse does not change. S3 T16 (parse speed, memo): MatchResult has a memo of node_count (NodeCountMemo; T17 renamed it MatchMemo), so that the node limit check of each completed frame does not count each subtree again; Debug prints the 4 match fields as before. The parse does not change. S3 T16 (parse speed, allocation): StringParser and TypedParser read the type id lists from the tables only on a match. S3 T17 (parse speed, memo): the memo field of MatchResult has the new name memo. S3 T17 (parse speed, regex): handle_regex_parser reads the aux data with no copy of a string, the regex cache key is the pattern id (not the pattern text, which can be a long keyword list), and the anti-pattern is tried (and compiled) only after the pattern matches. A match needs the pattern and not the anti-pattern, as before. The parse does not change. S3 T17 (parse speed, copy): MatchResult.matched_class is Option<Box<MatchedClass>>, so that a match result is 88 bytes, not 296, to move and copy; each construction puts the class in a box."
   },
   {
    "path": "crates/sqll_parser/src/parser/frame.rs",
@@ -117,7 +117,7 @@
    "path": "crates/sqll_parser/src/parser/match_result.rs",
    "source": "sqlfluffrs/sqlfluffrs_parser/src/parser/match_result.rs",
    "source_sha256": "5355db5e9d27ae9353660fdbfefce2ebc0685eaceb0e5fff41c909cf6c58df19",
-   "changed": "S3 T16 (parse speed, memo): MatchResult has a memo of node_count (NodeCountMemo), so that the node limit check of each completed frame does not count each subtree again; Debug prints the 4 match fields as before. The parse does not change. S3 T16 (parse speed, allocation): apply puts the metas and the child matches in a list sorted by position (the same order), not in a hash map of lists, and moves the child matches out of the match result, so that a child that is not shared is not copied."
+   "changed": "S3 T16 (parse speed, memo): MatchResult has a memo of node_count (NodeCountMemo; T17 renamed it MatchMemo), so that the node limit check of each completed frame does not count each subtree again; Debug prints the 4 match fields as before. The parse does not change. S3 T16 (parse speed, allocation): apply puts the metas and the child matches in a list sorted by position (the same order), not in a hash map of lists, and moves the child matches out of the match result, so that a child that is not shared is not copied. S3 T17 (parse speed, memo): the memo of a match result (MatchMemo, field memo) also keeps the result of contains_unparsable, so that OneOf does not scan each candidate subtree again for each comparison. The parse does not change. S3 T17 (parse speed, copy): MatchResult.matched_class is Option<Box<MatchedClass>>, so that a match result is 88 bytes, not 296, to move and copy; each construction puts the class in a box."
   },
   {
    "path": "crates/sqll_parser/src/parser/mod.rs",
@@ -135,7 +135,7 @@
    "path": "crates/sqll_parser/src/parser/table_driven/bracketed.rs",
    "source": "sqlfluffrs/sqlfluffrs_parser/src/parser/table_driven/bracketed.rs",
    "source_sha256": "bc63bbe1b6870d66618e211097ad80fdf127b034a2fc03f8f50ae75292e5ba30",
-   "changed": "S3 T16 (parse speed, copy): each parse frame is in a box (TableParseFrame is Box<TableParseFrameData>), so that the stack and the handlers move a pointer, not the 312 bytes of the frame; new_child gives the box. The parse does not change."
+   "changed": "S3 T16 (parse speed, copy): each parse frame is in a box (TableParseFrame is Box<TableParseFrameData>), so that the stack and the handlers move a pointer, not the 312 bytes of the frame; new_child gives the box. The parse does not change. S3 T17 (parse speed, copy): MatchResult.matched_class is Option<Box<MatchedClass>>, so that a match result is 88 bytes, not 296, to move and copy; each construction puts the class in a box."
   },
   {
    "path": "crates/sqll_parser/src/parser/table_driven/contexts.rs",
@@ -165,7 +165,7 @@
    "path": "crates/sqll_parser/src/parser/table_driven/match_algorithms.rs",
    "source": "sqlfluffrs/sqlfluffrs_parser/src/parser/table_driven/match_algorithms.rs",
    "source_sha256": "58c67dd92872a6ae91465f3477c9aeaedb8ea5165845b390041dd7637a4d79df",
-   "changed": null
+   "changed": "S3 T17 (parse speed, terminator checks): greedy_match does not probe a terminator at a position where its simple hint matches no token from that position to the first code token (terminator_hint_excludes); the result is false, as the probe gives if it does not reach a parser limit. Python's next_match also tries only the matchers that the simple hints allow. The check scripts/s3/hint_check.py (results/s3/speed/T17-hint-check.json) also runs each excluded probe on the 2306 dialect fixtures and the 84 S2 parse inputs: 974128 exclusions, no probe match, no probe at a parser limit, and the same output. Thus the trees do not change on these 2390 inputs. A probe that is not run cannot reach a parser limit (depth, iterations, or nodes). Thus on such an input sqll can give a tree where the source stops the parse (harness/sqll.md); the sqlfluff Python parser also does not run these probes."
   },
   {
    "path": "crates/sqll_parser/src/parser/table_driven/mod.rs",
@@ -195,7 +195,7 @@
    "path": "crates/sqll_parser/src/parser/table_driven/sequence.rs",
    "source": "sqlfluffrs/sqlfluffrs_parser/src/parser/table_driven/sequence.rs",
    "source_sha256": "956f4e573a6645e667191f7329d1bcfe81f0b7d3ca3faa935b8640e716a03f1f",
-   "changed": "S3 T16 (parse speed, copy): each parse frame is in a box (TableParseFrame is Box<TableParseFrameData>), so that the stack and the handlers move a pointer, not the 312 bytes of the frame; new_child gives the box. The parse does not change."
+   "changed": "S3 T16 (parse speed, copy): each parse frame is in a box (TableParseFrame is Box<TableParseFrameData>), so that the stack and the handlers move a pointer, not the 312 bytes of the frame; new_child gives the box. The parse does not change. S3 T17 (parse speed, copy): MatchResult.matched_class is Option<Box<MatchedClass>>, so that a match result is 88 bytes, not 296, to move and copy; each construction puts the class in a box."
   },
   {
    "path": "crates/sqll_parser/src/parser/types.rs",
@@ -421,8 +421,12 @@
    "reason": "Build script of the sqll binary: the version (crate version and the sha256 of generated.json) and the source hash for the freshness check of the harness. No Python."
   },
   {
+   "path": "crates/sqll/src/alloc.rs",
+   "reason": "The memory allocator of the sqll binary (S3 T17): free lists of small blocks for each size class in each thread, and the system allocator for other blocks. New sqll code."
+  },
+  {
    "path": "crates/sqll/src/main.rs",
-   "reason": "The sqll command line: parse, version, and the unsupported lint and fix commands, in the command shape of sqlfluff. New sqll code. normpath is a port of CPython v3.13.16 Lib/posixpath.py normpath (PSF-2.0, crates/LICENSE-cpython.txt, THIRD_PARTY.md)."
+   "reason": "The sqll command line: parse, version, and the unsupported lint and fix commands, in the command shape of sqlfluff. New sqll code. normpath is a port of CPython v3.13.16 Lib/posixpath.py normpath (PSF-2.0, crates/LICENSE-cpython.txt, THIRD_PARTY.md). Since S3 T17 it sets the global allocator (alloc.rs)."
   },
   {
    "path": "crates/sqll/src/output.rs",

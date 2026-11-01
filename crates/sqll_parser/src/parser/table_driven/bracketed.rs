@@ -594,10 +594,10 @@ impl Parser<'_> {
                             // Create an UnparsableSegment for the tokens we couldn't parse
                             let unparsable_match = MatchResult {
                                 matched_slice: check_pos..unparsable_stop,
-                                matched_class: Some(MatchedClass::unparsable(
+                                matched_class: Some(Box::new(MatchedClass::unparsable(
                                     &error_message,
                                     unparsable_stop,
-                                )),
+                                ))),
                                 ..Default::default()
                             };
                             child_matches.push(Arc::new(unparsable_match));

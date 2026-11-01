@@ -43,6 +43,11 @@ sha2 = "0.10.9"
 [profile.release]
 debug = false
 strip = true
+# Inline across the crates (for example the token and grammar table
+# accessors of sqll_types in the parser): about 10% fewer instructions in
+# the parse (S3 T17).
+lto = "fat"
+codegen-units = 1
 
 # build.rs of sqll_dialects hashes about 59 MB of generated tables.
 [profile.dev.package.sha2]

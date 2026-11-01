@@ -12,6 +12,7 @@ import re
 import subprocess
 
 import pytest
+from conftest import s3_record
 
 from sqll_harness.paths import REPO_ROOT, SQLFLUFF_ROOT
 
@@ -556,7 +557,7 @@ def test_open_questions_and_the_sqll_license_state():
 
 
 def test_the_status_and_the_decision_record_name_the_output():
-    status = (REPO_ROOT / "status" / "S3.md").read_text("utf8")
+    status = s3_record()
     row = next(line for line in status.splitlines() if line.startswith("| T7 |"))
     assert "Not started" not in row
     assert "results/s3/license-size.json" in status

@@ -11,7 +11,7 @@ import json
 from collections import Counter
 
 import pytest
-from conftest import needs
+from conftest import needs, s3_record
 
 from sqll_harness import known_failures
 from sqll_harness.paths import KNOWN_FAILURES_DIR, REPO_ROOT
@@ -392,7 +392,7 @@ def test_the_cases_without_no_unparsable_are_those_of_t2():
 
 
 def test_the_s3_status_file_and_the_decision_record_have_t3():
-    status = (REPO_ROOT / "status" / "S3.md").read_text("utf8")
+    status = s3_record()
     row = next(r for r in status.splitlines() if r.startswith("| T3 |"))
     assert "PR #" in row
     flat = " ".join(status.split())

@@ -12,6 +12,7 @@ import json
 import re
 
 import pytest
+from conftest import s3_record
 
 from sqll_harness.paths import REPO_ROOT
 
@@ -325,7 +326,7 @@ def test_status_says_the_human_owner_chose_sqlfluffrs():
     assert "the base is sqlfluffrs (human owner, 2026-10-29)" in row
     record = "[docs/decisions/s3-base.md](docs/decisions/s3-base.md)"
     assert f"Decision record: {record}" in row
-    status = (REPO_ROOT / "status" / "S3.md").read_text("utf8")
+    status = s3_record()
     assert "the base is sqlfluffrs (human owner, 2026-10-29)" in status
     assert "[docs/decisions/s3-base.md](../docs/decisions/s3-base.md)" in status
     assert "awaiting" not in status

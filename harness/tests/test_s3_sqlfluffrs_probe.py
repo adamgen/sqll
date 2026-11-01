@@ -11,6 +11,7 @@ import re
 import tomllib
 
 import pytest
+from conftest import s3_record
 
 from sqll_harness.bench import definitions as bench_definitions
 from sqll_harness.bench import report as bench_report
@@ -468,7 +469,7 @@ def test_the_generator_facts():
 
 
 def test_the_s3_status_file_and_the_decision_record_have_t5():
-    status = (REPO_ROOT / "status" / "S3.md").read_text("utf8")
+    status = s3_record()
     row = next(line for line in status.splitlines() if line.startswith("| T5 |"))
     assert "Not started" not in row
     assert "results/s3/sqlfluffrs-probe.json" in status
@@ -485,7 +486,7 @@ def test_the_s3_status_file_and_the_decision_record_have_t5():
 
 
 def test_the_status_numbers_are_those_of_the_report():
-    status = (REPO_ROOT / "status" / "S3.md").read_text("utf8")
+    status = s3_record()
     summary = OUT["speed"]["summary"]
     for group in ("start", "parse/small", "parse/medium", "parse/large"):
         ratio = summary[group]["probe_over_sqruff"]["median_ratio"]

@@ -16,7 +16,7 @@ import re
 import subprocess
 
 import pytest
-from conftest import needs
+from conftest import needs, s3_record
 
 from sqll_harness.paths import REPO_ROOT, SQLFLUFF_ROOT, tools_dir
 
@@ -489,7 +489,7 @@ def test_each_table_row_has_a_cell_for_each_column_and_option_3_is_an_estimate()
 
 
 def test_the_status_and_the_decision_record_name_the_output():
-    status = (REPO_ROOT / "status" / "S3.md").read_text("utf8")
+    status = s3_record()
     row = next(line for line in status.splitlines() if line.startswith("| T8 |"))
     assert "Not started" not in row
     assert "results/s3/capabilities.json" in status
@@ -504,7 +504,7 @@ def test_the_status_and_the_decision_record_name_the_output():
 
 
 def test_the_status_numbers_are_those_of_the_output():
-    status = " ".join((REPO_ROOT / "status" / "S3.md").read_text("utf8").split())
+    status = " ".join(s3_record().split())
     s6 = OUT["S6"]
     suite = s6["templater_suite"]["sqruff"]["value"]
     assert f"sqruff passes {suite['pass']} of {suite['cases']}" in status

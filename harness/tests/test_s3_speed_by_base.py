@@ -11,6 +11,7 @@ import re
 from collections import Counter
 
 import pytest
+from conftest import s3_record
 
 from sqll_harness.paths import REPO_ROOT
 
@@ -399,7 +400,7 @@ def median_of(values):
 
 
 def test_the_s3_status_file_has_t6_and_its_numbers():
-    status = (REPO_ROOT / "status" / "S3.md").read_text("utf8")
+    status = s3_record()
     row = next(line for line in status.splitlines() if line.startswith("| T6 |"))
     assert "Not started" not in row
     assert "results/s3/speed-by-base.json" in status
@@ -441,7 +442,7 @@ def test_the_decision_record_gives_the_c5_source():
 
 
 def test_the_status_text_numbers_are_those_of_the_output():
-    status = " ".join((REPO_ROOT / "status" / "S3.md").read_text("utf8").split())
+    status = " ".join(s3_record().split())
     nv = OUT["bases"]["sqruff"]["not_valid"]["results"]
     n = Counter(i["class"] for i in nv)
     assert (

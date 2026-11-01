@@ -1,0 +1,85 @@
+diff --git a/crates/sqll/src/parse.rs b/crates/sqll/src/parse.rs
+index d38d566..3fb176d 100644
+--- a/crates/sqll/src/parse.rs
++++ b/crates/sqll/src/parse.rs
+@@ -97,6 +97,7 @@ pub fn parse(
+     let mut parser = parser(&tokens, dialect, options);
+     let root = parse_tokens(&mut parser, &mut errors);
+     timer.mark("parse");
++    eprintln!("{}", sqll_parser::hint_check::report());
+     if !free {
+         std::mem::forget(parser);
+         std::mem::forget(tokens);
+diff --git a/crates/sqll_parser/src/hint_check.rs b/crates/sqll_parser/src/hint_check.rs
+new file mode 100644
+index 0000000..60e873d
+--- /dev/null
++++ b/crates/sqll_parser/src/hint_check.rs
+@@ -0,0 +1,28 @@
++//! Hint check (scripts/s3/hint_check.py): counts of the terminator probes
++//! that the simple hint excludes.
++
++use std::sync::atomic::{AtomicU64, Ordering};
++
++static EXCLUSIONS: AtomicU64 = AtomicU64::new(0);
++static PROBE_MATCHES: AtomicU64 = AtomicU64::new(0);
++static PROBE_LIMITS: AtomicU64 = AtomicU64::new(0);
++
++pub fn record(probe_matched: bool, probe_hit_limit: bool) {
++    EXCLUSIONS.fetch_add(1, Ordering::Relaxed);
++    if probe_matched {
++        PROBE_MATCHES.fetch_add(1, Ordering::Relaxed);
++    }
++    if probe_hit_limit {
++        PROBE_LIMITS.fetch_add(1, Ordering::Relaxed);
++    }
++}
++
++/// The line that the check build writes to stderr after the parse.
++pub fn report() -> String {
++    format!(
++        "hint-check: exclusions={} probe_matches={} probe_limits={}",
++        EXCLUSIONS.load(Ordering::Relaxed),
++        PROBE_MATCHES.load(Ordering::Relaxed),
++        PROBE_LIMITS.load(Ordering::Relaxed)
++    )
++}
+diff --git a/crates/sqll_parser/src/lib.rs b/crates/sqll_parser/src/lib.rs
+index 8fc8630..c0c8e82 100644
+--- a/crates/sqll_parser/src/lib.rs
++++ b/crates/sqll_parser/src/lib.rs
+@@ -6,6 +6,7 @@
+ // crates/LICENSE-sqlfluffrs.md. See THIRD_PARTY.md and crates/ported.json.
+ // sqll changed this file. crates/ported.json gives the reason.
+ 
++pub mod hint_check;
+ pub mod parser;
+ 
+ // Public read API for the parse arena, consumed by the rules crate.
+diff --git a/crates/sqll_parser/src/parser/table_driven/match_algorithms.rs b/crates/sqll_parser/src/parser/table_driven/match_algorithms.rs
+index 6243798..b660486 100644
+--- a/crates/sqll_parser/src/parser/table_driven/match_algorithms.rs
++++ b/crates/sqll_parser/src/parser/table_driven/match_algorithms.rs
+@@ -362,8 +362,20 @@ impl Parser<'_> {
+                     // Frame-free for terminal terminators (see
+                     // terminator_matches_at); full sub-parse otherwise. No
+                     // sub-parse if the simple hint excludes a match (S3 T17).
+-                    let result = !self.terminator_hint_excludes(term_id, i)
+-                        && self.terminator_matches_at(term_id, i, terminators);
++                    let result = if self.terminator_hint_excludes(term_id, i) {
++                        // Hint check: run the probe that the hint excludes,
++                        // count it, and restore the parser limit state.
++                        let had_limit = self.limit_error.get().is_some();
++                        let probe = self.terminator_matches_at(term_id, i, terminators);
++                        let hit_limit = !had_limit && self.limit_error.get().is_some();
++                        if hit_limit {
++                            self.limit_error = std::cell::OnceCell::new();
++                        }
++                        crate::hint_check::record(probe, hit_limit);
++                        false
++                    } else {
++                        self.terminator_matches_at(term_id, i, terminators)
++                    };
+                     self.terminator_match_cache.insert(cache_key, result);
+                     result
+                 };

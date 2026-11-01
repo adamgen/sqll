@@ -22,6 +22,7 @@
 //! "unsupported: <item>" and gives exit code 2. Only a panic (a sqll bug)
 //! gives another exit code (101).
 
+mod alloc;
 mod output;
 mod parse;
 mod timings;
@@ -29,6 +30,9 @@ mod timings;
 use std::io::Read;
 use std::process::ExitCode;
 use std::time::Instant;
+
+#[global_allocator]
+static ALLOCATOR: alloc::Allocator = alloc::Allocator;
 
 const VERSION: &str = concat!(
     env!("CARGO_PKG_VERSION"),
