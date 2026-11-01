@@ -371,6 +371,8 @@ def record(scratch: Path, python: Path) -> dict:
     scratch.mkdir(parents=True)
     st = Steps(scratch)
     started = now()
+    # Before the record writes LOG_FILE into the worktree.
+    harness = bench_report.harness()
     st.run(
         "check the submodule before",
         [ROOT / "scripts" / "check-submodule", "before the T18 base tests"],
@@ -496,7 +498,7 @@ def record(scratch: Path, python: Path) -> dict:
         "started": started,
         "finished": now(),
         "machine": bench_report.machine(),
-        "harness": bench_report.harness(),
+        "harness": harness,
         "base": {
             "submodule": "third_party/sqlfluff",
             "commit": commit.stdout.strip(),

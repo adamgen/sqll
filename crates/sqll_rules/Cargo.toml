@@ -14,11 +14,9 @@ rust-version.workspace = true
 publish = false
 
 # Rust-native lint rules. Detection runs over the parse arena's public read API
-# (sqlfluffrs_parser::Arena); fixes are still applied Python-side for now. The
-# rule logic is pure Rust; the optional `python` feature adds each rule's thin
-# PyO3 binding, registered by the root crate.
-# sqll: no Python bindings (no feature "python"). The ported code uses the sqlfluffrs
-# crate name of the parser.
+# (sqlfluffrs_parser::Arena); fixes are still applied Python-side for now.
+# sqll: no Python bindings. The ported code uses the sqlfluffrs crate name of
+# the parser.
 [dependencies]
 sqlfluffrs_parser = { package = "sqll_parser", path = "../sqll_parser" }
 
