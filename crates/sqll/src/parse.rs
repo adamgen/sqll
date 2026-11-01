@@ -16,6 +16,7 @@ use std::str::FromStr;
 use sqll_dialects::Dialect;
 use sqll_lexer::{LexInput, Lexer};
 use sqll_parser::parser::{Node, Parser};
+use sqll_types::Token;
 
 use crate::timings::Timer;
 
@@ -88,13 +89,39 @@ pub fn parse(
     timer: &mut Timer,
     free: bool,
 ) -> Parsed {
-    let lexer = Lexer::new(None, dialect.get_lexers().clone())
-        .with_bracket_pairs(dialect.get_bracket_pairs().clone());
+    let lexer = setup_lexer(&dialect);
     timer.mark("setup");
-    let (tokens, lex_errors) = lexer.lex(LexInput::String(sql), true);
+    let (tokens, mut errors) = lex_sql(&lexer, sql);
     timer.tokens = tokens.len();
     timer.mark("lex");
-    let mut errors: Vec<String> = lex_errors
+    let mut parser = parser(&tokens, dialect, options);
+    let root = parse_tokens(&mut parser, &mut errors);
+    timer.mark("parse");
+    if !free {
+        std::mem::forget(parser);
+        std::mem::forget(tokens);
+        std::mem::forget(lexer);
+    }
+    Parsed { root, errors }
+}
+
+// setup_lexer, lex_sql, and parse_tokens are the phases that the callgrind
+// profile of the speed work collects alone (scripts/s3/speed_profile.py,
+// PROFILE_PHASES). They are not inlined, so that each has a symbol also in
+// the release build with link-time optimization (S3 T17).
+
+/// The lexer of the dialect (the lazy lexer tables).
+#[inline(never)]
+fn setup_lexer(dialect: &Dialect) -> Lexer {
+    Lexer::new(None, dialect.get_lexers().clone())
+        .with_bracket_pairs(dialect.get_bracket_pairs().clone())
+}
+
+/// The tokens and the lex error lines.
+#[inline(never)]
+fn lex_sql(lexer: &Lexer, sql: String) -> (Vec<Token>, Vec<String>) {
+    let (tokens, lex_errors) = lexer.lex(LexInput::String(sql), true);
+    let errors = lex_errors
         .iter()
         .map(|e| {
             format!(
@@ -105,24 +132,24 @@ pub fn parse(
             )
         })
         .collect();
+    (tokens, errors)
+}
 
+fn parser<'a>(tokens: &'a [Token], dialect: Dialect, options: &Options) -> Parser<'a> {
     let indentation = INDENTATION.iter().copied().collect();
-    let mut parser =
-        Parser::new_with_max_parse_depth(&tokens, dialect, indentation, options.max_parse_depth)
-            .with_parser_limits(MAX_PARSER_ITERATIONS, PARSER_WARN_THRESHOLD)
-            .with_node_limit(MAX_PARSE_NODES);
-    let root = match parser.root_parse() {
+    Parser::new_with_max_parse_depth(tokens, dialect, indentation, options.max_parse_depth)
+        .with_parser_limits(MAX_PARSER_ITERATIONS, PARSER_WARN_THRESHOLD)
+        .with_node_limit(MAX_PARSE_NODES)
+}
+
+/// The root segment, or None and a parse error line.
+#[inline(never)]
+fn parse_tokens(parser: &mut Parser, errors: &mut Vec<String>) -> Option<Node> {
+    match parser.root_parse() {
         Ok(node) => Some(node),
         Err(e) => {
             errors.push(format!("PRS: {}", e.message));
             None
         }
-    };
-    timer.mark("parse");
-    if !free {
-        std::mem::forget(parser);
-        std::mem::forget(tokens);
-        std::mem::forget(lexer);
     }
-    Parsed { root, errors }
 }

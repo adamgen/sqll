@@ -12,11 +12,11 @@ serde_json.workspace = true
 sqll_dialects = { path = "../sqll_dialects" }
 sqll_lexer = { path = "../sqll_lexer" }
 sqll_parser = { path = "../sqll_parser" }
+sqll_types = { path = "../sqll_types" }
 
 [dev-dependencies]
 serde.workspace = true
 serde_yaml_ng.workspace = true
-sqll_types = { path = "../sqll_types" }
 
 [build-dependencies]
 sha2.workspace = true

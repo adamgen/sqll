@@ -368,11 +368,15 @@ PROFILE_TOP = 15
 PROFILE_JOBS = 4
 # The phases that the profile collects alone (valgrind --toggle-collect):
 # the cost of each call of the function and its callees. Each function is
-# not recursive, and each run calls it once.
+# not recursive, and each run calls it once. T14 to T16b used
+# Dialect::get_lexers, Lexer::lex, and Parser::root_parse. Since T17 the
+# release build has link-time optimization, which inlines some of them; the
+# toggles are the phase functions of crates/sqll/src/parse.rs, which are
+# not inlined: the same work, and setup also has Lexer::new.
 PROFILE_PHASES = {
-    "setup": "*Dialect>::get_lexers",
-    "lex": "*Lexer>::lex",
-    "parse": "*Parser>::root_parse",
+    "setup": "*sqll::parse::setup_lexer",
+    "lex": "*sqll::parse::lex_sql",
+    "parse": "*sqll::parse::parse_tokens",
 }
 # callgrind_annotate: "<Ir> (<share>%)  <file>:<function> [<object>]".
 ANNOTATE_LINE = re.compile(
