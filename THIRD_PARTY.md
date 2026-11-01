@@ -50,6 +50,14 @@ sha256, the crate names of `cargo tree`, and test names and counts.
 `scripts/s3/probe-sqlfluffrs/Cargo.lock` has the crate versions of
 `sqlfluffrs/Cargo.lock`. The probe is research code, not sqll.
 
+`scripts/s3/base_native_tests.py` (S3 task T18) copies the submodule into
+a scratch folder, generates the tables there as `scripts/build-sqll` does,
+and runs `cargo test` of the sqlfluffrs workspace there. The generated
+files stay in the scratch folder. `results/s3/base-native-tests.json` and
+`results/s3/base-native-tests.log` have the cargo output: the names of the
+crates, test files, and tests, and the results. No sqlfluffrs code is
+copied there.
+
 `scripts/s3/license_size.py` (S3 research, task T7) generates the
 sqlfluffrs tables in a scratch copy, as T5; the generated files stay there.
 `results/s3/license-size-sources.json` has the text of the license files of
@@ -123,6 +131,17 @@ The sqll engine crates are a port of the sqlfluffrs crates of sqlfluff.
 | `crates/sqll_lexer` | `sqlfluffrs/sqlfluffrs_lexer` |
 | `crates/sqll_parser` | `sqlfluffrs/sqlfluffrs_parser` |
 | `crates/sqll_dialects` | `sqlfluffrs/sqlfluffrs_dialects` |
+| `crates/sqll_rules` | `sqlfluffrs/sqlfluffrs_rules` |
+| `crates/sqll_base_tests/src` | `sqlfluffrs/src` |
+| `crates/sqll_base_tests/tests` | `sqlfluffrs/tests` |
+
+`crates/sqll_rules` has the rules CP01, CP03, and CP04 as a library (S3
+T18); the sqll binary does not use it yet. `crates/sqll_base_tests` has the
+native tests of the root crate `sqlfluffrs` (its library keeps that name).
+They read the sqlfluff fixtures in place in the submodule. Their
+dev-dependency `blake2` 0.10.6 (crates.io, MIT OR Apache-2.0) and its new
+dependency `subtle` 2.6.1 (BSD-3-Clause) are the versions of
+`sqlfluffrs/Cargo.lock`. The sqll binary does not contain them.
 
 The workspace `Cargo.toml` is a port of `sqlfluffrs/Cargo.toml`. Each
 ported file has a header with its source file, the version, the commit,

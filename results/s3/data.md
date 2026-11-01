@@ -191,6 +191,44 @@ in [status/S3.md](../../status/S3.md).
   - G3.6: `bench compare` of main (`bffc11a`) and T17
     (`results/s3/speed/T17-compare.json`): 112 sqll benchmarks, 0 slower,
     66 faster, 46 same; the wall time sum 3.44 s to 2.28 s.
+- T18: the native tests of the base and the 3 rules.
+  - `scripts/s3/base_native_tests.py record` copies the submodule into a
+    scratch folder (git archive), generates the 85 tables there (equal to
+    `crates/sqll_dialects/generated.json`), and runs `cargo test --locked
+    --offline --no-fail-fast` of the packages sqlfluffrs, sqlfluffrs_types,
+    sqlfluffrs_lexer, sqlfluffrs_parser, sqlfluffrs_dialects, and
+    sqlfluffrs_rules (no feature "python"; Rust 1.96.1 of
+    `sqlfluffrs/rust-toolchain.toml`; Python commands on PATH fail and
+    record each call: 0 calls). `scripts/check-submodule` passes before
+    and after. Result (`results/s3/base-native-tests.json`, the output in
+    `results/s3/base-native-tests.log`): 23 units, 162 tests, 162 passed.
+    Root crate: 108 (60 of `tests/fixture_tests.rs`); unit tests: types
+    28, parser 21, dialects 5, lexer 0, rules 0; doc tests: 0.
+  - The port (`crates/ported.json`): `crates/sqll_rules` (CP01, CP03, CP04;
+    no Python bindings) and `crates/sqll_base_tests` (the library
+    `src/test_harness.rs` keeps the name sqlfluffrs; the 11 files of
+    `tests/`). 4 files read the fixtures from the submodule path; no other
+    test change. `Arena::from_node` of `sqll_parser` is public, so that
+    the rules can get an arena from a parse tree outside the parser crate.
+    New: `crates/sqll_rules/tests/rules.rs` (3 tests, 12 cases: the
+    output of `sqlfluff fix` 4.4.0 for the same SQL and policy).
+  - The list check (`scripts/s3/base_native_tests.py check`, CI job build
+    and `scripts/verify`) runs `cargo test --locked --no-fail-fast` of the
+    workspace and fails if cargo fails, if the output does not agree with
+    itself, or if a base test that passes in the base is not in sqll or
+    does not pass there. Local run: `base native tests: PASS: 162 base
+    tests pass in the base; sqll: 212 tests, 212 passed, 0 failed, 0
+    ignored; 0 problems`. `harness/tests/test_s3_base_native_tests.py`:
+    a removed, failed, ignored, or renamed test, a removed test binary, and
+    output that does not agree with itself each fail the check.
+  - The S1 dialect suite (sqll): 2306 of 2306 exact. Tree guard: `84 of 84
+    inputs, 2 runs each: same output as the record`.
+  - Speed (G3.6), the reason in place of a bench compare: the release
+    binary of T18 and that of main (`4850a32`) have the same size
+    (15655368 bytes). `cmp -l` finds 85 different bytes, all in 3 places
+    of build data: the source hash (63 of its 64 bytes), the source file
+    count (2 bytes), and the build ID (20 bytes). The machine code does not
+    change, so no benchmark can change.
 
 ## S3 phase A data
 
@@ -470,3 +508,11 @@ tables; its 3 rules read the parse `Arena` by type strings.
   tables and no number that is not a value of the file. Recommendation:
   option 2, sqlfluffrs. Main risks: parse speed (G3.5) and the rule work
   (S5).
+
+## Speed checkpoint (T16b)
+
+- **No-go: human decision needed.** The T14 method again on the T16 code (`results/s3/speed/T16b.json`); by the Stop rule, the S3 track stopped. The human owner decided on 2026-11-01 (below): T17.
+- m: T14 0.26, T16b 0.44 (the noise of 5 sessions; the target keeps m = 0.26). Below the target: T14 41 of 108, T16b 71 of 108.
+- Worst needed factor: T14 2.63 (parse/ansi/large), T16b 1.53 (parse/hive/large). Central estimate in reach: T14 78 of 108, T16b 104 of 108.
+- Not in reach: parse/large of ansi, db2, hive, and teradata (needed 1.37 to 1.53, estimate 1.34 to 1.35); with m = 0, the estimate reaches 108 of 108.
+- What remains for T17: the parser's own code (46% to 49% of the parse instructions, no estimate) and the parse allocation and copy (48% to 49%). The human owner chose T17, not option 3 of the decision record.

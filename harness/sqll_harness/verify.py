@@ -510,8 +510,9 @@ def checks(jobs: int | None = None) -> list[Check]:
         ),
         Check(
             "rust-tests",
-            "cargo test --locked",
+            f"{UV} python scripts/s3/base_native_tests.py check",
             ("build: Run the Rust tests",),
+            needs=(SETUP,),
         ),
         Check(
             "submodule-after-rust-tests",

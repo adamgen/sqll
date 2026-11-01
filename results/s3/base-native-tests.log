@@ -1,0 +1,406 @@
+   Compiling proc-macro2 v1.0.106
+   Compiling unicode-ident v1.0.24
+   Compiling quote v1.0.45
+   Compiling memchr v2.8.0
+   Compiling serde_core v1.0.228
+   Compiling cfg-if v1.0.4
+   Compiling serde v1.0.228
+   Compiling regex-syntax v0.8.10
+   Compiling aho-corasick v1.1.4
+   Compiling syn v2.0.117
+   Compiling libc v0.2.183
+   Compiling regex-automata v0.4.14
+   Compiling foldhash v0.2.0
+   Compiling getrandom v0.4.2
+   Compiling equivalent v1.0.2
+   Compiling allocator-api2 v0.2.21
+   Compiling log v0.4.29
+   Compiling bit-vec v0.8.0
+   Compiling hashbrown v0.16.1
+   Compiling bit-set v0.8.0
+   Compiling serde_derive v1.0.228
+   Compiling uuid v1.22.0
+   Compiling once_cell v1.21.4
+   Compiling either v1.15.0
+   Compiling sqlfluffrs_dialects v4.4.0 ($SCRATCH/sqlfluff/sqlfluffrs/sqlfluffrs_dialects)
+   Compiling anstyle v1.0.14
+   Compiling itoa v1.0.18
+   Compiling itertools v0.14.0
+   Compiling utf8parse v0.2.2
+   Compiling anstyle-parse v1.0.0
+   Compiling regex v1.12.3
+   Compiling fancy-regex v0.17.0
+   Compiling anstyle-query v1.1.5
+   Compiling is_terminal_polyfill v1.70.2
+   Compiling colorchoice v1.0.5
+   Compiling anstream v1.0.0
+   Compiling env_filter v1.0.1
+   Compiling indexmap v2.13.0
+   Compiling ryu v1.0.23
+   Compiling typenum v1.19.0
+   Compiling sqlfluffrs_types v4.4.0 ($SCRATCH/sqlfluff/sqlfluffrs/sqlfluffrs_types)
+   Compiling version_check v0.9.5
+   Compiling jiff v0.2.23
+   Compiling unsafe-libyaml v0.2.11
+   Compiling generic-array v0.14.7
+   Compiling crossbeam-utils v0.8.21
+   Compiling serde_yaml_ng v0.10.0
+   Compiling smallvec v1.15.1
+   Compiling zerocopy v0.8.47
+   Compiling env_logger v0.11.10
+   Compiling zerocopy-derive v0.8.47
+   Compiling autocfg v1.5.0
+   Compiling shlex v1.3.0
+   Compiling find-msvc-tools v0.1.9
+   Compiling zmij v1.0.21
+   Compiling cc v1.2.57
+   Compiling num-traits v0.2.19
+   Compiling crossbeam-epoch v0.9.18
+   Compiling serde_json v1.0.149
+   Compiling rayon-core v1.13.0
+   Compiling crossbeam-deque v0.8.6
+   Compiling crypto-common v0.1.7
+   Compiling alloca v0.4.0
+   Compiling block-buffer v0.10.4
+   Compiling clap_lex v1.1.0
+   Compiling plotters-backend v0.3.7
+   Compiling subtle v2.6.1
+   Compiling ciborium-io v0.2.2
+   Compiling plotters-svg v0.3.7
+   Compiling digest v0.10.7
+   Compiling clap_builder v4.6.0
+   Compiling half v2.7.1
+   Compiling ciborium-ll v0.2.2
+   Compiling itertools v0.13.0
+   Compiling cast v0.3.0
+   Compiling same-file v1.0.6
+   Compiling walkdir v2.5.0
+   Compiling rayon v1.11.0
+   Compiling criterion-plot v0.8.2
+   Compiling ciborium v0.2.2
+   Compiling plotters v0.3.7
+   Compiling clap v4.6.0
+   Compiling tinytemplate v1.2.1
+   Compiling blake2 v0.10.6
+   Compiling page_size v0.6.0
+   Compiling anes v0.1.6
+   Compiling oorandom v11.1.5
+   Compiling criterion v0.8.2
+   Compiling sqlfluffrs_lexer v4.4.0 ($SCRATCH/sqlfluff/sqlfluffrs/sqlfluffrs_lexer)
+   Compiling sqlfluffrs_parser v4.4.0 ($SCRATCH/sqlfluff/sqlfluffrs/sqlfluffrs_parser)
+warning: method `iter` is never used
+   --> sqlfluffrs_parser/src/parser/cache.rs:159:12
+    |
+ 85 | impl TableParseCache {
+    | -------------------- method in this implementation
+...
+159 |     pub fn iter(&self) -> impl Iterator<Item = (&TableCacheKey, &TableCacheValue)> {
+    |            ^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+   Compiling sqlfluffrs_rules v4.4.0 ($SCRATCH/sqlfluff/sqlfluffrs/sqlfluffrs_rules)
+warning: `sqlfluffrs_parser` (lib) generated 1 warning
+   Compiling sqlfluffrs v4.4.0 ($SCRATCH/sqlfluff/sqlfluffrs)
+warning: `sqlfluffrs_parser` (lib test) generated 1 warning (1 duplicate)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 51.89s
+     Running unittests src/lib.rs (target/debug/deps/sqlfluffrs-59230bab8c5ec963)
+
+running 7 tests
+test test_harness::tests::test_discover_ansi_fixtures ... ok
+test test_harness::tests::test_node_types ... ok
+test test_harness::tests::test_parse_simple_select ... ok
+test test_harness::tests::dialect_specific_brackets_pair_only_when_supplied ... ok
+test test_harness::whitespace_tests::test_select_from_alias ... ok
+test test_harness::whitespace_tests::test_select_function_alias ... ok
+test test_harness::tests::test_complex_query_cache ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.07s
+
+     Running tests/fixture_tests.rs (target/debug/deps/fixture_tests-4e350f874ddec297)
+
+running 60 tests
+test test_ansi_fixtures_simple ... ok
+test test_athena_fixtures ... ok
+test test_ansi_fixtures ... ok
+test test_databricks_fixtures ... ok
+test test_clickhouse_fixtures ... ok
+test test_bigquery_fixtures ... ok
+test test_db2_fixtures ... ok
+test test_doris_fixtures ... ok
+test test_flink_fixtures ... ok
+test test_greenplum_fixtures ... ok
+test test_impala_fixtures ... ok
+test test_hive_fixtures ... ok
+test test_materialize_fixtures ... ok
+test test_exasol_fixtures ... ok
+test test_duckdb_fixtures ... ok
+test test_mysql_fixtures ... ok
+test test_mariadb_fixtures ... ok
+test test_select_a ... ok
+test test_select_simple_a ... ok
+test test_redshift_fixtures ... ok
+test test_soql_fixtures ... ok
+test test_oracle_fixtures ... ok
+test test_postgres_fixtures ... ok
+test test_sqlite_fixtures ... ok
+test test_starrocks_fixtures ... ok
+test test_teradata_fixtures ... ok
+test test_trino_fixtures ... ok
+test test_sparksql_fixtures ... ok
+test test_yaml_output_matches_python ... ok
+test test_vertica_fixtures ... ok
+test test_snowflake_fixtures ... ok
+test test_yaml_output_matches_python_athena ... ok
+test test_yaml_output_matches_python_ansi ... ok
+test test_yaml_output_matches_python_bigquery ... ok
+test test_yaml_output_matches_python_databricks ... ok
+test test_yaml_output_matches_python_db2 ... ok
+test test_yaml_output_matches_python_doris ... ok
+test test_yaml_output_matches_python_clickhouse ... ok
+test test_yaml_output_matches_python_flink ... ok
+test test_yaml_output_matches_python_greenplum ... ok
+test test_yaml_output_matches_python_hive ... ok
+test test_yaml_output_matches_python_impala ... ok
+test test_yaml_output_matches_python_exasol ... ok
+test test_yaml_output_matches_python_duckdb ... ok
+test test_tsql_fixtures ... ok
+test test_yaml_output_matches_python_materialize ... ok
+test test_yaml_output_matches_python_mysql ... ok
+test test_yaml_output_matches_python_mariadb ... ok
+test test_yaml_output_matches_python_redshift ... ok
+test test_yaml_output_matches_python_soql ... ok
+test test_yaml_output_matches_python_oracle ... ok
+test test_yaml_output_matches_python_sqlite ... ok
+test test_yaml_output_matches_python_postgres ... ok
+test test_yaml_output_matches_python_starrocks ... ok
+test test_yaml_output_matches_python_teradata ... ok
+test test_yaml_output_matches_python_trino ... ok
+test test_yaml_output_matches_python_sparksql ... ok
+test test_yaml_output_matches_python_vertica ... ok
+test test_yaml_output_matches_python_snowflake ... ok
+test test_yaml_output_matches_python_tsql ... ok
+
+test result: ok. 60 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 68.08s
+
+     Running tests/table_driven_small.rs (target/debug/deps/table_driven_small-8db0e3ee956ccbae)
+
+running 27 tests
+test anynumberof_parses ... ok
+test anynumberof_bracketed_element_and_delimiter ... ok
+test basic_object_parses ... ok
+test basic_select_parses ... ok
+test basic_select_via_select_statement_parses ... ok
+test bracketed_delimited_parses ... ok
+test datatype_array_type_parses ... ok
+test datatype_double_precision_parses ... ok
+test datatype_char_varying_parses ... ok
+test create_sequence_options_segment_variants ... ok
+test datatype_time_with_tz_parses ... ok
+test create_sequence_statement_parses ... ok
+test empty_bracketed_parses ... ok
+test delimited_multiple_elements ... ok
+test datatype_unsigned_parses ... ok
+test from_clause_parses ... ok
+test oneof_first_parses ... ok
+test from_keyword_parses ... ok
+test oneof_second_parses ... ok
+test oneof_first_seq_parses ... ok
+test from_expression_element_parses ... ok
+test from_expression_parses ... ok
+test oneof_second_seq_parses ... ok
+test seq_no_allow_gaps_parses ... ok
+test typed_parses ... ok
+test string_parses ... ok
+test single_delimited_parses ... ok
+
+test result: ok. 27 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s
+
+     Running tests/test_bracketed_sequence.rs (target/debug/deps/test_bracketed_sequence-66bee67bb66223ed)
+
+running 1 test
+test test_bracketed_implicit_sequence ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+     Running tests/test_delimited_terminator_timing.rs (target/debug/deps/test_delimited_terminator_timing-14fcf08474b25966)
+
+running 3 tests
+test delimited_terminator_tests::test_delimited_performance_with_complex_failure ... ok
+test delimited_terminator_tests::test_delimited_where_terminator_matches_element ... ok
+test delimited_terminator_tests::test_delimited_trailing_terminator ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+     Running tests/test_double_at.rs (target/debug/deps/test_double_at-720d359e53abbf23)
+
+running 1 test
+test test_double_at_sign ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+     Running tests/test_handle_exception.rs (target/debug/deps/test_handle_exception-71dae72b73f4f1db)
+
+running 1 test
+test test_handle_exception_sql ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+     Running tests/test_is_not_distinct.rs (target/debug/deps/test_is_not_distinct-fe554679253c3d97)
+
+running 2 tests
+test test_is_not_distinct_with_brackets ... ok
+test test_is_not_distinct_simple ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s
+
+     Running tests/test_literals_fixture_only.rs (target/debug/deps/test_literals_fixture_only-e1339bebbb8820df)
+
+running 1 test
+test test_literals_fixture_only ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.14s
+
+     Running tests/test_multiple_statements.rs (target/debug/deps/test_multiple_statements-917da217ef4efea9)
+
+running 1 test
+test test_multiple_numeric_literals ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.07s
+
+     Running tests/test_numeric_literal.rs (target/debug/deps/test_numeric_literal-ccf9ffb307008b86)
+
+running 2 tests
+test test_numeric_literal_simple ... ok
+test test_numeric_literal_comparison ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+     Running tests/yaml_compare.rs (target/debug/deps/yaml_compare-83133683b3ed89b5)
+
+running 2 tests
+test test_yaml_comparison_tsql_sqlcmd_command ... ok
+test test_yaml_comparison_ansi_arithmetic_a ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.33s
+
+     Running unittests src/lib.rs (target/debug/deps/sqlfluffrs_dialects-0d370efcd90137b2)
+
+running 5 tests
+test block_comment::tests::test_nested_block_comment ... ok
+test block_comment::tests::test_unclosed_comment_other_dialect ... ok
+test block_comment::tests::test_simple_block_comment ... ok
+test block_comment::tests::test_invalid_start ... ok
+test block_comment::tests::test_unclosed_comment_sqlite ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/deps/sqlfluffrs_lexer-b0c6440c74faa6cc)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/deps/sqlfluffrs_parser-11823b66de9fbdb4)
+
+running 21 tests
+test parser::arena::tests::is_type_uses_class_types ... ok
+test parser::arena::tests::is_code_and_whitespace ... ok
+test parser::arena::tests::descendant_type_set_includes_nested ... ok
+test parser::arena::tests::get_child_includes_meta ... ok
+test parser::arena::tests::raw_matches_node ... ok
+test parser::arena::tests::parent_links_and_path ... ok
+test parser::arena::tests::raw_segments_in_order ... ok
+test parser::match_result::tests::test_empty_at ... ok
+test parser::match_result::tests::test_is_better_than ... ok
+test parser::types::tests::test_empty_node_to_tuple ... ok
+test parser::arena::tests::recursive_crawl_finds_descendants ... ok
+test parser::types::tests::test_meta_node_to_tuple_exclude_meta ... ok
+test parser::types::tests::test_meta_node_as_record ... ok
+test parser::types::tests::test_meta_node_to_tuple_include_meta ... ok
+test parser::types::tests::test_raw_node_to_tuple_no_raw ... ok
+test parser::types::tests::test_raw_node_to_tuple_show_raw ... ok
+test parser::types::tests::test_segment_node_as_record_empty ... ok
+test parser::types::tests::test_segment_node_as_record_merge ... ok
+test parser::types::tests::test_segment_node_to_tuple ... ok
+test parser::types::tests::test_unparsable_node_as_record ... ok
+test parser::cache::tests::test_cache_functionality ... ok
+
+test result: ok. 21 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s
+
+     Running unittests src/lib.rs (target/debug/deps/sqlfluffrs_rules-c8f9e5b38469901b)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/deps/sqlfluffrs_types-997fcc073cedf835)
+
+running 28 tests
+test grammar_api::tests::test_grammar_context ... ok
+test grammar_inst::tests::test_children_slice ... ok
+test grammar_inst::tests::test_builder_pattern ... ok
+test grammar_api::tests::test_pattern_helpers ... ok
+test grammar_inst::tests::test_flags_operations ... ok
+test grammar_inst::tests::test_grammar_flags_size ... ok
+test grammar_inst::tests::test_grammar_id ... ok
+test grammar_inst::tests::test_grammar_inst_size ... ok
+test grammar_inst::tests::test_grammar_variant_size ... ok
+test grammar_inst::tests::test_is_optional ... ok
+test grammar_inst::tests::test_parse_mode_size ... ok
+test grammar_tables::tests::test_children_iterator ... ok
+test grammar_tables::tests::test_grammar_tables_basic ... ok
+test grammar_tables::tests::test_memory_stats ... ok
+test grammar_tables::tests::test_simple_hint_data ... ok
+test grammar_tables::tests::test_terminators_iterator ... ok
+test identity::tests::ids_are_tagged_unique_and_disjoint_from_python ... ok
+test string::tests::curtail_string_semantics ... ok
+test string::tests::counts_by_codepoint ... ok
+test string::tests::lexer_truncate_semantics ... ok
+test templater::templatefile::tests::test_indices_of_newlines ... ok
+test token::fmt::tests::escapes_c0_and_del ... ok
+test token::fmt::tests::escapes_c1_controls_and_non_space_whitespace ... ok
+test token::fmt::tests::leaves_printable_unicode_as_is ... ok
+test token::fmt::tests::plain_ascii_uses_single_quotes ... ok
+test templater::templatefile::tests::test_templated_file_find_slice_indices_of_templated_pos ... ok
+test token::fmt::tests::switches_to_double_quotes_for_single_quote_content ... ok
+test templater::templatefile::tests::test_templated_file_templated_slice_to_source_slice ... ok
+
+test result: ok. 28 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests sqlfluffrs
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests sqlfluffrs_dialects
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests sqlfluffrs_lexer
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests sqlfluffrs_parser
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests sqlfluffrs_rules
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests sqlfluffrs_types
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

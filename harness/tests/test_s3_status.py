@@ -11,7 +11,8 @@ INDEX = (REPO_ROOT / "STATUS.md").read_text("utf8")
 STATUS = s3_record()
 STATE = (
     "Phase B: the speed target is reached (T17: 108 of 108 start and parse"
-    " benchmarks); T18 next; the base is sqlfluffrs (human owner, 2026-10-29)."
+    " benchmarks); the native tests of the base pass in sqll (T18: 162 of 162);"
+    " T19 next; the base is sqlfluffrs (human owner, 2026-10-29)."
 )
 TASKS = (
     [f"T{i}" for i in range(10, 17)]

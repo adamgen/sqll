@@ -95,6 +95,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "843867be96c8daad0d758b57df9392b6d8d271134fce549de6ce169ff98a92af"
 
 [[package]]
+name = "blake2"
+version = "0.10.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "46502ad458c9a52b69d4d4d32775c788b7a1b85e8bc9d482d92250fc0e3f8efe"
+dependencies = [
+ "digest",
+]
+
+[[package]]
 name = "block-buffer"
 version = "0.10.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -148,6 +157,7 @@ checksum = "9ed9a281f7bc9b7576e61468ba615a66a5c8cfdff42420a70aa82701a3b1e292"
 dependencies = [
  "block-buffer",
  "crypto-common",
+ "subtle",
 ]
 
 [[package]]
@@ -550,6 +560,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "sqll_base_tests"
+version = "0.1.0"
+dependencies = [
+ "blake2",
+ "env_logger",
+ "hashbrown 0.16.1",
+ "log",
+ "serde_yaml_ng",
+ "sqll_dialects",
+ "sqll_lexer",
+ "sqll_parser",
+ "sqll_types",
+]
+
+[[package]]
 name = "sqll_dialects"
 version = "0.1.0"
 dependencies = [
@@ -587,6 +612,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "sqll_rules"
+version = "0.1.0"
+dependencies = [
+ "hashbrown 0.16.1",
+ "sqll_dialects",
+ "sqll_lexer",
+ "sqll_parser",
+]
+
+[[package]]
 name = "sqll_types"
 version = "0.1.0"
 dependencies = [
@@ -599,6 +634,12 @@ dependencies = [
  "serde",
  "uuid",
 ]
+
+[[package]]
+name = "subtle"
+version = "2.6.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "13c2bddecc57b384dee18652358fb23172facb8a2c51ccc10d74c157bdea3292"
 
 [[package]]
 name = "syn"

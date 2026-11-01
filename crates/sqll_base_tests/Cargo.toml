@@ -1,0 +1,37 @@
+# This file is a port of sqlfluff 4.4.0 code (sqlfluffrs):
+# sqlfluffrs/Cargo.toml
+# Source: https://github.com/sqlfluff/sqlfluff, tag 4.4.0,
+# commit 0348222a3bcdb0226563f7349c5a39beb0641955.
+# Copyright (c) 2018-2026 Alan Cruickshank. MIT License: see
+# crates/LICENSE-sqlfluffrs.md. See THIRD_PARTY.md and crates/ported.json.
+# sqll changed this file. crates/ported.json gives the reason.
+
+# sqll keeps only the parts of the root crate that its tests need: the
+# library (src/test_harness.rs) and the tests (tests/). The library keeps the
+# name "sqlfluffrs", so that the ported tests do not change.
+[package]
+name = "sqll_base_tests"
+version.workspace = true
+edition = "2021"
+rust-version.workspace = true
+publish = false
+autobenches = false
+
+[lib]
+name = "sqlfluffrs"
+bench = false
+
+[dependencies]
+env_logger.workspace = true
+hashbrown.workspace = true
+log.workspace = true
+serde_yaml_ng.workspace = true
+sqlfluffrs_types = { package = "sqll_types", path = "../sqll_types" }
+sqlfluffrs_lexer = { package = "sqll_lexer", path = "../sqll_lexer" }
+sqlfluffrs_dialects = { package = "sqll_dialects", path = "../sqll_dialects" }
+sqlfluffrs_parser = { package = "sqll_parser", path = "../sqll_parser" }
+
+# Only tests/fixture_tests.rs uses blake2.
+[dev-dependencies]
+blake2 = "0.10.6"
+env_logger.workspace = true
