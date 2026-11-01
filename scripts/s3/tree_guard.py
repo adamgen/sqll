@@ -4,9 +4,9 @@ A speed change must not change a tree (CONSTITUTION.md, "Conflicts"). The
 guard runs sqll on each of the 84 S2 parse inputs (harness/bench.md,
 "Inputs"), with no option and with -m (the meta segments), and compares the
 stdout (sha256 and size), the stderr, and the exit code with RECORD_FILE.
-The record is the output of the sqll of the T11 port with no engine change
-(the binary of commit REFERENCE_COMMIT). Thus a change of a tree, of a
-meta segment, or of the JSON output fails the guard.
+The record is the output of the sqll of main at REFERENCE_COMMIT: the T11
+port with the T12 limit changes, before any speed change. Thus a change of a
+tree, of a meta segment, or of the JSON output fails the guard.
 
 Commands (run them with the harness Python from the repository root):
 
@@ -49,7 +49,8 @@ from sqll_harness.paths import SQLFLUFF_ROOT, sqlfluff_ref, tools_dir
 ROOT = Path(__file__).resolve().parents[2]
 RECORD_FILE = ROOT / "results" / "s3" / "tree-guard.json"
 KIND = "sqll-s3-tree-guard"
-# The T11 port with no engine change: main after T13 (PR #47).
+# Main after T13 (PR #47): the T11 port with the T12 limit changes, before
+# any speed change.
 REFERENCE_COMMIT = "1a2219c4d8bfd3df8db76ef885183f2f7782fdf8"
 RUNS = {"default": [], "meta": ["-m"]}
 PARSE_INPUTS = 84
@@ -237,8 +238,8 @@ def make_record(binary: Path, folder: Path, python: Path) -> dict:
         "sqlfluff_ref": sqlfluff_ref(SQLFLUFF_ROOT),
         "reference": {
             "commit": REFERENCE_COMMIT,
-            "what": "the sqll binary of the T11 port with no engine change "
-            "(scripts/build-sqll at the commit)",
+            "what": "the sqll binary of main at the commit (scripts/build-sqll): the "
+            "T11 port with the T12 limit changes, before any speed change",
             "version": build["version"],
             "source_sha256": build["source_sha256"],
             "binary_sha256": sha256(binary.read_bytes()),

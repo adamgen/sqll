@@ -20,9 +20,10 @@ DECISION = [
     " a new human decision.",
 ]
 LICENSE = (
-    "The human owner delegated the license choice on 2026-11-01. The choice is MIT."
-    " T19 makes the LICENSE file and records the answers to the open questions"
-    " (T7, `results/s3/license-size.json`)."
+    "The human owner delegated the choice on 2026-11-01. The choice is MIT, the"
+    " license of the ported code (sqlfluff, sqlfluffrs); all 54 dependencies of the"
+    " base have a permissive option (T7). T19 makes the LICENSE file and answers"
+    " the open questions (`results/s3/license-size.json`)."
 )
 STATES = ("Not started", "In work")
 
@@ -43,7 +44,10 @@ def test_the_index_row_has_the_phase_b_state():
     (row,) = [line for line in INDEX.splitlines() if line.startswith("| S3 |")]
     assert row.startswith(f"| S3 | S3 | {STATE} ")
     assert row.endswith(" | [status/S3.md](status/S3.md) |")
-    assert "the license of sqll" in row
+    assert "License: MIT (the human owner delegated the choice, 2026-11-01)." in row
+    # Both human decisions of 2026-11-01 are made (status/S3.md).
+    assert "Open question" not in row
+    assert "human decision needed" not in row
 
 
 def test_the_status_file_has_the_phase_b_state():
@@ -117,6 +121,12 @@ def test_the_license_choice_is_one_line():
     )
     # The open questions that T19 answers; question 1 is the license of sqll.
     assert sizes["open_questions"][0].startswith("Which license does sqll use?")
+    # The reason of the choice is that of the T7 data.
+    base = sizes["bases"]["sqlfluffrs"]
+    assert base["license"]["spdx"] == sizes["bases"]["new-parser"]["license"]["spdx"]
+    assert base["license"]["spdx"] == "MIT"
+    deps = base["dependencies"]["standalone"]
+    assert deps["packages"] == deps["by_class"]["permissive"] == 54
     assert part("License").strip().splitlines() == [LICENSE]
 
 
@@ -150,6 +160,10 @@ def test_the_speed_target_is_that_of_the_t14_record():
         assert "The human owner decided on 2026-11-01 (below)." in text
         assert "T15 does not start." not in text
         (row,) = [line for line in INDEX.splitlines() if line.startswith("| S3 |")]
-        assert "(no-go): **human decision needed**" in row
+        assert (
+            "T14: the speed target is not in reach on the estimate (no-go); the"
+            " human owner decided on 2026-11-01 to continue the speed work (T15,"
+            " T16, then the checkpoint T16b)."
+        ) in row
     else:
         assert "No-go" not in text

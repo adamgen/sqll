@@ -222,8 +222,8 @@ jobs:
         run: scripts/check-submodule "after the Rust tests"
 
       # The S2 tree guard (S3 T14): the output of sqll on each S2 parse input
-      # must be that of results/s3/tree-guard.json, the output of the port
-      # with no engine change. A speed change must not change a tree.
+      # must be that of results/s3/tree-guard.json, the output of main
+      # before any speed change. A speed change must not change a tree.
       - name: Check the sqll trees of the S2 parse inputs
         run: uv run --frozen --project harness python scripts/s3/tree_guard.py check
 

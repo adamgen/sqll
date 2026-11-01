@@ -40,6 +40,10 @@ def test_the_record_is_that_of_the_reference_build():
     assert RECORD["kind"] == tg.KIND
     assert RECORD["sqlfluff_ref"] == DEFS["sqlfluff_ref"]
     assert RECORD["reference"]["commit"] == tg.REFERENCE_COMMIT
+    # T12 changed ported engine files (status/S3.md), so the reference is not
+    # "the port with no engine change".
+    assert "before any speed change" in RECORD["reference"]["what"]
+    assert "no engine change" not in RECORD["reference"]["what"]
     for entry in RECORD["inputs"].values():
         for run in tg.RUNS:
             assert entry[run]["exit_code"] == 0
@@ -55,6 +59,11 @@ def test_the_sqlfluff_counts_are_those_of_the_inputs():
     assert s["not_equal"]["default"] == [
         n for n, r in RECORD["inputs"].items() if not r["sqlfluff"]["default_equal"]
     ]
+    assert s["not_equal"]["meta"] == [
+        n for n, r in RECORD["inputs"].items() if not r["sqlfluff"]["meta_tree_equal"]
+    ]
+    assert s["default_equal"] == len(rows) - len(s["not_equal"]["default"])
+    assert s["meta_tree_equal"] == len(rows) - len(s["not_equal"]["meta"])
     assert RECORD["summary"]["sqlfluff_default_equal"] == s["default_equal"]
     assert RECORD["summary"]["sqlfluff_meta_tree_equal"] == s["meta_tree_equal"]
 

@@ -208,6 +208,18 @@ def test_the_classes_are_labelled_estimates_with_a_basis():
             assert "assumption" in c["basis"]
 
 
+def test_the_direct_output_gain_is_its_formula():
+    (c,) = [c for c in OUT["classes"] if c["id"] == "direct_output"]
+    assert c["removable"] == "max(0, record - write)"
+    # The basis must give the reason for the subtraction of the write phase.
+    assert "Thus the gain is record - write" in c["basis"]
+    assert "assumption" in c["basis"]
+    for r in OUT["benchmarks"]:
+        ph = r["phase_time"]
+        gain = r["estimate"]["gains"]["direct_output"]["removable_s"]
+        assert gain == pytest.approx(max(0.0, ph["record"] - ph["write"]), abs=2e-6)
+
+
 def test_the_go_result_follows_from_the_benchmarks():
     go = OUT["go"]
     out = [r["id"] for r in PAIRED if not r["in_reach"]["central"]]

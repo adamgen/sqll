@@ -658,8 +658,11 @@ CLASSES = (
         "record between them.",
         "removable": "max(0, record - write)",
         "r": 1.0,
-        "basis": "measured phases: the record phase goes; a walk of the tree "
-        "that writes the JSON stays, at the cost of the write phase.",
+        "basis": "measured phases: the record phase goes. The new walk of the "
+        "tree writes the same JSON (the cost of the write phase) and also walks "
+        "the tree. An assumption: that walk of the tree costs as much as the "
+        "write phase. Thus the gain is record - write, a low estimate (T15 "
+        "measures it).",
     },
     {
         "id": "lexer_tables",

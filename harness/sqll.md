@@ -24,7 +24,8 @@ the config value `max_parse_depth` (default 600); `sqlfluff parse` has no
 such option. `--timings` (a sqll option for the speed work, S3 T14) adds
 one JSON line to the end of stderr: the seconds of each phase (`init`,
 `setup`, `lex`, `parse`, `record`, `write`, `free`; `crates/sqll/src/timings.rs`),
-their sum, and the token count. The output and the exit code do not change.
+their sum, and the token count. `write` also has the drop of the lexer
+and the stderr error lines. The output and the exit code do not change.
 The other parser limits are the sqlfluff defaults
 (`max_parse_nodes` 100000, `rust_parser_max_iterations` 3000000). Exit
 codes: 0; 1 for a lex error, a parse error (also at a parser limit), or an
@@ -144,9 +145,10 @@ after S3b (`LATER` in `sqll_harness/corpus/run.py`).
 `scripts/s3/tree_guard.py check` (S3 T14; CI job `build`, `scripts/verify`)
 runs sqll on each of the 84 S2 parse inputs, with no option and with `-m`.
 The stdout (sha256 and size), the stderr, and the exit code must be those of
-`results/s3/tree-guard.json`: the output of the T11 port with no engine
-change. Thus a speed change cannot change a tree or a meta segment. A new
-record (`tree_guard.py record`) needs a reason in the pull request.
+`results/s3/tree-guard.json`: the output of main at `1a2219c` (the T11
+port with the T12 limit changes, before any speed change). Thus a speed
+change cannot change a tree or a meta segment. A new record
+(`tree_guard.py record`) needs a reason in the pull request.
 
 ## Tool check
 

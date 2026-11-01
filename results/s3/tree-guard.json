@@ -6,7 +6,7 @@
  "sqlfluff_ref": "0348222a3bcdb0226563f7349c5a39beb0641955",
  "reference": {
   "commit": "1a2219c4d8bfd3df8db76ef885183f2f7782fdf8",
-  "what": "the sqll binary of the T11 port with no engine change (scripts/build-sqll at the commit)",
+  "what": "the sqll binary of main at the commit (scripts/build-sqll): the T11 port with the T12 limit changes, before any speed change",
   "version": "0.1.0+tables.5371ded8ae219be1a62cd34b1b793d36c41bc9fa432f344de5d84f48d2d059e8",
   "source_sha256": "46542f78e855a1cec15c22d650d141c6b20d1bb1f0c18ad26497365eadbf79b5",
   "binary_sha256": "4f449d386a77f4e4074f615100704e1e823534d3e4527e7bdc3b7938672cffa2"

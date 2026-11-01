@@ -14,7 +14,8 @@ use std::time::Instant;
 /// - lex: the lexer;
 /// - parse: the parser (also the lazy regexes of the grammar);
 /// - record: the record of the tree and the check for unparsable segments;
-/// - write: the JSON output;
+/// - write: the JSON output, and also the drop of the lexer (when
+///   parse::parse returns) and the stderr error lines;
 /// - free: the drop of the parser, the tokens, the tree, and the record.
 pub const PHASES: [&str; 7] = ["init", "setup", "lex", "parse", "record", "write", "free"];
 
