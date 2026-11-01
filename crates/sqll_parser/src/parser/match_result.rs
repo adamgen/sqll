@@ -133,7 +133,8 @@ pub struct MatchResult {
     pub matched_slice: Range<usize>,
 
     /// The class/type of segment to create when applying
-    pub matched_class: Option<MatchedClass>,
+    /// In a box, so that a match result is small to move and copy (S3 T17).
+    pub matched_class: Option<Box<MatchedClass>>,
 
     /// Meta-segments to insert at specific positions (Indent/Dedent)
     /// Tuple is (position, meta_type, is_implicit)
@@ -203,6 +204,7 @@ impl MatchResult {
         end_idx: usize,
         children: Vec<Arc<MatchResult>>,
     ) -> Self {
+        let matched_class = matched_class.map(Box::new);
         // Only set matched_class if segment_type is explicitly provided from tables
         // Refs without segment_type are grammar-only (not Python segment classes)
         // and should not create a matched_class wrapper
@@ -285,14 +287,14 @@ impl MatchResult {
         // don't wrap in BracketedSegment - just return the match with children inline.
         // When bracket_persists is true (parentheses), wrap in BracketedSegment.
         let matched_class = if bracket_persists {
-            Some(MatchedClass {
+            Some(Box::new(MatchedClass {
                 class_name: Cow::Borrowed("BracketedSegment"),
                 segment_type: Some(Cow::Borrowed("bracketed")),
                 segment_kwargs: SegmentKwargs {
                     class_types: Some(vec!["base".to_string(), "bracketed".to_string()]),
                     ..Default::default()
                 },
-            })
+            }))
         } else {
             None
         };
@@ -309,7 +311,7 @@ impl MatchResult {
     /// Create a MatchResult representing a parse error.
     /// Used when parsing fails and we need to report the error location.
     pub fn with_error(start_idx: usize, end_idx: usize, message: String, error_pos: usize) -> Self {
-        let matched_class = Some(MatchedClass::unparsable(&message, error_pos));
+        let matched_class = Some(Box::new(MatchedClass::unparsable(&message, error_pos)));
         MatchResult {
             matched_slice: start_idx..end_idx,
             matched_class,
@@ -478,7 +480,7 @@ impl MatchResult {
             let matched_slice = self.matched_slice.clone();
             MatchResult {
                 matched_slice,
-                matched_class: Some(outer_class),
+                matched_class: Some(Box::new(outer_class)),
                 insert_segments,
                 child_matches: vec![Arc::new(self)],
                 memo: Default::default(),
@@ -490,7 +492,7 @@ impl MatchResult {
             new_insert_segments.extend(insert_segments);
             MatchResult {
                 matched_slice: self.matched_slice,
-                matched_class: Some(outer_class),
+                matched_class: Some(Box::new(outer_class)),
                 insert_segments: new_insert_segments,
                 child_matches: self.child_matches,
                 memo: Default::default(),
@@ -609,6 +611,7 @@ impl MatchResult {
 
         // self is owned — consume matched_class directly without clone
         if let Some(match_class) = self.matched_class {
+            let match_class = *match_class;
             vdebug!(
                 "[APPLY-DEBUG] {:?} wrapping {} nodes",
                 match_class.class_name,
@@ -723,7 +726,7 @@ impl MatchResult {
     pub fn apply_as_root(self, tokens: &[Token], leading: &[Token], trailing: &[Token]) -> Node {
         let file_mr = MatchResult {
             matched_slice: 0..tokens.len(),
-            matched_class: Some(MatchedClass::root()),
+            matched_class: Some(Box::new(MatchedClass::root())),
             insert_segments: vec![],
             child_matches: vec![Arc::new(self)],
             memo: Default::default(),

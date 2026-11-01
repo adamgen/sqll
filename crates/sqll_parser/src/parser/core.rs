@@ -436,7 +436,7 @@ impl<'a> Parser<'a> {
         if first_code_pos >= last_code_pos {
             let file_mr = MatchResult {
                 matched_slice: 0..self.tokens.len(),
-                matched_class: Some(MatchedClass::root()),
+                matched_class: Some(Box::new(MatchedClass::root())),
                 insert_segments: vec![],
                 child_matches: vec![],
                 memo: Default::default(),
@@ -510,7 +510,7 @@ impl<'a> Parser<'a> {
         // `cls(segments[:_start_idx] + content + segments[_end_idx:], fname=fname)`.
         let file_mr = MatchResult {
             matched_slice: 0..token_slice_orig.len(),
-            matched_class: Some(MatchedClass::root()),
+            matched_class: Some(Box::new(MatchedClass::root())),
             insert_segments: vec![],
             child_matches: vec![content_child],
             memo: Default::default(),
@@ -602,11 +602,11 @@ impl<'a> Parser<'a> {
                 }
                 let result = MatchResult {
                     matched_slice: token_pos..token_pos + 1,
-                    matched_class: Some(MatchedClass {
+                    matched_class: Some(Box::new(MatchedClass {
                         class_name: Cow::Borrowed(raw_class),
                         segment_type: Some(Cow::Borrowed(token_type)),
                         segment_kwargs,
-                    }),
+                    })),
                     ..Default::default()
                 };
 
@@ -843,11 +843,11 @@ impl<'a> Parser<'a> {
                 }
                 let match_result = MatchResult {
                     matched_slice: token_pos..token_pos + 1,
-                    matched_class: Some(MatchedClass {
+                    matched_class: Some(Box::new(MatchedClass {
                         class_name: Cow::Borrowed(raw_class),
                         segment_type: Some(Cow::Owned(effective_segment_type.clone())),
                         segment_kwargs,
-                    }),
+                    })),
                     ..Default::default()
                 };
 
@@ -1000,11 +1000,11 @@ impl<'a> Parser<'a> {
                 }
                 let result = MatchResult {
                     matched_slice: token_pos..token_pos + 1,
-                    matched_class: Some(MatchedClass {
+                    matched_class: Some(Box::new(MatchedClass {
                         class_name: Cow::Borrowed(raw_class),
                         segment_type: Some(Cow::Borrowed(token_type)),
                         segment_kwargs,
-                    }),
+                    })),
                     ..Default::default()
                 };
                 self.bump();
@@ -1312,11 +1312,11 @@ impl<'a> Parser<'a> {
         }
         let result = MatchResult {
             matched_slice: token_pos..token_pos + 1,
-            matched_class: Some(MatchedClass {
+            matched_class: Some(Box::new(MatchedClass {
                 class_name: Cow::Borrowed(raw_class),
                 segment_type: Some(Cow::Borrowed(token_type)),
                 segment_kwargs,
-            }),
+            })),
             ..Default::default()
         };
         self.bump();
@@ -1734,14 +1734,14 @@ impl<'a> Parser<'a> {
         // Record opening bracket position with SymbolSegment class
         let open_bracket_match = MatchResult {
             matched_slice: self.pos..self.pos + 1,
-            matched_class: Some(MatchedClass {
+            matched_class: Some(Box::new(MatchedClass {
                 class_name: Cow::Borrowed("SymbolSegment"),
                 segment_type: Some(Cow::Borrowed(start_bracket_type)),
                 segment_kwargs: SegmentKwargs {
                     instance_types: Some(vec![start_bracket_type.to_string()]),
                     ..Default::default()
                 },
-            }),
+            })),
             ..Default::default()
         };
         self.bump();
@@ -1805,14 +1805,14 @@ impl<'a> Parser<'a> {
 
         let close_bracket_match = MatchResult {
             matched_slice: bracket_end - 1..bracket_end,
-            matched_class: Some(MatchedClass {
+            matched_class: Some(Box::new(MatchedClass {
                 class_name: Cow::Borrowed("SymbolSegment"),
                 segment_type: Some(Cow::Borrowed(end_bracket_type)),
                 segment_kwargs: SegmentKwargs {
                     instance_types: Some(vec![end_bracket_type.to_string()]),
                     ..Default::default()
                 },
-            }),
+            })),
             ..Default::default()
         };
         inner_child_matches.push(Arc::new(close_bracket_match));

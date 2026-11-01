@@ -478,7 +478,10 @@ impl Parser<'_> {
 
             let unparsable_match = MatchResult {
                 matched_slice: start_idx..max_idx,
-                matched_class: Some(MatchedClass::unparsable(&error_message, child_start_pos)),
+                matched_class: Some(Box::new(MatchedClass::unparsable(
+                    &error_message,
+                    child_start_pos,
+                ))),
                 ..Default::default()
             };
             let end_pos = unparsable_match.end();
@@ -521,7 +524,10 @@ impl Parser<'_> {
         };
         child_matches.push(Arc::new(MatchResult {
             matched_slice: child_start_pos..max_idx,
-            matched_class: Some(MatchedClass::unparsable(&error_message, child_start_pos)),
+            matched_class: Some(Box::new(MatchedClass::unparsable(
+                &error_message,
+                child_start_pos,
+            ))),
             ..Default::default()
         }));
 
@@ -879,7 +885,10 @@ impl Parser<'_> {
 
                     child_matches.push(Arc::new(MatchResult {
                         matched_slice: _idx.._stop_idx,
-                        matched_class: Some(MatchedClass::unparsable("Nothing here.", _stop_idx)),
+                        matched_class: Some(Box::new(MatchedClass::unparsable(
+                            "Nothing here.",
+                            _stop_idx,
+                        ))),
                         ..Default::default()
                     }));
 
