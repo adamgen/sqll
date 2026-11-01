@@ -175,10 +175,10 @@ pub struct Parser<'a> {
     /// Indentation configuration (key -> enabled)
     /// Used by conditional meta segments (e.g., indented_joins=true enables Indent/Dedent)
     pub(crate) indent_config: hashbrown::HashMap<&'static str, bool>,
-    // Regex cache for table-driven RegexParser (pattern_string -> compiled RegexMode)
-    // Keyed by (pattern, case_insensitive): a RegexParser with `ignore_case=False`
+    // Regex cache for table-driven RegexParser (pattern id -> compiled RegexMode)
+    // Keyed by (pattern id, case_insensitive): a RegexParser with `ignore_case=False`
     // compiles the same pattern case-sensitively.
-    regex_cache: hashbrown::HashMap<(String, bool), std::sync::Arc<RegexMode>>,
+    regex_cache: hashbrown::HashMap<(u32, bool), RegexMode>,
     /// Memoizes a Ref's resolved child grammar (ref grammar_id -> child grammar_id).
     /// The resolution (element children / by-name dialect lookup) depends only on
     /// the Ref's grammar_id, but the same Ref is hit thousands of times per parse,
@@ -1152,34 +1152,110 @@ impl<'a> Parser<'a> {
         Some((pattern, anti_opt, token_type_opt, raw_class))
     }
 
+    /// The compiled regex of the pattern `pattern_id` of the grammar tables
+    /// (compiled at the first use), matched against `text`. The pattern is
+    /// stripped of a single pair of a leading '^' and a trailing '$', because
+    /// RegexMode adds its own anchors. The cache key is the pattern id, not
+    /// the pattern text, so that a lookup does not copy or hash the text
+    /// (S3 T17).
+    fn grammar_regex_is_match(&mut self, pattern_id: u32, case_insensitive: bool, text: &str) -> bool {
+        let tables = self.grammar_ctx.tables();
+        self.regex_cache
+            .entry((pattern_id, case_insensitive))
+            .or_insert_with(|| {
+                let s = tables.regex_patterns[pattern_id as usize];
+                let s = if s.starts_with('^') && s.ends_with('$') {
+                    &s[1..s.len() - 1]
+                } else {
+                    s
+                };
+                RegexMode::new_with_flags(s, case_insensitive)
+            })
+            .is_match(text)
+    }
+
     /// Handle RegexParser using table-driven approach
     pub(crate) fn handle_regex_parser(
         &mut self,
         grammar_id: GrammarId,
     ) -> Result<MatchResult, ParseError> {
-        // Use helper to resolve pattern/anti/token_type/raw_class to centralize aux indexing
-        let (pattern_str, anti_opt, token_type_opt, raw_class) =
-            match self.regex_quad_for(grammar_id) {
-                Some((p, a, t, r)) => (p, a, t, r),
-                None => {
-                    log::warn!(
-                        "RegexParser[table]: invalid aux for grammar_id={} when resolving pattern",
-                        grammar_id
-                    );
-                    return Ok(MatchResult::empty_at(self.pos));
-                }
-            };
+        // The aux data, as regex_quad_for reads it, with no copy of a string.
+        let tables = self.grammar_ctx.tables();
+        let aux_start = tables.aux_data_offsets[grammar_id.get() as usize] as usize;
+        let valid_pattern = |id: u32| id != 0xFFFFFFFF && (id as usize) < tables.regex_patterns.len();
+        if aux_start + 3 >= tables.aux_data.len() || !valid_pattern(tables.aux_data[aux_start]) {
+            log::warn!(
+                "RegexParser[table]: invalid aux for grammar_id={} when resolving pattern",
+                grammar_id
+            );
+            return Ok(MatchResult::empty_at(self.pos));
+        }
+        let pattern_id = tables.aux_data[aux_start];
+        let anti_id = Some(tables.aux_data[aux_start + 1]).filter(|&id| valid_pattern(id));
+        let token_type_id = tables.aux_data[aux_start + 2];
+        let token_type: &'static str = if token_type_id != 0xFFFFFFFF {
+            tables.get_string(token_type_id)
+        } else {
+            ""
+        };
+        let raw_class: &'static str = tables.get_string(tables.aux_data[aux_start + 3]);
+
+        // Case-sensitive matching for `RegexParser(ignore_case=False)`.
+        // Default is case-insensitive; the template AND the
+        // anti-template share the parser's case mode.
+        let case_insensitive = !self.grammar_ctx.inst(grammar_id).flags.case_sensitive();
+
+        vdebug!(
+            "RegexParser[table]: pos={}, pattern='{}', anti='{}', token_type='{}'",
+            self.pos,
+            tables.regex_patterns[pattern_id as usize],
+            anti_id.map_or("<none>", |id| tables.regex_patterns[id as usize]),
+            token_type
+        );
+
+        let tokens = self.tokens;
+        let Some(tok) = tokens.get(self.pos) else {
+            vdebug!("RegexParser[table] NOMATCH: EOF at pos={}", self.pos);
+            return Ok(MatchResult::empty_at(self.pos));
+        };
+        // PYTHON PARITY: match against the full-unicode uppercase form
+        // when case-insensitive, like Python's str.upper() (e.g.
+        // 'straße' -> 'STRASSE') - the regex crate only does simple
+        // folding, which misses that. Uses the token's precomputed
+        // raw_upper(), so this stays cheap under backtracking.
+        let raw = if case_insensitive {
+            tok.raw_upper()
+        } else {
+            tok.raw()
+        };
+
+        // A match needs the pattern and not the anti-pattern. The anti-pattern
+        // is tried (and compiled) only after the pattern matches (S3 T17).
+        if !self.grammar_regex_is_match(pattern_id, case_insensitive, raw) {
+            vdebug!(
+                "RegexParser[table] NOMATCH: pattern didn't match token='{}'",
+                raw
+            );
+            return Ok(MatchResult::empty_at(self.pos));
+        }
+        if let Some(anti_id) = anti_id {
+            if self.grammar_regex_is_match(anti_id, case_insensitive, raw) {
+                vdebug!("RegexParser[table] anti-pattern matched, returning Empty");
+                return Ok(MatchResult::empty_at(self.pos));
+            }
+        }
 
         // RegexParser stores either:
         //   old schema: [regex_id, anti_regex_id, token_type_id, raw_class_id]
         //   new schema: [regex_id, anti_regex_id, token_type_id, raw_class_id,
         //                inst_count, inst_type_ids..., class_types_count, class_type_ids...]
-        let tables = self.grammar_ctx.tables();
         let (aux_start, aux_end) = aux_block_bounds(tables, grammar_id);
-        let token_type_id = if aux_start + 2 < tables.aux_data.len() {
-            tables.aux_data[aux_start + 2]
-        } else {
-            0xFFFFFFFF
+        let default_instance_type_ids = || {
+            if token_type_id != 0xFFFFFFFF {
+                vec![token_type_id]
+            } else {
+                vec![]
+            }
         };
         let (configured_instance_type_ids, raw_class_class_type_ids) = if aux_end >= aux_start + 5 {
             let inst_count = tables.aux_data[aux_start + 4] as usize;
@@ -1192,154 +1268,53 @@ impl<'a> Parser<'a> {
                     .filter(|id| *id != 0xFFFFFFFF)
                     .collect::<Vec<_>>()
             } else {
-                token_type_opt
-                    .as_ref()
-                    .map(|_| vec![token_type_id])
-                    .unwrap_or_default()
+                default_instance_type_ids()
             };
             let ct_ids = read_string_ids_from_aux(tables, inst_end, aux_end);
             (inst_ids, ct_ids)
         } else {
-            (
-                token_type_opt
-                    .as_ref()
-                    .map(|_| vec![token_type_id])
-                    .unwrap_or_default(),
-                vec![],
-            )
+            (default_instance_type_ids(), vec![])
         };
 
-        // Compile regex patterns (with caching). Normalize patterns by
-        // stripping a single pair of leading '^' and trailing '$' if present
-        // because emitted aux_data sometimes contains explicitly anchored
-        // templates (e.g., anti_templates like '^...$'). RegexMode::new will
-        // itself wrap the pattern with anchors, so leaving anchors in the
-        // stored pattern results in double-anchoring and prevents matches.
-        fn normalize_for_compile(s: &str) -> &str {
-            if s.starts_with('^') && s.ends_with('$') {
-                // Safe to slice off the first and last char
-                &s[1..s.len() - 1]
-            } else {
-                s
-            }
-        }
-
-        // Case-sensitive matching for `RegexParser(ignore_case=False)`.
-        // Default is case-insensitive; the template AND the
-        // anti-template share the parser's case mode.
-        let case_insensitive = !self.grammar_ctx.inst(grammar_id).flags.case_sensitive();
-
-        let pattern = {
-            let comp_key = normalize_for_compile(&pattern_str).to_string();
-            self.regex_cache
-                .entry((comp_key.clone(), case_insensitive))
-                .or_insert_with(|| {
-                    std::sync::Arc::new(RegexMode::new_with_flags(&comp_key, case_insensitive))
-                })
-                .clone()
-        };
-
-        let anti_pattern = if let Some(anti_str) = anti_opt.as_ref() {
-            let comp_key = normalize_for_compile(anti_str).to_string();
-            Some(
-                self.regex_cache
-                    .entry((comp_key.clone(), case_insensitive))
-                    .or_insert_with(|| {
-                        std::sync::Arc::new(RegexMode::new_with_flags(&comp_key, case_insensitive))
-                    })
-                    .clone(),
-            )
-        } else {
-            None
-        };
-
+        let token_pos = self.pos;
         vdebug!(
-            "RegexParser[table]: pos={}, pattern='{}', anti='{}', token_type='{}'",
-            self.pos,
-            pattern_str,
-            anti_opt.as_deref().unwrap_or("<none>"),
-            token_type_opt.as_deref().unwrap_or("")
+            "RegexParser[table] MATCHED: token='{}' at pos={}",
+            raw,
+            token_pos
         );
 
-        match self.peek() {
-            Some(tok) => {
-                // PYTHON PARITY: match against the full-unicode uppercase form
-                // when case-insensitive, like Python's str.upper() (e.g.
-                // 'straße' -> 'STRASSE') - the regex crate only does simple
-                // folding, which misses that. Uses the token's precomputed
-                // raw_upper(), so this stays cheap under backtracking.
-                let raw = if case_insensitive {
-                    tok.raw_upper()
-                } else {
-                    tok.raw()
-                };
-
-                // Check anti-pattern first (if present, should NOT match)
-                if let Some(ref anti) = anti_pattern {
-                    vdebug!("RegexParser[table] checking anti-pattern against '{}'", raw);
-                    if anti.is_match(raw) {
-                        vdebug!("RegexParser[table] anti-pattern matched, returning Empty");
-                        return Ok(MatchResult::empty_at(self.pos));
-                    }
-                }
-
-                // Check main pattern
-                if pattern.is_match(raw) {
-                    let token_pos = self.pos;
-
-                    vdebug!(
-                        "RegexParser[table] MATCHED: token='{}' at pos={}",
-                        raw,
-                        token_pos
-                    );
-
-                    // Return MatchResult with raw_class as matched_class
-                    let token_type = token_type_opt.unwrap_or_default();
-                    let configured_instance_types = configured_instance_type_ids
-                        .iter()
-                        .map(|id| tables.get_string(*id).to_string())
-                        .collect::<Vec<_>>();
-                    let raw_class_class_types = raw_class_class_type_ids
-                        .iter()
-                        .map(|id| tables.get_string(*id).to_string())
-                        .collect::<Vec<_>>();
-                    let casefold = self.grammar_ctx.casefold(grammar_id);
-                    let grammar_trim_chars = self.grammar_ctx.trim_chars(grammar_id);
-                    let mut segment_kwargs = match_result::segment_kwargs_from_token(
-                        tok,
-                        &token_type,
-                        Some(configured_instance_types),
-                        casefold,
-                    );
-                    segment_kwargs.class_types = Some(raw_class_class_types);
-                    if let Some(grammar_tc) = grammar_trim_chars {
-                        segment_kwargs.trim_chars = Some(grammar_tc);
-                    }
-                    let result = MatchResult {
-                        matched_slice: token_pos..token_pos + 1,
-                        matched_class: Some(MatchedClass {
-                            class_name: Cow::Owned(raw_class.clone()),
-                            segment_type: Some(Cow::Owned(token_type.clone())),
-                            segment_kwargs,
-                        }),
-                        ..Default::default()
-                    };
-                    self.bump();
-                    Ok(result)
-                } else {
-                    vdebug!(
-                        "RegexParser[table] NOMATCH: pattern '{}' didn't match token='{}'",
-                        pattern_str,
-                        raw
-                    );
-                    Ok(MatchResult::empty_at(self.pos))
-                }
-            }
-            None => {
-                vdebug!("RegexParser[table] NOMATCH: EOF at pos={}", self.pos);
-                Ok(MatchResult::empty_at(self.pos))
-            }
+        // Return MatchResult with raw_class as matched_class
+        let configured_instance_types = configured_instance_type_ids
+            .iter()
+            .map(|id| tables.get_string(*id).to_string())
+            .collect::<Vec<_>>();
+        let raw_class_class_types = raw_class_class_type_ids
+            .iter()
+            .map(|id| tables.get_string(*id).to_string())
+            .collect::<Vec<_>>();
+        let casefold = self.grammar_ctx.casefold(grammar_id);
+        let grammar_trim_chars = self.grammar_ctx.trim_chars(grammar_id);
+        let mut segment_kwargs = match_result::segment_kwargs_from_token(
+            tok,
+            token_type,
+            Some(configured_instance_types),
+            casefold,
+        );
+        segment_kwargs.class_types = Some(raw_class_class_types);
+        if let Some(grammar_tc) = grammar_trim_chars {
+            segment_kwargs.trim_chars = Some(grammar_tc);
         }
+        let result = MatchResult {
+            matched_slice: token_pos..token_pos + 1,
+            matched_class: Some(MatchedClass {
+                class_name: Cow::Borrowed(raw_class),
+                segment_type: Some(Cow::Borrowed(token_type)),
+                segment_kwargs,
+            }),
+            ..Default::default()
+        };
+        self.bump();
+        Ok(result)
     }
 
     // ============================================================================
