@@ -518,6 +518,12 @@ def checks(jobs: int | None = None) -> list[Check]:
             'scripts/check-submodule "after the Rust tests"',
             ("build: Check that the sqlfluff submodule is clean after the Rust tests",),
         ),
+        Check(
+            "tree-guard",
+            f"{UV} python scripts/s3/tree_guard.py check",
+            ("build: Check the sqll trees of the S2 parse inputs",),
+            needs=(SETUP,),
+        ),
         # One unsharded run of all suites and tools, as all shards of CI.
         Check(
             "run",

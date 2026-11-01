@@ -6,7 +6,7 @@
 //!   sqll --version                 sqll, version VERSION
 //!   sqll version [--build]         VERSION, or the build record (JSON)
 //!   sqll parse --dialect D [-f json] [-c|--code-only] [-m|--include-meta]
-//!              [--max-parse-depth N] PATH
+//!              [--max-parse-depth N] [--timings] PATH
 //!   sqll lint ..., sqll fix ...    not supported yet (stone S5)
 //!
 //! "sqll parse" prints the record of "sqlfluff parse -f json" with the raw
@@ -24,9 +24,11 @@
 
 mod output;
 mod parse;
+mod timings;
 
 use std::io::Read;
 use std::process::ExitCode;
+use std::time::Instant;
 
 const VERSION: &str = concat!(
     env!("CARGO_PKG_VERSION"),
@@ -65,6 +67,8 @@ Options:
   --max-parse-depth INTEGER
                            The maximum parse depth. Default: 600. 0 and each
                            value above 10000 give 10000.
+  --timings                Write the time of each phase to stderr (one
+                           JSON line, the last line).
   -h, --help               Show this message and exit.
 ";
 
@@ -86,10 +90,11 @@ struct Error(String);
 const STACK_SIZE: usize = 256 * 1024 * 1024;
 
 fn main() -> ExitCode {
+    let start = Instant::now();
     let result = utf8_args(std::env::args_os().skip(1)).and_then(|args| {
         std::thread::Builder::new()
             .stack_size(STACK_SIZE)
-            .spawn(move || run(&args))
+            .spawn(move || run(&args, start))
             .map_err(|e| Error(format!("cannot start the command thread: {e}")))?
             .join()
             .unwrap_or_else(|panic| std::panic::resume_unwind(panic))
@@ -115,7 +120,7 @@ fn utf8_args(args: impl Iterator<Item = std::ffi::OsString>) -> Result<Vec<Strin
     .collect()
 }
 
-fn run(args: &[String]) -> Result<u8, Error> {
+fn run(args: &[String], start: Instant) -> Result<u8, Error> {
     let Some(first) = args.first() else {
         print!("{USAGE}");
         return Ok(EXIT_ERROR);
@@ -131,7 +136,7 @@ fn run(args: &[String]) -> Result<u8, Error> {
             Ok(EXIT_OK)
         }
         "version" => version(rest),
-        "parse" => parse_command(rest),
+        "parse" => parse_command(rest, start),
         "lint" | "fix" => Err(unsupported(first, "sqll has no rules until stone S5")),
         other => Err(Error(format!("No such command '{other}'.\n\n{USAGE}"))),
     }
@@ -164,6 +169,7 @@ struct ParseArgs {
     dialect: Option<String>,
     path: Option<String>,
     options: parse::Options,
+    timings: bool,
 }
 
 /// The arguments as they are read, before the values are checked.
@@ -175,6 +181,7 @@ struct RawParseArgs {
     max_parse_depth: Option<String>,
     code_only: bool,
     include_meta: bool,
+    timings: bool,
 }
 
 /// Split "--name=value" into ("--name", Some("value")).
@@ -227,6 +234,7 @@ fn parse_args(args: &[String]) -> Result<Option<ParseArgs>, Error> {
         max_parse_depth: None,
         code_only: false,
         include_meta: false,
+        timings: false,
     };
     let mut it = args.iter();
     let mut only_paths = false;
@@ -272,6 +280,10 @@ fn parse_args(args: &[String]) -> Result<Option<ParseArgs>, Error> {
                 raw.include_meta = true;
             }
             "--max-parse-depth" => raw.max_parse_depth = Some(value(name)?),
+            "--timings" => {
+                flag(name)?;
+                raw.timings = true;
+            }
             _ => return Err(Error(format!("No such option: {name}\n\n{PARSE_USAGE}"))),
         }
     }
@@ -308,6 +320,7 @@ fn parse_args(args: &[String]) -> Result<Option<ParseArgs>, Error> {
             include_meta: raw.include_meta,
             max_parse_depth,
         },
+        timings: raw.timings,
     }))
 }
 
@@ -383,7 +396,7 @@ fn read_sql(path: &str) -> Result<String, Error> {
     Ok(text)
 }
 
-fn parse_command(args: &[String]) -> Result<u8, Error> {
+fn parse_command(args: &[String], start: Instant) -> Result<u8, Error> {
     let Some(args) = parse_args(args)? else {
         return Ok(EXIT_OK);
     };
@@ -410,7 +423,9 @@ fn parse_command(args: &[String]) -> Result<u8, Error> {
         }
     }
     let sql = read_sql(&path)?;
-    let parsed = parse::parse(sql, dialect, &args.options);
+    let mut timer = timings::Timer::new(start);
+    timer.mark("init");
+    let parsed = parse::parse(sql, dialect, &args.options, &mut timer);
     for e in &parsed.errors {
         eprintln!("{e}");
     }
@@ -422,7 +437,14 @@ fn parse_command(args: &[String]) -> Result<u8, Error> {
     };
     let written = output::write_parse_json(std::io::stdout().lock(), &filepath, &parsed.record);
     written.map_err(|e| Error(format!("cannot write the output: {e}")))?;
-    Ok(if parsed.ok() { EXIT_OK } else { EXIT_FAIL })
+    timer.mark("write");
+    let ok = parsed.ok();
+    drop(parsed);
+    timer.mark("free");
+    if args.timings {
+        eprintln!("{}", timer.json());
+    }
+    Ok(if ok { EXIT_OK } else { EXIT_FAIL })
 }
 
 #[cfg(test)]

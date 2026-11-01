@@ -433,6 +433,10 @@
    "reason": "The lex and parse of one file. Parts are a port of sqlfluff 4.4.0 code by way of the T5 probe; the file header names the sources (THIRD_PARTY.md, \"Ported code\")."
   },
   {
+   "path": "crates/sqll/src/timings.rs",
+   "reason": "The phase times of \"sqll parse --timings\" (S3 T14). New sqll code."
+  },
+  {
    "path": "crates/sqll/tests/cli.rs",
    "reason": "Tests of the sqll command line on sqlfluff 4.4.0 dialect fixtures (read in place in the submodule). Parts are a port of sqlfluff 4.4.0 code (process_struct of test/conftest.py); the file header names the source (THIRD_PARTY.md, \"Ported code\")."
   },

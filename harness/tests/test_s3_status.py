@@ -11,7 +11,20 @@ STATE = (
     "Phase B started: the base is sqlfluffrs (human owner, 2026-10-29); the"
     " phase B task list in [status/S3.md](status/S3.md)."
 )
-TASKS = [f"T{i}" for i in range(10, 21)]
+TASKS = [f"T{i}" for i in range(10, 17)] + ["T16b"] + [f"T{i}" for i in range(17, 21)]
+DECISION = [
+    "- The T14 result stays no-go on the estimate. Its data does not change.",
+    "- Continue the speed work: T15, T16, then the checkpoint T16b, which runs the"
+    " T14 method again.",
+    "- If T16b shows that the target is still out of reach, the S3 track stops for"
+    " a new human decision.",
+]
+LICENSE = (
+    "The human owner delegated the choice on 2026-11-01. The choice is MIT, the"
+    " license of the ported code (sqlfluff, sqlfluffrs); all 54 dependencies of the"
+    " base have a permissive option (T7). T19 makes the LICENSE file and answers"
+    " the open questions (`results/s3/license-size.json`)."
+)
 STATES = ("Not started", "In work")
 
 
@@ -31,7 +44,10 @@ def test_the_index_row_has_the_phase_b_state():
     (row,) = [line for line in INDEX.splitlines() if line.startswith("| S3 |")]
     assert row.startswith(f"| S3 | S3 | {STATE} ")
     assert row.endswith(" | [status/S3.md](status/S3.md) |")
-    assert "the license of sqll" in row
+    assert "License: MIT (the human owner delegated the choice, 2026-11-01)." in row
+    # Both human decisions of 2026-11-01 are made (status/S3.md).
+    assert "Open question" not in row
+    assert "human decision needed" not in row
 
 
 def test_the_status_file_has_the_phase_b_state():
@@ -50,7 +66,7 @@ def test_the_phase_b_task_table():
     rows = [
         [cell.strip() for cell in line.split("|")[1:-1]]
         for line in part("Tasks").splitlines()
-        if re.match(r"\| T\d+ \|", line)
+        if re.match(r"\| T\d+b? \|", line)
     ]
     assert [r[0] for r in rows] == TASKS
     for task, description, state in rows:
@@ -58,8 +74,10 @@ def test_the_phase_b_task_table():
         assert state in STATES or re.fullmatch(
             r"(In review|Merged) \(PR #\d+\)", state
         ), (task, state)
+    by_task = {r[0]: r for r in rows}
     assert rows[0][2] != "Not started"
-    assert "T17b, T17c" in rows[7][1]
+    assert "T17b, T17c" in by_task["T17"][1]
+    assert by_task["T16b"][1] == "Checkpoint: run the T14 method again"
 
 
 def test_the_exit_target():
@@ -83,19 +101,69 @@ def test_the_stop_rule():
     assert "It gives the data to the human owner" in text
     assert "option 3 of the decision record" in text
     assert "The S3 track does not change the base." in text
+    assert (
+        "The human owner decision of 2026-11-01 (below) adds the checkpoint T16b."
+        in text
+    )
 
 
-def test_the_open_license_question_is_t7_question_1():
+def test_the_human_owner_decision_of_2026_11_01():
+    section = part("Human owner decision (2026-11-01)").strip()
+    assert section.startswith("- ")
+    items = ["- " + words(item) for item in section[2:].split("\n- ")]
+    assert items == DECISION
+    assert "Open question for the human owner" not in STATUS
+
+
+def test_the_license_choice_is_one_line():
     sizes = json.loads(
         (REPO_ROOT / "results" / "s3" / "license-size.json").read_text("utf8")
     )
-    question = sizes["open_questions"][0]
-    assert question.startswith("Which license does sqll use?")
-    text = words(part("Open question for the human owner"))
-    assert text.startswith("T19 needs the answer. Which license does sqll use?")
-    assert "open question 1" in text
+    # The open questions that T19 answers; question 1 is the license of sqll.
+    assert sizes["open_questions"][0].startswith("Which license does sqll use?")
+    # The reason of the choice is that of the T7 data.
+    base = sizes["bases"]["sqlfluffrs"]
+    assert base["license"]["spdx"] == sizes["bases"]["new-parser"]["license"]["spdx"]
+    assert base["license"]["spdx"] == "MIT"
+    deps = base["dependencies"]["standalone"]
+    assert deps["packages"] == deps["by_class"]["permissive"] == 54
+    assert part("License").strip().splitlines() == [LICENSE]
 
 
 def test_the_phase_b_part_is_short():
     # A 5-minute read (CONSTITUTION.md 2.4).
     assert len(phase_b().split()) <= 600
+
+
+def test_the_speed_target_is_that_of_the_t14_record():
+    record = json.loads(
+        (REPO_ROOT / "results" / "s3" / "speed-profile.json").read_text("utf8")
+    )
+    section = part("Speed target (T14)").strip()
+    assert len(section.splitlines()) <= 5
+    text = words(section)
+    target, groups, go = record["target"], record["groups"], record["go"]
+    worst = max(
+        (r for r in record["benchmarks"] if r["needed_factor"] is not None),
+        key=lambda r: r["needed_factor"],
+    )
+    assert f"1/(1 + m) = {target['ratio_below']:.3f}" in text
+    assert f"each of the {target['benchmarks']} start and parse benchmarks" in text
+    assert f"m = {target['margin']}" in text
+    assert f"Now: {groups['all']['below_target']} of 108 meet it." in text
+    assert f"at most {worst['needed_factor']:.2f} ({worst['id']})" in text
+    central = groups["all"]["in_reach"]["central"]
+    large = groups["parse/large"]["in_reach"]["central"]
+    assert f"on {central} of 108 ({large} of 27 parse/large)" in text
+    if go["result"] == "no-go":
+        assert "**No-go: human decision needed.**" in text
+        assert "The human owner decided on 2026-11-01 (below)." in text
+        assert "T15 does not start." not in text
+        (row,) = [line for line in INDEX.splitlines() if line.startswith("| S3 |")]
+        assert (
+            "T14: the speed target is not in reach on the estimate (no-go); the"
+            " human owner decided on 2026-11-01 to continue the speed work (T15,"
+            " T16, then the checkpoint T16b)."
+        ) in row
+    else:
+        assert "No-go" not in text

@@ -768,3 +768,40 @@ fn the_parser_iteration_limit_in_a_terminator_probe_gives_a_parse_error() {
     assert_iteration_limit(&order_by_comparisons(7854), true);
     assert_iteration_limit(&order_by_comparisons(8200), true);
 }
+
+/// --timings adds one JSON line to the end of stderr. The output and the
+/// exit code do not change.
+#[test]
+fn timings_add_only_the_last_stderr_line() {
+    let inputs = [
+        ("select a from b;\n", 0),
+        ("select 1 from t where ~~~ x\n", 1),
+        ("select 'abc\n", 1),
+    ];
+    for (sql, want) in inputs {
+        let plain = sqll_stdin(&["parse", "--dialect", "ansi", "-"], sql);
+        let timed = sqll_stdin(&["parse", "--dialect", "ansi", "--timings", "-"], sql);
+        assert_eq!(code(&plain), want, "{sql}");
+        assert_eq!(code(&timed), want, "{sql}");
+        assert_eq!(plain.stdout, timed.stdout, "{sql}");
+        let text = stderr(&timed);
+        let (before, last) = match text.trim_end_matches('\n').rsplit_once('\n') {
+            Some((before, last)) => (format!("{before}\n"), last.to_string()),
+            None => (String::new(), text.trim_end_matches('\n').to_string()),
+        };
+        assert_eq!(before, stderr(&plain), "{sql}");
+        let record: serde_json::Value = serde_json::from_str(&last).expect("a JSON line");
+        let keys = [
+            "init_s", "setup_s", "lex_s", "parse_s", "record_s", "write_s", "free_s",
+        ];
+        // The keys in the order of the phases (serde_json sorts the keys).
+        let order: Vec<&str> = last.split('"').skip(1).step_by(2).collect::<Vec<_>>();
+        assert_eq!(order[..7], keys, "{sql}");
+        assert_eq!(order[7..], ["total_s", "tokens"], "{sql}");
+        assert_eq!(record.as_object().unwrap().len(), 9, "{sql}");
+        let sum: f64 = keys.iter().map(|k| record[*k].as_f64().unwrap()).sum();
+        let total = record["total_s"].as_f64().unwrap();
+        assert!((sum - total).abs() < 1e-5, "{sql}: {sum} {total}");
+        assert!(record["tokens"].as_u64().unwrap() > 0, "{sql}");
+    }
+}
