@@ -1,0 +1,2554 @@
+{
+ "kind": "sqll-bench-compare",
+ "format": 1,
+ "base": {
+  "path": "results/s3/speed/T15-before.json",
+  "commit": "a0a7a9c92fe89a3e1c224cd2ff1cae6f8ffc5c53",
+  "clean": true,
+  "profile": "full",
+  "machine": {
+   "cpu_model": "Intel(R) Xeon(R) Processor @ 2.80GHz",
+   "cpu_count": 4,
+   "memory_kib": 16477352,
+   "os": "Debian GNU/Linux 13 (trixie)",
+   "kernel": "6.18.44-fc-v185",
+   "arch": "x86_64",
+   "python": "3.13.16"
+  }
+ },
+ "new": {
+  "path": "results/s3/speed/T15-after.json",
+  "commit": "fd9cf622c7e1b17074074f3c4f9e783f90fd3ce0",
+  "clean": true,
+  "profile": "full",
+  "machine": {
+   "cpu_model": "Intel(R) Xeon(R) Processor @ 2.80GHz",
+   "cpu_count": 4,
+   "memory_kib": 16477352,
+   "os": "Debian GNU/Linux 13 (trixie)",
+   "kernel": "6.18.44-fc-v185",
+   "arch": "x86_64",
+   "python": "3.13.16"
+  }
+ },
+ "noise": {
+  "wall_pct": 0.25,
+  "cpu_pct": 0.1,
+  "k": 3.0,
+  "min_diff_s": 0.005
+ },
+ "tools": {
+  "sqll": {
+   "base": "0.1.0+tables.5371ded8ae219be1a62cd34b1b793d36c41bc9fa432f344de5d84f48d2d059e8",
+   "new": "0.1.0+tables.5371ded8ae219be1a62cd34b1b793d36c41bc9fa432f344de5d84f48d2d059e8"
+  }
+ },
+ "warnings": [],
+ "benchmarks": [
+  {
+   "id": "parse/ansi/large",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.156525,
+    "new": 0.122465,
+    "ratio": 0.782399,
+    "limit": 0.295242,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.146377,
+    "new": 0.114868,
+    "ratio": 0.784741,
+    "limit": 0.125182,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/ansi/medium",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.041897,
+    "new": 0.03576,
+    "ratio": 0.853522,
+    "limit": 0.502637,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.038012,
+    "new": 0.031013,
+    "ratio": 0.815874,
+    "limit": 0.158054,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/ansi/small",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.013427,
+    "new": 0.010131,
+    "ratio": 0.754524,
+    "limit": 0.518973,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.012512,
+    "new": 0.008836,
+    "ratio": 0.706202,
+    "limit": 0.399616,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/athena/large",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.132714,
+    "new": 0.118993,
+    "ratio": 0.896612,
+    "limit": 0.31653,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.126287,
+    "new": 0.102407,
+    "ratio": 0.810907,
+    "limit": 0.170097,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/athena/medium",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.028647,
+    "new": 0.021818,
+    "ratio": 0.761616,
+    "limit": 0.666343,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.024525,
+    "new": 0.018878,
+    "ratio": 0.769745,
+    "limit": 0.203874,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/athena/small",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.018114,
+    "new": 0.011819,
+    "ratio": 0.652479,
+    "limit": 0.942555,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.014575,
+    "new": 0.010452,
+    "ratio": 0.717118,
+    "limit": 0.343053,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/bigquery/large",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.111834,
+    "new": 0.088076,
+    "ratio": 0.78756,
+    "limit": 0.276445,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.105871,
+    "new": 0.079621,
+    "ratio": 0.752057,
+    "limit": 0.146342,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/bigquery/medium",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.03126,
+    "new": 0.027411,
+    "ratio": 0.876871,
+    "limit": 0.474668,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.028275,
+    "new": 0.022316,
+    "ratio": 0.789248,
+    "limit": 0.176835,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/bigquery/small",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.017512,
+    "new": 0.013603,
+    "ratio": 0.776782,
+    "limit": 0.726955,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.014203,
+    "new": 0.010156,
+    "ratio": 0.71506,
+    "limit": 0.352038,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/clickhouse/large",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.104633,
+    "new": 0.094846,
+    "ratio": 0.906464,
+    "limit": 0.450636,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.098881,
+    "new": 0.079671,
+    "ratio": 0.805726,
+    "limit": 0.1837,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/clickhouse/medium",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.034748,
+    "new": 0.035317,
+    "ratio": 1.016375,
+    "limit": 0.444344,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.032392,
+    "new": 0.027506,
+    "ratio": 0.84916,
+    "limit": 0.154359,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/clickhouse/small",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.025518,
+    "new": 0.021682,
+    "ratio": 0.849675,
+    "limit": 0.555385,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.022364,
+    "new": 0.018644,
+    "ratio": 0.833661,
+    "limit": 0.223574,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/databricks/large",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.094863,
+    "new": 0.074869,
+    "ratio": 0.789233,
+    "limit": 0.474753,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.083118,
+    "new": 0.06348,
+    "ratio": 0.763733,
+    "limit": 0.158852,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/databricks/medium",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.029167,
+    "new": 0.019491,
+    "ratio": 0.668255,
+    "limit": 0.504973,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.02554,
+    "new": 0.017757,
+    "ratio": 0.695262,
+    "limit": 0.195771,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/databricks/small",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.017663,
+    "new": 0.010731,
+    "ratio": 0.607541,
+    "limit": 0.696442,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.014707,
+    "new": 0.009466,
+    "ratio": 0.643639,
+    "limit": 0.339974,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/db2/large",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.159386,
+    "new": 0.128474,
+    "ratio": 0.806056,
+    "limit": 0.429617,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.143121,
+    "new": 0.114985,
+    "ratio": 0.803411,
+    "limit": 0.184836,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/db2/medium",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.030568,
+    "new": 0.024832,
+    "ratio": 0.812353,
+    "limit": 0.666187,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.027513,
+    "new": 0.021534,
+    "ratio": 0.782685,
+    "limit": 0.181758,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/db2/small",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.014176,
+    "new": 0.010986,
+    "ratio": 0.774972,
+    "limit": 0.475462,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.012882,
+    "new": 0.009819,
+    "ratio": 0.762226,
+    "limit": 0.388138,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/doris/large",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.101985,
+    "new": 0.076619,
+    "ratio": 0.751277,
+    "limit": 0.386852,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.09118,
+    "new": 0.066802,
+    "ratio": 0.732639,
+    "limit": 0.133538,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/doris/medium",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.033121,
+    "new": 0.024085,
+    "ratio": 0.727182,
+    "limit": 0.32463,
+    "change": "faster"
+   },
+   "cpu": {
+    "base": 0.029018,
+    "new": 0.02121,
+    "ratio": 0.730926,
+    "limit": 0.173858,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/doris/small",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.01719,
+    "new": 0.01297,
+    "ratio": 0.754508,
+    "limit": 0.575571,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.014794,
+    "new": 0.01108,
+    "ratio": 0.748952,
+    "limit": 0.337975,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/duckdb/large",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.190024,
+    "new": 0.149133,
+    "ratio": 0.784811,
+    "limit": 0.390574,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.167485,
+    "new": 0.132055,
+    "ratio": 0.788459,
+    "limit": 0.133988,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/duckdb/medium",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.064312,
+    "new": 0.049753,
+    "ratio": 0.773619,
+    "limit": 0.545225,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.05368,
+    "new": 0.042503,
+    "ratio": 0.791785,
+    "limit": 0.172191,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/duckdb/small",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.029767,
+    "new": 0.022279,
+    "ratio": 0.748446,
+    "limit": 0.532699,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.025603,
+    "new": 0.020149,
+    "ratio": 0.786978,
+    "limit": 0.19529,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/exasol/large",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.108382,
+    "new": 0.082184,
+    "ratio": 0.758281,
+    "limit": 0.377983,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.095724,
+    "new": 0.070805,
+    "ratio": 0.739679,
+    "limit": 0.122492,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/exasol/medium",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.036185,
+    "new": 0.025667,
+    "ratio": 0.709327,
+    "limit": 0.55165,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.031314,
+    "new": 0.02172,
+    "ratio": 0.693619,
+    "limit": 0.209565,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/exasol/small",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.020466,
+    "new": 0.018283,
+    "ratio": 0.893335,
+    "limit": 0.697836,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.018016,
+    "new": 0.013592,
+    "ratio": 0.75444,
+    "limit": 0.277531,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/flink/large",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.102689,
+    "new": 0.092143,
+    "ratio": 0.897302,
+    "limit": 0.498588,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.094118,
+    "new": 0.073183,
+    "ratio": 0.777566,
+    "limit": 0.122369,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/flink/medium",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.032947,
+    "new": 0.026072,
+    "ratio": 0.791332,
+    "limit": 0.774449,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.028524,
+    "new": 0.022289,
+    "ratio": 0.781412,
+    "limit": 0.210451,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/flink/small",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.015226,
+    "new": 0.011135,
+    "ratio": 0.731315,
+    "limit": 0.51896,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.012816,
+    "new": 0.009432,
+    "ratio": 0.735955,
+    "limit": 0.390137,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/greenplum/large",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.107863,
+    "new": 0.086344,
+    "ratio": 0.800497,
+    "limit": 0.372234,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.098336,
+    "new": 0.075463,
+    "ratio": 0.7674,
+    "limit": 0.153298,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/greenplum/medium",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.034075,
+    "new": 0.027077,
+    "ratio": 0.794629,
+    "limit": 0.296195,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.031581,
+    "new": 0.024676,
+    "ratio": 0.781356,
+    "limit": 0.187694,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/greenplum/small",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.0245,
+    "new": 0.022993,
+    "ratio": 0.93849,
+    "limit": 0.593446,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.020986,
+    "new": 0.016919,
+    "ratio": 0.806204,
+    "limit": 0.238254,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/hive/large",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.142379,
+    "new": 0.147742,
+    "ratio": 1.037667,
+    "limit": 0.458892,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.137,
+    "new": 0.119159,
+    "ratio": 0.869774,
+    "limit": 0.244853,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/hive/medium",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.031768,
+    "new": 0.025627,
+    "ratio": 0.806692,
+    "limit": 0.62669,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.02846,
+    "new": 0.021967,
+    "ratio": 0.771855,
+    "limit": 0.175685,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/hive/small",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.018455,
+    "new": 0.015501,
+    "ratio": 0.839935,
+    "limit": 0.825862,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.016161,
+    "new": 0.012761,
+    "ratio": 0.789617,
+    "limit": 0.309387,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/impala/large",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.177976,
+    "new": 0.139354,
+    "ratio": 0.782993,
+    "limit": 0.477639,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.164617,
+    "new": 0.128157,
+    "ratio": 0.778516,
+    "limit": 0.148162,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/impala/medium",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.053088,
+    "new": 0.042331,
+    "ratio": 0.797374,
+    "limit": 0.670271,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.046934,
+    "new": 0.036382,
+    "ratio": 0.775174,
+    "limit": 0.208392,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/impala/small",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.019016,
+    "new": 0.015111,
+    "ratio": 0.794647,
+    "limit": 0.586733,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.017114,
+    "new": 0.013375,
+    "ratio": 0.781524,
+    "limit": 0.292158,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/mariadb/large",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.103516,
+    "new": 0.080582,
+    "ratio": 0.77845,
+    "limit": 0.442933,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.093486,
+    "new": 0.069954,
+    "ratio": 0.748283,
+    "limit": 0.228733,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/mariadb/medium",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.025312,
+    "new": 0.023095,
+    "ratio": 0.912413,
+    "limit": 0.585122,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.024193,
+    "new": 0.018705,
+    "ratio": 0.773158,
+    "limit": 0.206671,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/mariadb/small",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.01611,
+    "new": 0.014591,
+    "ratio": 0.905711,
+    "limit": 0.61932,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.014798,
+    "new": 0.011795,
+    "ratio": 0.797067,
+    "limit": 0.337883,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/materialize/large",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.104794,
+    "new": 0.080867,
+    "ratio": 0.771676,
+    "limit": 0.331366,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.095941,
+    "new": 0.07086,
+    "ratio": 0.738579,
+    "limit": 0.114903,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/materialize/medium",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.031121,
+    "new": 0.024095,
+    "ratio": 0.774236,
+    "limit": 0.26388,
+    "change": "faster"
+   },
+   "cpu": {
+    "base": 0.029969,
+    "new": 0.02213,
+    "ratio": 0.73843,
+    "limit": 0.166839,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/materialize/small",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.019408,
+    "new": 0.012021,
+    "ratio": 0.619384,
+    "limit": 0.622614,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.017535,
+    "new": 0.010679,
+    "ratio": 0.609011,
+    "limit": 0.285144,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/mysql/large",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.12434,
+    "new": 0.089893,
+    "ratio": 0.722961,
+    "limit": 0.316321,
+    "change": "faster"
+   },
+   "cpu": {
+    "base": 0.110146,
+    "new": 0.080841,
+    "ratio": 0.733944,
+    "limit": 0.12238,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/mysql/medium",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.036118,
+    "new": 0.0325,
+    "ratio": 0.899828,
+    "limit": 0.517551,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.034194,
+    "new": 0.027616,
+    "ratio": 0.807627,
+    "limit": 0.178982,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/mysql/small",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.017926,
+    "new": 0.013138,
+    "ratio": 0.732902,
+    "limit": 0.434862,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.015931,
+    "new": 0.012109,
+    "ratio": 0.76009,
+    "limit": 0.313853,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/oracle/large",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.140844,
+    "new": 0.119965,
+    "ratio": 0.851758,
+    "limit": 0.289989,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.12751,
+    "new": 0.100807,
+    "ratio": 0.790581,
+    "limit": 0.148283,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/oracle/medium",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.044357,
+    "new": 0.0428,
+    "ratio": 0.964898,
+    "limit": 0.533848,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.041513,
+    "new": 0.035053,
+    "ratio": 0.844386,
+    "limit": 0.161071,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/oracle/small",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.019777,
+    "new": 0.014894,
+    "ratio": 0.753097,
+    "limit": 0.689342,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.017286,
+    "new": 0.013177,
+    "ratio": 0.762293,
+    "limit": 0.289251,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/postgres/large",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.102125,
+    "new": 0.074657,
+    "ratio": 0.731035,
+    "limit": 0.361134,
+    "change": "faster"
+   },
+   "cpu": {
+    "base": 0.090303,
+    "new": 0.063895,
+    "ratio": 0.707562,
+    "limit": 0.122717,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/postgres/medium",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.033431,
+    "new": 0.026474,
+    "ratio": 0.7919,
+    "limit": 0.42986,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.03148,
+    "new": 0.023718,
+    "ratio": 0.753431,
+    "limit": 0.158831,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/postgres/small",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.0199,
+    "new": 0.014065,
+    "ratio": 0.706784,
+    "limit": 0.354157,
+    "change": "faster"
+   },
+   "cpu": {
+    "base": 0.018508,
+    "new": 0.013159,
+    "ratio": 0.71099,
+    "limit": 0.270153,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/redshift/large",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.097211,
+    "new": 0.071615,
+    "ratio": 0.736696,
+    "limit": 0.274824,
+    "change": "faster"
+   },
+   "cpu": {
+    "base": 0.088808,
+    "new": 0.064894,
+    "ratio": 0.730722,
+    "limit": 0.1,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/redshift/medium",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.040855,
+    "new": 0.028198,
+    "ratio": 0.690197,
+    "limit": 0.469449,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.035394,
+    "new": 0.025376,
+    "ratio": 0.716958,
+    "limit": 0.160804,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/redshift/small",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.01891,
+    "new": 0.01237,
+    "ratio": 0.654151,
+    "limit": 0.621074,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.016699,
+    "new": 0.011269,
+    "ratio": 0.674831,
+    "limit": 0.299419,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/snowflake/large",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.076145,
+    "new": 0.053911,
+    "ratio": 0.708004,
+    "limit": 0.488141,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.070509,
+    "new": 0.048109,
+    "ratio": 0.68231,
+    "limit": 0.163215,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/snowflake/medium",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.028753,
+    "new": 0.02152,
+    "ratio": 0.748444,
+    "limit": 0.530164,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.026919,
+    "new": 0.018451,
+    "ratio": 0.685427,
+    "limit": 0.212664,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/snowflake/small",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.015172,
+    "new": 0.009355,
+    "ratio": 0.616596,
+    "limit": 0.432436,
+    "change": "faster"
+   },
+   "cpu": {
+    "base": 0.013762,
+    "new": 0.008892,
+    "ratio": 0.646127,
+    "limit": 0.363319,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/soql/large",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.200793,
+    "new": 0.159471,
+    "ratio": 0.794206,
+    "limit": 0.318387,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.187468,
+    "new": 0.145749,
+    "ratio": 0.777461,
+    "limit": 0.16822,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/soql/medium",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.056414,
+    "new": 0.043362,
+    "ratio": 0.768639,
+    "limit": 0.326182,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.050511,
+    "new": 0.039904,
+    "ratio": 0.790006,
+    "limit": 0.136279,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/soql/small",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.021028,
+    "new": 0.015717,
+    "ratio": 0.747432,
+    "limit": 0.652685,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.017996,
+    "new": 0.014016,
+    "ratio": 0.77884,
+    "limit": 0.27784,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/sparksql/large",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.088875,
+    "new": 0.067903,
+    "ratio": 0.764028,
+    "limit": 0.381555,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.08132,
+    "new": 0.05871,
+    "ratio": 0.721963,
+    "limit": 0.163833,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/sparksql/medium",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.026967,
+    "new": 0.018727,
+    "ratio": 0.694441,
+    "limit": 0.507039,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.02292,
+    "new": 0.016453,
+    "ratio": 0.717845,
+    "limit": 0.21815,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/sparksql/small",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.013329,
+    "new": 0.009109,
+    "ratio": 0.683397,
+    "limit": 0.471746,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.012141,
+    "new": 0.008361,
+    "ratio": 0.688658,
+    "limit": 0.411828,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/sqlite/large",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.159112,
+    "new": 0.116063,
+    "ratio": 0.729442,
+    "limit": 0.25,
+    "change": "faster"
+   },
+   "cpu": {
+    "base": 0.151515,
+    "new": 0.109615,
+    "ratio": 0.72346,
+    "limit": 0.125753,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/sqlite/medium",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.04775,
+    "new": 0.034382,
+    "ratio": 0.720042,
+    "limit": 0.374132,
+    "change": "faster"
+   },
+   "cpu": {
+    "base": 0.043838,
+    "new": 0.03154,
+    "ratio": 0.719467,
+    "limit": 0.141139,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/sqlite/small",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.014508,
+    "new": 0.010697,
+    "ratio": 0.737317,
+    "limit": 0.40782,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.013654,
+    "new": 0.009791,
+    "ratio": 0.717079,
+    "limit": 0.366193,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/starrocks/large",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.13179,
+    "new": 0.098745,
+    "ratio": 0.74926,
+    "limit": 0.283019,
+    "change": "faster"
+   },
+   "cpu": {
+    "base": 0.122589,
+    "new": 0.091713,
+    "ratio": 0.748134,
+    "limit": 0.138853,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/starrocks/medium",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.032885,
+    "new": 0.020825,
+    "ratio": 0.633267,
+    "limit": 0.585355,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.028729,
+    "new": 0.019753,
+    "ratio": 0.687563,
+    "limit": 0.24866,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/starrocks/small",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.018532,
+    "new": 0.012316,
+    "ratio": 0.66458,
+    "limit": 0.596236,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.016042,
+    "new": 0.011029,
+    "ratio": 0.687508,
+    "limit": 0.311682,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/teradata/large",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.134669,
+    "new": 0.100124,
+    "ratio": 0.743482,
+    "limit": 0.25,
+    "change": "faster"
+   },
+   "cpu": {
+    "base": 0.127069,
+    "new": 0.09417,
+    "ratio": 0.741093,
+    "limit": 0.147517,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/teradata/medium",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.043755,
+    "new": 0.031828,
+    "ratio": 0.727414,
+    "limit": 0.54887,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.040069,
+    "new": 0.02971,
+    "ratio": 0.741471,
+    "limit": 0.203267,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/teradata/small",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.023991,
+    "new": 0.018195,
+    "ratio": 0.758409,
+    "limit": 0.53997,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.021375,
+    "new": 0.016235,
+    "ratio": 0.759532,
+    "limit": 0.233918,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/trino/large",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.136959,
+    "new": 0.105057,
+    "ratio": 0.767069,
+    "limit": 0.305181,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.124787,
+    "new": 0.093243,
+    "ratio": 0.747217,
+    "limit": 0.109228,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/trino/medium",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.040855,
+    "new": 0.027459,
+    "ratio": 0.672109,
+    "limit": 0.44847,
+    "change": "faster"
+   },
+   "cpu": {
+    "base": 0.036661,
+    "new": 0.025065,
+    "ratio": 0.683697,
+    "limit": 0.144587,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/trino/small",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.016954,
+    "new": 0.013378,
+    "ratio": 0.789076,
+    "limit": 0.515365,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.015849,
+    "new": 0.011419,
+    "ratio": 0.720487,
+    "limit": 0.315477,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/tsql/large",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.104032,
+    "new": 0.08049,
+    "ratio": 0.773704,
+    "limit": 0.382554,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.098274,
+    "new": 0.073603,
+    "ratio": 0.748957,
+    "limit": 0.16948,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/tsql/medium",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.041267,
+    "new": 0.031035,
+    "ratio": 0.752054,
+    "limit": 0.36706,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.035994,
+    "new": 0.027923,
+    "ratio": 0.775768,
+    "limit": 0.138912,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/tsql/small",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.024282,
+    "new": 0.015658,
+    "ratio": 0.64484,
+    "limit": 0.476442,
+    "change": "faster"
+   },
+   "cpu": {
+    "base": 0.020899,
+    "new": 0.014259,
+    "ratio": 0.682281,
+    "limit": 0.239246,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/vertica/large",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.130912,
+    "new": 0.098782,
+    "ratio": 0.754568,
+    "limit": 0.346354,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.123084,
+    "new": 0.093177,
+    "ratio": 0.75702,
+    "limit": 0.121439,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/vertica/medium",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.03098,
+    "new": 0.024341,
+    "ratio": 0.7857,
+    "limit": 0.406013,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.029396,
+    "new": 0.022751,
+    "ratio": 0.773949,
+    "limit": 0.170091,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "parse/vertica/small",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.018079,
+    "new": 0.012339,
+    "ratio": 0.682505,
+    "limit": 0.639573,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.015054,
+    "new": 0.010482,
+    "ratio": 0.696293,
+    "limit": 0.332138,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "start/ansi",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.008705,
+    "new": 0.006438,
+    "ratio": 0.739575,
+    "limit": 0.574383,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.008112,
+    "new": 0.005394,
+    "ratio": 0.664941,
+    "limit": 0.616371,
+    "change": "same"
+   }
+  },
+  {
+   "id": "start/athena",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.010436,
+    "new": 0.006794,
+    "ratio": 0.651016,
+    "limit": 0.501415,
+    "change": "faster"
+   },
+   "cpu": {
+    "base": 0.00926,
+    "new": 0.006112,
+    "ratio": 0.660043,
+    "limit": 0.539957,
+    "change": "same"
+   }
+  },
+  {
+   "id": "start/bigquery",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.011006,
+    "new": 0.007737,
+    "ratio": 0.70298,
+    "limit": 0.457325,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.010151,
+    "new": 0.006547,
+    "ratio": 0.644961,
+    "limit": 0.492562,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "start/clickhouse",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.01223,
+    "new": 0.008226,
+    "ratio": 0.672608,
+    "limit": 0.466577,
+    "change": "faster"
+   },
+   "cpu": {
+    "base": 0.010506,
+    "new": 0.007519,
+    "ratio": 0.715686,
+    "limit": 0.475919,
+    "change": "same"
+   }
+  },
+  {
+   "id": "start/databricks",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.012341,
+    "new": 0.007698,
+    "ratio": 0.623774,
+    "limit": 0.40589,
+    "change": "faster"
+   },
+   "cpu": {
+    "base": 0.011568,
+    "new": 0.006993,
+    "ratio": 0.604512,
+    "limit": 0.432227,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "start/db2",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.008723,
+    "new": 0.006429,
+    "ratio": 0.737017,
+    "limit": 0.573197,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.008054,
+    "new": 0.005524,
+    "ratio": 0.68587,
+    "limit": 0.62081,
+    "change": "same"
+   }
+  },
+  {
+   "id": "start/doris",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.012088,
+    "new": 0.008465,
+    "ratio": 0.700281,
+    "limit": 0.744446,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.010998,
+    "new": 0.0072,
+    "ratio": 0.654664,
+    "limit": 0.454628,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "start/duckdb",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.016633,
+    "new": 0.011895,
+    "ratio": 0.715145,
+    "limit": 0.35535,
+    "change": "faster"
+   },
+   "cpu": {
+    "base": 0.014586,
+    "new": 0.010223,
+    "ratio": 0.700878,
+    "limit": 0.342794,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "start/exasol",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.01778,
+    "new": 0.013039,
+    "ratio": 0.733352,
+    "limit": 0.80538,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.014881,
+    "new": 0.010589,
+    "ratio": 0.711579,
+    "limit": 0.335999,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "start/flink",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.009392,
+    "new": 0.008032,
+    "ratio": 0.855196,
+    "limit": 0.665824,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.008807,
+    "new": 0.006115,
+    "ratio": 0.694334,
+    "limit": 0.56773,
+    "change": "same"
+   }
+  },
+  {
+   "id": "start/greenplum",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.01619,
+    "new": 0.011839,
+    "ratio": 0.731254,
+    "limit": 0.490642,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.014461,
+    "new": 0.010312,
+    "ratio": 0.71309,
+    "limit": 0.345758,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "start/hive",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.010875,
+    "new": 0.007494,
+    "ratio": 0.689103,
+    "limit": 0.585025,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.009429,
+    "new": 0.00667,
+    "ratio": 0.707392,
+    "limit": 0.530279,
+    "change": "same"
+   }
+  },
+  {
+   "id": "start/impala",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.013448,
+    "new": 0.010768,
+    "ratio": 0.800714,
+    "limit": 0.593017,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.012245,
+    "new": 0.009288,
+    "ratio": 0.758514,
+    "limit": 0.40833,
+    "change": "same"
+   }
+  },
+  {
+   "id": "start/mariadb",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.012495,
+    "new": 0.010372,
+    "ratio": 0.830092,
+    "limit": 0.704292,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.011406,
+    "new": 0.008439,
+    "ratio": 0.739874,
+    "limit": 0.438366,
+    "change": "same"
+   }
+  },
+  {
+   "id": "start/materialize",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.015555,
+    "new": 0.011158,
+    "ratio": 0.717326,
+    "limit": 0.575223,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.01393,
+    "new": 0.009719,
+    "ratio": 0.697703,
+    "limit": 0.358938,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "start/mysql",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.014101,
+    "new": 0.008644,
+    "ratio": 0.613006,
+    "limit": 0.786444,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.011606,
+    "new": 0.008025,
+    "ratio": 0.691453,
+    "limit": 0.430812,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "start/oracle",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.01705,
+    "new": 0.013586,
+    "ratio": 0.796833,
+    "limit": 0.733223,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.013744,
+    "new": 0.010622,
+    "ratio": 0.772846,
+    "limit": 0.363795,
+    "change": "same"
+   }
+  },
+  {
+   "id": "start/postgres",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.015526,
+    "new": 0.012006,
+    "ratio": 0.773284,
+    "limit": 0.690603,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.014104,
+    "new": 0.00996,
+    "ratio": 0.706183,
+    "limit": 0.354509,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "start/redshift",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.013234,
+    "new": 0.009706,
+    "ratio": 0.733414,
+    "limit": 0.455913,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.01254,
+    "new": 0.008405,
+    "ratio": 0.670255,
+    "limit": 0.398724,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "start/snowflake",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.011784,
+    "new": 0.0077,
+    "ratio": 0.653428,
+    "limit": 0.554004,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.010503,
+    "new": 0.006792,
+    "ratio": 0.646672,
+    "limit": 0.476054,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "start/soql",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.011267,
+    "new": 0.006334,
+    "ratio": 0.562173,
+    "limit": 0.618247,
+    "change": "faster"
+   },
+   "cpu": {
+    "base": 0.008942,
+    "new": 0.005721,
+    "ratio": 0.63979,
+    "limit": 0.559159,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "start/sparksql",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.011553,
+    "new": 0.006533,
+    "ratio": 0.565481,
+    "limit": 0.840008,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.010027,
+    "new": 0.005683,
+    "ratio": 0.56677,
+    "limit": 0.498654,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "start/sqlite",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.010652,
+    "new": 0.006921,
+    "ratio": 0.649737,
+    "limit": 0.571201,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.009612,
+    "new": 0.006165,
+    "ratio": 0.641386,
+    "limit": 0.520183,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "start/starrocks",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.013527,
+    "new": 0.009584,
+    "ratio": 0.708509,
+    "limit": 0.709089,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.011772,
+    "new": 0.008008,
+    "ratio": 0.680258,
+    "limit": 0.424737,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "start/teradata",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.009506,
+    "new": 0.005844,
+    "ratio": 0.61477,
+    "limit": 0.583471,
+    "change": "faster"
+   },
+   "cpu": {
+    "base": 0.008604,
+    "new": 0.005206,
+    "ratio": 0.605067,
+    "limit": 0.581125,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "start/trino",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.009798,
+    "new": 0.006272,
+    "ratio": 0.640131,
+    "limit": 0.601327,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.008849,
+    "new": 0.005726,
+    "ratio": 0.647079,
+    "limit": 0.565036,
+    "change": "same"
+   }
+  },
+  {
+   "id": "start/tsql",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "faster",
+   "wall": {
+    "base": 0.019534,
+    "new": 0.012292,
+    "ratio": 0.629262,
+    "limit": 0.818342,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.016457,
+    "new": 0.010561,
+    "ratio": 0.641733,
+    "limit": 0.303822,
+    "change": "faster"
+   }
+  },
+  {
+   "id": "start/vertica",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.012496,
+    "new": 0.008814,
+    "ratio": 0.705346,
+    "limit": 0.515723,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.011239,
+    "new": 0.007928,
+    "ratio": 0.705401,
+    "limit": 0.444879,
+    "change": "same"
+   }
+  }
+ ],
+ "only_base": [],
+ "only_new": [],
+ "totals": {
+  "sqll": {
+   "benchmarks": 112,
+   "wall_s": [
+    5.456834,
+    4.260936
+   ],
+   "cpu_s": [
+    4.963127,
+    3.750694
+   ],
+   "wall_ratio": 0.780844,
+   "cpu_ratio": 0.755712
+  }
+ },
+ "tool_totals": {
+  "tools": [
+   "sqll"
+  ],
+  "benchmarks": 112,
+  "excluded": [],
+  "wall_s": {
+   "sqll": 4.260936
+  },
+  "cpu_s": {
+   "sqll": 3.750694
+  },
+  "pairs": []
+ },
+ "counts": {
+  "compared": 112,
+  "slower": 0,
+  "faster": 95,
+  "same": 17,
+  "failure": 0,
+  "status": 0,
+  "not_valid": 0
+ },
+ "ok": true
+}
