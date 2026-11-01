@@ -225,9 +225,9 @@ in [status/S3.md](../../status/S3.md).
     inputs, 2 runs each: same output as the record`.
   - Speed (G3.6), the reason in place of a bench compare: the release
     binary of T18 and that of main (`4850a32`) have the same size
-    (15655368 bytes) and differ in 82 bytes (`cmp -l`), all in 3 places of
-    build data: the source hash (64 bytes), the source file count (2
-    bytes), and the build ID (20 bytes). The machine code does not
+    (15655368 bytes). `cmp -l` finds 85 different bytes, all in 3 places
+    of build data: the source hash (63 of its 64 bytes), the source file
+    count (2 bytes), and the build ID (20 bytes). The machine code does not
     change, so no benchmark can change.
 
 ## S3 phase A data
