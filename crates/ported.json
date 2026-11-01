@@ -63,7 +63,7 @@
    "path": "crates/sqll_lexer/src/lexer.rs",
    "source": "sqlfluffrs/sqlfluffrs_lexer/src/lexer.rs",
    "source_sha256": "d37d1b1b6b59e31afe116cc4b7e3c3601e1fcdeb08564c462480c8f0b2095188",
-   "changed": "Removed the code of the feature \"python\" (pyo3): the SQLLexError fields and methods for Python, and the module \"python\"."
+   "changed": "Removed the code of the feature \"python\" (pyo3): the SQLLexError fields and methods for Python, and the module \"python\". S3 T16 (parse speed, lexer allocation): TemplateElement borrows its text and its matcher (TemplateElement<'a>), not a copy of each for each token; map_template_slices compares the characters of the template and of the element with no new string (the panic message does not change)."
   },
   {
    "path": "crates/sqll_lexer/src/lib.rs",

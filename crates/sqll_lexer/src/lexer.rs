@@ -88,14 +88,16 @@ impl BlockTracker {
     }
 }
 
+// The element borrows its text and its matcher from the lexer input and the
+// lexer: no copy of a string or of a matcher for each token (S3 T16).
 #[derive(Debug)]
-pub struct TemplateElement {
-    pub raw: String,
-    pub template_slice: Slice, // Slice equivalent
-    pub matcher: LexMatcher,   // Reference to the lexer that matched this element
+pub struct TemplateElement<'a> {
+    pub raw: &'a str,
+    pub template_slice: Slice,   // Slice equivalent
+    pub matcher: &'a LexMatcher, // Reference to the lexer that matched this element
 }
 
-impl Display for TemplateElement {
+impl Display for TemplateElement<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
@@ -105,13 +107,13 @@ impl Display for TemplateElement {
     }
 }
 
-impl TemplateElement {
+impl<'a> TemplateElement<'a> {
     // Constructor to create a TemplateElement from a LexedElement and a template slice
-    pub fn from_element(element: &LexedElement, template_slice: Slice) -> Self {
+    pub fn from_element(element: &LexedElement<'a>, template_slice: Slice) -> Self {
         Self {
-            raw: element.raw.to_string(),
+            raw: element.raw,
             template_slice,
-            matcher: element.matcher.clone(),
+            matcher: element.matcher,
         }
     }
 
@@ -136,7 +138,7 @@ impl TemplateElement {
 
                 &self.raw[start..end]
             }
-            None => &self.raw,
+            None => self.raw,
         };
         self.matcher.construct_token(raw_subslice, pos_marker)
     }
@@ -268,11 +270,11 @@ impl Lexer {
             .find_map(|matcher| matcher.scan_match(input))
     }
 
-    fn map_template_slices(
+    fn map_template_slices<'a>(
         &self,
-        elements: &[LexedElement],
+        elements: &[LexedElement<'a>],
         template: &TemplatedFile,
-    ) -> Vec<TemplateElement> {
+    ) -> Vec<TemplateElement<'a>> {
         let mut idx = 0;
         let mut templated_buff = Vec::new();
         // Advance once per element rather than restarting from 0 each time,
@@ -284,8 +286,14 @@ impl Lexer {
             let template_slice = Slice::from(idx..idx + element_len);
             idx += element_len;
 
-            let templated_substr: String = template_chars.by_ref().take(element_len).collect();
-            if *templated_substr != *element.raw {
+            // Compare the characters with no new string (S3 T16).
+            let element_start = template_chars.clone();
+            if !template_chars
+                .by_ref()
+                .take(element_len)
+                .eq(element.raw.chars())
+            {
+                let templated_substr: String = element_start.take(element_len).collect();
                 panic!(
                     "Template and lexed elements do not match. This should never happen  {:?} != {:?}",
                     &element.raw, &templated_substr
