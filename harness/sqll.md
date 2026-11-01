@@ -24,8 +24,10 @@ the config value `max_parse_depth` (default 600); `sqlfluff parse` has no
 such option. `--timings` (a sqll option for the speed work, S3 T14) adds
 one JSON line to the end of stderr: the seconds of each phase (`init`,
 `setup`, `lex`, `parse`, `record`, `write`, `free`; `crates/sqll/src/timings.rs`),
-their sum, and the token count. `write` also has the drop of the lexer
-and the stderr error lines. The output and the exit code do not change.
+their sum, and the token count. Since S3 T15, `write` has the stderr
+error lines and the JSON, which sqll writes from the tree; `record` and
+`free` have no work (sqll exits with no drop of the tree). The output and
+the exit code do not change.
 The other parser limits are the sqlfluff defaults
 (`max_parse_nodes` 100000, `rust_parser_max_iterations` 3000000). Exit
 codes: 0; 1 for a lex error, a parse error (also at a parser limit), or an

@@ -425,7 +425,7 @@ fn parse_command(args: &[String], start: Instant) -> Result<u8, Error> {
     let sql = read_sql(&path)?;
     let mut timer = timings::Timer::new(start);
     timer.mark("init");
-    let parsed = parse::parse(sql, dialect, &args.options, &mut timer);
+    let parsed = parse::parse(sql, dialect, &args.options, &mut timer, false);
     for e in &parsed.errors {
         eprintln!("{e}");
     }
@@ -435,11 +435,23 @@ fn parse_command(args: &[String], start: Instant) -> Result<u8, Error> {
     } else {
         normpath(&path)
     };
-    let written = output::write_parse_json(std::io::stdout().lock(), &filepath, &parsed.record);
-    written.map_err(|e| Error(format!("cannot write the output: {e}")))?;
+    let record_options = output::RecordOptions {
+        code_only: args.options.code_only,
+        include_meta: args.options.include_meta,
+    };
+    let written = output::write_parse_json(
+        std::io::stdout().lock(),
+        &filepath,
+        parsed.root.as_ref(),
+        record_options,
+    );
+    let unparsable = written.map_err(|e| Error(format!("cannot write the output: {e}")))?;
     timer.mark("write");
-    let ok = parsed.ok();
-    drop(parsed);
+    // "sqlfluff parse" gives exit code 1 for a lex error, a parse error, or
+    // an unparsable segment.
+    let ok = parsed.errors.is_empty() && !unparsable;
+    // The tree is not dropped (parse::parse).
+    std::mem::forget(parsed);
     timer.mark("free");
     if args.timings {
         eprintln!("{}", timer.json());

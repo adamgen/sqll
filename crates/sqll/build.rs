@@ -91,4 +91,5 @@ fn main() {
     let (hash, count) = source_hash(&root);
     println!("cargo:rustc-env=SQLL_SOURCE_SHA256={hash}");
     println!("cargo:rustc-env=SQLL_SOURCE_FILES={count}");
+    println!("cargo:rustc-link-arg-bins=-no-pie");
 }

@@ -13,10 +13,12 @@ use std::time::Instant;
 /// - setup: the lexer of the dialect (the lazy lexer tables and regexes);
 /// - lex: the lexer;
 /// - parse: the parser (also the lazy regexes of the grammar);
-/// - record: the record of the tree and the check for unparsable segments;
-/// - write: the JSON output, and also the drop of the lexer (when
-///   parse::parse returns) and the stderr error lines;
-/// - free: the drop of the parser, the tokens, the tree, and the record.
+/// - record: no work since S3 T15 (before T15: the record value of the tree
+///   and the check for unparsable segments);
+/// - write: the stderr error lines, and the JSON output, which the writer
+///   makes from the tree (also the check for unparsable segments);
+/// - free: no work since S3 T15 (before T15: the drop of the parser, the
+///   tokens, the tree, and the record). The process exits with no drop.
 pub const PHASES: [&str; 7] = ["init", "setup", "lex", "parse", "record", "write", "free"];
 
 pub struct Timer {

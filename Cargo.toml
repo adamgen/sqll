@@ -21,11 +21,14 @@ version = "0.1.0"
 rust-version = "1.96"
 
 # The versions of sqlfluffrs 4.4.0. serde_json and sha2 are new: the build
-# script of sqll_dialects uses them.
+# script of sqll_dialects uses them. regex-syntax is new: the lexer reads the
+# match prefixes of a regex (sqll_types matcher.rs); it is the version that
+# regex uses.
 [workspace.dependencies]
 env_logger = "0.11.9"
 regex = { version = "1.12.3", features = ["perf"] }
 fancy-regex = "0.17.0"
+regex-syntax = "0.8.10"
 hashbrown = "0.16.1"
 itertools = "0.14.0"
 log = "0.4.29"
