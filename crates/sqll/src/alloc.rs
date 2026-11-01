@@ -14,7 +14,9 @@
 //! - Other blocks: the system allocator.
 //!
 //! The memory of a free small block is not given back to the system before
-//! the process exits; a command of sqll is one short process.
+//! the process exits; a command of sqll is one short process. A command that
+//! handles many files in one process (lint or fix, after S3b) must measure
+//! its peak memory again (status/S3.md).
 
 use std::alloc::{GlobalAlloc, Layout, System};
 use std::cell::Cell;
