@@ -210,6 +210,7 @@ def test_each_file_of_the_source_crates_is_ported_or_excluded():
         "crates/sqll_parser/src/lib.rs",
         "crates/sqll_parser/src/parser/core.rs",
         "crates/sqll_parser/src/parser/helpers.rs",
+        "crates/sqll_parser/src/parser/match_result.rs",
         "crates/sqll_parser/src/parser/mod.rs",
         "crates/sqll_parser/src/parser/table_driven/anynumberof.rs",
         "crates/sqll_parser/src/parser/table_driven/bracketed.rs",

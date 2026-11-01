@@ -4,6 +4,7 @@
 // commit 0348222a3bcdb0226563f7349c5a39beb0641955.
 // Copyright (c) 2018-2026 Alan Cruickshank. MIT License: see
 // crates/LICENSE-sqlfluffrs.md. See THIRD_PARTY.md and crates/ported.json.
+// sqll changed this file. crates/ported.json gives the reason.
 
 //! MatchResult type for the parser.
 //!
@@ -19,6 +20,7 @@ use crate::vdebug;
 use std::borrow::Cow;
 use std::fmt::Display;
 use std::ops::Range;
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 
 use crate::parser::types::{MetaType, Node, RawSegmentKwargs};
@@ -99,12 +101,25 @@ impl MatchedClass {
     }
 }
 
+/// The memo of [`MatchResult::node_count`]: 0 if not known, else the count
+/// plus 1 (S3 T16). The parser checks the node limit of each completed frame,
+/// so without the memo it counts each subtree again for each ancestor. A
+/// match result does not change after it is made, so the memo stays valid.
+#[derive(Default)]
+pub struct NodeCountMemo(AtomicUsize);
+
+impl Clone for NodeCountMemo {
+    fn clone(&self) -> Self {
+        NodeCountMemo(AtomicUsize::new(self.0.load(Ordering::Relaxed)))
+    }
+}
+
 /// A match result describing what was matched and how to construct the AST.
 ///
 /// This is the functional alternative to mutating global state during parsing.
 /// Each match operation returns a MatchResult, which can be combined via
 /// `append()` and wrapped via `wrap()`. The final AST is built by calling `apply()`.
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct MatchResult {
     /// Range in the token array that this match spans [start, end)
     pub matched_slice: Range<usize>,
@@ -118,6 +133,20 @@ pub struct MatchResult {
 
     /// Child matches (recursive structure using Rc for cheap sharing)
     pub child_matches: Vec<Arc<MatchResult>>,
+
+    pub(crate) node_count_memo: NodeCountMemo,
+}
+
+// The derived format of the 4 match fields, without the memo.
+impl std::fmt::Debug for MatchResult {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("MatchResult")
+            .field("matched_slice", &self.matched_slice)
+            .field("matched_class", &self.matched_class)
+            .field("insert_segments", &self.insert_segments)
+            .field("child_matches", &self.child_matches)
+            .finish()
+    }
 }
 
 impl Default for MatchResult {
@@ -127,6 +156,7 @@ impl Default for MatchResult {
             matched_class: None,
             insert_segments: vec![],
             child_matches: vec![],
+            node_count_memo: NodeCountMemo::default(),
         }
     }
 }
@@ -192,6 +222,7 @@ impl MatchResult {
                             matched_class,
                             child_matches: owned.child_matches,
                             insert_segments: owned.insert_segments,
+                            node_count_memo: Default::default(),
                         };
                     }
                     Err(shared) => {
@@ -200,6 +231,7 @@ impl MatchResult {
                             matched_class,
                             child_matches: shared.child_matches.clone(),
                             insert_segments: shared.insert_segments.clone(),
+                            node_count_memo: Default::default(),
                         };
                     }
                 }
@@ -262,6 +294,7 @@ impl MatchResult {
             matched_class,
             child_matches: children,
             insert_segments,
+            node_count_memo: Default::default(),
         }
     }
 
@@ -321,15 +354,21 @@ impl MatchResult {
 
     /// Count the number of materialized nodes implied by this match tree.
     pub fn node_count(&self) -> usize {
+        let memo = self.node_count_memo.0.load(Ordering::Relaxed);
+        if memo != 0 {
+            return memo - 1;
+        }
         let class_count = usize::from(self.matched_class.is_some());
         let insert_count = self.insert_segments.len();
-        class_count
+        let count = class_count
             + insert_count
             + self
                 .child_matches
                 .iter()
                 .map(|child| child.node_count())
-                .sum::<usize>()
+                .sum::<usize>();
+        self.node_count_memo.0.store(count + 1, Ordering::Relaxed);
+        count
     }
 
     /// Combine another sequential match onto this one.
@@ -388,6 +427,7 @@ impl MatchResult {
             matched_class: None,
             insert_segments,
             child_matches,
+            node_count_memo: Default::default(),
         })
     }
 
@@ -425,6 +465,7 @@ impl MatchResult {
                 matched_class: Some(outer_class),
                 insert_segments,
                 child_matches: vec![Arc::new(self)],
+                node_count_memo: Default::default(),
             }
         } else {
             // No current class, flatten children into new wrapper.
@@ -436,6 +477,7 @@ impl MatchResult {
                 matched_class: Some(outer_class),
                 insert_segments: new_insert_segments,
                 child_matches: self.child_matches,
+                node_count_memo: Default::default(),
             }
         }
     }
@@ -674,6 +716,7 @@ impl MatchResult {
             matched_class: Some(MatchedClass::root()),
             insert_segments: vec![],
             child_matches: vec![Arc::new(self)],
+            node_count_memo: Default::default(),
         };
         let root_nodes = file_mr.apply(tokens);
         if root_nodes.len() > 1 {

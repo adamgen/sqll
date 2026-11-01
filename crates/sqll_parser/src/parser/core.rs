@@ -439,6 +439,7 @@ impl<'a> Parser<'a> {
                 matched_class: Some(MatchedClass::root()),
                 insert_segments: vec![],
                 child_matches: vec![],
+                node_count_memo: Default::default(),
             };
             self.check_parse_node_limit(&file_mr, self.tokens.len())?;
             let nodes = file_mr.apply(self.tokens);
@@ -497,6 +498,7 @@ impl<'a> Parser<'a> {
                 matched_class: None,
                 insert_segments: vec![],
                 child_matches: vec![Arc::new(match_result), unparsable],
+                node_count_memo: Default::default(),
             })
         } else {
             // Full match — trailing non-code is captured by gap-fill in apply()
@@ -511,6 +513,7 @@ impl<'a> Parser<'a> {
             matched_class: Some(MatchedClass::root()),
             insert_segments: vec![],
             child_matches: vec![content_child],
+            node_count_memo: Default::default(),
         };
         self.check_parse_node_limit(&file_mr, token_slice_orig.len())?;
         let root_nodes = file_mr.apply(token_slice_orig);
