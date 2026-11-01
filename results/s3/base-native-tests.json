@@ -1,0 +1,1371 @@
+{
+ "kind": "sqll-s3-base-native-tests",
+ "about": "The native tests of the base (sqlfluffrs 4.4.0) and their results: cargo test of its workspace, without the feature \"python\". The check of sqll: scripts/s3/base_native_tests.py check.",
+ "command": "flock /tmp/sqll-machine.lock uv run --frozen --project harness python scripts/s3/base_native_tests.py record --scratch $SCRATCH",
+ "started": "2026-11-01T22:01:31Z",
+ "finished": "2026-11-01T22:04:08Z",
+ "machine": {
+  "cpu_model": "Intel(R) Xeon(R) Processor @ 2.80GHz",
+  "cpu_count": 4,
+  "memory_kib": 16477352,
+  "os": "Ubuntu 24.04.5 LTS",
+  "kernel": "6.18.44-fc-v185",
+  "arch": "x86_64",
+  "python": "3.13.16"
+ },
+ "harness": {
+  "commit": "f4f6ed57ef122c0834f58aef02fa6cbacb69c16a",
+  "clean": true
+ },
+ "base": {
+  "submodule": "third_party/sqlfluff",
+  "commit": "0348222a3bcdb0226563f7349c5a39beb0641955",
+  "tag": "4.4.0",
+  "workspace": "sqlfluffrs",
+  "packages": [
+   "sqlfluffrs",
+   "sqlfluffrs_types",
+   "sqlfluffrs_lexer",
+   "sqlfluffrs_parser",
+   "sqlfluffrs_dialects",
+   "sqlfluffrs_rules"
+  ],
+  "not_tested": {
+   "sqlfluffrs_python": "Python bindings (pyo3); no tests",
+   "sqlfluffrs_benchmarks": "benchmarks; no tests"
+  },
+  "features": "the defaults (no feature \"python\")"
+ },
+ "toolchain": {
+  "channel": "1.96",
+  "source": "sqlfluffrs/rust-toolchain.toml",
+  "rustc": [
+   "rustc 1.96.1 (31fca3adb 2026-06-26)",
+   "binary: rustc",
+   "commit-hash: 31fca3adb283cc9dfd56b49cdee9a96eb9c96ffd",
+   "commit-date: 2026-06-26",
+   "host: x86_64-unknown-linux-gnu",
+   "release: 1.96.1",
+   "LLVM version: 22.1.2"
+  ],
+  "cargo": "cargo 1.96.1 (356927216 2026-06-26)"
+ },
+ "generation": {
+  "python": {
+   "sqlfluff_version": "4.4.0",
+   "sqlfluff_file": "$REPO/.tools/sqlfluff/lib/python3.13/site-packages/sqlfluff/__init__.py",
+   "python": "3.13.16"
+  },
+  "files": 85,
+  "equal_to": "crates/sqll_dialects/generated.json"
+ },
+ "python_shim_calls": [],
+ "cargo_tree_packages": 91,
+ "cargo_test": {
+  "argv": [
+   "cargo",
+   "test",
+   "--locked",
+   "--offline",
+   "--no-fail-fast",
+   "-p",
+   "sqlfluffrs",
+   "-p",
+   "sqlfluffrs_types",
+   "-p",
+   "sqlfluffrs_lexer",
+   "-p",
+   "sqlfluffrs_parser",
+   "-p",
+   "sqlfluffrs_dialects",
+   "-p",
+   "sqlfluffrs_rules"
+  ],
+  "exit_code": 0,
+  "log": "results/s3/base-native-tests.log",
+  "log_sha256": "500a28c58f5a8aa134632b467093a79836b7585bb0df1d5e19d1aefc5f85c3ff"
+ },
+ "totals": {
+  "tests": 162,
+  "passed": 162,
+  "failed": 0,
+  "ignored": 0
+ },
+ "units": [
+  {
+   "unit": "unittests sqlfluffrs",
+   "line": "Running unittests src/lib.rs (target/debug/deps/sqlfluffrs-59230bab8c5ec963)",
+   "result": "ok",
+   "tests": 7,
+   "sqll_unit": "unittests sqlfluffrs"
+  },
+  {
+   "unit": "test fixture_tests",
+   "line": "Running tests/fixture_tests.rs (target/debug/deps/fixture_tests-4e350f874ddec297)",
+   "result": "ok",
+   "tests": 60,
+   "sqll_unit": "test fixture_tests"
+  },
+  {
+   "unit": "test table_driven_small",
+   "line": "Running tests/table_driven_small.rs (target/debug/deps/table_driven_small-8db0e3ee956ccbae)",
+   "result": "ok",
+   "tests": 27,
+   "sqll_unit": "test table_driven_small"
+  },
+  {
+   "unit": "test test_bracketed_sequence",
+   "line": "Running tests/test_bracketed_sequence.rs (target/debug/deps/test_bracketed_sequence-66bee67bb66223ed)",
+   "result": "ok",
+   "tests": 1,
+   "sqll_unit": "test test_bracketed_sequence"
+  },
+  {
+   "unit": "test test_delimited_terminator_timing",
+   "line": "Running tests/test_delimited_terminator_timing.rs (target/debug/deps/test_delimited_terminator_timing-14fcf08474b25966)",
+   "result": "ok",
+   "tests": 3,
+   "sqll_unit": "test test_delimited_terminator_timing"
+  },
+  {
+   "unit": "test test_double_at",
+   "line": "Running tests/test_double_at.rs (target/debug/deps/test_double_at-720d359e53abbf23)",
+   "result": "ok",
+   "tests": 1,
+   "sqll_unit": "test test_double_at"
+  },
+  {
+   "unit": "test test_handle_exception",
+   "line": "Running tests/test_handle_exception.rs (target/debug/deps/test_handle_exception-71dae72b73f4f1db)",
+   "result": "ok",
+   "tests": 1,
+   "sqll_unit": "test test_handle_exception"
+  },
+  {
+   "unit": "test test_is_not_distinct",
+   "line": "Running tests/test_is_not_distinct.rs (target/debug/deps/test_is_not_distinct-fe554679253c3d97)",
+   "result": "ok",
+   "tests": 2,
+   "sqll_unit": "test test_is_not_distinct"
+  },
+  {
+   "unit": "test test_literals_fixture_only",
+   "line": "Running tests/test_literals_fixture_only.rs (target/debug/deps/test_literals_fixture_only-e1339bebbb8820df)",
+   "result": "ok",
+   "tests": 1,
+   "sqll_unit": "test test_literals_fixture_only"
+  },
+  {
+   "unit": "test test_multiple_statements",
+   "line": "Running tests/test_multiple_statements.rs (target/debug/deps/test_multiple_statements-917da217ef4efea9)",
+   "result": "ok",
+   "tests": 1,
+   "sqll_unit": "test test_multiple_statements"
+  },
+  {
+   "unit": "test test_numeric_literal",
+   "line": "Running tests/test_numeric_literal.rs (target/debug/deps/test_numeric_literal-ccf9ffb307008b86)",
+   "result": "ok",
+   "tests": 2,
+   "sqll_unit": "test test_numeric_literal"
+  },
+  {
+   "unit": "test yaml_compare",
+   "line": "Running tests/yaml_compare.rs (target/debug/deps/yaml_compare-83133683b3ed89b5)",
+   "result": "ok",
+   "tests": 2,
+   "sqll_unit": "test yaml_compare"
+  },
+  {
+   "unit": "unittests sqlfluffrs_dialects",
+   "line": "Running unittests src/lib.rs (target/debug/deps/sqlfluffrs_dialects-0d370efcd90137b2)",
+   "result": "ok",
+   "tests": 5,
+   "sqll_unit": "unittests sqll_dialects"
+  },
+  {
+   "unit": "unittests sqlfluffrs_lexer",
+   "line": "Running unittests src/lib.rs (target/debug/deps/sqlfluffrs_lexer-b0c6440c74faa6cc)",
+   "result": "ok",
+   "tests": 0,
+   "sqll_unit": "unittests sqll_lexer"
+  },
+  {
+   "unit": "unittests sqlfluffrs_parser",
+   "line": "Running unittests src/lib.rs (target/debug/deps/sqlfluffrs_parser-11823b66de9fbdb4)",
+   "result": "ok",
+   "tests": 21,
+   "sqll_unit": "unittests sqll_parser"
+  },
+  {
+   "unit": "unittests sqlfluffrs_rules",
+   "line": "Running unittests src/lib.rs (target/debug/deps/sqlfluffrs_rules-c8f9e5b38469901b)",
+   "result": "ok",
+   "tests": 0,
+   "sqll_unit": "unittests sqll_rules"
+  },
+  {
+   "unit": "unittests sqlfluffrs_types",
+   "line": "Running unittests src/lib.rs (target/debug/deps/sqlfluffrs_types-997fcc073cedf835)",
+   "result": "ok",
+   "tests": 28,
+   "sqll_unit": "unittests sqll_types"
+  },
+  {
+   "unit": "doc sqlfluffrs",
+   "line": "Doc-tests sqlfluffrs",
+   "result": "ok",
+   "tests": 0,
+   "sqll_unit": "doc sqlfluffrs"
+  },
+  {
+   "unit": "doc sqlfluffrs_dialects",
+   "line": "Doc-tests sqlfluffrs_dialects",
+   "result": "ok",
+   "tests": 0,
+   "sqll_unit": "doc sqll_dialects"
+  },
+  {
+   "unit": "doc sqlfluffrs_lexer",
+   "line": "Doc-tests sqlfluffrs_lexer",
+   "result": "ok",
+   "tests": 0,
+   "sqll_unit": "doc sqll_lexer"
+  },
+  {
+   "unit": "doc sqlfluffrs_parser",
+   "line": "Doc-tests sqlfluffrs_parser",
+   "result": "ok",
+   "tests": 0,
+   "sqll_unit": "doc sqll_parser"
+  },
+  {
+   "unit": "doc sqlfluffrs_rules",
+   "line": "Doc-tests sqlfluffrs_rules",
+   "result": "ok",
+   "tests": 0,
+   "sqll_unit": "doc sqll_rules"
+  },
+  {
+   "unit": "doc sqlfluffrs_types",
+   "line": "Doc-tests sqlfluffrs_types",
+   "result": "ok",
+   "tests": 0,
+   "sqll_unit": "doc sqll_types"
+  }
+ ],
+ "tests": [
+  {
+   "unit": "unittests sqlfluffrs",
+   "name": "test_harness::tests::test_discover_ansi_fixtures",
+   "result": "passed"
+  },
+  {
+   "unit": "unittests sqlfluffrs",
+   "name": "test_harness::tests::test_node_types",
+   "result": "passed"
+  },
+  {
+   "unit": "unittests sqlfluffrs",
+   "name": "test_harness::tests::test_parse_simple_select",
+   "result": "passed"
+  },
+  {
+   "unit": "unittests sqlfluffrs",
+   "name": "test_harness::tests::dialect_specific_brackets_pair_only_when_supplied",
+   "result": "passed"
+  },
+  {
+   "unit": "unittests sqlfluffrs",
+   "name": "test_harness::whitespace_tests::test_select_from_alias",
+   "result": "passed"
+  },
+  {
+   "unit": "unittests sqlfluffrs",
+   "name": "test_harness::whitespace_tests::test_select_function_alias",
+   "result": "passed"
+  },
+  {
+   "unit": "unittests sqlfluffrs",
+   "name": "test_harness::tests::test_complex_query_cache",
+   "result": "passed"
+  },
+  {
+   "unit": "test fixture_tests",
+   "name": "test_ansi_fixtures_simple",
+   "result": "passed"
+  },
+  {
+   "unit": "test fixture_tests",
+   "name": "test_athena_fixtures",
+   "result": "passed"
+  },
+  {
+   "unit": "test fixture_tests",
+   "name": "test_ansi_fixtures",
+   "result": "passed"
+  },
+  {
+   "unit": "test fixture_tests",
+   "name": "test_databricks_fixtures",
+   "result": "passed"
+  },
+  {
+   "unit": "test fixture_tests",
+   "name": "test_clickhouse_fixtures",
+   "result": "passed"
+  },
+  {
+   "unit": "test fixture_tests",
+   "name": "test_bigquery_fixtures",
+   "result": "passed"
+  },
+  {
+   "unit": "test fixture_tests",
+   "name": "test_db2_fixtures",
+   "result": "passed"
+  },
+  {
+   "unit": "test fixture_tests",
+   "name": "test_doris_fixtures",
+   "result": "passed"
+  },
+  {
+   "unit": "test fixture_tests",
+   "name": "test_flink_fixtures",
+   "result": "passed"
+  },
+  {
+   "unit": "test fixture_tests",
+   "name": "test_greenplum_fixtures",
+   "result": "passed"
+  },
+  {
+   "unit": "test fixture_tests",
+   "name": "test_impala_fixtures",
+   "result": "passed"
+  },
+  {
+   "unit": "test fixture_tests",
+   "name": "test_hive_fixtures",
+   "result": "passed"
+  },
+  {
+   "unit": "test fixture_tests",
+   "name": "test_materialize_fixtures",
+   "result": "passed"
+  },
+  {
+   "unit": "test fixture_tests",
+   "name": "test_exasol_fixtures",
+   "result": "passed"
+  },
+  {
+   "unit": "test fixture_tests",
+   "name": "test_duckdb_fixtures",
+   "result": "passed"
+  },
+  {
+   "unit": "test fixture_tests",
+   "name": "test_mysql_fixtures",
+   "result": "passed"
+  },
+  {
+   "unit": "test fixture_tests",
+   "name": "test_mariadb_fixtures",
+   "result": "passed"
+  },
+  {
+   "unit": "test fixture_tests",
+   "name": "test_select_a",
+   "result": "passed"
+  },
+  {
+   "unit": "test fixture_tests",
+   "name": "test_select_simple_a",
+   "result": "passed"
+  },
+  {
+   "unit": "test fixture_tests",
+   "name": "test_redshift_fixtures",
+   "result": "passed"
+  },
+  {
+   "unit": "test fixture_tests",
+   "name": "test_soql_fixtures",
+   "result": "passed"
+  },
+  {
+   "unit": "test fixture_tests",
+   "name": "test_oracle_fixtures",
+   "result": "passed"
+  },
+  {
+   "unit": "test fixture_tests",
+   "name": "test_postgres_fixtures",
+   "result": "passed"
+  },
+  {
+   "unit": "test fixture_tests",
+   "name": "test_sqlite_fixtures",
+   "result": "passed"
+  },
+  {
+   "unit": "test fixture_tests",
+   "name": "test_starrocks_fixtures",
+   "result": "passed"
+  },
+  {
+   "unit": "test fixture_tests",
+   "name": "test_teradata_fixtures",
+   "result": "passed"
+  },
+  {
+   "unit": "test fixture_tests",
+   "name": "test_trino_fixtures",
+   "result": "passed"
+  },
+  {
+   "unit": "test fixture_tests",
+   "name": "test_sparksql_fixtures",
+   "result": "passed"
+  },
+  {
+   "unit": "test fixture_tests",
+   "name": "test_yaml_output_matches_python",
+   "result": "passed"
+  },
+  {
+   "unit": "test fixture_tests",
+   "name": "test_vertica_fixtures",
+   "result": "passed"
+  },
+  {
+   "unit": "test fixture_tests",
+   "name": "test_snowflake_fixtures",
+   "result": "passed"
+  },
+  {
+   "unit": "test fixture_tests",
+   "name": "test_yaml_output_matches_python_athena",
+   "result": "passed"
+  },
+  {
+   "unit": "test fixture_tests",
+   "name": "test_yaml_output_matches_python_ansi",
+   "result": "passed"
+  },
+  {
+   "unit": "test fixture_tests",
+   "name": "test_yaml_output_matches_python_bigquery",
+   "result": "passed"
+  },
+  {
+   "unit": "test fixture_tests",
+   "name": "test_yaml_output_matches_python_databricks",
+   "result": "passed"
+  },
+  {
+   "unit": "test fixture_tests",
+   "name": "test_yaml_output_matches_python_db2",
+   "result": "passed"
+  },
+  {
+   "unit": "test fixture_tests",
+   "name": "test_yaml_output_matches_python_doris",
+   "result": "passed"
+  },
+  {
+   "unit": "test fixture_tests",
+   "name": "test_yaml_output_matches_python_clickhouse",
+   "result": "passed"
+  },
+  {
+   "unit": "test fixture_tests",
+   "name": "test_yaml_output_matches_python_flink",
+   "result": "passed"
+  },
+  {
+   "unit": "test fixture_tests",
+   "name": "test_yaml_output_matches_python_greenplum",
+   "result": "passed"
+  },
+  {
+   "unit": "test fixture_tests",
+   "name": "test_yaml_output_matches_python_hive",
+   "result": "passed"
+  },
+  {
+   "unit": "test fixture_tests",
+   "name": "test_yaml_output_matches_python_impala",
+   "result": "passed"
+  },
+  {
+   "unit": "test fixture_tests",
+   "name": "test_yaml_output_matches_python_exasol",
+   "result": "passed"
+  },
+  {
+   "unit": "test fixture_tests",
+   "name": "test_yaml_output_matches_python_duckdb",
+   "result": "passed"
+  },
+  {
+   "unit": "test fixture_tests",
+   "name": "test_tsql_fixtures",
+   "result": "passed"
+  },
+  {
+   "unit": "test fixture_tests",
+   "name": "test_yaml_output_matches_python_materialize",
+   "result": "passed"
+  },
+  {
+   "unit": "test fixture_tests",
+   "name": "test_yaml_output_matches_python_mysql",
+   "result": "passed"
+  },
+  {
+   "unit": "test fixture_tests",
+   "name": "test_yaml_output_matches_python_mariadb",
+   "result": "passed"
+  },
+  {
+   "unit": "test fixture_tests",
+   "name": "test_yaml_output_matches_python_redshift",
+   "result": "passed"
+  },
+  {
+   "unit": "test fixture_tests",
+   "name": "test_yaml_output_matches_python_soql",
+   "result": "passed"
+  },
+  {
+   "unit": "test fixture_tests",
+   "name": "test_yaml_output_matches_python_oracle",
+   "result": "passed"
+  },
+  {
+   "unit": "test fixture_tests",
+   "name": "test_yaml_output_matches_python_sqlite",
+   "result": "passed"
+  },
+  {
+   "unit": "test fixture_tests",
+   "name": "test_yaml_output_matches_python_postgres",
+   "result": "passed"
+  },
+  {
+   "unit": "test fixture_tests",
+   "name": "test_yaml_output_matches_python_starrocks",
+   "result": "passed"
+  },
+  {
+   "unit": "test fixture_tests",
+   "name": "test_yaml_output_matches_python_teradata",
+   "result": "passed"
+  },
+  {
+   "unit": "test fixture_tests",
+   "name": "test_yaml_output_matches_python_trino",
+   "result": "passed"
+  },
+  {
+   "unit": "test fixture_tests",
+   "name": "test_yaml_output_matches_python_sparksql",
+   "result": "passed"
+  },
+  {
+   "unit": "test fixture_tests",
+   "name": "test_yaml_output_matches_python_vertica",
+   "result": "passed"
+  },
+  {
+   "unit": "test fixture_tests",
+   "name": "test_yaml_output_matches_python_snowflake",
+   "result": "passed"
+  },
+  {
+   "unit": "test fixture_tests",
+   "name": "test_yaml_output_matches_python_tsql",
+   "result": "passed"
+  },
+  {
+   "unit": "test table_driven_small",
+   "name": "anynumberof_parses",
+   "result": "passed"
+  },
+  {
+   "unit": "test table_driven_small",
+   "name": "anynumberof_bracketed_element_and_delimiter",
+   "result": "passed"
+  },
+  {
+   "unit": "test table_driven_small",
+   "name": "basic_object_parses",
+   "result": "passed"
+  },
+  {
+   "unit": "test table_driven_small",
+   "name": "basic_select_parses",
+   "result": "passed"
+  },
+  {
+   "unit": "test table_driven_small",
+   "name": "basic_select_via_select_statement_parses",
+   "result": "passed"
+  },
+  {
+   "unit": "test table_driven_small",
+   "name": "bracketed_delimited_parses",
+   "result": "passed"
+  },
+  {
+   "unit": "test table_driven_small",
+   "name": "datatype_array_type_parses",
+   "result": "passed"
+  },
+  {
+   "unit": "test table_driven_small",
+   "name": "datatype_double_precision_parses",
+   "result": "passed"
+  },
+  {
+   "unit": "test table_driven_small",
+   "name": "datatype_char_varying_parses",
+   "result": "passed"
+  },
+  {
+   "unit": "test table_driven_small",
+   "name": "create_sequence_options_segment_variants",
+   "result": "passed"
+  },
+  {
+   "unit": "test table_driven_small",
+   "name": "datatype_time_with_tz_parses",
+   "result": "passed"
+  },
+  {
+   "unit": "test table_driven_small",
+   "name": "create_sequence_statement_parses",
+   "result": "passed"
+  },
+  {
+   "unit": "test table_driven_small",
+   "name": "empty_bracketed_parses",
+   "result": "passed"
+  },
+  {
+   "unit": "test table_driven_small",
+   "name": "delimited_multiple_elements",
+   "result": "passed"
+  },
+  {
+   "unit": "test table_driven_small",
+   "name": "datatype_unsigned_parses",
+   "result": "passed"
+  },
+  {
+   "unit": "test table_driven_small",
+   "name": "from_clause_parses",
+   "result": "passed"
+  },
+  {
+   "unit": "test table_driven_small",
+   "name": "oneof_first_parses",
+   "result": "passed"
+  },
+  {
+   "unit": "test table_driven_small",
+   "name": "from_keyword_parses",
+   "result": "passed"
+  },
+  {
+   "unit": "test table_driven_small",
+   "name": "oneof_second_parses",
+   "result": "passed"
+  },
+  {
+   "unit": "test table_driven_small",
+   "name": "oneof_first_seq_parses",
+   "result": "passed"
+  },
+  {
+   "unit": "test table_driven_small",
+   "name": "from_expression_element_parses",
+   "result": "passed"
+  },
+  {
+   "unit": "test table_driven_small",
+   "name": "from_expression_parses",
+   "result": "passed"
+  },
+  {
+   "unit": "test table_driven_small",
+   "name": "oneof_second_seq_parses",
+   "result": "passed"
+  },
+  {
+   "unit": "test table_driven_small",
+   "name": "seq_no_allow_gaps_parses",
+   "result": "passed"
+  },
+  {
+   "unit": "test table_driven_small",
+   "name": "typed_parses",
+   "result": "passed"
+  },
+  {
+   "unit": "test table_driven_small",
+   "name": "string_parses",
+   "result": "passed"
+  },
+  {
+   "unit": "test table_driven_small",
+   "name": "single_delimited_parses",
+   "result": "passed"
+  },
+  {
+   "unit": "test test_bracketed_sequence",
+   "name": "test_bracketed_implicit_sequence",
+   "result": "passed"
+  },
+  {
+   "unit": "test test_delimited_terminator_timing",
+   "name": "delimited_terminator_tests::test_delimited_performance_with_complex_failure",
+   "result": "passed"
+  },
+  {
+   "unit": "test test_delimited_terminator_timing",
+   "name": "delimited_terminator_tests::test_delimited_where_terminator_matches_element",
+   "result": "passed"
+  },
+  {
+   "unit": "test test_delimited_terminator_timing",
+   "name": "delimited_terminator_tests::test_delimited_trailing_terminator",
+   "result": "passed"
+  },
+  {
+   "unit": "test test_double_at",
+   "name": "test_double_at_sign",
+   "result": "passed"
+  },
+  {
+   "unit": "test test_handle_exception",
+   "name": "test_handle_exception_sql",
+   "result": "passed"
+  },
+  {
+   "unit": "test test_is_not_distinct",
+   "name": "test_is_not_distinct_with_brackets",
+   "result": "passed"
+  },
+  {
+   "unit": "test test_is_not_distinct",
+   "name": "test_is_not_distinct_simple",
+   "result": "passed"
+  },
+  {
+   "unit": "test test_literals_fixture_only",
+   "name": "test_literals_fixture_only",
+   "result": "passed"
+  },
+  {
+   "unit": "test test_multiple_statements",
+   "name": "test_multiple_numeric_literals",
+   "result": "passed"
+  },
+  {
+   "unit": "test test_numeric_literal",
+   "name": "test_numeric_literal_simple",
+   "result": "passed"
+  },
+  {
+   "unit": "test test_numeric_literal",
+   "name": "test_numeric_literal_comparison",
+   "result": "passed"
+  },
+  {
+   "unit": "test yaml_compare",
+   "name": "test_yaml_comparison_tsql_sqlcmd_command",
+   "result": "passed"
+  },
+  {
+   "unit": "test yaml_compare",
+   "name": "test_yaml_comparison_ansi_arithmetic_a",
+   "result": "passed"
+  },
+  {
+   "unit": "unittests sqlfluffrs_dialects",
+   "name": "block_comment::tests::test_nested_block_comment",
+   "result": "passed"
+  },
+  {
+   "unit": "unittests sqlfluffrs_dialects",
+   "name": "block_comment::tests::test_unclosed_comment_other_dialect",
+   "result": "passed"
+  },
+  {
+   "unit": "unittests sqlfluffrs_dialects",
+   "name": "block_comment::tests::test_simple_block_comment",
+   "result": "passed"
+  },
+  {
+   "unit": "unittests sqlfluffrs_dialects",
+   "name": "block_comment::tests::test_invalid_start",
+   "result": "passed"
+  },
+  {
+   "unit": "unittests sqlfluffrs_dialects",
+   "name": "block_comment::tests::test_unclosed_comment_sqlite",
+   "result": "passed"
+  },
+  {
+   "unit": "unittests sqlfluffrs_parser",
+   "name": "parser::arena::tests::is_type_uses_class_types",
+   "result": "passed"
+  },
+  {
+   "unit": "unittests sqlfluffrs_parser",
+   "name": "parser::arena::tests::is_code_and_whitespace",
+   "result": "passed"
+  },
+  {
+   "unit": "unittests sqlfluffrs_parser",
+   "name": "parser::arena::tests::descendant_type_set_includes_nested",
+   "result": "passed"
+  },
+  {
+   "unit": "unittests sqlfluffrs_parser",
+   "name": "parser::arena::tests::get_child_includes_meta",
+   "result": "passed"
+  },
+  {
+   "unit": "unittests sqlfluffrs_parser",
+   "name": "parser::arena::tests::raw_matches_node",
+   "result": "passed"
+  },
+  {
+   "unit": "unittests sqlfluffrs_parser",
+   "name": "parser::arena::tests::parent_links_and_path",
+   "result": "passed"
+  },
+  {
+   "unit": "unittests sqlfluffrs_parser",
+   "name": "parser::arena::tests::raw_segments_in_order",
+   "result": "passed"
+  },
+  {
+   "unit": "unittests sqlfluffrs_parser",
+   "name": "parser::match_result::tests::test_empty_at",
+   "result": "passed"
+  },
+  {
+   "unit": "unittests sqlfluffrs_parser",
+   "name": "parser::match_result::tests::test_is_better_than",
+   "result": "passed"
+  },
+  {
+   "unit": "unittests sqlfluffrs_parser",
+   "name": "parser::types::tests::test_empty_node_to_tuple",
+   "result": "passed"
+  },
+  {
+   "unit": "unittests sqlfluffrs_parser",
+   "name": "parser::arena::tests::recursive_crawl_finds_descendants",
+   "result": "passed"
+  },
+  {
+   "unit": "unittests sqlfluffrs_parser",
+   "name": "parser::types::tests::test_meta_node_to_tuple_exclude_meta",
+   "result": "passed"
+  },
+  {
+   "unit": "unittests sqlfluffrs_parser",
+   "name": "parser::types::tests::test_meta_node_as_record",
+   "result": "passed"
+  },
+  {
+   "unit": "unittests sqlfluffrs_parser",
+   "name": "parser::types::tests::test_meta_node_to_tuple_include_meta",
+   "result": "passed"
+  },
+  {
+   "unit": "unittests sqlfluffrs_parser",
+   "name": "parser::types::tests::test_raw_node_to_tuple_no_raw",
+   "result": "passed"
+  },
+  {
+   "unit": "unittests sqlfluffrs_parser",
+   "name": "parser::types::tests::test_raw_node_to_tuple_show_raw",
+   "result": "passed"
+  },
+  {
+   "unit": "unittests sqlfluffrs_parser",
+   "name": "parser::types::tests::test_segment_node_as_record_empty",
+   "result": "passed"
+  },
+  {
+   "unit": "unittests sqlfluffrs_parser",
+   "name": "parser::types::tests::test_segment_node_as_record_merge",
+   "result": "passed"
+  },
+  {
+   "unit": "unittests sqlfluffrs_parser",
+   "name": "parser::types::tests::test_segment_node_to_tuple",
+   "result": "passed"
+  },
+  {
+   "unit": "unittests sqlfluffrs_parser",
+   "name": "parser::types::tests::test_unparsable_node_as_record",
+   "result": "passed"
+  },
+  {
+   "unit": "unittests sqlfluffrs_parser",
+   "name": "parser::cache::tests::test_cache_functionality",
+   "result": "passed"
+  },
+  {
+   "unit": "unittests sqlfluffrs_types",
+   "name": "grammar_api::tests::test_grammar_context",
+   "result": "passed"
+  },
+  {
+   "unit": "unittests sqlfluffrs_types",
+   "name": "grammar_inst::tests::test_children_slice",
+   "result": "passed"
+  },
+  {
+   "unit": "unittests sqlfluffrs_types",
+   "name": "grammar_inst::tests::test_builder_pattern",
+   "result": "passed"
+  },
+  {
+   "unit": "unittests sqlfluffrs_types",
+   "name": "grammar_api::tests::test_pattern_helpers",
+   "result": "passed"
+  },
+  {
+   "unit": "unittests sqlfluffrs_types",
+   "name": "grammar_inst::tests::test_flags_operations",
+   "result": "passed"
+  },
+  {
+   "unit": "unittests sqlfluffrs_types",
+   "name": "grammar_inst::tests::test_grammar_flags_size",
+   "result": "passed"
+  },
+  {
+   "unit": "unittests sqlfluffrs_types",
+   "name": "grammar_inst::tests::test_grammar_id",
+   "result": "passed"
+  },
+  {
+   "unit": "unittests sqlfluffrs_types",
+   "name": "grammar_inst::tests::test_grammar_inst_size",
+   "result": "passed"
+  },
+  {
+   "unit": "unittests sqlfluffrs_types",
+   "name": "grammar_inst::tests::test_grammar_variant_size",
+   "result": "passed"
+  },
+  {
+   "unit": "unittests sqlfluffrs_types",
+   "name": "grammar_inst::tests::test_is_optional",
+   "result": "passed"
+  },
+  {
+   "unit": "unittests sqlfluffrs_types",
+   "name": "grammar_inst::tests::test_parse_mode_size",
+   "result": "passed"
+  },
+  {
+   "unit": "unittests sqlfluffrs_types",
+   "name": "grammar_tables::tests::test_children_iterator",
+   "result": "passed"
+  },
+  {
+   "unit": "unittests sqlfluffrs_types",
+   "name": "grammar_tables::tests::test_grammar_tables_basic",
+   "result": "passed"
+  },
+  {
+   "unit": "unittests sqlfluffrs_types",
+   "name": "grammar_tables::tests::test_memory_stats",
+   "result": "passed"
+  },
+  {
+   "unit": "unittests sqlfluffrs_types",
+   "name": "grammar_tables::tests::test_simple_hint_data",
+   "result": "passed"
+  },
+  {
+   "unit": "unittests sqlfluffrs_types",
+   "name": "grammar_tables::tests::test_terminators_iterator",
+   "result": "passed"
+  },
+  {
+   "unit": "unittests sqlfluffrs_types",
+   "name": "identity::tests::ids_are_tagged_unique_and_disjoint_from_python",
+   "result": "passed"
+  },
+  {
+   "unit": "unittests sqlfluffrs_types",
+   "name": "string::tests::curtail_string_semantics",
+   "result": "passed"
+  },
+  {
+   "unit": "unittests sqlfluffrs_types",
+   "name": "string::tests::counts_by_codepoint",
+   "result": "passed"
+  },
+  {
+   "unit": "unittests sqlfluffrs_types",
+   "name": "string::tests::lexer_truncate_semantics",
+   "result": "passed"
+  },
+  {
+   "unit": "unittests sqlfluffrs_types",
+   "name": "templater::templatefile::tests::test_indices_of_newlines",
+   "result": "passed"
+  },
+  {
+   "unit": "unittests sqlfluffrs_types",
+   "name": "token::fmt::tests::escapes_c0_and_del",
+   "result": "passed"
+  },
+  {
+   "unit": "unittests sqlfluffrs_types",
+   "name": "token::fmt::tests::escapes_c1_controls_and_non_space_whitespace",
+   "result": "passed"
+  },
+  {
+   "unit": "unittests sqlfluffrs_types",
+   "name": "token::fmt::tests::leaves_printable_unicode_as_is",
+   "result": "passed"
+  },
+  {
+   "unit": "unittests sqlfluffrs_types",
+   "name": "token::fmt::tests::plain_ascii_uses_single_quotes",
+   "result": "passed"
+  },
+  {
+   "unit": "unittests sqlfluffrs_types",
+   "name": "templater::templatefile::tests::test_templated_file_find_slice_indices_of_templated_pos",
+   "result": "passed"
+  },
+  {
+   "unit": "unittests sqlfluffrs_types",
+   "name": "token::fmt::tests::switches_to_double_quotes_for_single_quote_content",
+   "result": "passed"
+  },
+  {
+   "unit": "unittests sqlfluffrs_types",
+   "name": "templater::templatefile::tests::test_templated_file_templated_slice_to_source_slice",
+   "result": "passed"
+  }
+ ],
+ "steps": [
+  {
+   "step": "check the submodule before",
+   "cwd": "$REPO",
+   "argv": [
+    "$REPO/scripts/check-submodule",
+    "before the T18 base tests"
+   ],
+   "env": {},
+   "unset": [],
+   "exit_code": 0,
+   "wall_s": 0.022
+  },
+  {
+   "step": "submodule commit",
+   "cwd": "$REPO",
+   "argv": [
+    "git",
+    "-C",
+    "$REPO/third_party/sqlfluff",
+    "rev-parse",
+    "HEAD"
+   ],
+   "env": {},
+   "unset": [],
+   "exit_code": 0,
+   "wall_s": 0.003
+  },
+  {
+   "step": "submodule tag",
+   "cwd": "$REPO",
+   "argv": [
+    "git",
+    "-C",
+    "$REPO/third_party/sqlfluff",
+    "describe",
+    "--tags",
+    "--exact-match",
+    "HEAD"
+   ],
+   "env": {},
+   "unset": [],
+   "exit_code": 0,
+   "wall_s": 0.003
+  },
+  {
+   "step": "copy the submodule",
+   "cwd": "$SCRATCH",
+   "argv": [
+    "sh",
+    "-c",
+    "git -C \"$REPO/third_party/sqlfluff\" archive --format=tar --prefix=sqlfluff/ HEAD | tar -x -C \"$SCRATCH\""
+   ],
+   "env": {
+    "REPO": "$REPO",
+    "SCRATCH": "$SCRATCH"
+   },
+   "unset": [],
+   "exit_code": 0,
+   "wall_s": 1.307
+  },
+  {
+   "step": "python (installed sqlfluff)",
+   "cwd": "$SCRATCH/sqlfluff",
+   "argv": [
+    "$REPO/.tools/sqlfluff/bin/python",
+    "-I",
+    "-c",
+    "import json, sys, sqlfluff;print(json.dumps({'sqlfluff_version': sqlfluff.__version__, 'sqlfluff_file': sqlfluff.__file__, 'python': sys.version.split()[0]}))"
+   ],
+   "env": {},
+   "unset": [
+    "MATURIN_PYTHON_INTERPRETER",
+    "PYO3_PYTHON",
+    "PYTHONHOME",
+    "PYTHONPATH",
+    "PYTHONSTARTUP",
+    "VIRTUAL_ENV"
+   ],
+   "exit_code": 0,
+   "wall_s": 0.25
+  },
+  {
+   "step": "generate the dialect tables",
+   "cwd": "$SCRATCH/sqlfluff",
+   "argv": [
+    "$REPO/.tools/sqlfluff/bin/python",
+    "utils/rustify.py",
+    "build"
+   ],
+   "env": {
+    "PYTHONDONTWRITEBYTECODE": "1"
+   },
+   "unset": [
+    "MATURIN_PYTHON_INTERPRETER",
+    "PYO3_PYTHON",
+    "PYTHONHOME",
+    "PYTHONPATH",
+    "PYTHONSTARTUP",
+    "VIRTUAL_ENV"
+   ],
+   "exit_code": 0,
+   "wall_s": 26.067
+  },
+  {
+   "step": "install the toolchain",
+   "cwd": "$SCRATCH",
+   "argv": [
+    "rustup",
+    "toolchain",
+    "install",
+    "1.96",
+    "--profile",
+    "minimal"
+   ],
+   "env": {},
+   "unset": [],
+   "exit_code": 0,
+   "wall_s": 0.787
+  },
+  {
+   "step": "rustc version",
+   "cwd": "$SCRATCH/sqlfluff/sqlfluffrs",
+   "argv": [
+    "rustc",
+    "-vV"
+   ],
+   "env": {
+    "CARGO_INCREMENTAL": "0",
+    "CARGO_TERM_COLOR": "never",
+    "PATH": "$SCRATCH/no-python/bin:$PATH",
+    "RUSTUP_TOOLCHAIN": "1.96"
+   },
+   "unset": [
+    "CARGO_TARGET_DIR",
+    "MATURIN_PYTHON_INTERPRETER",
+    "PYO3_PYTHON",
+    "PYTHONHOME",
+    "PYTHONPATH",
+    "PYTHONSTARTUP",
+    "RUSTFLAGS",
+    "RUST_LOG",
+    "VIRTUAL_ENV"
+   ],
+   "exit_code": 0,
+   "wall_s": 0.02
+  },
+  {
+   "step": "cargo version",
+   "cwd": "$SCRATCH/sqlfluff/sqlfluffrs",
+   "argv": [
+    "cargo",
+    "-V"
+   ],
+   "env": {
+    "CARGO_INCREMENTAL": "0",
+    "CARGO_TERM_COLOR": "never",
+    "PATH": "$SCRATCH/no-python/bin:$PATH",
+    "RUSTUP_TOOLCHAIN": "1.96"
+   },
+   "unset": [
+    "CARGO_TARGET_DIR",
+    "MATURIN_PYTHON_INTERPRETER",
+    "PYO3_PYTHON",
+    "PYTHONHOME",
+    "PYTHONPATH",
+    "PYTHONSTARTUP",
+    "RUSTFLAGS",
+    "RUST_LOG",
+    "VIRTUAL_ENV"
+   ],
+   "exit_code": 0,
+   "wall_s": 0.014
+  },
+  {
+   "step": "fetch the crates",
+   "cwd": "$SCRATCH/sqlfluff/sqlfluffrs",
+   "argv": [
+    "cargo",
+    "fetch",
+    "--locked"
+   ],
+   "env": {
+    "CARGO_INCREMENTAL": "0",
+    "CARGO_TERM_COLOR": "never",
+    "PATH": "$SCRATCH/no-python/bin:$PATH",
+    "RUSTUP_TOOLCHAIN": "1.96"
+   },
+   "unset": [
+    "CARGO_TARGET_DIR",
+    "MATURIN_PYTHON_INTERPRETER",
+    "PYO3_PYTHON",
+    "PYTHONHOME",
+    "PYTHONPATH",
+    "PYTHONSTARTUP",
+    "RUSTFLAGS",
+    "RUST_LOG",
+    "VIRTUAL_ENV"
+   ],
+   "exit_code": 0,
+   "wall_s": 0.167
+  },
+  {
+   "step": "cargo tree of the tested packages",
+   "cwd": "$SCRATCH/sqlfluff/sqlfluffrs",
+   "argv": [
+    "cargo",
+    "tree",
+    "--locked",
+    "--offline",
+    "-e",
+    "normal,build,dev",
+    "--prefix",
+    "none",
+    "-p",
+    "sqlfluffrs",
+    "-p",
+    "sqlfluffrs_types",
+    "-p",
+    "sqlfluffrs_lexer",
+    "-p",
+    "sqlfluffrs_parser",
+    "-p",
+    "sqlfluffrs_dialects",
+    "-p",
+    "sqlfluffrs_rules"
+   ],
+   "env": {
+    "CARGO_INCREMENTAL": "0",
+    "CARGO_TERM_COLOR": "never",
+    "PATH": "$SCRATCH/no-python/bin:$PATH",
+    "RUSTUP_TOOLCHAIN": "1.96"
+   },
+   "unset": [
+    "CARGO_TARGET_DIR",
+    "MATURIN_PYTHON_INTERPRETER",
+    "PYO3_PYTHON",
+    "PYTHONHOME",
+    "PYTHONPATH",
+    "PYTHONSTARTUP",
+    "RUSTFLAGS",
+    "RUST_LOG",
+    "VIRTUAL_ENV"
+   ],
+   "exit_code": 0,
+   "wall_s": 0.176
+  },
+  {
+   "step": "cargo test of the base",
+   "cwd": "$SCRATCH/sqlfluff/sqlfluffrs",
+   "argv": [
+    "cargo",
+    "test",
+    "--locked",
+    "--offline",
+    "--no-fail-fast",
+    "-p",
+    "sqlfluffrs",
+    "-p",
+    "sqlfluffrs_types",
+    "-p",
+    "sqlfluffrs_lexer",
+    "-p",
+    "sqlfluffrs_parser",
+    "-p",
+    "sqlfluffrs_dialects",
+    "-p",
+    "sqlfluffrs_rules"
+   ],
+   "env": {
+    "CARGO_INCREMENTAL": "0",
+    "CARGO_TERM_COLOR": "never",
+    "PATH": "$SCRATCH/no-python/bin:$PATH",
+    "RUSTUP_TOOLCHAIN": "1.96"
+   },
+   "unset": [
+    "CARGO_TARGET_DIR",
+    "MATURIN_PYTHON_INTERPRETER",
+    "PYO3_PYTHON",
+    "PYTHONHOME",
+    "PYTHONPATH",
+    "PYTHONSTARTUP",
+    "RUSTFLAGS",
+    "RUST_LOG",
+    "VIRTUAL_ENV"
+   ],
+   "exit_code": 0,
+   "wall_s": 128.591
+  },
+  {
+   "step": "check the submodule after",
+   "cwd": "$REPO",
+   "argv": [
+    "$REPO/scripts/check-submodule",
+    "after the T18 base tests"
+   ],
+   "env": {},
+   "unset": [],
+   "exit_code": 0,
+   "wall_s": 0.024
+  }
+ ]
+}
