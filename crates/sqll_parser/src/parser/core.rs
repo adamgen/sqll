@@ -1158,7 +1158,12 @@ impl<'a> Parser<'a> {
     /// RegexMode adds its own anchors. The cache key is the pattern id, not
     /// the pattern text, so that a lookup does not copy or hash the text
     /// (S3 T17).
-    fn grammar_regex_is_match(&mut self, pattern_id: u32, case_insensitive: bool, text: &str) -> bool {
+    fn grammar_regex_is_match(
+        &mut self,
+        pattern_id: u32,
+        case_insensitive: bool,
+        text: &str,
+    ) -> bool {
         let tables = self.grammar_ctx.tables();
         self.regex_cache
             .entry((pattern_id, case_insensitive))
@@ -1182,7 +1187,8 @@ impl<'a> Parser<'a> {
         // The aux data, as regex_quad_for reads it, with no copy of a string.
         let tables = self.grammar_ctx.tables();
         let aux_start = tables.aux_data_offsets[grammar_id.get() as usize] as usize;
-        let valid_pattern = |id: u32| id != 0xFFFFFFFF && (id as usize) < tables.regex_patterns.len();
+        let valid_pattern =
+            |id: u32| id != 0xFFFFFFFF && (id as usize) < tables.regex_patterns.len();
         if aux_start + 3 >= tables.aux_data.len() || !valid_pattern(tables.aux_data[aux_start]) {
             log::warn!(
                 "RegexParser[table]: invalid aux for grammar_id={} when resolving pattern",

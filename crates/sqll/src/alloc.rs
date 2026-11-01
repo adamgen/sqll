@@ -112,7 +112,10 @@ unsafe impl GlobalAlloc for Allocator {
             .unwrap_or_else(|_| unsafe {
                 // No thread heap (not expected): a block of the full class
                 // size, so that a later free can put it in a free list.
-                System.alloc(Layout::from_size_align_unchecked(class_size(class), GRANULE))
+                System.alloc(Layout::from_size_align_unchecked(
+                    class_size(class),
+                    GRANULE,
+                ))
             })
     }
 
@@ -233,13 +236,17 @@ mod tests {
 
     #[test]
     fn a_large_or_strongly_aligned_block_comes_from_the_system() {
-        assert!(!is_small(&Layout::from_size_align(MAX_SMALL + 1, 8).unwrap()));
+        assert!(!is_small(
+            &Layout::from_size_align(MAX_SMALL + 1, 8).unwrap()
+        ));
         assert!(!is_small(&Layout::from_size_align(64, 32).unwrap()));
         let a = Allocator;
         let layout = Layout::from_size_align(64, 64).unwrap();
         let p = unsafe { a.alloc_zeroed(layout) };
         assert_eq!(p as usize % 64, 0);
-        assert!(unsafe { std::slice::from_raw_parts(p, 64) }.iter().all(|&b| b == 0));
+        assert!(unsafe { std::slice::from_raw_parts(p, 64) }
+            .iter()
+            .all(|&b| b == 0));
         unsafe { a.dealloc(p, layout) };
     }
 }

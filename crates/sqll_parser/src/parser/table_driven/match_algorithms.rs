@@ -426,13 +426,19 @@ mod tests {
         let (tokens, errors) = lexer.lex(LexInput::String("SELECT a\n  FROM b\n".into()), true);
         assert!(errors.is_empty());
         let raws: Vec<&str> = tokens.iter().map(|t| t.raw()).collect();
-        assert_eq!(raws, ["SELECT", " ", "a", "\n", "  ", "FROM", " ", "b", "\n", ""]);
+        assert_eq!(
+            raws,
+            ["SELECT", " ", "a", "\n", "  ", "FROM", " ", "b", "\n", ""]
+        );
         let from = dialect
             .get_segment_grammar("FromClauseSegment")
             .unwrap()
             .grammar_id;
         let parser = Parser::new(&tokens, dialect, Default::default());
-        let hint = parser.grammar_ctx.tables().get_simple_hint_for_grammar(from);
+        let hint = parser
+            .grammar_ctx
+            .tables()
+            .get_simple_hint_for_grammar(from);
         assert!(hint.is_some_and(|h| !h.is_empty()));
         let excluded: Vec<bool> = (0..tokens.len())
             .map(|i| parser.terminator_hint_excludes(from, i))
