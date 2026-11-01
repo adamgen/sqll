@@ -168,24 +168,33 @@ def test_the_ported_files_agree_with_the_record():
     assert problems(REPO_ROOT, RECORD, SOURCES) == []
 
 
-def test_the_record_covers_the_4_crates_without_python():
+def test_the_record_covers_the_crates_without_python():
     assert RECORD["crates"] == {
         "sqlfluffrs/sqlfluffrs_types": "crates/sqll_types",
         "sqlfluffrs/sqlfluffrs_lexer": "crates/sqll_lexer",
         "sqlfluffrs/sqlfluffrs_parser": "crates/sqll_parser",
         "sqlfluffrs/sqlfluffrs_dialects": "crates/sqll_dialects",
+        # S3 T18: the 3 rules and the native tests of the root crate.
+        "sqlfluffrs/sqlfluffrs_rules": "crates/sqll_rules",
+        "sqlfluffrs/src": "crates/sqll_base_tests/src",
+        "sqlfluffrs/tests": "crates/sqll_base_tests/tests",
     }
+    # The workspace and the root crate package are 2 ports of one file.
+    manifests = {("Cargo.toml", "sqlfluffrs/Cargo.toml")}
+    manifests.add(("crates/sqll_base_tests/Cargo.toml", "sqlfluffrs/Cargo.toml"))
     for f in RECORD["files"]:
         src = f["source"]
         crate = next((c for c in RECORD["crates"] if src.startswith(c + "/")), None)
         if crate is None:
-            assert (f["path"], src) == ("Cargo.toml", "sqlfluffrs/Cargo.toml")
+            assert (f["path"], src) in manifests
         else:
             assert f["path"] == RECORD["crates"][crate] + src[len(crate) :]
     excluded = {e["source"] for e in RECORD["excluded"]}
     assert "sqlfluffrs/sqlfluffrs_parser/src/parser/python.rs" in excluded
     assert "sqlfluffrs/sqlfluffrs_parser/src/parser/arena_py.rs" in excluded
     assert "sqlfluffrs/sqlfluffrs_dialects/build.rs" in excluded
+    assert "sqlfluffrs/sqlfluffrs_rules/src/python.rs" in excluded
+    assert "sqlfluffrs/src/python.rs" in excluded
     for f in RECORD["files"]:
         text = (REPO_ROOT / f["path"]).read_text("utf8")
         assert "pyo3" not in text, f["path"]
@@ -196,11 +205,20 @@ def test_each_file_of_the_source_crates_is_ported_or_excluded():
     crate_files = [
         s for s in SOURCES if any(s.startswith(c + "/") for c in RECORD["crates"])
     ]
-    assert len(crate_files) == 60
-    assert len(RECORD["files"]) + len(RECORD["excluded"]) == 61  # with Cargo.toml
+    # 60 files of the 4 crates of T11; T18: 7 of the rules crate, 3 of src/,
+    # and 11 of tests/.
+    assert len(crate_files) == 81
+    # With the 2 ports of sqlfluffrs/Cargo.toml.
+    assert len(RECORD["files"]) + len(RECORD["excluded"]) == 83
     changed = [f["path"] for f in RECORD["files"] if f["changed"]]
     assert sorted(changed) == [
         "Cargo.toml",
+        "crates/sqll_base_tests/Cargo.toml",
+        "crates/sqll_base_tests/src/lib.rs",
+        "crates/sqll_base_tests/src/test_harness.rs",
+        "crates/sqll_base_tests/tests/fixture_tests.rs",
+        "crates/sqll_base_tests/tests/test_literals_fixture_only.rs",
+        "crates/sqll_base_tests/tests/yaml_compare.rs",
         "crates/sqll_dialects/Cargo.toml",
         "crates/sqll_dialects/src/lib.rs",
         "crates/sqll_lexer/Cargo.toml",
@@ -208,6 +226,7 @@ def test_each_file_of_the_source_crates_is_ported_or_excluded():
         "crates/sqll_lexer/src/lib.rs",
         "crates/sqll_parser/Cargo.toml",
         "crates/sqll_parser/src/lib.rs",
+        "crates/sqll_parser/src/parser/arena.rs",
         "crates/sqll_parser/src/parser/core.rs",
         "crates/sqll_parser/src/parser/helpers.rs",
         "crates/sqll_parser/src/parser/match_result.rs",
@@ -222,6 +241,8 @@ def test_each_file_of_the_source_crates_is_ported_or_excluded():
         "crates/sqll_parser/src/parser/table_driven/ref_grammar.rs",
         "crates/sqll_parser/src/parser/table_driven/sequence.rs",
         "crates/sqll_parser/src/parser/types.rs",
+        "crates/sqll_rules/Cargo.toml",
+        "crates/sqll_rules/src/lib.rs",
         "crates/sqll_types/Cargo.toml",
         "crates/sqll_types/src/matcher.rs",
     ]

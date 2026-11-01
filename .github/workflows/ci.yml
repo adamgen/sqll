@@ -183,7 +183,8 @@ jobs:
   # Build sqll (scripts/build-sqll): generate the dialect tables with the
   # pinned generator, compare them with crates/sqll_dialects/generated.json,
   # build the workspace (release, --locked) with no Python, run the Rust
-  # tests and the S2 tree guard. The artifact has out/sqll/build.json and the
+  # tests with the list check of the base native tests, and the S2 tree
+  # guard. The artifact has out/sqll/build.json and the
   # binaries.
   build:
     needs: [changes, image]
@@ -215,8 +216,11 @@ jobs:
       - name: Check that the sqlfluff submodule is clean after the build
         run: scripts/check-submodule "after the build"
 
+      # cargo test --locked --no-fail-fast of the workspace, and the list
+      # check (S3 T18): each native test of the base that passes in the base
+      # (results/s3/base-native-tests.json) passes in sqll.
       - name: Run the Rust tests
-        run: cargo test --locked
+        run: uv run --frozen --project harness python scripts/s3/base_native_tests.py check
 
       - name: Check that the sqlfluff submodule is clean after the Rust tests
         run: scripts/check-submodule "after the Rust tests"

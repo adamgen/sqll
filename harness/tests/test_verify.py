@@ -80,6 +80,11 @@ def _corpus_run(d, job: str, name: str, old: str, new: str):
     step["run"] = step["run"].replace(old, new)
 
 
+RUST_TESTS = (
+    "uv run --frozen --project harness python scripts/s3/base_native_tests.py check"
+)
+
+
 def _build_run(d, name: str, old: str, new: str):
     step = _step(d, "build", name)
     assert old in step["run"]
@@ -90,11 +95,11 @@ CI_CHANGES = {
     "build of the tables only": lambda d: _build_run(
         d, "Build sqll", "scripts/build-sqll", "scripts/build-sqll --tables-only"
     ),
-    "Rust tests without --locked": lambda d: _build_run(
-        d, "Run the Rust tests", " --locked", ""
+    "Rust tests without the list check": lambda d: _build_run(
+        d, "Run the Rust tests", RUST_TESTS, "cargo test --locked"
     ),
-    "Rust tests of one crate": lambda d: _build_run(
-        d, "Run the Rust tests", "--locked", "--locked -p sqll_types"
+    "Rust tests from a log": lambda d: _build_run(
+        d, "Run the Rust tests", " check", " check --log out/cargo-test.log"
     ),
     "no Rust test step": lambda d: _without_step(d, "build", "Run the Rust tests"),
     "build job only on push": lambda d: d["jobs"]["build"].update(
@@ -442,7 +447,8 @@ def test_drift_finds_a_ci_change(name):
 
 LOCAL_CHANGES = {
     "build of the tables only": ("build-sqll", lambda c: c + " --tables-only"),
-    "Rust tests without --locked": ("rust-tests", lambda c: c.replace(" --locked", "")),
+    "Rust tests from a log": ("rust-tests", lambda c: c + " --log out/x.log"),
+    "Rust tests without the list check": ("rust-tests", lambda c: "cargo test"),
     "submodule check before the build": (
         "submodule-before-build",
         lambda c: c.replace("before the build", "before the tests"),
