@@ -26,14 +26,101 @@
   "sqlfluffrs/sqlfluffrs_types": "crates/sqll_types",
   "sqlfluffrs/sqlfluffrs_lexer": "crates/sqll_lexer",
   "sqlfluffrs/sqlfluffrs_parser": "crates/sqll_parser",
-  "sqlfluffrs/sqlfluffrs_dialects": "crates/sqll_dialects"
+  "sqlfluffrs/sqlfluffrs_dialects": "crates/sqll_dialects",
+  "sqlfluffrs/sqlfluffrs_rules": "crates/sqll_rules",
+  "sqlfluffrs/src": "crates/sqll_base_tests/src",
+  "sqlfluffrs/tests": "crates/sqll_base_tests/tests"
  },
  "files": [
   {
    "path": "Cargo.toml",
    "source": "sqlfluffrs/Cargo.toml",
    "source_sha256": "b732205a4911557a6a5ba76b40e4a6557e88166523450b5b01731760b337a3a8",
-   "changed": "Only the workspace parts are kept: the members are the 4 ported crates in crates/ and the new sqll binary crate (crates/sqll), the workspace dependencies that they use, and the release profile. The workspace version is the sqll version. New: serde_json and sha2 (for build.rs of sqll_dialects), and opt-level 3 for sha2; regex-syntax (S3 T15, the match prefixes of the lexer regexes in sqll_types matcher.rs), the version that regex uses. No root package, no feature \"python\", no pyo3. S3 T17 (parse speed, build profile): the release profile has lto = \"fat\" and codegen-units = 1, so that the parser inlines the accessors of sqll_types; about 10% fewer instructions in the parse."
+   "changed": "Only the workspace parts are kept: the members are the 4 ported crates in crates/ and the new sqll binary crate (crates/sqll), the workspace dependencies that they use, and the release profile. The workspace version is the sqll version. New: serde_json and sha2 (for build.rs of sqll_dialects), and opt-level 3 for sha2; regex-syntax (S3 T15, the match prefixes of the lexer regexes in sqll_types matcher.rs), the version that regex uses. No root package, no feature \"python\", no pyo3. S3 T17 (parse speed, build profile): the release profile has lto = \"fat\" and codegen-units = 1, so that the parser inlines the accessors of sqll_types; about 10% fewer instructions in the parse. S3 T18: the members also have the rules crate (crates/sqll_rules) and the native tests of the root crate (crates/sqll_base_tests)."
+  },
+  {
+   "path": "crates/sqll_base_tests/Cargo.toml",
+   "source": "sqlfluffrs/Cargo.toml",
+   "source_sha256": "b732205a4911557a6a5ba76b40e4a6557e88166523450b5b01731760b337a3a8",
+   "changed": "S3 T18: only the package part of the root crate: the library and the tests (no benches, no Python module). The package name is sqll_base_tests; the library keeps the name sqlfluffrs, so that the tests do not change. The dependencies keep the sqlfluffrs crate names (\"package\" key). blake2 (the version of the source) is a dev-dependency: only tests/fixture_tests.rs uses it. Not kept: pyo3, sqlfluffrs_python, sqlfluffrs_rules (only the Python module uses it), criterion (benches), and the features."
+  },
+  {
+   "path": "crates/sqll_base_tests/src/lib.rs",
+   "source": "sqlfluffrs/src/lib.rs",
+   "source_sha256": "d5b6d27712061045290c206c77245dcae38ef453d9feb2c09ff18e98ad57c51f",
+   "changed": "S3 T18: removed the module \"python\" (feature \"python\", the Python module)."
+  },
+  {
+   "path": "crates/sqll_base_tests/src/test_harness.rs",
+   "source": "sqlfluffrs/src/test_harness.rs",
+   "source_sha256": "237b0be0e0357577b4e8ae2d1368f48b54e6eaa7ac8603bd62395c1e0eeece03",
+   "changed": "S3 T18: the fixture folder. The source finds test/fixtures from the folder of its crate (sqlfluffrs/); the sqll crate is in crates/, so each PathBuf::from(env!(\"CARGO_MANIFEST_DIR\")) is the path of the sqlfluffrs folder of the submodule (third_party/sqlfluff/sqlfluffrs). The tests read the fixtures in place; no other change."
+  },
+  {
+   "path": "crates/sqll_base_tests/tests/fixture_tests.rs",
+   "source": "sqlfluffrs/tests/fixture_tests.rs",
+   "source_sha256": "f0596caae42c79882d577d331f59c6bdf17b2c435c207ef921781a5a107f1249",
+   "changed": "S3 T18: the fixture folder. The source finds test/fixtures from the folder of its crate (sqlfluffrs/); the sqll crate is in crates/, so each PathBuf::from(env!(\"CARGO_MANIFEST_DIR\")) is the path of the sqlfluffrs folder of the submodule (third_party/sqlfluff/sqlfluffrs). The tests read the fixtures in place; no other change."
+  },
+  {
+   "path": "crates/sqll_base_tests/tests/table_driven_small.rs",
+   "source": "sqlfluffrs/tests/table_driven_small.rs",
+   "source_sha256": "d55462923e1bce0a7443f3c9f53df5b092306e211ce67bf0bc9ec264c6ffe7ec",
+   "changed": null
+  },
+  {
+   "path": "crates/sqll_base_tests/tests/test_bracketed_sequence.rs",
+   "source": "sqlfluffrs/tests/test_bracketed_sequence.rs",
+   "source_sha256": "4f527e70cc75db13cbca6f5d686f2bb851998aded467bc0599cfab972f950265",
+   "changed": null
+  },
+  {
+   "path": "crates/sqll_base_tests/tests/test_delimited_terminator_timing.rs",
+   "source": "sqlfluffrs/tests/test_delimited_terminator_timing.rs",
+   "source_sha256": "59cd01e6ecf86d8691df4b26b9f2725297a836ec262b61b7d1c9eaa2ad297c0b",
+   "changed": null
+  },
+  {
+   "path": "crates/sqll_base_tests/tests/test_double_at.rs",
+   "source": "sqlfluffrs/tests/test_double_at.rs",
+   "source_sha256": "81cc41d806a8860d9ec95af6b87fd7c9bec8985f4f3ae6dba40d36f64251b93f",
+   "changed": null
+  },
+  {
+   "path": "crates/sqll_base_tests/tests/test_handle_exception.rs",
+   "source": "sqlfluffrs/tests/test_handle_exception.rs",
+   "source_sha256": "c1cb42c7a01a91724343d510268bb4dd8a12950a79e4d0558d3fb12d3d0de647",
+   "changed": null
+  },
+  {
+   "path": "crates/sqll_base_tests/tests/test_is_not_distinct.rs",
+   "source": "sqlfluffrs/tests/test_is_not_distinct.rs",
+   "source_sha256": "4eb181fd4ee6347ae5134231a80d2d0732dd24f34d7389c51115484e68587ac2",
+   "changed": null
+  },
+  {
+   "path": "crates/sqll_base_tests/tests/test_literals_fixture_only.rs",
+   "source": "sqlfluffrs/tests/test_literals_fixture_only.rs",
+   "source_sha256": "181c480e573dbb227bbbff0fe236ee405448d74e861b9231bfc99de5f44a3ab2",
+   "changed": "S3 T18: the fixture folder. The source finds test/fixtures from the folder of its crate (sqlfluffrs/); the sqll crate is in crates/, so each PathBuf::from(env!(\"CARGO_MANIFEST_DIR\")) is the path of the sqlfluffrs folder of the submodule (third_party/sqlfluff/sqlfluffrs). The tests read the fixtures in place; no other change."
+  },
+  {
+   "path": "crates/sqll_base_tests/tests/test_multiple_statements.rs",
+   "source": "sqlfluffrs/tests/test_multiple_statements.rs",
+   "source_sha256": "97cf5f3fcfb6d30b5d0e73af80eec36ea2bd0ec070009a38549397d5711b4d80",
+   "changed": null
+  },
+  {
+   "path": "crates/sqll_base_tests/tests/test_numeric_literal.rs",
+   "source": "sqlfluffrs/tests/test_numeric_literal.rs",
+   "source_sha256": "13ad8c9e92190fb0e3ba845bd99937257eabeab1be183e2b90fc99fa49cd9cdb",
+   "changed": null
+  },
+  {
+   "path": "crates/sqll_base_tests/tests/yaml_compare.rs",
+   "source": "sqlfluffrs/tests/yaml_compare.rs",
+   "source_sha256": "174e46d4a421f37bc6a96c25307e8a606c4e23e9e6bc585b7023ec1517004b4d",
+   "changed": "S3 T18: the fixture folder. The source finds test/fixtures from the folder of its crate (sqlfluffrs/); the sqll crate is in crates/, so each PathBuf::from(env!(\"CARGO_MANIFEST_DIR\")) is the path of the sqlfluffrs folder of the submodule (third_party/sqlfluff/sqlfluffrs). The tests read the fixtures in place; no other change."
   },
   {
    "path": "crates/sqll_dialects/Cargo.toml",
@@ -87,7 +174,7 @@
    "path": "crates/sqll_parser/src/parser/arena.rs",
    "source": "sqlfluffrs/sqlfluffrs_parser/src/parser/arena.rs",
    "source_sha256": "f8c028beb8fa362c3611ea4ecf9ca62ea2510f394fe9d9a7c28d2b420c296a2f",
-   "changed": null
+   "changed": "S3 T18: Arena::from_node is public (pub, not pub(crate)), so that the rules crate (sqll_rules) and its tests can make an arena from a parse tree. The source makes it only in the Python bindings (python.rs, not ported). The parse does not use it."
   },
   {
    "path": "crates/sqll_parser/src/parser/cache.rs",
@@ -202,6 +289,42 @@
    "source": "sqlfluffrs/sqlfluffrs_parser/src/parser/types.rs",
    "source_sha256": "e3bb1323d6603691709e884e90f0cccd7d5143e07f2030678f93febfbd9a5f9b",
    "changed": "S3 T16 (parse speed, allocation): build_class_types finds a duplicate with a scan of the short list, not with a hash set of string copies; the list and its order do not change."
+  },
+  {
+   "path": "crates/sqll_rules/Cargo.toml",
+   "source": "sqlfluffrs/sqlfluffrs_rules/Cargo.toml",
+   "source_sha256": "aa57e9ec9c16071d4d779c794b1a36a41672443b7030ec0be29ad497b1d676ae",
+   "changed": "S3 T18: the package name is sqll_rules, and the workspace gives the version. The dependency keeps the sqlfluffrs crate name (\"package\" key), so that the ported code does not change. No feature \"python\" and no Python bindings. New dev-dependencies for the sqll tests (tests/rules.rs): hashbrown, sqll_dialects, and sqll_lexer."
+  },
+  {
+   "path": "crates/sqll_rules/src/capitalisation.rs",
+   "source": "sqlfluffrs/sqlfluffrs_rules/src/capitalisation.rs",
+   "source_sha256": "de2ece27ddb95748606be65b419f949871d26ba69f3dc959b34ebff78b2f76d8",
+   "changed": null
+  },
+  {
+   "path": "crates/sqll_rules/src/cp01.rs",
+   "source": "sqlfluffrs/sqlfluffrs_rules/src/cp01.rs",
+   "source_sha256": "62e6463fb538728e087a85d6d49e1de3466fbfee7f205f2cab1c02d42021d47b",
+   "changed": null
+  },
+  {
+   "path": "crates/sqll_rules/src/cp03.rs",
+   "source": "sqlfluffrs/sqlfluffrs_rules/src/cp03.rs",
+   "source_sha256": "2f22ebb1a909ade7d262c78491b3a04b79e4367453efbfd4c2d9ca9d09f0f615",
+   "changed": null
+  },
+  {
+   "path": "crates/sqll_rules/src/cp04.rs",
+   "source": "sqlfluffrs/sqlfluffrs_rules/src/cp04.rs",
+   "source_sha256": "e92e856c0a96b26167a16d3daf2b6d4dad8317b03e2974f34ffdd89be01a47c9",
+   "changed": null
+  },
+  {
+   "path": "crates/sqll_rules/src/lib.rs",
+   "source": "sqlfluffrs/sqlfluffrs_rules/src/lib.rs",
+   "source_sha256": "afc17fbf36bc7eb4ce7c3dec39628105a1f1e05d962ca72d772d60db1d1f4d79",
+   "changed": "S3 T18: removed the module \"python\" (feature \"python\", the Python bindings)."
   },
   {
    "path": "crates/sqll_types/Cargo.toml",
@@ -386,9 +509,19 @@
    "reason": "Python bindings (feature \"python\", pyo3)."
   },
   {
+   "source": "sqlfluffrs/sqlfluffrs_rules/src/python.rs",
+   "source_sha256": "adeb1631aacb2323b217735eaa1d01500f07054c61743e6e95c064bdd15b13a0",
+   "reason": "Python bindings of the rules (feature \"python\", pyo3)."
+  },
+  {
    "source": "sqlfluffrs/sqlfluffrs_types/README.md",
    "source_sha256": "8dbf0cde6488e9d742ad30ff23639d5cd24ee9d883d4f5feb40fdf7ad8735dc6",
    "reason": "Documentation of the source crate. sqll does not need it."
+  },
+  {
+   "source": "sqlfluffrs/src/python.rs",
+   "source_sha256": "1918c0f24770de19a2e8481c42639a6e40c4c634d77247133ace0a199a0c3de3",
+   "reason": "The Python module of the root crate (feature \"python\", pyo3)."
   }
  ],
  "new": [
@@ -451,6 +584,10 @@
   {
    "path": "crates/LICENSE-cpython.txt",
    "reason": "A copy of LICENSE of CPython tag v3.13.16 (sha256 78b12c3a81360b357002334f0e70ea0e92eebf7a9b358805c03c48484945f3bb): the PSF License Agreement of the normpath port in crates/sqll/src/main.rs (THIRD_PARTY.md, \"CPython\")."
+  },
+  {
+   "path": "crates/sqll_rules/tests/rules.rs",
+   "reason": "Tests of the ported rules CP01, CP03, and CP04 on sqll parse trees (S3 T18). The expected texts are the output of sqlfluff 4.4.0 fix. New sqll code."
   }
  ]
 }

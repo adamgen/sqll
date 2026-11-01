@@ -13,6 +13,8 @@ members = [
     "crates/sqll_lexer",
     "crates/sqll_parser",
     "crates/sqll_dialects",
+    "crates/sqll_rules",
+    "crates/sqll_base_tests",
     "crates/sqll",
 ]
 

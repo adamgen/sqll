@@ -1,0 +1,29 @@
+# This file is a port of sqlfluff 4.4.0 code (sqlfluffrs):
+# sqlfluffrs/sqlfluffrs_rules/Cargo.toml
+# Source: https://github.com/sqlfluff/sqlfluff, tag 4.4.0,
+# commit 0348222a3bcdb0226563f7349c5a39beb0641955.
+# Copyright (c) 2018-2026 Alan Cruickshank. MIT License: see
+# crates/LICENSE-sqlfluffrs.md. See THIRD_PARTY.md and crates/ported.json.
+# sqll changed this file. crates/ported.json gives the reason.
+
+[package]
+name = "sqll_rules"
+version.workspace = true
+edition = "2021"
+rust-version.workspace = true
+publish = false
+
+# Rust-native lint rules. Detection runs over the parse arena's public read API
+# (sqlfluffrs_parser::Arena); fixes are still applied Python-side for now. The
+# rule logic is pure Rust; the optional `python` feature adds each rule's thin
+# PyO3 binding, registered by the root crate.
+# sqll: no Python bindings (no feature "python"). The ported code uses the sqlfluffrs
+# crate name of the parser.
+[dependencies]
+sqlfluffrs_parser = { package = "sqll_parser", path = "../sqll_parser" }
+
+# The tests of sqll (tests/rules.rs) lex and parse SQL for the rules.
+[dev-dependencies]
+hashbrown.workspace = true
+sqlfluffrs_dialects = { package = "sqll_dialects", path = "../sqll_dialects" }
+sqlfluffrs_lexer = { package = "sqll_lexer", path = "../sqll_lexer" }
