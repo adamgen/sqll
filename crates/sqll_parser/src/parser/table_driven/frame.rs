@@ -54,7 +54,8 @@ impl Default for TableParseFrameStack {
 impl TableParseFrameStack {
     pub fn new() -> Self {
         TableParseFrameStack {
-            stack: Vec::new(),
+            // Most parses and probes reach this depth (S3 T16).
+            stack: Vec::with_capacity(16),
             results: None,
             frame_id_counter: 0,
         }

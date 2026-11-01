@@ -4,10 +4,10 @@
 // commit 0348222a3bcdb0226563f7349c5a39beb0641955.
 // Copyright (c) 2018-2026 Alan Cruickshank. MIT License: see
 // crates/LICENSE-sqlfluffrs.md. See THIRD_PARTY.md and crates/ported.json.
+// sqll changed this file. crates/ported.json gives the reason.
 
 //! Core types for the parser: Grammar, Node, ParseMode
 
-use hashbrown::HashSet;
 use serde_yaml_ng::{Mapping, Value};
 use sqlfluffrs_types::{GrammarId, PositionMarker};
 use std::borrow::Cow;
@@ -163,22 +163,21 @@ impl Node {
         instance_types: &[String],
         raw_class_class_types: &[String],
     ) -> Vec<String> {
+        // The lists are short, so a scan of ct finds a duplicate with no
+        // hash set and no copy of a string (S3 T16).
         let capacity = instance_types.len() + raw_class_class_types.len() + 1;
         let mut ct: Vec<String> = Vec::with_capacity(capacity);
-        let mut seen: HashSet<String> = HashSet::with_capacity(capacity);
-
+        let mut add = |t: &str| {
+            if !ct.iter().any(|c| c == t) {
+                ct.push(t.to_string());
+            }
+        };
         for t in instance_types {
-            if seen.insert(t.clone()) {
-                ct.push(t.clone());
-            }
+            add(t);
         }
-        if seen.insert(segment_type.to_string()) {
-            ct.push(segment_type.to_string());
-        }
+        add(segment_type);
         for t in raw_class_class_types {
-            if seen.insert(t.clone()) {
-                ct.push(t.clone());
-            }
+            add(t);
         }
         ct
     }

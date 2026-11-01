@@ -545,24 +545,27 @@ impl<'a> Parser<'a> {
         let template = tables.get_string(template_id);
         let token_type = tables.get_string(token_type_id);
         let raw_class = tables.get_string(raw_class_id);
-        let (configured_instance_type_ids, raw_class_class_type_ids) = if aux_end >= aux_start + 4 {
-            let inst_count = tables.aux_data[aux_start + 3] as usize;
-            let inst_start = aux_start + 4;
-            let inst_end = inst_start.saturating_add(inst_count);
-            let inst_ids = if inst_end <= aux_end {
-                tables.aux_data[inst_start..inst_end]
-                    .iter()
-                    .copied()
-                    .filter(|id| *id != 0xFFFFFFFF)
-                    .collect::<Vec<_>>()
+        // Made only on a match (S3 T16).
+        let type_ids = || {
+            if aux_end >= aux_start + 4 {
+                let inst_count = tables.aux_data[aux_start + 3] as usize;
+                let inst_start = aux_start + 4;
+                let inst_end = inst_start.saturating_add(inst_count);
+                let inst_ids = if inst_end <= aux_end {
+                    tables.aux_data[inst_start..inst_end]
+                        .iter()
+                        .copied()
+                        .filter(|id| *id != 0xFFFFFFFF)
+                        .collect::<Vec<_>>()
+                } else {
+                    vec![token_type_id]
+                };
+                // Read raw_class._class_types ids from aux_data (after instance_types)
+                let ct_ids = read_string_ids_from_aux(tables, inst_end, aux_end);
+                (inst_ids, ct_ids)
             } else {
-                vec![token_type_id]
-            };
-            // Read raw_class._class_types ids from aux_data (after instance_types)
-            let ct_ids = read_string_ids_from_aux(tables, inst_end, aux_end);
-            (inst_ids, ct_ids)
-        } else {
-            (vec![token_type_id], vec![])
+                (vec![token_type_id], vec![])
+            }
         };
         let casefold = self.grammar_ctx.casefold(grammar_id);
         let grammar_trim_chars = self.grammar_ctx.trim_chars(grammar_id);
@@ -577,6 +580,7 @@ impl<'a> Parser<'a> {
 
         match self.peek() {
             Some(tok) if tok.raw().eq_ignore_ascii_case(template) && tok.is_code() => {
+                let (configured_instance_type_ids, raw_class_class_type_ids) = type_ids();
                 let token_pos = self.pos;
                 let configured_instance_types = configured_instance_type_ids
                     .iter()
@@ -683,23 +687,26 @@ impl<'a> Parser<'a> {
         let template = tables.get_string(template_id);
         let token_type = tables.get_string(token_type_id);
         let raw_class = tables.get_string(raw_class_id);
-        let (configured_instance_type_ids, raw_class_class_type_ids) = if aux_end >= aux_start + 4 {
-            let inst_count = tables.aux_data[aux_start + 3] as usize;
-            let inst_start = aux_start + 4;
-            let inst_end = inst_start.saturating_add(inst_count);
-            let inst_ids = if inst_end <= aux_end {
-                tables.aux_data[inst_start..inst_end]
-                    .iter()
-                    .copied()
-                    .filter(|id| *id != 0xFFFFFFFF)
-                    .collect::<Vec<_>>()
+        // Made only on a match (S3 T16).
+        let type_ids = || {
+            if aux_end >= aux_start + 4 {
+                let inst_count = tables.aux_data[aux_start + 3] as usize;
+                let inst_start = aux_start + 4;
+                let inst_end = inst_start.saturating_add(inst_count);
+                let inst_ids = if inst_end <= aux_end {
+                    tables.aux_data[inst_start..inst_end]
+                        .iter()
+                        .copied()
+                        .filter(|id| *id != 0xFFFFFFFF)
+                        .collect::<Vec<_>>()
+                } else {
+                    vec![token_type_id]
+                };
+                let ct_ids = read_string_ids_from_aux(tables, inst_end, aux_end);
+                (inst_ids, ct_ids)
             } else {
-                vec![token_type_id]
-            };
-            let ct_ids = read_string_ids_from_aux(tables, inst_end, aux_end);
-            (inst_ids, ct_ids)
-        } else {
-            (vec![token_type_id], vec![])
+                (vec![token_type_id], vec![])
+            }
         };
         let casefold = self.grammar_ctx.casefold(grammar_id);
         let grammar_trim_chars = self.grammar_ctx.trim_chars(grammar_id);
@@ -713,6 +720,7 @@ impl<'a> Parser<'a> {
 
         match self.peek() {
             Some(tok) if tok.is_type(&[template]) => {
+                let (configured_instance_type_ids, raw_class_class_type_ids) = type_ids();
                 // Capture all token-derived data before mutating self
                 let token_pos = self.pos;
                 #[cfg(feature = "verbose-debug")]

@@ -24,7 +24,6 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 
 use crate::parser::types::{MetaType, Node, RawSegmentKwargs};
-use hashbrown::HashMap;
 use sqlfluffrs_types::regex::RegexModeGroup;
 use sqlfluffrs_types::token::CaseFold;
 use sqlfluffrs_types::{PositionMarker, Token};
@@ -486,7 +485,7 @@ impl MatchResult {
     ///
     /// This is where materialization happens - converting the match description
     /// into the actual nested Node structure.
-    pub fn apply(self, tokens: &[Token]) -> Vec<Node> {
+    pub fn apply(mut self, tokens: &[Token]) -> Vec<Node> {
         // DEBUG: Log apply() entry for all named segments
         #[cfg(feature = "verbose-debug")]
         if let Some(ref class) = self.matched_class {
@@ -517,34 +516,30 @@ impl MatchResult {
             return result;
         }
 
-        // Build a map of positions to things to insert/apply
-        let mut trigger_map: HashMap<usize, Vec<TriggerItem>> = HashMap::new();
-
-        // Add meta segments
+        // The things to insert or apply, in position order: at one position,
+        // the metas (in insert order), then the child matches (in order).
+        // A sorted list, not a hash map of lists (S3 T16). The child matches
+        // move out of self, so that a child that is not shared is not copied.
+        let has_child_matches = !self.child_matches.is_empty();
+        let mut triggers: Vec<(usize, TriggerItem)> =
+            Vec::with_capacity(self.insert_segments.len() + self.child_matches.len());
         for (idx, meta_type) in &self.insert_segments {
-            trigger_map
-                .entry(*idx)
-                .or_default()
-                .push(TriggerItem::Meta(*meta_type));
+            triggers.push((*idx, TriggerItem::Meta(*meta_type)));
         }
-
-        // Add child matches — store Arc directly, avoid deep clone
-        for child_rc in &self.child_matches {
-            trigger_map
-                .entry(child_rc.matched_slice.start)
-                .or_default()
-                .push(TriggerItem::ChildMatch(Arc::clone(child_rc)));
+        for child_rc in std::mem::take(&mut self.child_matches) {
+            triggers.push((
+                child_rc.matched_slice.start,
+                TriggerItem::ChildMatch(child_rc),
+            ));
         }
+        triggers.sort_by_key(|(pos, _)| *pos);
 
         // Walk through the slice, processing triggers at each position
         let mut result_nodes: Vec<Node> = vec![];
         let mut current_idx = self.matched_slice.start;
 
-        // Get sorted trigger positions
-        let mut positions: Vec<usize> = trigger_map.keys().copied().collect();
-        positions.sort();
-
-        for pos in positions {
+        let mut triggers = triggers.into_iter().peekable();
+        while let Some(&(pos, _)) = triggers.peek() {
             // PYTHON PARITY: Fill gap with all tokens between child matches.
             // Meta tokens become Node::Meta, non-meta become Node::Raw.
             // This matches Python's `result_segments += segments[max_idx:idx]`
@@ -563,24 +558,22 @@ impl MatchResult {
                 );
             }
 
-            // Process triggers at this position — remove from map to take ownership
-            if let Some(triggers) = trigger_map.remove(&pos) {
-                for trigger in triggers {
-                    match trigger {
-                        TriggerItem::Meta(meta_type) => {
-                            let pos_marker = get_point_pos_at_token_idx(tokens, pos);
-                            result_nodes.push(meta_to_node(&meta_type, pos_marker));
-                        }
-                        TriggerItem::ChildMatch(child_arc) => {
-                            let end = child_arc.matched_slice.end;
-                            // try_unwrap avoids a deep clone when refcount==1
-                            let child_owned =
-                                Arc::try_unwrap(child_arc).unwrap_or_else(|arc| (*arc).clone());
-                            let child_node = child_owned.apply(tokens);
-                            // Only add non-empty nodes
-                            result_nodes.extend(child_node);
-                            current_idx = end;
-                        }
+            // Process the triggers at this position
+            while let Some((_, trigger)) = triggers.next_if(|(p, _)| *p == pos) {
+                match trigger {
+                    TriggerItem::Meta(meta_type) => {
+                        let pos_marker = get_point_pos_at_token_idx(tokens, pos);
+                        result_nodes.push(meta_to_node(&meta_type, pos_marker));
+                    }
+                    TriggerItem::ChildMatch(child_arc) => {
+                        let end = child_arc.matched_slice.end;
+                        // try_unwrap avoids a deep clone when refcount==1
+                        let child_owned =
+                            Arc::try_unwrap(child_arc).unwrap_or_else(|arc| (*arc).clone());
+                        let child_node = child_owned.apply(tokens);
+                        // Only add non-empty nodes
+                        result_nodes.extend(child_node);
+                        current_idx = end;
                     }
                 }
             }
@@ -614,7 +607,7 @@ impl MatchResult {
             // This path fires for ALL single-token base parser matches (no
             // hardcoded allowlist) so that every parser-assigned type gets
             // correct class_types from the codegen-provided raw_class hierarchy.
-            if self.child_matches.is_empty()
+            if !has_child_matches
                 && self.insert_segments.is_empty()
                 && self.matched_slice.end == self.matched_slice.start + 1
                 && result_nodes.len() == 1
