@@ -11,6 +11,7 @@ import importlib.util
 import json
 
 import pytest
+from conftest import s3_record
 
 from sqll_harness.paths import REPO_ROOT
 
@@ -27,7 +28,7 @@ SESSIONS = json.loads(SESSIONS_FILE.read_text("utf8"))
 T16_SESSIONS = json.loads(sp.task_files("T16")[0].read_text("utf8"))
 PROFILE = json.loads(PROFILE_FILE.read_text("utf8"))
 PAIRED = [r for r in OUT["benchmarks"] if r["needed_factor"] is not None]
-STATUS = (REPO_ROOT / "status" / "S3.md").read_text("utf8")
+STATUS = s3_record()
 INDEX = (REPO_ROOT / "STATUS.md").read_text("utf8")
 
 
@@ -189,17 +190,13 @@ def test_the_status_and_the_index_give_the_go_result():
     if OUT["go"]["result"] == "no-go":
         assert "**No-go: human decision needed.**" in text
         assert "by the Stop rule, the S3 track stopped." in text
-        # The human owner decided on 2026-11-01 (option (a): T17); thus the
-        # index gives the new state and asks for no decision.
+        # The human owner decided on 2026-11-01 (option (a): T17). The index
+        # row of the current state is in test_s3_status.py.
         assert "The human owner decided on 2026-11-01 (below): T17." in text
         assert "The human owner chose T17, not option 3 of the decision record." in (
             text
         )
         assert "Human owner decision after T16b (2026-11-01)" in STATUS
-        # T17 reached the target (test_s3_speed_t17.py): the row gives that
-        # state, not the decision.
-        assert "T18 next" in row
-        assert "human decision needed" not in row
     else:
         assert "**Go.**" in text
         assert "No-go" not in text

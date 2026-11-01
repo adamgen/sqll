@@ -14,6 +14,7 @@ import importlib.util
 import json
 
 import pytest
+from conftest import s3_record
 
 from sqll_harness.bench import compare as bench_compare
 from sqll_harness.paths import REPO_ROOT
@@ -38,7 +39,7 @@ PROFILE = json.loads(PROFILE_FILE.read_text("utf8"))
 COMPARE = json.loads(COMPARE_FILE.read_text("utf8"))
 SOQL = json.loads(SOQL_FILE.read_text("utf8"))
 PAIRED = [r for r in OUT["benchmarks"] if r["needed_factor"] is not None]
-STATUS = (REPO_ROOT / "status" / "S3.md").read_text("utf8")
+STATUS = s3_record()
 
 
 def sha256_file(path):

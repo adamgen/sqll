@@ -65,3 +65,11 @@ def pytest_runtest_makereport(item, call):
         rep.outcome = "failed"
         rep.longrepr = f"skipped, but SQLL_REQUIRE_TOOLS=1: {rep.longrepr}"
     return rep
+
+
+def s3_record() -> str:
+    """status/S3.md and the S3 data record that it links (results/s3/data.md).
+    The status file has the state and the tasks; the data record has the
+    data of each task."""
+    status = (REPO_ROOT / "status" / "S3.md").read_text("utf8")
+    return status + "\n" + (REPO_ROOT / "results" / "s3" / "data.md").read_text("utf8")

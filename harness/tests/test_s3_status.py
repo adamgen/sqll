@@ -3,10 +3,12 @@
 import json
 import re
 
+from conftest import s3_record
+
 from sqll_harness.paths import REPO_ROOT
 
 INDEX = (REPO_ROOT / "STATUS.md").read_text("utf8")
-STATUS = (REPO_ROOT / "status" / "S3.md").read_text("utf8")
+STATUS = s3_record()
 STATE = (
     "Phase B: the speed target is reached (T17: 108 of 108 start and parse"
     " benchmarks); T18 next; the base is sqlfluffrs (human owner, 2026-10-29)."
@@ -37,6 +39,7 @@ LICENSE = (
     " the open questions (`results/s3/license-size.json`)."
 )
 STATES = ("Not started", "In work")
+NOT_NEEDED = "Not needed"
 
 
 def phase_b() -> str:
@@ -93,8 +96,10 @@ def test_the_phase_b_task_table():
     assert [r[0] for r in rows] == TASKS
     for task, description, state in rows:
         assert description, task
-        assert state in STATES or re.fullmatch(
-            r"(In review|Merged) \(PR #\d+\)", state
+        assert (
+            state in STATES
+            or (task in ("T17b", "T17c") and state == NOT_NEEDED)
+            or re.fullmatch(r"(In review|Merged) \(PR #\d+\)", state)
         ), (task, state)
     by_task = {r[0]: r for r in rows}
     assert rows[0][2] != "Not started"
@@ -103,6 +108,14 @@ def test_the_phase_b_task_table():
     assert by_task["T17b"][1] == "Parse speed 4b: round 2"
     assert by_task["T17c"][1] == "Parse speed 4c: round 3"
     assert by_task["T16b"][1] == "Checkpoint: run the T14 method again"
+    # T17 has all 108 start and parse benchmarks below the target
+    # (test_s3_speed_t17.py); thus no further round.
+    t17 = json.loads(
+        (REPO_ROOT / "results" / "s3" / "speed" / "T17.json").read_text("utf8")
+    )
+    if not t17["target"]["above"]:
+        assert by_task["T17b"][2] == by_task["T17c"][2] == NOT_NEEDED
+        assert "Thus T17b and T17c are not needed" in STATUS
 
 
 def test_the_exit_target():
@@ -208,3 +221,12 @@ def test_the_speed_target_is_that_of_the_t14_record():
         )
     else:
         assert "No-go" not in text
+
+
+def test_the_status_file_is_a_5_minute_read():
+    # CONSTITUTION.md 2.4. The data of each task is in results/s3/data.md.
+    status = (REPO_ROOT / "status" / "S3.md").read_text("utf8")
+    assert len(status.split()) <= 1250
+    assert "[`results/s3/data.md`](../results/s3/data.md)" in status
+    data = (REPO_ROOT / "results" / "s3" / "data.md").read_text("utf8")
+    assert "\n## S3 phase B data\n" in data and "\n## S3 phase A data\n" in data

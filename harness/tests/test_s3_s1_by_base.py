@@ -11,6 +11,7 @@ import sys
 from collections import Counter
 
 import pytest
+from conftest import s3_record
 
 from sqll_harness import known_failures
 from sqll_harness.paths import KNOWN_FAILURES_DIR, REPO_ROOT
@@ -335,7 +336,7 @@ def test_the_record_has_the_ref_versions_commit_and_commands():
 
 def test_the_s3_status_file_has_the_t2_numbers():
     # The S3 track writes only status/S3.md (PROCESS.md, "Tracks").
-    status = (REPO_ROOT / "status" / "S3.md").read_text("utf8")
+    status = s3_record()
     assert (
         "| T2 | S1 results by base, per suite and per dialect | Merged (PR #23) |"
         in status
