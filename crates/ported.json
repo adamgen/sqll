@@ -421,8 +421,12 @@
    "reason": "Build script of the sqll binary: the version (crate version and the sha256 of generated.json) and the source hash for the freshness check of the harness. No Python."
   },
   {
+   "path": "crates/sqll/src/alloc.rs",
+   "reason": "The memory allocator of the sqll binary (S3 T17): free lists of small blocks for each size class in each thread, and the system allocator for other blocks. New sqll code."
+  },
+  {
    "path": "crates/sqll/src/main.rs",
-   "reason": "The sqll command line: parse, version, and the unsupported lint and fix commands, in the command shape of sqlfluff. New sqll code. normpath is a port of CPython v3.13.16 Lib/posixpath.py normpath (PSF-2.0, crates/LICENSE-cpython.txt, THIRD_PARTY.md)."
+   "reason": "The sqll command line: parse, version, and the unsupported lint and fix commands, in the command shape of sqlfluff. New sqll code. normpath is a port of CPython v3.13.16 Lib/posixpath.py normpath (PSF-2.0, crates/LICENSE-cpython.txt, THIRD_PARTY.md). Since S3 T17 it sets the global allocator (alloc.rs)."
   },
   {
    "path": "crates/sqll/src/output.rs",
