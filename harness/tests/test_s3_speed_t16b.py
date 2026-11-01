@@ -188,9 +188,16 @@ def test_the_status_and_the_index_give_the_go_result():
     (row,) = [line for line in INDEX.splitlines() if line.startswith("| S3 |")]
     if OUT["go"]["result"] == "no-go":
         assert "**No-go: human decision needed.**" in text
-        assert "the S3 track stops" in text
-        assert "T16b: the speed target is still not in reach on the estimate" in row
-        assert "human decision needed" in row
+        assert "by the Stop rule, the S3 track stopped." in text
+        # The human owner decided on 2026-11-01 (option (a): T17); thus the
+        # index gives the new state and asks for no decision.
+        assert "The human owner decided on 2026-11-01 (below): T17." in text
+        assert "The human owner chose T17, not option 3 of the decision record." in (
+            text
+        )
+        assert "Human owner decision after T16b (2026-11-01)" in STATUS
+        assert "speed work continues (human owner, 2026-11-01): T17 next" in row
+        assert "human decision needed" not in row
     else:
         assert "**Go.**" in text
         assert "No-go" not in text

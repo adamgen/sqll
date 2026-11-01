@@ -8,16 +8,27 @@ from sqll_harness.paths import REPO_ROOT
 INDEX = (REPO_ROOT / "STATUS.md").read_text("utf8")
 STATUS = (REPO_ROOT / "status" / "S3.md").read_text("utf8")
 STATE = (
-    "Phase B started: the base is sqlfluffrs (human owner, 2026-10-29); the"
-    " phase B task list in [status/S3.md](status/S3.md)."
+    "Phase B: speed work continues (human owner, 2026-11-01): T17 next; the base"
+    " is sqlfluffrs (human owner, 2026-10-29)."
 )
-TASKS = [f"T{i}" for i in range(10, 17)] + ["T16b"] + [f"T{i}" for i in range(17, 21)]
+TASKS = (
+    [f"T{i}" for i in range(10, 17)]
+    + ["T16b", "T17", "T17b", "T17c"]
+    + [f"T{i}" for i in range(18, 21)]
+)
 DECISION = [
     "- The T14 result stays no-go on the estimate. Its data does not change.",
     "- Continue the speed work: T15, T16, then the checkpoint T16b, which runs the"
     " T14 method again.",
     "- If T16b shows that the target is still out of reach, the S3 track stops for"
     " a new human decision.",
+]
+DECISION_T16B = [
+    "- The T16b result stays no-go on the estimate. Its data does not change: 71"
+    " of 108 below the target, 104 of 108 in reach, worst needed factor 1.53.",
+    "- Option (a): continue the speed work with T17, up to 3 rounds (T17, T17b,"
+    " T17c), to the S3 exit.",
+    "- Option 3 of the decision record is not chosen.",
 ]
 LICENSE = (
     "The human owner delegated the choice on 2026-11-01. The choice is MIT, the"
@@ -36,6 +47,10 @@ def part(title: str) -> str:
     return phase_b().split(f"\n### {title}\n", 1)[1].split("\n### ", 1)[0]
 
 
+def section(title: str) -> str:
+    return STATUS.split(f"\n## {title}\n", 1)[1].split("\n## ", 1)[0]
+
+
 def words(text: str) -> str:
     return " ".join(text.split())
 
@@ -45,15 +60,16 @@ def test_the_index_row_has_the_phase_b_state():
     assert row.startswith(f"| S3 | S3 | {STATE} ")
     assert row.endswith(" | [status/S3.md](status/S3.md) |")
     assert "License: MIT (the human owner delegated the choice, 2026-11-01)." in row
-    # Both human decisions of 2026-11-01 are made (status/S3.md). Only a
-    # no-go of the checkpoint T16b asks for a new human decision.
+    # The human decisions of 2026-11-01 are made (status/S3.md), also the
+    # decision on the no-go of the checkpoint T16b. The row asks for none.
     assert "Open question" not in row
+    assert "human decision needed" not in row
+    assert "not in reach" not in row
     t16b = json.loads(
         (REPO_ROOT / "results" / "s3" / "speed" / "T16b.json").read_text("utf8")
     )
-    asks = 1 if t16b["go"]["result"] == "no-go" else 0
-    assert row.count("human decision needed") == asks
-    assert row.count("T16b: the speed target is still not in reach") == asks
+    assert t16b["go"]["result"] == "no-go"
+    assert section("Human owner decision after T16b (2026-11-01)").strip()
 
 
 def test_the_status_file_has_the_phase_b_state():
@@ -72,7 +88,7 @@ def test_the_phase_b_task_table():
     rows = [
         [cell.strip() for cell in line.split("|")[1:-1]]
         for line in part("Tasks").splitlines()
-        if re.match(r"\| T\d+b? \|", line)
+        if re.match(r"\| T\d+[bc]? \|", line)
     ]
     assert [r[0] for r in rows] == TASKS
     for task, description, state in rows:
@@ -82,7 +98,10 @@ def test_the_phase_b_task_table():
         ), (task, state)
     by_task = {r[0]: r for r in rows}
     assert rows[0][2] != "Not started"
-    assert "T17b, T17c" in by_task["T17"][1]
+    # Up to 3 rounds of T17 (human owner, 2026-11-01).
+    assert by_task["T17"][1] == "Parse speed 4: close the gap, round 1 of 3"
+    assert by_task["T17b"][1] == "Parse speed 4b: round 2"
+    assert by_task["T17c"][1] == "Parse speed 4c: round 3"
     assert by_task["T16b"][1] == "Checkpoint: run the T14 method again"
 
 
@@ -104,6 +123,7 @@ def test_the_exit_target():
 def test_the_stop_rule():
     text = words(part("Stop rule"))
     assert "shows that the speed target is out of reach, the S3 track stops" in text
+    assert "If the parse speed work (T14 to T17c) shows" in text
     assert "It gives the data to the human owner" in text
     assert "option 3 of the decision record" in text
     assert "The S3 track does not change the base." in text
@@ -114,10 +134,24 @@ def test_the_stop_rule():
 
 
 def test_the_human_owner_decision_of_2026_11_01():
-    section = part("Human owner decision (2026-11-01)").strip()
-    assert section.startswith("- ")
-    items = ["- " + words(item) for item in section[2:].split("\n- ")]
+    first = part("Human owner decision (2026-11-01)").strip()
+    assert first.startswith("- ")
+    items = ["- " + words(item) for item in first[2:].split("\n- ")]
     assert items == DECISION
+    after = section("Human owner decision after T16b (2026-11-01)").strip()
+    assert after.startswith("- ")
+    items = ["- " + words(item) for item in after[2:].split("\n- ")]
+    assert items == DECISION_T16B
+    # The numbers of the decision are those of the T16b record.
+    t16b = json.loads(
+        (REPO_ROOT / "results" / "s3" / "speed" / "T16b.json").read_text("utf8")
+    )
+    assert t16b["go"]["result"] == "no-go"
+    assert t16b["groups"]["all"]["below_target"] == 71
+    assert t16b["groups"]["all"]["in_reach"]["central"] == 104
+    paired = [r for r in t16b["benchmarks"] if r["needed_factor"] is not None]
+    assert len(paired) == 108
+    assert f"{max(r['needed_factor'] for r in paired):.2f}" == "1.53"
     assert "Open question for the human owner" not in STATUS
 
 
@@ -145,9 +179,9 @@ def test_the_speed_target_is_that_of_the_t14_record():
     record = json.loads(
         (REPO_ROOT / "results" / "s3" / "speed-profile.json").read_text("utf8")
     )
-    section = part("Speed target (T14)").strip()
-    assert len(section.splitlines()) <= 5
-    text = words(section)
+    target_part = part("Speed target (T14)").strip()
+    assert len(target_part.splitlines()) <= 5
+    text = words(target_part)
     target, groups, go = record["target"], record["groups"], record["go"]
     worst = max(
         (r for r in record["benchmarks"] if r["needed_factor"] is not None),
@@ -165,11 +199,12 @@ def test_the_speed_target_is_that_of_the_t14_record():
         assert "**No-go: human decision needed.**" in text
         assert "The human owner decided on 2026-11-01 (below)." in text
         assert "T15 does not start." not in text
-        (row,) = [line for line in INDEX.splitlines() if line.startswith("| S3 |")]
+        # The index row gives the state after the second decision of
+        # 2026-11-01 (after T16b); T14 is in the decision section.
         assert (
-            "T14: the speed target is not in reach on the estimate (no-go); the"
-            " human owner decided on 2026-11-01 to continue the speed work (T15,"
-            " T16, then the checkpoint T16b)."
-        ) in row
+            part("Human owner decision (2026-11-01)")
+            .strip()
+            .startswith("- The T14 result stays no-go on the estimate.")
+        )
     else:
         assert "No-go" not in text
