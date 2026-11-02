@@ -39,6 +39,7 @@ def _worktree(tmp_path: Path) -> Path:
     (root / "Cargo.toml").write_text('[workspace.package]\nversion = "0.1.0"\n')
     (root / "Cargo.lock").write_text("lock\n")
     (root / "rust-toolchain.toml").write_text("toolchain\n")
+    (root / "LICENSE").write_text("MIT License\n")
     (root / "crates" / "sqll_dialects" / "generated.json").write_bytes(TABLES)
     (root / "crates" / "sqll" / "src").mkdir(parents=True)
     (root / "crates" / "sqll" / "src" / "main.rs").write_text("fn main() {}\n")
@@ -82,13 +83,14 @@ def test_the_version_is_the_crate_version_and_the_manifest_hash(tmp_path):
 def test_the_source_hash_covers_each_source_file(tmp_path):
     root = _worktree(tmp_path)
     first, count = sqll_adapter.source_hash(root)
-    assert count == 5
+    assert count == 6
     # The hash of the sorted files: path, NUL, size, NUL, bytes.
     want = hashlib.sha256()
     for rel in sorted(
         [
             "Cargo.lock",
             "Cargo.toml",
+            "LICENSE",
             "crates/sqll/src/main.rs",
             "crates/sqll_dialects/generated.json",
             "rust-toolchain.toml",
@@ -103,11 +105,13 @@ def test_the_source_hash_covers_each_source_file(tmp_path):
     third, count = sqll_adapter.source_hash(root)
     (root / "Cargo.lock").write_text("lock 2\n")
     fourth, _ = sqll_adapter.source_hash(root)
-    assert len({first, second, third, fourth}) == 4
-    assert count == 6
+    (root / "LICENSE").write_text("MIT License 2\n")
+    fifth, _ = sqll_adapter.source_hash(root)
+    assert len({first, second, third, fourth, fifth}) == 5
+    assert count == 7
     # Files outside the source set do not count.
     (root / "README.md").write_text("x")
-    assert sqll_adapter.source_hash(root)[0] == fourth
+    assert sqll_adapter.source_hash(root)[0] == fifth
 
 
 def test_the_source_hash_has_the_inputs_of_build_rs():

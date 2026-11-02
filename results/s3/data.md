@@ -1,7 +1,8 @@
 # S3 data
 
-The data and the method of each S3 task. The state and the task table are
-in [status/S3.md](../../status/S3.md).
+The data and the method of each S3 task, and the phase A task table (at
+the end). The state and the phase B task table are in
+[status/S3.md](../../status/S3.md).
 
 ## S3 phase B data
 
@@ -229,6 +230,34 @@ in [status/S3.md](../../status/S3.md).
     of build data: the source hash (63 of its 64 bytes), the source file
     count (2 bytes), and the build ID (20 bytes). The machine code does not
     change, so no benchmark can change.
+- T19: the license and the notices of sqll.
+  - `LICENSE` (MIT, "Copyright (c) 2026 The sqll authors") is the MIT text
+    of the pinned sqlfluff with the sqll copyright line. The 7 crates of the
+    workspace have `license = "MIT"`.
+  - The dependency notice list (`crates/sqll/build/notices.rs`, made by
+    `crates/sqll/build.rs` from `cargo metadata --filter-platform` of the
+    target): 45 crates.io crates that the package sqll needs, 40 linked
+    into the binary (the other 5 are proc-macro crates and their
+    dependencies). Chosen: MIT 42, Apache-2.0 1 (ryu: Apache-2.0 OR
+    BSL-1.0), MIT AND Unicode-3.0 1 (unicode-ident), Zlib 1 (foldhash);
+    40 crates have an OR choice. `cargo metadata` of the workspace (each
+    platform; normal, build, and dev dependencies): 98 packages, 0
+    problems (`crates/sqll/tests/license.rs`).
+  - `sqll --license` (release binary): 84401 bytes. The binary is 15741720
+    bytes, 86352 more than main (`d344b23`).
+  - Fail closed: the build with Zlib out of the allow list stops
+    ("foldhash 0.2.0: no choice of the license \"Zlib\" is in the allow
+    list"). The unit tests use invented packages: a GPL-3.0-only
+    dependency, an AGPL-3.0-only dev dependency, no license, a git source,
+    a sqll crate without MIT, and no file with the text of the chosen
+    license each fail; "LGPL-2.1-or-later OR MIT" passes with "Chosen: MIT".
+  - Local runs: `base native tests: PASS: 162 base tests pass in the base;
+    sqll: 223 tests, 223 passed` (212 of T18 and 11 of `tests/license.rs`);
+    tree guard: 84 of 84 inputs, same output as the record.
+  - G3.6: `bench compare` of main (`d344b23`) and T19 (`afb0cab`), full
+    profile, sqll only (`results/s3/speed/T19-compare.json`): 112 sqll
+    benchmarks, 0 slower, 0 faster, 112 same; the wall time sum 2.070 s to
+    2.089 s.
 
 ## S3 phase A data
 
@@ -516,3 +545,17 @@ tables; its 3 rules read the parse `Arena` by type strings.
 - Worst needed factor: T14 2.63 (parse/ansi/large), T16b 1.53 (parse/hive/large). Central estimate in reach: T14 78 of 108, T16b 104 of 108.
 - Not in reach: parse/large of ansi, db2, hive, and teradata (needed 1.37 to 1.53, estimate 1.34 to 1.35); with m = 0, the estimate reaches 108 of 108.
 - What remains for T17: the parser's own code (46% to 49% of the parse instructions, no estimate) and the parse allocation and copy (48% to 49%). The human owner chose T17, not option 3 of the decision record.
+
+## S3 phase A tasks
+
+| Task | Description | State |
+|---|---|---|
+| T1 | STATUS and the method of the decision record | Merged (PR #22) |
+| T2 | S1 results by base, per suite and per dialect | Merged (PR #23) |
+| T3 | Classes of the sqruff parse tree mismatches | Merged (PR #25) |
+| T4 | Classes of the sqruff rule, autofix, and templater failures; rule coupling to tree shapes | Merged (PR #27) |
+| T5 | sqlfluffrs standalone probe: build without Python, native parse, generator reuse | Merged (PR #30) |
+| T6 | Speed by base and distance to the G3 targets (needs T5) | Merged (PR #32) |
+| T7 | License, attribution duties, code size, and structure of each base | Merged (PR #37) |
+| T8 | Capabilities for S6, S7, and G2 of each base | Merged (PR #40) |
+| T9 | Decision record: data, work estimates, recommendation, and STATUS | Merged (PR #42) |

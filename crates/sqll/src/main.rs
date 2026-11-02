@@ -4,6 +4,8 @@
 //! can add to them:
 //!
 //!   sqll --version                 sqll, version VERSION
+//!   sqll --license                 the license of sqll and the notices of
+//!                                  the code in the binary (license.rs)
 //!   sqll version [--build]         VERSION, or the build record (JSON)
 //!   sqll parse --dialect D [-f json] [-c|--code-only] [-m|--include-meta]
 //!              [--max-parse-depth N] [--timings] PATH
@@ -23,6 +25,7 @@
 //! gives another exit code (101).
 
 mod alloc;
+mod license;
 mod output;
 mod parse;
 mod timings;
@@ -48,6 +51,8 @@ Usage: sqll [OPTIONS] COMMAND [ARGS]...
 
 Options:
   --version  Show the version and exit.
+  --license  Show the license of sqll and the notices of the code in the
+             sqll binary, and exit.
   -h, --help Show this message and exit.
 
 Commands:
@@ -133,6 +138,10 @@ fn run(args: &[String], start: Instant) -> Result<u8, Error> {
     match first.as_str() {
         "--version" => {
             println!("sqll, version {VERSION}");
+            Ok(EXIT_OK)
+        }
+        "--license" => {
+            print!("{}", license::text(VERSION));
             Ok(EXIT_OK)
         }
         "-h" | "--help" => {

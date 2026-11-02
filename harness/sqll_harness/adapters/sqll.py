@@ -37,7 +37,7 @@ TIMEOUT_S = 600
 DEFAULT_BINARY = REPO_ROOT / "out" / "sqll" / "bin" / "sqll"
 # The inputs of the source hash: these files, and each file under these
 # folders. They must be those of crates/sqll/build.rs.
-SOURCE_FILES = ("Cargo.toml", "Cargo.lock", "rust-toolchain.toml")
+SOURCE_FILES = ("Cargo.toml", "Cargo.lock", "rust-toolchain.toml", "LICENSE")
 SOURCE_DIRS = ("crates",)
 TABLE_MANIFEST = "crates/sqll_dialects/generated.json"
 BUILD_HELP = "Run scripts/build-sqll."

@@ -12,7 +12,8 @@ STATUS = s3_record()
 STATE = (
     "Phase B: the speed target is reached (T17: 108 of 108 start and parse"
     " benchmarks); the native tests of the base pass in sqll (T18: 162 of 162);"
-    " T19 next; the base is sqlfluffrs (human owner, 2026-10-29)."
+    " the license is MIT, with the notices in the binary (T19); T20 next; the base"
+    " is sqlfluffrs (human owner, 2026-10-29)."
 )
 TASKS = (
     [f"T{i}" for i in range(10, 17)]
@@ -34,10 +35,13 @@ DECISION_T16B = [
     "- Option 3 of the decision record is not chosen.",
 ]
 LICENSE = (
-    "The human owner delegated the choice on 2026-11-01. The choice is MIT, the"
-    " license of the ported code (sqlfluff, sqlfluffrs); all 54 dependencies of the"
-    " base have a permissive option (T7). T19 makes the LICENSE file and answers"
-    " the open questions (`results/s3/license-size.json`)."
+    "MIT: the license of the ported code (sqlfluff, sqlfluffrs); all 54"
+    " dependencies of the base have a permissive option (T7). The decision and the"
+    ' answers: "License decision (T19)" above.'
+)
+LICENSE_DECISION = (
+    "The orchestrator chose the license on 2026-11-01, by delegation of the human"
+    ' owner ("you should know better than me").'
 )
 STATES = ("Not started", "In work")
 NOT_NEEDED = "Not needed"
@@ -182,6 +186,31 @@ def test_the_license_choice_is_one_line():
     deps = base["dependencies"]["standalone"]
     assert deps["packages"] == deps["by_class"]["permissive"] == 54
     assert part("License").strip().splitlines() == [LICENSE]
+
+
+def test_the_license_decision_answers_the_7_open_questions():
+    """S3 T19: the decision of the orchestrator (by delegation of the human
+    owner, 2026-11-01) and one answer for each open question of T7."""
+    sizes = json.loads(
+        (REPO_ROOT / "results" / "s3" / "license-size.json").read_text("utf8")
+    )
+    assert len(sizes["open_questions"]) == 7
+    text = section("License decision (T19)")
+    assert words(text).startswith(LICENSE_DECISION)
+    assert "not legal advice" in text and "A lawyer can check them" in text
+    answers = [line for line in text.splitlines() if re.match(r"- Q\d: ", line)]
+    assert [a[2:4] for a in answers] == [f"Q{i}" for i in range(1, 8)]
+    assert '"Copyright (c) 2026 The sqll authors"' in answers[0]
+    assert "sqlfluff MIT copyright and permission notice" in answers[2]
+    assert "fail closed" in answers[3] and "cargo metadata" in answers[3]
+    assert 'license = "MIT"' in answers[4]
+    assert "OR choice" in answers[5]
+    for i in (1, 6):
+        assert answers[i].startswith(f"- Q{i + 1}: moot for option 2."), i
+    license_text = (REPO_ROOT / "LICENSE").read_text("utf8")
+    assert license_text.startswith(
+        "MIT License\n\nCopyright (c) 2026 The sqll authors\n"
+    )
 
 
 def test_the_phase_b_part_is_short():

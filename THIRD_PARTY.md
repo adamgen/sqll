@@ -1,5 +1,14 @@
 # Third-party code and test data
 
+## sqll
+
+sqll is under the MIT license: `LICENSE`, "Copyright (c) 2026 The sqll
+authors". Each crate in `crates/` has `license = "MIT"`. `sqll --license`
+prints the sqll license and the notices of the code in the binary: the
+sqlfluff MIT notice, the CPython license, the Rust MIT notice, and the
+dependency notice list ("Rust"). The decision and its reasons:
+`status/S3.md`, "License decision (T19)".
+
 ## sqlfluff
 
 - Source: https://github.com/sqlfluff/sqlfluff
@@ -162,8 +171,41 @@ lines, and sha256 of each of the 85 files. The build copies them into
 The new sqll files in `crates/` (listed in `crates/ported.json`, "new") and
 `rust-toolchain.toml` have no sqlfluff code, but `crates/sqll/src/parse.rs`
 has ported parts ("Ported code" above). The sqll binary (`crates/sqll`)
-contains the ported crates and the tables. The crates.io dependencies are
-in `Cargo.lock`. Task T19 records the license of sqll and the notices.
+contains the ported crates and the tables. The tables are a substantial
+portion of sqlfluff, so each sqll binary carries the sqlfluff MIT copyright
+and permission notice: `sqll --license` prints `crates/LICENSE-sqlfluffrs.md`
+(S3 T19).
+
+## Rust
+
+The Rust standard library is in each sqll binary.
+
+- Source: https://github.com/rust-lang/rust, tag `1.97.0`, commit
+  `2d8144b7880597b6e6d3dfd63a9a9efae3f533d3` (the toolchain of
+  `rust-toolchain.toml`).
+- License: MIT OR Apache-2.0. sqll chooses MIT. `crates/LICENSE-rust-MIT.txt`
+  is a copy of `LICENSE-MIT` of that tag ("Copyright (c) The Rust Project
+  Contributors"). `sqll --license` prints it and names the file `COPYRIGHT`
+  of that tag, which gives the notices of the parts with other licenses.
+
+The crates.io dependencies are in `Cargo.lock`. `crates/sqll/build.rs` makes
+the dependency notice list at build time from `cargo metadata` for the
+target platform (`crates/sqll/build/notices.rs`). For each crate that the
+package `sqll` needs (normal dependencies), the list gives the name, the
+version, the source, if the binary links it (a proc-macro crate and its
+dependencies run only in the compiler), the license expression, the chosen
+license (the record of each OR choice), and the license texts from the
+crate package (also its NOTICE file for Apache-2.0). `sqll --license`
+prints the list.
+
+The allow list, in the order of choice: MIT, Apache-2.0, BSL-1.0,
+BSD-3-Clause, Zlib, Unicode-3.0, Unlicense, Apache-2.0 WITH LLVM-exception.
+The build fails if a package has no choice in the allow list, if a package
+is not from crates.io, if a sqll crate does not have the license MIT, or if
+a package has no file with the text of its chosen license.
+`crates/sqll/tests/license.rs` runs the same check on each package of the
+workspace (each platform; normal, build, and dev dependencies), and on
+invented packages with a copyleft license.
 
 ## sqruff
 

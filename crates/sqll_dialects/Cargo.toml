@@ -11,6 +11,7 @@ name = "sqll_dialects"
 version.workspace = true
 edition = "2021"
 rust-version.workspace = true
+license = "MIT"
 publish = false
 build = "build.rs"
 

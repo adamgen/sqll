@@ -11,14 +11,25 @@
 //!   harness computes the same hash from the worktree
 //!   (harness/sqll_harness/adapters/sqll.py, source_hash) and refuses a
 //!   binary with another hash (a stale build).
+//!
+//! It also gives SQLL_RUSTC_VERSION (the Rust standard library in the
+//! binary) and writes OUT_DIR/dependencies.txt, the dependency notice list of
+//! "sqll --license" (S3 T19), from the output of "cargo metadata" for the
+//! target platform (build/notices.rs). The build fails if a package has a
+//! license outside the allow list, or if the text of a chosen license is
+//! not in the package.
+
+#[path = "build/notices.rs"]
+mod notices;
 
 use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::process::Command;
 
 use sha2::{Digest, Sha256};
 
-const SOURCE_FILES: &[&str] = &["Cargo.toml", "Cargo.lock", "rust-toolchain.toml"];
+const SOURCE_FILES: &[&str] = &["Cargo.toml", "Cargo.lock", "rust-toolchain.toml", "LICENSE"];
 const SOURCE_DIRS: &[&str] = &["crates"];
 const MANIFEST: &str = "crates/sqll_dialects/generated.json";
 
@@ -68,6 +79,41 @@ fn source_hash(root: &Path) -> (String, usize) {
     (hex(&hasher.finalize()), files.len())
 }
 
+/// The output of a command, or a build error.
+fn output(cmd: &mut Command) -> String {
+    let out = cmd
+        .output()
+        .unwrap_or_else(|e| panic!("cannot run {cmd:?}: {e}"));
+    if !out.status.success() {
+        panic!(
+            "{cmd:?} failed ({}):\n{}",
+            out.status,
+            String::from_utf8_lossy(&out.stderr)
+        );
+    }
+    String::from_utf8(out.stdout).expect("UTF-8 output")
+}
+
+/// The dependency notice list of the crates of cargo metadata
+/// (build/notices.rs).
+fn dependency_notices(root: &Path) -> String {
+    let cargo = env::var_os("CARGO").unwrap_or_else(|| "cargo".into());
+    let target = env::var("TARGET").expect("TARGET");
+    let json = output(
+        Command::new(cargo)
+            .args(["metadata", "--format-version", "1", "--locked"])
+            .args(["--filter-platform", &target, "--manifest-path"])
+            .arg(root.join("Cargo.toml")),
+    );
+    let meta = notices::read_metadata(&json).unwrap_or_else(|e| panic!("{e}"));
+    notices::notice_list(&meta, "sqll").unwrap_or_else(|problems| {
+        panic!(
+            "\n\nsqll: the dependency license check failed (build/notices.rs):\n  {}\n",
+            problems.join("\n  ")
+        )
+    })
+}
+
 fn main() {
     let crate_dir = PathBuf::from(env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR"));
     let root = crate_dir
@@ -92,4 +138,14 @@ fn main() {
     println!("cargo:rustc-env=SQLL_SOURCE_SHA256={hash}");
     println!("cargo:rustc-env=SQLL_SOURCE_FILES={count}");
     println!("cargo:rustc-link-arg-bins=-no-pie");
+
+    let rustc = env::var_os("RUSTC").unwrap_or_else(|| "rustc".into());
+    let rustc_version = output(Command::new(rustc).arg("-V"));
+    println!(
+        "cargo:rustc-env=SQLL_RUSTC_VERSION={}",
+        rustc_version.trim()
+    );
+    let out_dir = PathBuf::from(env::var("OUT_DIR").expect("OUT_DIR"));
+    fs::write(out_dir.join("dependencies.txt"), dependency_notices(&root))
+        .expect("write dependencies.txt");
 }

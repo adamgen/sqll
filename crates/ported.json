@@ -42,7 +42,7 @@
    "path": "crates/sqll_base_tests/Cargo.toml",
    "source": "sqlfluffrs/Cargo.toml",
    "source_sha256": "b732205a4911557a6a5ba76b40e4a6557e88166523450b5b01731760b337a3a8",
-   "changed": "S3 T18: only the package part of the root crate: the library and the tests (no benches, no Python module). The package name is sqll_base_tests; the library keeps the name sqlfluffrs, so that the tests do not change. The dependencies keep the sqlfluffrs crate names (\"package\" key). blake2 (the version of the source) is a dev-dependency: only tests/fixture_tests.rs uses it. Not kept: pyo3, sqlfluffrs_python, sqlfluffrs_rules (only the Python module uses it), criterion (benches), and the features."
+   "changed": "S3 T18: only the package part of the root crate: the library and the tests (no benches, no Python module). The package name is sqll_base_tests; the library keeps the name sqlfluffrs, so that the tests do not change. The dependencies keep the sqlfluffrs crate names (\"package\" key). blake2 (the version of the source) is a dev-dependency: only tests/fixture_tests.rs uses it. Not kept: pyo3, sqlfluffrs_python, sqlfluffrs_rules (only the Python module uses it), criterion (benches), and the features. S3 T19: license = \"MIT\" (crates/LICENSE-sqlfluffrs.md covers each sqlfluffrs crate; THIRD_PARTY.md)."
   },
   {
    "path": "crates/sqll_base_tests/src/lib.rs",
@@ -126,7 +126,7 @@
    "path": "crates/sqll_dialects/Cargo.toml",
    "source": "sqlfluffrs/sqlfluffrs_dialects/Cargo.toml",
    "source_sha256": "6e41453ddcab2d86085c26873725b2b5f7fe83be05cdf29aaea925a968baefaa",
-   "changed": "The package name is sqll_*, and the workspace gives the version. The dependencies keep the sqlfluffrs crate names (\"package\" key), so that the ported code and the generated tables do not change. No feature \"python\", no pyo3, and no sqlfluffrs_python."
+   "changed": "The package name is sqll_*, and the workspace gives the version. The dependencies keep the sqlfluffrs crate names (\"package\" key), so that the ported code and the generated tables do not change. No feature \"python\", no pyo3, and no sqlfluffrs_python. S3 T19: license = \"MIT\" (crates/LICENSE-sqlfluffrs.md covers each sqlfluffrs crate; THIRD_PARTY.md)."
   },
   {
    "path": "crates/sqll_dialects/src/block_comment.rs",
@@ -144,7 +144,7 @@
    "path": "crates/sqll_lexer/Cargo.toml",
    "source": "sqlfluffrs/sqlfluffrs_lexer/Cargo.toml",
    "source_sha256": "c09af658681b4576dc778db8634da2002cf57fc6c79ce6a9462fd05b99c5e400",
-   "changed": "The package name is sqll_*, and the workspace gives the version. The dependencies keep the sqlfluffrs crate names (\"package\" key), so that the ported code and the generated tables do not change. No feature \"python\", no pyo3, and no sqlfluffrs_python."
+   "changed": "The package name is sqll_*, and the workspace gives the version. The dependencies keep the sqlfluffrs crate names (\"package\" key), so that the ported code and the generated tables do not change. No feature \"python\", no pyo3, and no sqlfluffrs_python. S3 T19: license = \"MIT\" (crates/LICENSE-sqlfluffrs.md covers each sqlfluffrs crate; THIRD_PARTY.md)."
   },
   {
    "path": "crates/sqll_lexer/src/lexer.rs",
@@ -162,7 +162,7 @@
    "path": "crates/sqll_parser/Cargo.toml",
    "source": "sqlfluffrs/sqlfluffrs_parser/Cargo.toml",
    "source_sha256": "f152f24c10b446c9bfa558af0bd91b55711a857782a42fa9648ab53ec1df6bca",
-   "changed": "The package name is sqll_*, and the workspace gives the version. The dependencies keep the sqlfluffrs crate names (\"package\" key), so that the ported code and the generated tables do not change. No feature \"python\", no pyo3, and no sqlfluffrs_python."
+   "changed": "The package name is sqll_*, and the workspace gives the version. The dependencies keep the sqlfluffrs crate names (\"package\" key), so that the ported code and the generated tables do not change. No feature \"python\", no pyo3, and no sqlfluffrs_python. S3 T19: license = \"MIT\" (crates/LICENSE-sqlfluffrs.md covers each sqlfluffrs crate; THIRD_PARTY.md)."
   },
   {
    "path": "crates/sqll_parser/src/lib.rs",
@@ -294,7 +294,7 @@
    "path": "crates/sqll_rules/Cargo.toml",
    "source": "sqlfluffrs/sqlfluffrs_rules/Cargo.toml",
    "source_sha256": "aa57e9ec9c16071d4d779c794b1a36a41672443b7030ec0be29ad497b1d676ae",
-   "changed": "S3 T18: the package name is sqll_rules, and the workspace gives the version. The dependency keeps the sqlfluffrs crate name (\"package\" key), so that the ported code does not change. No feature \"python\" and no Python bindings. New dev-dependencies for the sqll tests (tests/rules.rs): hashbrown, sqll_dialects, and sqll_lexer."
+   "changed": "S3 T18: the package name is sqll_rules, and the workspace gives the version. The dependency keeps the sqlfluffrs crate name (\"package\" key), so that the ported code does not change. No feature \"python\" and no Python bindings. New dev-dependencies for the sqll tests (tests/rules.rs): hashbrown, sqll_dialects, and sqll_lexer. S3 T19: license = \"MIT\" (crates/LICENSE-sqlfluffrs.md covers each sqlfluffrs crate; THIRD_PARTY.md)."
   },
   {
    "path": "crates/sqll_rules/src/capitalisation.rs",
@@ -330,7 +330,7 @@
    "path": "crates/sqll_types/Cargo.toml",
    "source": "sqlfluffrs/sqlfluffrs_types/Cargo.toml",
    "source_sha256": "771f51011d9f23394d197bb2d07178f001bfb1a0637f1b70534a9ab07f66ed11",
-   "changed": "The package name is sqll_*, and the workspace gives the version. The dependencies keep the sqlfluffrs crate names (\"package\" key), so that the ported code and the generated tables do not change. No feature \"python\", no pyo3, and no sqlfluffrs_python. New dependency: regex-syntax (S3 T15, matcher.rs)."
+   "changed": "The package name is sqll_*, and the workspace gives the version. The dependencies keep the sqlfluffrs crate names (\"package\" key), so that the ported code and the generated tables do not change. No feature \"python\", no pyo3, and no sqlfluffrs_python. New dependency: regex-syntax (S3 T15, matcher.rs). S3 T19: license = \"MIT\" (crates/LICENSE-sqlfluffrs.md covers each sqlfluffrs crate; THIRD_PARTY.md)."
   },
   {
    "path": "crates/sqll_types/src/config/fluffconfig.rs",
@@ -547,11 +547,11 @@
   },
   {
    "path": "crates/sqll/Cargo.toml",
-   "reason": "The sqll binary crate (T12). New sqll code."
+   "reason": "The sqll binary crate (T12). New sqll code. S3 T19: license = \"MIT\", and serde_json for build.rs (the cargo metadata of the notice list)."
   },
   {
    "path": "crates/sqll/build.rs",
-   "reason": "Build script of the sqll binary: the version (crate version and the sha256 of generated.json) and the source hash for the freshness check of the harness. No Python."
+   "reason": "Build script of the sqll binary: the version (crate version and the sha256 of generated.json) and the source hash for the freshness check of the harness. No Python. S3 T19: the rustc version, and the dependency notice list from cargo metadata with the license check (build/notices.rs); LICENSE is a source file."
   },
   {
    "path": "crates/sqll/src/alloc.rs",
@@ -559,7 +559,7 @@
   },
   {
    "path": "crates/sqll/src/main.rs",
-   "reason": "The sqll command line: parse, version, and the unsupported lint and fix commands, in the command shape of sqlfluff. New sqll code. normpath is a port of CPython v3.13.16 Lib/posixpath.py normpath (PSF-2.0, crates/LICENSE-cpython.txt, THIRD_PARTY.md). Since S3 T17 it sets the global allocator (alloc.rs)."
+   "reason": "The sqll command line: parse, version, and the unsupported lint and fix commands, in the command shape of sqlfluff. New sqll code. normpath is a port of CPython v3.13.16 Lib/posixpath.py normpath (PSF-2.0, crates/LICENSE-cpython.txt, THIRD_PARTY.md). Since S3 T17 it sets the global allocator (alloc.rs). S3 T19: the option --license (license.rs)."
   },
   {
    "path": "crates/sqll/src/output.rs",
@@ -588,6 +588,22 @@
   {
    "path": "crates/sqll_rules/tests/rules.rs",
    "reason": "Tests of the ported rules CP01, CP03, and CP04 on sqll parse trees (S3 T18). The expected texts are the output of sqlfluff 4.4.0 fix. New sqll code."
+  },
+  {
+   "path": "crates/sqll/build/notices.rs",
+   "reason": "The dependency license check (an allow list; the record of each OR choice) and the dependency notice list of build.rs (S3 T19). New sqll code."
+  },
+  {
+   "path": "crates/sqll/src/license.rs",
+   "reason": "The text of \"sqll --license\" (S3 T19): the sqll license, the sqlfluff MIT notice, the CPython license, the Rust MIT notice, and the dependency notice list. New sqll code."
+  },
+  {
+   "path": "crates/sqll/tests/license.rs",
+   "reason": "Tests of \"sqll --license\" and of the dependency license check (S3 T19). New sqll code."
+  },
+  {
+   "path": "crates/LICENSE-rust-MIT.txt",
+   "reason": "A copy of LICENSE-MIT of https://github.com/rust-lang/rust, tag 1.97.0, commit 2d8144b7880597b6e6d3dfd63a9a9efae3f533d3 (sha256 b71bd43a069ca0641a9ecfe585ca7b3c53b5cc1608f8b68321168698e28b5ea1): the MIT notice of the Rust standard library in the sqll binary (S3 T19, THIRD_PARTY.md, \"Rust\")."
   }
  ]
 }
