@@ -258,6 +258,24 @@ the end). The state and the phase B task table are in
     profile, sqll only (`results/s3/speed/T19-compare.json`): 112 sqll
     benchmarks, 0 slower, 0 faster, 112 same; the wall time sum 2.070 s to
     2.089 s.
+- T20: the S3 exit record (`docs/decisions/s3-exit.md`).
+  - The new `results/s2/baseline.json`: one controlled run of `scripts/bench
+    --profile full` on a fresh clone of main (`c9c72ec`), the S2 baseline
+    method (`status/S2.md`): exit code 0, 7520 s. The other 3 tools have the
+    statuses of the S2 exit baseline (`test_bench_baseline.py`).
+  - `results/s3/exit.json` (from `scripts/s3/exit.py`; drift test
+    `harness/tests/test_s3_exit.py`). Inputs: the new baseline, the S1
+    summary, the T18 record, and the T14 record. Each value is copied (file
+    and key; a key part in brackets selects a list item by its fields) or
+    derived (a formula). The script fails closed if the baseline is not a
+    full clean baseline of all tools (the check of `bench/baseline.py`) or
+    if the S1 summary has another sqll version.
+  - G3.5 (start and parse): sqll is faster than sqruff on 108 of 108 pairs,
+    median ratio 0.506, at most 0.707 (parse/clickhouse/large); all 108 are
+    below the T14 target 0.794. Sums: start 0.328, parse 0.550, both 0.522.
+    G3.4: faster than sqlfluff on 112 of 112 (at most 0.033).
+  - Lint and fix: 168 sqll results unsupported (no run); thus G3.4 and G3.5
+    on lint and fix and the G3.5 total are for later stones.
 
 ## S3 phase A data
 

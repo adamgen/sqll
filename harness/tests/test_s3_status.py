@@ -1,4 +1,4 @@
-"""S3 T10: the phase B start in STATUS.md and status/S3.md."""
+"""S3 T10 to T20: the phase B state in STATUS.md and status/S3.md."""
 
 import json
 import re
@@ -10,10 +10,9 @@ from sqll_harness.paths import REPO_ROOT
 INDEX = (REPO_ROOT / "STATUS.md").read_text("utf8")
 STATUS = s3_record()
 STATE = (
-    "Phase B: the speed target is reached (T17: 108 of 108 start and parse"
-    " benchmarks); the native tests of the base pass in sqll (T18: 162 of 162);"
-    " the license is MIT, with the notices in the binary (T19); T20 next; the base"
-    " is sqlfluffrs (human owner, 2026-10-29)."
+    "S3 awaiting human approval. Exit record (T20):"
+    " [docs/decisions/s3-exit.md](docs/decisions/s3-exit.md); the base is sqlfluffrs"
+    " (human owner, 2026-10-29)."
 )
 TASKS = (
     [f"T{i}" for i in range(10, 17)]
@@ -63,7 +62,7 @@ def words(text: str) -> str:
     return " ".join(text.split())
 
 
-def test_the_index_row_has_the_phase_b_state():
+def test_the_index_row_has_the_exit_state():
     (row,) = [line for line in INDEX.splitlines() if line.startswith("| S3 |")]
     assert row.startswith(f"| S3 | S3 | {STATE} ")
     assert row.endswith(" | [status/S3.md](status/S3.md) |")
@@ -80,14 +79,8 @@ def test_the_index_row_has_the_phase_b_state():
     assert section("Human owner decision after T16b (2026-11-01)").strip()
 
 
-def test_the_status_file_has_the_phase_b_state():
-    assert (
-        STATUS.splitlines().count(
-            "- State: **Phase B started: the base is sqlfluffrs"
-            " (human owner, 2026-10-29).**"
-        )
-        == 1
-    )
+def test_the_status_file_has_the_exit_state():
+    assert STATUS.splitlines().count("- State: **S3 awaiting human approval.**") == 1
     assert "phase B next" not in STATUS
     assert "PR #PRNUM" not in STATUS
 
