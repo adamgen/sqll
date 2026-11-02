@@ -193,8 +193,9 @@ and each full run with it, fail closed (`sqll-harness bench check
 must be in the report): the sqlfluff ref, the tool versions and settings,
 the input records, and the status of each result (and the `work` of a
 result that is `valid` in both). Not the timings, reasons, or machine. A
-new tool or tool version needs a new baseline. The baseline of S3 T13 has
-4 tools (sqll joined); `status/S2.md` has the facts of its run.
+new tool or tool version needs a new baseline. sqll joined in S3 T13; the
+baseline of S3 T20 has the final S3 sqll (the S3 exit record,
+`docs/decisions/s3-exit.md`). `status/S2.md` has the facts of its run.
 
 Controlled run of the S2 exit (2026-10-20; now
 `results/s3/phase-a/s2-baseline.json`): the CI image, built from
@@ -208,7 +209,8 @@ have the pinned versions (`sqll-harness tools` passes). The run of S3 T13
 (`sqll-ci:c70a02195bc651c4bf38`, with the Rust toolchain of S3 T11). A first
 container with network
 built sqll (`scripts/build-sqll`: cargo gets the crates); then the run
-had no network (`CARGO_NET_OFFLINE=true`, the same cargo registry).
+had no network (`CARGO_NET_OFFLINE=true`, the same cargo registry). The
+run of S3 T20 used the same image and method on a fresh clone of main.
 
 ## Add a tool
 
