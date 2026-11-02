@@ -8,6 +8,7 @@ record crates/ported.json lists each of their files
 import hashlib
 import json
 import re
+import tomllib
 
 from sqll_harness.paths import REPO_ROOT
 
@@ -173,3 +174,66 @@ def test_only_the_cpython_records_name_the_psf():
             if "Python Software Foundation" in text:
                 found.add(str(path.relative_to(REPO_ROOT)))
     assert found <= {CPYTHON_LICENSE, PORTED_RECORD, "crates/sqll/src/main.rs"}, found
+
+
+# The license of sqll and the notices of the binary (S3 T19).
+
+SQLL_COPYRIGHT = "Copyright (c) 2026 The sqll authors"
+RUST_LICENSE = "crates/LICENSE-rust-MIT.txt"
+RUST_LICENSE_SHA256 = "b71bd43a069ca0641a9ecfe585ca7b3c53b5cc1608f8b68321168698e28b5ea1"
+RUST_TAG = "1.97.0"
+RUST_COMMIT = "2d8144b7880597b6e6d3dfd63a9a9efae3f533d3"
+NOTICES = "crates/sqll/build/notices.rs"
+
+
+def _section(title: str) -> str:
+    text = (REPO_ROOT / "THIRD_PARTY.md").read_text(encoding="utf-8")
+    return " ".join(text.split(f"\n## {title}\n", 1)[1].split("\n## ", 1)[0].split())
+
+
+def test_sqll_is_under_the_mit_license():
+    """The MIT text of the pinned sqlfluff, with the sqll copyright line."""
+    sqlfluff = (REPO_ROOT / "third_party/sqlfluff/LICENSE.md").read_text("utf-8")
+    assert COPYRIGHT in sqlfluff
+    text = (REPO_ROOT / "LICENSE").read_text("utf-8")
+    assert text == sqlfluff.replace(COPYRIGHT, SQLL_COPYRIGHT)
+    assert text.startswith(f"MIT License\n\n{SQLL_COPYRIGHT}\n")
+    section = _section("sqll")
+    for word in ("`LICENSE`", SQLL_COPYRIGHT, 'license = "MIT"', "`sqll --license`"):
+        assert word in section, word
+
+
+def test_each_crate_of_the_workspace_has_the_mit_license():
+    workspace = tomllib.loads((REPO_ROOT / "Cargo.toml").read_text("utf-8"))
+    members = workspace["workspace"]["members"]
+    assert len(members) == 7
+    for member in members:
+        manifest = tomllib.loads((REPO_ROOT / member / "Cargo.toml").read_text("utf-8"))
+        assert manifest["package"]["license"] == "MIT", member
+
+
+def test_the_rust_notice_is_a_copy_of_the_pinned_toolchain_tag():
+    data = (REPO_ROOT / RUST_LICENSE).read_bytes()
+    assert hashlib.sha256(data).hexdigest() == RUST_LICENSE_SHA256
+    assert data.startswith(b"Copyright (c) The Rust Project Contributors\n")
+    toolchain = tomllib.loads((REPO_ROOT / "rust-toolchain.toml").read_text("utf-8"))
+    assert toolchain["toolchain"]["channel"] == RUST_TAG
+    license_rs = (REPO_ROOT / "crates/sqll/src/license.rs").read_text("utf-8")
+    assert f'pub const RUST_TAG: &str = "{RUST_TAG}";' in license_rs
+    section = _section("Rust")
+    for word in (f"tag `{RUST_TAG}`", f"commit `{RUST_COMMIT}`", f"`{RUST_LICENSE}`"):
+        assert word in section, word
+    new = {n["path"]: n["reason"] for n in _ported_record()["new"]}
+    assert RUST_LICENSE_SHA256 in new[RUST_LICENSE]
+    assert RUST_COMMIT in new[RUST_LICENSE]
+
+
+def test_third_party_gives_the_allow_list_of_the_build():
+    text = (REPO_ROOT / NOTICES).read_text("utf-8")
+    block = text.split("pub const ALLOWED: &[&str] = &[", 1)[1].split("];", 1)[0]
+    allowed = re.findall(r'"([^"]+)"', block)
+    assert allowed[0] == "MIT" and len(allowed) == 8
+    section = _section("Rust")
+    assert f"The allow list, in the order of choice: {', '.join(allowed)}." in section
+    for word in ("`cargo metadata`", NOTICES, "crates/sqll/tests/license.rs"):
+        assert word in section, word

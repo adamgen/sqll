@@ -1,0 +1,5243 @@
+{
+ "kind": "sqll-bench-compare",
+ "format": 1,
+ "base": {
+  "path": "results/s3/speed/T19-before.json",
+  "commit": "d344b239fe42e1995b40ea8c4e0a1b8ca56a20d7",
+  "clean": true,
+  "profile": "full",
+  "machine": {
+   "cpu_model": "Intel(R) Xeon(R) Processor @ 2.80GHz",
+   "cpu_count": 4,
+   "memory_kib": 16477352,
+   "os": "Ubuntu 24.04.5 LTS",
+   "kernel": "6.18.44-fc-v185",
+   "arch": "x86_64",
+   "python": "3.13.16"
+  }
+ },
+ "new": {
+  "path": "results/s3/speed/T19-after.json",
+  "commit": "afb0cab15c5fb596253847f8368b262c3dc1080e",
+  "clean": true,
+  "profile": "full",
+  "machine": {
+   "cpu_model": "Intel(R) Xeon(R) Processor @ 2.80GHz",
+   "cpu_count": 4,
+   "memory_kib": 16477352,
+   "os": "Ubuntu 24.04.5 LTS",
+   "kernel": "6.18.44-fc-v185",
+   "arch": "x86_64",
+   "python": "3.13.16"
+  }
+ },
+ "noise": {
+  "wall_pct": 0.25,
+  "cpu_pct": 0.1,
+  "k": 3.0,
+  "min_diff_s": 0.005
+ },
+ "tools": {
+  "sqll": {
+   "base": "0.1.0+tables.5371ded8ae219be1a62cd34b1b793d36c41bc9fa432f344de5d84f48d2d059e8",
+   "new": "0.1.0+tables.5371ded8ae219be1a62cd34b1b793d36c41bc9fa432f344de5d84f48d2d059e8"
+  }
+ },
+ "warnings": [],
+ "benchmarks": [
+  {
+   "id": "fix/ansi/large",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/ansi/medium",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/ansi/small",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/athena/large",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/athena/medium",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/athena/small",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/bigquery/large",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/bigquery/medium",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/bigquery/small",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/clickhouse/large",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/clickhouse/medium",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/clickhouse/small",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/databricks/large",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/databricks/medium",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/databricks/small",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/db2/large",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/db2/medium",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/db2/small",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/doris/large",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/doris/medium",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/doris/small",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/duckdb/large",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/duckdb/medium",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/duckdb/small",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/exasol/large",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/exasol/medium",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/exasol/small",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/flink/large",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/flink/medium",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/flink/small",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/greenplum/large",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/greenplum/medium",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/greenplum/small",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/hive/large",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/hive/medium",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/hive/small",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/impala/large",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/impala/medium",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/impala/small",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/mariadb/large",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/mariadb/medium",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/mariadb/small",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/materialize/large",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/materialize/medium",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/materialize/small",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/mysql/large",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/mysql/medium",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/mysql/small",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/oracle/large",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/oracle/medium",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/oracle/small",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/postgres/large",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/postgres/medium",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/postgres/small",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/redshift/large",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/redshift/medium",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/redshift/small",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/snowflake/large",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/snowflake/medium",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/snowflake/small",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/soql/large",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/soql/medium",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/soql/small",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/sparksql/large",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/sparksql/medium",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/sparksql/small",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/sqlite/large",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/sqlite/medium",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/sqlite/small",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/starrocks/large",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/starrocks/medium",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/starrocks/small",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/teradata/large",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/teradata/medium",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/teradata/small",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/trino/large",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/trino/medium",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/trino/small",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/tsql/large",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/tsql/medium",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/tsql/small",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/vertica/large",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/vertica/medium",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "fix/vertica/small",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: fix",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/ansi/large",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/ansi/medium",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/ansi/small",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/athena/large",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/athena/medium",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/athena/small",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/bigquery/large",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/bigquery/medium",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/bigquery/small",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/clickhouse/large",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/clickhouse/medium",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/clickhouse/small",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/databricks/large",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/databricks/medium",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/databricks/small",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/db2/large",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/db2/medium",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/db2/small",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/doris/large",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/doris/medium",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/doris/small",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/duckdb/large",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/duckdb/medium",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/duckdb/small",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/exasol/large",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/exasol/medium",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/exasol/small",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/flink/large",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/flink/medium",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/flink/small",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/greenplum/large",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/greenplum/medium",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/greenplum/small",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/hive/large",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/hive/medium",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/hive/small",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/impala/large",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/impala/medium",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/impala/small",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/mariadb/large",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/mariadb/medium",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/mariadb/small",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/materialize/large",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/materialize/medium",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/materialize/small",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/mysql/large",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/mysql/medium",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/mysql/small",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/oracle/large",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/oracle/medium",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/oracle/small",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/postgres/large",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/postgres/medium",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/postgres/small",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/redshift/large",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/redshift/medium",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/redshift/small",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/snowflake/large",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/snowflake/medium",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/snowflake/small",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/soql/large",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/soql/medium",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/soql/small",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/sparksql/large",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/sparksql/medium",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/sparksql/small",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/sqlite/large",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/sqlite/medium",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/sqlite/small",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/starrocks/large",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/starrocks/medium",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/starrocks/small",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/teradata/large",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/teradata/medium",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/teradata/small",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/trino/large",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/trino/medium",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/trino/small",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/tsql/large",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/tsql/medium",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/tsql/small",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/vertica/large",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/vertica/medium",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "lint/vertica/small",
+   "tool": "sqll",
+   "base_status": "unsupported",
+   "new_status": "unsupported",
+   "reason": "unsupported: lint",
+   "change": "not_valid",
+   "wall": null,
+   "cpu": null
+  },
+  {
+   "id": "parse/ansi/large",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.056488,
+    "new": 0.062043,
+    "ratio": 1.098339,
+    "limit": 0.535983,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.052665,
+    "new": 0.051707,
+    "ratio": 0.98181,
+    "limit": 0.164355,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/ansi/medium",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.017649,
+    "new": 0.016694,
+    "ratio": 0.945889,
+    "limit": 0.476378,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.016767,
+    "new": 0.015304,
+    "ratio": 0.912745,
+    "limit": 0.298205,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/ansi/small",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.007501,
+    "new": 0.007382,
+    "ratio": 0.984135,
+    "limit": 0.666578,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.006945,
+    "new": 0.006728,
+    "ratio": 0.968754,
+    "limit": 0.719942,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/athena/large",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.051876,
+    "new": 0.050719,
+    "ratio": 0.977697,
+    "limit": 0.477731,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.047249,
+    "new": 0.045652,
+    "ratio": 0.9662,
+    "limit": 0.144702,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/athena/medium",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.012782,
+    "new": 0.01191,
+    "ratio": 0.931779,
+    "limit": 0.391175,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.011661,
+    "new": 0.010971,
+    "ratio": 0.940828,
+    "limit": 0.42878,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/athena/small",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.00788,
+    "new": 0.009043,
+    "ratio": 1.147589,
+    "limit": 0.634518,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.007307,
+    "new": 0.007267,
+    "ratio": 0.994526,
+    "limit": 0.684275,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/bigquery/large",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.045171,
+    "new": 0.045631,
+    "ratio": 1.010184,
+    "limit": 0.635449,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.039731,
+    "new": 0.04029,
+    "ratio": 1.01407,
+    "limit": 0.183287,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/bigquery/medium",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.014885,
+    "new": 0.01315,
+    "ratio": 0.88344,
+    "limit": 0.335909,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.013087,
+    "new": 0.012486,
+    "ratio": 0.954077,
+    "limit": 0.382059,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/bigquery/small",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.008164,
+    "new": 0.007638,
+    "ratio": 0.935571,
+    "limit": 0.612445,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.007474,
+    "new": 0.007098,
+    "ratio": 0.949692,
+    "limit": 0.668986,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/clickhouse/large",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.040648,
+    "new": 0.039471,
+    "ratio": 0.971044,
+    "limit": 0.379661,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.03757,
+    "new": 0.036551,
+    "ratio": 0.972877,
+    "limit": 0.156001,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/clickhouse/medium",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.015069,
+    "new": 0.017191,
+    "ratio": 1.140819,
+    "limit": 0.437678,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.014141,
+    "new": 0.014958,
+    "ratio": 1.057775,
+    "limit": 0.353582,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/clickhouse/small",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.012918,
+    "new": 0.013407,
+    "ratio": 1.037854,
+    "limit": 0.943151,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.011033,
+    "new": 0.01103,
+    "ratio": 0.999728,
+    "limit": 0.453186,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/databricks/large",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.032948,
+    "new": 0.035268,
+    "ratio": 1.070414,
+    "limit": 0.385367,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.030854,
+    "new": 0.032253,
+    "ratio": 1.045343,
+    "limit": 0.162054,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/databricks/medium",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.01127,
+    "new": 0.01339,
+    "ratio": 1.18811,
+    "limit": 0.443656,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.010854,
+    "new": 0.011512,
+    "ratio": 1.060623,
+    "limit": 0.46066,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/databricks/small",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.007321,
+    "new": 0.007632,
+    "ratio": 1.042481,
+    "limit": 0.682967,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.00676,
+    "new": 0.006689,
+    "ratio": 0.989497,
+    "limit": 0.739645,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/db2/large",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.049593,
+    "new": 0.051922,
+    "ratio": 1.046962,
+    "limit": 0.307795,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.046544,
+    "new": 0.047967,
+    "ratio": 1.030573,
+    "limit": 0.117273,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/db2/medium",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.012231,
+    "new": 0.012457,
+    "ratio": 1.018478,
+    "limit": 0.408797,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.011724,
+    "new": 0.011575,
+    "ratio": 0.987291,
+    "limit": 0.426476,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/db2/small",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.006782,
+    "new": 0.007942,
+    "ratio": 1.171041,
+    "limit": 0.737246,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.006436,
+    "new": 0.007,
+    "ratio": 1.087632,
+    "limit": 0.77688,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/doris/large",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.033114,
+    "new": 0.034987,
+    "ratio": 1.056562,
+    "limit": 0.489481,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.031566,
+    "new": 0.031689,
+    "ratio": 1.003897,
+    "limit": 0.204613,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/doris/medium",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.011623,
+    "new": 0.011872,
+    "ratio": 1.021423,
+    "limit": 0.430182,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.011225,
+    "new": 0.011373,
+    "ratio": 1.013185,
+    "limit": 0.445434,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/doris/small",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.007263,
+    "new": 0.007957,
+    "ratio": 1.095553,
+    "limit": 0.688421,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.006877,
+    "new": 0.007182,
+    "ratio": 1.044351,
+    "limit": 0.727061,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/duckdb/large",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.065623,
+    "new": 0.064673,
+    "ratio": 0.985523,
+    "limit": 0.50654,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.058243,
+    "new": 0.060231,
+    "ratio": 1.034133,
+    "limit": 0.104467,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/duckdb/medium",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.02066,
+    "new": 0.022482,
+    "ratio": 1.08819,
+    "limit": 0.401159,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.019781,
+    "new": 0.020619,
+    "ratio": 1.042364,
+    "limit": 0.252768,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/duckdb/small",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.0132,
+    "new": 0.013971,
+    "ratio": 1.058409,
+    "limit": 0.378788,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.012547,
+    "new": 0.012955,
+    "ratio": 1.032518,
+    "limit": 0.398502,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/exasol/large",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.035235,
+    "new": 0.042089,
+    "ratio": 1.194522,
+    "limit": 0.442077,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.034267,
+    "new": 0.037257,
+    "ratio": 1.087256,
+    "limit": 0.169183,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/exasol/medium",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.015194,
+    "new": 0.014288,
+    "ratio": 0.940371,
+    "limit": 0.619077,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.01321,
+    "new": 0.013261,
+    "ratio": 1.003861,
+    "limit": 0.378501,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/exasol/small",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.008667,
+    "new": 0.009763,
+    "ratio": 1.126457,
+    "limit": 0.576901,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.008254,
+    "new": 0.008819,
+    "ratio": 1.068452,
+    "limit": 0.605767,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/flink/large",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.032861,
+    "new": 0.035059,
+    "ratio": 1.066888,
+    "limit": 0.330779,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.031706,
+    "new": 0.032009,
+    "ratio": 1.009557,
+    "limit": 0.157699,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/flink/medium",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.011592,
+    "new": 0.012542,
+    "ratio": 1.081953,
+    "limit": 0.431332,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.011049,
+    "new": 0.011529,
+    "ratio": 1.043443,
+    "limit": 0.45253,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/flink/small",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.006006,
+    "new": 0.006681,
+    "ratio": 1.112388,
+    "limit": 0.832501,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.005665,
+    "new": 0.00621,
+    "ratio": 1.096205,
+    "limit": 0.882613,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/greenplum/large",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.044226,
+    "new": 0.03847,
+    "ratio": 0.86985,
+    "limit": 0.511787,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.03937,
+    "new": 0.036694,
+    "ratio": 0.932029,
+    "limit": 0.241794,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/greenplum/medium",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.014928,
+    "new": 0.016418,
+    "ratio": 1.099812,
+    "limit": 0.348753,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.014465,
+    "new": 0.015235,
+    "ratio": 1.053232,
+    "limit": 0.345662,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/greenplum/small",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.011283,
+    "new": 0.010726,
+    "ratio": 0.950634,
+    "limit": 0.443145,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.010599,
+    "new": 0.010299,
+    "ratio": 0.971695,
+    "limit": 0.471743,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/hive/large",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.049933,
+    "new": 0.049284,
+    "ratio": 0.987003,
+    "limit": 0.368122,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.046593,
+    "new": 0.046964,
+    "ratio": 1.007963,
+    "limit": 0.107312,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/hive/medium",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.013652,
+    "new": 0.012573,
+    "ratio": 0.920964,
+    "limit": 0.411341,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.012272,
+    "new": 0.011707,
+    "ratio": 0.95396,
+    "limit": 0.407432,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/hive/small",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.009583,
+    "new": 0.00823,
+    "ratio": 0.858812,
+    "limit": 0.521757,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.008101,
+    "new": 0.007673,
+    "ratio": 0.947167,
+    "limit": 0.617208,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/impala/large",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.057048,
+    "new": 0.054312,
+    "ratio": 0.95204,
+    "limit": 0.280093,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.053861,
+    "new": 0.051277,
+    "ratio": 0.952025,
+    "limit": 0.1,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/impala/medium",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.01875,
+    "new": 0.017478,
+    "ratio": 0.93216,
+    "limit": 0.270153,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.017654,
+    "new": 0.017,
+    "ratio": 0.962955,
+    "limit": 0.283222,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/impala/small",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.009778,
+    "new": 0.009061,
+    "ratio": 0.926672,
+    "limit": 0.511352,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.008741,
+    "new": 0.008418,
+    "ratio": 0.963048,
+    "limit": 0.572017,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/mariadb/large",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.035757,
+    "new": 0.033497,
+    "ratio": 0.936796,
+    "limit": 0.25,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.033551,
+    "new": 0.032471,
+    "ratio": 0.96781,
+    "limit": 0.149027,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/mariadb/medium",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.012817,
+    "new": 0.011591,
+    "ratio": 0.904346,
+    "limit": 0.390107,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.011945,
+    "new": 0.011072,
+    "ratio": 0.926915,
+    "limit": 0.418585,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/mariadb/small",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.009588,
+    "new": 0.008236,
+    "ratio": 0.85899,
+    "limit": 0.521485,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.008962,
+    "new": 0.007753,
+    "ratio": 0.865097,
+    "limit": 0.557911,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/materialize/large",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.038328,
+    "new": 0.045857,
+    "ratio": 1.196436,
+    "limit": 0.364445,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.037806,
+    "new": 0.040911,
+    "ratio": 1.08213,
+    "limit": 0.145862,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/materialize/medium",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.014823,
+    "new": 0.016474,
+    "ratio": 1.111381,
+    "limit": 0.353833,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.01427,
+    "new": 0.01451,
+    "ratio": 1.016819,
+    "limit": 0.350385,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/materialize/small",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.008557,
+    "new": 0.008926,
+    "ratio": 1.043123,
+    "limit": 0.584317,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.008086,
+    "new": 0.008193,
+    "ratio": 1.013233,
+    "limit": 0.618353,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/mysql/large",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.041427,
+    "new": 0.044897,
+    "ratio": 1.083762,
+    "limit": 0.360716,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.039322,
+    "new": 0.040867,
+    "ratio": 1.039291,
+    "limit": 0.127155,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/mysql/medium",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.015189,
+    "new": 0.017598,
+    "ratio": 1.158602,
+    "limit": 0.351966,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.01471,
+    "new": 0.016027,
+    "ratio": 1.089531,
+    "limit": 0.339905,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/mysql/small",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.008467,
+    "new": 0.008938,
+    "ratio": 1.055628,
+    "limit": 0.590528,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.007978,
+    "new": 0.008273,
+    "ratio": 1.036977,
+    "limit": 0.626723,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/oracle/large",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.049647,
+    "new": 0.052844,
+    "ratio": 1.064395,
+    "limit": 0.316464,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.046734,
+    "new": 0.047837,
+    "ratio": 1.023602,
+    "limit": 0.106988,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/oracle/medium",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.018897,
+    "new": 0.02011,
+    "ratio": 1.06419,
+    "limit": 0.264592,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.018343,
+    "new": 0.01882,
+    "ratio": 1.026004,
+    "limit": 0.272584,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/oracle/small",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.009924,
+    "new": 0.011159,
+    "ratio": 1.124446,
+    "limit": 0.503829,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.009559,
+    "new": 0.010294,
+    "ratio": 1.076891,
+    "limit": 0.523067,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/postgres/large",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.037461,
+    "new": 0.038378,
+    "ratio": 1.024479,
+    "limit": 0.331668,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.035348,
+    "new": 0.035834,
+    "ratio": 1.013749,
+    "limit": 0.169624,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/postgres/medium",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.016025,
+    "new": 0.016507,
+    "ratio": 1.030078,
+    "limit": 0.312012,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.015115,
+    "new": 0.015645,
+    "ratio": 1.035065,
+    "limit": 0.330797,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/postgres/small",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.010808,
+    "new": 0.010762,
+    "ratio": 0.995744,
+    "limit": 0.46262,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.009751,
+    "new": 0.010233,
+    "ratio": 1.049431,
+    "limit": 0.512768,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/redshift/large",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.033707,
+    "new": 0.037696,
+    "ratio": 1.118343,
+    "limit": 0.303779,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.032422,
+    "new": 0.034868,
+    "ratio": 1.075443,
+    "limit": 0.154216,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/redshift/medium",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.015007,
+    "new": 0.016251,
+    "ratio": 1.082895,
+    "limit": 0.333178,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.014417,
+    "new": 0.01543,
+    "ratio": 1.070264,
+    "limit": 0.346813,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/redshift/small",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.008667,
+    "new": 0.008998,
+    "ratio": 1.038191,
+    "limit": 0.576901,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.008161,
+    "new": 0.008554,
+    "ratio": 1.048156,
+    "limit": 0.61267,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/snowflake/large",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.029126,
+    "new": 0.028009,
+    "ratio": 0.961649,
+    "limit": 0.337043,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.027054,
+    "new": 0.027029,
+    "ratio": 0.999076,
+    "limit": 0.184816,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/snowflake/medium",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.012042,
+    "new": 0.01212,
+    "ratio": 1.006477,
+    "limit": 0.415213,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.011288,
+    "new": 0.011493,
+    "ratio": 1.018161,
+    "limit": 0.442948,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/snowflake/small",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.007451,
+    "new": 0.007491,
+    "ratio": 1.005368,
+    "limit": 0.671051,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.006548,
+    "new": 0.00667,
+    "ratio": 1.018632,
+    "limit": 0.763592,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/soql/large",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.068125,
+    "new": 0.064734,
+    "ratio": 0.950224,
+    "limit": 0.413911,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.059421,
+    "new": 0.058249,
+    "ratio": 0.980276,
+    "limit": 0.1,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/soql/medium",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.018429,
+    "new": 0.018713,
+    "ratio": 1.01541,
+    "limit": 0.360486,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.01726,
+    "new": 0.017298,
+    "ratio": 1.002202,
+    "limit": 0.289687,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/soql/small",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.009349,
+    "new": 0.008016,
+    "ratio": 0.857418,
+    "limit": 0.534817,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.00815,
+    "new": 0.007637,
+    "ratio": 0.937055,
+    "limit": 0.613497,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/sparksql/large",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.031862,
+    "new": 0.029625,
+    "ratio": 0.929791,
+    "limit": 0.409373,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.028889,
+    "new": 0.027617,
+    "ratio": 0.955969,
+    "limit": 0.173076,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/sparksql/medium",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.01171,
+    "new": 0.010025,
+    "ratio": 0.856106,
+    "limit": 0.426985,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.010282,
+    "new": 0.009514,
+    "ratio": 0.925306,
+    "limit": 0.486287,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/sparksql/small",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.006372,
+    "new": 0.006144,
+    "ratio": 0.964218,
+    "limit": 0.784683,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.006038,
+    "new": 0.005808,
+    "ratio": 0.961908,
+    "limit": 0.828089,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/sqlite/large",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.05701,
+    "new": 0.054781,
+    "ratio": 0.960902,
+    "limit": 0.314176,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.053962,
+    "new": 0.052928,
+    "ratio": 0.980838,
+    "limit": 0.157365,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/sqlite/medium",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.019965,
+    "new": 0.017535,
+    "ratio": 0.878287,
+    "limit": 0.53717,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.017272,
+    "new": 0.016579,
+    "ratio": 0.959877,
+    "limit": 0.289486,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/sqlite/small",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.007657,
+    "new": 0.006776,
+    "ratio": 0.884942,
+    "limit": 0.652997,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.007024,
+    "new": 0.006435,
+    "ratio": 0.916145,
+    "limit": 0.711845,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/starrocks/large",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.043388,
+    "new": 0.044923,
+    "ratio": 1.035378,
+    "limit": 0.482863,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.040947,
+    "new": 0.041167,
+    "ratio": 1.005373,
+    "limit": 0.170022,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/starrocks/medium",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.014412,
+    "new": 0.014864,
+    "ratio": 1.031363,
+    "limit": 0.616738,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.013031,
+    "new": 0.012897,
+    "ratio": 0.989717,
+    "limit": 0.3837,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/starrocks/small",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.008306,
+    "new": 0.008672,
+    "ratio": 1.044065,
+    "limit": 0.601974,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.007909,
+    "new": 0.008012,
+    "ratio": 1.013023,
+    "limit": 0.632191,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/teradata/large",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.04298,
+    "new": 0.043863,
+    "ratio": 1.020544,
+    "limit": 0.389103,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.039553,
+    "new": 0.041612,
+    "ratio": 1.052057,
+    "limit": 0.126413,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/teradata/medium",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.014151,
+    "new": 0.015622,
+    "ratio": 1.10395,
+    "limit": 0.353332,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.013742,
+    "new": 0.014486,
+    "ratio": 1.054141,
+    "limit": 0.363848,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/teradata/small",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.008851,
+    "new": 0.008618,
+    "ratio": 0.973675,
+    "limit": 0.564908,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.008302,
+    "new": 0.008088,
+    "ratio": 0.974223,
+    "limit": 0.602265,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/trino/large",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.047104,
+    "new": 0.045754,
+    "ratio": 0.97134,
+    "limit": 0.336486,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.043918,
+    "new": 0.042653,
+    "ratio": 0.971196,
+    "limit": 0.113849,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/trino/medium",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.014214,
+    "new": 0.013761,
+    "ratio": 0.96813,
+    "limit": 0.351766,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.013371,
+    "new": 0.013204,
+    "ratio": 0.98751,
+    "limit": 0.373944,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/trino/small",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.007429,
+    "new": 0.007517,
+    "ratio": 1.011845,
+    "limit": 0.673038,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.007016,
+    "new": 0.007099,
+    "ratio": 1.01183,
+    "limit": 0.712657,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/tsql/large",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.044784,
+    "new": 0.041965,
+    "ratio": 0.937053,
+    "limit": 0.269895,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.041431,
+    "new": 0.040219,
+    "ratio": 0.970747,
+    "limit": 0.130953,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/tsql/medium",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.018573,
+    "new": 0.021369,
+    "ratio": 1.150541,
+    "limit": 0.461041,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.017246,
+    "new": 0.017714,
+    "ratio": 1.027137,
+    "limit": 0.289922,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/tsql/small",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.013041,
+    "new": 0.010889,
+    "ratio": 0.834982,
+    "limit": 0.60308,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.011117,
+    "new": 0.010198,
+    "ratio": 0.917334,
+    "limit": 0.449762,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/vertica/large",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.048157,
+    "new": 0.041872,
+    "ratio": 0.869489,
+    "limit": 0.271626,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.043994,
+    "new": 0.041125,
+    "ratio": 0.934787,
+    "limit": 0.116354,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/vertica/medium",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.014406,
+    "new": 0.013817,
+    "ratio": 0.959114,
+    "limit": 0.347078,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.0136,
+    "new": 0.013029,
+    "ratio": 0.958015,
+    "limit": 0.367647,
+    "change": "same"
+   }
+  },
+  {
+   "id": "parse/vertica/small",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.009345,
+    "new": 0.008892,
+    "ratio": 0.951525,
+    "limit": 0.535045,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.008481,
+    "new": 0.008296,
+    "ratio": 0.978187,
+    "limit": 0.589553,
+    "change": "same"
+   }
+  },
+  {
+   "id": "start/ansi",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.00479,
+    "new": 0.005247,
+    "ratio": 1.095407,
+    "limit": 1.043841,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.004351,
+    "new": 0.004622,
+    "ratio": 1.062285,
+    "limit": 1.149161,
+    "change": "same"
+   }
+  },
+  {
+   "id": "start/athena",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.005095,
+    "new": 0.00466,
+    "ratio": 0.914622,
+    "limit": 0.981354,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.00454,
+    "new": 0.004269,
+    "ratio": 0.940308,
+    "limit": 1.101322,
+    "change": "same"
+   }
+  },
+  {
+   "id": "start/bigquery",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.005504,
+    "new": 0.005271,
+    "ratio": 0.957667,
+    "limit": 0.90843,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.005039,
+    "new": 0.004792,
+    "ratio": 0.950982,
+    "limit": 0.99226,
+    "change": "same"
+   }
+  },
+  {
+   "id": "start/clickhouse",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.007018,
+    "new": 0.006757,
+    "ratio": 0.96281,
+    "limit": 0.712454,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.006093,
+    "new": 0.006006,
+    "ratio": 0.985721,
+    "limit": 0.820614,
+    "change": "same"
+   }
+  },
+  {
+   "id": "start/databricks",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.005832,
+    "new": 0.005717,
+    "ratio": 0.980281,
+    "limit": 0.857339,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.005345,
+    "new": 0.005288,
+    "ratio": 0.989336,
+    "limit": 0.935454,
+    "change": "same"
+   }
+  },
+  {
+   "id": "start/db2",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.004108,
+    "new": 0.004677,
+    "ratio": 1.13851,
+    "limit": 1.217137,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.003844,
+    "new": 0.004258,
+    "ratio": 1.1077,
+    "limit": 1.300728,
+    "change": "same"
+   }
+  },
+  {
+   "id": "start/doris",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.004784,
+    "new": 0.004893,
+    "ratio": 1.022784,
+    "limit": 1.045151,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.004275,
+    "new": 0.004353,
+    "ratio": 1.018246,
+    "limit": 1.169591,
+    "change": "same"
+   }
+  },
+  {
+   "id": "start/duckdb",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.007544,
+    "new": 0.007664,
+    "ratio": 1.015907,
+    "limit": 0.662778,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.007099,
+    "new": 0.00718,
+    "ratio": 1.01141,
+    "limit": 0.704325,
+    "change": "same"
+   }
+  },
+  {
+   "id": "start/exasol",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.00423,
+    "new": 0.004573,
+    "ratio": 1.081087,
+    "limit": 1.182033,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.003888,
+    "new": 0.004249,
+    "ratio": 1.09285,
+    "limit": 1.286008,
+    "change": "same"
+   }
+  },
+  {
+   "id": "start/flink",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.003841,
+    "new": 0.004459,
+    "ratio": 1.160896,
+    "limit": 1.301744,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.003537,
+    "new": 0.003973,
+    "ratio": 1.123268,
+    "limit": 1.413627,
+    "change": "same"
+   }
+  },
+  {
+   "id": "start/greenplum",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.007494,
+    "new": 0.00751,
+    "ratio": 1.002135,
+    "limit": 0.6672,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.007088,
+    "new": 0.007115,
+    "ratio": 1.003809,
+    "limit": 0.705418,
+    "change": "same"
+   }
+  },
+  {
+   "id": "start/hive",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.004364,
+    "new": 0.005336,
+    "ratio": 1.222731,
+    "limit": 1.145738,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.003989,
+    "new": 0.004481,
+    "ratio": 1.123339,
+    "limit": 1.253447,
+    "change": "same"
+   }
+  },
+  {
+   "id": "start/impala",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.004209,
+    "new": 0.00454,
+    "ratio": 1.078641,
+    "limit": 1.187931,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.003799,
+    "new": 0.004121,
+    "ratio": 1.084759,
+    "limit": 1.316136,
+    "change": "same"
+   }
+  },
+  {
+   "id": "start/mariadb",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.004582,
+    "new": 0.004306,
+    "ratio": 0.939764,
+    "limit": 1.091227,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.004149,
+    "new": 0.004025,
+    "ratio": 0.970113,
+    "limit": 1.20511,
+    "change": "same"
+   }
+  },
+  {
+   "id": "start/materialize",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.007698,
+    "new": 0.007407,
+    "ratio": 0.962198,
+    "limit": 0.649519,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.007151,
+    "new": 0.007045,
+    "ratio": 0.985177,
+    "limit": 0.699203,
+    "change": "same"
+   }
+  },
+  {
+   "id": "start/mysql",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.00456,
+    "new": 0.005067,
+    "ratio": 1.111184,
+    "limit": 1.096491,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.004163,
+    "new": 0.004374,
+    "ratio": 1.050685,
+    "limit": 1.201057,
+    "change": "same"
+   }
+  },
+  {
+   "id": "start/oracle",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.007332,
+    "new": 0.008678,
+    "ratio": 1.183579,
+    "limit": 0.681942,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.006936,
+    "new": 0.007672,
+    "ratio": 1.106113,
+    "limit": 0.720877,
+    "change": "same"
+   }
+  },
+  {
+   "id": "start/postgres",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.007788,
+    "new": 0.008696,
+    "ratio": 1.11659,
+    "limit": 0.642013,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.007088,
+    "new": 0.007707,
+    "ratio": 1.087331,
+    "limit": 0.705418,
+    "change": "same"
+   }
+  },
+  {
+   "id": "start/redshift",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.00616,
+    "new": 0.005933,
+    "ratio": 0.963149,
+    "limit": 0.811688,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.005598,
+    "new": 0.005475,
+    "ratio": 0.978028,
+    "limit": 0.893176,
+    "change": "same"
+   }
+  },
+  {
+   "id": "start/snowflake",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.004749,
+    "new": 0.00472,
+    "ratio": 0.993893,
+    "limit": 1.052853,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.004316,
+    "new": 0.004334,
+    "ratio": 1.004171,
+    "limit": 1.15848,
+    "change": "same"
+   }
+  },
+  {
+   "id": "start/soql",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.00468,
+    "new": 0.004308,
+    "ratio": 0.920513,
+    "limit": 1.068376,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.004218,
+    "new": 0.003934,
+    "ratio": 0.93267,
+    "limit": 1.185396,
+    "change": "same"
+   }
+  },
+  {
+   "id": "start/sparksql",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.004521,
+    "new": 0.003945,
+    "ratio": 0.872595,
+    "limit": 1.10595,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.004117,
+    "new": 0.003668,
+    "ratio": 0.89094,
+    "limit": 1.214477,
+    "change": "same"
+   }
+  },
+  {
+   "id": "start/sqlite",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.005351,
+    "new": 0.004077,
+    "ratio": 0.761914,
+    "limit": 0.934405,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.00437,
+    "new": 0.003775,
+    "ratio": 0.863844,
+    "limit": 1.144165,
+    "change": "same"
+   }
+  },
+  {
+   "id": "start/starrocks",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.004591,
+    "new": 0.00466,
+    "ratio": 1.015029,
+    "limit": 1.089087,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.004185,
+    "new": 0.004206,
+    "ratio": 1.005018,
+    "limit": 1.194743,
+    "change": "same"
+   }
+  },
+  {
+   "id": "start/teradata",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.004137,
+    "new": 0.004461,
+    "ratio": 1.078318,
+    "limit": 1.208605,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.003825,
+    "new": 0.003918,
+    "ratio": 1.024314,
+    "limit": 1.30719,
+    "change": "same"
+   }
+  },
+  {
+   "id": "start/trino",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.004482,
+    "new": 0.004301,
+    "ratio": 0.959616,
+    "limit": 1.115573,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.003943,
+    "new": 0.003911,
+    "ratio": 0.991884,
+    "limit": 1.26807,
+    "change": "same"
+   }
+  },
+  {
+   "id": "start/tsql",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.008648,
+    "new": 0.009517,
+    "ratio": 1.100486,
+    "limit": 0.933047,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.007527,
+    "new": 0.007437,
+    "ratio": 0.988043,
+    "limit": 0.664275,
+    "change": "same"
+   }
+  },
+  {
+   "id": "start/vertica",
+   "tool": "sqll",
+   "base_status": "valid",
+   "new_status": "valid",
+   "reason": null,
+   "change": "same",
+   "wall": {
+    "base": 0.006837,
+    "new": 0.006464,
+    "ratio": 0.945444,
+    "limit": 0.731315,
+    "change": "same"
+   },
+   "cpu": {
+    "base": 0.006077,
+    "new": 0.005911,
+    "ratio": 0.972684,
+    "limit": 0.822774,
+    "change": "same"
+   }
+  }
+ ],
+ "only_base": [],
+ "only_new": [],
+ "totals": {
+  "sqll": {
+   "benchmarks": 112,
+   "wall_s": [
+    2.069659,
+    2.088736
+   ],
+   "cpu_s": [
+    1.918724,
+    1.922186
+   ],
+   "wall_ratio": 1.009217,
+   "cpu_ratio": 1.001804
+  }
+ },
+ "tool_totals": {
+  "tools": [
+   "sqll"
+  ],
+  "benchmarks": 112,
+  "excluded": [
+   {
+    "id": "fix/ansi/large",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/ansi/medium",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/ansi/small",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/athena/large",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/athena/medium",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/athena/small",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/bigquery/large",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/bigquery/medium",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/bigquery/small",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/clickhouse/large",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/clickhouse/medium",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/clickhouse/small",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/databricks/large",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/databricks/medium",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/databricks/small",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/db2/large",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/db2/medium",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/db2/small",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/doris/large",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/doris/medium",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/doris/small",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/duckdb/large",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/duckdb/medium",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/duckdb/small",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/exasol/large",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/exasol/medium",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/exasol/small",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/flink/large",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/flink/medium",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/flink/small",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/greenplum/large",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/greenplum/medium",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/greenplum/small",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/hive/large",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/hive/medium",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/hive/small",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/impala/large",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/impala/medium",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/impala/small",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/mariadb/large",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/mariadb/medium",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/mariadb/small",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/materialize/large",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/materialize/medium",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/materialize/small",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/mysql/large",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/mysql/medium",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/mysql/small",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/oracle/large",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/oracle/medium",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/oracle/small",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/postgres/large",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/postgres/medium",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/postgres/small",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/redshift/large",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/redshift/medium",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/redshift/small",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/snowflake/large",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/snowflake/medium",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/snowflake/small",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/soql/large",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/soql/medium",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/soql/small",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/sparksql/large",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/sparksql/medium",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/sparksql/small",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/sqlite/large",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/sqlite/medium",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/sqlite/small",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/starrocks/large",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/starrocks/medium",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/starrocks/small",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/teradata/large",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/teradata/medium",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/teradata/small",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/trino/large",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/trino/medium",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/trino/small",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/tsql/large",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/tsql/medium",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/tsql/small",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/vertica/large",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/vertica/medium",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "fix/vertica/small",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/ansi/large",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/ansi/medium",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/ansi/small",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/athena/large",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/athena/medium",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/athena/small",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/bigquery/large",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/bigquery/medium",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/bigquery/small",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/clickhouse/large",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/clickhouse/medium",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/clickhouse/small",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/databricks/large",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/databricks/medium",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/databricks/small",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/db2/large",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/db2/medium",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/db2/small",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/doris/large",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/doris/medium",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/doris/small",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/duckdb/large",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/duckdb/medium",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/duckdb/small",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/exasol/large",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/exasol/medium",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/exasol/small",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/flink/large",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/flink/medium",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/flink/small",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/greenplum/large",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/greenplum/medium",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/greenplum/small",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/hive/large",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/hive/medium",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/hive/small",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/impala/large",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/impala/medium",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/impala/small",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/mariadb/large",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/mariadb/medium",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/mariadb/small",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/materialize/large",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/materialize/medium",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/materialize/small",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/mysql/large",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/mysql/medium",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/mysql/small",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/oracle/large",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/oracle/medium",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/oracle/small",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/postgres/large",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/postgres/medium",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/postgres/small",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/redshift/large",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/redshift/medium",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/redshift/small",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/snowflake/large",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/snowflake/medium",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/snowflake/small",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/soql/large",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/soql/medium",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/soql/small",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/sparksql/large",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/sparksql/medium",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/sparksql/small",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/sqlite/large",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/sqlite/medium",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/sqlite/small",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/starrocks/large",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/starrocks/medium",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/starrocks/small",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/teradata/large",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/teradata/medium",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/teradata/small",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/trino/large",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/trino/medium",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/trino/small",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/tsql/large",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/tsql/medium",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/tsql/small",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/vertica/large",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/vertica/medium",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   },
+   {
+    "id": "lint/vertica/small",
+    "statuses": {
+     "sqll": "unsupported"
+    }
+   }
+  ],
+  "wall_s": {
+   "sqll": 2.088736
+  },
+  "cpu_s": {
+   "sqll": 1.922186
+  },
+  "pairs": []
+ },
+ "counts": {
+  "compared": 280,
+  "slower": 0,
+  "faster": 0,
+  "same": 112,
+  "failure": 0,
+  "status": 0,
+  "not_valid": 168
+ },
+ "ok": true
+}
