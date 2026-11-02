@@ -26,6 +26,11 @@ RECORDS = {
     "speed-by-base.json": ["results/s2/baseline.json"],
     "capabilities.json": ["results/s2/baseline.json"],
 }
+# The phase B records that read the live S1 and S2 files (not the frozen
+# copies): the S3 exit record (T20) is of the final sqll.
+LIVE = {
+    "exit.json": ["results/s2/baseline.json", "results/s1/summary.json"],
+}
 
 
 def sha256(path) -> str:
@@ -60,5 +65,10 @@ def test_no_record_cites_another_s1_or_s2_input():
         if not isinstance(inputs, dict):
             continue
         for rel in inputs:
-            if rel.startswith(("results/s1/", "results/s2/")):
+            if not rel.startswith(("results/s1/", "results/s2/")):
+                continue
+            if path.name in LIVE:
+                assert rel in LIVE[path.name], (path.name, rel)
+                assert inputs[rel] == sha256(REPO_ROOT / rel), (path.name, rel)
+            else:
                 assert rel in RECORDS.get(path.name, []), (path.name, rel)
