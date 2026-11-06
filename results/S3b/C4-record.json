@@ -1,0 +1,201 @@
+{
+ "kind": "sqll-s3b-c4-record",
+ "about": "Each number of docs/decisions/s3b-core.md and its source.",
+ "command": "uv run --frozen --project harness python scripts/s3b/core_design.py record",
+ "inputs": {
+  "tree": "results/S3b/C4-tree-cost.json",
+  "native": "results/s3/base-native-tests.json",
+  "s1": "results/s1/summary.json",
+  "tables": "crates/sqll_dialects/generated.json"
+ },
+ "values": {
+  "inputs": {
+   "kind": "copied",
+   "from": "results/S3b/C4-tree-cost.json",
+   "key": "data.inputs",
+   "value": 84,
+   "text": "84"
+  },
+  "dialects": {
+   "kind": "copied",
+   "from": "results/S3b/C4-tree-cost.json",
+   "key": "data.dialects",
+   "value": 28,
+   "text": "28"
+  },
+  "nodes": {
+   "kind": "copied",
+   "from": "results/S3b/C4-tree-cost.json",
+   "key": "data.totals.nodes",
+   "value": 280339,
+   "text": "280339"
+  },
+  "input_bytes": {
+   "kind": "copied",
+   "from": "results/S3b/C4-tree-cost.json",
+   "key": "data.totals.bytes",
+   "value": 601133,
+   "text": "601133"
+  },
+  "node_blocks": {
+   "kind": "copied",
+   "from": "results/S3b/C4-tree-cost.json",
+   "key": "data.totals.node_tree.blocks",
+   "value": 1806330,
+   "text": "1806330"
+  },
+  "node_bytes": {
+   "kind": "copied",
+   "from": "results/S3b/C4-tree-cost.json",
+   "key": "data.totals.node_tree.bytes",
+   "value": 100675110,
+   "text": "100.7"
+  },
+  "arena_blocks": {
+   "kind": "copied",
+   "from": "results/S3b/C4-tree-cost.json",
+   "key": "data.totals.arena.blocks",
+   "value": 1989881,
+   "text": "1989881"
+  },
+  "arena_bytes": {
+   "kind": "copied",
+   "from": "results/S3b/C4-tree-cost.json",
+   "key": "data.totals.arena.bytes",
+   "value": 196346090,
+   "text": "196.3"
+  },
+  "parse_blocks": {
+   "kind": "copied",
+   "from": "results/S3b/C4-tree-cost.json",
+   "key": "data.totals.parse.blocks",
+   "value": 14455867,
+   "text": "14455867"
+  },
+  "flat_bytes": {
+   "kind": "copied",
+   "from": "results/S3b/C4-tree-cost.json",
+   "key": "data.totals.flat_estimate.bytes",
+   "value": 8541353,
+   "text": "8.5"
+  },
+  "flat_blocks": {
+   "kind": "copied",
+   "from": "results/S3b/C4-tree-cost.json",
+   "key": "data.flat.blocks",
+   "value": 4,
+   "text": "4"
+  },
+  "record_bytes": {
+   "kind": "copied",
+   "from": "results/S3b/C4-tree-cost.json",
+   "key": "data.flat.node_record_bytes",
+   "value": 24,
+   "text": "24"
+  },
+  "observed_types": {
+   "kind": "copied",
+   "from": "results/S3b/C4-tree-cost.json",
+   "key": "data.types.observed",
+   "value": 665,
+   "text": "665"
+  },
+  "kind_names_bound": {
+   "kind": "copied",
+   "from": "results/S3b/C4-tree-cost.json",
+   "key": "data.types.table_strings_and_lexer_names",
+   "value": 9929,
+   "text": "9929"
+  },
+  "node_bytes_per_node": {
+   "kind": "derived",
+   "formula": "node_bytes / nodes",
+   "value": 359.1191735719968,
+   "text": "359"
+  },
+  "node_blocks_per_node": {
+   "kind": "derived",
+   "formula": "node_blocks / nodes",
+   "value": 6.443377482262546,
+   "text": "6.4"
+  },
+  "node_bytes_per_input_byte": {
+   "kind": "derived",
+   "formula": "node_bytes / input_bytes",
+   "value": 167.47560024154387,
+   "text": "167"
+  },
+  "node_over_flat": {
+   "kind": "derived",
+   "formula": "node_bytes / flat_bytes",
+   "value": 11.7867871752871,
+   "text": "12"
+  },
+  "tree_share_of_parse_blocks": {
+   "kind": "derived",
+   "formula": "node_blocks / parse_blocks, in percent",
+   "value": 12.495480208831474,
+   "text": "12%"
+  },
+  "u16_kinds": {
+   "kind": "derived",
+   "formula": "2 ** 16",
+   "value": 65536,
+   "text": "65536"
+  },
+  "native_tests": {
+   "kind": "copied",
+   "from": "results/s3/base-native-tests.json",
+   "key": "totals.tests",
+   "value": 162,
+   "text": "162"
+  },
+  "arena_tests": {
+   "kind": "derived",
+   "formula": "count of tests whose name starts with \"parser::arena::tests::\" in results/s3/base-native-tests.json",
+   "value": 8,
+   "text": "8"
+  },
+  "s1_exact": {
+   "kind": "copied",
+   "from": "results/s1/summary.json",
+   "key": "results.sqll.suites.dialects.checks.exact",
+   "value": 2306,
+   "text": "2306"
+  },
+  "s1_total": {
+   "kind": "copied",
+   "from": "results/s1/summary.json",
+   "key": "results.sqll.suites.dialects.total",
+   "value": 2306,
+   "text": "2306"
+  },
+  "table_files": {
+   "kind": "copied",
+   "from": "crates/sqll_dialects/generated.json",
+   "key": "files",
+   "value": 85,
+   "text": "85"
+  },
+  "table_sha256": {
+   "kind": "derived",
+   "formula": "sha256 of crates/sqll_dialects/generated.json (the tables part of the sqll version)",
+   "value": "5371ded8ae219be1a62cd34b1b793d36c41bc9fa432f344de5d84f48d2d059e8",
+   "text": "5371ded8ae21"
+  },
+  "runaway_limit": {
+   "kind": "copied",
+   "from": "third_party/sqlfluff/src/sqlfluff/core/default_config.cfg",
+   "key": "the line that matches ^runaway_limit = (\\d+)$",
+   "value": 10,
+   "text": "10"
+  },
+  "unsupported_exit_code": {
+   "kind": "copied",
+   "from": "crates/sqll/src/main.rs",
+   "key": "the line that matches ^const EXIT_ERROR: u8 = (\\d+);$",
+   "value": 2,
+   "text": "2"
+  }
+ }
+}

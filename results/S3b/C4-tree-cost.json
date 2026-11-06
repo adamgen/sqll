@@ -1,0 +1,2610 @@
+{
+ "kind": "sqll-s3b-c4-tree-cost",
+ "about": "The heap cost of the parser tree (Node) and of the Arena for the 84 S2 parse inputs, and a flat tree estimate. Counts of scripts/s3b/tree-cost: blocks and asked bytes. parse: the allocations of Parser::root_parse. node_tree: what a clone of the tree keeps. arena: what Arena::from_node keeps.",
+ "command": "uv run --frozen --project harness python scripts/s3b/core_design.py measure",
+ "commit": "60006dbf18b879ef8cee3589d6e033bccd8ed8a5",
+ "crates_clean": true,
+ "rustc": "rustc 1.97.0 (2d8144b78 2026-07-07)",
+ "data": {
+  "inputs": 84,
+  "dialects": 28,
+  "flat": {
+   "node_record_bytes": 24,
+   "node_record": "kind u16, flags u16, text start u32, text end u32, parent u32, children start u32, children end u32",
+   "child_id_bytes": 4,
+   "line_start_bytes": 4,
+   "blocks": 4,
+   "formula": "nodes * node_record_bytes + (nodes - 1) * child_id_bytes + bytes + (lines + 1) * line_start_bytes"
+  },
+  "totals": {
+   "bytes": 601133,
+   "lines": 22682,
+   "tokens": 183467,
+   "nodes": 280339,
+   "raw": 183383,
+   "segment": 71856,
+   "meta": 25100,
+   "unparsable": 0,
+   "parse": {
+    "blocks": 14455867,
+    "bytes": 1779820997
+   },
+   "node_tree": {
+    "blocks": 1806330,
+    "bytes": 100675110
+   },
+   "arena": {
+    "blocks": 1989881,
+    "bytes": 196346090
+   },
+   "flat_estimate": {
+    "blocks": 336,
+    "bytes": 8541353
+   }
+  },
+  "types": {
+   "observed": 665,
+   "observed_not_in_tables_or_lexers": [],
+   "table_strings_and_lexer_names": 9929,
+   "tables": {
+    "dialects": 28,
+    "lexer_names": 127,
+    "segment_and_class_types": 1108,
+    "segment_class_and_lexer_names": 1226,
+    "strings": 9895,
+    "strings_per_dialect": {
+     "ansi": 1709,
+     "athena": 1919,
+     "bigquery": 1475,
+     "clickhouse": 2172,
+     "databricks": 2355,
+     "db2": 2032,
+     "doris": 2642,
+     "duckdb": 2425,
+     "exasol": 1920,
+     "flink": 1832,
+     "greenplum": 2421,
+     "hive": 1918,
+     "impala": 2021,
+     "mariadb": 2541,
+     "materialize": 2392,
+     "mysql": 2436,
+     "oracle": 2508,
+     "postgres": 2333,
+     "redshift": 2794,
+     "snowflake": 3023,
+     "soql": 1696,
+     "sparksql": 2166,
+     "sqlite": 1025,
+     "starrocks": 2548,
+     "teradata": 1847,
+     "trino": 1151,
+     "tsql": 2925,
+     "vertica": 2188
+    }
+   }
+  },
+  "items": [
+   {
+    "input": "ansi/small",
+    "sha256": "699e67a77239aaad31c25d95ccec436b28cb42c1e7c19d1baec322cce1a467f7",
+    "bytes": 1019,
+    "lines": 46,
+    "tokens": 345,
+    "nodes": 489,
+    "raw": 344,
+    "segment": 116,
+    "meta": 29,
+    "unparsable": 0,
+    "max_depth": 8,
+    "parse": {
+     "blocks": 19609,
+     "bytes": 3576124,
+     "peak_bytes": 717451
+    },
+    "node_tree": {
+     "blocks": 3268,
+     "bytes": 177387
+    },
+    "arena": {
+     "blocks": 3614,
+     "bytes": 290011
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 14895
+    }
+   },
+   {
+    "input": "ansi/medium",
+    "sha256": "e216428122870ad7cdacbee9b7b9c1197541484ae86325059351dac13fb50a96",
+    "bytes": 4096,
+    "lines": 193,
+    "tokens": 1420,
+    "nodes": 2262,
+    "raw": 1419,
+    "segment": 610,
+    "meta": 233,
+    "unparsable": 0,
+    "max_depth": 12,
+    "parse": {
+     "blocks": 125320,
+     "bytes": 15539634,
+     "peak_bytes": 3400737
+    },
+    "node_tree": {
+     "blocks": 14071,
+     "bytes": 802217
+    },
+    "arena": {
+     "blocks": 15492,
+     "bytes": 1902357
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 68204
+    }
+   },
+   {
+    "input": "ansi/large",
+    "sha256": "03755acd42b085ead1c2c6a22f69dcc305e51d78b480927fe26ea0933e521535",
+    "bytes": 16377,
+    "lines": 742,
+    "tokens": 5624,
+    "nodes": 9118,
+    "raw": 5623,
+    "segment": 2580,
+    "meta": 915,
+    "unparsable": 0,
+    "max_depth": 14,
+    "parse": {
+     "blocks": 499215,
+     "bytes": 60053561,
+     "peak_bytes": 13630302
+    },
+    "node_tree": {
+     "blocks": 56577,
+     "bytes": 3232712
+    },
+    "arena": {
+     "blocks": 62202,
+     "bytes": 7613876
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 274649
+    }
+   },
+   {
+    "input": "athena/small",
+    "sha256": "3d09f9b73b7d34507744411cbae8ca9d9a1bc260d0223f0f375b927254f1c5dd",
+    "bytes": 1006,
+    "lines": 30,
+    "tokens": 320,
+    "nodes": 589,
+    "raw": 319,
+    "segment": 197,
+    "meta": 73,
+    "unparsable": 0,
+    "max_depth": 18,
+    "parse": {
+     "blocks": 30494,
+     "bytes": 4169803,
+     "peak_bytes": 961165
+    },
+    "node_tree": {
+     "blocks": 3454,
+     "bytes": 204787
+    },
+    "arena": {
+     "blocks": 3775,
+     "bytes": 473035
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 17618
+    }
+   },
+   {
+    "input": "athena/medium",
+    "sha256": "4a5b34b0a811f11f9954b80b8af50ecd4a1b1f0dd6b3570630884b8486a06dde",
+    "bytes": 4071,
+    "lines": 94,
+    "tokens": 1130,
+    "nodes": 1732,
+    "raw": 1129,
+    "segment": 468,
+    "meta": 135,
+    "unparsable": 0,
+    "max_depth": 18,
+    "parse": {
+     "blocks": 68502,
+     "bytes": 8807261,
+     "peak_bytes": 2600278
+    },
+    "node_tree": {
+     "blocks": 11428,
+     "bytes": 628882
+    },
+    "arena": {
+     "blocks": 12559,
+     "bytes": 1054022
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 52943
+    }
+   },
+   {
+    "input": "athena/large",
+    "sha256": "f39eadf15dabffd6b354b4424c0386e24209fc26d0a084a7d6a2078644a3b3cc",
+    "bytes": 16379,
+    "lines": 582,
+    "tokens": 5196,
+    "nodes": 8782,
+    "raw": 5195,
+    "segment": 2604,
+    "meta": 983,
+    "unparsable": 0,
+    "max_depth": 23,
+    "parse": {
+     "blocks": 431251,
+     "bytes": 51528046,
+     "peak_bytes": 13486446
+    },
+    "node_tree": {
+     "blocks": 54034,
+     "bytes": 3111071
+    },
+    "arena": {
+     "blocks": 59231,
+     "bytes": 7554411
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 264603
+    }
+   },
+   {
+    "input": "bigquery/small",
+    "sha256": "ed5ec064142d0df93142adcc21c0013290cab57684c36555dae224ef4d1f4fd0",
+    "bytes": 1016,
+    "lines": 40,
+    "tokens": 314,
+    "nodes": 419,
+    "raw": 313,
+    "segment": 83,
+    "meta": 23,
+    "unparsable": 0,
+    "max_depth": 10,
+    "parse": {
+     "blocks": 22766,
+     "bytes": 3859072,
+     "peak_bytes": 799035
+    },
+    "node_tree": {
+     "blocks": 2903,
+     "bytes": 155158
+    },
+    "arena": {
+     "blocks": 3218,
+     "bytes": 266166
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 12908
+    }
+   },
+   {
+    "input": "bigquery/medium",
+    "sha256": "8a5affd2daecf369f39a2d55e99bd7c5d68aab3c189eb40976735a6cfc43f1a2",
+    "bytes": 4096,
+    "lines": 142,
+    "tokens": 1182,
+    "nodes": 1622,
+    "raw": 1181,
+    "segment": 322,
+    "meta": 119,
+    "unparsable": 0,
+    "max_depth": 18,
+    "parse": {
+     "blocks": 74453,
+     "bytes": 10151978,
+     "peak_bytes": 2570689
+    },
+    "node_tree": {
+     "blocks": 11024,
+     "bytes": 596002
+    },
+    "arena": {
+     "blocks": 12207,
+     "bytes": 1049182
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 50080
+    }
+   },
+   {
+    "input": "bigquery/large",
+    "sha256": "5f9536be50db6b0bdf90e2e6660fa6e1a975f0e2b7e2a833fb1386c06d415f9e",
+    "bytes": 16373,
+    "lines": 649,
+    "tokens": 4813,
+    "nodes": 7569,
+    "raw": 4812,
+    "segment": 1890,
+    "meta": 867,
+    "unparsable": 0,
+    "max_depth": 19,
+    "parse": {
+     "blocks": 342664,
+     "bytes": 41473823,
+     "peak_bytes": 11113521
+    },
+    "node_tree": {
+     "blocks": 47045,
+     "bytes": 2699599
+    },
+    "arena": {
+     "blocks": 51859,
+     "bytes": 4530303
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 230901
+    }
+   },
+   {
+    "input": "clickhouse/small",
+    "sha256": "5b944c97db51f195be043ed30cc9be1d834ceee0bfef87c56979697d9b5e347b",
+    "bytes": 1021,
+    "lines": 49,
+    "tokens": 410,
+    "nodes": 840,
+    "raw": 409,
+    "segment": 300,
+    "meta": 131,
+    "unparsable": 0,
+    "max_depth": 11,
+    "parse": {
+     "blocks": 47298,
+     "bytes": 6442265,
+     "peak_bytes": 1305180
+    },
+    "node_tree": {
+     "blocks": 4612,
+     "bytes": 286370
+    },
+    "arena": {
+     "blocks": 5023,
+     "bytes": 498982
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 24737
+    }
+   },
+   {
+    "input": "clickhouse/medium",
+    "sha256": "75e621f664c158ecf4a28929e4c9ce8a28e8bba120c7b7cc20f676ce3c2dec89",
+    "bytes": 4075,
+    "lines": 119,
+    "tokens": 1193,
+    "nodes": 1917,
+    "raw": 1192,
+    "segment": 530,
+    "meta": 195,
+    "unparsable": 0,
+    "max_depth": 15,
+    "parse": {
+     "blocks": 91129,
+     "bytes": 11515104,
+     "peak_bytes": 2868729
+    },
+    "node_tree": {
+     "blocks": 12225,
+     "bytes": 689104
+    },
+    "arena": {
+     "blocks": 13419,
+     "bytes": 1140688
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 58227
+    }
+   },
+   {
+    "input": "clickhouse/large",
+    "sha256": "dbaf710fe7be44d6c7ed3ce6364da9f63aa6fd3fa167494761345c7382ef6563",
+    "bytes": 16383,
+    "lines": 373,
+    "tokens": 4250,
+    "nodes": 6388,
+    "raw": 4249,
+    "segment": 1664,
+    "meta": 475,
+    "unparsable": 0,
+    "max_depth": 15,
+    "parse": {
+     "blocks": 322104,
+     "bytes": 38561943,
+     "peak_bytes": 10197645
+    },
+    "node_tree": {
+     "blocks": 42773,
+     "bytes": 2335484
+    },
+    "arena": {
+     "blocks": 47024,
+     "bytes": 4152048
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 196739
+    }
+   },
+   {
+    "input": "databricks/small",
+    "sha256": "e76356ee22c59734ccf434780216c6f74d9c88955f51c3063732834151402834",
+    "bytes": 1022,
+    "lines": 36,
+    "tokens": 216,
+    "nodes": 289,
+    "raw": 215,
+    "segment": 61,
+    "meta": 13,
+    "unparsable": 0,
+    "max_depth": 8,
+    "parse": {
+     "blocks": 12998,
+     "bytes": 2766398,
+     "peak_bytes": 495723
+    },
+    "node_tree": {
+     "blocks": 2073,
+     "bytes": 108192
+    },
+    "arena": {
+     "blocks": 2290,
+     "bytes": 245960
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 9258
+    }
+   },
+   {
+    "input": "databricks/medium",
+    "sha256": "bb4fb13ad093a249e9c193ee06a6ccfe54aca246412e930e403e4211b7da91eb",
+    "bytes": 4062,
+    "lines": 119,
+    "tokens": 980,
+    "nodes": 1300,
+    "raw": 979,
+    "segment": 264,
+    "meta": 57,
+    "unparsable": 0,
+    "max_depth": 9,
+    "parse": {
+     "blocks": 52255,
+     "bytes": 7325352,
+     "peak_bytes": 2032979
+    },
+    "node_tree": {
+     "blocks": 9343,
+     "bytes": 487377
+    },
+    "arena": {
+     "blocks": 10324,
+     "bytes": 1008469
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 40938
+    }
+   },
+   {
+    "input": "databricks/large",
+    "sha256": "afa23b1484b0e2c1ab45fbb76a3d3b893755308be58029f0b9f012bb6032d030",
+    "bytes": 16350,
+    "lines": 583,
+    "tokens": 4037,
+    "nodes": 5850,
+    "raw": 4036,
+    "segment": 1329,
+    "meta": 485,
+    "unparsable": 0,
+    "max_depth": 15,
+    "parse": {
+     "blocks": 242252,
+     "bytes": 29959365,
+     "peak_bytes": 8918763
+    },
+    "node_tree": {
+     "blocks": 39049,
+     "bytes": 2130470
+    },
+    "arena": {
+     "blocks": 43087,
+     "bytes": 4065482
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 182482
+    }
+   },
+   {
+    "input": "db2/small",
+    "sha256": "29433b023dc0a6437afc97e038cf80204cea2c4b85d1413ffffd4583d82b93a9",
+    "bytes": 1008,
+    "lines": 47,
+    "tokens": 240,
+    "nodes": 346,
+    "raw": 239,
+    "segment": 88,
+    "meta": 19,
+    "unparsable": 0,
+    "max_depth": 8,
+    "parse": {
+     "blocks": 20224,
+     "bytes": 3883535,
+     "peak_bytes": 684087
+    },
+    "node_tree": {
+     "blocks": 2348,
+     "bytes": 126288
+    },
+    "arena": {
+     "blocks": 2589,
+     "bytes": 251564
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 10884
+    }
+   },
+   {
+    "input": "db2/medium",
+    "sha256": "b87fa030bda13935721560b31b6242357cb051e020a9c5ab281bbba57ed86d05",
+    "bytes": 4063,
+    "lines": 163,
+    "tokens": 1180,
+    "nodes": 1692,
+    "raw": 1179,
+    "segment": 374,
+    "meta": 139,
+    "unparsable": 0,
+    "max_depth": 12,
+    "parse": {
+     "blocks": 76680,
+     "bytes": 10352522,
+     "peak_bytes": 2527876
+    },
+    "node_tree": {
+     "blocks": 11235,
+     "bytes": 613876
+    },
+    "arena": {
+     "blocks": 12416,
+     "bytes": 1050456
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 52091
+    }
+   },
+   {
+    "input": "db2/large",
+    "sha256": "f21dce47ddd91382a79d4e9eb800aa48b786ca6671912dd3ced5dddca0f1bdf2",
+    "bytes": 16383,
+    "lines": 874,
+    "tokens": 5305,
+    "nodes": 8179,
+    "raw": 5304,
+    "segment": 2090,
+    "meta": 785,
+    "unparsable": 0,
+    "max_depth": 12,
+    "parse": {
+     "blocks": 493609,
+     "bytes": 58566444,
+     "peak_bytes": 13108654
+    },
+    "node_tree": {
+     "blocks": 51950,
+     "bytes": 2914184
+    },
+    "arena": {
+     "blocks": 57256,
+     "bytes": 4620608
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 248891
+    }
+   },
+   {
+    "input": "doris/small",
+    "sha256": "a987cb6785d985539b0c69e21bdc5f61f49f7cd76f6b2b4aadef5a793fb7fd3e",
+    "bytes": 1015,
+    "lines": 46,
+    "tokens": 280,
+    "nodes": 414,
+    "raw": 279,
+    "segment": 100,
+    "meta": 35,
+    "unparsable": 0,
+    "max_depth": 9,
+    "parse": {
+     "blocks": 28813,
+     "bytes": 4943479,
+     "peak_bytes": 1093869
+    },
+    "node_tree": {
+     "blocks": 2702,
+     "bytes": 149352
+    },
+    "arena": {
+     "blocks": 2983,
+     "bytes": 260180
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 12791
+    }
+   },
+   {
+    "input": "doris/medium",
+    "sha256": "2815b81215ddc83c3f0dbc9bf43ddcbdec6f936bcfbfc73fbacaf847898be4e0",
+    "bytes": 4092,
+    "lines": 176,
+    "tokens": 1196,
+    "nodes": 1708,
+    "raw": 1195,
+    "segment": 390,
+    "meta": 123,
+    "unparsable": 0,
+    "max_depth": 9,
+    "parse": {
+     "blocks": 76688,
+     "bytes": 10336945,
+     "peak_bytes": 2623154
+    },
+    "node_tree": {
+     "blocks": 11528,
+     "bytes": 624119
+    },
+    "arena": {
+     "blocks": 12725,
+     "bytes": 1057563
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 52620
+    }
+   },
+   {
+    "input": "doris/large",
+    "sha256": "94f9fbfa6389e0de5c8fc3fc2d03f02b82b8aaaa524f8fdf6c27816df2e69be2",
+    "bytes": 16380,
+    "lines": 712,
+    "tokens": 5074,
+    "nodes": 7281,
+    "raw": 5073,
+    "segment": 1623,
+    "meta": 585,
+    "unparsable": 0,
+    "max_depth": 10,
+    "parse": {
+     "blocks": 278360,
+     "bytes": 33164990,
+     "peak_bytes": 9935179
+    },
+    "node_tree": {
+     "blocks": 48215,
+     "bytes": 2639356
+    },
+    "arena": {
+     "blocks": 53290,
+     "bytes": 4548468
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 223096
+    }
+   },
+   {
+    "input": "duckdb/small",
+    "sha256": "b34707c1c39fc303baa6a97bdd5951e68bd1d60a1f7e16d5d06a1f03d686933a",
+    "bytes": 985,
+    "lines": 35,
+    "tokens": 319,
+    "nodes": 562,
+    "raw": 318,
+    "segment": 171,
+    "meta": 73,
+    "unparsable": 0,
+    "max_depth": 9,
+    "parse": {
+     "blocks": 61789,
+     "bytes": 8747811,
+     "peak_bytes": 1391548
+    },
+    "node_tree": {
+     "blocks": 3280,
+     "bytes": 194910
+    },
+    "arena": {
+     "blocks": 3600,
+     "bytes": 469490
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 16861
+    }
+   },
+   {
+    "input": "duckdb/medium",
+    "sha256": "fe0e329933fcf663cc1c04f9d56936dabb8cd56f3662e198e8499c7a5cc893a7",
+    "bytes": 4017,
+    "lines": 153,
+    "tokens": 1256,
+    "nodes": 2142,
+    "raw": 1255,
+    "segment": 574,
+    "meta": 313,
+    "unparsable": 0,
+    "max_depth": 10,
+    "parse": {
+     "blocks": 163418,
+     "bytes": 18455659,
+     "peak_bytes": 3939242
+    },
+    "node_tree": {
+     "blocks": 12710,
+     "bytes": 749182
+    },
+    "arena": {
+     "blocks": 13967,
+     "bytes": 1871082
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 64605
+    }
+   },
+   {
+    "input": "duckdb/large",
+    "sha256": "e3b974329d6a25b34b5f1cd7ed5385f894dd8621f2f18bc8df61e8de4f728a77",
+    "bytes": 16379,
+    "lines": 633,
+    "tokens": 5204,
+    "nodes": 8833,
+    "raw": 5203,
+    "segment": 2461,
+    "meta": 1169,
+    "unparsable": 0,
+    "max_depth": 17,
+    "parse": {
+     "blocks": 560257,
+     "bytes": 64963650,
+     "peak_bytes": 14465691
+    },
+    "node_tree": {
+     "blocks": 53028,
+     "bytes": 3099993
+    },
+    "arena": {
+     "blocks": 58233,
+     "bytes": 7531617
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 266235
+    }
+   },
+   {
+    "input": "exasol/small",
+    "sha256": "82302959855b461d7d8849436e01f968375f37da62f181817f2495f1990e21e4",
+    "bytes": 1015,
+    "lines": 27,
+    "tokens": 306,
+    "nodes": 403,
+    "raw": 305,
+    "segment": 87,
+    "meta": 11,
+    "unparsable": 0,
+    "max_depth": 9,
+    "parse": {
+     "blocks": 50134,
+     "bytes": 5741464,
+     "peak_bytes": 2121051
+    },
+    "node_tree": {
+     "blocks": 2915,
+     "bytes": 151105
+    },
+    "arena": {
+     "blocks": 3222,
+     "bytes": 265569
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 12407
+    }
+   },
+   {
+    "input": "exasol/medium",
+    "sha256": "61cc325ce911f13170f612aa525471c00f04edfea8f0dc0b858cffee8f664b2d",
+    "bytes": 4083,
+    "lines": 103,
+    "tokens": 1253,
+    "nodes": 1740,
+    "raw": 1252,
+    "segment": 457,
+    "meta": 31,
+    "unparsable": 0,
+    "max_depth": 11,
+    "parse": {
+     "blocks": 97938,
+     "bytes": 11174085,
+     "peak_bytes": 2997079
+    },
+    "node_tree": {
+     "blocks": 12172,
+     "bytes": 643333
+    },
+    "arena": {
+     "blocks": 13426,
+     "bytes": 1071505
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 53215
+    }
+   },
+   {
+    "input": "exasol/large",
+    "sha256": "51c7cf8f1beffb079e6cd48f856d4d1c115d67a57b348900faf134f9534cc9f4",
+    "bytes": 16369,
+    "lines": 542,
+    "tokens": 5280,
+    "nodes": 7656,
+    "raw": 5279,
+    "segment": 1838,
+    "meta": 539,
+    "unparsable": 0,
+    "max_depth": 15,
+    "parse": {
+     "blocks": 315206,
+     "bytes": 37438445,
+     "peak_bytes": 10710563
+    },
+    "node_tree": {
+     "blocks": 50843,
+     "bytes": 2772331
+    },
+    "arena": {
+     "blocks": 56124,
+     "bytes": 4601183
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 232905
+    }
+   },
+   {
+    "input": "flink/small",
+    "sha256": "b4915ac7d8956c244e83cdd95797fa64aca4adc7e35f96593d2c3dbcf4001357",
+    "bytes": 1008,
+    "lines": 48,
+    "tokens": 334,
+    "nodes": 459,
+    "raw": 333,
+    "segment": 91,
+    "meta": 35,
+    "unparsable": 0,
+    "max_depth": 10,
+    "parse": {
+     "blocks": 23777,
+     "bytes": 3637512,
+     "peak_bytes": 848540
+    },
+    "node_tree": {
+     "blocks": 3194,
+     "bytes": 169172
+    },
+    "arena": {
+     "blocks": 3529,
+     "bytes": 288436
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 14052
+    }
+   },
+   {
+    "input": "flink/medium",
+    "sha256": "7752b7fe5addec0c6e069e48d754f0944d7a6195abcfdc639d1789b5e31538db",
+    "bytes": 4083,
+    "lines": 189,
+    "tokens": 1247,
+    "nodes": 1838,
+    "raw": 1246,
+    "segment": 441,
+    "meta": 151,
+    "unparsable": 0,
+    "max_depth": 16,
+    "parse": {
+     "blocks": 80357,
+     "bytes": 10106096,
+     "peak_bytes": 2813367
+    },
+    "node_tree": {
+     "blocks": 12238,
+     "bytes": 667720
+    },
+    "arena": {
+     "blocks": 13486,
+     "bytes": 1140108
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 56303
+    }
+   },
+   {
+    "input": "flink/large",
+    "sha256": "752b536fa12f9669fd1999b843bf50441a2b4b7310251efdaa755627e14f19c0",
+    "bytes": 16382,
+    "lines": 752,
+    "tokens": 4905,
+    "nodes": 7242,
+    "raw": 4904,
+    "segment": 1751,
+    "meta": 587,
+    "unparsable": 0,
+    "max_depth": 16,
+    "parse": {
+     "blocks": 302164,
+     "bytes": 35815545,
+     "peak_bytes": 10593387
+    },
+    "node_tree": {
+     "blocks": 48123,
+     "bytes": 2629851
+    },
+    "arena": {
+     "blocks": 53029,
+     "bytes": 4541407
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 222166
+    }
+   },
+   {
+    "input": "greenplum/small",
+    "sha256": "5a77e243f07d440cb438744aee73344df810303ea25db8cc3cec048f295e27a0",
+    "bytes": 1021,
+    "lines": 48,
+    "tokens": 323,
+    "nodes": 529,
+    "raw": 322,
+    "segment": 168,
+    "meta": 39,
+    "unparsable": 0,
+    "max_depth": 13,
+    "parse": {
+     "blocks": 39284,
+     "bytes": 5634008,
+     "peak_bytes": 1089501
+    },
+    "node_tree": {
+     "blocks": 3310,
+     "bytes": 187130
+    },
+    "arena": {
+     "blocks": 3634,
+     "bytes": 469658
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 16025
+    }
+   },
+   {
+    "input": "greenplum/medium",
+    "sha256": "cd92383bcaba881b73c48724e7b8ace81021938c2f100490fc449855552dcb8e",
+    "bytes": 4081,
+    "lines": 161,
+    "tokens": 1158,
+    "nodes": 1597,
+    "raw": 1157,
+    "segment": 315,
+    "meta": 125,
+    "unparsable": 0,
+    "max_depth": 13,
+    "parse": {
+     "blocks": 81499,
+     "bytes": 10842313,
+     "peak_bytes": 2594048
+    },
+    "node_tree": {
+     "blocks": 11120,
+     "bytes": 588829
+    },
+    "arena": {
+     "blocks": 12279,
+     "bytes": 1046949
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 49441
+    }
+   },
+   {
+    "input": "greenplum/large",
+    "sha256": "0354f3ff1c54727920038d89de2fd79ebecd8bdc86528d42f1cc6c6b1b5ff7ca",
+    "bytes": 16378,
+    "lines": 691,
+    "tokens": 5210,
+    "nodes": 7593,
+    "raw": 5209,
+    "segment": 1617,
+    "meta": 767,
+    "unparsable": 0,
+    "max_depth": 13,
+    "parse": {
+     "blocks": 302228,
+     "bytes": 35369860,
+     "peak_bytes": 10252848
+    },
+    "node_tree": {
+     "blocks": 49296,
+     "bytes": 2715801
+    },
+    "arena": {
+     "blocks": 54507,
+     "bytes": 4556721
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 231746
+    }
+   },
+   {
+    "input": "hive/small",
+    "sha256": "0572e491b66e522cab52ef7a29efa07e4d5c1c958d26eb285bd890588cb0f322",
+    "bytes": 1017,
+    "lines": 43,
+    "tokens": 374,
+    "nodes": 606,
+    "raw": 373,
+    "segment": 166,
+    "meta": 67,
+    "unparsable": 0,
+    "max_depth": 16,
+    "parse": {
+     "blocks": 35813,
+     "bytes": 4916980,
+     "peak_bytes": 1069676
+    },
+    "node_tree": {
+     "blocks": 3818,
+     "bytes": 216506
+    },
+    "arena": {
+     "blocks": 4193,
+     "bytes": 482902
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 18157
+    }
+   },
+   {
+    "input": "hive/medium",
+    "sha256": "5ac0eb914ff5e282a737d3319de0154985eacc0d97eca266725ae5a682176bd9",
+    "bytes": 4096,
+    "lines": 156,
+    "tokens": 1334,
+    "nodes": 1989,
+    "raw": 1333,
+    "segment": 481,
+    "meta": 175,
+    "unparsable": 0,
+    "max_depth": 16,
+    "parse": {
+     "blocks": 82407,
+     "bytes": 10003103,
+     "peak_bytes": 2851840
+    },
+    "node_tree": {
+     "blocks": 13030,
+     "bytes": 717379
+    },
+    "arena": {
+     "blocks": 14365,
+     "bytes": 1157611
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 60412
+    }
+   },
+   {
+    "input": "hive/large",
+    "sha256": "c32bfce5018f142defdf34a7d56a4f608fab39d0f8825e88023e5ec3196001d4",
+    "bytes": 16378,
+    "lines": 653,
+    "tokens": 5666,
+    "nodes": 9343,
+    "raw": 5665,
+    "segment": 2625,
+    "meta": 1053,
+    "unparsable": 0,
+    "max_depth": 17,
+    "parse": {
+     "blocks": 463445,
+     "bytes": 53732383,
+     "peak_bytes": 14055924
+    },
+    "node_tree": {
+     "blocks": 57641,
+     "bytes": 3306908
+    },
+    "arena": {
+     "blocks": 63308,
+     "bytes": 7636652
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 280594
+    }
+   },
+   {
+    "input": "impala/small",
+    "sha256": "887324d98491c4a033d23a134e85ff56ad6e8ea61cc7966bb00ca5355b8ddd94",
+    "bytes": 1001,
+    "lines": 46,
+    "tokens": 368,
+    "nodes": 533,
+    "raw": 367,
+    "segment": 131,
+    "meta": 35,
+    "unparsable": 0,
+    "max_depth": 9,
+    "parse": {
+     "blocks": 53775,
+     "bytes": 6109624,
+     "peak_bytes": 1994987
+    },
+    "node_tree": {
+     "blocks": 3575,
+     "bytes": 194309
+    },
+    "arena": {
+     "blocks": 3944,
+     "bytes": 477693
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 16109
+    }
+   },
+   {
+    "input": "impala/medium",
+    "sha256": "5b40f408030e93158c175223a7318ac02b9ac681d0917ca0b8c43c2c5a15b189",
+    "bytes": 4056,
+    "lines": 132,
+    "tokens": 1617,
+    "nodes": 2610,
+    "raw": 1616,
+    "segment": 717,
+    "meta": 277,
+    "unparsable": 0,
+    "max_depth": 9,
+    "parse": {
+     "blocks": 163843,
+     "bytes": 17925361,
+     "peak_bytes": 4239848
+    },
+    "node_tree": {
+     "blocks": 16278,
+     "bytes": 929625
+    },
+    "arena": {
+     "blocks": 17896,
+     "bytes": 1955517
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 77664
+    }
+   },
+   {
+    "input": "impala/large",
+    "sha256": "08cb52920ddab826a6f09b5d6bdf65b707147153dfb74f25c4dda82eecc4afd5",
+    "bytes": 16373,
+    "lines": 518,
+    "tokens": 6588,
+    "nodes": 10726,
+    "raw": 6587,
+    "segment": 2934,
+    "meta": 1205,
+    "unparsable": 0,
+    "max_depth": 9,
+    "parse": {
+     "blocks": 572520,
+     "bytes": 63120803,
+     "peak_bytes": 15794001
+    },
+    "node_tree": {
+     "blocks": 66511,
+     "bytes": 3813539
+    },
+    "arena": {
+     "blocks": 73100,
+     "bytes": 7853775
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 318773
+    }
+   },
+   {
+    "input": "mariadb/small",
+    "sha256": "fb52377c1a914165caad84ebc37d3855b2a5f6ea1b20fdf3f346a92a6c4e4114",
+    "bytes": 1024,
+    "lines": 49,
+    "tokens": 295,
+    "nodes": 408,
+    "raw": 294,
+    "segment": 97,
+    "meta": 17,
+    "unparsable": 0,
+    "max_depth": 9,
+    "parse": {
+     "blocks": 35499,
+     "bytes": 5247587,
+     "peak_bytes": 1352375
+    },
+    "node_tree": {
+     "blocks": 2807,
+     "bytes": 149503
+    },
+    "arena": {
+     "blocks": 3103,
+     "bytes": 262347
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 12644
+    }
+   },
+   {
+    "input": "mariadb/medium",
+    "sha256": "44d19d788a1d143c9eeb48bddbbe0e94ad9b95f95082b08f2011296a9447d9eb",
+    "bytes": 4094,
+    "lines": 117,
+    "tokens": 1073,
+    "nodes": 1420,
+    "raw": 1072,
+    "segment": 293,
+    "meta": 55,
+    "unparsable": 0,
+    "max_depth": 7,
+    "parse": {
+     "blocks": 74613,
+     "bytes": 10012241,
+     "peak_bytes": 2444821
+    },
+    "node_tree": {
+     "blocks": 10516,
+     "bytes": 537972
+    },
+    "arena": {
+     "blocks": 11590,
+     "bytes": 1034464
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 44322
+    }
+   },
+   {
+    "input": "mariadb/large",
+    "sha256": "17029201b12857e2394977ef9a7e260d659d00b205e784afd1ddfe00e2ec0209",
+    "bytes": 16381,
+    "lines": 569,
+    "tokens": 4921,
+    "nodes": 6916,
+    "raw": 4920,
+    "segment": 1649,
+    "meta": 347,
+    "unparsable": 0,
+    "max_depth": 13,
+    "parse": {
+     "blocks": 304142,
+     "bytes": 38320306,
+     "peak_bytes": 10191966
+    },
+    "node_tree": {
+     "blocks": 48186,
+     "bytes": 2557286
+    },
+    "arena": {
+     "blocks": 53108,
+     "bytes": 4276082
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 212305
+    }
+   },
+   {
+    "input": "materialize/small",
+    "sha256": "f4b0508ed2268ba497b7f8cec7fc07e30b10ac7958c2a83dedf4fe8a5646f3ef",
+    "bytes": 1014,
+    "lines": 60,
+    "tokens": 340,
+    "nodes": 444,
+    "raw": 339,
+    "segment": 100,
+    "meta": 5,
+    "unparsable": 0,
+    "max_depth": 5,
+    "parse": {
+     "blocks": 24536,
+     "bytes": 3646153,
+     "peak_bytes": 852803
+    },
+    "node_tree": {
+     "blocks": 3128,
+     "bytes": 162780
+    },
+    "arena": {
+     "blocks": 3469,
+     "bytes": 268928
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 13686
+    }
+   },
+   {
+    "input": "materialize/medium",
+    "sha256": "7eec122b2fdfd57ae0b865f878b5c7d46bb5934e9f9b3df3ecfaf44b809ebdb8",
+    "bytes": 4087,
+    "lines": 154,
+    "tokens": 1318,
+    "nodes": 1737,
+    "raw": 1317,
+    "segment": 317,
+    "meta": 103,
+    "unparsable": 0,
+    "max_depth": 10,
+    "parse": {
+     "blocks": 67257,
+     "bytes": 9078836,
+     "peak_bytes": 2445206
+    },
+    "node_tree": {
+     "blocks": 11784,
+     "bytes": 623870
+    },
+    "arena": {
+     "blocks": 13103,
+     "bytes": 1055350
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 53339
+    }
+   },
+   {
+    "input": "materialize/large",
+    "sha256": "e4d96a14fbba594736949fb3e4be9357eaae887ab9349765c47e17b5ebe6d8f0",
+    "bytes": 16381,
+    "lines": 615,
+    "tokens": 5262,
+    "nodes": 6984,
+    "raw": 5261,
+    "segment": 1282,
+    "meta": 441,
+    "unparsable": 0,
+    "max_depth": 19,
+    "parse": {
+     "blocks": 283520,
+     "bytes": 34076475,
+     "peak_bytes": 9373346
+    },
+    "node_tree": {
+     "blocks": 47394,
+     "bytes": 2514183
+    },
+    "arena": {
+     "blocks": 52657,
+     "bytes": 4230571
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 214393
+    }
+   },
+   {
+    "input": "mysql/small",
+    "sha256": "ae4d2a3b6c091608131e06af9387b952131bdc01e251d1a10e9b1c2c9586a667",
+    "bytes": 1024,
+    "lines": 56,
+    "tokens": 307,
+    "nodes": 408,
+    "raw": 306,
+    "segment": 93,
+    "meta": 9,
+    "unparsable": 0,
+    "max_depth": 7,
+    "parse": {
+     "blocks": 39566,
+     "bytes": 6353642,
+     "peak_bytes": 1334759
+    },
+    "node_tree": {
+     "blocks": 2872,
+     "bytes": 150145
+    },
+    "arena": {
+     "blocks": 3180,
+     "bytes": 263469
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 12672
+    }
+   },
+   {
+    "input": "mysql/medium",
+    "sha256": "556e3264c025302422a6441cef37bf52067ac36a95e70b7f8d28b409049c5c4c",
+    "bytes": 4094,
+    "lines": 175,
+    "tokens": 1305,
+    "nodes": 1929,
+    "raw": 1304,
+    "segment": 516,
+    "meta": 109,
+    "unparsable": 0,
+    "max_depth": 13,
+    "parse": {
+     "blocks": 111844,
+     "bytes": 15335313,
+     "peak_bytes": 3247900
+    },
+    "node_tree": {
+     "blocks": 12806,
+     "bytes": 699315
+    },
+    "arena": {
+     "blocks": 14112,
+     "bytes": 1152547
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 58806
+    }
+   },
+   {
+    "input": "mysql/large",
+    "sha256": "d22b71d2984418da325cb03b1a1773fe3b19254a66b7e6d5fe1d454d2ddbf296",
+    "bytes": 16377,
+    "lines": 625,
+    "tokens": 5407,
+    "nodes": 7985,
+    "raw": 5406,
+    "segment": 2060,
+    "meta": 519,
+    "unparsable": 0,
+    "max_depth": 15,
+    "parse": {
+     "blocks": 365446,
+     "bytes": 45885186,
+     "peak_bytes": 11397215
+    },
+    "node_tree": {
+     "blocks": 53233,
+     "bytes": 2903741
+    },
+    "arena": {
+     "blocks": 58641,
+     "bytes": 4660029
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 242457
+    }
+   },
+   {
+    "input": "oracle/small",
+    "sha256": "d243d285cbab88fa9859b998ee793a18dc87b8f0a63534a806b01fa86a1171fc",
+    "bytes": 1016,
+    "lines": 33,
+    "tokens": 276,
+    "nodes": 348,
+    "raw": 275,
+    "segment": 68,
+    "meta": 5,
+    "unparsable": 0,
+    "max_depth": 9,
+    "parse": {
+     "blocks": 33962,
+     "bytes": 4938736,
+     "peak_bytes": 1181231
+    },
+    "node_tree": {
+     "blocks": 2495,
+     "bytes": 129317
+    },
+    "arena": {
+     "blocks": 2772,
+     "bytes": 255561
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 10892
+    }
+   },
+   {
+    "input": "oracle/medium",
+    "sha256": "339c5d919f04223061de4ee2404ce5fb868ac93dd1ae63a3b42a683bdd623f35",
+    "bytes": 4092,
+    "lines": 145,
+    "tokens": 1245,
+    "nodes": 1828,
+    "raw": 1244,
+    "segment": 457,
+    "meta": 127,
+    "unparsable": 0,
+    "max_depth": 13,
+    "parse": {
+     "blocks": 136759,
+     "bytes": 16776538,
+     "peak_bytes": 3317752
+    },
+    "node_tree": {
+     "blocks": 12011,
+     "bytes": 661886
+    },
+    "arena": {
+     "blocks": 13257,
+     "bytes": 1136554
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 55856
+    }
+   },
+   {
+    "input": "oracle/large",
+    "sha256": "4da895cf2a5ca55d5a4cbc33dda0c7a6d2998d434b146a6a5b03135bab0aef0a",
+    "bytes": 16367,
+    "lines": 636,
+    "tokens": 4509,
+    "nodes": 6679,
+    "raw": 4508,
+    "segment": 1662,
+    "meta": 509,
+    "unparsable": 0,
+    "max_depth": 17,
+    "parse": {
+     "blocks": 451896,
+     "bytes": 52300919,
+     "peak_bytes": 11422141
+    },
+    "node_tree": {
+     "blocks": 43610,
+     "bytes": 2409185
+    },
+    "arena": {
+     "blocks": 48120,
+     "bytes": 4167433
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 205923
+    }
+   },
+   {
+    "input": "postgres/small",
+    "sha256": "a7d11e6f31be2f2ec8bf80f57d5d51baeda1b089290653ad83538b7cba7d2a7f",
+    "bytes": 1016,
+    "lines": 31,
+    "tokens": 318,
+    "nodes": 441,
+    "raw": 317,
+    "segment": 101,
+    "meta": 23,
+    "unparsable": 0,
+    "max_depth": 11,
+    "parse": {
+     "blocks": 33539,
+     "bytes": 5227935,
+     "peak_bytes": 993336
+    },
+    "node_tree": {
+     "blocks": 2959,
+     "bytes": 159523
+    },
+    "arena": {
+     "blocks": 3278,
+     "bytes": 265499
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 13488
+    }
+   },
+   {
+    "input": "postgres/medium",
+    "sha256": "0860ae142aee81ca328d446f0e59ae95747de77c1be7caac8f2257689ddef038",
+    "bytes": 4096,
+    "lines": 108,
+    "tokens": 1264,
+    "nodes": 1665,
+    "raw": 1263,
+    "segment": 349,
+    "meta": 53,
+    "unparsable": 0,
+    "max_depth": 11,
+    "parse": {
+     "blocks": 87522,
+     "bytes": 11239813,
+     "peak_bytes": 2666416
+    },
+    "node_tree": {
+     "blocks": 11682,
+     "bytes": 614995
+    },
+    "arena": {
+     "blocks": 12947,
+     "bytes": 1061307
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 51148
+    }
+   },
+   {
+    "input": "postgres/large",
+    "sha256": "3e9c07cbd67ffcf80068645e97353285d8941417ec787542fca3664e817a0d1e",
+    "bytes": 16379,
+    "lines": 376,
+    "tokens": 5134,
+    "nodes": 6881,
+    "raw": 5133,
+    "segment": 1549,
+    "meta": 199,
+    "unparsable": 0,
+    "max_depth": 12,
+    "parse": {
+     "blocks": 305347,
+     "bytes": 35782066,
+     "peak_bytes": 9766470
+    },
+    "node_tree": {
+     "blocks": 47556,
+     "bytes": 2525440
+    },
+    "arena": {
+     "blocks": 52691,
+     "bytes": 4261016
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 210551
+    }
+   },
+   {
+    "input": "redshift/small",
+    "sha256": "c361f124447742d9e7fe018ab0bd1f9e8630852593e45eb2a8f79da1d8082354",
+    "bytes": 1020,
+    "lines": 35,
+    "tokens": 307,
+    "nodes": 390,
+    "raw": 306,
+    "segment": 83,
+    "meta": 1,
+    "unparsable": 0,
+    "max_depth": 6,
+    "parse": {
+     "blocks": 31631,
+     "bytes": 4208679,
+     "peak_bytes": 1059524
+    },
+    "node_tree": {
+     "blocks": 2811,
+     "bytes": 145012
+    },
+    "arena": {
+     "blocks": 3119,
+     "bytes": 262584
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 12080
+    }
+   },
+   {
+    "input": "redshift/medium",
+    "sha256": "b4b9ac63706fb4147adb7de0f62b0bedbef6969e98d202722e0be42ea2197a55",
+    "bytes": 4094,
+    "lines": 151,
+    "tokens": 1284,
+    "nodes": 1852,
+    "raw": 1283,
+    "segment": 486,
+    "meta": 83,
+    "unparsable": 0,
+    "max_depth": 10,
+    "parse": {
+     "blocks": 97203,
+     "bytes": 12268844,
+     "peak_bytes": 2967800
+    },
+    "node_tree": {
+     "blocks": 12358,
+     "bytes": 671646
+    },
+    "arena": {
+     "blocks": 13643,
+     "bytes": 1142210
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 56554
+    }
+   },
+   {
+    "input": "redshift/large",
+    "sha256": "0519f0be3e168842fce2694c3f196cbc8d9ef66eb72cc81b5d96ba80c363def8",
+    "bytes": 16383,
+    "lines": 560,
+    "tokens": 3888,
+    "nodes": 5624,
+    "raw": 3887,
+    "segment": 1442,
+    "meta": 295,
+    "unparsable": 0,
+    "max_depth": 14,
+    "parse": {
+     "blocks": 284799,
+     "bytes": 34047994,
+     "peak_bytes": 9204967
+    },
+    "node_tree": {
+     "blocks": 37912,
+     "bytes": 2050562
+    },
+    "arena": {
+     "blocks": 41801,
+     "bytes": 4032950
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 176095
+    }
+   },
+   {
+    "input": "snowflake/small",
+    "sha256": "fd57f395703d51e3186bd5ed09c1170ef42df246db89fd64ebd3435f2f1d91b8",
+    "bytes": 999,
+    "lines": 36,
+    "tokens": 291,
+    "nodes": 360,
+    "raw": 290,
+    "segment": 67,
+    "meta": 3,
+    "unparsable": 0,
+    "max_depth": 6,
+    "parse": {
+     "blocks": 21316,
+     "bytes": 4707606,
+     "peak_bytes": 843460
+    },
+    "node_tree": {
+     "blocks": 2614,
+     "bytes": 134241
+    },
+    "arena": {
+     "blocks": 2906,
+     "bytes": 258253
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 11223
+    }
+   },
+   {
+    "input": "snowflake/medium",
+    "sha256": "0573dcc711b51f792457fc6221de8b250a306d3879b05009f3639fc6652fab5e",
+    "bytes": 4085,
+    "lines": 110,
+    "tokens": 1222,
+    "nodes": 1569,
+    "raw": 1221,
+    "segment": 311,
+    "meta": 37,
+    "unparsable": 0,
+    "max_depth": 6,
+    "parse": {
+     "blocks": 82396,
+     "bytes": 11494089,
+     "peak_bytes": 2342327
+    },
+    "node_tree": {
+     "blocks": 11193,
+     "bytes": 584101
+    },
+    "arena": {
+     "blocks": 12416,
+     "bytes": 1051389
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 48457
+    }
+   },
+   {
+    "input": "snowflake/large",
+    "sha256": "919e598c71eb836db64a491a736557ec84d944edc9266fd381771ed61a8d1c96",
+    "bytes": 16381,
+    "lines": 490,
+    "tokens": 4306,
+    "nodes": 5408,
+    "raw": 4305,
+    "segment": 994,
+    "meta": 109,
+    "unparsable": 0,
+    "max_depth": 8,
+    "parse": {
+     "blocks": 283875,
+     "bytes": 32170468,
+     "peak_bytes": 7759936
+    },
+    "node_tree": {
+     "blocks": 39085,
+     "bytes": 2022733
+    },
+    "arena": {
+     "blocks": 43392,
+     "bytes": 4072817
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 169765
+    }
+   },
+   {
+    "input": "soql/small",
+    "sha256": "8c677ad8864a6a1dfa5c2c225513da1083a9a2259cf2af274d28ca8748ceca9b",
+    "bytes": 1010,
+    "lines": 42,
+    "tokens": 283,
+    "nodes": 560,
+    "raw": 282,
+    "segment": 199,
+    "meta": 79,
+    "unparsable": 0,
+    "max_depth": 8,
+    "parse": {
+     "blocks": 42107,
+     "bytes": 6341488,
+     "peak_bytes": 1140788
+    },
+    "node_tree": {
+     "blocks": 3122,
+     "bytes": 192228
+    },
+    "arena": {
+     "blocks": 3406,
+     "bytes": 465840
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 16858
+    }
+   },
+   {
+    "input": "soql/medium",
+    "sha256": "6063ba15d5c0c28a83e57efa32dece5211d8591e2d3c9a1dc24ea77c36960e2d",
+    "bytes": 4046,
+    "lines": 170,
+    "tokens": 1123,
+    "nodes": 2212,
+    "raw": 1122,
+    "segment": 783,
+    "meta": 307,
+    "unparsable": 0,
+    "max_depth": 8,
+    "parse": {
+     "blocks": 148911,
+     "bytes": 20177091,
+     "peak_bytes": 4102538
+    },
+    "node_tree": {
+     "blocks": 12397,
+     "bytes": 761437
+    },
+    "arena": {
+     "blocks": 13521,
+     "bytes": 1861497
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 66662
+    }
+   },
+   {
+    "input": "soql/large",
+    "sha256": "b1adce989fbc7c9c2f9f041ae057fea40e64222df23233b1317b755f1152be06",
+    "bytes": 16362,
+    "lines": 688,
+    "tokens": 4535,
+    "nodes": 8931,
+    "raw": 4534,
+    "segment": 3160,
+    "meta": 1237,
+    "unparsable": 0,
+    "max_depth": 8,
+    "parse": {
+     "blocks": 582178,
+     "bytes": 77193877,
+     "peak_bytes": 16087598
+    },
+    "node_tree": {
+     "blocks": 50079,
+     "bytes": 3075597
+    },
+    "arena": {
+     "blocks": 54615,
+     "bytes": 7457333
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 269182
+    }
+   },
+   {
+    "input": "sparksql/small",
+    "sha256": "e87f782b46516cd4934578d0d13b0504a9370d9bfb70517471d8845d938f3026",
+    "bytes": 1023,
+    "lines": 46,
+    "tokens": 231,
+    "nodes": 319,
+    "raw": 230,
+    "segment": 78,
+    "meta": 11,
+    "unparsable": 0,
+    "max_depth": 7,
+    "parse": {
+     "blocks": 14926,
+     "bytes": 2366145,
+     "peak_bytes": 771262
+    },
+    "node_tree": {
+     "blocks": 2298,
+     "bytes": 119242
+    },
+    "arena": {
+     "blocks": 2530,
+     "bytes": 250530
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 10139
+    }
+   },
+   {
+    "input": "sparksql/medium",
+    "sha256": "f5f80a39b8d45741d3928b743a9e8b3d2f058d51346b8ed80e68f04319f7fa5b",
+    "bytes": 4087,
+    "lines": 156,
+    "tokens": 1041,
+    "nodes": 1437,
+    "raw": 1040,
+    "segment": 284,
+    "meta": 113,
+    "unparsable": 0,
+    "max_depth": 10,
+    "parse": {
+     "blocks": 53474,
+     "bytes": 7248085,
+     "peak_bytes": 2245579
+    },
+    "node_tree": {
+     "blocks": 9987,
+     "bytes": 531917
+    },
+    "arena": {
+     "blocks": 11029,
+     "bytes": 1023117
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 44947
+    }
+   },
+   {
+    "input": "sparksql/large",
+    "sha256": "87e1e140ae4de68a493d8dd4a6d1d2629dde9c1f2ac65637167087ee82de1d82",
+    "bytes": 16378,
+    "lines": 595,
+    "tokens": 4152,
+    "nodes": 6262,
+    "raw": 4151,
+    "segment": 1544,
+    "meta": 567,
+    "unparsable": 0,
+    "max_depth": 15,
+    "parse": {
+     "blocks": 242761,
+     "bytes": 30165693,
+     "peak_bytes": 9259382
+    },
+    "node_tree": {
+     "blocks": 41063,
+     "bytes": 2264611
+    },
+    "arena": {
+     "blocks": 45216,
+     "bytes": 4106991
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 194094
+    }
+   },
+   {
+    "input": "sqlite/small",
+    "sha256": "9d55b93de78e7166ea7e687d35fa85a5d168b783a3d8cab9ae4caf215e115f14",
+    "bytes": 1021,
+    "lines": 43,
+    "tokens": 340,
+    "nodes": 482,
+    "raw": 339,
+    "segment": 118,
+    "meta": 25,
+    "unparsable": 0,
+    "max_depth": 9,
+    "parse": {
+     "blocks": 27651,
+     "bytes": 4143538,
+     "peak_bytes": 910070
+    },
+    "node_tree": {
+     "blocks": 3221,
+     "bytes": 174296
+    },
+    "arena": {
+     "blocks": 3562,
+     "bytes": 288372
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 14689
+    }
+   },
+   {
+    "input": "sqlite/medium",
+    "sha256": "866e33caa07d858e7fce7a5fae5623e6666a576396da0c146b8589e6dbc79e80",
+    "bytes": 4079,
+    "lines": 200,
+    "tokens": 1649,
+    "nodes": 2533,
+    "raw": 1648,
+    "segment": 674,
+    "meta": 211,
+    "unparsable": 0,
+    "max_depth": 13,
+    "parse": {
+     "blocks": 147129,
+     "bytes": 18047868,
+     "peak_bytes": 3750627
+    },
+    "node_tree": {
+     "blocks": 16250,
+     "bytes": 907101
+    },
+    "arena": {
+     "blocks": 17900,
+     "bytes": 1952445
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 75803
+    }
+   },
+   {
+    "input": "sqlite/large",
+    "sha256": "7d4d51955639ab9d42e6bea1692f52349776873e7bda2e7513cff8d853c74864",
+    "bytes": 16373,
+    "lines": 743,
+    "tokens": 6062,
+    "nodes": 9830,
+    "raw": 6061,
+    "segment": 2686,
+    "meta": 1083,
+    "unparsable": 0,
+    "max_depth": 21,
+    "parse": {
+     "blocks": 552947,
+     "bytes": 66745746,
+     "peak_bytes": 14177773
+    },
+    "node_tree": {
+     "blocks": 60835,
+     "bytes": 3481646
+    },
+    "arena": {
+     "blocks": 66898,
+     "bytes": 7712298
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 294585
+    }
+   },
+   {
+    "input": "starrocks/small",
+    "sha256": "205caf1e4c33ccd651415fb427b0588adfee740280a7538e0f6604fb8af51a88",
+    "bytes": 1022,
+    "lines": 45,
+    "tokens": 312,
+    "nodes": 425,
+    "raw": 311,
+    "segment": 91,
+    "meta": 23,
+    "unparsable": 0,
+    "max_depth": 9,
+    "parse": {
+     "blocks": 35234,
+     "bytes": 5622503,
+     "peak_bytes": 1418471
+    },
+    "node_tree": {
+     "blocks": 2972,
+     "bytes": 157103
+    },
+    "arena": {
+     "blocks": 3285,
+     "bytes": 266615
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 13102
+    }
+   },
+   {
+    "input": "starrocks/medium",
+    "sha256": "0fb5276ea79b6555d47cf7a4dabe7fb3b2372607cf92ebd0212b30f8fc3c2fa5",
+    "bytes": 4092,
+    "lines": 162,
+    "tokens": 1205,
+    "nodes": 1678,
+    "raw": 1204,
+    "segment": 347,
+    "meta": 127,
+    "unparsable": 0,
+    "max_depth": 16,
+    "parse": {
+     "blocks": 81172,
+     "bytes": 10671633,
+     "peak_bytes": 2681673
+    },
+    "node_tree": {
+     "blocks": 11485,
+     "bytes": 617618
+    },
+    "arena": {
+     "blocks": 12691,
+     "bytes": 1058502
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 51724
+    }
+   },
+   {
+    "input": "starrocks/large",
+    "sha256": "a13ee70d3129126a2455f9fbc95dba80ffc9de5307990602c4383431a9ef763c",
+    "bytes": 16353,
+    "lines": 643,
+    "tokens": 4630,
+    "nodes": 7359,
+    "raw": 4629,
+    "segment": 1857,
+    "meta": 873,
+    "unparsable": 0,
+    "max_depth": 16,
+    "parse": {
+     "blocks": 374767,
+     "bytes": 45127309,
+     "peak_bytes": 12050447
+    },
+    "node_tree": {
+     "blocks": 46134,
+     "bytes": 2629650
+    },
+    "arena": {
+     "blocks": 50765,
+     "bytes": 4502594
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 224977
+    }
+   },
+   {
+    "input": "teradata/small",
+    "sha256": "b37263dc71800b41eb4cd50b8a1d05edb9bca44de5069f3e2e5e0b5c37ef7be3",
+    "bytes": 1014,
+    "lines": 42,
+    "tokens": 416,
+    "nodes": 844,
+    "raw": 415,
+    "segment": 312,
+    "meta": 117,
+    "unparsable": 0,
+    "max_depth": 12,
+    "parse": {
+     "blocks": 52742,
+     "bytes": 7213723,
+     "peak_bytes": 1376039
+    },
+    "node_tree": {
+     "blocks": 4667,
+     "bytes": 288484
+    },
+    "arena": {
+     "blocks": 5084,
+     "bytes": 500392
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 24814
+    }
+   },
+   {
+    "input": "teradata/medium",
+    "sha256": "a02fccf881dead735e01e9d330e6158bc5c23b7eeb8c8287ab85883233191309",
+    "bytes": 4082,
+    "lines": 173,
+    "tokens": 1300,
+    "nodes": 2285,
+    "raw": 1299,
+    "segment": 667,
+    "meta": 319,
+    "unparsable": 0,
+    "max_depth": 13,
+    "parse": {
+     "blocks": 119618,
+     "bytes": 15132787,
+     "peak_bytes": 3442529
+    },
+    "node_tree": {
+     "blocks": 13395,
+     "bytes": 795446
+    },
+    "arena": {
+     "blocks": 14696,
+     "bytes": 1885358
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 68754
+    }
+   },
+   {
+    "input": "teradata/large",
+    "sha256": "3660b95794987efe596ab964170b72212fd144dd26c98e2f8ce708c1fa2e8b8c",
+    "bytes": 16373,
+    "lines": 611,
+    "tokens": 4974,
+    "nodes": 8310,
+    "raw": 4973,
+    "segment": 2288,
+    "meta": 1049,
+    "unparsable": 0,
+    "max_depth": 14,
+    "parse": {
+     "blocks": 411889,
+     "bytes": 50167254,
+     "peak_bytes": 12461227
+    },
+    "node_tree": {
+     "blocks": 50265,
+     "bytes": 2923193
+    },
+    "arena": {
+     "blocks": 55240,
+     "bytes": 7469045
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 251497
+    }
+   },
+   {
+    "input": "trino/small",
+    "sha256": "9ba5bcc1b8986fd84853d6cd6c41d2696a260b70219ff01a5c11f844dfa5b2e9",
+    "bytes": 1017,
+    "lines": 46,
+    "tokens": 413,
+    "nodes": 700,
+    "raw": 412,
+    "segment": 209,
+    "meta": 79,
+    "unparsable": 0,
+    "max_depth": 14,
+    "parse": {
+     "blocks": 37755,
+     "bytes": 5411995,
+     "peak_bytes": 1177175
+    },
+    "node_tree": {
+     "blocks": 4302,
+     "bytes": 247913
+    },
+    "arena": {
+     "blocks": 4716,
+     "bytes": 493685
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 20801
+    }
+   },
+   {
+    "input": "trino/medium",
+    "sha256": "0e99b1eb1520c97b31d6c892b0dade442b5eb17b892a06cfda5930056f7ee6b7",
+    "bytes": 4096,
+    "lines": 177,
+    "tokens": 1576,
+    "nodes": 2467,
+    "raw": 1575,
+    "segment": 679,
+    "meta": 213,
+    "unparsable": 0,
+    "max_depth": 15,
+    "parse": {
+     "blocks": 111161,
+     "bytes": 13595318,
+     "peak_bytes": 3514171
+    },
+    "node_tree": {
+     "blocks": 15758,
+     "bytes": 882451
+    },
+    "arena": {
+     "blocks": 17335,
+     "bytes": 1940451
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 73880
+    }
+   },
+   {
+    "input": "trino/large",
+    "sha256": "76dc3baf57f3332bc9e3514206b7299469324cd1ac5e5e51d59ffe501d74452a",
+    "bytes": 16365,
+    "lines": 648,
+    "tokens": 5604,
+    "nodes": 9204,
+    "raw": 5603,
+    "segment": 2586,
+    "meta": 1015,
+    "unparsable": 0,
+    "max_depth": 15,
+    "parse": {
+     "blocks": 442977,
+     "bytes": 52373739,
+     "peak_bytes": 13232735
+    },
+    "node_tree": {
+     "blocks": 57050,
+     "bytes": 3262033
+    },
+    "arena": {
+     "blocks": 62655,
+     "bytes": 7622101
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 276669
+    }
+   },
+   {
+    "input": "tsql/small",
+    "sha256": "7042bdd7f248aa2375517699567aafc7cea6d8b41c9b5785156d6d8964a58ad1",
+    "bytes": 1002,
+    "lines": 38,
+    "tokens": 310,
+    "nodes": 420,
+    "raw": 309,
+    "segment": 92,
+    "meta": 19,
+    "unparsable": 0,
+    "max_depth": 8,
+    "parse": {
+     "blocks": 42690,
+     "bytes": 7002006,
+     "peak_bytes": 1611671
+    },
+    "node_tree": {
+     "blocks": 3039,
+     "bytes": 157304
+    },
+    "arena": {
+     "blocks": 3350,
+     "bytes": 267916
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 12914
+    }
+   },
+   {
+    "input": "tsql/medium",
+    "sha256": "09201594f10612523b9f8d1e408401ac5d3602489f505e5416bc3534464cfa1a",
+    "bytes": 4082,
+    "lines": 136,
+    "tokens": 1163,
+    "nodes": 1538,
+    "raw": 1162,
+    "segment": 315,
+    "meta": 61,
+    "unparsable": 0,
+    "max_depth": 10,
+    "parse": {
+     "blocks": 99473,
+     "bytes": 14126507,
+     "peak_bytes": 3024645
+    },
+    "node_tree": {
+     "blocks": 10858,
+     "bytes": 569202
+    },
+    "arena": {
+     "blocks": 12022,
+     "bytes": 1041446
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 47690
+    }
+   },
+   {
+    "input": "tsql/large",
+    "sha256": "cd6b111527bbae3c031f90d7e3cb4d8553417f7ad8c52b878ab9146b4ac677a2",
+    "bytes": 16380,
+    "lines": 586,
+    "tokens": 4392,
+    "nodes": 6392,
+    "raw": 4391,
+    "segment": 1502,
+    "meta": 499,
+    "unparsable": 0,
+    "max_depth": 16,
+    "parse": {
+     "blocks": 345939,
+     "bytes": 43859686,
+     "peak_bytes": 10694647
+    },
+    "node_tree": {
+     "blocks": 42430,
+     "bytes": 2318174
+    },
+    "arena": {
+     "blocks": 46823,
+     "bytes": 4139474
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 197700
+    }
+   },
+   {
+    "input": "vertica/small",
+    "sha256": "305f60db764394f585387be94bb6ee290f8d9a7484b4da71d53de2239d5eea00",
+    "bytes": 1022,
+    "lines": 23,
+    "tokens": 309,
+    "nodes": 403,
+    "raw": 308,
+    "segment": 92,
+    "meta": 3,
+    "unparsable": 0,
+    "max_depth": 6,
+    "parse": {
+     "blocks": 26991,
+     "bytes": 4245914,
+     "peak_bytes": 981759
+    },
+    "node_tree": {
+     "blocks": 2872,
+     "bytes": 149811
+    },
+    "arena": {
+     "blocks": 3182,
+     "bytes": 264395
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 12398
+    }
+   },
+   {
+    "input": "vertica/medium",
+    "sha256": "bc24fc7aece3158cc4f6225314a9b478390fafa2195bc2f3e19bc9cab994bf8c",
+    "bytes": 4085,
+    "lines": 140,
+    "tokens": 1030,
+    "nodes": 1586,
+    "raw": 1029,
+    "segment": 414,
+    "meta": 143,
+    "unparsable": 0,
+    "max_depth": 12,
+    "parse": {
+     "blocks": 83065,
+     "bytes": 10691699,
+     "peak_bytes": 2772757
+    },
+    "node_tree": {
+     "blocks": 10230,
+     "bytes": 571304
+    },
+    "arena": {
+     "blocks": 11261,
+     "bytes": 1026900
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 49053
+    }
+   },
+   {
+    "input": "vertica/large",
+    "sha256": "71029670ea38c93c8e9e912f7a159c31d7c136e41b01b229f80d2b083fb9e19a",
+    "bytes": 16356,
+    "lines": 653,
+    "tokens": 4698,
+    "nodes": 7699,
+    "raw": 4697,
+    "segment": 2195,
+    "meta": 807,
+    "unparsable": 0,
+    "max_depth": 17,
+    "parse": {
+     "blocks": 415104,
+     "bytes": 48317621,
+     "peak_bytes": 12532763
+    },
+    "node_tree": {
+     "blocks": 47670,
+     "bytes": 2730303
+    },
+    "arena": {
+     "blocks": 52369,
+     "bytes": 4525727
+    },
+    "flat_estimate": {
+     "blocks": 4,
+     "bytes": 234540
+    }
+   }
+  ]
+ }
+}
