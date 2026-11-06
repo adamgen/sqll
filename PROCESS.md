@@ -30,16 +30,20 @@ Each agent starts with new context. Use a Workflow script to run the cycle when 
 3. An agent must not approve its own changes.
 4. There is no limit on review rounds. The author, the reviewers, and the
    fixers continue until the work is correct and a reviewer approves. Use
-   as little human supervision as possible. Ask a human only for: approval
-   of a stone, approval of a decision that STONES.md gives to a human (for
-   example the S3 base), a change to CONSTITUTION.md, a change of the pinned
-   sqlfluff version, and a blocker that only a human can remove (for example
-   an account setting). Do not continue past such a decision before a human
-   approves it.
+   as little human supervision as possible. The approval of a stone and of
+   a decision that STONES.md or a stop rule gives to a human (for example
+   the S3 base) comes from the human owner, or from the orchestrator by the
+   standing delegation (CONSTITUTION.md, section 5). Ask the human owner
+   only for: a change to CONSTITUTION.md, a change of the pinned sqlfluff
+   version, an item that the standing delegation keeps for the human owner,
+   and a blocker that only a human can remove (for example an account
+   setting). Do not continue past such a decision before it is approved.
 5. Each track keeps its status file correct: open tasks, parity numbers,
    and known failures. The orchestrator keeps the STATUS.md index correct.
-6. A human approves each completed stone. A stone starts only when each
-   stone that it needs is approved (STONES.md, "Needs:").
+6. The human owner, or the orchestrator by the standing delegation
+   (CONSTITUTION.md, section 5), approves each completed stone. A stone
+   starts only when each stone that it needs is approved (STONES.md,
+   "Needs:").
 7. A false pass that only a mutated or invented fixture shows (no fixture of
    the pinned sqlfluff version has the pattern) does not block a merge if
    `harness/not-reproduced.md` records it or a fail-closed check covers it.

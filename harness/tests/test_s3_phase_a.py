@@ -17,6 +17,11 @@ _spec = importlib.util.spec_from_file_location(
 )
 phase_a = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(phase_a)
+_spec = importlib.util.spec_from_file_location(
+    "s3_exit", REPO_ROOT / "scripts" / "s3" / "exit.py"
+)
+s3_exit = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(s3_exit)
 
 # The phase A records and the frozen names that each cites in "inputs".
 RECORDS = {
@@ -26,9 +31,9 @@ RECORDS = {
     "speed-by-base.json": ["results/s2/baseline.json"],
     "capabilities.json": ["results/s2/baseline.json"],
 }
-# The phase B records that read the live S1 and S2 files (not the frozen
-# copies): the S3 exit record (T20) is of the final sqll.
-LIVE = {
+# The S3 exit record (T20) is of the final sqll of S3. It reads its own
+# frozen copies (results/s3/exit-inputs/, scripts/s3/exit.py FROZEN).
+EXIT = {
     "exit.json": ["results/s2/baseline.json", "results/s1/summary.json"],
 }
 
@@ -67,8 +72,11 @@ def test_no_record_cites_another_s1_or_s2_input():
         for rel in inputs:
             if not rel.startswith(("results/s1/", "results/s2/")):
                 continue
-            if path.name in LIVE:
-                assert rel in LIVE[path.name], (path.name, rel)
-                assert inputs[rel] == sha256(REPO_ROOT / rel), (path.name, rel)
+            if path.name in EXIT:
+                assert rel in EXIT[path.name], (path.name, rel)
+                (name,) = [k for k, v in s3_exit.INPUTS.items() if v == rel]
+                assert name in s3_exit.FROZEN, (path.name, rel)
+                frozen = s3_exit.read_path(name)
+                assert inputs[rel] == sha256(frozen), (path.name, rel)
             else:
                 assert rel in RECORDS.get(path.name, []), (path.name, rel)

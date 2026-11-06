@@ -277,6 +277,17 @@ the end). The state and the phase B task table are in
   - Lint and fix: 168 sqll results unsupported (no run); thus G3.4 and G3.5
     on lint and fix and the G3.5 total are for later stones.
 
+## Speed result (T17)
+
+- The T14 method on the T17 code (`results/s3/speed/T17.json`, target m = 0.26 of T14): 108 of 108 start and parse benchmarks below the target, in each of the 5 sessions (largest ratio 0.751). Controlled session: median ratio to sqruff 0.513, at most 0.718 (parse/db2/large). Above the target: none.
+- The 4 soql benchmarks (no sqruff pair): sqll/sqlfluff at most 0.028 (`T17-soql.json`).
+- Thus T17b and T17c are not needed.
+
+## Native tests of the base (T18)
+
+- The base: 162 of 162 tests pass (`results/s3/base-native-tests.json`). sqll has a port of each test; the CI list check (`scripts/s3/base_native_tests.py check`) fails if a base test that passes in the base does not pass in sqll.
+- The rules CP01, CP03, and CP04 are a library with 3 new tests (the output of sqlfluff 4.4.0 fix). `sqll lint` stays unsupported until S5.
+
 ## S3 phase A data
 
 - T2: [`results/s3/s1-by-base.json`](s1-by-base.json) (from
