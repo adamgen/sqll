@@ -83,19 +83,14 @@ def test_each_track_owns_its_hot_files():
             f"ci/matrix.d/{name}.json",
             f"results/{name}/x.json",
         ):
-            assert ownership.owner(path, TRACKS) == name, path
+            # S3 is closed: its matrix fragment (the CI jobs of sqll) moved
+            # to core with the sqll code (S3b C3).
+            want = "core" if path == "ci/matrix.d/S3.json" else name
+            assert ownership.owner(path, TRACKS) == want, path
 
 
-def test_s3_owns_its_work_paths():
-    for path in (
-        "status/S3.md",
-        "docs/decisions/s3-base.md",
-        "results/s3/s1-by-base.json",
-        "scripts/s3/s1_by_base.py",
-        "harness/tests/test_s3_s1_by_base.py",
-    ):
-        assert ownership.owner(path, TRACKS) == "S3", path
-
+# S3b C3: the sqll code and the live CI gates of S3 moved to the Core track
+# (STONES.md, S3b exit 3). The S3 track keeps only its frozen records.
 
 SQLL_CODE = (
     "Cargo.toml",
@@ -108,35 +103,78 @@ SQLL_CODE = (
     "harness/sqll_harness/bench/sqll.py",
     "harness/tests/test_sqll_adapter.py",
     "known_failures/sqll.txt",
+    "ci/matrix.d/S3.json",
+)
+S3_GATES = (
+    "scripts/s3/tree_guard.py",
+    "scripts/s3/base_native_tests.py",
+    "results/s3/tree-guard.json",
+    "results/s3/base-native-tests.json",
+    "results/s3/base-native-tests.log",
+    "harness/tests/test_s3_tree_guard.py",
+    "harness/tests/test_s3_base_native_tests.py",
+)
+S3_RECORDS = (
+    "status/S3.md",
+    "docs/decisions/s3-base.md",
+    "docs/decisions/s3-exit.md",
+    "results/s3/exit.json",
+    "results/s3/s1-by-base.json",
+    "results/s3/speed/T16b.json",
+    "scripts/s3/exit.py",
+    "scripts/s3/s1_by_base.py",
+    "harness/tests/test_s3_s1_by_base.py",
+    "harness/tests/test_s3_status.py",
 )
 
 
-def test_s3_owns_the_sqll_code_until_s3_is_approved():
-    for path in SQLL_CODE:
-        assert ownership.owner(path, TRACKS) == "S3", path
-    # Only these paths move: the Core paths next to them stay with core.
-    for path in (
-        "scripts/build",
-        "scripts/build-sqll-x",
-        "scripts/verify",
-        "harness/sqll_harness/adapters/sqruff.py",
-        "harness/sqll_harness/bench/run.py",
-        "harness/tests/test_sqll.py",
-        "known_failures/sqruff.txt",
-        "THIRD_PARTY.md",
-    ):
+def test_core_owns_the_sqll_code_and_the_s3_gates():
+    for path in (*SQLL_CODE, *S3_GATES):
         assert ownership.owner(path, TRACKS) == "core", path
-    assert ownership.owner("crates", TRACKS) == "S3"
+    assert ownership.owner("crates", TRACKS) == "core"
     assert ownership.owner("x/Cargo.toml", TRACKS) is None
 
 
-def test_only_the_s3_track_can_change_the_sqll_code():
-    ok, text = ownership.check("claude/s3-sqll", [], list(SQLL_CODE), TRACKS)
+def test_s3_keeps_its_frozen_records():
+    for path in S3_RECORDS:
+        assert ownership.owner(path, TRACKS) == "S3", path
+
+
+def test_each_tracked_file_of_s3_is_a_record_or_a_core_gate():
+    # Each tracked file of the old S3 globs: the gates and the sqll code are
+    # core paths, each other file is a frozen S3 record.
+    old_s3 = (
+        "status/S3.md",
+        "results/s3/**",
+        "scripts/s3/**",
+        "docs/decisions/s3-*.md",
+        "harness/tests/test_s3_*.py",
+    )
+    found = [
+        f for f in _tracked_files() if any(ownership.matches(p, f) for p in old_s3)
+    ]
+    assert set(S3_GATES) <= set(found)
+    assert "results/s3/exit.json" in found
+    for path in found:
+        want = "core" if path in S3_GATES else "S3"
+        assert ownership.owner(path, TRACKS) == want, path
+    for path in _tracked_files():
+        if path.startswith("crates/") or path in SQLL_CODE:
+            assert ownership.owner(path, TRACKS) == "core", path
+
+
+def test_only_the_core_track_can_change_the_sqll_code():
+    paths = [*SQLL_CODE, *S3_GATES]
+    ok, text = ownership.check("claude/s3b", [], paths, TRACKS)
     assert ok, text
-    for branch in ("claude/core", "claude/s9-corpus", "claude/s5-rules"):
+    for branch in ("claude/s3-sqll", "claude/s9-corpus", "claude/s5-rules"):
         ok, text = ownership.check(branch, [], ["crates/x.rs"], TRACKS)
         assert not ok, branch
-        assert "- crates/x.rs: owned by S3 (another track)" in text
+        assert "- crates/x.rs: owned by core (another track)" in text
+    ok, text = ownership.check("claude/s3-x", [], ["scripts/s3/tree_guard.py"], TRACKS)
+    assert not ok
+    ok, text = ownership.check("claude/s3-x", [], list(S3_RECORDS), TRACKS)
+    assert ok, text
 
 
 def test_no_path_has_two_owners():
