@@ -2,15 +2,18 @@
 
 results/s3/exit.json is the output of scripts/s3/exit.py on the S2
 baseline with the final sqll, the S1 summary, the T18 record, and the T14
-record. The tests read each copied value again from its file and key,
-compute the derived values again, and check the exit criteria, the exit
-record docs/decisions/s3-exit.md, and the state in STATUS.md and
-status/S3.md."""
+record. The S2 baseline and the S1 summary are frozen copies
+(results/s3/exit-inputs/) with the sha256 that the record cites. The tests
+read each copied value again from its file and key, compute the derived
+values again, and check the exit criteria, the exit record
+docs/decisions/s3-exit.md, and the approval in STATUS.md and status/S3.md."""
 
 import copy
+import hashlib
 import importlib.util
 import json
 import re
+import shutil
 
 import pytest
 from conftest import s3_record
@@ -26,12 +29,24 @@ _spec.loader.exec_module(ex)
 OUT = json.loads(ex.OUT_FILE.read_text("utf8"))
 VALUES = OUT["values"]
 INPUTS = {
-    rel: json.loads((REPO_ROOT / rel).read_text("utf8")) for rel in ex.INPUTS.values()
+    rel: json.loads(ex.read_path(name).read_text("utf8"))
+    for name, rel in ex.INPUTS.items()
 }
 RECORD = (REPO_ROOT / "docs" / "decisions" / "s3-exit.md").read_text("utf8")
 INDEX = (REPO_ROOT / "STATUS.md").read_text("utf8")
 STATUS = s3_record()
-STATE = "S3 awaiting human approval"
+STATE = "S3 exit met"
+APPROVED = "Approved (human owner, 2026-11-06)"
+# The sha256 of the inputs that the record cites (T20, PR #56). A change of
+# a frozen copy changes its sha256.
+CITED = {
+    "results/s2/baseline.json": (
+        "eebe282053ff68123fbd6fc35fab95c59e272b98f84f8d70801fd31b07da8f5c"
+    ),
+    "results/s1/summary.json": (
+        "1728547ee66a944d87d379ae31d3e88f6630d2b15838d2a0c1f7243990a03a10"
+    ),
+}
 
 
 def v(vid):
@@ -76,12 +91,64 @@ def test_the_check_fails_on_a_change(tmp_path, monkeypatch, old, new):
 
 def test_the_inputs_are_the_committed_files():
     assert OUT["inputs"] == {
-        rel: ex.sha256_file(REPO_ROOT / rel) for rel in ex.INPUTS.values()
+        rel: ex.sha256_file(ex.read_path(name)) for name, rel in ex.INPUTS.items()
     }
 
 
+def sha256(path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def test_the_frozen_copies_have_the_cited_sha256():
+    assert {ex.INPUTS[name] for name in ex.FROZEN} == set(CITED)
+    for name, copy_rel in ex.FROZEN.items():
+        assert copy_rel.startswith("results/s3/exit-inputs/"), name
+        assert ex.read_path(name) == REPO_ROOT / copy_rel
+        assert sha256(REPO_ROOT / copy_rel) == CITED[ex.INPUTS[name]]
+        assert OUT["inputs"][ex.INPUTS[name]] == CITED[ex.INPUTS[name]]
+    for name in set(ex.INPUTS) - set(ex.FROZEN):
+        assert ex.read_path(name) == REPO_ROOT / ex.INPUTS[name]
+
+
+@pytest.mark.parametrize("name", ["s2", "s1"])
+def test_a_changed_frozen_copy_fails_the_check(tmp_path, monkeypatch, name):
+    """The same JSON data with one more byte: the cited sha256 is not that
+    of the copy."""
+    changed = tmp_path / "copy.json"
+    changed.write_bytes(ex.read_path(name).read_bytes() + b"\n")
+    monkeypatch.setitem(ex.FROZEN, name, str(changed))
+    assert ex.read_path(name) == changed
+    assert sha256(changed) != CITED[ex.INPUTS[name]]
+    assert ex.main(["--check"]) == 1
+
+
+def test_a_changed_live_file_does_not_change_the_record(tmp_path, monkeypatch):
+    """A tree with the frozen copies and the other inputs, and mutated live
+    S2 and S1 files: a slower sqll on the worst pair, and another sqll. The
+    check reads only the copies and passes. The mutated live files are not
+    valid inputs: read as inputs, they fail."""
+    for rel in [*ex.FROZEN.values(), ex.INPUTS["t18"], ex.INPUTS["t14"]]:
+        (tmp_path / rel).parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(REPO_ROOT / rel, tmp_path / rel)
+    bid = v("g35.worst")["id"]
+    s2 = copy.deepcopy(INPUTS[ex.INPUTS["s2"]])
+    _sqll(s2, bid)["stats"]["wall_s"]["median"] = v(f"time.{bid}.sqruff")
+    s1 = copy.deepcopy(INPUTS[ex.INPUTS["s1"]])
+    s1["tools"]["sqll"]["version"] = "0.1.0+tables." + "0" * 64
+    for name, doc in (("s2", s2), ("s1", s1)):
+        live = tmp_path / ex.INPUTS[name]
+        live.parent.mkdir(parents=True, exist_ok=True)
+        live.write_text(json.dumps(doc), "utf8")
+    monkeypatch.setattr(ex, "ROOT", tmp_path)
+    assert ex.read_path("s2") == tmp_path / ex.FROZEN["s2"]
+    assert ex.main(["--check"]) == 0
+    live = {k: tmp_path / rel for k, rel in ex.INPUTS.items()}
+    with pytest.raises(ex.DataError):
+        ex.make_report(live)
+
+
 def _paths(tmp_path, name, change):
-    paths = {k: REPO_ROOT / rel for k, rel in ex.INPUTS.items()}
+    paths = {k: ex.read_path(k) for k in ex.INPUTS}
     doc = copy.deepcopy(INPUTS[ex.INPUTS[name]])
     change(doc)
     paths[name] = tmp_path / f"{name}.json"
@@ -108,7 +175,7 @@ def test_a_changed_time_in_the_baseline_fails_closed(tmp_path):
 def test_a_slower_sqll_benchmark_is_not_met():
     """The criteria on the committed values with one sqll time set to the
     sqruff time (a tie is not faster)."""
-    data = ex.load({k: REPO_ROOT / rel for k, rel in ex.INPUTS.items()})
+    data = ex.load({k: ex.read_path(k) for k in ex.INPUTS})
     bid = v("g35.worst")["id"]
     _sqll(data["s2"], bid)["stats"]["wall_s"]["median"] = v(f"time.{bid}.sqruff")
     vs = ex.Values(data)
@@ -298,7 +365,7 @@ def test_each_number_of_the_record_is_a_value_of_the_data_file():
 
 def test_the_record_names_the_data_and_the_state():
     assert "[`results/s3/exit.json`](../../results/s3/exit.json)" in RECORD
-    assert f"Status: {STATE}." in RECORD
+    assert f"Status: {APPROVED}." in RECORD
     assert "`scripts/s3/exit.py`" in RECORD
 
 
@@ -358,6 +425,34 @@ def test_the_record_lists_the_open_legal_questions():
 def test_the_record_gives_the_proof_of_g44():
     text = words(section("Proof"))
     assert "scripts/verify --full-bench" in text or "workflow_dispatch" in text
+    # The CI full runs: the dispatch run on the head of the T20 pull request
+    # and the push run on main after the merge.
+    assert "`workflow_dispatch` run `41383372713` on `3c21476`" in text
+    assert "push run `41391131635` on main `319b7d6`" in text
+
+
+def test_the_record_gives_the_approval_and_the_2_readings():
+    text = words(section("Approval"))
+    assert text.startswith(
+        "The human owner approved S3 on 2026-11-06, with the readings of the"
+        " exit rule below. The readings are confirmed."
+    )
+    readings = re.findall(r"(?m)^\d+\. (.*)$", section("Approval"))
+    assert len(readings) == 2
+    assert "the 2306 dialect cases and the 162 native Rust tests of sqlfluffrs" in text
+    assert "not the S1 rule cases of CP01, CP03, and CP04" in text
+    assert "they need the linter of S5" in text
+    assert "applies to the start and parse benchmarks that sqll runs" in text
+    assert "108 of 108 faster" in text
+    assert "S5 checks lint and fix" in text
+    for title in ("Base cases", "Where G3.5 applies"):
+        assert (
+            "The human owner confirmed this reading at the S3 approval (2026-11-06)."
+            in words(section(title))
+        ), title
+    assert "checks this reading" not in RECORD
+    for crit in OUT["criteria"][:2]:
+        assert crit["note"].endswith(ex.APPROVAL), crit["id"]
 
 
 def test_the_record_is_short():
@@ -368,8 +463,9 @@ def test_the_record_is_short():
 # The state.
 
 
-def test_the_index_and_the_status_file_say_awaiting_approval():
+def test_the_index_and_the_status_file_say_approved():
     (row,) = [line for line in INDEX.splitlines() if line.startswith("| S3 |")]
-    assert STATE in row
+    assert row.startswith(f"| S3 | S3 | {APPROVED}. ")
     assert "[docs/decisions/s3-exit.md](docs/decisions/s3-exit.md)" in row
-    assert f"- State: **{STATE}.**" in STATUS
+    assert f"- State: **{APPROVED}.**" in STATUS
+    assert "awaiting" not in row and "awaiting" not in STATUS

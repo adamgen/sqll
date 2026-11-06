@@ -22,7 +22,7 @@
     "exit.dialects",
     "exit.native_base"
    ],
-   "note": "The base cases are the S1 dialect suite and the native tests of the base. The S1 rule cases of CP01, CP03, and CP04 are not base cases: the native base has no linter, config reader, CLI, or fix. The human owner checks this reading at stone approval."
+   "note": "The base cases are the S1 dialect suite and the native tests of the base. The S1 rule cases of CP01, CP03, and CP04 are not base cases: the native base has no linter, config reader, CLI, or fix. The human owner confirmed this reading at the S3 approval (2026-11-06)."
   },
   {
    "id": "S3.exit.sqruff",
@@ -33,7 +33,7 @@
     "g35.slower",
     "g35.no_pair"
    ],
-   "note": "sqll runs start and parse. Lint and fix are unsupported until S5 (later.lint.unsupported, later.fix.unsupported)."
+   "note": "sqll runs start and parse. Lint and fix are unsupported until S5 (later.lint.unsupported, later.fix.unsupported). The human owner confirmed this reading at the S3 approval (2026-11-06)."
   },
   {
    "id": "G3.4.start_parse",
@@ -56,7 +56,7 @@
  ],
  "result": {
   "met": true,
-  "state": "S3 awaiting human approval"
+  "state": "S3 exit met"
  },
  "benchmarks": [
   {

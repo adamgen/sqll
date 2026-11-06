@@ -1,4 +1,5 @@
-"""S3 T10 to T20: the phase B state in STATUS.md and status/S3.md."""
+"""S3 T10 to T20: the phase B state and the S3 approval in STATUS.md and
+status/S3.md."""
 
 import json
 import re
@@ -10,7 +11,7 @@ from sqll_harness.paths import REPO_ROOT
 INDEX = (REPO_ROOT / "STATUS.md").read_text("utf8")
 STATUS = s3_record()
 STATE = (
-    "S3 awaiting human approval. Exit record (T20):"
+    "Approved (human owner, 2026-11-06). Exit record (T20):"
     " [docs/decisions/s3-exit.md](docs/decisions/s3-exit.md); the base is sqlfluffrs"
     " (human owner, 2026-10-29)."
 )
@@ -79,10 +80,39 @@ def test_the_index_row_has_the_exit_state():
     assert section("Human owner decision after T16b (2026-11-01)").strip()
 
 
+APPROVAL = [
+    "The human owner approved S3 on 2026-11-06, with these 2 readings of the"
+    ' exit rule (docs/decisions/s3-exit.md, "Approval"):',
+    "1. The base cases are the 2306 dialect cases and the 162 native Rust tests"
+    " of sqlfluffrs. They are not the S1 rule cases of CP01, CP03, and CP04:"
+    " they need the linter of S5.",
+    '2. "Not slower than sqruff on any benchmark" applies to the start and'
+    " parse benchmarks that sqll runs: 108 of 108 faster. S5 checks lint and fix.",
+]
+
+
 def test_the_status_file_has_the_exit_state():
-    assert STATUS.splitlines().count("- State: **S3 awaiting human approval.**") == 1
+    assert (
+        STATUS.splitlines().count("- State: **Approved (human owner, 2026-11-06).**")
+        == 1
+    )
+    assert "awaiting" not in STATUS
     assert "phase B next" not in STATUS
     assert "PR #PRNUM" not in STATUS
+
+
+def test_the_status_file_records_the_s3_approval():
+    paras = section("S3 approval (2026-11-06)").strip().split("\n\n")
+    assert words(paras[0]) == APPROVAL[0]
+    readings = re.split(r"\n(?=\d\. )", paras[1])
+    assert [words(r) for r in readings] == APPROVAL[1:]
+    exit_json = json.loads(
+        (REPO_ROOT / "results" / "s3" / "exit.json").read_text("utf8")
+    )
+    values = exit_json["values"]
+    assert values["s1.dialects.exact"]["value"] == 2306
+    assert values["t18.base.passed"]["value"] == 162
+    assert values["g35.faster"]["value"] == values["g35.pairs"]["value"] == 108
 
 
 def test_the_phase_b_task_table():
@@ -92,6 +122,10 @@ def test_the_phase_b_task_table():
         if re.match(r"\| T\d+[bc]? \|", line)
     ]
     assert [r[0] for r in rows] == TASKS
+    # S3 is approved: each task is merged or not needed.
+    for task, _, state in rows:
+        assert state == NOT_NEEDED or re.fullmatch(r"Merged \(PR #\d+\)", state), task
+    assert rows[-1][2] == "Merged (PR #56)"
     for task, description, state in rows:
         assert description, task
         assert (
@@ -128,7 +162,11 @@ def test_the_exit_target():
     )
     assert "The native tests of the base pass." in text
     assert "sqll is not slower than sqruff on each S2 benchmark that sqll runs" in text
-    assert "The human owner checks this reading at stone approval." in text
+    assert (
+        "The human owner confirmed this reading at the S3 approval (2026-11-06)."
+        in text
+    )
+    assert "checks this reading" not in STATUS
 
 
 def test_the_stop_rule():

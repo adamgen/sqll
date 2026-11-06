@@ -65,3 +65,15 @@ These links show what we aim for. They are not goals.
 
 This document must not change frequently.
 An agent can propose a change. Only a human owner can approve it.
+
+## 5. Standing delegation
+
+Standing delegation (human owner, 2026-11-06): the orchestrator acts for
+the human owner for the approval of each stone and for each decision that
+STONES.md or a stop rule gives to a human. It approves a stone only after
+an independent check finds no blocking gap, and it records each approval
+and decision with its data and date. It does not weaken a goal (G1 to G4)
+or an exit rule. Account and billing settings, legal advice, the
+publication of a release or a package, and a change of the pinned sqlfluff
+version still need the human owner. The human owner can stop or reverse
+the delegation at any time.

@@ -7,7 +7,11 @@ One command. Run it with the harness Python:
 
 It reads only committed files (INPUTS): the S2 baseline with the final sqll,
 the S1 summary, the T18 record of the native tests of the base, and the T14
-record (the speed target). It writes OUT_FILE. With --check it writes
+record (the speed target). For the S2 baseline and the S1 summary it reads
+byte copies (FROZEN, results/s3/exit-inputs/), because later stones record
+new results in the live files. The record keeps the names of INPUTS, and
+harness/tests/test_s3_exit.py checks that each copy has the sha256 that the
+record cites. It writes OUT_FILE. With --check it writes
 nothing and fails if OUT_FILE is not the new text. It runs no tool and no
 benchmark.
 
@@ -51,13 +55,18 @@ INPUTS = {
     "t18": "results/s3/base-native-tests.json",
     "t14": "results/s3/speed-profile.json",
 }
+FROZEN = {
+    "s2": "results/s3/exit-inputs/s2-baseline.json",
+    "s1": "results/s3/exit-inputs/s1-summary.json",
+}
 
 TOOL = "sqll"
 OTHER = ("sqruff", "sqlfluff")
 SQLL_COMMANDS = ("start", "parse")
 LATER_COMMANDS = ("lint", "fix")
 VALID = "valid"
-STATE = "S3 awaiting human approval"
+STATE = "S3 exit met"
+APPROVAL = "The human owner confirmed this reading at the S3 approval (2026-11-06)."
 
 RULES = [
     "copied: the value of the key in the file. derived: a formula over other "
@@ -73,6 +82,11 @@ RULES = [
 
 class DataError(Exception):
     """A key is missing, or the inputs do not agree."""
+
+
+def read_path(name: str) -> Path:
+    """The file to read for the input name: the frozen copy if it has one."""
+    return ROOT / FROZEN.get(name, INPUTS[name])
 
 
 def sha256_file(path: Path) -> str:
@@ -454,8 +468,8 @@ def criteria(vs: Values) -> list[dict]:
             "values": ["exit.dialects", "exit.native_base"],
             "note": "The base cases are the S1 dialect suite and the native tests "
             "of the base. The S1 rule cases of CP01, CP03, and CP04 are not base "
-            "cases: the native base has no linter, config reader, CLI, or fix. The "
-            "human owner checks this reading at stone approval.",
+            "cases: the native base has no linter, config reader, CLI, or fix. "
+            + APPROVAL,
         },
         {
             "id": "S3.exit.sqruff",
@@ -464,7 +478,7 @@ def criteria(vs: Values) -> list[dict]:
             "met": g35,
             "values": ["g35.pairs", "g35.slower", "g35.no_pair"],
             "note": "sqll runs start and parse. Lint and fix are unsupported "
-            "until S5 (later.lint.unsupported, later.fix.unsupported).",
+            "until S5 (later.lint.unsupported, later.fix.unsupported). " + APPROVAL,
         },
         {
             "id": "G3.4.start_parse",
@@ -484,7 +498,7 @@ def criteria(vs: Values) -> list[dict]:
 
 
 def make_report(paths: dict[str, Path] | None = None) -> dict:
-    paths = paths or {k: ROOT / v for k, v in INPUTS.items()}
+    paths = paths or {k: read_path(k) for k in INPUTS}
     data = load(paths)
     check_baseline(data)
     vs = Values(data)

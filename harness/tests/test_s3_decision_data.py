@@ -329,8 +329,8 @@ def test_status_says_the_human_owner_chose_sqlfluffrs():
     status = s3_record()
     assert "the base is sqlfluffrs (human owner, 2026-10-29)" in status
     assert "[docs/decisions/s3-base.md](../docs/decisions/s3-base.md)" in status
-    # S3 awaits the approval of the stone, not a decision on the base.
-    assert "awaiting" not in status.replace("S3 awaiting human approval", "")
+    # S3 is approved (2026-11-06); no decision on the base is open.
+    assert "awaiting" not in status
     assert "in work" not in status
     tasks = status.split("## S3 phase A tasks", 1)[1].split("\n## ", 1)[0]
     rows = {

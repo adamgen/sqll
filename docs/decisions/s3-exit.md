@@ -1,13 +1,24 @@
 # S3 exit record
 
-Status: S3 awaiting human approval.
+Status: Approved (human owner, 2026-11-06).
 
 ## Question
 
 STONES.md, S3 exit: sqll passes all cases that the base passes, and sqll
 is not slower than sqruff on any benchmark. This record gives the proof.
 The base is sqlfluffrs (human owner, 2026-10-29;
-[s3-base.md](s3-base.md)). A human approves the stone.
+[s3-base.md](s3-base.md)).
+
+## Approval
+
+The human owner approved S3 on 2026-11-06, with the readings of the exit
+rule below. The readings are confirmed.
+
+1. The base cases are the 2306 dialect cases and the 162 native Rust tests
+   of sqlfluffrs, not the S1 rule cases of CP01, CP03, and CP04 (they need
+   the linter of S5).
+2. "Not slower than sqruff on any benchmark" applies to the start and parse
+   benchmarks that sqll runs (108 of 108 faster). S5 checks lint and fix.
 
 ## Data
 
@@ -17,7 +28,9 @@ Each number in this record is a value of
 value names its file and key, or a formula over other values. The inputs:
 the S2 baseline with the final sqll (`results/s2/baseline.json`), the S1
 summary, the T18 record of the native tests of the base, and the T14
-target.
+target. The script reads frozen copies of the S2 baseline and the S1
+summary (`results/s3/exit-inputs/`), with the sha256 that `exit.json`
+cites. Later results in the live files do not change this record.
 
 The baseline is one controlled run of `scripts/bench --profile full` on
 commit `c9c72ec` (the S2 baseline method, `harness/bench.md`: the CI
@@ -56,7 +69,8 @@ Sums of the median wall times over the pairs (seconds):
 
 G3.5 applies to the benchmarks that sqll runs (start and parse). sqll has
 no rules: lint and fix are unsupported until S5. In the baseline, sqll has
-84 lint and 84 fix results with the status unsupported and no run.
+84 lint and 84 fix results with the status unsupported and no run. The
+human owner confirmed this reading at the S3 approval (2026-11-06).
 
 ## Base cases
 
@@ -65,7 +79,7 @@ tests of the base (162 of 162). The S1 rule cases of CP01, CP03, and CP04
 are not base cases: the native base has no linter, config reader, CLI, or
 fix. sqll keeps these rules as a library crate with their tests
 (`crates/sqll_rules`); `sqll lint` stays unsupported until S5. The human
-owner checks this reading at stone approval.
+owner confirmed this reading at the S3 approval (2026-11-06).
 
 ## Not met yet
 
@@ -85,8 +99,10 @@ These are for later stones. They do not block S3.
   known-failure check, the native tests, the tree guard, and the smoke
   benchmark against this baseline.
 - G4.4: the CI full jobs (`bench-full`, `bench-merge` with the baseline
-  check `--full`, and the corpus jobs) by `workflow_dispatch` on the head
-  of the T20 pull request. `status/S3.md` gives the run. A full local run of
+  check `--full`, and the corpus jobs): the `workflow_dispatch` run
+  `41383372713` on `3c21476` (the head of the T20 pull request), and the
+  push run `41391131635` on main `319b7d6` (after the merge). All jobs of
+  each run passed (`status/S3.md`). A full local run of
   `scripts/verify --full-bench` is not recorded.
 
 ## Open interface questions for S3b
@@ -107,7 +123,7 @@ These are for later stones. They do not block S3.
    API (`Arena::from_node`, type strings). S3b decides the rule and fix
    interface of S5: this API or a new typed view.
 5. **Ownership.** The S3 track owns `crates/**`, the Cargo files, and the
-   sqll adapters until the human approves S3 (`tracks.yml`). S3b decides
+   sqll adapters until S3b moves them (`tracks.yml`). S3b decides
    the move of these paths to the Core track, and the packages of each later
    track.
 6. **CLI and config.** The S3 CLI has `sqll parse`, `sqll version`, and
