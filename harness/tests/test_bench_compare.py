@@ -7,10 +7,11 @@ import re
 from pathlib import Path
 
 import pytest
-from test_bench_report import invalid, make, valid
+from test_bench_report import SHA, invalid, make, sample, valid
 
 from sqll_harness import cli
-from sqll_harness.bench import compare, report
+from sqll_harness.bench import compare, report, timer
+from sqll_harness.bench import run as bench_run
 from sqll_harness.bench.timer import ERROR, INVALID, UNSUPPORTED, Measurement
 from sqll_harness.paths import REPO_ROOT
 
@@ -406,6 +407,269 @@ def test_a_tool_with_no_result_excludes_the_benchmark():
     assert tt["excluded"] == [{"id": PARSE, "statuses": {"a": "valid"}}]
 
 
+# The table of the tools of one report.
+
+
+def wide(results: dict[tuple[str, str], Measurement]) -> dict:
+    """A report of start and parse (small, medium) for ansi and tsql."""
+    tools = sorted({t for _, t in results})
+    scope = report.scope(
+        tools, ["ansi", "tsql"], ["start", "parse"], ["small", "medium"]
+    )
+    benchmarks = {b["id"]: b for b in bench_run.expected(scope)}
+    return report.build(
+        sqlfluff_ref="abc",
+        profile="full",
+        machine=report.machine(),
+        harness=report.harness(),
+        timer=timer.timer_entry([sample(wall=0.002, cpu=0.001)] * 3),
+        scope=scope,
+        tools={t: {"version": "1.0", "settings": {}} for t in tools},
+        inputs={
+            b["input"]: {"bytes": 10, "lines": 1, "sha256": SHA}
+            for b in benchmarks.values()
+        },
+        results=[
+            report.result_entry(benchmarks[bid], tool, m)
+            for (bid, tool), m in results.items()
+        ],
+    )
+
+
+# Median wall times. b is the reference. a/b: 4, 2, 3, 0.5, 1 (a tie).
+# b is not valid on parse/tsql/medium.
+WALLS = {
+    "start/ansi": (0.5, 2.0),
+    "start/tsql": (1.0, 2.0),
+    "parse/ansi/small": (1.0, 3.0),
+    "parse/tsql/small": (2.0, 1.0),
+    "parse/ansi/medium": (4.0, 4.0),
+    "parse/tsql/medium": (None, 5.0),
+}
+
+
+@pytest.fixture
+def table_report() -> dict:
+    results = {}
+    for bid, (b, a) in WALLS.items():
+        results[(bid, "b")] = invalid(1.0) if b is None else valid(b, b, b)
+        results[(bid, "a")] = valid(a, a, a)
+    return wide(results)
+
+
+def test_the_table_has_each_benchmark_valid_for_all_tools(tmp_path, table_report):
+    code, result = run(tmp_path, None, table_report, "--tool", "b", "--tool", "a")
+    assert code == 0
+    table = result["table"]
+    assert tuple(table) == compare.TABLE
+    assert table["tools"] == ["b", "a"]
+    assert table["benchmarks"] == [
+        {
+            "id": "start/ansi",
+            "group": "start",
+            "wall_s": {"b": 0.5, "a": 2.0},
+            "ratio": {"a": 4.0},
+            "faster": "b",
+        },
+        {
+            "id": "start/tsql",
+            "group": "start",
+            "wall_s": {"b": 1.0, "a": 2.0},
+            "ratio": {"a": 2.0},
+            "faster": "b",
+        },
+        {
+            "id": "parse/ansi/small",
+            "group": "parse/small",
+            "wall_s": {"b": 1.0, "a": 3.0},
+            "ratio": {"a": 3.0},
+            "faster": "b",
+        },
+        {
+            "id": "parse/tsql/small",
+            "group": "parse/small",
+            "wall_s": {"b": 2.0, "a": 1.0},
+            "ratio": {"a": 0.5},
+            "faster": "a",
+        },
+        {
+            "id": "parse/ansi/medium",
+            "group": "parse/medium",
+            "wall_s": {"b": 4.0, "a": 4.0},
+            "ratio": {"a": 1.0},
+            "faster": None,
+        },
+    ]
+    # The tool that is not valid is left out, with its status.
+    assert table["left_out"] == [
+        {"id": "parse/tsql/medium", "tool": "b", "status": "invalid"}
+    ]
+
+
+def test_the_subtotals_by_command_and_size(tmp_path, table_report):
+    code, result = run(tmp_path, None, table_report, "--tool", "b", "--tool", "a")
+    assert code == 0
+    table = result["table"]
+    assert table["groups"] == [
+        {
+            "group": "start",
+            "benchmarks": 2,
+            "wall_s": {"b": 1.5, "a": 4.0},
+            # 4.0 / 1.5; the median of 4 and 2.
+            "ratio": {"a": {"total": 2.666667, "min": 2.0, "median": 3.0, "max": 4.0}},
+            "faster": {"b": 2, "a": 0},
+        },
+        {
+            "group": "parse/small",
+            "benchmarks": 2,
+            "wall_s": {"b": 3.0, "a": 4.0},
+            # 4.0 / 3.0; the median of 3 and 0.5.
+            "ratio": {"a": {"total": 1.333333, "min": 0.5, "median": 1.75, "max": 3.0}},
+            "faster": {"b": 1, "a": 1},
+        },
+        {
+            "group": "parse/medium",
+            "benchmarks": 1,
+            "wall_s": {"b": 4.0, "a": 4.0},
+            "ratio": {"a": {"total": 1.0, "min": 1.0, "median": 1.0, "max": 1.0}},
+            "faster": {"b": 0, "a": 0},
+        },
+    ]
+    for g in [*table["groups"], table["total"]]:
+        assert tuple(g) == compare.TABLE_GROUP
+        assert tuple(g["ratio"]["a"]) == compare.GROUP_RATIO
+    assert table["total"] == {
+        "group": "total",
+        "benchmarks": 5,
+        "wall_s": {"b": 8.5, "a": 12.0},
+        # 12.0 / 8.5; the median of 4, 2, 3, 0.5, and 1.
+        "ratio": {"a": {"total": 1.411765, "min": 0.5, "median": 2.0, "max": 4.0}},
+        "faster": {"b": 3, "a": 1},
+    }
+    # The total ratio is that of the tool totals: a / b.
+    tt = result["tool_totals"]
+    assert tt["benchmarks"] == 5
+    assert tt["pairs"][0]["tools"] == ["a", "b"]
+    assert tt["pairs"][0]["wall_ratio"] == table["total"]["ratio"]["a"]["total"]
+
+
+def test_the_table_text(tmp_path, capsys, table_report):
+    code, _ = run(tmp_path, None, table_report, "--tool", "b", "--tool", "a")
+    assert code == 0
+    out = capsys.readouterr().out.splitlines()
+    start = out.index(
+        "table of the tools of NEW: the median wall time (s) of each benchmark "
+        "valid for all of b, a; ratio: tool / b"
+    )
+    assert out[start + 1 : start + 15] == [
+        "  benchmark               b       a    a/b  faster",
+        "  start/ansi         0.5000  2.0000  4.000  b",
+        "  start/tsql         1.0000  2.0000  2.000  b",
+        "  parse/ansi/small   1.0000  3.0000  3.000  b",
+        "  parse/tsql/small   2.0000  1.0000  0.500  a",
+        "  parse/ansi/medium  4.0000  4.0000  1.000  -",
+        "subtotals: the sums of the medians (s), the ratio of the sums, and the "
+        "min, median, and max of the ratios",
+        "  group         n       b        a    a/b    min  median    max  faster",
+        "  start         2  1.5000   4.0000  2.667  2.000   3.000  4.000  b 2",
+        "  parse/small   2  3.0000   4.0000  1.333  0.500   1.750  3.000  b 1, a 1",
+        "  parse/medium  1  4.0000   4.0000  1.000  1.000   1.000  1.000  -",
+        "  total         5  8.5000  12.0000  1.412  0.500   2.000  4.000  b 3, a 1",
+        "note: 1 benchmarks left out, a tool is not valid: b: invalid on 1",
+        f"compare: {tmp_path / 'compare.json'}",
+    ]
+
+
+def test_the_first_tool_is_the_reference(tmp_path, table_report):
+    # With no --tool: all tools, sorted. a is the reference.
+    code, result = run(tmp_path, None, table_report)
+    assert code == 0
+    table = result["table"]
+    assert table["tools"] == ["a", "b"]
+    assert [r["ratio"]["b"] for r in table["benchmarks"]] == [
+        0.25,
+        0.5,
+        0.333333,
+        2.0,
+        1.0,
+    ]
+    assert table["total"]["ratio"]["b"]["total"] == 0.708333  # 8.5 / 12.0
+    assert table["total"]["faster"] == {"a": 1, "b": 3}
+    # The tool totals are the same in each order.
+    _, other = run(tmp_path, None, table_report, "--tool", "b", "--tool", "a")
+    assert other["tool_totals"] == result["tool_totals"]
+
+
+def test_a_tool_with_no_result_is_left_out_with_a_note(tmp_path, capsys):
+    rep = make(
+        {
+            (START, "a"): valid(1.0, 1.0, 1.0),
+            (START, "b"): valid(3.0, 3.0, 3.0),
+            (PARSE, "a"): valid(1.0, 1.0, 1.0),
+        }
+    )
+    table = compare.tool_table(rep, ["a", "b"])
+    assert [r["id"] for r in table["benchmarks"]] == [START]
+    assert table["left_out"] == [{"id": PARSE, "tool": "b", "status": None}]
+    assert compare.table_lines(table)[-1] == (
+        "note: 1 benchmarks left out, a tool is not valid: b: no result on 1"
+    )
+
+
+def test_a_tool_that_is_not_valid_on_each_benchmark_gives_an_empty_table(tmp_path):
+    rep = make(
+        {
+            (START, "a"): valid(1.0, 1.0, 1.0),
+            (START, "b"): Measurement(UNSUPPORTED, "unsupported: x", [], None),
+            (PARSE, "a"): valid(1.0, 1.0, 1.0),
+            (PARSE, "b"): Measurement(UNSUPPORTED, "unsupported: x", [], None),
+        }
+    )
+    code, result = run(tmp_path, None, rep)
+    assert code == 0
+    table = result["table"]
+    assert table["benchmarks"] == [] and table["groups"] == []
+    assert table["total"] == {
+        "group": "total",
+        "benchmarks": 0,
+        "wall_s": {"a": 0.0, "b": 0.0},
+        "ratio": {"b": {"total": None, "min": None, "median": None, "max": None}},
+        "faster": {"a": 0, "b": 0},
+    }
+    assert [e["status"] for e in table["left_out"]] == [UNSUPPORTED, UNSUPPORTED]
+
+
+def test_one_tool_gives_no_table(tmp_path, capsys):
+    code, result = run(tmp_path, None, make(same(1.0, 1.0, 1.0)))
+    assert code == 0
+    assert result["table"] is None
+    assert "table of the tools" not in capsys.readouterr().out
+
+
+def test_the_table_of_the_s2_baseline():
+    """bench compare results/s2/baseline.json --tool sqll --tool sqlfluff."""
+    path = REPO_ROOT / "results" / "s2" / "baseline.json"
+    rep = json.loads(path.read_text(encoding="utf8"))
+    result = compare.compare((str(path), rep), tools=["sqll", "sqlfluff"])
+    table = result["table"]
+    assert table["tools"] == ["sqll", "sqlfluff"]
+    assert len(table["benchmarks"]) == 112
+    assert [(g["group"], g["benchmarks"]) for g in table["groups"]] == [
+        ("start", 28),
+        ("parse/small", 28),
+        ("parse/medium", 28),
+        ("parse/large", 28),
+    ]
+    tt = result["tool_totals"]
+    (pair,) = tt["pairs"]
+    assert pair["tools"] == ["sqlfluff", "sqll"] and tt["benchmarks"] == 112
+    total = table["total"]
+    assert total["ratio"]["sqlfluff"]["total"] == pair["wall_ratio"]
+    assert total["wall_s"] == tt["wall_s"]
+    assert total["faster"]["sqll"] == pair["first_slower"]
+    assert len({e["id"] for e in table["left_out"]}) == len(tt["excluded"])
+
+
 # The output and its schema.
 
 
@@ -425,6 +689,7 @@ def test_the_output_is_written_for_exit_codes_0_and_1(tmp_path):
         for t in result["totals"].values():
             assert tuple(t) == compare.TOTAL
         assert tuple(result["tool_totals"]) == compare.TOOL_TOTALS
+        assert result["table"] is None  # 1 tool
 
 
 def test_warnings_for_other_machines_profiles_and_worktrees(tmp_path):
@@ -475,6 +740,17 @@ def test_the_readme_has_each_field_of_the_output():
     assert tuple(doc["tool_totals"]) == compare.TOOL_TOTALS
     (pair,) = doc["tool_totals"]["pairs"]
     assert tuple(pair) == compare.PAIR
+    table = doc["table"]
+    assert tuple(table) == compare.TABLE
+    (row,) = table["benchmarks"]
+    assert tuple(row) == compare.TABLE_ROW
+    (group,) = table["groups"]
+    for g in (group, table["total"]):
+        assert tuple(g) == compare.TABLE_GROUP
+        ((_, ratio),) = g["ratio"].items()
+        assert tuple(ratio) == compare.GROUP_RATIO
+    (left,) = table["left_out"]
+    assert tuple(left) == compare.LEFT_OUT
     assert tuple(doc["counts"]) == ("compared", *compare.CHANGES)
 
 
@@ -494,3 +770,26 @@ def test_process_md_has_the_change_record_rule():
     flat = " ".join(text.split())
     assert "`sqll-harness bench compare`" in flat
     assert "the pull request body must give the reason" in flat
+
+
+def test_the_s3b_status_has_the_table_of_the_s2_baseline():
+    path = REPO_ROOT / "results" / "s2" / "baseline.json"
+    rep = json.loads(path.read_text(encoding="utf8"))
+    table = compare.tool_table(rep, ["sqll", "sqlfluff"])
+    want = []
+    for g in [*table["groups"], table["total"]]:
+        r = g["ratio"]["sqlfluff"]
+        cells = [
+            g["group"],
+            str(g["benchmarks"]),
+            f"{g['wall_s']['sqll']:.4f}",
+            f"{g['wall_s']['sqlfluff']:.4f}",
+            *(f"{r[k]:.3f}" for k in compare.GROUP_RATIO),
+            str(g["faster"]["sqll"]),
+        ]
+        want.append("| " + " | ".join(cells) + " |")
+    text = (REPO_ROOT / "status" / "S3b.md").read_text(encoding="utf8")
+    got = [
+        line for line in text.splitlines() if re.match(r"\| (start|parse|total)", line)
+    ]
+    assert got == want

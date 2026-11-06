@@ -276,3 +276,23 @@ gives a warning for a report with 1 timed run.
   Other status changes are listed.
 - It also compares the tools of NEW (G3.4, G3.5). The totals use only
   the benchmarks that are valid for all compared tools.
+
+## Back-to-back comparison
+
+To compare tools back to back, run them in one report: for each
+benchmark, the tools do their timed runs in turn. Then compare the tools
+of that report:
+
+```sh
+scripts/bench --tool sqll --tool sqlfluff --command start --command parse
+sqll-harness bench compare out/bench.json --tool sqll --tool sqlfluff
+```
+
+The table gives, for each benchmark that is valid for all the tools, the
+median wall time of each tool, the ratio to the first `--tool` (tool /
+first), and the faster tool. The subtotals are by command and size: the
+ratio of the sums, and the min, median, and max of the ratios. A note
+gives the benchmarks that it leaves out, and why. On
+`results/s2/baseline.json`, the table has 112 rows (sqll has only `start`
+and `parse`), and the total ratio `sqlfluff/sqll` is the `wall_ratio` of
+`tool_totals`.
