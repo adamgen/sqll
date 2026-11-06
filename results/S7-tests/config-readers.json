@@ -1,6 +1,7 @@
 {
- "format": 1,
+ "format": 2,
  "sqlfluff": "4.4.0",
+ "sqlfluffrs": null,
  "pytest": "9.1.1",
  "skipped_folders": [
   "test/cli",
@@ -8,8 +9,8 @@
   "test/core/config"
  ],
  "outcomes": {
-  "failed": 8,
-  "passed": 8263,
+  "failed": 3,
+  "passed": 8268,
   "skipped": 2529
  },
  "collection_errors": {
@@ -18,12 +19,7 @@
  "failed": [
   "test/core/plugin_test.py::test__plugin_default_config_read[Example_L001-forbidden_columns]",
   "test/core/plugin_test.py::test__plugin_example_rules_returned[Rule_Example_L001]",
-  "test/core/plugin_test.py::test__plugin_manager_registers_example_plugin",
-  "test/diff_quality_plugin_test.py::test_diff_quality_plugin[sql_paths0-expected_violations_lines0]",
-  "test/diff_quality_plugin_test.py::test_diff_quality_plugin[sql_paths1-expected_violations_lines1]",
-  "test/diff_quality_plugin_test.py::test_diff_quality_plugin[sql_paths2-expected_violations_lines2]",
-  "test/diff_quality_plugin_test.py::test_diff_quality_plugin[sql_paths3-expected_violations_lines3]",
-  "test/diff_quality_plugin_test.py::test_diff_quality_plugin[sql_paths4-expected_violations_lines4]"
+  "test/core/plugin_test.py::test__plugin_manager_registers_example_plugin"
  ],
  "collection_lists": [
   "test/fixtures/config",
@@ -39,6 +35,15 @@
   "test/fixtures/config/rules_set_to_none",
   "test/fixtures/config/toml"
  ],
+ "traced_processes": {
+  "test/core/linter/linter_test.py::test__linter__linting_result_get_violations[2]": 3,
+  "test/core/parser/parity/special_cases_test.py::test__parity__codegen_lexer_patterns_hash_seed_stable": 3,
+  "test/diff_quality_plugin_test.py::test_diff_quality_plugin[sql_paths0-expected_violations_lines0]": 1,
+  "test/diff_quality_plugin_test.py::test_diff_quality_plugin[sql_paths1-expected_violations_lines1]": 1,
+  "test/diff_quality_plugin_test.py::test_diff_quality_plugin[sql_paths2-expected_violations_lines2]": 1,
+  "test/diff_quality_plugin_test.py::test_diff_quality_plugin[sql_paths3-expected_violations_lines3]": 1,
+  "test/diff_quality_plugin_test.py::test_diff_quality_plugin[sql_paths4-expected_violations_lines4]": 1
+ },
  "readers": {
   "test/core/linter/discovery_test.py::test__linter__path_from_paths__dot": [
    "test/fixtures/config",

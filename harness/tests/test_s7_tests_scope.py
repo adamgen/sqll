@@ -2,8 +2,9 @@
 
 results/S7-tests/scope.json must be the output of scripts/s7-tests/inventory
 on the pinned submodule, and the counts in the documents must be its
-counts. results/S7-tests/config-readers.json (the run check of the
-config_fixtures rule) must name only nodes in scope.
+counts. results/S7-tests/config-readers.json and config-readers-rs.json (the run
+checks of the config_fixtures rule, with sqlfluff and with sqlfluff[rs])
+must name only nodes in scope.
 """
 
 import json
@@ -25,6 +26,7 @@ RESULTS = REPO_ROOT / "results" / "S7-tests"
 SCOPE_FILE = RESULTS / "scope.json"
 SCOPE = json.loads(SCOPE_FILE.read_text("utf8"))
 READERS = json.loads((RESULTS / "config-readers.json").read_text("utf8"))
+READERS_RS = json.loads((RESULTS / "config-readers-rs.json").read_text("utf8"))
 DESIGN = (REPO_ROOT / "docs" / "decisions" / "s7-tests-design.md").read_text("utf8")
 STATUS = (REPO_ROOT / "status" / "S7-tests.md").read_text("utf8")
 INDEX = (REPO_ROOT / "STATUS.md").read_text("utf8")
@@ -98,7 +100,7 @@ def test_a_changed_scope_is_not_the_inventory_output():
 def test_write_needs_the_pinned_submodule(tmp_path, option):
     proc = run_script(INVENTORY, "--write", option, str(tmp_path))
     assert proc.returncode == 2
-    assert "--write needs the pinned submodule and the recorded run" in proc.stderr
+    assert "--write needs the pinned submodule and the recorded runs" in proc.stderr
 
 
 # The recorded scope and its counts.
@@ -187,15 +189,31 @@ def test_config_fixture_nodes():
         assert word not in text, word
 
 
-def test_config_readers_are_in_scope():
+RUNS = {"sqlfluff": READERS, "sqlfluff-rs": READERS_RS}
+
+
+@pytest.mark.parametrize("name", RUNS)
+def test_config_readers_are_in_scope(name):
+    record = RUNS[name]
     run = {n["id"] for n in SCOPE["nodes"] if "run" in n.get("by", [])}
-    assert set(READERS["readers"]) == run
-    assert READERS["sqlfluff"] == SCOPE["sqlfluff"]
-    assert READERS["skipped_folders"] == ["test/cli", "test/rules", "test/core/config"]
-    assert READERS["collection_errors"] == {
+    assert set(record["readers"]) == run
+    assert record["format"] == 2
+    assert record["sqlfluff"] == SCOPE["sqlfluff"]
+    assert record["skipped_folders"] == ["test/cli", "test/rules", "test/core/config"]
+    assert record["collection_errors"] == {
         e["file"]: e["error"] for e in SCOPE["collection_errors"]
     }
-    assert READERS["outcomes"] == {"failed": 8, "passed": 8263, "skipped": 2529}
+
+
+def test_config_readers_runs():
+    # Without sqlfluff[rs], most skipped nodes need the Rust parser. With it,
+    # they run, and the run finds the same readers.
+    assert READERS["sqlfluffrs"] is None
+    assert READERS["outcomes"] == {"failed": 3, "passed": 8268, "skipped": 2529}
+    assert READERS_RS["sqlfluffrs"] == SCOPE["sqlfluff"]
+    assert READERS_RS["outcomes"] == {"failed": 3, "passed": 10792, "skipped": 5}
+    for key in ("failed", "collection_lists", "traced_processes", "readers"):
+        assert READERS_RS[key] == READERS[key], key
 
 
 def test_config_readers_collection_lists_each_folder():
@@ -208,13 +226,35 @@ def test_config_readers_collection_lists_each_folder():
 
 def test_failed_nodes_of_the_run_do_not_name_the_folder():
     # A node that fails can stop before a read. These nodes fail because the
-    # oracle tools have no example plugin and no diff_cover.
-    files = sorted({n.split("::")[0] for n in READERS["failed"]})
-    assert files == ["test/core/plugin_test.py", "test/diff_quality_plugin_test.py"]
-    for file in files:
-        text = (SQLFLUFF_ROOT / file).read_text("utf8")
-        assert "fixtures/config" not in text
-        assert not re.search(r"[\"']config[\"']", text)
+    # example plugin (plugins/sqlfluff-plugin-example) is not installed in
+    # the oracle tools.
+    assert READERS["failed"] == [
+        "test/core/plugin_test.py::test__plugin_default_config_read"
+        "[Example_L001-forbidden_columns]",
+        "test/core/plugin_test.py::test__plugin_example_rules_returned"
+        "[Rule_Example_L001]",
+        "test/core/plugin_test.py::test__plugin_manager_registers_example_plugin",
+    ]
+    text = (SQLFLUFF_ROOT / "test" / "core" / "plugin_test.py").read_text("utf8")
+    assert "fixtures/config" not in text
+    assert not re.search(r"[\"']config[\"']", text)
+
+
+def test_config_readers_traced_processes():
+    # The nodes that start a new Python process. The trace sees each of
+    # them (scripts/s7-tests/config-readers fails closed on a program that
+    # it does not see).
+    assert READERS["traced_processes"] == {
+        "test/core/linter/linter_test.py::"
+        "test__linter__linting_result_get_violations[2]": 3,
+        "test/core/parser/parity/special_cases_test.py::"
+        "test__parity__codegen_lexer_patterns_hash_seed_stable": 3,
+        **{
+            "test/diff_quality_plugin_test.py::test_diff_quality_plugin"
+            f"[sql_paths{i}-expected_violations_lines{i}]": 1
+            for i in range(5)
+        },
+    }
 
 
 # The documents give the counts of scope.json.
@@ -498,6 +538,77 @@ def test_config_readers_fails_on_a_read_in_the_collection(tmp_path):
     assert "a read in the collection that is not a folder list: [('open'," in (
         proc.stderr
     )
+    assert proc.stdout == ""
+
+
+CHILD_TEST = """
+    import multiprocessing
+    import subprocess
+    import sys
+    CODE = "open('test/fixtures/' + 'config/a/.sqlfluff')"
+    def test_child():
+        subprocess.run([sys.executable, "-c", CODE], check=True)
+    def read(_):
+        open("test/fixtures/" + "config/a/.sqlfluff").close()
+    def test_spawn_pool():
+        with multiprocessing.get_context("spawn").Pool(1) as pool:
+            pool.map(read, [1])
+    def test_fork():
+        p = multiprocessing.get_context("fork").Process(target=read, args=(1,))
+        p.start()
+        p.join()
+        assert p.exitcode == 0
+    def test_sqlfluff_on_path():
+        # The bin folder of the oracle is on PATH.
+        subprocess.run(["sqlfluff", "--version"], check=True)
+"""
+
+
+@oracle
+def test_config_readers_traces_other_processes(tmp_path):
+    root = tmp_path / "root"
+    files = {
+        "test/fixtures/config/a/.sqlfluff": "[sqlfluff]\n",
+        "test/core/other/child_test.py": CHILD_TEST,
+    }
+    write_tree(root, BASE | files)
+    proc = run_script(CONFIG_READERS, "--root", str(root))
+    assert proc.returncode == 0, proc.stderr[-3000:]
+    out = json.loads(proc.stdout)
+    name = "test/core/other/child_test.py::"
+    read = ["test/fixtures/config/a/.sqlfluff"]
+    assert out["readers"] == {
+        name + "test_child": read,
+        name + "test_fork": read,
+        name + "test_spawn_pool": read,
+    }
+    assert out["outcomes"] == {"passed": 8}
+    assert out["failed"] == []
+    traced = out["traced_processes"]
+    assert traced[name + "test_child"] == 1
+    assert traced[name + "test_sqlfluff_on_path"] == 1
+    # The pool worker; the resource tracker can also be in the count.
+    assert traced[name + "test_spawn_pool"] >= 1
+    assert name + "test_fork" not in traced
+
+
+@oracle
+def test_config_readers_fails_on_a_program_that_it_does_not_trace(tmp_path):
+    root = tmp_path / "root"
+    files = {
+        "test/core/other/program_test.py": """
+            import subprocess
+            def test_x():
+                subprocess.run(["cat", "test/fixtures/" + "config/a/.sqlfluff"])
+        """,
+    }
+    write_tree(root, BASE | files)
+    proc = run_script(CONFIG_READERS, "--root", str(root))
+    assert proc.returncode == 1
+    assert (
+        "test/core/other/program_test.py::test_x: starts 1 programs, but the trace"
+        " sees 0"
+    ) in proc.stderr
     assert proc.stdout == ""
 
 

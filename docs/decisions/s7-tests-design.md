@@ -33,19 +33,28 @@ in scope if it is in one of these groups:
   `test/fixtures/config` in its test function (2 nodes, "by source"), or
   that opens or lists such a path when it runs (1 node, "by run").
   `scripts/s7-tests/config-readers` runs the other sqlfluff tests on a copy
-  of the submodule and records each such node in
-  [results/S7-tests/config-readers.json](../../results/S7-tests/config-readers.json).
-  The run found
+  of the submodule, 2 times: with sqlfluff
+  ([config-readers.json](../../results/S7-tests/config-readers.json)) and
+  with `sqlfluff[rs]`
+  ([config-readers-rs.json](../../results/S7-tests/config-readers-rs.json)).
+  Without `sqlfluff[rs]`, 2529 nodes are skipped (most need the Rust
+  parser). With it, 5 are skipped. Both runs found only
   `test/core/linter/discovery_test.py::test__linter__path_from_paths__dot`:
   it walks the checkout from `.` and reads the config files.
 - Fail-closed checks of the source rule: the inventory stops if a name is
   outside a collected test function, if a name in a decorator is in no
   parameter value, or if a file that pytest cannot import has a name.
   `test/dialects/bigquery_test.py` cannot import (no `hypothesis` in the
-  oracle tools) and has no name. Checks of the run: a read in the
-  collection that is not a folder list, or a read outside a test, stops
-  the script. 8 nodes fail in the run (no example plugin and no
-  `diff_cover` in the oracle tools). Their files do not name the folder.
+  oracle tools) and has no name.
+- Checks of the run: the trace sees the reads of the test process, of its
+  forked processes, and of each new Python process. The script stops on a
+  read in the collection that is not a folder list, on a read outside a
+  test, and on a node that starts more programs than the trace sees (for
+  example a program that is not Python). 3 nodes fail in each run: the
+  example plugin (`plugins/sqlfluff-plugin-example`) is not installed in
+  the oracle tools. Their file `test/core/plugin_test.py` does not name the
+  folder. The oracle `bin` folder is on `PATH`, so the 5
+  `test/diff_quality_plugin_test.py` nodes find `sqlfluff` and pass.
 
 The Rust dispatch tests (`cp01`, `cp03`, `cp04_rust_dispatch_test.py`) are
 102 nodes of `rules`. 87 of them are `fix_parity` nodes. They compare the
@@ -54,7 +63,8 @@ Python and the Rust engines and have no expected output in data.
 `harness/tests/test_s7_tests_scope.py` fails if `scope.json` is not the
 inventory output, or if this table or the table in the status file is not
 the counts of `scope.json`. A change of the pinned sqlfluff version needs a
-new `config-readers` run (about 15 minutes) and a new inventory.
+new `config-readers` run with each oracle (about 13 minutes each) and a
+new inventory.
 
 ## Cases
 
@@ -90,8 +100,8 @@ reason class:
   function. The trace oracle checks this class (no traced call).
 - `needs-python-runtime`: G1.3, for example a Python plugin.
 - `engine-comparison`: the node compares 2 engines and has no expected
-  value. This includes the 87 `fix_parity` nodes, by the precedent of the
-  S1 owner decision on `test/fixtures/parity/` (status/S1.md). Each other Rust dispatch
+  value. This includes the 87 `fix_parity` nodes, as the S1 owner decision
+  on `test/fixtures/parity/` does (status/S1.md). Each other Rust dispatch
   node with an expected value that the CLI shows is converted. The
   orchestrator records this decision before T8 merges.
 - `environment`: the node needs a condition that the harness cannot make.

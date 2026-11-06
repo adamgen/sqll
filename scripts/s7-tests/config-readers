@@ -8,18 +8,26 @@ test source. A node "reads" a path if it opens the file or lists the folder
 (the Python audit events "open", "os.listdir", and "os.scandir"). A stat of
 a path is not a read.
 
-Run it with the pinned sqlfluff and pytest that scripts/setup installs:
+Run it with each pinned oracle that scripts/setup installs:
 
-  .tools/sqlfluff-oracle/bin/python scripts/s7-tests/config-readers           # JSON to stdout
-  .tools/sqlfluff-oracle/bin/python scripts/s7-tests/config-readers --write   # results/S7-tests/config-readers.json
+  .tools/sqlfluff-oracle/bin/python scripts/s7-tests/config-readers --write
+  .tools/sqlfluff-rs-oracle/bin/python scripts/s7-tests/config-readers --write
+
+The first writes results/S7-tests/config-readers.json. The second (with
+sqlfluff[rs], so the tests that need the Rust parser run) writes
+config-readers-rs.json. Without --write, the JSON goes to stdout.
 
 It copies the submodule (no .git) to a temp folder and runs the sqlfluff
 tests there, without the 3 scope folders (all their nodes are in scope).
-Thus the run cannot change the submodule. It takes about 15 minutes.
+Thus the run cannot change the submodule. It takes about 15 minutes. The bin
+folder of the oracle is first on PATH, so a test can start "sqlfluff".
 
-Fail-closed checks: in the collection, pytest lists the folders
-("os.scandir"). Another read in the collection, or a read outside the
-collection and the tests, stops the script with exit code 1.
+The trace (trace/s7trace.py) sees the reads of this process, of its forked
+processes, and of each new Python process (trace/sitecustomize.py on
+PYTHONPATH). Fail-closed checks: in the collection, pytest lists the
+folders ("os.scandir"). Another read in the collection, a read outside the
+collection and the tests, or a node that starts more programs than the
+trace sees, stops the script with exit code 1.
 """
 
 import argparse
@@ -29,63 +37,59 @@ import shutil
 import sys
 import tempfile
 from collections import Counter
-from importlib.metadata import version
+from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 
 sys.dont_write_bytecode = True
 
 import pytest  # noqa: E402
+from s7common import last_error_line, stdout_to_stderr  # noqa: E402
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SQLFLUFF_ROOT = REPO_ROOT / "third_party" / "sqlfluff"
-RECORDED = REPO_ROOT / "results" / "S7-tests" / "config-readers.json"
-FORMAT = 1
+TRACE = Path(__file__).resolve().parent / "trace"
+RECORDED = {
+    False: REPO_ROOT / "results" / "S7-tests" / "config-readers.json",
+    True: REPO_ROOT / "results" / "S7-tests" / "config-readers-rs.json",
+}
+FORMAT = 2
 SKIPPED_FOLDERS = ["test/cli", "test/rules", "test/core/config"]
-EVENTS = ("open", "os.listdir", "os.scandir")
-OUTSIDE = "<outside a test>"
 COLLECTION = "<collection>"
 
+sys.path.insert(0, str(TRACE))
+import s7trace  # noqa: E402
 
-class Tracer:
-    """A pytest plugin and an audit hook. It records the reads of the
-    target folder for each node, and the outcome of each node."""
 
-    def __init__(self, root: Path) -> None:
-        self.root = str(root)
-        self.target = os.path.join(self.root, "test", "fixtures", "config")
-        self.current = OUTSIDE
-        self.reads: dict[str, set[tuple[str, str]]] = {}
+def rust_version() -> str | None:
+    try:
+        return version("sqlfluffrs")
+    except PackageNotFoundError:
+        return None
+
+
+class Recorder:
+    """A pytest plugin. It sets the node id for the trace, and records the
+    outcome of each node and the collection errors."""
+
+    def __init__(self) -> None:
         self.outcomes: dict[str, str] = {}
         self.errors: dict[str, str] = {}
 
-    def audit(self, event: str, args: tuple) -> None:
-        if event not in EVENTS or not args:
-            return
-        path = args[0]
-        if isinstance(path, bytes):
-            path = os.fsdecode(path)
-        if not isinstance(path, str | os.PathLike):
-            return
-        full = os.path.abspath(os.fspath(path))
-        if full == self.target or full.startswith(self.target + os.sep):
-            rel = os.path.relpath(full, self.root).replace(os.sep, "/")
-            self.reads.setdefault(self.current, set()).add((event, rel))
-
     @pytest.hookimpl(wrapper=True)
     def pytest_collection(self, session):
-        self.current = COLLECTION
+        os.environ["S7_TRACE_NODE"] = COLLECTION
         try:
             return (yield)
         finally:
-            self.current = OUTSIDE
+            os.environ["S7_TRACE_NODE"] = s7trace.OUTSIDE
 
     @pytest.hookimpl(wrapper=True)
     def pytest_runtest_protocol(self, item, nextitem):
-        self.current = item.nodeid
+        os.environ["S7_TRACE_NODE"] = item.nodeid
         try:
             return (yield)
         finally:
-            self.current = OUTSIDE
+            os.environ["S7_TRACE_NODE"] = s7trace.OUTSIDE
 
     def pytest_runtest_logreport(self, report) -> None:
         if report.when == "call" or report.outcome != "passed":
@@ -96,36 +100,54 @@ class Tracer:
             self.errors[report.nodeid] = last_error_line(str(report.longrepr))
 
 
-def last_error_line(text: str) -> str:
-    """The last "E" line of a pytest error text, without the "E" mark."""
-    lines = [x[1:].strip() for x in text.splitlines() if x.startswith("E ")]
-    return lines[-1] if lines else text.strip().splitlines()[-1]
-
-
-def run(source: Path, work: Path) -> Tracer:
-    """Copy source to work, run its tests there, and return the trace."""
+def run(source: Path, work: Path, log: Path) -> Recorder:
+    """Copy source to work, run its tests there with the trace, and return
+    the recorder. The trace lines go to log."""
     shutil.copytree(source, work, ignore=shutil.ignore_patterns(".git"), symlinks=True)
-    tracer = Tracer(work)
-    sys.addaudithook(tracer.audit)
+    log.write_text("")
+    bin_dir = os.path.dirname(sys.executable)
+    paths = [str(TRACE), os.environ.get("PYTHONPATH", "")]
+    os.environ.update(
+        {
+            "PATH": os.pathsep.join([bin_dir, os.environ.get("PATH", "")]),
+            "PYTHONPATH": os.pathsep.join(p for p in paths if p),
+            "PYTHONDONTWRITEBYTECODE": "1",
+            "S7_TRACE_LOG": str(log),
+            "S7_TRACE_ROOT": str(work),
+            "S7_TRACE_MAIN": str(os.getpid()),
+            "S7_TRACE_NODE": s7trace.OUTSIDE,
+        }
+    )
+    s7trace.install()
+    recorder = Recorder()
     os.chdir(work)
     args = ["-q", "-p", "no:cacheprovider", "--continue-on-collection-errors"]
     args += [f"--ignore={f}" for f in SKIPPED_FOLDERS]
-    sys.stdout.flush()
-    saved = os.dup(1)
-    os.dup2(2, 1)
-    try:
-        pytest.main([*args, "test"], plugins=[tracer])
-    finally:
-        sys.stdout.flush()
-        os.dup2(saved, 1)
-        os.close(saved)
-    return tracer
+    with stdout_to_stderr():
+        pytest.main([*args, "test"], plugins=[recorder])
+    return recorder
 
 
-def report(tracer: Tracer) -> tuple[dict, list[str]]:
+def report(recorder: Recorder, log: Path) -> tuple[dict, list[str]]:
     problems = []
-    reads = dict(tracer.reads)
-    outside = reads.pop(OUTSIDE, set())
+    reads: dict[str, set[tuple[str, str]]] = {}
+    programs: Counter = Counter()
+    starts: Counter = Counter()
+    for line in log.read_text("utf8").splitlines():
+        node, kind, *rest = json.loads(line)
+        if kind == "read":
+            reads.setdefault(node, set()).add(tuple(rest))
+        elif kind == "program":
+            programs[node] += 1
+        else:
+            starts[node] += 1
+    for node in sorted(programs):
+        if programs[node] > starts[node]:
+            problems.append(
+                f"{node}: starts {programs[node]} programs, but the trace sees"
+                f" {starts[node]} (not a Python program, or no PYTHONPATH)"
+            )
+    outside = reads.pop(s7trace.OUTSIDE, set())
     if outside:
         problems.append(
             f"a read outside the collection and the tests: {sorted(outside)}"
@@ -134,15 +156,20 @@ def report(tracer: Tracer) -> tuple[dict, list[str]]:
     other = sorted(r for r in collection if r[0] != "os.scandir")
     if other:
         problems.append(f"a read in the collection that is not a folder list: {other}")
+    outcomes = recorder.outcomes
     out = {
         "format": FORMAT,
         "sqlfluff": version("sqlfluff"),
+        "sqlfluffrs": rust_version(),
         "pytest": pytest.__version__,
         "skipped_folders": SKIPPED_FOLDERS,
-        "outcomes": dict(sorted(Counter(tracer.outcomes.values()).items())),
-        "collection_errors": dict(sorted(tracer.errors.items())),
-        "failed": sorted(n for n, o in tracer.outcomes.items() if o == "failed"),
+        "outcomes": dict(sorted(Counter(outcomes.values()).items())),
+        "collection_errors": dict(sorted(recorder.errors.items())),
+        "failed": sorted(n for n, o in outcomes.items() if o == "failed"),
         "collection_lists": sorted({p for _, p in collection}),
+        # The nodes that start a new Python process, with the number of
+        # processes that the trace sees.
+        "traced_processes": dict(sorted(starts.items())),
         "readers": {n: sorted({p for _, p in r}) for n, r in sorted(reads.items())},
     }
     return out, problems
@@ -150,7 +177,8 @@ def report(tracer: Tracer) -> tuple[dict, list[str]]:
 
 def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(prog="config-readers")
-    parser.add_argument("--write", action="store_true", help=f"write {RECORDED}")
+    recorded = RECORDED[rust_version() is not None]
+    parser.add_argument("--write", action="store_true", help=f"write {recorded}")
     parser.add_argument(
         "--root",
         type=Path,
@@ -161,9 +189,10 @@ def main(argv: list[str]) -> int:
     if args.write and args.root != SQLFLUFF_ROOT:
         parser.error("--write needs the pinned submodule")
     with tempfile.TemporaryDirectory(prefix="s7-config-readers-") as tmp:
-        tracer = run(args.root.resolve(), Path(tmp) / "sqlfluff")
+        log = Path(tmp) / "trace.jsonl"
+        recorder = run(args.root.resolve(), Path(tmp) / "sqlfluff", log)
         os.chdir(REPO_ROOT)
-        out, problems = report(tracer)
+        out, problems = report(recorder, log)
     for p in problems:
         print(f"error: {p}", file=sys.stderr)
     print(
@@ -173,8 +202,8 @@ def main(argv: list[str]) -> int:
     if problems:
         return 1
     if args.write:
-        RECORDED.write_text(text, "utf8")
-        print(f"wrote {RECORDED.relative_to(REPO_ROOT)}", file=sys.stderr)
+        recorded.write_text(text, "utf8")
+        print(f"wrote {recorded.relative_to(REPO_ROOT)}", file=sys.stderr)
     else:
         sys.stdout.write(text)
     return 0

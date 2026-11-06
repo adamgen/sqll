@@ -19,7 +19,8 @@ Scope rule. A node is in scope if:
   config_fixtures  it is in another file, and its test function names a path
                    in test/fixtures/config (CONFIG_REF, "by": "source"), or
                    it opens or lists such a path when it runs ("by": "run",
-                   from results/S7-tests/config-readers.json, the output of
+                   from results/S7-tests/config-readers.json and
+                   config-readers-rs.json, the output of
                    scripts/s7-tests/config-readers)
 
 pytest collects only the files that match python_files ("*_test.py"). The
@@ -30,13 +31,12 @@ Fail-closed checks for config_fixtures: a name of test/fixtures/config in a
 Python file outside the 3 folders must be in a collected test function. If it
 is only in the decorators of the function, the node must have it in its
 parameter values. A file outside the 3 folders that pytest cannot import
-must not have the name. Each node of the run record must be a collected
+must not have the name. Each node of the run records must be a collected
 node outside the 3 folders. Else the script stops with exit code 1.
 """
 
 import argparse
 import ast
-import contextlib
 import fnmatch
 import json
 import os
@@ -52,11 +52,17 @@ from pathlib import Path
 sys.dont_write_bytecode = True
 
 import pytest  # noqa: E402
+from s7common import last_error_line, stdout_to_stderr  # noqa: E402
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SQLFLUFF_ROOT = REPO_ROOT / "third_party" / "sqlfluff"
 RECORDED = REPO_ROOT / "results" / "S7-tests" / "scope.json"
-READERS = REPO_ROOT / "results" / "S7-tests" / "config-readers.json"
+# The run records of scripts/s7-tests/config-readers: with sqlfluff, and
+# with sqlfluff[rs] (the tests that need the Rust parser run only then).
+READERS = [
+    REPO_ROOT / "results" / "S7-tests" / "config-readers.json",
+    REPO_ROOT / "results" / "S7-tests" / "config-readers-rs.json",
+]
 FORMAT = 1
 
 GROUPS = {
@@ -94,26 +100,6 @@ class Collector:
 
     def pytest_collection_finish(self, session) -> None:
         self.items = list(session.items)
-
-
-def last_error_line(text: str) -> str:
-    """The last "E" line of a pytest error text, without the "E" mark."""
-    lines = [x[1:].strip() for x in text.splitlines() if x.startswith("E ")]
-    return lines[-1] if lines else text.strip().splitlines()[-1]
-
-
-@contextlib.contextmanager
-def stdout_to_stderr():
-    """Send file descriptor 1 to stderr. pytest writes to the descriptor."""
-    sys.stdout.flush()
-    saved = os.dup(1)
-    os.dup2(2, 1)
-    try:
-        yield
-    finally:
-        sys.stdout.flush()
-        os.dup2(saved, 1)
-        os.close(saved)
 
 
 def group_of(path: str) -> str | None:
@@ -287,8 +273,18 @@ def config_fixture_nodes(
     return selected, problems
 
 
-def run_readers(path: Path, items: list) -> tuple[set[str], list[str]]:
-    """The nodes of the run record (scripts/s7-tests/config-readers)."""
+def run_readers(paths: list[Path], items: list) -> tuple[set[str], list[str]]:
+    """The nodes of the run records (scripts/s7-tests/config-readers)."""
+    readers: set[str] = set()
+    problems: list[str] = []
+    for path in paths:
+        found, more = run_record(path, items)
+        readers |= found
+        problems += more
+    return readers, problems
+
+
+def run_record(path: Path, items: list) -> tuple[set[str], list[str]]:
     data = json.loads(path.read_text("utf8"))
     problems = []
     if data["sqlfluff"] != version("sqlfluff"):
@@ -306,7 +302,7 @@ def run_readers(path: Path, items: list) -> tuple[set[str], list[str]]:
     return set(data["readers"]), problems
 
 
-def scope(root: Path, readers_file: Path) -> tuple[dict, list[str]]:
+def scope(root: Path, readers_files: list[Path]) -> tuple[dict, list[str]]:
     code, items, errors, extra, python_files = collect(root)
     problems: list[str] = []
     # With collection errors, pytest exits with code 1.
@@ -319,7 +315,7 @@ def scope(root: Path, readers_file: Path) -> tuple[dict, list[str]]:
             )
     by_source, more = config_fixture_nodes(root, items, errors)
     problems += more
-    by_run, more = run_readers(readers_file, items)
+    by_run, more = run_readers(readers_files, items)
     problems += more
 
     nodes = []
@@ -383,13 +379,15 @@ def main(argv: list[str]) -> int:
     parser.add_argument(
         "--readers",
         type=Path,
-        default=READERS,
-        help="the run record of scripts/s7-tests/config-readers (not with --write)",
+        action="append",
+        help="a run record of scripts/s7-tests/config-readers; give it 1 or more"
+        " times (not with --write)",
     )
     args = parser.parse_args(argv)
-    if args.write and (args.root != SQLFLUFF_ROOT or args.readers != READERS):
-        parser.error("--write needs the pinned submodule and the recorded run")
-    out, problems = scope(args.root.resolve(), args.readers.resolve())
+    if args.write and (args.root != SQLFLUFF_ROOT or args.readers):
+        parser.error("--write needs the pinned submodule and the recorded runs")
+    readers = [p.resolve() for p in args.readers or READERS]
+    out, problems = scope(args.root.resolve(), readers)
     for p in problems:
         print(f"error: {p}", file=sys.stderr)
     for group, n in out["counts"].items():

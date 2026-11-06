@@ -16,7 +16,7 @@ The S7-tests track writes this file (PROCESS.md, "Tracks").
 | T2 | Case format, case runner, and pilot cases | Not started |
 | T3 | Trace oracle with fail-closed checks | Not started |
 | T4 | Cross-track (Core): harness hooks for the S7 suites | Not started |
-| T5 | Cross-track (Core): CI jobs, oracle step, and local verify for the S7 suites; first recorded results | Not started |
+| T5 | Cross-track (Core): CI jobs, oracle step, and local verify for the S7 suites; the ruff lint of `scripts/s7-tests/` in CI; first recorded results | Not started |
 | T6 | Convert the rule tests, part 1: lint-only tests through the simple API | Not started |
 | T7 | Convert the rule tests, part 2: fix, combination, file, and template tests | Not started |
 | T8 | Rust dispatch tests (cp01, cp03, cp04): classification and conversion | Not started |
@@ -53,8 +53,9 @@ output of `scripts/s7-tests/inventory` on sqlfluff 4.4.0 (pytest nodes):
   87 of them are `fix_parity` nodes (engine comparison).
 - `config_fixtures`: 2 nodes of
   `test/core/helpers/file_test.py::test__config__iter_config_paths` name
-  the folder in their source. The run check
-  (`scripts/s7-tests/config-readers`, 12.6 minutes) found 1 more node that
-  reads it: `test/core/linter/discovery_test.py::test__linter__path_from_paths__dot`.
+  the folder in their source. The run checks
+  (`scripts/s7-tests/config-readers`: with sqlfluff 12.4 minutes, with
+  `sqlfluff[rs]` 13.5 minutes) found 1 more node that reads it:
+  `test/core/linter/discovery_test.py::test__linter__path_from_paths__dot`.
 
 No case is converted yet. Parity numbers and known failures come with T5.
