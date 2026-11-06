@@ -4,14 +4,16 @@ results/S3b/C4-record.json is the output of scripts/s3b/core_design.py
 record: each number of the record and its source. The tests make it again
 from the committed files, check the tree measurement
 results/S3b/C4-tree-cost.json against the S2 input definitions and its own
-sums, and check that each number of the record is a value of the data
-file. The measurement itself needs cargo: "core_design.py measure --check"
-makes it again (the command is in the record)."""
+sums, and check that each number of the record is in a claim (a sentence
+of the data file) and each claim is in the record. The measurement itself
+needs cargo: "core_design.py measure --check" makes it again (the command
+is in the record)."""
 
 import copy
 import importlib.util
 import json
 import re
+import string
 
 import pytest
 from conftest import ci_module
@@ -64,18 +66,6 @@ PACKAGES = {
 
 def section(title: str) -> str:
     return RECORD.split(f"\n### {title}\n", 1)[1].split("\n#", 1)[0]
-
-
-def numbers(text: str) -> list[str]:
-    """Return the numbers of the text outside code, link targets, list
-    numbers, versions, dates, and ids (G3.6, C4, Q1, CP01)."""
-    text = re.sub(r"`[^`]*`", " ", text)
-    text = re.sub(r"\]\([^)]*\)", "]", text)
-    text = re.sub(r"(?m)^\s*\d+\. ", " ", text)
-    text = re.sub(r"\b\d+\.\d+\.\d+\b", " ", text)
-    text = re.sub(r"\b\d{4}-\d{2}-\d{2}\b", " ", text)
-    text = re.sub(r"\b[A-Z][A-Za-z]*\d+[a-z]?(?:\.\d+)*\b", " ", text)
-    return re.findall(r"(?<![\w.-])\d+(?:\.\d+)?%?", text)
 
 
 # The record data.
@@ -140,6 +130,14 @@ def test_the_measurement_is_of_clean_committed_crates():
     assert TREE["command"] == f"{cd.COMMAND} measure"
 
 
+def test_the_kinds_are_the_sum_of_the_variants_and_fit_in_a_u16():
+    kinds = TREE["data"]["kinds"]
+    assert kinds["distinct"] == sum(kinds["by_variant"].values())
+    assert kinds["distinct"] < kinds["u16_limit"] == 2**16
+    assert 0 < kinds["type_names_with_more_than_one_kind"] < kinds["type_names"]
+    assert kinds["type_names"] < kinds["distinct"]
+
+
 def test_each_tree_is_full_and_typed_from_the_tables():
     data = TREE["data"]
     for item in data["items"]:
@@ -172,23 +170,62 @@ def test_the_flat_estimate_is_the_formula():
 
 
 def test_numbers():
-    assert numbers("a `x 5` [b](c/9) G3.6 C4 Q1 CP01 4.4.0 7 and 1.25 12%") == [
-        "7",
-        "1.25",
-        "12%",
-    ]
+    text = "a `x 5` [b](c/9) G3.6 C4 Q1 CP01 4.4.0 7 and 1.25 12%"
+    assert cd.numbers(text) == ["7", "1.25", "12%"]
 
 
-def test_each_number_of_the_record_is_a_value_of_the_data_file():
-    texts = {v["text"] for v in VALUES.values()}
-    found = numbers(RECORD)
-    assert found
-    assert sorted(set(found) - texts) == []
+def test_each_claim_is_in_the_record_and_each_number_is_in_a_claim():
+    assert cd.numbers(RECORD)
+    assert cd.doc_problems(RECORD, DATA["claims"]) == []
 
 
-def test_each_value_is_in_the_record():
-    for vid, value in VALUES.items():
-        assert value["text"] in RECORD, vid
+def test_each_value_is_in_a_claim():
+    used = {
+        field
+        for claim in cd.CLAIMS
+        for _, field, _, _ in string.Formatter().parse(claim)
+        if field
+    }
+    assert used == set(VALUES)
+
+
+# Changed copies of the record (false claims) that the check must find.
+# (old, new, swap): with swap, old and new change places.
+CHANGES = [
+    ("1806330", "1989881", True),
+    ("100.7", "196.3", True),
+    ("8 of the 162", "162 of the 8", False),
+    ("(10 loops)", "(12 loops)", False),
+    ("12 times smaller", "12 times larger", False),
+    ("359 bytes", "360 bytes", False),
+    ("790 kinds:", "761 kinds:", False),
+    ("177 leaf, 609 segment", "609 leaf, 177 segment", False),
+    ("12% of the", "88% of the", False),
+    ("exit code 2", "exit code 1", False),
+    ("holds 65536 kinds", "holds 65535 kinds", False),
+    ("(a clone, a lower bound)", "(the full tree)", False),
+]
+
+
+@pytest.mark.parametrize(("old", "new", "swap"), CHANGES)
+def test_a_false_claim_fails_the_check(old, new, swap):
+    text = cd.flat_text(RECORD)
+    assert text.count(old) == 1, old
+    if swap:
+        assert text.count(new) == 1, new
+        changed = text.replace(old, "\0").replace(new, old).replace("\0", new)
+    else:
+        changed = text.replace(old, new)
+    assert cd.doc_problems(text, DATA["claims"]) == []
+    assert cd.doc_problems(changed, DATA["claims"]) != []
+
+
+def test_a_new_number_outside_a_claim_fails_the_check():
+    changed = RECORD.replace(
+        "## Proof for each task", "## Proof for each task\n\n3 more."
+    )
+    problems = cd.doc_problems(changed, DATA["claims"])
+    assert problems == ["the record has a number that is not in a claim: 3"]
 
 
 def test_the_record_is_a_5_minute_read():
@@ -242,6 +279,10 @@ def test_each_package_of_the_workspace_is_in_the_table():
     "word",
     [
         "[docs/decisions/s3b-core.md](../docs/decisions/s3b-core.md)",
+        # The plan changes of the record (task list).
+        "the build fails if the kinds do not fit in a `u16`",
+        "change its path in `scripts/s3b/core_design.py`",
+        "`docs/decisions/s3b-*.md` to the Core paths",
     ],
 )
 def test_the_s3b_status_links_the_record(word):

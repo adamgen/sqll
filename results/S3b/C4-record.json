@@ -1,6 +1,6 @@
 {
  "kind": "sqll-s3b-c4-record",
- "about": "Each number of docs/decisions/s3b-core.md and its source.",
+ "about": "Each number of docs/decisions/s3b-core.md and its source, and the sentences (claims) of the record with these numbers.",
  "command": "uv run --frozen --project harness python scripts/s3b/core_design.py record",
  "inputs": {
   "tree": "results/S3b/C4-tree-cost.json",
@@ -15,13 +15,6 @@
    "key": "data.inputs",
    "value": 84,
    "text": "84"
-  },
-  "dialects": {
-   "kind": "copied",
-   "from": "results/S3b/C4-tree-cost.json",
-   "key": "data.dialects",
-   "value": 28,
-   "text": "28"
   },
   "nodes": {
    "kind": "copied",
@@ -93,19 +86,54 @@
    "value": 24,
    "text": "24"
   },
-  "observed_types": {
+  "kinds": {
    "kind": "copied",
    "from": "results/S3b/C4-tree-cost.json",
-   "key": "data.types.observed",
-   "value": 665,
-   "text": "665"
+   "key": "data.kinds.distinct",
+   "value": 790,
+   "text": "790"
   },
-  "kind_names_bound": {
+  "kinds_raw": {
    "kind": "copied",
    "from": "results/S3b/C4-tree-cost.json",
-   "key": "data.types.table_strings_and_lexer_names",
-   "value": 9929,
-   "text": "9929"
+   "key": "data.kinds.by_variant.raw",
+   "value": 177,
+   "text": "177"
+  },
+  "kinds_segment": {
+   "kind": "copied",
+   "from": "results/S3b/C4-tree-cost.json",
+   "key": "data.kinds.by_variant.segment",
+   "value": 609,
+   "text": "609"
+  },
+  "kinds_meta": {
+   "kind": "copied",
+   "from": "results/S3b/C4-tree-cost.json",
+   "key": "data.kinds.by_variant.meta",
+   "value": 4,
+   "text": "4"
+  },
+  "type_names_multi": {
+   "kind": "copied",
+   "from": "results/S3b/C4-tree-cost.json",
+   "key": "data.kinds.type_names_with_more_than_one_kind",
+   "value": 65,
+   "text": "65"
+  },
+  "raw_with_kwargs": {
+   "kind": "copied",
+   "from": "results/S3b/C4-tree-cost.json",
+   "key": "data.totals.raw_with_kwargs",
+   "value": 5119,
+   "text": "5119"
+  },
+  "template_meta": {
+   "kind": "copied",
+   "from": "results/S3b/C4-tree-cost.json",
+   "key": "data.totals.template_meta",
+   "value": 0,
+   "text": "0"
   },
   "node_bytes_per_node": {
    "kind": "derived",
@@ -197,5 +225,26 @@
    "value": 2,
    "text": "2"
   }
- }
+ },
+ "claims": [
+  "parses the 84 S2 parse inputs as `sqll parse` does",
+  "The 84 inputs have 601133 bytes of SQL and 280339 tree nodes:",
+  "| `Node` tree of the parser (a clone, a lower bound) | 1806330 | 100.7 |",
+  "| `Arena`, made from the `Node` tree | 1989881 | 196.3 |",
+  "| Flat tree, estimate with a 24-byte node record | 4 for each tree | 8.5 |",
+  "The `Node` tree uses 359 bytes and 6.4 heap blocks for each node (167 bytes for each byte of SQL)",
+  "The flat tree is 12 times smaller (an estimate; C7 measures it).",
+  "The tree has 12% of the 14455867 heap blocks that the parse asks for.",
+  "The 84 trees have 790 kinds: 177 leaf, 609 segment, and 4 meta kinds.",
+  "65 type names have more than one kind (for example `quoted_literal`), and 5119 leaves have segment kwargs.",
+  "`Node` and `Arena` stay: 8 of the 162 native base tests test the `Arena`.",
+  "The leaves of each of the 84 trees give their input again (the tool checks this)",
+  "the inputs use the raw templater (0 template meta nodes)",
+  "up to the sqlfluff `runaway_limit` (10 loops).",
+  "gives \"unsupported\" and exit code 2.",
+  "the sha256 of the manifest of the 85 generated files (`generated.json`, `5371ded8ae21`) is part of the sqll version.",
+  "The trees have 790 kinds; a `u16` holds 65536 kinds.",
+  "S1 dialect suite of sqll: 2306 of 2306 exact,",
+  "Native base tests: 162 of 162."
+ ]
 }

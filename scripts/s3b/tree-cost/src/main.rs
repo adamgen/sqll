@@ -21,8 +21,14 @@
 // crates/sqll/src/parse.rs), and the heap blocks and bytes of:
 // - parse: the allocations of Parser::root_parse (a second parse, after a
 //   first parse that makes the lazy values of the dialect);
-// - node_tree: the blocks and bytes that a clone of the Node tree keeps;
-// - arena: the blocks and bytes that Arena::from_node keeps.
+// - node_tree: the blocks and bytes that a clone of the Node tree keeps (a
+//   clone has no spare Vec capacity, so this is a lower bound of the tree
+//   that the parser keeps);
+// - arena: the blocks and bytes that Arena::from_node keeps;
+// - kinds: the distinct static data of the nodes (one JSON array for each
+//   kind, see kind()). The data that is not static (the text, the position,
+//   the source_str of a template meta, the expected text of an unparsable
+//   node) is not part of a kind.
 // tables: one JSON object with the distinct strings of the grammar tables
 // of the dialects.
 // Bytes are the sizes that the program asks for, not the sizes that the
@@ -39,7 +45,7 @@ use std::sync::atomic::{AtomicI64, AtomicU64, Ordering::Relaxed};
 use serde_json::json;
 use sqll_dialects::Dialect;
 use sqll_lexer::{LexInput, Lexer};
-use sqll_parser::parser::{Node, Parser};
+use sqll_parser::parser::{MetaType, Node, Parser};
 use sqll_parser::Arena;
 
 // The values of crates/sqll/src/parse.rs.
@@ -142,22 +148,69 @@ struct Counts {
     unparsable: u64,
     empty: u64,
     max_depth: u64,
+    raw_with_kwargs: u64,
+    template_meta: u64,
     text: String,
     types: BTreeSet<String>,
+    kinds: BTreeSet<String>,
+}
+
+// The static data of a node: the node variant, the class, the type, the
+// instance types, the class types, and the segment kwargs of a leaf.
+fn kind(node: &Node) -> serde_json::Value {
+    match node {
+        Node::Raw {
+            segment_class,
+            segment_type,
+            instance_types,
+            class_types,
+            segment_kwargs: k,
+            ..
+        } => json!([
+            "raw",
+            segment_class,
+            segment_type,
+            instance_types,
+            class_types,
+            k.trim_chars.as_deref(),
+            k.quoted_value,
+            k.escape_replacements.as_deref(),
+        ]),
+        Node::Segment {
+            segment_class,
+            segment_type,
+            class_types,
+            ..
+        } => json!(["segment", segment_class, segment_type, class_types]),
+        Node::Meta { meta_type, .. } => match meta_type {
+            MetaType::Indent { is_implicit } => json!(["meta", "indent", is_implicit]),
+            MetaType::Dedent { is_implicit } => json!(["meta", "dedent", is_implicit]),
+            MetaType::Template { block_type, .. } => json!(["meta", "template", block_type]),
+            MetaType::TemplateLoop => json!(["meta", "template_loop"]),
+            MetaType::EndOfFile => json!(["meta", "end_of_file"]),
+        },
+        Node::Unparsable { .. } => json!(["unparsable"]),
+        Node::Empty => json!(["empty"]),
+    }
 }
 
 fn walk(node: &Node, depth: u64, c: &mut Counts) {
     c.max_depth = c.max_depth.max(depth);
+    c.kinds.insert(kind(node).to_string());
     match node {
         Node::Raw {
             segment_type,
             raw,
             instance_types,
             class_types,
+            segment_kwargs,
             ..
         } => {
             c.nodes += 1;
             c.raw += 1;
+            if *segment_kwargs != Default::default() {
+                c.raw_with_kwargs += 1;
+            }
             c.text.push_str(raw);
             c.types.insert(segment_type.to_string());
             c.types.extend(instance_types.iter().cloned());
@@ -179,9 +232,12 @@ fn walk(node: &Node, depth: u64, c: &mut Counts) {
                 walk(child, depth + 1, c);
             }
         }
-        Node::Meta { .. } => {
+        Node::Meta { meta_type, .. } => {
             c.nodes += 1;
             c.meta += 1;
+            if matches!(meta_type, MetaType::Template { .. }) {
+                c.template_meta += 1;
+            }
         }
         Node::Unparsable { children, .. } => {
             c.nodes += 1;
@@ -257,7 +313,14 @@ fn measure(dialect_name: &str, path: &str) -> Result<serde_json::Value, String> 
         "empty": counts.empty,
         "max_depth": counts.max_depth,
         "lossless": true,
+        "raw_with_kwargs": counts.raw_with_kwargs,
+        "template_meta": counts.template_meta,
         "types": counts.types.into_iter().collect::<Vec<_>>(),
+        "kinds": counts
+            .kinds
+            .iter()
+            .map(|k| serde_json::from_str::<serde_json::Value>(k).expect("a JSON kind"))
+            .collect::<Vec<_>>(),
         "arena_nodes": arena_len,
         "parse": {
             "blocks": after.allocs - before.allocs,

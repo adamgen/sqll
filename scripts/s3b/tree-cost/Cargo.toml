@@ -16,7 +16,6 @@ description = "S3b C4 measurement, not sqll: the heap cost of the parser tree"
 [workspace]
 
 [dependencies]
-hashbrown = "0.16.1"
 serde_json = "1.0.149"
 sqll_dialects = { path = "../../../crates/sqll_dialects" }
 sqll_lexer = { path = "../../../crates/sqll_lexer" }

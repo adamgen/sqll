@@ -1,11 +1,22 @@
 {
  "kind": "sqll-s3b-c4-tree-cost",
- "about": "The heap cost of the parser tree (Node) and of the Arena for the 84 S2 parse inputs, and a flat tree estimate. Counts of scripts/s3b/tree-cost: blocks and asked bytes. parse: the allocations of Parser::root_parse. node_tree: what a clone of the tree keeps. arena: what Arena::from_node keeps.",
+ "about": "The heap cost of the parser tree (Node) and of the Arena for the 84 S2 parse inputs, and a flat tree estimate. Counts of scripts/s3b/tree-cost: blocks and asked bytes. parse: the allocations of Parser::root_parse. node_tree: what a clone of the tree keeps (a clone has no spare Vec capacity, thus a lower bound of the tree that the parser keeps). arena: what Arena::from_node keeps. kinds: the distinct static data of the nodes (variant, class, type, instance types, class types, segment kwargs).",
  "command": "uv run --frozen --project harness python scripts/s3b/core_design.py measure",
- "commit": "60006dbf18b879ef8cee3589d6e033bccd8ed8a5",
+ "commit": "e2b5cb45dda67309e3aaa48580b0da115e6b2ef5",
  "crates_clean": true,
  "rustc": "rustc 1.97.0 (2d8144b78 2026-07-07)",
  "data": {
+  "kinds": {
+   "distinct": 790,
+   "by_variant": {
+    "meta": 4,
+    "raw": 177,
+    "segment": 609
+   },
+   "type_names": 647,
+   "type_names_with_more_than_one_kind": 65,
+   "u16_limit": 65536
+  },
   "inputs": 84,
   "dialects": 28,
   "flat": {
@@ -25,6 +36,8 @@
    "segment": 71856,
    "meta": 25100,
    "unparsable": 0,
+   "raw_with_kwargs": 5119,
+   "template_meta": 0,
    "parse": {
     "blocks": 14455867,
     "bytes": 1779820997
@@ -96,6 +109,8 @@
     "segment": 116,
     "meta": 29,
     "unparsable": 0,
+    "raw_with_kwargs": 2,
+    "template_meta": 0,
     "max_depth": 8,
     "parse": {
      "blocks": 19609,
@@ -126,6 +141,8 @@
     "segment": 610,
     "meta": 233,
     "unparsable": 0,
+    "raw_with_kwargs": 7,
+    "template_meta": 0,
     "max_depth": 12,
     "parse": {
      "blocks": 125320,
@@ -156,6 +173,8 @@
     "segment": 2580,
     "meta": 915,
     "unparsable": 0,
+    "raw_with_kwargs": 62,
+    "template_meta": 0,
     "max_depth": 14,
     "parse": {
      "blocks": 499215,
@@ -186,6 +205,8 @@
     "segment": 197,
     "meta": 73,
     "unparsable": 0,
+    "raw_with_kwargs": 11,
+    "template_meta": 0,
     "max_depth": 18,
     "parse": {
      "blocks": 30494,
@@ -216,6 +237,8 @@
     "segment": 468,
     "meta": 135,
     "unparsable": 0,
+    "raw_with_kwargs": 65,
+    "template_meta": 0,
     "max_depth": 18,
     "parse": {
      "blocks": 68502,
@@ -246,6 +269,8 @@
     "segment": 2604,
     "meta": 983,
     "unparsable": 0,
+    "raw_with_kwargs": 192,
+    "template_meta": 0,
     "max_depth": 23,
     "parse": {
      "blocks": 431251,
@@ -276,6 +301,8 @@
     "segment": 83,
     "meta": 23,
     "unparsable": 0,
+    "raw_with_kwargs": 11,
+    "template_meta": 0,
     "max_depth": 10,
     "parse": {
      "blocks": 22766,
@@ -306,6 +333,8 @@
     "segment": 322,
     "meta": 119,
     "unparsable": 0,
+    "raw_with_kwargs": 40,
+    "template_meta": 0,
     "max_depth": 18,
     "parse": {
      "blocks": 74453,
@@ -336,6 +365,8 @@
     "segment": 1890,
     "meta": 867,
     "unparsable": 0,
+    "raw_with_kwargs": 140,
+    "template_meta": 0,
     "max_depth": 19,
     "parse": {
      "blocks": 342664,
@@ -366,6 +397,8 @@
     "segment": 300,
     "meta": 131,
     "unparsable": 0,
+    "raw_with_kwargs": 13,
+    "template_meta": 0,
     "max_depth": 11,
     "parse": {
      "blocks": 47298,
@@ -396,6 +429,8 @@
     "segment": 530,
     "meta": 195,
     "unparsable": 0,
+    "raw_with_kwargs": 70,
+    "template_meta": 0,
     "max_depth": 15,
     "parse": {
      "blocks": 91129,
@@ -426,6 +461,8 @@
     "segment": 1664,
     "meta": 475,
     "unparsable": 0,
+    "raw_with_kwargs": 292,
+    "template_meta": 0,
     "max_depth": 15,
     "parse": {
      "blocks": 322104,
@@ -456,6 +493,8 @@
     "segment": 61,
     "meta": 13,
     "unparsable": 0,
+    "raw_with_kwargs": 11,
+    "template_meta": 0,
     "max_depth": 8,
     "parse": {
      "blocks": 12998,
@@ -486,6 +525,8 @@
     "segment": 264,
     "meta": 57,
     "unparsable": 0,
+    "raw_with_kwargs": 62,
+    "template_meta": 0,
     "max_depth": 9,
     "parse": {
      "blocks": 52255,
@@ -516,6 +557,8 @@
     "segment": 1329,
     "meta": 485,
     "unparsable": 0,
+    "raw_with_kwargs": 149,
+    "template_meta": 0,
     "max_depth": 15,
     "parse": {
      "blocks": 242252,
@@ -546,6 +589,8 @@
     "segment": 88,
     "meta": 19,
     "unparsable": 0,
+    "raw_with_kwargs": 5,
+    "template_meta": 0,
     "max_depth": 8,
     "parse": {
      "blocks": 20224,
@@ -576,6 +621,8 @@
     "segment": 374,
     "meta": 139,
     "unparsable": 0,
+    "raw_with_kwargs": 24,
+    "template_meta": 0,
     "max_depth": 12,
     "parse": {
      "blocks": 76680,
@@ -606,6 +653,8 @@
     "segment": 2090,
     "meta": 785,
     "unparsable": 0,
+    "raw_with_kwargs": 37,
+    "template_meta": 0,
     "max_depth": 12,
     "parse": {
      "blocks": 493609,
@@ -636,6 +685,8 @@
     "segment": 100,
     "meta": 35,
     "unparsable": 0,
+    "raw_with_kwargs": 15,
+    "template_meta": 0,
     "max_depth": 9,
     "parse": {
      "blocks": 28813,
@@ -666,6 +717,8 @@
     "segment": 390,
     "meta": 123,
     "unparsable": 0,
+    "raw_with_kwargs": 83,
+    "template_meta": 0,
     "max_depth": 9,
     "parse": {
      "blocks": 76688,
@@ -696,6 +749,8 @@
     "segment": 1623,
     "meta": 585,
     "unparsable": 0,
+    "raw_with_kwargs": 256,
+    "template_meta": 0,
     "max_depth": 10,
     "parse": {
      "blocks": 278360,
@@ -726,6 +781,8 @@
     "segment": 171,
     "meta": 73,
     "unparsable": 0,
+    "raw_with_kwargs": 4,
+    "template_meta": 0,
     "max_depth": 9,
     "parse": {
      "blocks": 61789,
@@ -756,6 +813,8 @@
     "segment": 574,
     "meta": 313,
     "unparsable": 0,
+    "raw_with_kwargs": 23,
+    "template_meta": 0,
     "max_depth": 10,
     "parse": {
      "blocks": 163418,
@@ -786,6 +845,8 @@
     "segment": 2461,
     "meta": 1169,
     "unparsable": 0,
+    "raw_with_kwargs": 108,
+    "template_meta": 0,
     "max_depth": 17,
     "parse": {
      "blocks": 560257,
@@ -816,6 +877,8 @@
     "segment": 87,
     "meta": 11,
     "unparsable": 0,
+    "raw_with_kwargs": 17,
+    "template_meta": 0,
     "max_depth": 9,
     "parse": {
      "blocks": 50134,
@@ -846,6 +909,8 @@
     "segment": 457,
     "meta": 31,
     "unparsable": 0,
+    "raw_with_kwargs": 36,
+    "template_meta": 0,
     "max_depth": 11,
     "parse": {
      "blocks": 97938,
@@ -876,6 +941,8 @@
     "segment": 1838,
     "meta": 539,
     "unparsable": 0,
+    "raw_with_kwargs": 118,
+    "template_meta": 0,
     "max_depth": 15,
     "parse": {
      "blocks": 315206,
@@ -906,6 +973,8 @@
     "segment": 91,
     "meta": 35,
     "unparsable": 0,
+    "raw_with_kwargs": 26,
+    "template_meta": 0,
     "max_depth": 10,
     "parse": {
      "blocks": 23777,
@@ -936,6 +1005,8 @@
     "segment": 441,
     "meta": 151,
     "unparsable": 0,
+    "raw_with_kwargs": 75,
+    "template_meta": 0,
     "max_depth": 16,
     "parse": {
      "blocks": 80357,
@@ -966,6 +1037,8 @@
     "segment": 1751,
     "meta": 587,
     "unparsable": 0,
+    "raw_with_kwargs": 277,
+    "template_meta": 0,
     "max_depth": 16,
     "parse": {
      "blocks": 302164,
@@ -996,6 +1069,8 @@
     "segment": 168,
     "meta": 39,
     "unparsable": 0,
+    "raw_with_kwargs": 4,
+    "template_meta": 0,
     "max_depth": 13,
     "parse": {
      "blocks": 39284,
@@ -1026,6 +1101,8 @@
     "segment": 315,
     "meta": 125,
     "unparsable": 0,
+    "raw_with_kwargs": 87,
+    "template_meta": 0,
     "max_depth": 13,
     "parse": {
      "blocks": 81499,
@@ -1056,6 +1133,8 @@
     "segment": 1617,
     "meta": 767,
     "unparsable": 0,
+    "raw_with_kwargs": 184,
+    "template_meta": 0,
     "max_depth": 13,
     "parse": {
      "blocks": 302228,
@@ -1086,6 +1165,8 @@
     "segment": 166,
     "meta": 67,
     "unparsable": 0,
+    "raw_with_kwargs": 19,
+    "template_meta": 0,
     "max_depth": 16,
     "parse": {
      "blocks": 35813,
@@ -1116,6 +1197,8 @@
     "segment": 481,
     "meta": 175,
     "unparsable": 0,
+    "raw_with_kwargs": 52,
+    "template_meta": 0,
     "max_depth": 16,
     "parse": {
      "blocks": 82407,
@@ -1146,6 +1229,8 @@
     "segment": 2625,
     "meta": 1053,
     "unparsable": 0,
+    "raw_with_kwargs": 168,
+    "template_meta": 0,
     "max_depth": 17,
     "parse": {
      "blocks": 463445,
@@ -1176,6 +1261,8 @@
     "segment": 131,
     "meta": 35,
     "unparsable": 0,
+    "raw_with_kwargs": 12,
+    "template_meta": 0,
     "max_depth": 9,
     "parse": {
      "blocks": 53775,
@@ -1206,6 +1293,8 @@
     "segment": 717,
     "meta": 277,
     "unparsable": 0,
+    "raw_with_kwargs": 38,
+    "template_meta": 0,
     "max_depth": 9,
     "parse": {
      "blocks": 163843,
@@ -1236,6 +1325,8 @@
     "segment": 2934,
     "meta": 1205,
     "unparsable": 0,
+    "raw_with_kwargs": 168,
+    "template_meta": 0,
     "max_depth": 9,
     "parse": {
      "blocks": 572520,
@@ -1266,6 +1357,8 @@
     "segment": 97,
     "meta": 17,
     "unparsable": 0,
+    "raw_with_kwargs": 5,
+    "template_meta": 0,
     "max_depth": 9,
     "parse": {
      "blocks": 35499,
@@ -1296,6 +1389,8 @@
     "segment": 293,
     "meta": 55,
     "unparsable": 0,
+    "raw_with_kwargs": 106,
+    "template_meta": 0,
     "max_depth": 7,
     "parse": {
      "blocks": 74613,
@@ -1326,6 +1421,8 @@
     "segment": 1649,
     "meta": 347,
     "unparsable": 0,
+    "raw_with_kwargs": 263,
+    "template_meta": 0,
     "max_depth": 13,
     "parse": {
      "blocks": 304142,
@@ -1356,6 +1453,8 @@
     "segment": 100,
     "meta": 5,
     "unparsable": 0,
+    "raw_with_kwargs": 2,
+    "template_meta": 0,
     "max_depth": 5,
     "parse": {
      "blocks": 24536,
@@ -1386,6 +1485,8 @@
     "segment": 317,
     "meta": 103,
     "unparsable": 0,
+    "raw_with_kwargs": 2,
+    "template_meta": 0,
     "max_depth": 10,
     "parse": {
      "blocks": 67257,
@@ -1416,6 +1517,8 @@
     "segment": 1282,
     "meta": 441,
     "unparsable": 0,
+    "raw_with_kwargs": 46,
+    "template_meta": 0,
     "max_depth": 19,
     "parse": {
      "blocks": 283520,
@@ -1446,6 +1549,8 @@
     "segment": 93,
     "meta": 9,
     "unparsable": 0,
+    "raw_with_kwargs": 4,
+    "template_meta": 0,
     "max_depth": 7,
     "parse": {
      "blocks": 39566,
@@ -1476,6 +1581,8 @@
     "segment": 516,
     "meta": 109,
     "unparsable": 0,
+    "raw_with_kwargs": 19,
+    "template_meta": 0,
     "max_depth": 13,
     "parse": {
      "blocks": 111844,
@@ -1506,6 +1613,8 @@
     "segment": 2060,
     "meta": 519,
     "unparsable": 0,
+    "raw_with_kwargs": 188,
+    "template_meta": 0,
     "max_depth": 15,
     "parse": {
      "blocks": 365446,
@@ -1536,6 +1645,8 @@
     "segment": 68,
     "meta": 5,
     "unparsable": 0,
+    "raw_with_kwargs": 0,
+    "template_meta": 0,
     "max_depth": 9,
     "parse": {
      "blocks": 33962,
@@ -1566,6 +1677,8 @@
     "segment": 457,
     "meta": 127,
     "unparsable": 0,
+    "raw_with_kwargs": 11,
+    "template_meta": 0,
     "max_depth": 13,
     "parse": {
      "blocks": 136759,
@@ -1596,6 +1709,8 @@
     "segment": 1662,
     "meta": 509,
     "unparsable": 0,
+    "raw_with_kwargs": 58,
+    "template_meta": 0,
     "max_depth": 17,
     "parse": {
      "blocks": 451896,
@@ -1626,6 +1741,8 @@
     "segment": 101,
     "meta": 23,
     "unparsable": 0,
+    "raw_with_kwargs": 1,
+    "template_meta": 0,
     "max_depth": 11,
     "parse": {
      "blocks": 33539,
@@ -1656,6 +1773,8 @@
     "segment": 349,
     "meta": 53,
     "unparsable": 0,
+    "raw_with_kwargs": 11,
+    "template_meta": 0,
     "max_depth": 11,
     "parse": {
      "blocks": 87522,
@@ -1686,6 +1805,8 @@
     "segment": 1549,
     "meta": 199,
     "unparsable": 0,
+    "raw_with_kwargs": 22,
+    "template_meta": 0,
     "max_depth": 12,
     "parse": {
      "blocks": 305347,
@@ -1716,6 +1837,8 @@
     "segment": 83,
     "meta": 1,
     "unparsable": 0,
+    "raw_with_kwargs": 3,
+    "template_meta": 0,
     "max_depth": 6,
     "parse": {
      "blocks": 31631,
@@ -1746,6 +1869,8 @@
     "segment": 486,
     "meta": 83,
     "unparsable": 0,
+    "raw_with_kwargs": 6,
+    "template_meta": 0,
     "max_depth": 10,
     "parse": {
      "blocks": 97203,
@@ -1776,6 +1901,8 @@
     "segment": 1442,
     "meta": 295,
     "unparsable": 0,
+    "raw_with_kwargs": 107,
+    "template_meta": 0,
     "max_depth": 14,
     "parse": {
      "blocks": 284799,
@@ -1806,6 +1933,8 @@
     "segment": 67,
     "meta": 3,
     "unparsable": 0,
+    "raw_with_kwargs": 0,
+    "template_meta": 0,
     "max_depth": 6,
     "parse": {
      "blocks": 21316,
@@ -1836,6 +1965,8 @@
     "segment": 311,
     "meta": 37,
     "unparsable": 0,
+    "raw_with_kwargs": 0,
+    "template_meta": 0,
     "max_depth": 6,
     "parse": {
      "blocks": 82396,
@@ -1866,6 +1997,8 @@
     "segment": 994,
     "meta": 109,
     "unparsable": 0,
+    "raw_with_kwargs": 2,
+    "template_meta": 0,
     "max_depth": 8,
     "parse": {
      "blocks": 283875,
@@ -1896,6 +2029,8 @@
     "segment": 199,
     "meta": 79,
     "unparsable": 0,
+    "raw_with_kwargs": 0,
+    "template_meta": 0,
     "max_depth": 8,
     "parse": {
      "blocks": 42107,
@@ -1926,6 +2061,8 @@
     "segment": 783,
     "meta": 307,
     "unparsable": 0,
+    "raw_with_kwargs": 0,
+    "template_meta": 0,
     "max_depth": 8,
     "parse": {
      "blocks": 148911,
@@ -1956,6 +2093,8 @@
     "segment": 3160,
     "meta": 1237,
     "unparsable": 0,
+    "raw_with_kwargs": 0,
+    "template_meta": 0,
     "max_depth": 8,
     "parse": {
      "blocks": 582178,
@@ -1986,6 +2125,8 @@
     "segment": 78,
     "meta": 11,
     "unparsable": 0,
+    "raw_with_kwargs": 15,
+    "template_meta": 0,
     "max_depth": 7,
     "parse": {
      "blocks": 14926,
@@ -2016,6 +2157,8 @@
     "segment": 284,
     "meta": 113,
     "unparsable": 0,
+    "raw_with_kwargs": 64,
+    "template_meta": 0,
     "max_depth": 10,
     "parse": {
      "blocks": 53474,
@@ -2046,6 +2189,8 @@
     "segment": 1544,
     "meta": 567,
     "unparsable": 0,
+    "raw_with_kwargs": 187,
+    "template_meta": 0,
     "max_depth": 15,
     "parse": {
      "blocks": 242761,
@@ -2076,6 +2221,8 @@
     "segment": 118,
     "meta": 25,
     "unparsable": 0,
+    "raw_with_kwargs": 2,
+    "template_meta": 0,
     "max_depth": 9,
     "parse": {
      "blocks": 27651,
@@ -2106,6 +2253,8 @@
     "segment": 674,
     "meta": 211,
     "unparsable": 0,
+    "raw_with_kwargs": 17,
+    "template_meta": 0,
     "max_depth": 13,
     "parse": {
      "blocks": 147129,
@@ -2136,6 +2285,8 @@
     "segment": 2686,
     "meta": 1083,
     "unparsable": 0,
+    "raw_with_kwargs": 100,
+    "template_meta": 0,
     "max_depth": 21,
     "parse": {
      "blocks": 552947,
@@ -2166,6 +2317,8 @@
     "segment": 91,
     "meta": 23,
     "unparsable": 0,
+    "raw_with_kwargs": 20,
+    "template_meta": 0,
     "max_depth": 9,
     "parse": {
      "blocks": 35234,
@@ -2196,6 +2349,8 @@
     "segment": 347,
     "meta": 127,
     "unparsable": 0,
+    "raw_with_kwargs": 72,
+    "template_meta": 0,
     "max_depth": 16,
     "parse": {
      "blocks": 81172,
@@ -2226,6 +2381,8 @@
     "segment": 1857,
     "meta": 873,
     "unparsable": 0,
+    "raw_with_kwargs": 181,
+    "template_meta": 0,
     "max_depth": 16,
     "parse": {
      "blocks": 374767,
@@ -2256,6 +2413,8 @@
     "segment": 312,
     "meta": 117,
     "unparsable": 0,
+    "raw_with_kwargs": 2,
+    "template_meta": 0,
     "max_depth": 12,
     "parse": {
      "blocks": 52742,
@@ -2286,6 +2445,8 @@
     "segment": 667,
     "meta": 319,
     "unparsable": 0,
+    "raw_with_kwargs": 22,
+    "template_meta": 0,
     "max_depth": 13,
     "parse": {
      "blocks": 119618,
@@ -2316,6 +2477,8 @@
     "segment": 2288,
     "meta": 1049,
     "unparsable": 0,
+    "raw_with_kwargs": 87,
+    "template_meta": 0,
     "max_depth": 14,
     "parse": {
      "blocks": 411889,
@@ -2346,6 +2509,8 @@
     "segment": 209,
     "meta": 79,
     "unparsable": 0,
+    "raw_with_kwargs": 14,
+    "template_meta": 0,
     "max_depth": 14,
     "parse": {
      "blocks": 37755,
@@ -2376,6 +2541,8 @@
     "segment": 679,
     "meta": 213,
     "unparsable": 0,
+    "raw_with_kwargs": 32,
+    "template_meta": 0,
     "max_depth": 15,
     "parse": {
      "blocks": 111161,
@@ -2406,6 +2573,8 @@
     "segment": 2586,
     "meta": 1015,
     "unparsable": 0,
+    "raw_with_kwargs": 139,
+    "template_meta": 0,
     "max_depth": 15,
     "parse": {
      "blocks": 442977,
@@ -2436,6 +2605,8 @@
     "segment": 92,
     "meta": 19,
     "unparsable": 0,
+    "raw_with_kwargs": 30,
+    "template_meta": 0,
     "max_depth": 8,
     "parse": {
      "blocks": 42690,
@@ -2466,6 +2637,8 @@
     "segment": 315,
     "meta": 61,
     "unparsable": 0,
+    "raw_with_kwargs": 40,
+    "template_meta": 0,
     "max_depth": 10,
     "parse": {
      "blocks": 99473,
@@ -2496,6 +2669,8 @@
     "segment": 1502,
     "meta": 499,
     "unparsable": 0,
+    "raw_with_kwargs": 157,
+    "template_meta": 0,
     "max_depth": 16,
     "parse": {
      "blocks": 345939,
@@ -2526,6 +2701,8 @@
     "segment": 92,
     "meta": 3,
     "unparsable": 0,
+    "raw_with_kwargs": 0,
+    "template_meta": 0,
     "max_depth": 6,
     "parse": {
      "blocks": 26991,
@@ -2556,6 +2733,8 @@
     "segment": 414,
     "meta": 143,
     "unparsable": 0,
+    "raw_with_kwargs": 27,
+    "template_meta": 0,
     "max_depth": 12,
     "parse": {
      "blocks": 83065,
@@ -2586,6 +2765,8 @@
     "segment": 2195,
     "meta": 807,
     "unparsable": 0,
+    "raw_with_kwargs": 92,
+    "template_meta": 0,
     "max_depth": 17,
     "parse": {
      "blocks": 415104,

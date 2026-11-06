@@ -5,8 +5,9 @@ owner, 2026-11-06). The plan: one pull request for each task, C3 to C17.
 The S3 code paths are Core paths since C3 (`tracks.yml`).
 The design of C6 to C16 is in the C4 record
 [docs/decisions/s3b-core.md](../docs/decisions/s3b-core.md). It adds
-these details to the task list: C8 makes the crates `sqll_source` and
-`sqll_interfaces`, and C13 makes the crate `sqll_cli`.
+these details to the task list: a kind is the full static data of a node
+(C6), C8 makes the crates `sqll_source` and `sqll_interfaces`, C13 makes
+the crate `sqll_cli`, and C16 gives `docs/decisions/s3b-*.md` to Core.
 
 ## Tasks
 
@@ -17,17 +18,17 @@ these details to the task list: C8 makes the crates `sqll_source` and
 | C3 | Record the S3b plan and move the S3 code paths to the Core track | Merged (PR #59) |
 | C4 | Decision record: the S3b core design (answers to the 7 open interface questions): [docs/decisions/s3b-core.md](../docs/decisions/s3b-core.md) | In review |
 | C5 | Speed check tool for each Core change (G3.6) | Not started |
-| C6 | Typed segment kinds from the frozen dialect tables | Not started |
+| C6 | Typed segment kinds from the frozen dialect tables: one kind for each distinct static data of a node (variant, class, type, instance types, class types, segment kwargs); the build fails if the kinds do not fit in a `u16` | Not started |
 | C7 | Lossless syntax tree (`sqll_tree`) and the conversion from the parser tree | Not started |
 | C8 | Source map (`sqll_source`): `TemplatedFile` as the frozen templater interface, raw templater; the interface test crate `sqll_interfaces` | Not started |
 | C9 | Frozen parse interface (lexer to parser to tree) and `sqll parse` output from `SyntaxTree` | Not started |
 | C10 | Typed view of the tree | Not started |
 | C11 | Config skeleton (`sqll_config`) and its use in `sqll parse` | Not started |
 | C12 | Rule and fix interface (`sqll_lint`) with CP01, CP03, CP04 as the proof | Not started |
-| C13 | CLI skeleton (`sqll_cli`): lint, fix, rules, dialects, and output formats | Not started |
+| C13 | CLI skeleton (`sqll_cli`): lint, fix, rules, dialects, and output formats. If `EXIT_ERROR` moves, change its path in `scripts/s3b/core_design.py` | Not started |
 | C14 | Harness adapters: `sqll lint` and `fix` in the S1 harness and the S2 benchmarks | Not started |
 | C15 | Code generation interface: tree to schema | Not started |
-| C16 | Package ownership of the later tracks and the interface index | Not started |
+| C16 | Package ownership of the later tracks and the interface index; `docs/decisions/s3b-*.md` to the Core paths | Not started |
 | C17 | S3b exit: proof, exit record, and STATUS "S3b awaiting human approval" | Not started |
 
 Rules for each task:
