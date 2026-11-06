@@ -1,0 +1,3435 @@
+{
+ "format": 1,
+ "sqlfluff": "4.4.0",
+ "pytest": "9.1.1",
+ "python_files": [
+  "*_test.py"
+ ],
+ "counts": {
+  "cli": 295,
+  "rules": 208,
+  "config": 137,
+  "config_fixtures": 3,
+  "total": 643
+ },
+ "files": {
+  "test/cli/autocomplete_test.py": {
+   "group": "cli",
+   "nodes": 5
+  },
+  "test/cli/commands_test.py": {
+   "group": "cli",
+   "nodes": 237
+  },
+  "test/cli/formatters_test.py": {
+   "group": "cli",
+   "nodes": 24
+  },
+  "test/cli/helpers_test.py": {
+   "group": "cli",
+   "nodes": 14
+  },
+  "test/cli/recursion_limit_test.py": {
+   "group": "cli",
+   "nodes": 5
+  },
+  "test/cli/test_parse_with_positions.py": {
+   "group": "cli",
+   "nodes": 10
+  },
+  "test/core/config/fluffconfig_test.py": {
+   "group": "config",
+   "nodes": 36
+  },
+  "test/core/config/ini_test.py": {
+   "group": "config",
+   "nodes": 4
+  },
+  "test/core/config/loader_test.py": {
+   "group": "config",
+   "nodes": 39
+  },
+  "test/core/config/validate_test.py": {
+   "group": "config",
+   "nodes": 58
+  },
+  "test/core/helpers/file_test.py": {
+   "group": "config_fixtures",
+   "nodes": 2
+  },
+  "test/core/linter/discovery_test.py": {
+   "group": "config_fixtures",
+   "nodes": 1
+  },
+  "test/rules/cp01_rust_dispatch_test.py": {
+   "group": "rules",
+   "nodes": 39
+  },
+  "test/rules/cp03_rust_dispatch_test.py": {
+   "group": "rules",
+   "nodes": 39
+  },
+  "test/rules/cp04_rust_dispatch_test.py": {
+   "group": "rules",
+   "nodes": 24
+  },
+  "test/rules/std_AL04_test.py": {
+   "group": "rules",
+   "nodes": 3
+  },
+  "test/rules/std_AL09_CP02_RF06_combo_test.py": {
+   "group": "rules",
+   "nodes": 10
+  },
+  "test/rules/std_AM06_test.py": {
+   "group": "rules",
+   "nodes": 3
+  },
+  "test/rules/std_AM09_test.py": {
+   "group": "rules",
+   "nodes": 5
+  },
+  "test/rules/std_CV02_test.py": {
+   "group": "rules",
+   "nodes": 1
+  },
+  "test/rules/std_CV09_test.py": {
+   "group": "rules",
+   "nodes": 1
+  },
+  "test/rules/std_JJ01_test.py": {
+   "group": "rules",
+   "nodes": 5
+  },
+  "test/rules/std_LT01_LT02_LT09_combo_test.py": {
+   "group": "rules",
+   "nodes": 1
+  },
+  "test/rules/std_LT01_LT04_test.py": {
+   "group": "rules",
+   "nodes": 1
+  },
+  "test/rules/std_LT01_ST02_test.py": {
+   "group": "rules",
+   "nodes": 1
+  },
+  "test/rules/std_LT01_jinja_alignment_test.py": {
+   "group": "rules",
+   "nodes": 8
+  },
+  "test/rules/std_LT02_LT04_test.py": {
+   "group": "rules",
+   "nodes": 1
+  },
+  "test/rules/std_LT02_LT11_combo_test.py": {
+   "group": "rules",
+   "nodes": 2
+  },
+  "test/rules/std_LT02_oscillation_test.py": {
+   "group": "rules",
+   "nodes": 1
+  },
+  "test/rules/std_LT03_test.py": {
+   "group": "rules",
+   "nodes": 3
+  },
+  "test/rules/std_LT04_ST06_test.py": {
+   "group": "rules",
+   "nodes": 7
+  },
+  "test/rules/std_LT04_test.py": {
+   "group": "rules",
+   "nodes": 1
+  },
+  "test/rules/std_LT05_LT09_combo_test.py": {
+   "group": "rules",
+   "nodes": 3
+  },
+  "test/rules/std_LT12_CV06_test.py": {
+   "group": "rules",
+   "nodes": 1
+  },
+  "test/rules/std_RF01_LT09_test.py": {
+   "group": "rules",
+   "nodes": 1
+  },
+  "test/rules/std_RF02_test.py": {
+   "group": "rules",
+   "nodes": 1
+  },
+  "test/rules/std_ST03_test.py": {
+   "group": "rules",
+   "nodes": 1
+  },
+  "test/rules/std_ST05_LT08_test.py": {
+   "group": "rules",
+   "nodes": 1
+  },
+  "test/rules/std_ST05_LT09_test.py": {
+   "group": "rules",
+   "nodes": 2
+  },
+  "test/rules/std_ST12_test.py": {
+   "group": "rules",
+   "nodes": 8
+  },
+  "test/rules/std_roundtrip_test.py": {
+   "group": "rules",
+   "nodes": 8
+  },
+  "test/rules/std_test.py": {
+   "group": "rules",
+   "nodes": 25
+  },
+  "test/rules/yaml_test_cases_test.py": {
+   "group": "rules",
+   "nodes": 1
+  }
+ },
+ "collected_by_path": [
+  "test/cli/test_parse_with_positions.py"
+ ],
+ "s1_suites": {
+  "test/rules/yaml_test_cases_test.py::test__rule_test_case": {
+   "suite": "rules",
+   "nodes": 2527
+  },
+  "test/rules/std_fix_auto_test.py::test__std_fix_auto": {
+   "suite": "autofix",
+   "nodes": 61
+  }
+ },
+ "collection_errors": [
+  {
+   "file": "test/dialects/bigquery_test.py",
+   "error": "ModuleNotFoundError: No module named 'hypothesis'",
+   "names_config_fixtures": false
+  }
+ ],
+ "nodes": [
+  {
+   "id": "test/cli/autocomplete_test.py::test_dialect_click_type_shell_complete[an-expected0]",
+   "file": "test/cli/autocomplete_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/autocomplete_test.py::test_dialect_click_type_shell_complete[d-expected1]",
+   "file": "test/cli/autocomplete_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/autocomplete_test.py::test_dialect_click_type_shell_complete[g-expected2]",
+   "file": "test/cli/autocomplete_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/autocomplete_test.py::test_dialect_click_type_shell_complete[s-expected3]",
+   "file": "test/cli/autocomplete_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/autocomplete_test.py::test_dialect_click_type_shell_complete[post-expected4]",
+   "file": "test/cli/autocomplete_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_directed",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_dialect",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_no_dialect[command0]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_no_dialect[command1]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_no_dialect[command2]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_no_dialect[command3]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_no_dialect[command4]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_no_dialect_stdin_filename_inline_dialect[command0]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_no_dialect_stdin_filename_inline_dialect[command1]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_no_dialect_stdin_filename_inline_dialect[command2]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_no_dialect_stdin_filename_inline_dialect[command3]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_parse_error_dialect_explicit_warning",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_parse_error_dialect_implicit_warning",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_dialect_legacy",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_extra_config_fail",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_stdin_filename_config[command0-test/fixtures/cli/stdin_filename/without_config/stdin_filename.sql-0-[L:  5, P:  1]      |                    join_clause:\\n[L:  5, P:  1]      |                        keyword:                              'POSITIONAL'-]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_stdin_filename_config[command1-test/fixtures/an_ansi_config_here.sql-1-Parsing errors found and dialect is set to 'ansi'.-]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_stdin_filename_config[command2-test/fixtures/cli/stdin_filename/stdin_filename.sql-0-All Finished!-]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_stdin_filename_config[command3-test/fixtures/cli/stdin_filename/without_config/stdin_filename.sql-0-All Finished!-]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_stdin_filename_config[command4-test/fixtures/an_ansi_config_here.sql-1-Parsing errors found and dialect is set to 'ansi'.-]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_stdin_filename_config[command5-test/fixtures/cli/stdin_filename/ignored.sql-0-re-run with `--disregard-sqlfluffignores`-]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_stdin_filename_config[command6-test/fixtures/cli/stdin_filename/stdin_filename.sql-0-SELECT\\n    A.COL1,\\n    B.COL2\\nFROM TABA AS A\\nPOSITIONAL JOIN TABB AS B;\\n-]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_stdin_filename_config[command7-test/fixtures/cli/stdin_filename/without_config/stdin_filename.sql-0-SELECT\\n    A.COL1,\\n    B.COL2\\nFROM TABA AS A\\nPOSITIONAL JOIN TABB AS B;\\n-]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_stdin_filename_config[command8-test/fixtures/an_ansi_config_here.sql-1--[1 templating/parsing errors found]]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_stdin_filename_config[command9-test/fixtures/cli/stdin_filename/ignored.sql-0-SELECT\\n    A.COL1,\\n    B.COL2\\nFROM TABA AS A\\nPOSITIONAL JOIN TABB AS B;\\n-re-run with `--disregard-sqlfluffignores`]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_stdin_filename_config[command10-test/fixtures/cli/stdin_filename/stdin_filename.sql-0-SELECT\\n    A.COL1,\\n    B.COL2\\nFROM TABA AS A\\nPOSITIONAL JOIN TABB AS B;\\n-]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_stdin_filename_config[command11-test/fixtures/cli/stdin_filename/without_config/stdin_filename.sql-0-SELECT\\n    A.COL1,\\n    B.COL2\\nFROM TABA AS A\\nPOSITIONAL JOIN TABB AS B;\\n-]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_stdin_filename_config[command12-test/fixtures/an_ansi_config_here.sql-1--Unfixable violations detected.]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_stdin_filename_config[command13-test/fixtures/cli/stdin_filename/ignored.sql-0-SELECT\\n    A.COL1,\\n    B.COL2\\nFROM TABA AS A\\nPOSITIONAL JOIN TABB AS B;\\n-re-run with `--disregard-sqlfluffignores`]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_stdin[command0]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_stdin[command1]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_stdin[command2]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_stdin[command3]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_empty_stdin",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_render_stdin",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_parse[command0]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_parse[command1]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_parse[command2]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_parse[command3]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_parse[command4]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_parse[command5]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_parse[command6]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_parse[command7]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_parse[command8]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_parse[command9]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_parse[command10]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_parse[command11]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_parse[command12]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_parse[command13]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_parse[command14]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_parse[command15]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_parse[command16]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_parse[command17]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_parse[command18]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_parse[command19]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_parse[command20]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_parse[command21]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_parse[command22]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_parse[command23]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_parse[command24]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_parse[command25]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_parse[command26]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_parse[command27]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_parse[command28]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_parse[command29]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_parse_with_retcode[command0-1]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_parse_with_retcode[command1-1]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_parse_with_retcode[command2-1]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_parse_with_retcode[command3-0]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_parse_with_retcode[command4-0]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_parse_with_retcode[command5-2]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_parse_with_retcode[command6-1]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_parse_with_retcode[command7-0]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_parse_with_retcode[command8-1]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_parse_with_retcode[command9-1]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_parse_with_retcode[command10-1]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_parse_with_retcode[command11-1]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_parse_with_retcode[command12-1]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__lint_verbosity_thresholds[-v-expected0-unexpected0]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__lint_verbosity_thresholds[-vv-expected1-unexpected1]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__parse_verbosity_thresholds[args0-False-False]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__parse_verbosity_thresholds[args1-True-True]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__parse_verbosity_thresholds[args2-False-True]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__verbose_machine_output_stays_serialized",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__quiet_suppresses_success_output[command0]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__quiet_suppresses_success_output[command1]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__quiet_suppresses_success_output[command2]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__lint_quiet_overrides_configured_verbosity",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__lint_quiet_preserves_rule_diagnostics[extra_args0-1-paths0-expected_codes0]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__lint_quiet_preserves_rule_diagnostics[extra_args1-0-paths1-expected_codes1]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__lint_quiet_preserves_rule_diagnostics[extra_args2-1-paths2-expected_codes2]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__lint_quiet_preserves_parse_diagnostics",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__lint_quiet_preserves_warnings",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__lint_quiet_preserves_machine_output",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__quiet_preserves_unfixable_exit_code[command0]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__quiet_preserves_unfixable_exit_code[command1]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__quiet_preserves_formatted_stdin[command0-extra_args0- select * from t-select * from t]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__quiet_preserves_formatted_stdin[command1-extra_args1-   select    *    FRoM     t    -select * from t\\n]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__quiet_preserves_fix_parse_diagnostics[command0]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__quiet_preserves_fix_parse_diagnostics[command1]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__quiet_rejects_verbose[command0]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__quiet_rejects_verbose[command1]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__quiet_rejects_verbose[command2]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_warning_explicit_file_ignored",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_skip_ignore_files",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_parse_respects_inline_noqa_for_prs",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_parse_disable_noqa_shows_prs",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__get_filtered_parse_violations_caches_rulepack_per_config",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__get_filtered_parse_violations_respects_warning_config_for_malformed_noqa",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_fix_skip_ignore_files[command0]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_fix_skip_ignore_files[command1]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_ignore_local_config",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_warning",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_warning_name_rule",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_versioning",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_version",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_rules",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_rules_output_line_length[60]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_rules_output_line_length[120]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_rules_output_line_length[999]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_rules_small_output_line_length[-1]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_rules_small_output_line_length[0]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_rules_small_output_line_length[1]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_rules_small_output_line_length[6]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_rules_small_output_line_length[7]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_dialects",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command__fix[LT01-test/fixtures/linter/indentation_errors.sql0]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command__fix[LT01-test/fixtures/linter/whitespace_errors.sql]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command__fix[LT01-test/fixtures/linter/indentation_errors.sql1]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command__fix[LT02-test/fixtures/linter/indentation_error_hard.sql]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__fix_error_handling_behavior[1_lint_error_1_unsuppressed_parse_error]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__fix_error_handling_behavior[1_lint_error_1_unsuppressed_templating_error]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__fix_error_handling_behavior[1_lint_error_1_suppressed_parse_error]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__fix_error_handling_behavior[0_lint_errors_1_unsuppressed_parse_error]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__fix_error_handling_behavior[0_lint_errors_1_suppressed_parse_error]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__fix_error_handling_behavior[1_lint_error_1_unsuppressed_parse_error_FIX_EVEN_UNPARSABLE]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__fix_error_handling_behavior[2_files_with_lint_errors_1_unsuppressed_parse_error]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test_cli_fix_even_unparsable[command-line-False]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test_cli_fix_even_unparsable[command-line-True]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test_cli_fix_even_unparsable[config-file-False]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test_cli_fix_even_unparsable[config-file-True]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_fix_stdin[select * from t-LT02-select * from t]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_fix_stdin[ select * from t-LT02-select * from t]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_format_stdin[select * from t\\n-select * from t\\n]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_format_stdin[   select    *    FRoM     t    -select * from t\\n]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_format_stdin[select\\n    count(*) over (\\n        order by a desc \\n        range between b row and '10 seconds' following  -- noqa: PRS\\n    ) as c\\nfrom d\\n-select\\n    count(*) over (\\n        order by a desc \\n        range between b row and '10 seconds' following  -- noqa: PRS\\n    ) as c\\nfrom d\\n]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_fix_stdin_logging_to_stderr",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_fix_stdin_safety",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_fix_stdin_error_exit_code[create TABLE {{ params.dsfsdfds }}.t (a int)-1--v-Fix aborted due to unparsable template variables.]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_fix_stdin_error_exit_code[create TABLE a.t (a int)-0--]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_fix_stdin_error_exit_code[create table a.t (a int)-0--]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_fix_stdin_error_exit_code[select col from a join b using (c)-1--v-Unfixable violations detected.]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command__fix_check[LT01-test/fixtures/linter/indentation_errors.sql-y-0-0]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command__fix_check[LT01-test/fixtures/linter/indentation_errors.sql-n-1-1]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_parse_serialize_from_stdin[None-yaml]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_parse_serialize_from_stdin[None-json]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_parse_serialize_from_stdin[outfile-yaml]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_parse_serialize_from_stdin[outfile-json]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_serialize_from_stdin[select * from tbl-CP01-expected0-0-yaml]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_serialize_from_stdin[select * from tbl-CP01-expected0-0-json]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_serialize_from_stdin[select * from tbl-CP01-expected0-0-none]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_serialize_from_stdin[SElect * from tbl-CP01-expected1-1-yaml]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_serialize_from_stdin[SElect * from tbl-CP01-expected1-1-json]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_serialize_from_stdin[SElect * from tbl-CP01-expected1-1-none]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_serialize_from_stdin[SELECT {{1}}-JJ01-expected2-1-yaml]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_serialize_from_stdin[SELECT {{1}}-JJ01-expected2-1-json]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_serialize_from_stdin[SELECT {{1}}-JJ01-expected2-1-none]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_fail_nice_not_found[command0]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_fail_nice_not_found[command1]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_invalid_pyproject_toml_user_error",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_nocolor[None-None-True-True]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_nocolor[None-None-False-False]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_nocolor[--nocolor-None-True-False]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_nocolor[--color-None-True-True]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_nocolor[--color-None-False-True]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_nocolor[None-1-True-False]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_nocolor[None-true-True-False]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_nocolor[None-True-True-False]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_nocolor[None-False-True-False]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_nocolor[None-anything-True-False]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_nocolor[None--True-True]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_nocolor[--color-1-True-True]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_nocolor[--color-1-False-True]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_serialize_multiple_files[None-human]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_serialize_multiple_files[None-yaml]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_serialize_multiple_files[None-json]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_serialize_multiple_files[None-sarif]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_serialize_multiple_files[None-github-annotation]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_serialize_multiple_files[None-github-annotation-native]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_serialize_multiple_files[None-gitlab]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_serialize_multiple_files[None-none]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_serialize_multiple_files[outfile-human]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_serialize_multiple_files[outfile-yaml]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_serialize_multiple_files[outfile-json]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_serialize_multiple_files[outfile-sarif]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_serialize_multiple_files[outfile-github-annotation]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_serialize_multiple_files[outfile-github-annotation-native]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_serialize_multiple_files[outfile-gitlab]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_serialize_multiple_files[outfile-none]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_serialize_github_annotation",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_serialize_github_annotation_native[test/fixtures/linter/identifier_capitalisation.sql-::group::{filename}\\n::error title=SQLFluff,file={filename},line=3,col=5,endLine=3,endColumn=8::RF02: Unqualified reference 'foo' found in select with more than one referenced table/view. [references.qualification]\\n::error title=SQLFluff,file={filename},line=4,col=1,endLine=4,endColumn=5::LT02: Expected indent of 8 spaces. [layout.indent]\\n::error title=SQLFluff,file={filename},line=4,col=5,endLine=4,endColumn=8::AL02: Implicit/explicit aliasing of columns. [aliasing.column]\\n::error title=SQLFluff,file={filename},line=4,col=5,endLine=4,endColumn=8::CP02: Unquoted identifiers must be consistently lower case. [capitalisation.identifiers]\\n::notice title=SQLFluff,file={filename},line=5,col=1,endLine=5,endColumn=5::CP01: Keywords must be consistently lower case. [capitalisation.keywords]\\n::error title=SQLFluff,file={filename},line=5,col=12,endLine=5,endColumn=16::CP02: Unquoted identifiers must be consistently lower case. [capitalisation.identifiers]\\n::error title=SQLFluff,file={filename},line=5,col=18,endLine=5,endColumn=22::CP02: Unquoted identifiers must be consistently lower case. [capitalisation.identifiers]\\n::endgroup::\\n]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_serialize_github_annotation_native[test/fixtures/linter/jinja_spacing.sql-::group::{filename}\\n::error title=SQLFluff,file={filename},line=3,col=8,endLine=3,endColumn=9::AM04: Query produces an unknown number of result columns. [ambiguous.column_count]\\n::error title=SQLFluff,file={filename},line=3,col=15,endLine=3,endColumn=22::JJ01: Jinja tags should have a single whitespace on either side: {{{{foo}}}} [jinja.padding]\\n::endgroup::\\n]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_serialize_annotation_level_error_failure_equivalent[github-annotation]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_serialize_annotation_level_error_failure_equivalent[github-annotation-native]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_serialize_annotation_level_error_failure_equivalent[gitlab]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_serialize_gitlab",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_serialize_gitlab_parse_error",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test___main___help",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test_encoding[utf-8-ascii]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test_encoding[utf-8-sig-utf-8-sig]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test_encoding[utf-32-utf-32]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test_cli_encoding[utf-8-command-line-False]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test_cli_encoding[utf-8-SIG-command-line-True]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test_cli_encoding[utf-8-config-file-False]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test_cli_encoding[utf-8-SIG-config-file-True]",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test_cli_no_disable_noqa_flag",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test_cli_disable_noqa_flag",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test_cli_disable_noqa_except_flag",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test_cli_disable_noqa_except_non_rules_flag",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test_cli_warn_unused_noqa_flag",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test_cli_get_default_config",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test_cli_get_config_color_override",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test_cli_lint_quiet_disables_progress_bar",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::TestProgressBars::test_cli_lint_disabled_progress_bar",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::TestProgressBars::test_cli_lint_enabled_progress_bar",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::TestProgressBars::test_cli_lint_enabled_progress_bar_multiple_paths",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::TestProgressBars::test_cli_lint_enabled_progress_bar_multiple_files",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__fix_multiple_errors_no_show_errors",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__fix_multiple_errors_quiet_force",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__fix_multiple_errors_quiet_check",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__fix_multiple_errors_show_errors",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__fix_show_parse_errors",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__multiple_files__fix_multiple_errors_show_errors",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__render_fail",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__render_pass",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_lint_large_file_skip_fail",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_fix_large_file_skip_fail",
+   "file": "test/cli/commands_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/formatters_test.py::test__cli__output_policy[policy0-OutputKind.STATUS-0-True]",
+   "file": "test/cli/formatters_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/formatters_test.py::test__cli__output_policy[policy1-OutputKind.PAYLOAD-0-True]",
+   "file": "test/cli/formatters_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/formatters_test.py::test__cli__output_policy[policy2-OutputKind.DIAGNOSTIC-0-True]",
+   "file": "test/cli/formatters_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/formatters_test.py::test__cli__output_policy[policy3-OutputKind.ACTION-0-True]",
+   "file": "test/cli/formatters_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/formatters_test.py::test__cli__output_policy[policy4-OutputKind.STATUS-0-False]",
+   "file": "test/cli/formatters_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/formatters_test.py::test__cli__output_policy[policy5-OutputKind.PROGRESS-0-False]",
+   "file": "test/cli/formatters_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/formatters_test.py::test__cli__output_policy[policy6-OutputKind.VERBOSE-1-False]",
+   "file": "test/cli/formatters_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/formatters_test.py::test__cli__output_policy[policy7-OutputKind.VERBOSE-1-True]",
+   "file": "test/cli/formatters_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/formatters_test.py::test__cli__output_policy[policy8-OutputKind.VERBOSE-2-False]",
+   "file": "test/cli/formatters_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/formatters_test.py::test__cli__output_policy[policy9-OutputKind.VERBOSE-2-True]",
+   "file": "test/cli/formatters_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/formatters_test.py::test__cli__output_policy[policy10-OutputKind.VERBOSE-1-False]",
+   "file": "test/cli/formatters_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/formatters_test.py::test__cli__output_policy[policy11-OutputKind.PAYLOAD-0-True]",
+   "file": "test/cli/formatters_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/formatters_test.py::test__cli__output_policy[policy12-OutputKind.DIAGNOSTIC-0-False]",
+   "file": "test/cli/formatters_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/formatters_test.py::test__cli__formatters__filename_nocol",
+   "file": "test/cli/formatters_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/formatters_test.py::test__cli__formatters__violation",
+   "file": "test/cli/formatters_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/formatters_test.py::test__cli__helpers__colorize",
+   "file": "test/cli/formatters_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/formatters_test.py::test__cli__helpers__plain_output_color_decision[None-True-None-False]",
+   "file": "test/cli/formatters_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/formatters_test.py::test__cli__helpers__plain_output_color_decision[None-False-None-True]",
+   "file": "test/cli/formatters_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/formatters_test.py::test__cli__helpers__plain_output_color_decision[True-True-None-True]",
+   "file": "test/cli/formatters_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/formatters_test.py::test__cli__helpers__plain_output_color_decision[False-False-None-False]",
+   "file": "test/cli/formatters_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/formatters_test.py::test__cli__helpers__plain_output_color_decision[False-False-1-False]",
+   "file": "test/cli/formatters_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/formatters_test.py::test__cli__helpers__plain_output_color_decision[None-True-1-True]",
+   "file": "test/cli/formatters_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/formatters_test.py::test__cli__helpers__cli_table",
+   "file": "test/cli/formatters_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/formatters_test.py::test__cli__fix_no_corrupt_file_contents[CREATE TABLE IF NOT EXISTS vuln.software_name_dictionary(id SERIAL PRIMARY KEYrule VARCHAR(30));-fix_args0-CREATE TABLE IF NOT EXISTS vuln.software_name_dictionary(id SERIAL PRIMARY KEYrule VARCHAR(30));]",
+   "file": "test/cli/formatters_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/helpers_test.py::test__cli__helpers__wrap_elem[abc-5-res0]",
+   "file": "test/cli/helpers_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/helpers_test.py::test__cli__helpers__wrap_elem[how now brown cow-10-res1]",
+   "file": "test/cli/helpers_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/helpers_test.py::test__cli__helpers__wrap_elem[A hippopotamus came for tea-10-res2]",
+   "file": "test/cli/helpers_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/helpers_test.py::test__cli__helpers__wrap_elem[A hippopotamus\\ncame for tea-10-res3]",
+   "file": "test/cli/helpers_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/helpers_test.py::test__cli__helpers__wrap_field_a",
+   "file": "test/cli/helpers_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/helpers_test.py::test__cli__helpers__wrap_field_b",
+   "file": "test/cli/helpers_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/helpers_test.py::test__cli__helpers__wrap_field_c",
+   "file": "test/cli/helpers_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/helpers_test.py::test__cli__helpers__pad_line",
+   "file": "test/cli/helpers_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/helpers_test.py::test_cli__helpers__lazy_sequence",
+   "file": "test/cli/helpers_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/helpers_test.py::test__cli__helpers__wrap_field_small_width[-1]",
+   "file": "test/cli/helpers_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/helpers_test.py::test__cli__helpers__wrap_field_small_width[0]",
+   "file": "test/cli/helpers_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/helpers_test.py::test__cli__helpers__wrap_field_small_width[1]",
+   "file": "test/cli/helpers_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/helpers_test.py::test__cli__helpers__wrap_field_small_width[6]",
+   "file": "test/cli/helpers_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/helpers_test.py::test__cli__helpers__wrap_field_small_width[7]",
+   "file": "test/cli/helpers_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/recursion_limit_test.py::test_recursion_limit_from_cli_valid",
+   "file": "test/cli/recursion_limit_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/recursion_limit_test.py::test_recursion_limit_from_config_valid",
+   "file": "test/cli/recursion_limit_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/recursion_limit_test.py::test_recursion_limit_config_non_integer",
+   "file": "test/cli/recursion_limit_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/recursion_limit_test.py::test_recursion_limit_out_of_bounds",
+   "file": "test/cli/recursion_limit_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/recursion_limit_test.py::test_recursion_limit_set_raises",
+   "file": "test/cli/recursion_limit_test.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/test_parse_with_positions.py::test__cli__command_parse_with_include_meta_has_positions[json]",
+   "file": "test/cli/test_parse_with_positions.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/test_parse_with_positions.py::test__cli__command_parse_with_include_meta_has_positions[yaml]",
+   "file": "test/cli/test_parse_with_positions.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/test_parse_with_positions.py::test__cli__command_parse_without_include_meta_no_positions[json]",
+   "file": "test/cli/test_parse_with_positions.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/test_parse_with_positions.py::test__cli__command_parse_without_include_meta_no_positions[yaml]",
+   "file": "test/cli/test_parse_with_positions.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/test_parse_with_positions.py::test__cli__command_parse_position_accuracy",
+   "file": "test/cli/test_parse_with_positions.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/test_parse_with_positions.py::test__segment_structural_simplify_with_positions",
+   "file": "test/cli/test_parse_with_positions.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/test_parse_with_positions.py::test__meta_segment_to_tuple_with_positions",
+   "file": "test/cli/test_parse_with_positions.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/test_parse_with_positions.py::test__structural_simplify_with_2_element_tuple",
+   "file": "test/cli/test_parse_with_positions.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/test_parse_with_positions.py::test__structural_simplify_with_3_element_tuple",
+   "file": "test/cli/test_parse_with_positions.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/cli/test_parse_with_positions.py::test__cli_parse_includes_meta_segment_positions",
+   "file": "test/cli/test_parse_with_positions.py",
+   "group": "cli"
+  },
+  {
+   "id": "test/core/config/fluffconfig_test.py::test__config__from_strings",
+   "file": "test/core/config/fluffconfig_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/fluffconfig_test.py::test__config__nested_config_tests",
+   "file": "test/core/config/fluffconfig_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/fluffconfig_test.py::test__config__templater_selection[raw-RawTemplater-False]",
+   "file": "test/core/config/fluffconfig_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/fluffconfig_test.py::test__config__templater_selection[jinja-JinjaTemplater-False]",
+   "file": "test/core/config/fluffconfig_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/fluffconfig_test.py::test__config__templater_selection[python-PythonTemplater-False]",
+   "file": "test/core/config/fluffconfig_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/fluffconfig_test.py::test__config__templater_selection[placeholder-PlaceholderTemplater-False]",
+   "file": "test/core/config/fluffconfig_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/fluffconfig_test.py::test__config__templater_selection[afefhlsakufe-None-True]",
+   "file": "test/core/config/fluffconfig_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/fluffconfig_test.py::test__config__templater_selection[-None-True]",
+   "file": "test/core/config/fluffconfig_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/fluffconfig_test.py::test__config__glob_exclude_config_tests",
+   "file": "test/core/config/fluffconfig_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/fluffconfig_test.py::test__config__glob_include_config_tests",
+   "file": "test/core/config/fluffconfig_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/fluffconfig_test.py::test__config__rules_set_to_none",
+   "file": "test/core/config/fluffconfig_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/fluffconfig_test.py::test__config__rules_group_with_exclude",
+   "file": "test/core/config/fluffconfig_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/fluffconfig_test.py::test__config__get_section",
+   "file": "test/core/config/fluffconfig_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/fluffconfig_test.py::test__config__get",
+   "file": "test/core/config/fluffconfig_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/fluffconfig_test.py::test__config__from_kwargs",
+   "file": "test/core/config/fluffconfig_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/fluffconfig_test.py::test__config__from_string",
+   "file": "test/core/config/fluffconfig_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/fluffconfig_test.py::test__config__deprecated_max_line_length_is_applied",
+   "file": "test/core/config/fluffconfig_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/fluffconfig_test.py::test__config_missing_dialect",
+   "file": "test/core/config/fluffconfig_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/fluffconfig_test.py::test__config__validate_configs_indirect",
+   "file": "test/core/config/fluffconfig_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/fluffconfig_test.py::test__config__invalid_prefer_quoted_keyword_style",
+   "file": "test/core/config/fluffconfig_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/fluffconfig_test.py::test__config__validate_configs_inline_layout[-- sqlfluff:layout:types:comma:line_position:leading\\nSELECT 1]",
+   "file": "test/core/config/fluffconfig_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/fluffconfig_test.py::test__config__validate_configs_inline_layout[-- sqlfluff:layout:foo:bar\\nSELECT 1]",
+   "file": "test/core/config/fluffconfig_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/fluffconfig_test.py::test__config__validate_configs_inline_layout[-- sqlfluff:layout:type:comma:bar\\nSELECT 1]",
+   "file": "test/core/config/fluffconfig_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/fluffconfig_test.py::test__config__validate_configs_inline_layout[-- sqlfluff:layout:type:comma:foo:bar\\nSELECT 1]",
+   "file": "test/core/config/fluffconfig_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/fluffconfig_test.py::test__config__validate_configs_inline_layout[--sqlfluff:layout:type:comma:foo:bar\\nSELECT 1]",
+   "file": "test/core/config/fluffconfig_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/fluffconfig_test.py::test__config__warn_unknown_rule",
+   "file": "test/core/config/fluffconfig_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/fluffconfig_test.py::test__process_inline_config",
+   "file": "test/core/config/fluffconfig_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/fluffconfig_test.py::test__process_inline_config__malformed_equals_syntax",
+   "file": "test/core/config/fluffconfig_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/fluffconfig_test.py::test__process_raw_file_for_config[-- sqlfluff:max_line_length:25\\n-- sqlfluff:rules:LT05,LT06\\n-- sqlfluff:exclude_rules:LT01,LT02\\nSELECT 1]",
+   "file": "test/core/config/fluffconfig_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/fluffconfig_test.py::test__api__immutable_config",
+   "file": "test/core/config/fluffconfig_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/fluffconfig_test.py::test_resolve_path_glob_patterns",
+   "file": "test/core/config/fluffconfig_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/fluffconfig_test.py::test_resolve_path_exact_files",
+   "file": "test/core/config/fluffconfig_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/fluffconfig_test.py::test_resolve_path_no_matches",
+   "file": "test/core/config/fluffconfig_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/fluffconfig_test.py::test_resolve_paths_in_config_comma_separated",
+   "file": "test/core/config/fluffconfig_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/fluffconfig_test.py::test_resolve_paths_in_config_no_matches_fallback",
+   "file": "test/core/config/fluffconfig_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/fluffconfig_test.py::test_resolve_paths_in_config_skips_jinja_context",
+   "file": "test/core/config/fluffconfig_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/ini_test.py::test__config__ini_dotted_keys_nested_structure",
+   "file": "test/core/config/ini_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/ini_test.py::test__config__ini_dotted_keys_type_coercion",
+   "file": "test/core/config/ini_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/ini_test.py::test__config__ini_simple_keys_without_dots",
+   "file": "test/core/config/ini_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/ini_test.py::test__config__ini_dotted_keys_all_sections",
+   "file": "test/core/config/ini_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/loader_test.py::test__config__load_file_dir",
+   "file": "test/core/config/loader_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/loader_test.py::test__config__load_from_string",
+   "file": "test/core/config/loader_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/loader_test.py::test__config__load_file_f",
+   "file": "test/core/config/loader_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/loader_test.py::test__config__load_file_missing_extra",
+   "file": "test/core/config/loader_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/loader_test.py::test__config__load_with_config_dir",
+   "file": "test/core/config/loader_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/loader_test.py::test__config__load_extra_config_dir",
+   "file": "test/core/config/loader_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/loader_test.py::test__config__load_extra_config_tilde",
+   "file": "test/core/config/loader_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/loader_test.py::test__config__load_nested",
+   "file": "test/core/config/loader_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/loader_test.py::test__config__load_parent",
+   "file": "test/core/config/loader_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/loader_test.py::test__config__load_toml",
+   "file": "test/core/config/loader_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/loader_test.py::test__config__load_placeholder_cfg",
+   "file": "test/core/config/loader_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/loader_test.py::test__config__get_user_config_dir_path[linux-True-True-~/.config/sqlfluff-paths_checked0]",
+   "file": "test/core/config/loader_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/loader_test.py::test__config__get_user_config_dir_path[linux-False-False-~/.config/my/special/path/sqlfluff-paths_checked1]",
+   "file": "test/core/config/loader_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/loader_test.py::test__config__get_user_config_dir_path[darwin-False-False-~/Library/Application Support/sqlfluff-paths_checked2]",
+   "file": "test/core/config/loader_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/loader_test.py::test__config__get_user_config_dir_path[darwin-True-False-~/.config/my/special/path/sqlfluff-paths_checked3]",
+   "file": "test/core/config/loader_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/loader_test.py::test__config__load_user_appdir_config",
+   "file": "test/core/config/loader_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/loader_test.py::test__config__toml_list_config",
+   "file": "test/core/config/loader_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/loader_test.py::test__config__toml_nested_template_context[jinja]",
+   "file": "test/core/config/loader_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/loader_test.py::test__config__toml_nested_template_context[python]",
+   "file": "test/core/config/loader_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/loader_test.py::test__config__toml_nested_template_context[dbt]",
+   "file": "test/core/config/loader_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/loader_test.py::test__config__toml_ini_context_equivalence[jinja]",
+   "file": "test/core/config/loader_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/loader_test.py::test__config__toml_ini_context_equivalence[python]",
+   "file": "test/core/config/loader_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/loader_test.py::test__config__toml_context_temporal_values[2026-09-12-2026-09-12-jinja]",
+   "file": "test/core/config/loader_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/loader_test.py::test__config__toml_context_temporal_values[2026-09-12-2026-09-12-python]",
+   "file": "test/core/config/loader_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/loader_test.py::test__config__toml_context_temporal_values[2026-09-12-2026-09-12-dbt]",
+   "file": "test/core/config/loader_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/loader_test.py::test__config__toml_context_temporal_values[12:34:56-12:34:56-jinja]",
+   "file": "test/core/config/loader_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/loader_test.py::test__config__toml_context_temporal_values[12:34:56-12:34:56-python]",
+   "file": "test/core/config/loader_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/loader_test.py::test__config__toml_context_temporal_values[12:34:56-12:34:56-dbt]",
+   "file": "test/core/config/loader_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/loader_test.py::test__config__toml_context_temporal_values[2026-09-12T12:34:56-2026-09-12 12:34:56-jinja]",
+   "file": "test/core/config/loader_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/loader_test.py::test__config__toml_context_temporal_values[2026-09-12T12:34:56-2026-09-12 12:34:56-python]",
+   "file": "test/core/config/loader_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/loader_test.py::test__config__toml_context_temporal_values[2026-09-12T12:34:56-2026-09-12 12:34:56-dbt]",
+   "file": "test/core/config/loader_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/loader_test.py::test__config__toml_context_temporal_values[2026-09-12T12:34:56Z-2026-09-12 12:34:56+00:00-jinja]",
+   "file": "test/core/config/loader_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/loader_test.py::test__config__toml_context_temporal_values[2026-09-12T12:34:56Z-2026-09-12 12:34:56+00:00-python]",
+   "file": "test/core/config/loader_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/loader_test.py::test__config__toml_context_temporal_values[2026-09-12T12:34:56Z-2026-09-12 12:34:56+00:00-dbt]",
+   "file": "test/core/config/loader_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/loader_test.py::test__config__load_toml_invalid_syntax",
+   "file": "test/core/config/loader_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/loader_test.py::test__config__load_toml_utf8_bom_hint",
+   "file": "test/core/config/loader_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/loader_test.py::test__config__load_toml_non_table_rules",
+   "file": "test/core/config/loader_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/loader_test.py::test__config__format_toml_parse_error_regex_location",
+   "file": "test/core/config/loader_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/loader_test.py::test__config__format_toml_parse_error_line_only_location",
+   "file": "test/core/config/loader_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/validate_test.py::test__validate_configs_direct",
+   "file": "test/core/config/validate_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/validate_test.py::test__validate_configs_precedence_same_file",
+   "file": "test/core/config/validate_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/validate_test.py::test__validate_configs_max_line_length_migration",
+   "file": "test/core/config/validate_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/validate_test.py::test__validate_configs_max_line_length_precedence",
+   "file": "test/core/config/validate_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/validate_test.py::test__validate_configs_removed_new_key_display",
+   "file": "test/core/config/validate_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/validate_test.py::test__validate_configs_removed_warning_is_source_aware[.sqlfluff-`max_line_length`]",
+   "file": "test/core/config/validate_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/validate_test.py::test__validate_configs_removed_warning_is_source_aware[setup.cfg-`max_line_length`]",
+   "file": "test/core/config/validate_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/validate_test.py::test__validate_configs_removed_warning_is_source_aware[/some/path/pyproject.toml-`core:max_line_length`]",
+   "file": "test/core/config/validate_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/validate_test.py::test__validate_configs_removed_warning_is_source_aware[/some/path/custom.toml-`max_line_length`]",
+   "file": "test/core/config/validate_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/validate_test.py::test__validate_configs_removed_warning_is_source_aware[/some/path/Pyproject.TOML-`max_line_length`]",
+   "file": "test/core/config/validate_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/validate_test.py::test__validate_configs_removed_warning_is_source_aware[<config string>-`max_line_length`]",
+   "file": "test/core/config/validate_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/validate_test.py::test__validate_configs_semicolon_newline_translation",
+   "file": "test/core/config/validate_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/validate_test.py::test__validate_configs_allow_implicit_indents_translation[False-forbid0]",
+   "file": "test/core/config/validate_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/validate_test.py::test__validate_configs_allow_implicit_indents_translation[True-allow0]",
+   "file": "test/core/config/validate_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/validate_test.py::test__validate_configs_allow_implicit_indents_translation[false-forbid]",
+   "file": "test/core/config/validate_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/validate_test.py::test__validate_configs_allow_implicit_indents_translation[true-allow]",
+   "file": "test/core/config/validate_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/validate_test.py::test__validate_configs_allow_implicit_indents_translation[False-forbid1]",
+   "file": "test/core/config/validate_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/validate_test.py::test__validate_configs_allow_implicit_indents_translation[True-allow1]",
+   "file": "test/core/config/validate_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/validate_test.py::test__validate_layouts[config_dict0-Found value 'foo' instead of a valid layout section]",
+   "file": "test/core/config/validate_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/validate_test.py::test__validate_layouts[config_dict1-Only sections of the form `sqlfluff:layout:type:...` are valid]",
+   "file": "test/core/config/validate_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/validate_test.py::test__validate_layouts[config_dict2-Expected a section]",
+   "file": "test/core/config/validate_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/validate_test.py::test__validate_layouts[config_dict3-Found the following invalid keys: {'bar'}]",
+   "file": "test/core/config/validate_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/validate_test.py::test__validate_layouts[config_dict4-Found the an unexpected section rather than value]",
+   "file": "test/core/config/validate_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/validate_test.py::test__validate_indentation_invalid[config_dict0-set an invalid value for `implicit_indents`: 'invalid']",
+   "file": "test/core/config/validate_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/validate_test.py::test__validate_indentation_invalid[config_dict1-set an invalid value for `implicit_indents`: 'true']",
+   "file": "test/core/config/validate_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/validate_test.py::test__validate_indentation_invalid[config_dict2-set an invalid value for `implicit_indents`: 'REQUIRE']",
+   "file": "test/core/config/validate_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/validate_test.py::test__validate_indentation_invalid[config_dict3-set an invalid value for `implicit_indents`: '']",
+   "file": "test/core/config/validate_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/validate_test.py::test__validate_indentation_invalid[config_dict4-set an invalid value for `implicit_indents`: 123]",
+   "file": "test/core/config/validate_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/validate_test.py::test__validate_indentation_valid[config_dict0]",
+   "file": "test/core/config/validate_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/validate_test.py::test__validate_indentation_valid[config_dict1]",
+   "file": "test/core/config/validate_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/validate_test.py::test__validate_indentation_valid[config_dict2]",
+   "file": "test/core/config/validate_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/validate_test.py::test__validate_indentation_valid[config_dict3]",
+   "file": "test/core/config/validate_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/validate_test.py::test__validate_indentation_valid[config_dict4]",
+   "file": "test/core/config/validate_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/validate_test.py::test__validate_max_parse_depth_valid[config_dict0-0]",
+   "file": "test/core/config/validate_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/validate_test.py::test__validate_max_parse_depth_valid[config_dict1-0]",
+   "file": "test/core/config/validate_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/validate_test.py::test__validate_max_parse_depth_valid[config_dict2-0]",
+   "file": "test/core/config/validate_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/validate_test.py::test__validate_max_parse_depth_valid[config_dict3-25]",
+   "file": "test/core/config/validate_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/validate_test.py::test__validate_max_parse_depth_invalid[config_dict0-set an invalid value for `max_parse_depth`: 'invalid']",
+   "file": "test/core/config/validate_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/validate_test.py::test__validate_max_parse_depth_invalid[config_dict1-set an invalid value for `max_parse_depth`: True]",
+   "file": "test/core/config/validate_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/validate_test.py::test__validate_max_parse_depth_invalid[config_dict2-set an invalid value for `max_parse_depth`: -1]",
+   "file": "test/core/config/validate_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/validate_test.py::test__validate_max_parse_nodes_valid[config_dict0-0]",
+   "file": "test/core/config/validate_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/validate_test.py::test__validate_max_parse_nodes_valid[config_dict1-0]",
+   "file": "test/core/config/validate_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/validate_test.py::test__validate_max_parse_nodes_valid[config_dict2-0]",
+   "file": "test/core/config/validate_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/validate_test.py::test__validate_max_parse_nodes_valid[config_dict3-2500]",
+   "file": "test/core/config/validate_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/validate_test.py::test__validate_max_parse_nodes_invalid[config_dict0-set an invalid value for `max_parse_nodes`: 'invalid']",
+   "file": "test/core/config/validate_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/validate_test.py::test__validate_max_parse_nodes_invalid[config_dict1-set an invalid value for `max_parse_nodes`: True]",
+   "file": "test/core/config/validate_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/validate_test.py::test__validate_max_parse_nodes_invalid[config_dict2-set an invalid value for `max_parse_nodes`: -1]",
+   "file": "test/core/config/validate_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/validate_test.py::test__validate_int_config_valid[config_dict0]",
+   "file": "test/core/config/validate_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/validate_test.py::test__validate_int_config_valid[config_dict1]",
+   "file": "test/core/config/validate_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/validate_test.py::test__validate_int_config_valid[config_dict2]",
+   "file": "test/core/config/validate_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/validate_test.py::test__validate_int_config_valid[config_dict3]",
+   "file": "test/core/config/validate_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/validate_test.py::test__validate_int_config_invalid[config_dict0-render_variant_limit-set an invalid value for `render_variant_limit`: 'lots']",
+   "file": "test/core/config/validate_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/validate_test.py::test__validate_int_config_invalid[config_dict1-render_variant_limit-set an invalid value for `render_variant_limit`: True]",
+   "file": "test/core/config/validate_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/validate_test.py::test__validate_int_config_invalid[config_dict2-render_variant_limit-set an invalid value for `render_variant_limit`: 0]",
+   "file": "test/core/config/validate_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/validate_test.py::test__validate_int_config_invalid[config_dict3-runaway_limit-set an invalid value for `runaway_limit`: 'lots']",
+   "file": "test/core/config/validate_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/validate_test.py::test__validate_int_config_invalid[config_dict4-runaway_limit-set an invalid value for `runaway_limit`: -1]",
+   "file": "test/core/config/validate_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/validate_test.py::test__validate_config_dict_rejects_bad_int_limits[config_dict0-set an invalid value for `render_variant_limit`: 'lots']",
+   "file": "test/core/config/validate_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/config/validate_test.py::test__validate_config_dict_rejects_bad_int_limits[config_dict1-set an invalid value for `runaway_limit`: 'lots']",
+   "file": "test/core/config/validate_test.py",
+   "group": "config"
+  },
+  {
+   "id": "test/core/helpers/file_test.py::test__config__iter_config_paths[test/fixtures/config/inheritance_a/nested/blah.sql-test/fixtures-result0]",
+   "file": "test/core/helpers/file_test.py",
+   "group": "config_fixtures",
+   "by": [
+    "source"
+   ]
+  },
+  {
+   "id": "test/core/helpers/file_test.py::test__config__iter_config_paths[test/fixtures-test/fixtures/config/inheritance_a-result1]",
+   "file": "test/core/helpers/file_test.py",
+   "group": "config_fixtures",
+   "by": [
+    "source"
+   ]
+  },
+  {
+   "id": "test/core/linter/discovery_test.py::test__linter__path_from_paths__dot",
+   "file": "test/core/linter/discovery_test.py",
+   "group": "config_fixtures",
+   "by": [
+    "run"
+   ]
+  },
+  {
+   "id": "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__fix_parity[select a, b FROM t WHERE x = 1 ORDER by a-consistent]",
+   "file": "test/rules/cp01_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__fix_parity[select a, b FROM t WHERE x = 1 ORDER by a-upper]",
+   "file": "test/rules/cp01_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__fix_parity[select a, b FROM t WHERE x = 1 ORDER by a-lower]",
+   "file": "test/rules/cp01_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__fix_parity[select a, b FROM t WHERE x = 1 ORDER by a-capitalise]",
+   "file": "test/rules/cp01_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__fix_parity[SELECT count(*) from foo group BY a having a > 1-consistent]",
+   "file": "test/rules/cp01_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__fix_parity[SELECT count(*) from foo group BY a having a > 1-upper]",
+   "file": "test/rules/cp01_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__fix_parity[SELECT count(*) from foo group BY a having a > 1-lower]",
+   "file": "test/rules/cp01_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__fix_parity[SELECT count(*) from foo group BY a having a > 1-capitalise]",
+   "file": "test/rules/cp01_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__fix_parity[select CASE when a then 1 else 2 END as c from t-consistent]",
+   "file": "test/rules/cp01_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__fix_parity[select CASE when a then 1 else 2 END as c from t-upper]",
+   "file": "test/rules/cp01_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__fix_parity[select CASE when a then 1 else 2 END as c from t-lower]",
+   "file": "test/rules/cp01_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__fix_parity[select CASE when a then 1 else 2 END as c from t-capitalise]",
+   "file": "test/rules/cp01_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__fix_parity[select a + b, a > b, a AND b OR c from t-consistent]",
+   "file": "test/rules/cp01_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__fix_parity[select a + b, a > b, a AND b OR c from t-upper]",
+   "file": "test/rules/cp01_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__fix_parity[select a + b, a > b, a AND b OR c from t-lower]",
+   "file": "test/rules/cp01_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__fix_parity[select a + b, a > b, a AND b OR c from t-capitalise]",
+   "file": "test/rules/cp01_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__fix_parity[create table t (a INT, b Varchar(10), c TIMESTAMP)-consistent]",
+   "file": "test/rules/cp01_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__fix_parity[create table t (a INT, b Varchar(10), c TIMESTAMP)-upper]",
+   "file": "test/rules/cp01_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__fix_parity[create table t (a INT, b Varchar(10), c TIMESTAMP)-lower]",
+   "file": "test/rules/cp01_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__fix_parity[create table t (a INT, b Varchar(10), c TIMESTAMP)-capitalise]",
+   "file": "test/rules/cp01_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__fix_parity[select TRUE, false, NULL, a is not NULL from t-consistent]",
+   "file": "test/rules/cp01_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__fix_parity[select TRUE, false, NULL, a is not NULL from t-upper]",
+   "file": "test/rules/cp01_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__fix_parity[select TRUE, false, NULL, a is not NULL from t-lower]",
+   "file": "test/rules/cp01_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__fix_parity[select TRUE, false, NULL, a is not NULL from t-capitalise]",
+   "file": "test/rules/cp01_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__fix_parity[SELECT A FROM B-consistent]",
+   "file": "test/rules/cp01_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__fix_parity[SELECT A FROM B-upper]",
+   "file": "test/rules/cp01_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__fix_parity[SELECT A FROM B-lower]",
+   "file": "test/rules/cp01_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__fix_parity[SELECT A FROM B-capitalise]",
+   "file": "test/rules/cp01_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__fix_parity[select a from b-consistent]",
+   "file": "test/rules/cp01_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__fix_parity[select a from b-upper]",
+   "file": "test/rules/cp01_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__fix_parity[select a from b-lower]",
+   "file": "test/rules/cp01_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__fix_parity[select a from b-capitalise]",
+   "file": "test/rules/cp01_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__ignore_words_parity",
+   "file": "test/rules/cp01_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__engages_rust_only_when_enabled",
+   "file": "test/rules/cp01_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__regex_ignore_falls_back_to_python",
+   "file": "test/rules/cp01_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp01_rust_dispatch_test.py::test__dispatch__rule_without_rust_path_falls_back",
+   "file": "test/rules/cp01_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp01_rust_dispatch_test.py::test__dispatch__cp02_inherits_eval_rust_and_falls_back",
+   "file": "test/rules/cp01_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp01_rust_dispatch_test.py::test__dispatch__rust_error_is_recoverable",
+   "file": "test/rules/cp01_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp01_rust_dispatch_test.py::test__use_rust_rules_requires_rust_parser",
+   "file": "test/rules/cp01_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__fix_parity[select sum(a) as aa, SUM(b) as bb from foo-consistent]",
+   "file": "test/rules/cp03_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__fix_parity[select sum(a) as aa, SUM(b) as bb from foo-upper]",
+   "file": "test/rules/cp03_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__fix_parity[select sum(a) as aa, SUM(b) as bb from foo-lower]",
+   "file": "test/rules/cp03_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__fix_parity[select sum(a) as aa, SUM(b) as bb from foo-capitalise]",
+   "file": "test/rules/cp03_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__fix_parity[select sum(a) as aa, SUM(b) as bb from foo-pascal]",
+   "file": "test/rules/cp03_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__fix_parity[select sum(a) as aa, SUM(b) as bb from foo-camel]",
+   "file": "test/rules/cp03_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__fix_parity[select sum(a) as aa, SUM(b) as bb from foo-snake]",
+   "file": "test/rules/cp03_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__fix_parity[select my_schema.my_udf(a), Count(b) from t-consistent]",
+   "file": "test/rules/cp03_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__fix_parity[select my_schema.my_udf(a), Count(b) from t-upper]",
+   "file": "test/rules/cp03_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__fix_parity[select my_schema.my_udf(a), Count(b) from t-lower]",
+   "file": "test/rules/cp03_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__fix_parity[select my_schema.my_udf(a), Count(b) from t-capitalise]",
+   "file": "test/rules/cp03_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__fix_parity[select my_schema.my_udf(a), Count(b) from t-pascal]",
+   "file": "test/rules/cp03_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__fix_parity[select my_schema.my_udf(a), Count(b) from t-camel]",
+   "file": "test/rules/cp03_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__fix_parity[select my_schema.my_udf(a), Count(b) from t-snake]",
+   "file": "test/rules/cp03_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__fix_parity[select MyFunc(a), other_func(b) from t-consistent]",
+   "file": "test/rules/cp03_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__fix_parity[select MyFunc(a), other_func(b) from t-upper]",
+   "file": "test/rules/cp03_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__fix_parity[select MyFunc(a), other_func(b) from t-lower]",
+   "file": "test/rules/cp03_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__fix_parity[select MyFunc(a), other_func(b) from t-capitalise]",
+   "file": "test/rules/cp03_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__fix_parity[select MyFunc(a), other_func(b) from t-pascal]",
+   "file": "test/rules/cp03_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__fix_parity[select MyFunc(a), other_func(b) from t-camel]",
+   "file": "test/rules/cp03_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__fix_parity[select MyFunc(a), other_func(b) from t-snake]",
+   "file": "test/rules/cp03_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__fix_parity[SELECT COUNT(*) FROM t-consistent]",
+   "file": "test/rules/cp03_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__fix_parity[SELECT COUNT(*) FROM t-upper]",
+   "file": "test/rules/cp03_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__fix_parity[SELECT COUNT(*) FROM t-lower]",
+   "file": "test/rules/cp03_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__fix_parity[SELECT COUNT(*) FROM t-capitalise]",
+   "file": "test/rules/cp03_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__fix_parity[SELECT COUNT(*) FROM t-pascal]",
+   "file": "test/rules/cp03_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__fix_parity[SELECT COUNT(*) FROM t-camel]",
+   "file": "test/rules/cp03_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__fix_parity[SELECT COUNT(*) FROM t-snake]",
+   "file": "test/rules/cp03_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__fix_parity[select count(*) from t-consistent]",
+   "file": "test/rules/cp03_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__fix_parity[select count(*) from t-upper]",
+   "file": "test/rules/cp03_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__fix_parity[select count(*) from t-lower]",
+   "file": "test/rules/cp03_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__fix_parity[select count(*) from t-capitalise]",
+   "file": "test/rules/cp03_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__fix_parity[select count(*) from t-pascal]",
+   "file": "test/rules/cp03_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__fix_parity[select count(*) from t-camel]",
+   "file": "test/rules/cp03_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__fix_parity[select count(*) from t-snake]",
+   "file": "test/rules/cp03_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__ignore_words_parity",
+   "file": "test/rules/cp03_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__engages_rust_only_when_enabled",
+   "file": "test/rules/cp03_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__regex_ignore_falls_back_to_python",
+   "file": "test/rules/cp03_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__not_hijacked_by_cp01_rust_path",
+   "file": "test/rules/cp03_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp04_rust_dispatch_test.py::test__cp04_dispatch__fix_parity[select TRUE, false, NULL, a is not NULL from t-consistent]",
+   "file": "test/rules/cp04_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp04_rust_dispatch_test.py::test__cp04_dispatch__fix_parity[select TRUE, false, NULL, a is not NULL from t-upper]",
+   "file": "test/rules/cp04_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp04_rust_dispatch_test.py::test__cp04_dispatch__fix_parity[select TRUE, false, NULL, a is not NULL from t-lower]",
+   "file": "test/rules/cp04_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp04_rust_dispatch_test.py::test__cp04_dispatch__fix_parity[select TRUE, false, NULL, a is not NULL from t-capitalise]",
+   "file": "test/rules/cp04_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp04_rust_dispatch_test.py::test__cp04_dispatch__fix_parity[select true, FALSE, null from t-consistent]",
+   "file": "test/rules/cp04_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp04_rust_dispatch_test.py::test__cp04_dispatch__fix_parity[select true, FALSE, null from t-upper]",
+   "file": "test/rules/cp04_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp04_rust_dispatch_test.py::test__cp04_dispatch__fix_parity[select true, FALSE, null from t-lower]",
+   "file": "test/rules/cp04_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp04_rust_dispatch_test.py::test__cp04_dispatch__fix_parity[select true, FALSE, null from t-capitalise]",
+   "file": "test/rules/cp04_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp04_rust_dispatch_test.py::test__cp04_dispatch__fix_parity[select a, TRUE from t where b = FALSE-consistent]",
+   "file": "test/rules/cp04_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp04_rust_dispatch_test.py::test__cp04_dispatch__fix_parity[select a, TRUE from t where b = FALSE-upper]",
+   "file": "test/rules/cp04_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp04_rust_dispatch_test.py::test__cp04_dispatch__fix_parity[select a, TRUE from t where b = FALSE-lower]",
+   "file": "test/rules/cp04_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp04_rust_dispatch_test.py::test__cp04_dispatch__fix_parity[select a, TRUE from t where b = FALSE-capitalise]",
+   "file": "test/rules/cp04_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp04_rust_dispatch_test.py::test__cp04_dispatch__fix_parity[select NULL from t-consistent]",
+   "file": "test/rules/cp04_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp04_rust_dispatch_test.py::test__cp04_dispatch__fix_parity[select NULL from t-upper]",
+   "file": "test/rules/cp04_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp04_rust_dispatch_test.py::test__cp04_dispatch__fix_parity[select NULL from t-lower]",
+   "file": "test/rules/cp04_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp04_rust_dispatch_test.py::test__cp04_dispatch__fix_parity[select NULL from t-capitalise]",
+   "file": "test/rules/cp04_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp04_rust_dispatch_test.py::test__cp04_dispatch__fix_parity[select true from t-consistent]",
+   "file": "test/rules/cp04_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp04_rust_dispatch_test.py::test__cp04_dispatch__fix_parity[select true from t-upper]",
+   "file": "test/rules/cp04_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp04_rust_dispatch_test.py::test__cp04_dispatch__fix_parity[select true from t-lower]",
+   "file": "test/rules/cp04_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp04_rust_dispatch_test.py::test__cp04_dispatch__fix_parity[select true from t-capitalise]",
+   "file": "test/rules/cp04_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp04_rust_dispatch_test.py::test__cp04_dispatch__ignore_words_parity",
+   "file": "test/rules/cp04_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp04_rust_dispatch_test.py::test__cp04_dispatch__engages_rust_only_when_enabled",
+   "file": "test/rules/cp04_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp04_rust_dispatch_test.py::test__cp04_dispatch__regex_ignore_falls_back_to_python",
+   "file": "test/rules/cp04_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/cp04_rust_dispatch_test.py::test__cp04_dispatch__not_hijacked_by_cp01_rust_path",
+   "file": "test/rules/cp04_rust_dispatch_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_AL04_test.py::test__rules__std_AL04_one_aliases_one_duplicate",
+   "file": "test/rules/std_AL04_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_AL04_test.py::test__rules__std_AL04_one_aliases_two_duplicate",
+   "file": "test/rules/std_AL04_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_AL04_test.py::test__rules__std_AL04_complex",
+   "file": "test/rules/std_AL04_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_AL09_CP02_RF06_combo_test.py::test__rules__std_AL09_CP02_RF06[rules0-ansi-\\nselect\\n    a as A,\\n    B as b,\\n    \"C\" as C,\\n    \"d\" as d,\\n    \"E\" as e,\\n    \"f\" as F,\\n    g as \"G\",\\n    h,\\n    I\\nfrom foo\\n-post_fix_errors0]",
+   "file": "test/rules/std_AL09_CP02_RF06_combo_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_AL09_CP02_RF06_combo_test.py::test__rules__std_AL09_CP02_RF06[rules1-ansi-\\nselect\\n    a as a,\\n    b as b,\\n    \"C\" as c,\\n    \"d\" as d,\\n    \"E\" as e,\\n    \"f\" as f,\\n    g as \"G\",\\n    h as h,\\n    i as i\\nfrom foo\\n-post_fix_errors1]",
+   "file": "test/rules/std_AL09_CP02_RF06_combo_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_AL09_CP02_RF06_combo_test.py::test__rules__std_AL09_CP02_RF06[rules2-ansi-\\nselect\\n    a as A,\\n    B as b,\\n    C as C,\\n    \"d\" as d,\\n    E as e,\\n    \"f\" as F,\\n    g as G,\\n    h as h,\\n    I as I\\nfrom foo\\n-post_fix_errors2]",
+   "file": "test/rules/std_AL09_CP02_RF06_combo_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_AL09_CP02_RF06_combo_test.py::test__rules__std_AL09_CP02_RF06[rules3-ansi-\\nselect\\n    a,\\n    b,\\n    \"C\" as c,\\n    \"d\" as d,\\n    \"E\" as e,\\n    \"f\" as f,\\n    g as \"G\",\\n    h,\\n    i\\nfrom foo\\n-post_fix_errors3]",
+   "file": "test/rules/std_AL09_CP02_RF06_combo_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_AL09_CP02_RF06_combo_test.py::test__rules__std_AL09_CP02_RF06[rules4-ansi-\\nselect\\n    a as A,\\n    B as b,\\n    C,\\n    \"d\" as d,\\n    E as e,\\n    \"f\" as F,\\n    g as G,\\n    h,\\n    I\\nfrom foo\\n-post_fix_errors4]",
+   "file": "test/rules/std_AL09_CP02_RF06_combo_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_AL09_CP02_RF06_combo_test.py::test__rules__std_AL09_CP02_RF06[rules5-ansi-\\nselect\\n    a as a,\\n    b as b,\\n    c as c,\\n    \"d\" as d,\\n    e as e,\\n    \"f\" as f,\\n    g as g,\\n    h as h,\\n    i as i\\nfrom foo\\n-post_fix_errors5]",
+   "file": "test/rules/std_AL09_CP02_RF06_combo_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_AL09_CP02_RF06_combo_test.py::test__rules__std_AL09_CP02_RF06[rules6-ansi-\\nselect\\n    a,\\n    b,\\n    c,\\n    \"d\" as d,\\n    e,\\n    \"f\" as f,\\n    g,\\n    h,\\n    i\\nfrom foo\\n-post_fix_errors6]",
+   "file": "test/rules/std_AL09_CP02_RF06_combo_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_AL09_CP02_RF06_combo_test.py::test__rules__std_AL09_CP02_RF06[rules7-postgres-\\nselect\\n    a,\\n    b,\\n    \"C\" as c,\\n    d,\\n    \"E\" as e,\\n    f,\\n    g as \"G\",\\n    h,\\n    i\\nfrom foo\\n-post_fix_errors7]",
+   "file": "test/rules/std_AL09_CP02_RF06_combo_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_AL09_CP02_RF06_combo_test.py::test__rules__std_AL09_CP02_RF06[rules8-duckdb-\\nselect\\n    a,\\n    b,\\n    c,\\n    d,\\n    e,\\n    f,\\n    g,\\n    h,\\n    i\\nfrom foo\\n-post_fix_errors8]",
+   "file": "test/rules/std_AL09_CP02_RF06_combo_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_AL09_CP02_RF06_combo_test.py::test__rules__std_AL09_CP02_RF06[rules9-clickhouse-\\nselect\\n    a as A,\\n    B as b,\\n    C,\\n    d,\\n    E as e,\\n    f as F,\\n    g as G,\\n    h,\\n    I\\nfrom foo\\n-post_fix_errors9]",
+   "file": "test/rules/std_AL09_CP02_RF06_combo_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_AM06_test.py::test__rules__std_AM06_raised",
+   "file": "test/rules/std_AM06_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_AM06_test.py::test__rules__std_AM06_unparsable",
+   "file": "test/rules/std_AM06_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_AM06_test.py::test__rules__std_AM06_noqa",
+   "file": "test/rules/std_AM06_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_AM09_test.py::test__rules__std_AM09_missing_order_by",
+   "file": "test/rules/std_AM09_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_AM09_test.py::test__rules__std_AM09_with_order_by",
+   "file": "test/rules/std_AM09_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_AM09_test.py::test__rules__std_AM09_no_limit_or_offset",
+   "file": "test/rules/std_AM09_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_AM09_test.py::test__rules__std_AM09_non_select_statement_integration",
+   "file": "test/rules/std_AM09_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_AM09_test.py::test__rules__std_AM09_eval_short_circuit_on_non_select_segment",
+   "file": "test/rules/std_AM09_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_CV02_test.py::test__rules__std_CV02_raised",
+   "file": "test/rules/std_CV02_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_CV09_test.py::test__rules__std_CV09_raised",
+   "file": "test/rules/std_CV09_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_JJ01_test.py::test_lint_jj01_pickled_config",
+   "file": "test/rules/std_JJ01_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_JJ01_test.py::test_lint_jj01_custom_delimiters",
+   "file": "test/rules/std_JJ01_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_JJ01_test.py::test_lint_jj01_mixed_custom_and_default_delimiters",
+   "file": "test/rules/std_JJ01_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_JJ01_test.py::test_lint_jj01_custom_block_delimiters",
+   "file": "test/rules/std_JJ01_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_JJ01_test.py::test_lint_jj01_partial_delimiter_override",
+   "file": "test/rules/std_JJ01_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_LT01_LT02_LT09_combo_test.py::test__rules__std_LT02_LT09_LT01",
+   "file": "test/rules/std_LT01_LT02_LT09_combo_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_LT01_LT04_test.py::test__rules__std_LT01_single_raise",
+   "file": "test/rules/std_LT01_LT04_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_LT01_ST02_test.py::test_rules_std_LT01_and_ST02_interaction[\\nselect\\n    case\\n        when ended_at is null or date(ended_at) > current_date()\\n        then true else false\\n    end as is_active\\nfrom foo\\n-\\nselect\\n    coalesce(ended_at is null or date(ended_at) > current_date(), false) as is_active\\nfrom foo\\n]",
+   "file": "test/rules/std_LT01_ST02_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_LT01_jinja_alignment_test.py::test_lt01_alias_alignment_with_jinja_uses_source_positions",
+   "file": "test/rules/std_LT01_jinja_alignment_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_LT01_jinja_alignment_test.py::test_lt01_alias_alignment_with_jinja_coordinate_space_config_key",
+   "file": "test/rules/std_LT01_jinja_alignment_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_LT01_jinja_alignment_test.py::test_lt01_alias_alignment_non_rendered_longer_than_template",
+   "file": "test/rules/std_LT01_jinja_alignment_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_LT01_jinja_alignment_test.py::test_lt01_alias_alignment_source_coordinate_space_explicit",
+   "file": "test/rules/std_LT01_jinja_alignment_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_LT01_jinja_alignment_test.py::test_lt01_alias_alignment_edge_case_no_segments_on_line",
+   "file": "test/rules/std_LT01_jinja_alignment_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_LT01_jinja_alignment_test.py::test_lt01_alias_alignment_target_segment_not_found",
+   "file": "test/rules/std_LT01_jinja_alignment_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_LT01_jinja_alignment_test.py::test_lt01_alias_alignment_templated_next_segment",
+   "file": "test/rules/std_LT01_jinja_alignment_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_LT01_jinja_alignment_test.py::test_lt01_alias_alignment_templated_siblings",
+   "file": "test/rules/std_LT01_jinja_alignment_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_LT02_LT04_test.py::test_rules_std_LT02_LT04_interaction_indentation_leading[SELECT\\n    acct_id,\\n    date_x,\\n    't' AS test,\\n\\n    CASE\\n        WHEN condition_1 = '1' THEN ''\\n        ELSE condition_1\\n    END AS case_1,\\n\\n    CASE\\n        WHEN condition_2 = '2' THEN ''\\n        ELSE condition_2\\n    END AS case_2,\\n    dollar_amt,\\nFROM\\n    table_x-SELECT\\n    acct_id\\n    , date_x\\n    , 't' AS test\\n\\n    , CASE\\n        WHEN condition_1 = '1' THEN ''\\n        ELSE condition_1\\n    END AS case_1\\n\\n    , CASE\\n        WHEN condition_2 = '2' THEN ''\\n        ELSE condition_2\\n    END AS case_2\\n    , dollar_amt,\\nFROM\\n    table_x]",
+   "file": "test/rules/std_LT02_LT04_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_LT02_LT11_combo_test.py::test__rules__std_LT02_LT11_union_all_in_subquery_lint",
+   "file": "test/rules/std_LT02_LT11_combo_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_LT02_LT11_combo_test.py::test__rules__std_LT02_LT11_union_all_in_subquery_fix",
+   "file": "test/rules/std_LT02_LT11_combo_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_LT02_oscillation_test.py::test_rules_std_LT02_loop_comma_no_oscillation",
+   "file": "test/rules/std_LT02_oscillation_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_LT03_test.py::test__rules__std_LT03_default",
+   "file": "test/rules/std_LT03_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_LT03_test.py::test__rules__std_LT03_leading",
+   "file": "test/rules/std_LT03_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_LT03_test.py::test__rules__std_LT03_trailing",
+   "file": "test/rules/std_LT03_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_LT04_ST06_test.py::test_rules_std_LT04_and_ST06_interaction_trailing[SELECT COALESCE(a, 0) AS b\\n\\n    , COALESCE(c, 0) AS d\\n    , e\\nFROM t-SELECT e,\\n\\n    COALESCE(a, 0) AS b,\\n    COALESCE(c, 0) AS d\\nFROM t]",
+   "file": "test/rules/std_LT04_ST06_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_LT04_ST06_test.py::test_rules_std_LT04_and_ST06_interaction_trailing[SELECT COALESCE(a, 0) AS b--comment\\n\\n    , COALESCE(c, 0) AS d\\n    , e\\nFROM t-SELECT COALESCE(a, 0) AS b,--comment\\n\\n    COALESCE(c, 0) AS d,\\n    e\\nFROM t]",
+   "file": "test/rules/std_LT04_ST06_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_LT04_ST06_test.py::test_rules_std_LT04_and_ST06_interaction_trailing[with cte1 as (\\nselect \"a\"\\n      ,\"b\"\\n      ,coalesce(\"g1\"\\n               ,\"g2\"\\n               ,\"g3\"\\n       ) as \"g_combined\"\\n\\n      ,\"i\"\\n      ,\"j\"\\n  from test\\n),\\n\\ncte2 as (\\nselect \"col1\"\\n\\n      ,'start: ' + \"col2\" as \"new_col2\"\\n\\n      ,'start2: ' + \"col3\" as \"new_col3\"\\n\\n      ,\"col4\"\\n      ,\"col5\"\\nfrom cte1\\n)\\n\\nselect * from cte2-with cte1 as (\\nselect \"a\",\\n      \"b\",\\n      \"i\",\\n\\n      \"j\",\\n      coalesce(\"g1\",\\n               \"g2\",\\n               \"g3\"\\n       ) as \"g_combined\"\\n  from test\\n),\\n\\ncte2 as (\\nselect \"col1\",\\n\\n      \"col4\",\\n\\n      \"col5\",\\n\\n      'start: ' + \"col2\" as \"new_col2\",\\n      'start2: ' + \"col3\" as \"new_col3\"\\nfrom cte1\\n)\\n\\nselect * from cte2]",
+   "file": "test/rules/std_LT04_ST06_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_LT04_ST06_test.py::test_rule_st06_shorthand_casted_aggregates_are_complex[postgres]",
+   "file": "test/rules/std_LT04_ST06_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_LT04_ST06_test.py::test_rule_st06_shorthand_casted_aggregates_are_complex[redshift]",
+   "file": "test/rules/std_LT04_ST06_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_LT04_ST06_test.py::test_rule_st06_shorthand_casted_aggregates_are_complex[snowflake]",
+   "file": "test/rules/std_LT04_ST06_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_LT04_ST06_test.py::test_rule_st06_simple_expression_helpers_reject_non_simple_segments",
+   "file": "test/rules/std_LT04_ST06_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_LT04_test.py::test__rules__std_LT04_unparseable",
+   "file": "test/rules/std_LT04_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_LT05_LT09_combo_test.py::test__rules__std_LT05_LT09_long_line_lint",
+   "file": "test/rules/std_LT05_LT09_combo_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_LT05_LT09_combo_test.py::test__rules__std_LT05_LT09_long_line_fix",
+   "file": "test/rules/std_LT05_LT09_combo_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_LT05_LT09_combo_test.py::test__rules__std_LT05_LT09_long_line_fix2",
+   "file": "test/rules/std_LT05_LT09_combo_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_LT12_CV06_test.py::test__rules__std_LT12_and_CV06_interaction",
+   "file": "test/rules/std_LT12_CV06_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_RF01_LT09_test.py::test__rules__std_RF01_LT09_copy",
+   "file": "test/rules/std_RF01_LT09_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_RF02_test.py::test__rules__std_RF02_wildcard_single_count",
+   "file": "test/rules/std_RF02_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_ST03_test.py::test__rules__std_ST03_multiple_unused_ctes",
+   "file": "test/rules/std_ST03_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_ST05_LT08_test.py::test__rules__std_ST05_LT08_5265",
+   "file": "test/rules/std_ST05_LT08_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_ST05_LT09_test.py::test__rules__std_ST05_LT09_4137",
+   "file": "test/rules/std_ST05_LT09_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_ST05_LT09_test.py::test__rules__std_ST05_LT09_5265",
+   "file": "test/rules/std_ST05_LT09_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_ST12_test.py::test__rules__std_ST12_basic_patterns",
+   "file": "test/rules/std_ST12_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_ST12_test.py::test__rules__std_ST12_complex_multistatement",
+   "file": "test/rules/std_ST12_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_ST12_test.py::test__rules__std_ST12_fix_functionality",
+   "file": "test/rules/std_ST12_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_ST12_test.py::test__rules__std_ST12_whitespace_handling",
+   "file": "test/rules/std_ST12_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_ST12_test.py::test__rules__std_ST12_no_semicolon",
+   "file": "test/rules/std_ST12_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_ST12_test.py::test__rules__std_ST12_comments_break_runs",
+   "file": "test/rules/std_ST12_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_ST12_test.py::test__rules__std_ST12_templated_loop_no_false_positive",
+   "file": "test/rules/std_ST12_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_ST12_test.py::test__rules__std_ST12_templated_consecutive_semicolons_detected",
+   "file": "test/rules/std_ST12_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_roundtrip_test.py::test__cli__command__fix[LT01-test/fixtures/linter/indentation_errors.sql0]",
+   "file": "test/rules/std_roundtrip_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_roundtrip_test.py::test__cli__command__fix[LT01-test/fixtures/linter/whitespace_errors.sql]",
+   "file": "test/rules/std_roundtrip_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_roundtrip_test.py::test__cli__command__fix[LT01-test/fixtures/linter/indentation_errors.sql1]",
+   "file": "test/rules/std_roundtrip_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_roundtrip_test.py::test__cli__command__fix[CP01-test/fixtures/linter/whitespace_errors.sql]",
+   "file": "test/rules/std_roundtrip_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_roundtrip_test.py::test__cli__command__fix[AL01-test/fixtures/dialects/ansi/select_simple_i.sql]",
+   "file": "test/rules/std_roundtrip_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_roundtrip_test.py::test__cli__command__fix[AL02-test/fixtures/dialects/ansi/select_simple_i.sql]",
+   "file": "test/rules/std_roundtrip_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_roundtrip_test.py::test__cli__command__fix_templated[CP01]",
+   "file": "test/rules/std_roundtrip_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_roundtrip_test.py::test__cli__command__fix_templated[LT01]",
+   "file": "test/rules/std_roundtrip_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_test.py::test__rules__std_file[LT01-indentation_errors.sql-violations0]",
+   "file": "test/rules/std_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_test.py::test__rules__std_file[LT02-indentation_errors.sql-violations1]",
+   "file": "test/rules/std_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_test.py::test__rules__std_file[LT01-whitespace_errors.sql-violations2]",
+   "file": "test/rules/std_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_test.py::test__rules__std_file[LT01-operator_errors.sql-violations3]",
+   "file": "test/rules/std_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_test.py::test__rules__std_file[LT03-operator_errors.sql-violations4]",
+   "file": "test/rules/std_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_test.py::test__rules__std_file[LT01-operator_errors_negative.sql-violations5]",
+   "file": "test/rules/std_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_test.py::test__rules__std_file[LT02-indentation_error_hard.sql-violations6]",
+   "file": "test/rules/std_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_test.py::test__rules__std_file[LT02-indentation_error_contained.sql-violations7]",
+   "file": "test/rules/std_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_test.py::test__rules__std_file[LT05-block_comment_errors.sql-violations8]",
+   "file": "test/rules/std_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_test.py::test__rules__std_file[LT05-block_comment_errors_2.sql-violations9]",
+   "file": "test/rules/std_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_test.py::test__rules__std_file[RF02-column_references.sql-violations10]",
+   "file": "test/rules/std_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_test.py::test__rules__std_file[RF02-column_references_bare_function.sql-violations11]",
+   "file": "test/rules/std_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_test.py::test__rules__std_file[RF01-column_references.sql-violations12]",
+   "file": "test/rules/std_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_test.py::test__rules__std_file[AL05-column_references.sql-violations13]",
+   "file": "test/rules/std_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_test.py::test__rules__std_file[AM01-select_distinct_group_by.sql-violations14]",
+   "file": "test/rules/std_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_test.py::test__rules__std_file[LT01-operator_errors_ignore.sql-violations15]",
+   "file": "test/rules/std_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_test.py::test__rules__std_file[JJ01-heavy_templating.sql-violations16]",
+   "file": "test/rules/std_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_test.py::test_improper_configs_are_rejected[rule_config_dict0]",
+   "file": "test/rules/std_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_test.py::test_improper_configs_are_rejected[rule_config_dict1]",
+   "file": "test/rules/std_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_test.py::test_improper_configs_are_rejected[rule_config_dict2]",
+   "file": "test/rules/std_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_test.py::test_improper_configs_are_rejected[rule_config_dict3]",
+   "file": "test/rules/std_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_test.py::test_improper_configs_are_rejected[rule_config_dict4]",
+   "file": "test/rules/std_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_test.py::test_improper_configs_are_rejected[rule_config_dict5]",
+   "file": "test/rules/std_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_test.py::test_improper_configs_are_rejected[rule_config_dict6]",
+   "file": "test/rules/std_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/std_test.py::test_improper_configs_are_rejected[rule_config_dict7]",
+   "file": "test/rules/std_test.py",
+   "group": "rules"
+  },
+  {
+   "id": "test/rules/yaml_test_cases_test.py::test__rule_test_global_config",
+   "file": "test/rules/yaml_test_cases_test.py",
+   "group": "rules"
+  }
+ ]
+}
