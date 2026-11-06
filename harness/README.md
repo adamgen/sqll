@@ -582,14 +582,19 @@ and needs a new controlled baseline.
 ```sh
 sqll-harness bench compare BASE NEW       # writes out/bench-compare.json
 sqll-harness bench compare NEW --tool sqlfluff --tool sqruff
+# Back to back: the tools run in turn for each benchmark.
+scripts/bench --tool sqll --tool sqlfluff --command start --command parse
+sqll-harness bench compare out/bench.json --tool sqll --tool sqlfluff
 ```
 
 `sqll-harness bench compare [BASE] NEW [--tool T] [--out FILE]` compares
 2 benchmark reports (G3.6) with the noise limit of [bench.md](bench.md)
 ("Slowdowns"), and the tools of NEW (G3.4, G3.5). `--tool` (can repeat;
-default: all tools of the reports) sets the compared tools. With only NEW,
-it compares only the tools of NEW. It prints a summary and writes the
-output (default `out/bench-compare.json`).
+default: all tools of the reports, sorted) sets the compared tools. With
+only NEW, it compares only the tools of NEW. It prints a summary and
+writes the output (default `out/bench-compare.json`). With 2 or more tools
+in NEW, it also prints the table of these tools (`table`): the first
+`--tool` is the reference of each ratio.
 
 Exit code: 2, with no output (it deletes an old `--out` file), if a report
 has a schema error or is not complete for its scope, if no report has a
@@ -602,7 +607,7 @@ with 1 timed run for each benchmark (`smoke`) gives a warning.
 ```json
 {
   "kind": "sqll-bench-compare",
-  "format": 1,
+  "format": 2,
   "base": {"path": "", "commit": "", "clean": true, "profile": "",
            "machine": {}},
   "new": {"path": "", "commit": "", "clean": true, "profile": "",
@@ -628,6 +633,21 @@ with 1 timed run for each benchmark (`smoke`) gives a warning.
                   "pairs": [{"tools": ["<a>", "<b>"], "wall_ratio": 0.0,
                              "cpu_ratio": 0.0, "first_slower": 0,
                              "first_faster": 0}]},
+  "table": {"tools": ["<first>", "<tool>"],
+            "benchmarks": [{"id": "", "group": "",
+                            "wall_s": {"<first>": 0.0, "<tool>": 0.0},
+                            "ratio": {"<tool>": 0.0}, "faster": "<tool>"}],
+            "groups": [{"group": "", "benchmarks": 0,
+                        "wall_s": {"<first>": 0.0, "<tool>": 0.0},
+                        "ratio": {"<tool>": {"total": 0.0, "min": 0.0,
+                                             "median": 0.0, "max": 0.0}},
+                        "faster": {"<first>": 0, "<tool>": 0}}],
+            "total": {"group": "total", "benchmarks": 0,
+                      "wall_s": {"<first>": 0.0, "<tool>": 0.0},
+                      "ratio": {"<tool>": {"total": 0.0, "min": 0.0,
+                                           "median": 0.0, "max": 0.0}},
+                      "faster": {"<first>": 0, "<tool>": 0}},
+            "left_out": [{"id": "", "tool": "", "status": ""}]},
   "counts": {"compared": 0, "slower": 0, "faster": 0, "same": 0,
              "failure": 0, "status": 0, "not_valid": 0},
   "ok": true
@@ -660,4 +680,18 @@ with 1 timed run for each benchmark (`smoke`) gives a warning.
   benchmarks where the median wall time of the first tool is more or less
   than that of the second. Thus all tools have the same benchmarks; the
   `pairs` of a report use the benchmarks where 2 tools are `valid`.
+- `table` (format 2): the compared tools of NEW, in the order of `--tool`
+  (null with fewer than 2 tools). `benchmarks` has one row for each
+  benchmark where each of these tools is `valid`, sorted by command, size,
+  and id: the median wall time of each tool, the ratio of each other tool
+  to the first tool (tool / first; null if the first is 0), and the
+  `faster` tool (the smallest median; null for a tie). `groups` gives the
+  subtotals of each command and size (`start`, `parse/small`, ...), and
+  `total` those of all rows: the sums of the medians, for each other tool
+  the ratio of the sums (`total`) and the min, median, and max of the
+  ratios of the rows, and for each tool the count of rows where it is
+  `faster`. The `total` row uses the same benchmarks and sums as
+  `tool_totals`. `left_out` gives each tool that is not
+  `valid` on a benchmark that has no row, with its status (null: no
+  result).
 - `ok`: no `slower` and no `failure` (exit code 0).

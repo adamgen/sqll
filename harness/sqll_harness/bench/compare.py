@@ -4,10 +4,12 @@ schema is in harness/README.md, "Benchmark compare").
 compare(base, new) compares each benchmark and tool that both reports have,
 and flags a slowdown above the noise limit. tool_totals() compares the tools
 of one report over the benchmarks that are valid for all of them. Each
-total uses only valid results.
+total uses only valid results. tool_table() gives the same comparison for
+each benchmark, with subtotals by command and size.
 """
 
 import json
+import statistics
 from collections.abc import Iterable, Mapping
 from dataclasses import asdict, dataclass
 from itertools import combinations
@@ -17,10 +19,12 @@ from typing import Any
 from ..paths import OUT_DIR
 from . import report
 from . import run as bench_run
+from .inputs import SIZES
 from .timer import DIGITS, VALID
 
 KIND = "sqll-bench-compare"
-FORMAT = 1
+# Format 2 added "table".
+FORMAT = 2
 DEFAULT_OUT = OUT_DIR / "bench-compare.json"
 METRICS = {"wall": "wall_s", "cpu": "cpu_s"}
 
@@ -45,6 +49,7 @@ TOP = (
     "only_new",
     "totals",
     "tool_totals",
+    "table",
     "counts",
     "ok",
 )
@@ -63,6 +68,12 @@ METRIC = ("base", "new", "ratio", "limit", "change")
 TOTAL = ("benchmarks", "wall_s", "cpu_s", "wall_ratio", "cpu_ratio")
 TOOL_TOTALS = ("tools", "benchmarks", "excluded", "wall_s", "cpu_s", "pairs")
 PAIR = ("tools", "wall_ratio", "cpu_ratio", "first_slower", "first_faster")
+TABLE = ("tools", "benchmarks", "groups", "total", "left_out")
+TABLE_ROW = ("id", "group", "wall_s", "ratio", "faster")
+TABLE_GROUP = ("group", "benchmarks", "wall_s", "ratio", "faster")
+GROUP_RATIO = ("total", "min", "median", "max")
+LEFT_OUT = ("id", "tool", "status")
+TOTAL_GROUP = "total"
 
 
 class CompareError(Exception):
@@ -228,6 +239,99 @@ def tool_totals(rep: Mapping, tools: Iterable[str]) -> dict:
     }
 
 
+def group_of(result: Mapping) -> str:
+    """The subtotal group of a benchmark: its command, and its size if it
+    has one (start/ansi: start; parse/ansi/small: parse/small)."""
+    if result["size"] is None:
+        return result["command"]
+    return f"{result['command']}/{result['size']}"
+
+
+def _group_key(result: Mapping) -> tuple:
+    commands, sizes = report.ALL_COMMANDS, list(SIZES)
+    command, size = result["command"], result["size"]
+    return (
+        commands.index(command) if command in commands else len(commands),
+        command,
+        -1 if size is None else sizes.index(size) if size in sizes else len(sizes),
+        size or "",
+    )
+
+
+def _faster(walls: Mapping[str, float]) -> str | None:
+    """The tool with the smallest median, or None if 2 tools have it."""
+    least = min(walls.values())
+    fastest = [t for t, w in walls.items() if w == least]
+    return fastest[0] if len(fastest) == 1 else None
+
+
+def _subtotal(name: str, rows: list[dict], tools: list[str]) -> dict:
+    first, others = tools[0], tools[1:]
+    wall = {t: round(sum(r["wall_s"][t] for r in rows), DIGITS) for t in tools}
+    ratio = {}
+    for t in others:
+        each = [r["ratio"][t] for r in rows if r["ratio"][t] is not None]
+        ratio[t] = {
+            "total": _ratio(wall[t], wall[first]),
+            "min": min(each, default=None),
+            "median": round(statistics.median(each), DIGITS) if each else None,
+            "max": max(each, default=None),
+        }
+    faster = {t: sum(r["faster"] == t for r in rows) for t in tools}
+    return {
+        "group": name,
+        "benchmarks": len(rows),
+        "wall_s": wall,
+        "ratio": ratio,
+        "faster": faster,
+    }
+
+
+def tool_table(rep: Mapping, tools: Iterable[str]) -> dict | None:
+    """Compare the tools of one report on each benchmark that is valid for
+    all of them. The first tool is the reference: each ratio is the median
+    wall time of a tool divided by that of the first tool. The subtotals
+    are by command and size. A benchmark where a tool is not valid is left
+    out, and "left_out" gives each such tool and its status (None: no
+    result). None with fewer than 2 tools."""
+    tools = list(dict.fromkeys(tools))
+    if len(tools) < 2:
+        return None
+    first = tools[0]
+    results = _by_key(rep)
+    benchmarks = {r["id"]: r for r in rep["results"]}
+    rows, left_out = [], []
+    for i in sorted(benchmarks, key=lambda i: (_group_key(benchmarks[i]), i)):
+        mine = {t: results.get((i, t)) for t in tools}
+        if not all(r is not None and r["status"] == VALID for r in mine.values()):
+            left_out += [
+                {"id": i, "tool": t, "status": None if r is None else r["status"]}
+                for t, r in mine.items()
+                if r is None or r["status"] != VALID
+            ]
+            continue
+        wall = {t: r["stats"]["wall_s"]["median"] for t, r in mine.items()}
+        rows.append(
+            {
+                "id": i,
+                "group": group_of(benchmarks[i]),
+                "wall_s": wall,
+                "ratio": {t: _ratio(wall[t], wall[first]) for t in tools[1:]},
+                "faster": _faster(wall),
+            }
+        )
+    groups: dict[str, list[dict]] = {}
+    for row in rows:
+        groups.setdefault(row["group"], []).append(row)
+    return {
+        "tools": tools,
+        "benchmarks": rows,
+        "groups": [_subtotal(g, members, tools) for g, members in groups.items()],
+        "total": _subtotal(TOTAL_GROUP, rows, tools),
+        "left_out": left_out,
+    }
+
+
 def _report_ref(path: str, rep: Mapping) -> dict:
     return {
         "path": path,
@@ -314,6 +418,7 @@ def compare(
     schema error or is not complete for its scope, if a tool is in no
     report, or if an input or the settings of a compared tool differ."""
     new_path, new_rep = new
+    tools = None if tools is None else list(tools)
     _check("NEW", new_rep)
     reports = [new_rep]
     if base is not None:
@@ -340,6 +445,10 @@ def compare(
         "totals": {},
         "tool_totals": tool_totals(
             new_rep, [t for t in names if t in new_rep["tools"]]
+        ),
+        # The order of --tool: the first tool is the reference of the ratios.
+        "table": tool_table(
+            new_rep, [t for t in (tools or names) if t in new_rep["tools"]]
         ),
     }
     if base is not None:
@@ -435,4 +544,77 @@ def summary_lines(result: Mapping) -> list[str]:
             f"  {a} / {b}: wall {ratio}; {a} is slower on {p['first_slower']}, "
             f"faster on {p['first_faster']}"
         )
+    return lines + table_lines(result["table"])
+
+
+def _columns(rows: list[list[str]]) -> list[str]:
+    """Align the columns: the first and the last to the left, the others to
+    the right."""
+    widths = [max(len(r[c]) for r in rows) for c in range(len(rows[0]))]
+    last = len(widths) - 1
+    out = []
+    for row in rows:
+        cells = [
+            cell.ljust(w) if c in (0, last) else cell.rjust(w)
+            for c, (cell, w) in enumerate(zip(row, widths, strict=True))
+        ]
+        out.append("  ".join(cells).rstrip())
+    return out
+
+
+def _number(value: float | None, digits: int) -> str:
+    return "-" if value is None else f"{value:.{digits}f}"
+
+
+def _counts_text(faster: Mapping[str, int]) -> str:
+    return ", ".join(f"{t} {n}" for t, n in faster.items() if n) or "-"
+
+
+def table_lines(table: Mapping | None) -> list[str]:
+    """The table of tool_table() as plain text."""
+    if table is None:
+        return []
+    tools = table["tools"]
+    first, others = tools[0], tools[1:]
+    lines = [
+        f"table of the tools of NEW: the median wall time (s) of each benchmark "
+        f"valid for all of {', '.join(tools)}; ratio: tool / {first}"
+    ]
+    head = ["benchmark", *tools, *(f"{t}/{first}" for t in others), "faster"]
+    rows = [
+        [
+            r["id"],
+            *(_number(r["wall_s"][t], 4) for t in tools),
+            *(_number(r["ratio"][t], 3) for t in others),
+            r["faster"] or "-",
+        ]
+        for r in table["benchmarks"]
+    ]
+    lines += ["  " + line for line in _columns([head, *rows])]
+    lines.append(
+        "subtotals: the sums of the medians (s), the ratio of the sums, and "
+        "the min, median, and max of the ratios"
+    )
+    head = ["group", "n", *tools]
+    for t in others:
+        head += [f"{t}/{first}", "min", "median", "max"]
+    head.append("faster")
+    rows = []
+    for g in [*table["groups"], table["total"]]:
+        row = [g["group"], str(g["benchmarks"])]
+        row += [_number(g["wall_s"][t], 4) for t in tools]
+        for t in others:
+            row += [_number(g["ratio"][t][k], 3) for k in GROUP_RATIO]
+        row.append(_counts_text(g["faster"]))
+        rows.append(row)
+    lines += ["  " + line for line in _columns([head, *rows])]
+    left = table["left_out"]
+    if left:
+        statuses: dict[tuple[str, str], int] = {}
+        for e in left:
+            key = (e["tool"], e["status"] or "no result")
+            statuses[key] = statuses.get(key, 0) + 1
+        notes = "; ".join(f"{t}: {s} on {n}" for (t, s), n in sorted(statuses.items()))
+        count = len({e["id"] for e in left})
+        lines.append(f"note: {count} benchmarks left out, a tool is not valid: {notes}")
     return lines

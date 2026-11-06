@@ -73,3 +73,13 @@ def s3_record() -> str:
     data of each task."""
     status = (REPO_ROOT / "status" / "S3.md").read_text("utf8")
     return status + "\n" + (REPO_ROOT / "results" / "s3" / "data.md").read_text("utf8")
+
+
+def compare_format_1(result: dict) -> dict:
+    """A bench compare output (format 2) as format 1, for the records of
+    format 1: format 2 added only "table"."""
+    from sqll_harness.bench import compare
+
+    assert result["format"] == compare.FORMAT == 2
+    out = {k: v for k, v in result.items() if k != "table"}
+    return out | {"format": 1}

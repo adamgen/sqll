@@ -12,7 +12,7 @@ import importlib.util
 import json
 
 import pytest
-from conftest import s3_record
+from conftest import compare_format_1, s3_record
 
 from sqll_harness.bench import compare as bench_compare
 from sqll_harness.paths import REPO_ROOT
@@ -122,7 +122,7 @@ def test_the_compare_is_the_output_of_the_committed_reports():
         ("results/s3/speed/T16-before.json", before),
         tools=["sqll"],
     )
-    assert json.loads(json.dumps(got)) == COMPARE
+    assert json.loads(json.dumps(compare_format_1(got))) == COMPARE
     assert COMPARE["ok"] is True
 
 
