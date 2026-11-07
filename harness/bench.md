@@ -334,4 +334,8 @@ slower and HEAD meets G3.4 and G3.5; 1 if not; 2 if there is no result
 inputs, settings, versions, or sqlfluff and sqruff statuses are not those
 of the definitions and `results/s2/baseline.json`).
 
-Measured (C5, BASE = HEAD = main, a null change): XX
+Run time of one check (C5, `results/S3b/speed/C5.json`; BASE = HEAD =
+main, a null change; 4 CPUs): 17 min. The 2 builds take 3 min each, and
+the session takes 9 min. The result: 0 of 112 benchmarks slower, HEAD
+faster than sqruff on 108 of 108 pairs and than sqlfluff on 112 of 112
+pairs. sqruff has no `soql` dialect, so 4 benchmarks have no sqruff pair.
