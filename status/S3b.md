@@ -6,8 +6,10 @@ The S3 code paths are Core paths since C3 (`tracks.yml`).
 The design of C6 to C16 is in the C4 record
 [docs/decisions/s3b-core.md](../docs/decisions/s3b-core.md). It adds
 these details to the task list: a kind is the full static data of a node
-(C6), C8 makes the crates `sqll_source` and `sqll_interfaces`, C13 makes
-the crate `sqll_cli`, and C16 gives `docs/decisions/s3b-*.md` to Core.
+(C6), C6 makes the crate `sqll_interfaces`, C8 makes the crate
+`sqll_source`, C13 makes the crate `sqll_cli`, and C16 gives
+`docs/decisions/s3b-*.md` to Core. The interface documents are in
+`docs/interfaces/` (a Core path since C6).
 
 ## Tasks
 
@@ -17,11 +19,11 @@ the crate `sqll_cli`, and C16 gives `docs/decisions/s3b-*.md` to Core.
 | C2 | `bench compare`: a table for each benchmark when it compares tools of one report | Merged (PR #58) |
 | C3 | Record the S3b plan and move the S3 code paths to the Core track | Merged (PR #59) |
 | C4 | Decision record: the S3b core design (answers to the 7 open interface questions): [docs/decisions/s3b-core.md](../docs/decisions/s3b-core.md) | Merged (PR #61) |
-| C5 | Speed check tool for each Core change (G3.6): `scripts/speed-check`, `results/S3b/speed/C5.json` | In review |
-| C6 | Typed segment kinds from the frozen dialect tables: one kind for each distinct static data of a node (variant, class, type, instance types, class types, segment kwargs); the build fails if the kinds do not fit in a `u16` | Not started |
+| C5 | Speed check tool for each Core change (G3.6): `scripts/speed-check`, `results/S3b/speed/C5.json` | Merged (PR #63) |
+| C6 | Typed segment kinds from the frozen dialect tables: one kind for each distinct static data of a node (variant, class, type, instance types, class types, segment kwargs); the build fails if the kinds do not fit in a `u16`: [docs/interfaces/segment-kinds.md](../docs/interfaces/segment-kinds.md) | In review |
 | C7 | Lossless syntax tree (`sqll_tree`) and the conversion from the parser tree | Not started |
-| C8 | Source map (`sqll_source`): `TemplatedFile` as the frozen templater interface, raw templater; the interface test crate `sqll_interfaces` | Not started |
-| C9 | Frozen parse interface (lexer to parser to tree) and `sqll parse` output from `SyntaxTree` | Not started |
+| C8 | Source map (`sqll_source`): `TemplatedFile` as the frozen templater interface, raw templater | Not started |
+| C9 | Frozen parse interface (lexer to parser to tree) and `sqll parse` output from `SyntaxTree`. Remove the copy of the parse settings in `crates/sqll_interfaces/tests/segment_kinds.rs`: use the interface | Not started |
 | C10 | Typed view of the tree | Not started |
 | C11 | Config skeleton (`sqll_config`) and its use in `sqll parse` | Not started |
 | C12 | Rule and fix interface (`sqll_lint`) with CP01, CP03, CP04 as the proof | Not started |

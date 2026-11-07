@@ -16,6 +16,8 @@ members = [
     "crates/sqll_rules",
     "crates/sqll_base_tests",
     "crates/sqll",
+    "crates/sqll_tree",
+    "crates/sqll_interfaces",
 ]
 
 [workspace.package]

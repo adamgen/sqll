@@ -36,7 +36,7 @@
    "path": "Cargo.toml",
    "source": "sqlfluffrs/Cargo.toml",
    "source_sha256": "b732205a4911557a6a5ba76b40e4a6557e88166523450b5b01731760b337a3a8",
-   "changed": "Only the workspace parts are kept: the members are the 4 ported crates in crates/ and the new sqll binary crate (crates/sqll), the workspace dependencies that they use, and the release profile. The workspace version is the sqll version. New: serde_json and sha2 (for build.rs of sqll_dialects), and opt-level 3 for sha2; regex-syntax (S3 T15, the match prefixes of the lexer regexes in sqll_types matcher.rs), the version that regex uses. No root package, no feature \"python\", no pyo3. S3 T17 (parse speed, build profile): the release profile has lto = \"fat\" and codegen-units = 1, so that the parser inlines the accessors of sqll_types; about 10% fewer instructions in the parse. S3 T18: the members also have the rules crate (crates/sqll_rules) and the native tests of the root crate (crates/sqll_base_tests)."
+   "changed": "Only the workspace parts are kept: the members are the 4 ported crates in crates/ and the new sqll binary crate (crates/sqll), the workspace dependencies that they use, and the release profile. The workspace version is the sqll version. New: serde_json and sha2 (for build.rs of sqll_dialects), and opt-level 3 for sha2; regex-syntax (S3 T15, the match prefixes of the lexer regexes in sqll_types matcher.rs), the version that regex uses. No root package, no feature \"python\", no pyo3. S3 T17 (parse speed, build profile): the release profile has lto = \"fat\" and codegen-units = 1, so that the parser inlines the accessors of sqll_types; about 10% fewer instructions in the parse. S3 T18: the members also have the rules crate (crates/sqll_rules) and the native tests of the root crate (crates/sqll_base_tests). S3b C6: the members also have the syntax tree crate (crates/sqll_tree) and the interface test crate (crates/sqll_interfaces)."
   },
   {
    "path": "crates/sqll_base_tests/Cargo.toml",
@@ -604,6 +604,38 @@
   {
    "path": "crates/LICENSE-rust-MIT.txt",
    "reason": "A copy of LICENSE-MIT of https://github.com/rust-lang/rust, tag 1.97.0, commit 2d8144b7880597b6e6d3dfd63a9a9efae3f533d3 (sha256 b71bd43a069ca0641a9ecfe585ca7b3c53b5cc1608f8b68321168698e28b5ea1): the MIT notice of the Rust standard library in the sqll binary (S3 T19, THIRD_PARTY.md, \"Rust\")."
+  },
+  {
+   "path": "crates/sqll_tree/Cargo.toml",
+   "reason": "The manifest of the new syntax tree crate (S3b C6)."
+  },
+  {
+   "path": "crates/sqll_tree/build.rs",
+   "reason": "New build script: it makes the segment types and kinds from the dialect tables and the lexers (S3b C6)."
+  },
+  {
+   "path": "crates/sqll_tree/build/kinds.rs",
+   "reason": "The segment kind rules of build.rs (S3b C6). It has ported parts (THIRD_PARTY.md, \"Ported code\")."
+  },
+  {
+   "path": "crates/sqll_tree/src/lib.rs",
+   "reason": "The library of the syntax tree crate (S3b C6)."
+  },
+  {
+   "path": "crates/sqll_tree/src/kinds.rs",
+   "reason": "The segment types and kinds, and their lookups (S3b C6)."
+  },
+  {
+   "path": "crates/sqll_interfaces/Cargo.toml",
+   "reason": "The manifest of the new interface test crate (S3b C6)."
+  },
+  {
+   "path": "crates/sqll_interfaces/src/lib.rs",
+   "reason": "The empty library of the interface test crate (S3b C6)."
+  },
+  {
+   "path": "crates/sqll_interfaces/tests/segment_kinds.rs",
+   "reason": "The interface test of the segment kinds (S3b C6). It has ported parts (THIRD_PARTY.md, \"Ported code\")."
   }
  ]
 }
