@@ -209,3 +209,40 @@ crawl check: PASS: 6 fixtures, 135 cases (111 YAML cases), 1182 segments
   `75f8ea231c4a`, head `b2502f889bec`): 112 benchmarks, 0 slower, 0
   failures; total wall time head / base 1.006; head faster than sqruff on
   108 of 108 pairs and faster than sqlfluff on 112 of 112.
+
+## C11: config proof
+
+Interface: [docs/interfaces/config.md](../docs/interfaces/config.md).
+The check of the sqlfluff data (`scripts/s3b/config_oracle.py check`,
+record [results/S3b/C11-config.json](../results/S3b/C11-config.json)):
+
+```text
+config check: PASS: 208 defaults, 40 coerce, 26 INI, 19 TOML, 34 load and 39 CLI scenarios; jinja as raw: 2303 of 2303 dialect fixtures that are not empty and have no Jinja delimiter
+```
+
+- `crates/sqll_config/tests/defaults.rs` reads `default_config.cfg` of the
+  submodule: the 208 defaults are equal. The interface test
+  (`crates/sqll_interfaces/tests/config.rs`, 6 tests) and
+  `crates/sqll/tests/cli_config.rs` (3 tests) give the sqlfluff answer of
+  each case, or fail closed where the record says so.
+- `sqll parse` reads the config. The jinja templater (the default) is done
+  only for a text that is not empty and has no Jinja delimiter; then
+  sqlfluff gives the file of the raw templater (`jinja_as_raw`). For an
+  empty text it does not (the raw templater gives an empty literal slice).
+- G4: S1 dialect suite of sqll 2306 of 2306 exact; the known failures of
+  sqll did not change (2631; 0 new, 0 unexpected); tree guard: 84 of 84 the
+  same; the syntax tree check of the 84 S2 parse inputs passes; native base
+  tests 162 of 162 (`scripts/s3/base_native_tests.py check`: 312 tests,
+  309 passed, 3 ignored).
+- Speed check ([results/S3b/speed/C11.json](../results/S3b/speed/C11.json),
+  base `3104d473b8f1`, head `a2f98bee1b56`): 112 benchmarks, 0 slower, 0
+  failures; total wall time head / base 1.016 (start 1.081, parse/small
+  1.051, parse/medium 1.027, parse/large 0.997); head faster than sqruff on
+  108 of 108 pairs and faster than sqlfluff on 112 of 112. The speed check
+  also compares the sqll version, settings, and statuses with
+  `results/s2/baseline.json`: the same.
+- Reason of the start change (G3.6; no benchmark is slower than the noise
+  limit): the config is in the start path. The benchmark gives the
+  settings as a `--config` file (`pyproject.toml`), as for sqlfluff; sqll
+  reads and checks it and makes the root and the file config (about 0.4
+  ms for each start).
