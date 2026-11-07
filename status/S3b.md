@@ -135,9 +135,10 @@ tree: 2306 of 2306 dialect fixtures through the raw templater: lossless and node
   sqll (dialects, rules, autofix, templater) did not change; tree guard: 84
   of 84 the same; native base tests 162 of 162; the syntax tree check of
   the 84 S2 parse inputs passes.
-- The sqll binary links the fix (`sqll_types`), but not `sqll_source` or
-  `sqll_templater` (`cargo tree -p sqll -e normal,build`). Speed check
+- The sqll binary links the fixes (`sqll_types`, `sqll_parser`), but not
+  `sqll_source` or `sqll_templater` (`cargo tree -p sqll -e
+  normal,build`). Speed check
   ([results/S3b/speed/C8.json](../results/S3b/speed/C8.json), base
-  `ee2434a356fe`, head `b45d5b597b39`): 112 benchmarks, 0 slower, 0
-  failures; total wall time head / base 1.0058; head faster than sqruff on
+  `ee2434a356fe`, head `265e52cdc39b`): 112 benchmarks, 0 slower, 0
+  failures; total wall time head / base 0.998; head faster than sqruff on
   108 of 108 pairs and faster than sqlfluff on 112 of 112.
