@@ -184,8 +184,9 @@ jobs:
   # pinned generator, compare them with crates/sqll_dialects/generated.json,
   # build the workspace (release, --locked) with no Python, run the Rust
   # tests with the list check of the base native tests, the S2 tree guard,
-  # the syntax tree check of the S2 parse inputs, and the source map check
-  # of the templater fixtures. The artifact has
+  # the syntax tree check of the S2 parse inputs, the source map check of
+  # the templater fixtures, and the crawl check of the typed view. The
+  # artifact has
   # out/sqll/build.json and the binaries.
   build:
     needs: [changes, image]
@@ -249,6 +250,17 @@ jobs:
 
       - name: Check that the sqlfluff submodule is clean after the source map check
         run: scripts/check-submodule "after the source map check"
+
+      # S3b C10: the record results/S3b/C10-crawl.json is the sqlfluff
+      # recursive_crawl data of the cited dialect fixtures, and the crawl of
+      # the fixture YAML agrees for each YAML case. The interface test
+      # crates/sqll_interfaces/tests/typed_view.rs (Rust tests above) checks
+      # the sqll crawl against the record and the YAML.
+      - name: Check the crawl of the typed view with sqlfluff
+        run: uv run --frozen --project harness python scripts/s3b/crawl_oracle.py check
+
+      - name: Check that the sqlfluff submodule is clean after the crawl check
+        run: scripts/check-submodule "after the crawl check"
 
       - uses: actions/upload-artifact@v7
         with:

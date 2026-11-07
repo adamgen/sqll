@@ -58,6 +58,32 @@ pub enum Meta<'a> {
     EndOfFile,
 }
 
+impl Meta<'_> {
+    /// The type of a meta node.
+    pub fn type_name(&self) -> &'static str {
+        match self {
+            Meta::Indent { .. } => "indent",
+            Meta::Dedent { .. } => "dedent",
+            Meta::Template { .. } => "placeholder",
+            Meta::TemplateLoop => "template_loop",
+            Meta::EndOfFile => "end_of_file",
+        }
+    }
+
+    /// The class types of a meta node: those of its sqlfluff class
+    /// (`MetaSegment` is a `RawSegment`; `Dedent` is an `Indent`). The build
+    /// gives each meta kind this set (build/kinds.rs, `Kind::meta`).
+    pub fn class_types(&self) -> &'static [&'static str] {
+        match self {
+            Meta::Indent { .. } => &["base", "indent", "meta", "raw"],
+            Meta::Dedent { .. } => &["base", "dedent", "indent", "meta", "raw"],
+            Meta::Template { .. } => &["base", "meta", "placeholder", "raw"],
+            Meta::TemplateLoop => &["base", "meta", "raw", "template_loop"],
+            Meta::EndOfFile => &["base", "end_of_file", "meta", "raw"],
+        }
+    }
+}
+
 /// The static data of a kind.
 #[derive(Debug, PartialEq, Eq)]
 pub struct KindData {

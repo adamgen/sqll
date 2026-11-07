@@ -19,3 +19,7 @@ sqll_syntax = { path = "../sqll_syntax" }
 sqll_templater = { path = "../sqll_templater" }
 sqll_tree = { path = "../sqll_tree" }
 sqll_types = { path = "../sqll_types" }
+
+# The fixture YAML of the typed view test (tests/typed_view.rs, S3b C10).
+[dev-dependencies]
+serde_yaml_ng.workspace = true

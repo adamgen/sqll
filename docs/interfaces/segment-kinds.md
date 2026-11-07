@@ -36,7 +36,7 @@ of `crates/sqll_dialects/generated.json` through `sqll_dialects`
 | Lexer leaf | Each lexer matcher, with its subdividers and the last resort lexer |
 | Parser leaf | Each terminal grammar and bracket symbol, for each token kwargs of the lexers of the dialect |
 | Segment | Each `Ref` grammar with a class or a type; the root, bracketed, and unparsable segments |
-| Meta | Indent and dedent (implicit or not), a placeholder for each of 8 slice types, the template loop, the end of the file |
+| Meta | Indent and dedent (implicit or not), a placeholder for each of 8 slice types, the template loop, the end of the file. The class types are those of the sqlfluff class: `base`, `meta`, `raw`, and the type; a dedent is also an `indent` (`Meta::class_types`, since C10, [typed-view.md](typed-view.md)) |
 
 Thus the kinds are a superset of the kinds that the parser makes. The
 build fails if the types or the kinds do not fit in a `u16`, if a type
