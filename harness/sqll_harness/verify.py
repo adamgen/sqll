@@ -525,6 +525,12 @@ def checks(jobs: int | None = None) -> list[Check]:
             ("build: Check the sqll trees of the S2 parse inputs",),
             needs=(SETUP,),
         ),
+        Check(
+            "syntax-tree",
+            f"{UV} python scripts/s3b/tree_check.py check",
+            ("build: Check the syntax trees of the S2 parse inputs",),
+            needs=(SETUP,),
+        ),
         # One unsharded run of all suites and tools, as all shards of CI.
         Check(
             "run",

@@ -183,9 +183,9 @@ jobs:
   # Build sqll (scripts/build-sqll): generate the dialect tables with the
   # pinned generator, compare them with crates/sqll_dialects/generated.json,
   # build the workspace (release, --locked) with no Python, run the Rust
-  # tests with the list check of the base native tests, and the S2 tree
-  # guard. The artifact has out/sqll/build.json and the
-  # binaries.
+  # tests with the list check of the base native tests, the S2 tree guard,
+  # and the syntax tree check of the S2 parse inputs. The artifact has
+  # out/sqll/build.json and the binaries.
   build:
     needs: [changes, image]
     if: needs.changes.outputs.full != 'false'
@@ -230,6 +230,12 @@ jobs:
       # before any speed change. A speed change must not change a tree.
       - name: Check the sqll trees of the S2 parse inputs
         run: uv run --frozen --project harness python scripts/s3/tree_guard.py check
+
+      # S3b C7: the conversion of the parser tree of each S2 parse input to
+      # the SyntaxTree is lossless and equal to the parser tree, node for
+      # node (the ignored test of crates/sqll_interfaces/tests/tree.rs).
+      - name: Check the syntax trees of the S2 parse inputs
+        run: uv run --frozen --project harness python scripts/s3b/tree_check.py check
 
       - uses: actions/upload-artifact@v7
         with:

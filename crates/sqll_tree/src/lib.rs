@@ -2,5 +2,7 @@
 //! the segment types and kinds; C7 adds the tree.
 
 pub mod kinds;
+pub mod tree;
 
 pub use kinds::{KindData, KindKey, Meta, SegmentKind, SegmentType, Variant};
+pub use tree::{Children, LineIndex, LinePos, NodeId, SyntaxTree, TreeBuilder, TreeError};

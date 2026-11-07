@@ -1,0 +1,16 @@
+# The syntax crate of sqll (docs/decisions/s3b-core.md, Q1 and Q3): the
+# conversion from the parser tree to the SyntaxTree (C7) and, from C9, the
+# frozen parse interface. This file is new sqll code (crates/ported.json,
+# "new").
+[package]
+name = "sqll_syntax"
+version.workspace = true
+edition = "2021"
+rust-version.workspace = true
+license = "MIT"
+publish = false
+
+[dependencies]
+hashbrown.workspace = true
+sqll_parser = { path = "../sqll_parser" }
+sqll_tree = { path = "../sqll_tree" }

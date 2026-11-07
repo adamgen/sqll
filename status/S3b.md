@@ -6,7 +6,8 @@ The S3 code paths are Core paths since C3 (`tracks.yml`).
 The design of C6 to C16 is in the C4 record
 [docs/decisions/s3b-core.md](../docs/decisions/s3b-core.md). It adds
 these details to the task list: a kind is the full static data of a node
-(C6), C6 makes the crate `sqll_interfaces`, C8 makes the crate
+(C6), C6 makes the crate `sqll_interfaces`, C7 makes the crate
+`sqll_syntax` (the conversion; C9 adds `parse`), C8 makes the crate
 `sqll_source`, C13 makes the crate `sqll_cli`, and C16 gives
 `docs/decisions/s3b-*.md` to Core. The interface documents are in
 `docs/interfaces/` (a Core path since C6).
@@ -20,10 +21,10 @@ these details to the task list: a kind is the full static data of a node
 | C3 | Record the S3b plan and move the S3 code paths to the Core track | Merged (PR #59) |
 | C4 | Decision record: the S3b core design (answers to the 7 open interface questions): [docs/decisions/s3b-core.md](../docs/decisions/s3b-core.md) | Merged (PR #61) |
 | C5 | Speed check tool for each Core change (G3.6): `scripts/speed-check`, `results/S3b/speed/C5.json` | Merged (PR #63) |
-| C6 | Typed segment kinds from the frozen dialect tables: one kind for each distinct static data of a node (variant, class, type, instance types, class types, segment kwargs); the build fails if the kinds do not fit in a `u16`: [docs/interfaces/segment-kinds.md](../docs/interfaces/segment-kinds.md) | In review |
-| C7 | Lossless syntax tree (`sqll_tree`) and the conversion from the parser tree | Not started |
-| C8 | Source map (`sqll_source`): `TemplatedFile` as the frozen templater interface, raw templater | Not started |
-| C9 | Frozen parse interface (lexer to parser to tree) and `sqll parse` output from `SyntaxTree`. Remove the copy of the parse settings in `crates/sqll_interfaces/tests/segment_kinds.rs`: use the interface | Not started |
+| C6 | Typed segment kinds from the frozen dialect tables: one kind for each distinct static data of a node (variant, class, type, instance types, class types, segment kwargs); the build fails if the kinds do not fit in a `u16`: [docs/interfaces/segment-kinds.md](../docs/interfaces/segment-kinds.md) | Merged (PR #64) |
+| C7 | Lossless syntax tree (`sqll_tree`) and the conversion from the parser tree (`sqll_syntax::from_node`): [docs/interfaces/tree.md](../docs/interfaces/tree.md) | In review |
+| C8 | Source map (`sqll_source`): `TemplatedFile` as the frozen templater interface, raw templater. C7 finding: the newline index of the ported `TemplatedFile` has byte offsets, not code point offsets, so its line position is wrong after a multi-byte character | Not started |
+| C9 | Frozen parse interface (lexer to parser to tree) and `sqll parse` output from `SyntaxTree`. Remove the copy of the parse settings in `crates/sqll_interfaces/src/parse.rs`: use the interface. Use the conversion cost of C7 in the speed plan | Not started |
 | C10 | Typed view of the tree | Not started |
 | C11 | Config skeleton (`sqll_config`) and its use in `sqll parse` | Not started |
 | C12 | Rule and fix interface (`sqll_lint`) with CP01, CP03, CP04 as the proof | Not started |
@@ -62,3 +63,37 @@ sqlfluff / sqll of the median wall times. sqll has only `start` and
 
 `harness/tests/test_bench_compare.py` makes this table again from the
 baseline and compares it with this file.
+
+## C7: syntax tree proof and conversion cost
+
+Interface: [docs/interfaces/tree.md](../docs/interfaces/tree.md). The test
+output (`crates/sqll_interfaces/tests/tree.rs`, with `--nocapture`):
+
+```text
+tree: 2306 of 2306 dialect fixtures: lossless and node for node equal (685224 nodes: 432300 raw, 182196 segment, 70728 meta, 0 unparsable; 685224 with a position, 5938 with another ported line position; 1468552 bytes, 57623 lines)
+tree: 84 of 84 S2 parse inputs: lossless and node for node equal (280339 nodes: 183383 raw, 71856 segment, 25100 meta, 0 unparsable; 280339 with a position, 5737 with another ported line position; 601133 bytes, 22766 lines)
+```
+
+"Another ported line position": the ported `get_line_pos_of_char_pos` of
+`TemplatedFile` gives another line position after a multi-byte character
+(C8 finding above). The test fails if this occurs in an ASCII text.
+
+The conversion cost (`scripts/s3b/tree_check.py measure`, record
+[results/S3b/C7-conversion.json](../results/S3b/C7-conversion.json); the
+sqll allocator and release profile, the median of 21 runs, with the
+machine lock). The conversion includes the copy of the text and the kind
+lookup (with a cache for each conversion). C9 uses these numbers in its
+speed plan:
+
+| Item | Value |
+|---|---|
+| Inputs | 28 large S2 parse inputs, 458473 bytes, 215024 nodes |
+| Conversion time / parse time | 4.1% (for each input: min 2.6%, median 4.2%, max 5.6%) |
+| Conversion time / (lex + parse) time | 3.6% |
+| Conversion time for each node | 121.6 ns |
+| Conversion heap bytes / parse heap bytes | 0.7% |
+| Conversion peak / parse peak | 2.5% |
+| SyntaxTree bytes / live bytes that the parse keeps (the Node tree) | 4.0% |
+
+The sqll binary does not link `sqll_tree` or `sqll_syntax` (`cargo tree -p
+sqll -e normal,build`), so C7 has no speed check (G3 rule above).
