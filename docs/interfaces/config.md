@@ -48,7 +48,8 @@ Design: [s3b-core.md](../decisions/s3b-core.md), Q6.
 
 | Setting | sqll |
 |---|---|
-| `dialect`, `max_parse_depth`, `max_parse_nodes`, `rust_parser_max_iterations`, `rust_parser_warn_threshold`, `[sqlfluff:indentation]`, `large_file_skip_byte_limit`, `large_file_skip_char_limit`, `sql_file_exts` | As sqlfluff (with the Rust parser) |
+| `dialect`, `max_parse_depth`, `max_parse_nodes`, `rust_parser_max_iterations`, `rust_parser_warn_threshold`, `[sqlfluff:indentation]`, `large_file_skip_char_limit`, `sql_file_exts` | As sqlfluff (with the Rust parser) |
+| `large_file_skip_byte_limit` | As sqlfluff, but a text (TOML) must be a nonzero int as Python `int()` reads it, in ASCII |
 | `templater` | `raw`; `jinja` (the default) only with its default settings and for a text that is not empty and has no `{{`, `{%`, or `{#` (`sqll_templater::jinja_is_literal`): then it gives the file of `raw` |
 | `encoding` | `autodetect` (UTF-8 only), `utf-8`, `utf-8-sig`. No effect for stdin, as in sqlfluff |
 | `use_rust_parser` | Only the values that run the Rust parser |
@@ -68,6 +69,23 @@ only there; in another file it has no effect). Not read
 yet: in-file config lines and `noqa` comments (S7-sqll, S5;
 harness/sqll.md).
 
+## Differences from sqlfluff
+
+- A setting that sqll cannot do yet (above) gives `unsupported: setting
+  <key> = <value>` and exit code 2. sqlfluff runs it.
+- A `.sqlfluffignore` file or an `ignore_paths` setting gives
+  `unsupported` also when it does not match the file, and also for a file
+  with another extension. As in sqlfluff, sqll reads and checks the
+  `.sqlfluff` and `pyproject.toml` files of these folders before it
+  applies `sql_file_exts`.
+- Where sqlfluff stops with a Python error and exit code 1 (for example an
+  unknown dialect in a config file, or a config file that configparser
+  cannot read), sqll gives exit code 2.
+- sqll writes each error to stderr; sqlfluff writes some (for example
+  `Error loading config`) to stdout. The warning lines of sqll (a skipped
+  file, the templater of a subfolder) are those of sqlfluff with no
+  color: `nocolor` has no effect.
+
 ## Proof (C11)
 
 - `crates/sqll_config/tests/defaults.rs` reads `default_config.cfg` of the
@@ -78,7 +96,7 @@ harness/sqll.md).
   readers (26 and 21 cases, with the files of `test/fixtures/config/`),
   34 load scenarios (each config file kind, the order, the user config
   folder, `XDG_CONFIG_HOME`, `--config`, `--ignore-local-config`, the
-  overrides, and the errors), and 49 `sqlfluff parse` scenarios (the
+  overrides, and the errors), and 52 `sqlfluff parse` scenarios (the
   stdout, the exit code, and the warning lines of stderr). The interface
   test and `crates/sqll/tests/cli_config.rs` give the same answers, or fail
   closed where the record says so.

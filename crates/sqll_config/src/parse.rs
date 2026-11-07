@@ -238,6 +238,15 @@ impl ParseSettings {
                         v if !v.is_truthy() => 0,
                         Value::Int(i) => *i,
                         Value::Bool(true) => 1,
+                        Value::Str(text) if key == "large_file_skip_byte_limit" => {
+                            byte_limit_of_text(text).ok_or_else(|| {
+                                unsupported(
+                                    &path,
+                                    value,
+                                    "sqll reads only an int, or a text of a nonzero int",
+                                )
+                            })?
+                        }
                         v => return Err(unsupported(&path, v, "sqll reads only an int")),
                     };
                     if key == "large_file_skip_byte_limit" {
@@ -342,6 +351,26 @@ fn first_difference(have: Option<&Value>, want: Option<&Value>, path: &str) -> S
 
 /// The `encoding` setting: `autodetect`, or a name of the Python UTF-8
 /// codecs (after the Python name normalization).
+/// The byte limit of a text value, as Python `int(text)` in sqlfluff
+/// `load_raw_file_and_config` gives it: ASCII digits with an optional sign,
+/// `_` between digits, and whitespace around. sqll reads only ASCII; each
+/// other text is `None` (fail closed). A text of 0 is also `None`: sqlfluff
+/// then skips each file that is not empty, and 0 is "no limit" in sqll.
+fn byte_limit_of_text(text: &str) -> Option<i64> {
+    let text = text.trim_matches([' ', '\t', '\n', '\r', '\x0b', '\x0c']);
+    let digits = text.strip_prefix(['+', '-']).unwrap_or(text);
+    if digits.is_empty()
+        || !digits.bytes().all(|b| b.is_ascii_digit() || b == b'_')
+        || digits.starts_with('_')
+        || digits.ends_with('_')
+        || digits.contains("__")
+    {
+        return None;
+    }
+    let limit: i64 = text.replace('_', "").parse().ok()?;
+    (limit != 0).then_some(limit)
+}
+
 fn encoding(path: &str, value: &Value) -> Result<Encoding, ConfigError> {
     let Value::Str(name) = value else {
         return Err(unsupported(path, value, "sqll reads only an encoding name"));
@@ -420,6 +449,45 @@ mod tests {
         assert!(s
             .indentation
             .contains(&("indented_joins".to_string(), true)));
+    }
+
+    #[test]
+    fn a_byte_limit_text_is_read_as_python_int() {
+        // Python: int(" +1_0 ") == 10, int("-5") == -5, and int("0x5"),
+        // int("1__0"), int("_1"), int("1.0") give ValueError.
+        for (text, want) in [
+            ("5", Some(5)),
+            (" +1_0 ", Some(10)),
+            ("-5", Some(-5)),
+            ("\t7\n", Some(7)),
+            ("0", None),
+            ("0_0", None),
+            ("0x5", None),
+            ("1__0", None),
+            ("_1", None),
+            ("1_", None),
+            ("1.0", None),
+            ("+", None),
+            ("\u{0665}", None),
+            ("99999999999999999999", None),
+        ] {
+            assert_eq!(byte_limit_of_text(text), want, "{text:?}");
+        }
+        let c = Config::new(
+            crate::toml::load_toml_string(
+                "[tool.sqlfluff.core]\nlarge_file_skip_byte_limit = \"5\"\n",
+                "x",
+            )
+            .unwrap(),
+            &Table::new(),
+        )
+        .unwrap();
+        assert_eq!(
+            ParseSettings::new(&c, &c)
+                .unwrap()
+                .large_file_skip_byte_limit,
+            5
+        );
     }
 
     #[test]

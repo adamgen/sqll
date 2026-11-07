@@ -415,18 +415,28 @@ fn normpath(path: &str) -> String {
     }
 }
 
+/// Where the SQL comes from. Only the PATH argument "-" is stdin: a path
+/// that normpath makes "-" (for example "./-") is the file "-", as in
+/// sqlfluff `parse`.
+enum Source {
+    Stdin,
+    File(String),
+}
+
 /// Read a SQL file as sqlfluff does for a UTF-8 file: with universal
 /// newlines ("\r\n" and "\r" become "\n"; sqlfluff `render_string`), and
 /// with no UTF-8 byte order mark, unless the encoding is `utf-8` (Python
-/// keeps the mark). For stdin (`-`), the encoding is always `utf-8`
+/// keeps the mark). For stdin, the encoding is always `utf-8`
 /// (`ParseSettings::for_stdin`): sqlfluff reads `sys.stdin`, which keeps the
 /// mark.
-fn read_sql(path: &str, encoding: Encoding) -> Result<String, Error> {
+fn read_sql(source: &Source, encoding: Encoding) -> Result<String, Error> {
     let mut data = Vec::new();
-    let read = if path == "-" {
-        std::io::stdin().read_to_end(&mut data)
-    } else {
-        std::fs::File::open(path).and_then(|mut f| f.read_to_end(&mut data))
+    let (path, read) = match source {
+        Source::Stdin => ("stdin", std::io::stdin().read_to_end(&mut data)),
+        Source::File(path) => (
+            path.as_str(),
+            std::fs::File::open(path).and_then(|mut f| f.read_to_end(&mut data)),
+        ),
     };
     read.map_err(|e| Error(format!("cannot read {path}: {e}")))?;
     let data = match encoding {
@@ -479,10 +489,10 @@ fn parse_command(args: &[String], start: Instant) -> Result<u8, Error> {
         .ok_or_else(|| Error(format!("Error loading dialect '{name}': no such dialect.")))?;
     // sqlfluff reads the file at the normalised path (as the config).
     let (source, filepath) = if path == "-" {
-        ("-".to_string(), "stdin".to_string())
+        (Source::Stdin, "stdin".to_string())
     } else {
         let fname = normpath(&path);
-        (fname.clone(), fname)
+        (Source::File(fname.clone()), fname)
     };
     let sql = read_sql(&source, settings.encoding)?;
     if let Some(warning) = &settings.templater_warning {

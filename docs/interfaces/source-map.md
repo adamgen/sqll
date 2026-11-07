@@ -20,8 +20,9 @@ task text, recorded in Q2 and Q5): the raw templater is in the S6 package
   TemplaterError>`. This is the sqlfluff `process` with one variant.
 - `TemplaterConfig` (`new`, `set`, `get`, `section`, `section_names`):
   the keys and values of the sqlfluff config sections under `templater`
-  (for example `templater:jinja:context`), as text. The config (C11) fills
-  it; each templater reads and converts its own values.
+  (for example `templater:jinja:context`), as text. S6 fills it from
+  `sqll_config::Config::templater_section` (the raw templater reads no
+  setting); each templater reads and converts its own values.
 - `TemplaterError`: `Template { message, source_byte }` (sqlfluff TMP) or
   `Unsupported { message }`: a setting or a feature that sqll does not
   have. sqll fails closed: "unsupported" and exit code 2.
@@ -118,4 +119,4 @@ fixtures and the 84 S2 parse inputs did not change.
   interface test checks that it gives the identity map. A change that
   breaks this fails a Core test.
 - Out of scope of C8: the Jinja, placeholder, and Python templaters (S6,
-  S11), and the templater config (C11).
+  S11), and the templater config (S6).

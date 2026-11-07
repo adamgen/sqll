@@ -908,6 +908,20 @@ CLI = (
         None,
         SQL,
     ],
+    # Only the PATH argument "-" is stdin (parse in src/sqlfluff/cli/commands.py
+    # compares the raw argument): "./-" is the file "-", although its
+    # normalised path is "-".
+    [
+        "a file named - given as ./-",
+        {
+            "w/.sqlfluff": "[sqlfluff]\ndialect = ansi\nsql_file_exts =\n",
+            "w/-": SQL,
+        },
+        "w",
+        ["./-"],
+        None,
+        "selec ( ( (\n",
+    ],
     # paths_from_path loads the config files of the folders (as ignore
     # files) before it applies the extensions.
     [
@@ -991,6 +1005,31 @@ CLI = (
         "w",
         ["t/../s/a.sql"],
         None,
+        None,
+    ],
+    # load_raw_file_and_config converts the byte limit with int().
+    [
+        "a TOML text byte limit",
+        {
+            "w/pyproject.toml": '[tool.sqlfluff.core]\ndialect = "ansi"\n'
+            'large_file_skip_byte_limit = " +1_0 "\n',
+            "w/a.sql": SQL,
+        },
+        "w",
+        ["a.sql"],
+        None,
+        None,
+    ],
+    [
+        "a TOML text byte limit of 0",
+        {
+            "w/pyproject.toml": '[tool.sqlfluff.core]\ndialect = "ansi"\n'
+            'large_file_skip_byte_limit = "0"\n',
+            "w/a.sql": SQL,
+        },
+        "w",
+        ["a.sql"],
+        "unsupported",
         None,
     ],
     [
