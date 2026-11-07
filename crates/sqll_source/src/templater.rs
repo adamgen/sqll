@@ -10,8 +10,10 @@ use sqll_types::TemplatedFile;
 /// The settings of the templaters: the keys and values of the sqlfluff
 /// config sections under `templater`, as text. A section name has no
 /// `sqlfluff:` prefix: for example `templater:placeholder` or
-/// `templater:jinja:context`. The config (C11) fills it; each templater
-/// reads its own sections and converts the values.
+/// `templater:jinja:context`. The config fills it from the `templater`
+/// sections of `sqll_config::Config` (S6, with the first templater that
+/// reads a setting; the raw templater reads none); each templater reads its
+/// own sections and converts the values.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct TemplaterConfig {
     sections: BTreeMap<String, BTreeMap<String, String>>,

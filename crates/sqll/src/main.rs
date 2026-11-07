@@ -7,15 +7,18 @@
 //!   sqll --license                 the license of sqll and the notices of
 //!                                  the code in the binary (license.rs)
 //!   sqll version [--build]         VERSION, or the build record (JSON)
-//!   sqll parse --dialect D [-f json] [-c|--code-only] [-m|--include-meta]
-//!              [--max-parse-depth N] [--timings] PATH
+//!   sqll parse [--dialect D] [-t|--templater T] [--config FILE]
+//!              [--ignore-local-config] [-f json] [-c|--code-only]
+//!              [-m|--include-meta] [--max-parse-depth N] [--timings] PATH
 //!   sqll lint ..., sqll fix ...    not supported yet (stone S5)
 //!
-//! "sqll parse" prints the record of "sqlfluff parse -f json" with the raw
-//! templater and the default config. It reads no config file, no
-//! .sqlfluffignore file, no in-file config line, and no noqa comment.
-//! harness/sqll.md lists each difference from "sqlfluff parse". PATH "-"
-//! reads stdin.
+//! "sqll parse" prints the record of "sqlfluff parse -f json". Since S3b
+//! C11 it reads the sqlfluff config files, the --config file, and the
+//! options as sqlfluff does (sqll_config, docs/interfaces/config.md); a
+//! setting that sqll cannot do yet fails closed. It reads no
+//! .sqlfluffignore file (one fails closed), no in-file config line, and no
+//! noqa comment. harness/sqll.md lists each difference from "sqlfluff
+//! parse". PATH "-" reads stdin.
 //!
 //! Exit codes: 0, no error; 1, a lex error, a parse error (also at the
 //! parse depth limit or the parser iteration limit), or an unparsable
@@ -26,12 +29,15 @@
 //! panic (a sqll bug) gives another exit code (101).
 
 mod alloc;
+mod config;
 mod license;
 mod output;
 mod parse;
 mod timings;
 
 use std::io::Read;
+
+use sqll_config::Encoding;
 use std::process::ExitCode;
 use std::time::Instant;
 
@@ -70,12 +76,20 @@ Usage: sqll parse [OPTIONS] PATH
   PATH \"-\" reads stdin.
 
 Options:
-  --dialect TEXT           The dialect of the SQL (required).
+  -d, --dialect TEXT       The dialect of the SQL. It can also come from the
+                           config.
+  -t, --templater TEXT     The templater (default: jinja). sqll has raw, and
+                           jinja only for a file with no Jinja tag.
+  --config PATH            An extra config file, read after the other config
+                           files.
+  --ignore-local-config    Read no config file of the user or of a folder;
+                           only the --config file.
   -f, --format [json]      The output format. Only json.
   -c, --code-only          Show only the code segments.
   -m, --include-meta       Show the meta segments (indents and dedents).
   --max-parse-depth INTEGER
-                           The maximum parse depth. Default: 600. 0 and each
+                           The maximum parse depth (the config value
+                           max_parse_depth). Default: 600. 0 and each
                            value above 10000 give 10000.
   --timings                Write the time of each phase to stderr (one
                            JSON line, the last line).
@@ -182,8 +196,13 @@ fn json_string(text: &str) -> String {
 
 struct ParseArgs {
     dialect: Option<String>,
+    templater: Option<String>,
+    config: Option<String>,
+    ignore_local_config: bool,
+    max_parse_depth: Option<usize>,
     path: Option<String>,
-    options: parse::Options,
+    code_only: bool,
+    include_meta: bool,
     timings: bool,
 }
 
@@ -191,6 +210,9 @@ struct ParseArgs {
 struct RawParseArgs {
     help: bool,
     dialect: Option<String>,
+    templater: Option<String>,
+    config: Option<String>,
+    ignore_local_config: bool,
     paths: Vec<String>,
     format: Option<String>,
     max_parse_depth: Option<String>,
@@ -208,7 +230,7 @@ fn split_option(arg: &str) -> (&str, Option<&str>) {
 }
 
 /// Read a group of short options, as click does: "-cm" is "-c -m", and
-/// "-fjson" or "-cf json" gives the value of "-f".
+/// "-fjson" or "-cf json" gives the value of "-f" (also "-d" and "-t").
 fn short_options<'a>(
     group: &str,
     rest: &mut impl Iterator<Item = &'a String>,
@@ -219,16 +241,21 @@ fn short_options<'a>(
             'c' => raw.code_only = true,
             'm' => raw.include_meta = true,
             'h' => raw.help = true,
-            'f' => {
+            'f' | 'd' | 't' => {
                 let tail = &group[i + 1..];
-                let format = if tail.is_empty() {
+                let value = if tail.is_empty() {
                     rest.next()
-                        .ok_or_else(|| Error("Option '-f' requires an argument.".to_string()))?
+                        .ok_or_else(|| Error(format!("Option '-{c}' requires an argument.")))?
                         .as_str()
                 } else {
                     tail
                 };
-                raw.format = Some(format.to_string());
+                let slot = match c {
+                    'f' => &mut raw.format,
+                    'd' => &mut raw.dialect,
+                    _ => &mut raw.templater,
+                };
+                *slot = Some(value.to_string());
                 return Ok(());
             }
             other => return Err(Error(format!("No such option: -{other}\n\n{PARSE_USAGE}"))),
@@ -244,6 +271,9 @@ fn parse_args(args: &[String]) -> Result<Option<ParseArgs>, Error> {
     let mut raw = RawParseArgs {
         help: false,
         dialect: None,
+        templater: None,
+        config: None,
+        ignore_local_config: false,
         paths: Vec::new(),
         format: None,
         max_parse_depth: None,
@@ -285,6 +315,12 @@ fn parse_args(args: &[String]) -> Result<Option<ParseArgs>, Error> {
                 raw.help = true;
             }
             "--dialect" => raw.dialect = Some(value(name)?),
+            "--templater" => raw.templater = Some(value(name)?),
+            "--config" => raw.config = Some(value(name)?),
+            "--ignore-local-config" => {
+                flag(name)?;
+                raw.ignore_local_config = true;
+            }
             "--format" => raw.format = Some(value(name)?),
             "--code-only" => {
                 flag(name)?;
@@ -315,12 +351,12 @@ fn parse_args(args: &[String]) -> Result<Option<ParseArgs>, Error> {
         }
     }
     let max_parse_depth = match &raw.max_parse_depth {
-        None => parse::MAX_PARSE_DEPTH,
-        Some(text) => text.parse().map_err(|_| {
+        None => None,
+        Some(text) => Some(text.parse().map_err(|_| {
             Error(format!(
                 "Invalid value for '--max-parse-depth': '{text}' is not a valid integer."
             ))
-        })?,
+        })?),
     };
     if let Some(extra) = raw.paths.get(1) {
         return Err(Error(format!(
@@ -329,24 +365,15 @@ fn parse_args(args: &[String]) -> Result<Option<ParseArgs>, Error> {
     }
     Ok(Some(ParseArgs {
         dialect: raw.dialect,
+        templater: raw.templater,
+        config: raw.config,
+        ignore_local_config: raw.ignore_local_config,
+        max_parse_depth,
         path: raw.paths.into_iter().next(),
-        options: parse::Options {
-            code_only: raw.code_only,
-            include_meta: raw.include_meta,
-            max_parse_depth,
-        },
+        code_only: raw.code_only,
+        include_meta: raw.include_meta,
         timings: raw.timings,
     }))
-}
-
-/// The file extensions of the sqlfluff default config (sql_file_exts in
-/// third_party/sqlfluff/src/sqlfluff/core/default_config.cfg). sqlfluff
-/// skips a file with another extension.
-const SQL_FILE_EXTS: [&str; 5] = [".sql", ".sql.j2", ".dml", ".ddl", ".pkb"];
-
-fn has_sql_extension(path: &str) -> bool {
-    let lower = path.to_lowercase();
-    SQL_FILE_EXTS.iter().any(|ext| lower.ends_with(ext))
 }
 
 /// The path as Python os.path.normpath (POSIX) gives it. sqlfluff prints
@@ -388,9 +415,10 @@ fn normpath(path: &str) -> String {
     }
 }
 
-/// Read a SQL file as sqlfluff does for a UTF-8 file: with no UTF-8 byte
-/// order mark, and with universal newlines ("\r\n" and "\r" become "\n").
-fn read_sql(path: &str) -> Result<String, Error> {
+/// Read a SQL file as sqlfluff does for a UTF-8 file: with universal
+/// newlines ("\r\n" and "\r" become "\n"), and with no UTF-8 byte order
+/// mark, unless the `encoding` setting is `utf-8` (Python keeps the mark).
+fn read_sql(path: &str, encoding: Encoding) -> Result<String, Error> {
     let mut data = Vec::new();
     let read = if path == "-" {
         std::io::stdin().read_to_end(&mut data)
@@ -398,7 +426,12 @@ fn read_sql(path: &str) -> Result<String, Error> {
         std::fs::File::open(path).and_then(|mut f| f.read_to_end(&mut data))
     };
     read.map_err(|e| Error(format!("cannot read {path}: {e}")))?;
-    let data = data.strip_prefix(b"\xef\xbb\xbf").unwrap_or(&data);
+    let data = match encoding {
+        Encoding::Utf8 => &data[..],
+        Encoding::Autodetect | Encoding::Utf8Sig => {
+            data.strip_prefix(b"\xef\xbb\xbf").unwrap_or(&data)
+        }
+    };
     let text = String::from_utf8(data.to_vec()).map_err(|_| {
         unsupported(
             &format!("encoding of {path}"),
@@ -415,37 +448,54 @@ fn parse_command(args: &[String], start: Instant) -> Result<u8, Error> {
     let Some(args) = parse_args(args)? else {
         return Ok(EXIT_OK);
     };
-    let name = args
-        .dialect
-        .ok_or_else(|| Error("No dialect was specified. Give it with --dialect.".to_string()))?;
-    let dialect = parse::dialect(&name)
-        .ok_or_else(|| Error(format!("Error loading dialect '{name}': no such dialect.")))?;
+    // sqlfluff checks the dialect of --dialect before it reads the config.
+    if let Some(name) = &args.dialect {
+        parse::dialect(name)
+            .ok_or_else(|| Error(format!("Error loading dialect '{name}': no such dialect.")))?;
+    }
     let path = args
         .path
+        .clone()
         .ok_or_else(|| Error("Missing argument 'PATH'.".to_string()))?;
-    if path != "-" {
-        let meta =
-            std::fs::metadata(&path).map_err(|e| Error(format!("cannot read {path}: {e}")))?;
-        if meta.is_dir() {
-            return Err(unsupported(
-                &format!("folder {path}"),
-                "sqll parses one file",
-            ));
-        }
-        if !has_sql_extension(&path) {
-            println!("[]");
+    let input = match config::load(&args, &path)? {
+        config::Input::Skip(output) => {
+            print!("{output}");
             return Ok(EXIT_OK);
         }
-    }
-    let sql = read_sql(&path)?;
+        config::Input::Parse(input) => input,
+    };
+    let settings = &input.settings;
+    let name = settings.dialect.clone().ok_or_else(|| {
+        Error(
+            "No dialect was specified. You must configure a dialect or specify one on the \
+             command line using --dialect after the command."
+                .to_string(),
+        )
+    })?;
+    let dialect = parse::dialect(&name)
+        .ok_or_else(|| Error(format!("Error loading dialect '{name}': no such dialect.")))?;
+    let sql = read_sql(&path, settings.encoding)?;
     let filepath = if path == "-" {
         "stdin".to_string()
     } else {
         normpath(&path)
     };
+    if let Some(warning) = &settings.templater_warning {
+        config::warn(warning);
+    }
+    let record_options = output::RecordOptions {
+        code_only: args.code_only,
+        include_meta: args.include_meta,
+    };
+    if config::skip_by_chars(settings, &sql, &filepath) {
+        output::write_parse_json(std::io::stdout().lock(), &filepath, None, record_options)
+            .map_err(|e| Error(format!("cannot write the output: {e}")))?;
+        return Ok(EXIT_OK);
+    }
+    config::check_templater(settings, &sql)?;
     let mut timer = timings::Timer::new(start);
     timer.mark("init");
-    let parsed = parse::parse(sql, &filepath, dialect, &args.options, &mut timer, false)
+    let parsed = parse::parse(sql, &filepath, dialect, settings, &mut timer, false)
         .map_err(|e| Error(format!("cannot parse {path}: {e}")))?;
     // The lex errors and the parser stop. An unparsable section has no
     // line: the record shows it, and the exit code is 1.
@@ -454,10 +504,6 @@ fn parse_command(args: &[String], start: Instant) -> Result<u8, Error> {
         eprintln!("{e}");
         printed += 1;
     }
-    let record_options = output::RecordOptions {
-        code_only: args.options.code_only,
-        include_meta: args.options.include_meta,
-    };
     let written = output::write_parse_json(
         std::io::stdout().lock(),
         &filepath,
@@ -480,7 +526,7 @@ fn parse_command(args: &[String], start: Instant) -> Result<u8, Error> {
 
 #[cfg(test)]
 mod tests {
-    use super::{has_sql_extension, normpath, PARSE_USAGE, SQL_FILE_EXTS};
+    use super::{normpath, PARSE_USAGE};
 
     #[test]
     fn normpath_is_that_of_python_posixpath() {
@@ -512,36 +558,9 @@ mod tests {
     fn the_parse_depth_limit_is_that_of_the_help() {
         assert!(PARSE_USAGE.contains(&format!(
             "Default: {}. 0 and each\n                           value above {} give {}.",
-            crate::parse::MAX_PARSE_DEPTH,
+            sqll_syntax::MAX_PARSE_DEPTH,
             sqll_syntax::MAX_PARSE_DEPTH_LIMIT,
             sqll_syntax::MAX_PARSE_DEPTH_LIMIT
         )));
-    }
-
-    #[test]
-    fn sql_file_exts_is_the_value_of_the_pinned_default_config() {
-        let cfg = concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/../../third_party/sqlfluff/src/sqlfluff/core/default_config.cfg"
-        );
-        let text = std::fs::read_to_string(cfg).expect("the sqlfluff submodule");
-        let value = text
-            .lines()
-            .find_map(|line| line.strip_prefix("sql_file_exts = "))
-            .expect("sql_file_exts in the default config");
-        let exts: Vec<&str> = value.trim().split(',').collect();
-        assert_eq!(exts, SQL_FILE_EXTS);
-    }
-
-    #[test]
-    fn the_sql_extensions_are_those_of_the_sqlfluff_default_config() {
-        for path in [
-            "a.sql", "A.SQL", "b.sql.j2", "c.DML", "d.ddl", "e.pkb", "E.PKB",
-        ] {
-            assert!(has_sql_extension(path), "{path}");
-        }
-        for path in ["a.txt", "a.sqlx", "a", "a.j2"] {
-            assert!(!has_sql_extension(path), "{path}");
-        }
     }
 }

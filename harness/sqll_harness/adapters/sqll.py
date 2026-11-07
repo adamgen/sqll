@@ -1,10 +1,13 @@
 """Adapter for the sqll binary (out/sqll/bin/sqll; scripts/build-sqll).
 
-sqll has only the parse command (S3). It reads no config file and uses
-only the raw templater (harness/sqll.md lists the differences from
-"sqlfluff parse"). The adapter raises Unsupported for each other item:
-lint, fix, a parse as a user (it needs the config files and the templater
-of the config), and each extra setting other than core.max_parse_depth.
+sqll has only the parse command (S3). Since S3b C11 it reads the sqlfluff
+config: parse() runs it as the sqlfluff adapter runs sqlfluff (the raw
+templater, --ignore-local-config, and the extra config of the case as a
+--config file). sqll fails closed on a setting that it cannot do: exit
+code 2 and "unsupported: <item>", which the adapter raises as Unsupported
+(harness/sqll.md lists the differences from "sqlfluff parse"). The adapter
+raises Unsupported for each other item: lint, fix, and a parse as a user
+(the templater suites need the templater of the config, default jinja).
 
 This module also has the facts of the worktree that the tool check compares
 with the binary (tools.check_sqll): the expected version and the source
@@ -14,6 +17,7 @@ hash. crates/sqll/build.rs computes the same source hash at build time.
 import hashlib
 import os
 import subprocess
+import tempfile
 import tomllib
 from pathlib import Path
 from typing import Any
@@ -30,7 +34,7 @@ from .base import (
     Unsupported,
     isolated_env,
 )
-from .sqlfluff import _parse_output
+from .sqlfluff import CONFIG_NAME, _parse_output, sqlfluff_toml
 
 TIMEOUT_S = 600
 # SQLL_BIN sets another binary, and SQLL_SOURCE_DIR the source folder that
@@ -47,6 +51,9 @@ SOURCE_FILES = ("Cargo.toml", "Cargo.lock", "rust-toolchain.toml", "LICENSE")
 SOURCE_DIRS = ("crates",)
 TABLE_MANIFEST = "crates/sqll_dialects/generated.json"
 BUILD_HELP = "Run scripts/build-sqll."
+# sqll prints "Error: unsupported: <item>. <why>." and exits with code 2
+# for a setting or an input that it cannot do yet (fail closed).
+UNSUPPORTED_PREFIX = "Error: unsupported: "
 
 
 def binary_path() -> Path:
@@ -125,14 +132,22 @@ class SqllAdapter(Adapter):
         extra_config: dict[str, Any] | None = None,
     ) -> ParseResult:
         self._check()
-        cmd = [str(self.binary), "parse", "-f", "json", "--dialect", dialect]
+        cmd = [str(self.binary), "parse", "-f", "json"]
         if code_only:
             cmd.append("-c")
         if include_meta:
             cmd.append("-m")
-        cmd += parse_options(extra_config)
-        cmd.append(str(sql_path))
-        proc = self._run(cmd, cwd)
+        # As the sqlfluff adapter: the raw templater, and no config file but
+        # the config of the case.
+        cmd += ["--templater", "raw", "--dialect", dialect, "--ignore-local-config"]
+        with tempfile.TemporaryDirectory(prefix="sqll-case-") as tmp:
+            if extra_config:
+                cfg = Path(tmp) / CONFIG_NAME
+                cfg.write_text(sqlfluff_toml(extra_config), encoding="utf8")
+                cmd += ["--config", str(cfg)]
+            cmd.append(str(sql_path))
+            proc = self._run(cmd, cwd)
+        raise_unsupported(proc.returncode, proc.stderr)
         return _parse_output(proc.stdout, proc.returncode, proc.stderr)
 
     def lint(self, sql_paths, rules, dialect, config, workdir) -> LintResult:
@@ -145,8 +160,9 @@ class SqllAdapter(Adapter):
         self, sql_path, dialect, cwd, code_only=False, include_meta=False
     ) -> ParseResult:
         # A parse as a user reads the config files and uses the templater of
-        # the config (default: jinja). sqll has no config reader and only
-        # the raw templater.
+        # the config (default: jinja), and the in-file config lines. sqll
+        # has only the raw templater (S6, S11) and reads no in-file config
+        # line.
         raise Unsupported("templater")
 
     def fix_file(
@@ -165,19 +181,12 @@ class SqllAdapter(Adapter):
         )
 
 
-def parse_options(extra_config: dict[str, Any] | None) -> list[str]:
-    """Return the parse options for the extra config of a case.
-
-    sqll has an option only for core.max_parse_depth. Another setting raises
-    Unsupported("setting <section>.<key>").
-    """
-    args: list[str] = []
-    for section, values in (extra_config or {}).items():
-        if not isinstance(values, dict):
-            raise Unsupported(f"setting {section}")
-        for key, value in values.items():
-            if section == "core" and key == "max_parse_depth" and type(value) is int:
-                args += ["--max-parse-depth", str(value)]
-            else:
-                raise Unsupported(f"setting {section}.{key}")
-    return args
+def raise_unsupported(rc: int, stderr: str) -> None:
+    """Raise Unsupported for a run that sqll stopped as unsupported: exit
+    code 2 and the line "Error: unsupported: <item>. <why>."."""
+    if rc != 2:
+        return
+    for line in stderr.splitlines():
+        if line.startswith(UNSUPPORTED_PREFIX):
+            item = line[len(UNSUPPORTED_PREFIX) :].split(". ", 1)[0].rstrip(".")
+            raise Unsupported(item)

@@ -15,14 +15,17 @@ pub fn parse(file: &TemplatedFile, dialect: Dialect, options: &ParseOptions)
 converts the parser tree to a `SyntaxTree` ([tree.md](tree.md)) with the
 source map of the file ([source-map.md](source-map.md)). The rules, the
 code generation, and the CLI call only this function. `sqll parse` calls
-it with the file of the raw templater.
+it with the file of the raw templater and the options of the config.
 
 - `ParseOptions` (`default()`, then set the fields; later tasks can add
   fields): `max_parse_depth` (the sqlfluff value, default 600; 0 is no
   limit; `depth_limit` gives at most `MAX_PARSE_DEPTH_LIMIT`, 10000) and
-  `free_memory` (default true). The other settings are the sqlfluff
-  defaults: `MAX_PARSE_NODES`, `MAX_PARSER_ITERATIONS`,
-  `PARSER_WARN_THRESHOLD`, and `INDENTATION`.
+  `free_memory` (default true). Since C11 also `max_parse_nodes`,
+  `max_parser_iterations`, `parser_warn_threshold`, and `indentation` (the
+  `bool` of each value of `[sqlfluff:indentation]`); their defaults are
+  the sqlfluff defaults `MAX_PARSE_NODES`, `MAX_PARSER_ITERATIONS`,
+  `PARSER_WARN_THRESHOLD`, and `INDENTATION`. `sqll parse` sets them from
+  the config ([config.md](config.md)).
 - `Parsed`:
   - `tree: Option<SyntaxTree>`: `None` only if the parser stopped (a limit).
     Then `sqll parse` prints `"segments": null`.

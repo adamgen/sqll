@@ -239,45 +239,50 @@ def test_the_binary_path_setting(monkeypatch, tmp_path):
 # The adapter.
 
 
-def test_parse_options():
-    assert sqll_adapter.parse_options(None) == []
-    assert sqll_adapter.parse_options({"core": {"max_parse_depth": 2000}}) == [
-        "--max-parse-depth",
-        "2000",
-    ]
-    for config, item in [
-        ({"core": {"max_parse_depth": "2000"}}, "setting core.max_parse_depth"),
-        ({"core": {"dialect": "ansi"}}, "setting core.dialect"),
+def test_an_unsupported_run_raises_unsupported():
+    sqll_adapter.raise_unsupported(0, "Error: unsupported: x. y.\n")
+    sqll_adapter.raise_unsupported(2, "Error: cannot read x\n")
+    for stderr, item in [
         (
-            {"rules": {"capitalisation.keywords": {"x": 1}}},
-            "setting rules.capitalisation.keywords",
+            'Error: unsupported: setting core:ignore = "parsing". why.\n',
+            'setting core:ignore = "parsing"',
         ),
-        ({"core": 1}, "setting core"),
+        ("Error: unsupported: folder d. sqll parses one file.\n", "folder d"),
     ]:
         with pytest.raises(Unsupported) as exc:
-            sqll_adapter.parse_options(config)
+            sqll_adapter.raise_unsupported(2, stderr)
         assert exc.value.item == item
 
 
 def test_the_parse_command(tmp_path):
     log = tmp_path / "args"
+    cfg = tmp_path / "cfg"
     tree = '[{"filepath": "x.sql", "segments": {"file": {"keyword": "select"}}}]'
-    binary = _script(tmp_path / "sqll", f"echo \"$@\" > {log}\necho '{tree}'\n")
+    binary = _script(
+        tmp_path / "sqll",
+        f'echo "$@" > {log}\n'
+        f'for a in "$@"; do case "$a" in *.toml) cat "$a" > {cfg};; esac; done\n'
+        f"echo '{tree}'\n",
+    )
     adapter = sqll_adapter.SqllAdapter(binary)
     result = adapter.parse(
         Path("x.sql"), "tsql", True, False, tmp_path, {"core": {"max_parse_depth": 9}}
     )
-    assert log.read_text().split() == [
+    args = log.read_text().split()
+    assert args[:-2] == [
         "parse",
         "-f",
         "json",
+        "-c",
+        "--templater",
+        "raw",
         "--dialect",
         "tsql",
-        "-c",
-        "--max-parse-depth",
-        "9",
-        "x.sql",
+        "--ignore-local-config",
+        "--config",
     ]
+    assert args[-2].endswith("/pyproject.toml") and args[-1] == "x.sql"
+    assert cfg.read_text() == "[tool.sqlfluff.core]\nmax_parse_depth = 9\n"
     assert result.tree == {"file": {"keyword": "select"}}
     assert result.errors == [] and result.rc == 0
     binary = _script(
@@ -287,6 +292,15 @@ def test_the_parse_command(tmp_path):
         Path("x.sql"), "ansi", False, True, tmp_path
     )
     assert result.has_unparsable and result.errors == ["exit code 1"]
+    binary = _script(
+        tmp_path / "sqll",
+        "echo 'Error: unsupported: setting core:x = 1. why.' >&2\nexit 2\n",
+    )
+    with pytest.raises(Unsupported) as exc:
+        sqll_adapter.SqllAdapter(binary).parse(
+            Path("x.sql"), "ansi", False, False, tmp_path, {"core": {"x": 1}}
+        )
+    assert exc.value.item == "setting core:x = 1"
 
 
 @pytest.mark.parametrize("suite", ["rules", "autofix", "templater"])

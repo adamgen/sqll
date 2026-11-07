@@ -194,12 +194,15 @@ C6_CRATES = ["sqll_tree", "sqll_interfaces"]
 C7_CRATES = ["sqll_syntax"]
 # S3b C8: the source map crate and the templater crate (an S6 package).
 C8_CRATES = ["sqll_source", "sqll_templater"]
+# S3b C11: the config crate.
+C11_CRATES = ["sqll_config"]
 
 
 def test_the_workspace_has_the_ported_crates_the_binary_and_no_python():
     cargo = tomllib.loads((REPO_ROOT / "Cargo.toml").read_text("utf8"))
     members = [f"crates/{c}" for c in CRATES + T18_CRATES] + ["crates/sqll"]
     members += [f"crates/{c}" for c in C6_CRATES + C7_CRATES + C8_CRATES]
+    members += [f"crates/{c}" for c in C11_CRATES]
     assert cargo["workspace"]["members"] == members
     lock = tomllib.loads((REPO_ROOT / "Cargo.lock").read_text("utf8"))
     names = {p["name"] for p in lock["package"]}

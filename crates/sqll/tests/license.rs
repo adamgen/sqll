@@ -67,6 +67,10 @@ fn the_license_has_the_sqll_license_and_the_other_notices() {
         "CPython"
     );
     assert!(text.contains("tag v3.13.16, commit cbc944f4bc59639a444dd971c737788ba2283a91"));
+    // The tomllib port of sqll_config (S3b C11).
+    let tomli = read("crates/LICENSE-tomli.txt");
+    assert!(tomli.starts_with("MIT License\n\nCopyright (c) 2021 Taneli Hukkinen\n"));
+    assert!(text.contains(tomli.trim_end()), "the tomli MIT license");
     let rust = read("crates/LICENSE-rust-MIT.txt");
     assert!(rust.starts_with("Copyright (c) The Rust Project Contributors\n"));
     assert!(text.contains(rust.trim_end()), "the Rust MIT notice");

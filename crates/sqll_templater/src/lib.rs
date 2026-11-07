@@ -1,10 +1,13 @@
 //! The templaters of sqll (the S6 package; docs/interfaces/source-map.md).
 //! Each one implements `sqll_source::Templater`. S3b task C8 adds the raw
 //! templater. S6 adds the placeholder and Python format-string templaters,
-//! S11 the Jinja templater.
+//! S11 the Jinja templater. S3b task C11 adds [`jinja_is_literal`]: the
+//! texts that the Jinja templater gives as the raw templater does.
 
+pub mod jinja;
 pub mod raw;
 
+pub use jinja::{jinja_is_literal, JINJA_DELIMITERS};
 pub use raw::RawTemplater;
 
 use sqll_source::Templater;

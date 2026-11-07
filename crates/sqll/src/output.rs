@@ -780,11 +780,9 @@ mod fixture_tests {
     fn the_writer_gives_the_output_of_the_record_for_each_fixture() {
         let files = fixture_files();
         assert_eq!(files.len(), 2306);
-        let options = parse::Options {
-            code_only: false,
-            include_meta: false,
-            max_parse_depth: parse::MAX_PARSE_DEPTH,
-        };
+        // The settings of the default config (max_parse_depth 600).
+        let config = sqll_config::Config::new(Default::default(), &Default::default()).unwrap();
+        let options = sqll_config::ParseSettings::new(&config, &config).unwrap();
         let mut unparsable = 0;
         for (name, path) in &files {
             let dialect = parse::dialect(name).expect("a dialect");

@@ -250,7 +250,12 @@ fn exit_code_2_for_a_usage_or_input_error() {
     let file = dialects_dir().join("ansi/select_simple_a.sql");
     let file = file.to_str().unwrap();
     let cases: &[(&[&str], &str)] = &[
-        (&["parse", file], "No dialect was specified"),
+        // The dialect folders of the fixtures have a .sqlfluff file with
+        // the dialect (S3b C11: sqll reads it).
+        (
+            &["parse", "--ignore-local-config", file],
+            "No dialect was specified",
+        ),
         (
             &["parse", "--dialect", "nope", file],
             "Error loading dialect 'nope'",
@@ -287,6 +292,9 @@ fn exit_code_2_for_a_usage_or_input_error() {
         assert!(stderr(&out).contains(message), "{args:?}: {}", stderr(&out));
     }
     let out = sqll(&["parse", "--dialect=ansi", "--max-parse-depth=0", file]);
+    assert_eq!(code(&out), 0, "{}", stderr(&out));
+    // The dialect of the .sqlfluff file of the fixture folder.
+    let out = sqll(&["parse", file]);
     assert_eq!(code(&out), 0, "{}", stderr(&out));
 }
 

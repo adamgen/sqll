@@ -21,25 +21,35 @@ from sqll_harness.adapters.base import Unsupported
 from sqll_harness.bench import definitions, registry
 from sqll_harness.bench import sqll as sqll_bench
 from sqll_harness.bench.adapter import INPUT_FILE, Context, settings
-from sqll_harness.bench.sqll import OPTIONS_NAME, SqllBench, options
+from sqll_harness.bench.sqll import LEGACY_OPTIONS_NAME, SqllBench, legacy_options
 from sqll_harness.bench.timer import PROFILES, UNSUPPORTED, VALID
 from sqll_harness.paths import REPO_ROOT, TOOL_SPECS_DIR
 
 SMOKE = PROFILES["smoke"]
 VERSION = "0.1.0+tables." + "a" * 64
 FAKE = """#!{python} -I
-import json, os, sys
+import json, os, sys, tomllib
 args = sys.argv[1:]
-with open({log!r}, "a", encoding="utf8") as f:
-    f.write(json.dumps([os.getcwd(), args]) + "\\n")
 if args == ["--version"]:
     print("sqll, version {version}")
     sys.exit(0)
 if args[:1] == ["version"]:
     print(json.dumps({{"version": "{version}", "source_sha256": "{source}"}}))
     sys.exit(0)
-if args[:3] != ["parse", "-f", "json"] or args[3] != "--dialect":
+if args == ["parse", "--help"]:
+    print("Options: --dialect" + ("" if {legacy} else " --config"))
+    sys.exit(0)
+if args[:3] != ["parse", "-f", "json"]:
     sys.exit(2)
+if "--config" in args:
+    with open(args[args.index("--config") + 1], "rb") as f:
+        dialect = tomllib.load(f)["tool"]["sqlfluff"]["core"]["dialect"]
+elif args[3] == "--dialect":
+    dialect = args[4]
+else:
+    sys.exit(2)
+with open({log!r}, "a", encoding="utf8") as f:
+    f.write(json.dumps([os.getcwd(), args, dialect]) + "\\n")
 path = args[-1]
 with open(path, encoding="utf8") as f:
     text = f.read()
@@ -50,13 +60,22 @@ print(json.dumps([{{"filepath": path, "segments": {{"file": [
 """
 
 
-def fake_sqll(tmp_path: Path, version: str = VERSION, source: str = "0" * 64):
-    """Return (binary, log). The log has one line for each run: [cwd, argv]."""
+def fake_sqll(
+    tmp_path: Path, version: str = VERSION, source: str = "0" * 64, legacy: bool = False
+):
+    """Return (binary, log). The log has one line for each parse run: [cwd,
+    argv, dialect]. legacy: a binary from before S3b C11 (no --config)."""
     log = tmp_path / "sqll-calls.jsonl"
     binary = tmp_path / "bin" / "sqll"
     binary.parent.mkdir(parents=True, exist_ok=True)
     binary.write_text(
-        FAKE.format(python=sys.executable, log=str(log), version=version, source=source)
+        FAKE.format(
+            python=sys.executable,
+            log=str(log),
+            version=version,
+            source=source,
+            legacy=legacy,
+        )
     )
     binary.chmod(0o755)
     return binary, log
@@ -80,18 +99,30 @@ def test_sqll_is_in_the_registry(monkeypatch, tmp_path):
     assert adapter.s1.binary == binary
 
 
-def test_the_settings_are_those_of_all_tools():
-    adapter = SqllBench(Path("/x/sqll"))
+def test_the_settings_are_those_of_all_tools(tmp_path):
+    binary, _ = fake_sqll(tmp_path)
+    adapter = SqllBench(binary)
     assert adapter.config(None) == settings()
     assert adapter.config("tsql") == settings("tsql")
     assert adapter.unsupported(adapter.config("tsql")) is None
-    assert options(settings("tsql")) == ["--dialect", "tsql"]
+    # The settings go to sqll as a sqlfluff config file.
+    path = adapter.write_config(adapter.config("tsql"), tmp_path / "config")
+    assert path.name == "pyproject.toml"
+    assert path.read_text() == (
+        "[tool.sqlfluff.core]\n"
+        'dialect = "tsql"\n'
+        'templater = "raw"\n'
+        'rules = "all"\n'
+        "large_file_skip_byte_limit = 0\n"
+        "large_file_skip_char_limit = 0\n"
+    )
+    assert legacy_options(settings("tsql")) == ["--dialect", "tsql"]
 
 
-def test_max_parse_depth_is_an_option():
+def test_max_parse_depth_is_a_legacy_option():
     config = settings("ansi")
     config["core"]["max_parse_depth"] = 2000
-    assert options(config) == ["--dialect", "ansi", "--max-parse-depth", "2000"]
+    assert legacy_options(config) == ["--dialect", "ansi", "--max-parse-depth", "2000"]
 
 
 @pytest.mark.parametrize(
@@ -107,14 +138,20 @@ def test_max_parse_depth_is_an_option():
         ("layout", "x", 1, "setting layout.x"),
     ],
 )
-def test_each_other_setting_is_unsupported(section, key, value, item):
+def test_a_legacy_binary_gets_only_its_settings(section, key, value, item, tmp_path):
+    # A base binary of a speed check from before S3b C11 reads no config
+    # file: each other setting is unsupported with no run.
     config = settings("ansi")
     config.setdefault(section, {})[key] = value
     item = item or f"setting {section}.{key} = {value!r}"
     with pytest.raises(Unsupported) as exc:
-        options(config)
+        legacy_options(config)
     assert exc.value.item == item
-    assert SqllBench(Path("/x/sqll")).unsupported(config) == item
+    binary, _ = fake_sqll(tmp_path, legacy=True)
+    assert SqllBench(binary).unsupported(config) == item
+    # sqll since C11 reads the setting, and fails closed if it cannot do it.
+    binary, _ = fake_sqll(tmp_path / "new")
+    assert SqllBench(binary).unsupported(config) is None
 
 
 # The jobs.
@@ -138,15 +175,30 @@ def test_start_and_parse_run_sqll_parse_with_the_dialect(bench_inputs_dir, tmp_p
     adapter = SqllBench(binary)
     for command in ("start", "parse"):
         bj = adapter.job(bench(command), ctx)
-        argv = [str(binary), "parse", "-f", "json", "--dialect", "tsql", INPUT_FILE]
+        config = bj.folder / "config" / "pyproject.toml"
+        argv = [str(binary), "parse", "-f", "json", "--ignore-local-config"]
+        argv += ["--config", str(config), INPUT_FILE]
         assert bj.job.argv == argv
-        assert (bj.folder / "config" / OPTIONS_NAME).is_file()
+        assert config.is_file()
         m = bj.measure(SMOKE)
         assert (m.status, m.reason) == (VALID, None)
     # One warmup run and one timed run of each, in a fresh run folder.
-    runs = [c for c in calls(log) if c[1][0] == "parse"]
+    runs = calls(log)
     assert len(runs) == 4
-    assert {Path(cwd).name for cwd, _ in runs} == {"warmup", "1"}
+    assert {Path(cwd).name for cwd, _, _ in runs} == {"warmup", "1"}
+    assert {dialect for _, _, dialect in runs} == {"tsql"}
+
+
+def test_a_legacy_binary_gets_the_settings_as_options(bench_inputs_dir, tmp_path):
+    binary, log = fake_sqll(tmp_path, legacy=True)
+    ctx = Context(definitions.load(), bench_inputs_dir, tmp_path / "work")
+    adapter = SqllBench(binary)
+    bj = adapter.job(bench("parse"), ctx)
+    argv = [str(binary), "parse", "-f", "json", "--dialect", "tsql", INPUT_FILE]
+    assert bj.job.argv == argv
+    assert (bj.folder / "config" / LEGACY_OPTIONS_NAME).is_file()
+    m = bj.measure(SMOKE)
+    assert (m.status, m.reason) == (VALID, None)
 
 
 @pytest.mark.parametrize("command", ["lint", "fix"])
@@ -226,9 +278,9 @@ def test_through_the_registry_sqll_runs_each_benchmark_of_the_definitions(
         ("fix", UNSUPPORTED): 84,
     }
     # Only parse runs, each with the dialect of its benchmark.
-    runs = [args for _, args in calls(log) if args != ["--version"]]
+    runs = calls(log)
     assert len(runs) == 2 * 112
-    dialects = {args[4] for args in runs}
+    dialects = {dialect for _, _, dialect in runs}
     assert dialects == set(by_dialect)
     assert definitions.DEFINITIONS.read_bytes() == before
 

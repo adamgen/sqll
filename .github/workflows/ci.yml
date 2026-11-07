@@ -262,6 +262,18 @@ jobs:
       - name: Check that the sqlfluff submodule is clean after the crawl check
         run: scripts/check-submodule "after the crawl check"
 
+      # S3b C11: the record results/S3b/C11-config.json is the config data of
+      # the pinned sqlfluff (the defaults, the INI and TOML readers, the load
+      # and "sqlfluff parse" scenarios, and the Jinja templated files that
+      # are those of the raw templater). The tests
+      # crates/sqll_interfaces/tests/config.rs and crates/sqll/tests/cli_config.rs
+      # (Rust tests above) check sqll against the record.
+      - name: Check the config with sqlfluff
+        run: uv run --frozen --project harness python scripts/s3b/config_oracle.py check
+
+      - name: Check that the sqlfluff submodule is clean after the config check
+        run: scripts/check-submodule "after the config check"
+
       - uses: actions/upload-artifact@v7
         with:
           name: sqll-build
