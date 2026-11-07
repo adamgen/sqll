@@ -217,7 +217,7 @@ The check of the sqlfluff data (`scripts/s3b/config_oracle.py check`,
 record [results/S3b/C11-config.json](../results/S3b/C11-config.json)):
 
 ```text
-config check: PASS: 208 defaults, 40 coerce, 26 INI, 21 TOML, 34 load and 49 CLI scenarios; jinja as raw: 2303 of 2303 dialect fixtures that are not empty and have no Jinja delimiter
+config check: PASS: 208 defaults, 40 coerce, 26 INI, 21 TOML, 34 load and 52 CLI scenarios; jinja as raw: 2303 of 2303 dialect fixtures that are not empty and have no Jinja delimiter
 ```
 
 - `crates/sqll_config/tests/defaults.rs` reads `default_config.cfg` of the
@@ -233,14 +233,14 @@ config check: PASS: 208 defaults, 40 coerce, 26 INI, 21 TOML, 34 load and 49 CLI
 - G4: S1 dialect suite of sqll 2306 of 2306 exact; the known failures of
   sqll did not change (2631; 0 new, 0 unexpected); tree guard: 84 of 84 the
   same; the syntax tree check of the 84 S2 parse inputs passes; native base
-  tests 162 of 162 (`scripts/s3/base_native_tests.py check`: 314 tests,
-  311 passed, 3 ignored). Run again on the head after the review fixes
-  (round 2: `2ce6c0f`).
+  tests 162 of 162 (`scripts/s3/base_native_tests.py check`: 315 tests,
+  312 passed, 3 ignored). Run again on the head after the review fixes
+  (round 3: `b5bf455`).
 - Speed check ([results/S3b/speed/C11.json](../results/S3b/speed/C11.json),
-  base `3104d473b8f1`, head `2ce6c0f520d7`, after the review fixes of
-  round 2): 112 benchmarks, 0 slower, 0 failures; total wall time head /
-  base 1.025 (start 1.074, max 1.148; parse/small 1.056, parse/medium
-  1.025, parse/large 1.012); head faster than sqruff on 108 of 108 pairs and
+  base `3104d473b8f1`, head `b5bf4555144a`, after the review fixes of
+  round 3): 112 benchmarks, 0 slower, 0 failures; total wall time head /
+  base 1.021 (start 1.078, max 1.165; parse/small 1.053, parse/medium
+  1.029, parse/large 1.005); head faster than sqruff on 108 of 108 pairs and
   faster than sqlfluff on 112 of 112. The speed check also compares the
   sqll version, settings, and statuses with `results/s2/baseline.json`:
   the same.
