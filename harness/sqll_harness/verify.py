@@ -545,6 +545,20 @@ def checks(jobs: int | None = None) -> list[Check]:
                 " map check",
             ),
         ),
+        Check(
+            "crawl",
+            f"{UV} python scripts/s3b/crawl_oracle.py check",
+            ("build: Check the crawl of the typed view with sqlfluff",),
+            needs=(SETUP,),
+        ),
+        Check(
+            "submodule-after-crawl",
+            'scripts/check-submodule "after the crawl check"',
+            (
+                "build: Check that the sqlfluff submodule is clean after the crawl"
+                " check",
+            ),
+        ),
         # One unsharded run of all suites and tools, as all shards of CI.
         Check(
             "run",

@@ -43,6 +43,11 @@ impl NodeId {
     pub fn index(self) -> usize {
         self.0 as usize
     }
+
+    /// The id of an index that the caller knows to be in its tree.
+    pub(crate) fn from_usize(index: usize) -> NodeId {
+        NodeId(index as u32)
+    }
 }
 
 /// One node: 20 bytes.

@@ -129,31 +129,30 @@ pub fn kind_of(node: &Node) -> Option<SegmentKind> {
             ..base
         },
         Node::Meta { meta_type, .. } => {
-            let (ty, meta) = match meta_type {
-                MetaType::Indent { is_implicit } => (
-                    "indent",
-                    Meta::Indent {
-                        implicit: *is_implicit,
-                    },
-                ),
-                MetaType::Dedent { is_implicit } => (
-                    "dedent",
-                    Meta::Dedent {
-                        implicit: *is_implicit,
-                    },
-                ),
-                MetaType::Template { block_type, .. } => {
-                    ("placeholder", Meta::Template { block_type })
-                }
-                MetaType::TemplateLoop => ("template_loop", Meta::TemplateLoop),
-                MetaType::EndOfFile => ("end_of_file", Meta::EndOfFile),
+            let meta = match meta_type {
+                MetaType::Indent { is_implicit } => Meta::Indent {
+                    implicit: *is_implicit,
+                },
+                MetaType::Dedent { is_implicit } => Meta::Dedent {
+                    implicit: *is_implicit,
+                },
+                MetaType::Template { block_type, .. } => Meta::Template { block_type },
+                MetaType::TemplateLoop => Meta::TemplateLoop,
+                MetaType::EndOfFile => Meta::EndOfFile,
             };
-            KindKey {
+            // The class types of a meta node are those of its class, not
+            // data of the node.
+            return SegmentKind::find(&KindKey::<&str> {
                 variant: Variant::Meta,
-                ty,
+                class: "",
+                ty: meta.type_name(),
+                instance_types: &[],
+                trim_chars: None,
+                quoted_value: None,
+                escape_replacements: None,
                 meta: Some(meta),
-                ..base
-            }
+                class_types: meta.class_types(),
+            });
         }
         Node::Unparsable { .. } => KindKey {
             variant: Variant::Unparsable,

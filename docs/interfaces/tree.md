@@ -24,6 +24,8 @@ Interface test: `crates/sqll_interfaces/tests/tree.rs`. Design:
   without the node), `descendants_of_kind`, `descendants_of_type`
   (`is_type`), `raw_segments` (each leaf and meta node, in order, as the
   sqlfluff `raw_segments`), and `nodes`.
+  The typed view ([typed-view.md](typed-view.md), C10) adds `NodeRef`, the
+  sqlfluff query helpers, and typed nodes.
 - Positions: `line_pos(byte)` and `start_pos(node)` give a `LinePos` (line
   and position, both from 1). The position counts characters (Unicode
   scalar values), as sqlfluff does. Only "\n" ends a line, so the "\r" of
@@ -60,7 +62,8 @@ one time. The builder makes sure of it: a leaf must be the next text, and
 
 For each file, the test converts the parser tree and checks the lossless
 rule and each node against its `Node`: the type, the raw text, the parent,
-the number of children, the static data, `is_type`, the byte range of the
+the number of children, the static data, `is_type` (for a meta node, also
+the class types of its sqlfluff class, C10), the byte range of the
 position marker, and the line position. The line position comes from the
 code points of the text; the ported `get_line_pos_of_char_pos` must give
 it too. C8 adds the source range, the source position, and the literal

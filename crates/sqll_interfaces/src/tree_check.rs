@@ -52,6 +52,20 @@ impl std::ops::AddAssign for Counts {
     }
 }
 
+/// The class types (`_class_types`) of the sqlfluff meta classes of
+/// src/sqlfluff/core/parser/segments/meta.py of the pinned sqlfluff:
+/// `MetaSegment` is a `RawSegment`, `Dedent` is an `Indent`, and
+/// `ImplicitIndent` is an `Indent` with the type `indent`.
+fn sqlfluff_meta_class_types(meta: &MetaType) -> &'static [&'static str] {
+    match meta {
+        MetaType::Indent { .. } => &["base", "indent", "meta", "raw"],
+        MetaType::Dedent { .. } => &["base", "dedent", "indent", "meta", "raw"],
+        MetaType::Template { .. } => &["base", "meta", "placeholder", "raw"],
+        MetaType::TemplateLoop => &["base", "meta", "raw", "template_loop"],
+        MetaType::EndOfFile => &["base", "end_of_file", "meta", "raw"],
+    }
+}
+
 /// Type names that the check also asks `is_type` for on each node.
 const PROBE_TYPES: &[&str] = &[
     "keyword",
@@ -64,6 +78,8 @@ const PROBE_TYPES: &[&str] = &[
     "symbol",
     "raw",
     "base",
+    "meta",
+    "indent",
     "expression",
 ];
 
@@ -288,9 +304,15 @@ impl Check<'_> {
         Ok(())
     }
 
-    /// The tree and the node agree on `is_type` for the type name.
+    /// The tree and the node agree on `is_type` for the type name. For a
+    /// meta node, the class types of its sqlfluff class count too: the
+    /// ported `Node` has none (S3b C10).
     fn is_type(&self, node: &Node, id: NodeId, name: &str) -> Result<(), String> {
-        let want = node.is_type(name);
+        let meta = match node {
+            Node::Meta { meta_type, .. } => sqlfluff_meta_class_types(meta_type),
+            _ => &[],
+        };
+        let want = node.is_type(name) || meta.contains(&name);
         let got = SegmentType::from_name(name).is_some_and(|t| self.tree.is_type(id, t));
         if got != want {
             return Err(format!("is_type({name:?}) is {got}, not {want}"));

@@ -623,7 +623,7 @@
   },
   {
    "path": "crates/sqll_tree/src/kinds.rs",
-   "reason": "The segment types and kinds, and their lookups (S3b C6)."
+   "reason": "The segment types and kinds, and their lookups (S3b C6), and the class types of a meta node (S3b C10)."
   },
   {
    "path": "crates/sqll_interfaces/Cargo.toml",
@@ -708,6 +708,14 @@
   {
    "path": "crates/sqll_interfaces/tests/parse.rs",
    "reason": "The interface test of the parse interface (S3b C9)."
+  },
+  {
+   "path": "crates/sqll_tree/src/view.rs",
+   "reason": "The typed view of the syntax tree (S3b C10): NodeRef, the query helpers with the meaning of the sqlfluff BaseSegment methods, AstNode, and the typed nodes of the core set."
+  },
+  {
+   "path": "crates/sqll_interfaces/tests/typed_view.rs",
+   "reason": "The interface test of the typed view (S3b C10)."
   }
  ]
 }

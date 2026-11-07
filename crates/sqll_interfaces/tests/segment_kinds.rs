@@ -259,6 +259,12 @@ fn each_kind_gives_its_data_again() {
             d.class_types.windows(2).all(|w| w[0] < w[1]),
             "a sorted set"
         );
+        // A meta kind has the type and the class types of its sqlfluff class
+        // (S3b C10): the set that the conversion gives (kind_of).
+        if let Some(meta) = d.meta {
+            assert_eq!(d.ty.name(), meta.type_name());
+            assert_eq!(names(d.class_types), meta.class_types(), "{d:?}");
+        }
         let n = Names {
             instance_types: names(d.instance_types),
             class_types: names(d.class_types),

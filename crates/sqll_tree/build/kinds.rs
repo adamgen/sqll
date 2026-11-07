@@ -107,11 +107,19 @@ impl Kind {
         }
     }
 
+    /// A meta kind, with the class types of its sqlfluff class
+    /// (`MetaSegment` is a `RawSegment`; `Dedent` is an `Indent`). The
+    /// conversion gives the same set (`Meta::class_types` of src/kinds.rs).
     fn meta(ty: &str, meta: Meta) -> Self {
+        let mut class_types = vec!["base", "meta", "raw", ty];
+        if ty == "dedent" {
+            class_types.push("indent");
+        }
         Kind {
             meta: Some(meta),
             ..Kind::new(Variant::Meta, "", ty)
         }
+        .with_class_types(class_types)
     }
 
     fn with_class_types<'a>(mut self, types: impl IntoIterator<Item = &'a str>) -> Self {
