@@ -110,7 +110,7 @@ def test_the_proof_run_used_the_s2_method():
     session = next(s for s in C5["steps"] if s["step"] == "session")
     argv = session["argv"]
     assert argv[:5] == ["docker", "run", "--rm", "--network", "none"]
-    assert f"$REPO:{sc.C_REPO}:ro" in argv
+    assert "$REPO:$REPO:ro" in argv
     assert argv[-3:] == ["run-inside", "--scratch", sc.C_SCRATCH]
 
 
@@ -535,7 +535,17 @@ def test_the_lock_is_taken_and_given_back(tmp_path):
 def test_the_container_has_no_network_and_a_read_only_repository(tmp_path):
     argv = sc.docker_argv(tmp_path, "sqll-ci:x")
     assert argv[:5] == ["docker", "run", "--rm", "--network", "none"]
-    assert f"{sc.ROOT}:{sc.C_REPO}:ro" in argv
+    assert f"{sc.ROOT}:{sc.ROOT}:ro" in argv
+    common = sc.git(
+        sc.probe.Steps(tmp_path),
+        "common",
+        "rev-parse",
+        "--path-format=absolute",
+        "--git-common-dir",
+    )
+    if not Path(common).is_relative_to(sc.ROOT):
+        assert f"{common}:{common}:ro" in argv
+    assert argv[argv.index("-w") + 1] == str(sc.ROOT)
     env = [argv[i + 1] for i, a in enumerate(argv) if a == "-e"]
     assert f"SQLL_BIN={sc.C_SCRATCH}/bin/head/sqll" in env
     assert f"{sqll_adapter.BASE_BINARY_ENV}={sc.C_SCRATCH}/bin/base/sqll" in env
