@@ -142,3 +142,44 @@ tree: 2306 of 2306 dialect fixtures through the raw templater: lossless and node
   `ee2434a356fe`, head `265e52cdc39b`): 112 benchmarks, 0 slower, 0
   failures; total wall time head / base 0.998; head faster than sqruff on
   108 of 108 pairs and faster than sqlfluff on 112 of 112.
+
+## C9: parse interface proof
+
+Interface: [docs/interfaces/parse.md](../docs/interfaces/parse.md). The
+test output (`crates/sqll_interfaces/tests/parse.rs`, with `--nocapture`):
+
+```text
+parse: 2306 dialect fixtures, 685224 nodes
+parse: 2306 of 2306 dialect fixtures: the tree of the steps
+```
+
+- `sqll parse` calls `sqll_syntax::parse` with the file of the raw
+  templater; the JSON writer reads the `SyntaxTree`. The sqll binary links
+  only `sqll_source`, `sqll_syntax`, `sqll_templater`, and `sqll_tree` of
+  the sqll crates directly (`cargo tree -p sqll -e normal --depth 1`).
+- The output did not change: the tree guard record is unchanged (84 of 84,
+  2 runs each). A local run compared the binaries of base `dddab8d` and of
+  C9 on the 2306 dialect fixtures, the 84 S2 parse inputs, and 9220
+  invented changed fixtures (cuts, deletions, copies, and added text; many
+  with lex errors and unparsable sections), each with no option, `-m`,
+  `-c`, and `-c -m`: 46440 runs, 0 differences in stdout, stderr, and
+  exit code, no exit code 2.
+- G4: native base tests 162 of 162 (`scripts/s3/base_native_tests.py
+  check`); the syntax tree check of the 84 S2 parse inputs and the source
+  map check pass. The S3 hint check patch moved to the parse interface
+  (cross-track, S3): `scripts/s3/hint_check.py` gives the T17 summary
+  again (2390 inputs, 974128 exclusions, 0 probe matches, 0 probe limits,
+  0 different runs).
+- Speed check ([results/S3b/speed/C9.json](../results/S3b/speed/C9.json),
+  base `dddab8dcf646`, head `5f4f1f476509`): 112 benchmarks, 0 slower, 0
+  failures; total wall time head / base 1.028 (start 1.024, parse/small
+  1.035, parse/medium 1.032, parse/large 1.026); head faster than sqruff
+  on 108 of 108 pairs and faster than sqlfluff on 112 of 112.
+- Reason of the remaining slowdown (G3.6): the conversion of the parser
+  tree to the `SyntaxTree` (C7: 4.1% of the parse time) and the source map
+  of the file. callgrind on 3 large inputs: 3.0% to 4.2% more
+  instructions; the conversion is about 3.2% of them. The writer that
+  reads the `SyntaxTree` is faster than the writer of the `Node` tree.
+  A cheaper hash and compare in the kind cache of the conversion gave no
+  gain. The next step is a parser that builds the `SyntaxTree` with no
+  `Node` tree (S4).
