@@ -315,7 +315,7 @@ def summary_lines(doc: dict) -> list[str]:
         f"| Conversion time for each node | {r['convert_ns_per_node']} ns |",
         f"| Conversion heap bytes / parse heap bytes | {pct(r['convert_over_parse_asked_bytes'])} |",
         f"| Conversion peak / parse peak | {pct(r['convert_over_parse_peak_bytes'])} |",
-        f"| SyntaxTree bytes / Node tree bytes | {pct(r['tree_over_node_tree_bytes'])} |",
+        f"| SyntaxTree bytes / live bytes that the parse keeps (the Node tree) | {pct(r['tree_over_node_tree_bytes'])} |",
     ]
 
 

@@ -63,3 +63,37 @@ sqlfluff / sqll of the median wall times. sqll has only `start` and
 
 `harness/tests/test_bench_compare.py` makes this table again from the
 baseline and compares it with this file.
+
+## C7: syntax tree proof and conversion cost
+
+Interface: [docs/interfaces/tree.md](../docs/interfaces/tree.md). The test
+output (`crates/sqll_interfaces/tests/tree.rs`, with `--nocapture`):
+
+```text
+tree: 2306 of 2306 dialect fixtures: lossless and node for node equal (685224 nodes: 432300 raw, 182196 segment, 70728 meta, 0 unparsable; 685224 with a position, 5938 with another ported line position; 1468552 bytes, 57623 lines)
+tree: 84 of 84 S2 parse inputs: lossless and node for node equal (280339 nodes: 183383 raw, 71856 segment, 25100 meta, 0 unparsable; 280339 with a position, 5737 with another ported line position; 601133 bytes, 22766 lines)
+```
+
+"Another ported line position": the ported `get_line_pos_of_char_pos` of
+`TemplatedFile` gives another line position after a multi-byte character
+(C8 finding above). The test fails if this occurs in an ASCII text.
+
+The conversion cost (`scripts/s3b/tree_check.py measure`, record
+[results/S3b/C7-conversion.json](../results/S3b/C7-conversion.json); the
+sqll allocator and release profile, the median of 21 runs, with the
+machine lock). The conversion includes the copy of the text and the kind
+lookup (with a cache for each conversion). C9 uses these numbers in its
+speed plan:
+
+| Item | Value |
+|---|---|
+| Inputs | 28 large S2 parse inputs, 458473 bytes, 215024 nodes |
+| Conversion time / parse time | 4.1% (for each input: min 2.6%, median 4.2%, max 5.6%) |
+| Conversion time / (lex + parse) time | 3.6% |
+| Conversion time for each node | 121.6 ns |
+| Conversion heap bytes / parse heap bytes | 0.7% |
+| Conversion peak / parse peak | 2.5% |
+| SyntaxTree bytes / live bytes that the parse keeps (the Node tree) | 4.0% |
+
+The sqll binary does not link `sqll_tree` or `sqll_syntax` (`cargo tree -p
+sqll -e normal,build`), so C7 has no speed check (G3 rule above).
