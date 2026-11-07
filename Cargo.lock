@@ -585,6 +585,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "sqll_interfaces"
+version = "0.1.0"
+dependencies = [
+ "sqll_dialects",
+ "sqll_lexer",
+ "sqll_parser",
+ "sqll_tree",
+ "sqll_types",
+]
+
+[[package]]
 name = "sqll_lexer"
 version = "0.1.0"
 dependencies = [
@@ -619,6 +630,15 @@ dependencies = [
  "sqll_dialects",
  "sqll_lexer",
  "sqll_parser",
+]
+
+[[package]]
+name = "sqll_tree"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+ "sqll_dialects",
+ "sqll_types",
 ]
 
 [[package]]

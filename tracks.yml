@@ -63,6 +63,8 @@ tracks:
       - results/s3/tree-guard.json
       - results/s3/base-native-tests.json
       - results/s3/base-native-tests.log
+      # The documents of the frozen interfaces (S3b, from task C6).
+      - docs/interfaces/**
 
   S3:
     # S3 is approved and closed. It keeps only its frozen records. Its
