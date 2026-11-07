@@ -595,79 +595,123 @@ mod tests {
         }
     }
 
-    /// A random file that `SourceMap::new` accepts: raw slices of 1 to 3
-    /// characters of random types, and templated slices that take the raw
-    /// slices in a random order (some raw slices in no templated slice).
+    /// Characters of 1, 2, 3, and 4 UTF-8 bytes, CR, and LF.
+    const CHARS: [char; 8] = ['a', 'b', ' ', 'é', '€', '😀', '\r', '\n'];
+
+    fn random_text(rng: &mut Rng, max: usize) -> String {
+        (0..rng.below(max + 1))
+            .map(|_| CHARS[rng.below(CHARS.len())])
+            .collect()
+    }
+
+    /// A random range in 0..n.
+    fn random_range(rng: &mut Rng, n: usize) -> Range<usize> {
+        let a = rng.below(n + 1);
+        a..a + rng.below(n - a + 1)
+    }
+
+    /// A random file that `SourceMap::new` accepts (code point offsets):
+    /// raw slices of 0 to 5 random characters of random types; then 1 to 6
+    /// templated slices. A literal slice takes a random part of one raw
+    /// slice (two slices can take the same or overlapping parts), with its
+    /// text or with no templated text. A templated slice takes a random
+    /// source range (it can be empty) and gives 0 to 3 random characters.
     fn random_file(rng: &mut Rng) -> TemplatedFile {
-        let mut source = String::new();
-        let mut raws = Vec::new();
-        for i in 0..1 + rng.below(6) {
-            let len = 1 + rng.below(3);
-            let text: String = (0..len)
-                .map(|k| (b'a' + ((i + k) % 26) as u8) as char)
-                .collect();
+        let (mut source, mut count, mut raws) = (String::new(), 0, Vec::new());
+        for _ in 0..1 + rng.below(6) {
+            let text = random_text(rng, 5);
             let ty = ["literal", "templated", "comment", "block_start"][rng.below(4)];
-            raws.push(raw(&text, ty, source.len()));
+            raws.push(raw(&text, ty, count));
+            count += text.chars().count();
             source.push_str(&text);
         }
-        let mut order: Vec<usize> = (0..raws.len()).collect();
-        for i in (1..order.len()).rev() {
-            order.swap(i, rng.below(i + 1));
-        }
-        let mut templated = String::new();
-        let mut slices = Vec::new();
-        for &r in order.iter().take(1 + rng.below(raws.len())) {
-            let (o, text) = (raws[r].source_idx, raws[r].raw.clone());
-            let o = o..o + text.len();
-            let at = templated.len();
+        let chars: Vec<char> = source.chars().collect();
+        let (mut templated, mut at, mut slices) = (String::new(), 0, Vec::new());
+        for _ in 0..1 + rng.below(6) {
+            let start = at;
             match rng.below(3) {
-                0 => {
-                    templated.push_str(&text);
-                    slices.push(lit(o, at..at + text.len()));
+                kind @ (0 | 1) => {
+                    let r: &RawFileSlice = &raws[rng.below(raws.len())];
+                    let part = random_range(rng, r.raw.chars().count());
+                    let o = r.source_idx + part.start..r.source_idx + part.end;
+                    if kind == 0 {
+                        templated.extend(&chars[o.clone()]);
+                        at += o.len();
+                    }
+                    slices.push(lit(o, start..at));
                 }
-                1 => slices.push(lit(o, at..at)),
                 _ => {
-                    let len = rng.below(4);
-                    templated.push_str(&"X".repeat(len));
-                    slices.push(tpl(o, at..at + len));
+                    let text = random_text(rng, 3);
+                    at += text.chars().count();
+                    templated.push_str(&text);
+                    slices.push(tpl(random_range(rng, count), start..at));
                 }
             }
         }
-        TemplatedFile::copy(
+        TemplatedFile::new(
             source,
             "random.sql".into(),
-            templated,
-            slices,
-            raws,
-            vec![],
-            vec![],
+            Some(templated),
+            Some(slices),
+            Some(raws),
         )
     }
 
+    /// Each byte range of the templated text of random files (also ranges
+    /// that start or end inside a character): no call panics, and each
+    /// answer is a range of whole characters of the source text. A range
+    /// inside one literal slice maps to the same text. The answers of
+    /// sqlfluff for such files: `scripts/s3b/source_map_oracle.py check`.
     #[test]
     fn no_range_of_an_accepted_file_panics() {
         let mut rng = Rng(0x5eed_c8);
-        let (mut files, mut ranges) = (0, 0);
+        let (mut files, mut multi_byte, mut ranges, mut inside, mut not_char) = (0, 0, 0, 0, 0);
         for _ in 0..3000 {
-            let Ok(map) = SourceMap::new(Arc::new(random_file(&mut rng))) else {
-                continue;
-            };
-            let n = map.templated_text().len();
-            for i in 0..=n {
-                for j in i..=n {
-                    if let Ok(s) = map.source_range(i..j) {
-                        assert!(s.end <= map.source_text().len());
-                        assert!(map.is_literal(i..j).is_ok());
-                    }
+            let file = random_file(&mut rng);
+            let map = SourceMap::new(Arc::new(file)).expect("a valid file");
+            let (src, tpl) = (map.source_text(), map.templated_text());
+            for i in 0..=tpl.len() {
+                let _ = map.source_pos(i);
+                for j in i..=tpl.len() {
                     ranges += 1;
+                    let Ok(s) = map.source_range(i..j) else {
+                        let boundary = tpl.is_char_boundary(i) && tpl.is_char_boundary(j);
+                        not_char += usize::from(!boundary);
+                        continue;
+                    };
+                    assert!(src.get(s.clone()).is_some(), "{i}..{j}: {s:?}");
+                    assert!(map.is_literal(i..j).is_ok());
+                    if let Some(text) = literal_text_of(&map, i..j).filter(|_| i < j) {
+                        assert_eq!(Some(text), src.get(s), "{i}..{j}");
+                        inside += 1;
+                    }
                 }
             }
             files += 1;
+            multi_byte += usize::from(!src.is_ascii() || !tpl.is_ascii());
         }
         assert!(
-            files > 2000 && ranges > 20000,
-            "{files} files, {ranges} ranges"
+            files == 3000
+                && multi_byte > 2000
+                && ranges > 50_000
+                && inside > 300
+                && not_char > 20_000,
+            "{files} files ({multi_byte} multi-byte), {ranges} ranges ({inside} inside a literal \
+             slice, {not_char} not at a character)"
         );
+    }
+
+    /// The templated text of a byte range strictly inside one non-empty
+    /// literal slice (it starts and ends inside the slice).
+    fn literal_text_of(map: &SourceMap, r: Range<usize>) -> Option<&str> {
+        let tpl = map.templated_text();
+        let chars =
+            map.templated_char_of_byte(r.start).ok()?..map.templated_char_of_byte(r.end).ok()?;
+        map.file().sliced_file.iter().find_map(|s| {
+            let t = s.templated_codepoint_slice;
+            let inside = s.slice_type == LITERAL && t.start < chars.start && chars.end < t.stop;
+            inside.then(|| &tpl[r.clone()])
+        })
     }
 
     #[test]

@@ -8,11 +8,12 @@ Run it with the harness Python from the repository root:
 
 Both run the pinned sqlfluff of the tool venv (tools/sqlfluff, pure Python)
 on the templater fixtures of the pinned sqlfluff (all_fixtures: each SQL
-file directly in a folder of test/fixtures/templater/, and each file of the
-case table of test/core/templaters/jinja_test.py), with the config of the fixture folder and the dialect ansi if the config
-has none. For each fixture the data are: the slices and the templated text
-that the templater gives; for each templated range (i, j), 0 <= i <= j <=
-the templated length, the result of templated_slice_to_source_slice and
+file directly in a folder of test/fixtures/templater/, and each file of
+the case table of test/core/templaters/jinja_test.py), with the config of
+the fixture folder and the dialect ansi if the config has none. For each
+fixture the data are: the slices and the templated text that the
+templater gives; for each templated range (i, j), 0 <= i <= j <= the
+templated length, the result of templated_slice_to_source_slice and
 is_source_slice_literal (no result for a ValueError); the source line and
 position of each source offset; and each segment of the parse tree, in
 pre-order (type, templated slice, source slice, is_literal, source line
@@ -24,11 +25,14 @@ crates/sqll_interfaces/tests/source_map.rs and a loop example).
 
 check (CI job build, scripts/verify): make the data of RECORD_FIXTURES
 again; it must be the text of RECORD_FILE. Then make the data of each
-fixture of all_fixtures into WORK/all.json (the submodule must stay clean: the
-sqlfluff Python runs with -B, so it writes no bytecode) and run the ignored test TEST of
-crates/sqll_interfaces/tests/source_map.rs on it (cargo test --locked). The
-check fails unless both agree, cargo exits with 0, the test passes, and the
-output has the pass line.
+fixture of all_fixtures into WORK/all.json (the submodule must stay
+clean: the sqlfluff Python runs with -B, so it writes no bytecode), and
+the data of RANDOM_FILES invented files (random_file, seed RANDOM_SEED:
+multi-byte characters, CR and LF, parts of raw slices, overlapping and
+empty source slices) into WORK/random.json. Then run the ignored tests
+TEST and RANDOM_TEST of crates/sqll_interfaces/tests/source_map.rs on
+them (cargo test --locked). The check fails unless the record agrees,
+cargo exits with 0, both tests pass, and the output has both pass lines.
 
 Exit code: 0 pass, 1 a failure.
 """
@@ -36,6 +40,7 @@ Exit code: 0 pass, 1 a failure.
 import argparse
 import json
 import os
+import random
 import subprocess
 import sys
 from pathlib import Path
@@ -59,6 +64,15 @@ TEST = "each_templater_fixture_maps_as_sqlfluff"
 ORACLE_ENV = "SQLL_SOURCE_MAP_ORACLE"
 PASS_PREFIX = "source map: "
 PASS_SUFFIX = " templater fixtures: as sqlfluff"
+RANDOM_TEST = "random_files_map_as_sqlfluff"
+RANDOM_ENV = "SQLL_SOURCE_MAP_RANDOM"
+RANDOM_KIND = "sqll-s3b-c8-source-map-random"
+RANDOM_SUFFIX = " random files: as sqlfluff"
+RANDOM_SEED = 8
+RANDOM_FILES = 20000
+# Characters of 1, 2, 3, and 4 UTF-8 bytes, CR, and LF.
+RANDOM_CHARS = "ab \u00e9\u20ac\U0001f600\r\n"
+RAW_TYPES = ("literal", "templated", "comment", "block_start")
 
 
 class DataError(Exception):
@@ -85,17 +99,6 @@ def fixture_data(rel: str) -> dict:
     tf = variant.templated_file
     if tf.source_str != source:
         raise DataError(f"{rel}: the source text is not the file text")
-    n = len(tf.templated_str)
-    ranges = []
-    for i in range(n + 1):
-        for j in range(i, n + 1):
-            try:
-                s = tf.templated_slice_to_source_slice(slice(i, j))
-            except ValueError:
-                ranges.append([i, j])
-                continue
-            literal = int(tf.is_source_slice_literal(s))
-            ranges.append([i, j, s.start, s.stop, literal])
     segments = None
     if variant.tree is not None:
         segments = []
@@ -107,12 +110,37 @@ def fixture_data(rel: str) -> dict:
             segments.append(
                 [seg.get_type(), t.start, t.stop, s.start, s.stop, literal, line, pos]
             )
+    data = map_data(tf)
     return {
         "path": rel,
         "templater": config.get("templater"),
         "dialect": config.get("dialect"),
         "source_chars": len(source),
         "templated_str": tf.templated_str,
+        "sliced_file": data["sliced_file"],
+        "raw_sliced": data["raw_sliced"],
+        "violations": sorted(str(v.desc()) for v in parsed.violations),
+        "source_points": data["source_points"],
+        "ranges": data["ranges"],
+        "segments": segments,
+    }
+
+
+def map_data(tf) -> dict:
+    """The slices of a TemplatedFile and its answers for each templated
+    range and each source offset."""
+    n = len(tf.templated_str)
+    ranges = []
+    for i in range(n + 1):
+        for j in range(i, n + 1):
+            try:
+                s = tf.templated_slice_to_source_slice(slice(i, j))
+            except ValueError:
+                ranges.append([i, j])
+                continue
+            literal = int(tf.is_source_slice_literal(s))
+            ranges.append([i, j, s.start, s.stop, literal])
+    return {
         "sliced_file": [
             [s.slice_type, s.source_slice.start, s.source_slice.stop]
             + [s.templated_slice.start, s.templated_slice.stop]
@@ -121,13 +149,79 @@ def fixture_data(rel: str) -> dict:
         "raw_sliced": [
             [r.slice_type, r.source_idx, r.block_idx, r.tag] for r in tf.raw_sliced
         ],
-        "violations": sorted(str(v.desc()) for v in parsed.violations),
         "source_points": [
             list(tf.get_line_pos_of_char_pos(i, source=True))
-            for i in range(len(source) + 1)
+            for i in range(len(tf.source_str) + 1)
         ],
         "ranges": ranges,
-        "segments": segments,
+    }
+
+
+def random_file(rng: random.Random):
+    """An invented TemplatedFile that the sqll SourceMap accepts (as the
+    generator of the unit test in crates/sqll_source/src/map.rs): raw
+    slices of 0 to 5 characters of random types; then 1 to 6 templated
+    slices. A literal slice takes a random part of one raw slice (two
+    slices can take the same or overlapping parts), with its text or with
+    no templated text. A templated slice takes a random source range (it
+    can be empty) and gives 0 to 3 random characters."""
+    from sqlfluff.core.templaters.base import (
+        RawFileSlice,
+        TemplatedFile,
+        TemplatedFileSlice,
+    )
+
+    def text(most: int) -> str:
+        return "".join(rng.choice(RANDOM_CHARS) for _ in range(rng.randint(0, most)))
+
+    def part(start: int, n: int) -> slice:
+        a = rng.randint(0, n)
+        return slice(start + a, start + rng.randint(a, n))
+
+    source, raws = "", []
+    for _ in range(rng.randint(1, 6)):
+        raw = text(5)
+        raws.append(RawFileSlice(raw, rng.choice(RAW_TYPES), len(source)))
+        source += raw
+    templated, slices = "", []
+    for _ in range(rng.randint(1, 6)):
+        start = len(templated)
+        kind = rng.randrange(3)
+        if kind < 2:
+            r = rng.choice(raws)
+            o = part(r.source_idx, len(r.raw))
+            if kind == 0:
+                templated += source[o]
+            slices.append(
+                TemplatedFileSlice("literal", o, slice(start, len(templated)))
+            )
+        else:
+            o = part(0, len(source))
+            templated += text(3)
+            slices.append(
+                TemplatedFileSlice("templated", o, slice(start, len(templated)))
+            )
+    return TemplatedFile(source, "random.sql", templated, slices, raws)
+
+
+def dump_random(seed: int, count: int) -> dict:
+    """The data of count random files (with their texts: they are not
+    sqlfluff data)."""
+    import sqlfluff
+
+    rng = random.Random(seed)
+    files = []
+    for _ in range(count):
+        tf = random_file(rng)
+        files.append(
+            {"source_str": tf.source_str, "templated_str": tf.templated_str}
+            | map_data(tf)
+        )
+    return {
+        "kind": RANDOM_KIND,
+        "sqlfluff": {"version": sqlfluff.__version__},
+        "seed": seed,
+        "files": files,
     }
 
 
@@ -153,15 +247,19 @@ def sqlfluff_python() -> Path:
     return python
 
 
-def run_dump(fixtures: list[str]) -> dict:
-    argv = [str(sqlfluff_python()), "-I", "-B", str(Path(__file__).resolve()), "dump"]
-    print(f"source_map_oracle: $ {' '.join(argv[:5])} ({len(fixtures)} fixtures)")
-    out = subprocess.run(
-        argv + fixtures, cwd=ROOT, text=True, capture_output=True, check=False
-    )
+def run_sqlfluff(args: list[str]) -> dict:
+    argv = [str(sqlfluff_python()), "-I", "-B", str(Path(__file__).resolve())]
+    argv += args
+    print(f"source_map_oracle: $ {' '.join(argv[:5])} ...", flush=True)
+    out = subprocess.run(argv, cwd=ROOT, text=True, capture_output=True, check=False)
     if out.returncode != 0:
-        raise DataError(f"dump: exit code {out.returncode}\n{out.stderr[-4000:]}")
+        raise DataError(f"{args[0]}: exit code {out.returncode}\n{out.stderr[-4000:]}")
     return json.loads(out.stdout)
+
+
+def run_dump(fixtures: list[str]) -> dict:
+    print(f"source_map_oracle: the data of {len(fixtures)} fixtures")
+    return run_sqlfluff(["dump"] + fixtures)
 
 
 def all_fixtures() -> list[str]:
@@ -253,17 +351,23 @@ def pass_line(fixtures: int) -> str:
     return f"{PASS_PREFIX}{fixtures} of {fixtures}{PASS_SUFFIX}"
 
 
-def check_output(code: int, output: str, fixtures: int) -> list[str]:
+def random_pass_line(files: int) -> str:
+    return f"{PASS_PREFIX}{files} of {files}{RANDOM_SUFFIX}"
+
+
+def check_output(code: int, output: str, fixtures: int, files: int) -> list[str]:
     """Each problem of the cargo test run."""
     problems = []
     if code != 0:
         problems.append(f"cargo test: exit code {code}")
-    if f"test {TEST} ... ok" not in output:
-        problems.append(f"the test {TEST} did not pass")
-    if "test result: ok. 1 passed;" not in output:
-        problems.append("cargo did not run exactly 1 passing test")
-    if pass_line(fixtures) not in output:
-        problems.append(f"no line {pass_line(fixtures)!r}")
+    for test in (TEST, RANDOM_TEST):
+        if f"test {test} ... ok" not in output:
+            problems.append(f"the test {test} did not pass")
+    if "test result: ok. 2 passed;" not in output:
+        problems.append("cargo did not run exactly 2 passing tests")
+    for line in (pass_line(fixtures), random_pass_line(files)):
+        if line not in output:
+            problems.append(f"no line {line!r}")
     return problems
 
 
@@ -284,16 +388,22 @@ def check() -> int:
     )
     if clean.returncode != 0:
         problems.append("the sqlfluff run changed the submodule")
+    print(f"source_map_oracle: the data of {RANDOM_FILES} random files")
+    random_data = run_sqlfluff(["random", str(RANDOM_SEED), str(RANDOM_FILES)])
     WORK.mkdir(parents=True, exist_ok=True)
     oracle = WORK / "all.json"
     oracle.write_text(json.dumps(record_data(data)), encoding="utf8")
+    random_file_path = WORK / "random.json"
+    random_file_path.write_text(json.dumps(random_data), encoding="utf8")
     env = {
         k: v for k, v in os.environ.items() if k not in ("RUST_LOG", "CARGO_TERM_COLOR")
     }
     env["CARGO_TERM_COLOR"] = "never"
     env[ORACLE_ENV] = str(oracle)
+    env[RANDOM_ENV] = str(random_file_path)
     argv = ["cargo", "test", "--locked", "-p", "sqll_interfaces", "--test"]
-    argv += ["source_map", "--", "--ignored", "--exact", TEST, "--nocapture"]
+    argv += ["source_map", "--", "--ignored", "--exact", TEST, RANDOM_TEST]
+    argv += ["--nocapture"]
     print("source_map_oracle: $ " + " ".join(argv), flush=True)
     proc = subprocess.run(
         argv,
@@ -306,13 +416,16 @@ def check() -> int:
         check=False,
     )
     sys.stdout.write(proc.stdout)
-    problems += check_output(proc.returncode, proc.stdout, len(fixtures))
+    problems += check_output(proc.returncode, proc.stdout, len(fixtures), RANDOM_FILES)
     for p in problems:
         print(f"source map check: {p}")
     if problems:
         print(f"source map check: FAIL: {len(problems)} problems")
         return 1
-    print(f"source map check: PASS: {pass_line(len(fixtures))}")
+    print(
+        f"source map check: PASS: {pass_line(len(fixtures))}; "
+        f"{random_pass_line(RANDOM_FILES)}"
+    )
     return 0
 
 
@@ -323,10 +436,16 @@ def main(argv: list[str] | None = None) -> int:
     sub.add_parser("check", help="check the record and each templater fixture")
     d = sub.add_parser("dump", help="(sqlfluff Python) print the data as JSON")
     d.add_argument("fixtures", nargs="+")
+    r = sub.add_parser("random", help="(sqlfluff Python) the data of random files")
+    r.add_argument("seed", type=int)
+    r.add_argument("count", type=int)
     args = parser.parse_args(argv)
     try:
         if args.command == "dump":
             json.dump(dump(args.fixtures), sys.stdout)
+            return 0
+        if args.command == "random":
+            json.dump(dump_random(args.seed, args.count), sys.stdout)
             return 0
         if args.command == "record":
             return record()

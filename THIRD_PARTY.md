@@ -50,6 +50,15 @@ names of the sqlfluff 4.4.0 dialects and segment classes.
 `scripts/s3/sqruff_rules.py` reads them from the installed sqlfluff package.
 No sqlfluff code is copied.
 
+`scripts/s3b/source_map_oracle.py` (S3b task C8) imports and runs the
+installed sqlfluff 4.4.0 package (MIT): its `TemplatedFile` and its
+templaters, on the fixtures of `test/fixtures/templater/`.
+`results/S3b/C8-source-map.json` has its output for `jinja_a/jinja.sql`
+and `jinja_b/jinja.sql`: the templated texts, the slices, the source
+ranges, lines, and positions, and the segment types. It has no source text
+of the fixtures; the tests read the submodule. The random files of its
+`check` are invented, not sqlfluff data. No sqlfluff code is copied.
+
 `scripts/s3/sqlfluffrs_probe.py` (S3 research, task T5) copies the
 submodule into a scratch folder, runs `utils/rustify.py` there, and builds
 the sqlfluffrs crates and the probe there. The generated Rust files stay in

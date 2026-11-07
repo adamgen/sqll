@@ -240,7 +240,8 @@ jobs:
 
       # S3b C8: the source map gives the answers of the pinned sqlfluff for
       # each templater fixture (each templated range, each source offset,
-      # and each segment of the parse tree), and the record
+      # and each segment of the parse tree) and for 20000 random invented
+      # files (each templated range and source offset), and the record
       # results/S3b/C8-source-map.json is the sqlfluff data (the ignored
       # test of crates/sqll_interfaces/tests/source_map.rs).
       - name: Check the source map with sqlfluff

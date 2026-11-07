@@ -4,7 +4,9 @@ Status: frozen (Core track, task C8). Packages: `sqll_source` (Core:
 `src/templater.rs`, `src/map.rs`, `src/lines.rs`) and `sqll_templater`
 (S6: the templaters). Interface test:
 `crates/sqll_interfaces/tests/source_map.rs`. Design:
-[s3b-core.md](../decisions/s3b-core.md), Q2.
+[s3b-core.md](../decisions/s3b-core.md), Q2. Change to the C4 design (C8
+task text, recorded in Q2 and Q5): the raw templater is in the S6 package
+`sqll_templater`, not in `sqll_source`.
 
 ## The interface
 
@@ -71,18 +73,20 @@ The data of the pinned sqlfluff come from its Jinja templater
 (`scripts/s3b/source_map_oracle.py`). The record
 [`results/S3b/C8-source-map.json`](../../results/S3b/C8-source-map.json)
 has them for `jinja_a` and `jinja_b` (a loop). `check` (CI job build) makes
-them again for 54 templater fixtures and runs the ignored test: each SQL
-file directly in a folder of `test/fixtures/templater/` (53), and each file
-of the case table of `test/core/templaters/jinja_test.py` (one more, in a
+them again for 54 templater fixtures and for 20000 random invented files
+(seed 8), and runs the two ignored tests. The fixtures: each SQL file
+directly in a folder of `test/fixtures/templater/` (53), and each file of
+the case table of `test/core/templaters/jinja_test.py` (one more, in a
 subfolder). Each runs with the config of its folder, so with the Jinja
-templater.
+templater. A fixture with no sqlfluff parse tree fails.
 
 | Input | Files | Result |
 |---|---|---|
 | Templater fixtures: each templated range, each source offset, each segment (type, ranges, literal flag, source position) | 54 | 54 of 54 as sqlfluff: 776608 ranges (1345 ValueError), 6711 source offsets, 3121 segments |
 | Record (`jinja_a`, `jinja_b`) | 2 | 1677 ranges, 211 source offsets, 94 segments |
 | Hand-built `jinja_a` (the slices of sqlfluff, the source text from the submodule) | 1 | ranges, points, positions, literal check |
-| Invented files with source slices out of order (no fixture has them; unit tests of `map.rs`) | 1 + 3000 random | each range as sqlfluff (one file); no panic (random files) |
+| Random invented files (multi-byte UTF-8, CR and LF, parts of raw slices, overlapping and empty source slices): each templated range and each source offset | 20000 | 20000 of 20000 as sqlfluff: 211080 ranges (17415 ValueError), 193773 source offsets |
+| Invented files with source slices out of order (no fixture has them; unit tests of `map.rs`) | 1 + 3000 random | each range as sqlfluff (one file); random files: each byte range (also inside a character) gives no panic and whole source characters, and a range inside one literal slice gives the same text |
 | Raw templater (multi-byte UTF-8, CRLF) | 1 | identity |
 | Dialect fixtures (`tests/tree.rs`): source range and position of each node, with no map and through the raw templater | 2306 | 685224 nodes as the parser markers, both ways; identity map |
 
@@ -98,5 +102,8 @@ fixtures and the 84 S2 parse inputs did not change.
 - A new templater implements `Templater` in `sqll_templater` and gives a
   `TemplatedFile` that `SourceMap::new` accepts. It must not change
   `sqll_source` or `TemplatedFile`.
+- The raw templater is in `sqll_templater` (S6 after C16), but the Core
+  interface test checks that it gives the identity map. A change that
+  breaks this fails a Core test.
 - Out of scope of C8: the Jinja, placeholder, and Python templaters (S6,
   S11), and the templater config (C11).

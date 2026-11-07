@@ -8,9 +8,11 @@ The design of C6 to C16 is in the C4 record
 these details to the task list: a kind is the full static data of a node
 (C6), C6 makes the crate `sqll_interfaces`, C7 makes the crate
 `sqll_syntax` (the conversion; C9 adds `parse`), C8 makes the crate
-`sqll_source` and the S6 package `sqll_templater` (Core owns `crates/**`
-until C16), C13 makes the crate `sqll_cli`, and C16 gives
-`docs/decisions/s3b-*.md` to Core. The interface documents are in
+`sqll_source`, C13 makes the crate `sqll_cli`, and C16 gives
+`docs/decisions/s3b-*.md` to Core. C8 changed the C4 design (C8 task
+text; the record has the change in Q2 and Q5): the raw templater is in
+the S6 package `sqll_templater`, not in `sqll_source` (Core owns
+`crates/**` until C16). The interface documents are in
 `docs/interfaces/` (a Core path since C6).
 
 ## Tasks
@@ -108,6 +110,7 @@ The sqlfluff data: `scripts/s3b/source_map_oracle.py` (record
 `check` in the CI job build). The test output (with `--nocapture`):
 
 ```text
+source map: 20000 of 20000 random files: as sqlfluff (211080 ranges, 17415 of them ValueError; 193773 source offsets)
 source map: 54 of 54 templater fixtures: as sqlfluff (776608 ranges, 1345 of them ValueError; 6711 source offsets; 3121 segments, 4 of them with a wider templated slice)
 source map: 2 of 2 templater fixtures: as sqlfluff (1677 ranges, 15 of them ValueError; 211 source offsets; 94 segments, 0 of them with a wider templated slice)
 tree: 2306 of 2306 dialect fixtures: lossless and node for node equal (685224 nodes: 432300 raw, 182196 segment, 70728 meta, 0 unparsable; 685224 with a position, 0 with another source range; 1468552 bytes, 57623 lines)
@@ -128,9 +131,11 @@ tree: 2306 of 2306 dialect fixtures through the raw templater: lossless and node
   with source slices out of order (review finding; no pinned fixture has
   the pattern). Now it takes no start slice there, as the Python slice
   (`crates/ported.json`). Unit tests: the invented file (each range as
-  the pinned sqlfluff) and 3000 random files (no panic). A local
-  differential run on 33000 random files (368963 ranges, 18526 of them
-  ValueError) gives 0 differences from the pinned sqlfluff.
+  the pinned sqlfluff) and 3000 random files with multi-byte characters,
+  parts of raw slices, and overlapping and empty source slices (no panic).
+  `check` compares 20000 such random files (seed 8) with the pinned
+  sqlfluff: 0 differences (output above). An earlier local run on 33000
+  random files has no record; the proof is the `check` run.
 - G4: S1 dialect suite of sqll 2306 of 2306 exact; the known failures of
   sqll (dialects, rules, autofix, templater) did not change; tree guard: 84
   of 84 the same; native base tests 162 of 162; the syntax tree check of

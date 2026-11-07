@@ -22,6 +22,11 @@
 //!   case table of test/core/templaters/jinja_test.py (one is in a
 //!   subfolder). The same check (ignored by default;
 //!   `scripts/s3b/source_map_oracle.py check` makes the data and runs it).
+//! - Random invented files (multi-byte characters, CR and LF, parts of raw
+//!   slices, overlapping and empty source slices): the map gives the
+//!   answers of the pinned sqlfluff `TemplatedFile` for each templated
+//!   range and each source offset (ignored by default; the same check
+//!   makes the data).
 //! - An invented file with source slices out of order: no call panics, and
 //!   the answers are those of sqlfluff.
 
@@ -46,8 +51,10 @@ use sqll_tree::{NodeId, SyntaxTree, TreeBuilder, TreeError};
 
 /// The record of the sqlfluff data.
 const RECORD: &str = "results/S3b/C8-source-map.json";
-/// The variable of the data file of the ignored test.
+/// The variable of the data file of the ignored test of the fixtures.
 const ORACLE_ENV: &str = "SQLL_SOURCE_MAP_ORACLE";
+/// The variable of the data file of the ignored test of the random files.
+const RANDOM_ENV: &str = "SQLL_SOURCE_MAP_RANDOM";
 
 /// The fixture of the hand-built example (in the sqlfluff submodule).
 const JINJA_A: &str = "test/fixtures/templater/jinja_a/jinja.sql";
@@ -401,7 +408,11 @@ fn text(v: &Value) -> String {
 /// The `TemplatedFile` of a fixture of the data.
 fn fixture_file(fx: &Value) -> TemplatedFile {
     let path = text(&fx["path"]);
-    let source = sqlfluff_file(&path);
+    data_file(fx, sqlfluff_file(&path), &path)
+}
+
+/// The `TemplatedFile` of the slices of the data and a source text.
+fn data_file(fx: &Value, source: String, path: &str) -> TemplatedFile {
     let slices: Vec<(String, Range<usize>, Range<usize>)> = fx["sliced_file"]
         .as_array()
         .unwrap()
@@ -423,7 +434,7 @@ fn fixture_file(fx: &Value) -> TemplatedFile {
         .collect();
     templated_file(
         source,
-        &path,
+        path,
         fx["templated_str"].as_str().unwrap(),
         &slices,
         &raws,
@@ -444,13 +455,29 @@ struct Counts {
 }
 
 /// Check one fixture of the data: the map gives each sqlfluff answer, and
-/// the syntax tree of the sqll parse has each sqlfluff segment.
+/// the syntax tree of the sqll parse has each sqlfluff segment. A fixture
+/// with no sqlfluff parse tree fails (fail closed).
 fn check_fixture(fx: &Value, counts: &mut Counts) -> Result<(), String> {
     let file = fixture_file(fx);
     if file.source_str.chars().count() != num(&fx["source_chars"]) {
         return Err("the source text is not that of the data".into());
     }
-    let file = Arc::new(file);
+    let map = check_map(fx, Arc::new(file), counts)?;
+    let Some(segments) = fx["segments"].as_array() else {
+        return Err("sqlfluff gave no parse tree".into());
+    };
+    check_tree(fx, segments, map, counts)?;
+    counts.fixtures += 1;
+    Ok(())
+}
+
+/// The map of a file gives each sqlfluff answer of the data: each templated
+/// range and each source offset.
+fn check_map(
+    fx: &Value,
+    file: Arc<TemplatedFile>,
+    counts: &mut Counts,
+) -> Result<Arc<SourceMap>, String> {
     let map = Arc::new(SourceMap::new(Arc::clone(&file)).map_err(|e| e.to_string())?);
     let tb = |cp: usize| {
         map.templated_byte_of_char(cp)
@@ -488,44 +515,57 @@ fn check_fixture(fx: &Value, counts: &mut Counts) -> Result<(), String> {
         }
         counts.points += 1;
     }
-    if let Some(segments) = fx["segments"].as_array() {
-        let dialect = Dialect::from_str(fx["dialect"].as_str().unwrap()).map_err(|_| "dialect")?;
-        let converted = convert_file(dialect, Arc::clone(&map))?;
-        let tree = &converted.tree;
-        if tree.node_count() != segments.len() {
-            return Err(format!(
-                "{} nodes, but sqlfluff has {} segments",
-                tree.node_count(),
-                segments.len()
-            ));
-        }
-        for (id, s) in tree.nodes().zip(segments) {
-            let want = (
-                text(&s[0]),
-                tb(num(&s[1]))..tb(num(&s[2])),
-                sb(num(&s[3]))..sb(num(&s[4])),
-                num(&s[5]) == 1,
-                at(num(&s[6]), num(&s[7])),
-            );
-            let got = (
-                tree.ty(id).name().to_string(),
-                tree.range(id),
-                tree.source_range(id),
-                tree.is_literal(id),
-                tree.source_pos(id),
-            );
-            let wider = got.1 != want.1 && want.1.start <= got.1.start && got.1.end <= want.1.end;
-            let same = got.0 == want.0
-                && (got.1 == want.1 || wider)
-                && (&got.2, got.3, got.4) == (&want.2, want.3, want.4);
-            if !same {
-                return Err(format!("node {}: {got:?}, not {want:?}", id.index()));
-            }
-            counts.split += usize::from(wider);
-            counts.segments += 1;
-        }
+    Ok(map)
+}
+
+/// The syntax tree of the sqll parse of the templated file has each
+/// sqlfluff segment, in pre-order.
+fn check_tree(
+    fx: &Value,
+    segments: &[Value],
+    map: Arc<SourceMap>,
+    counts: &mut Counts,
+) -> Result<(), String> {
+    let tb = |cp: usize| {
+        map.templated_byte_of_char(cp)
+            .expect("a templated code point")
+    };
+    let sb = |cp: usize| map.source_byte_of_char(cp).expect("a source code point");
+    let dialect = Dialect::from_str(fx["dialect"].as_str().unwrap()).map_err(|_| "dialect")?;
+    let converted = convert_file(dialect, Arc::clone(&map))?;
+    let tree = &converted.tree;
+    if tree.node_count() != segments.len() {
+        return Err(format!(
+            "{} nodes, but sqlfluff has {} segments",
+            tree.node_count(),
+            segments.len()
+        ));
     }
-    counts.fixtures += 1;
+    for (id, s) in tree.nodes().zip(segments) {
+        let want = (
+            text(&s[0]),
+            tb(num(&s[1]))..tb(num(&s[2])),
+            sb(num(&s[3]))..sb(num(&s[4])),
+            num(&s[5]) == 1,
+            at(num(&s[6]), num(&s[7])),
+        );
+        let got = (
+            tree.ty(id).name().to_string(),
+            tree.range(id),
+            tree.source_range(id),
+            tree.is_literal(id),
+            tree.source_pos(id),
+        );
+        let wider = got.1 != want.1 && want.1.start <= got.1.start && got.1.end <= want.1.end;
+        let same = got.0 == want.0
+            && (got.1 == want.1 || wider)
+            && (&got.2, got.3, got.4) == (&want.2, want.3, want.4);
+        if !same {
+            return Err(format!("node {}: {got:?}, not {want:?}", id.index()));
+        }
+        counts.split += usize::from(wider);
+        counts.segments += 1;
+    }
     Ok(())
 }
 
@@ -575,7 +615,9 @@ fn the_hand_built_example_is_the_sqlfluff_data() {
         .map(|(ty, o, t)| (ty.to_string(), o.clone(), t.clone()))
         .collect();
     assert_eq!(slices, hand);
-    for (r, (ty, o, _)) in fx["raw_sliced"].as_array().unwrap().iter().zip(&hand) {
+    let raws = fx["raw_sliced"].as_array().unwrap();
+    assert_eq!(raws.len(), JINJA_A_SLICES.len());
+    for (r, (ty, o, _)) in raws.iter().zip(&hand) {
         assert_eq!(
             (text(&r[0]), num(&r[1]), num(&r[2])),
             (ty.clone(), o.start, 0)
@@ -610,4 +652,40 @@ fn each_templater_fixture_maps_as_sqlfluff() {
     let (counts, problems) = run(fixtures);
     report(total, &counts, &problems);
     assert_eq!(problems, Vec::<String>::new());
+}
+
+#[test]
+#[ignore = "needs the data of the random files: scripts/s3b/source_map_oracle.py check"]
+fn random_files_map_as_sqlfluff() {
+    let path = std::env::var_os(RANDOM_ENV)
+        .map(PathBuf::from)
+        .unwrap_or_else(|| panic!("set {RANDOM_ENV} (scripts/s3b/source_map_oracle.py)"));
+    let text_of =
+        std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("{}: {e}", path.display()));
+    let json: Value = serde_json::from_str(&text_of).expect("JSON");
+    assert_eq!(json["kind"], "sqll-s3b-c8-source-map-random");
+    assert_eq!(json["sqlfluff"]["version"], "4.4.0");
+    let files = json["files"].as_array().expect("files");
+    let mut counts = Counts::default();
+    let mut problems = Vec::new();
+    for (k, fx) in files.iter().enumerate() {
+        let file = data_file(fx, text(&fx["source_str"]), "random.sql");
+        if let Err(e) = check_map(fx, Arc::new(file), &mut counts) {
+            problems.push(format!("random file {k}: {e}"));
+        }
+    }
+    let total = files.len();
+    eprintln!(
+        "source map: {} of {total} random files: as sqlfluff ({} ranges, {} of them \
+         ValueError; {} source offsets)",
+        total - problems.len(),
+        counts.ranges,
+        counts.errors,
+        counts.points
+    );
+    for p in problems.iter().take(20) {
+        eprintln!("source map: FAIL {p}");
+    }
+    assert_eq!(problems, Vec::<String>::new());
+    assert!(total > 0 && counts.errors > 0);
 }
