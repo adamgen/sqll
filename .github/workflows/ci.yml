@@ -127,8 +127,8 @@ jobs:
             scripts/sqlfluff-autofix-oracle scripts/sqlfluff-templater-oracle
             scripts/sqlfluff-dialect-oracle scripts/sqlfluff-case-ids
         run: |
-          uv run --frozen --project harness ruff check harness ci $ORACLES scripts/build-sqll
-          uv run --frozen --project harness ruff format --check harness ci $ORACLES scripts/build-sqll
+          uv run --frozen --project harness ruff check harness ci $ORACLES scripts/build-sqll scripts/s3 scripts/s3b
+          uv run --frozen --project harness ruff format --check harness ci $ORACLES scripts/build-sqll scripts/s3 scripts/s3b
 
       - name: Unit tests
         env:

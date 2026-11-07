@@ -123,6 +123,7 @@ Ported code (MIT, attribution in each file header):
 | `crates/sqll/src/parse.rs` | The lexer and parser calls and the limits of the T5 probe (row below): `sqlfluffrs/src/test_harness.rs` (`FixtureTest::run`), `sqlfluffrs/sqlfluffrs_parser/src/parser/python.rs` (`PyParser` limits), `src/sqlfluff/core/default_config.cfg` (the parse limits and indentation defaults) |
 | `scripts/s3/probe-sqlfluffrs/src/main.rs` | S3 research code, not sqll: `sqlfluffrs/src/test_harness.rs` (`FixtureTest::run`), `sqlfluffrs/sqlfluffrs_parser/src/parser/python.rs` (`PyParser` limits), `src/sqlfluff/core/default_config.cfg` (the parse limits and indentation defaults) |
 | `crates/sqll/tests/cli.rs` | `test/conftest.py` (`process_struct`) |
+| `scripts/s3b/tree-cost/src/main.rs` | S3b C4 measurement, not sqll: the lexer and parser calls and the limits of `crates/sqll/src/parse.rs` (row above) |
 
 ## sqlfluffrs in crates/
 
