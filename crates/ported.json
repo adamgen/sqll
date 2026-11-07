@@ -426,7 +426,7 @@
    "path": "crates/sqll_types/src/templater/templatefile.rs",
    "source": "sqlfluffrs/sqlfluffrs_types/src/templater/templatefile.rs",
    "source_sha256": "3d3842992052fdf7c83d363bc143bc45332f18268e54f52d6f2aa3dc16b4bd81",
-   "changed": "S3b C8 (the source map): the newline index of the source text and of the templated text has code point offsets, as the sqlfluff Python TemplatedFile (iter_indices_of_newlines, str.find). The source used byte offsets (char_indices), so get_line_pos_of_char_pos, which takes a code point offset, gave a wrong line position after a multi-byte character (S3b C7 finding). A new unit test checks it. For the 2306 dialect fixtures and the 84 S2 parse inputs, the output of sqll parse does not change."
+   "changed": "S3b C8 (the source map): the newline index of the source text and of the templated text has code point offsets, as the sqlfluff Python TemplatedFile (iter_indices_of_newlines, str.find). The source used byte offsets (char_indices), so get_line_pos_of_char_pos, which takes a code point offset, gave a wrong line position after a multi-byte character (S3b C7 finding). A new unit test checks it. For the 2306 dialect fixtures and the 84 S2 parse inputs, the output of sqll parse does not change. S3b C8 also: templated_slice_to_source_slice takes no start slice when the insertion point moves the start index after the stop index, as the Python slice gives []. The source panicked (an index range that starts after its end) for a file with source slices out of order, where sqlfluff gives a source slice. The start slices are not used in that case (the insertion point is the start), so each other answer does not change. A new unit test in this file and the unit tests of crates/sqll_source/src/map.rs check it."
   },
   {
    "path": "crates/sqll_types/src/token/config.rs",
@@ -679,7 +679,7 @@
   },
   {
    "path": "crates/sqll_source/src/map.rs",
-   "reason": "The source map over the ported TemplatedFile (S3b C8)."
+   "reason": "The source map over the ported TemplatedFile (S3b C8). It has ported parts (THIRD_PARTY.md, \"Ported code\")."
   },
   {
    "path": "crates/sqll_source/src/templater.rs",

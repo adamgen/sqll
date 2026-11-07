@@ -515,6 +515,161 @@ mod tests {
         );
     }
 
+    /// "ab{x--cde" to "abVcde": the source slices are not in order (the
+    /// raw slice "--" is in no templated slice). The insertion point of the
+    /// templated byte 3 is the source byte 4, and no slice starts there, so
+    /// the ported search moves the start slice after the stop slice.
+    fn unordered() -> SourceMap {
+        let file = TemplatedFile::new(
+            "ab{x--cde".into(),
+            "unordered.sql".into(),
+            Some("abVcde".into()),
+            Some(vec![
+                lit(0..2, 0..2),
+                tpl(2..4, 2..3),
+                lit(6..8, 3..5),
+                lit(8..9, 5..6),
+            ]),
+            Some(vec![
+                raw("ab", LITERAL, 0),
+                raw("{x", "templated", 2),
+                raw("--", "comment", 4),
+                raw("cd", LITERAL, 6),
+                raw("e", LITERAL, 8),
+            ]),
+        );
+        SourceMap::new(Arc::new(file)).unwrap()
+    }
+
+    #[test]
+    fn a_start_after_its_stop_slice_maps_as_sqlfluff() {
+        let map = unordered();
+        // (templated range, source range, literal): the answers of the
+        // pinned sqlfluff TemplatedFile for each templated range.
+        let want: [(Range<usize>, Range<usize>, bool); 28] = [
+            (0..0, 0..0, true),
+            (0..1, 0..1, true),
+            (0..2, 0..2, true),
+            (0..3, 0..4, false),
+            (0..4, 0..7, false),
+            (0..5, 0..8, false),
+            (0..6, 0..9, false),
+            (1..1, 1..1, true),
+            (1..2, 1..2, true),
+            (1..3, 1..4, false),
+            (1..4, 1..7, false),
+            (1..5, 1..8, false),
+            (1..6, 1..9, false),
+            (2..2, 2..2, true),
+            (2..3, 2..4, false),
+            (2..4, 2..7, false),
+            (2..5, 2..8, false),
+            (2..6, 2..9, false),
+            (3..3, 4..4, true),
+            (3..4, 4..7, false),
+            (3..5, 4..8, false),
+            (3..6, 4..9, false),
+            (4..4, 7..7, true),
+            (4..5, 7..8, true),
+            (4..6, 7..9, true),
+            (5..5, 8..8, true),
+            (5..6, 8..9, true),
+            (6..6, 9..9, true),
+        ];
+        for (t, s, literal) in want {
+            assert_eq!(map.source_range(t.clone()), Ok(s), "{t:?}");
+            assert_eq!(map.is_literal(t.clone()), Ok(literal), "{t:?}");
+        }
+    }
+
+    /// A small random number generator (xorshift), so that the test gives
+    /// the same files each run.
+    struct Rng(u64);
+
+    impl Rng {
+        fn below(&mut self, n: usize) -> usize {
+            self.0 ^= self.0 << 13;
+            self.0 ^= self.0 >> 7;
+            self.0 ^= self.0 << 17;
+            (self.0 % n as u64) as usize
+        }
+    }
+
+    /// A random file that `SourceMap::new` accepts: raw slices of 1 to 3
+    /// characters of random types, and templated slices that take the raw
+    /// slices in a random order (some raw slices in no templated slice).
+    fn random_file(rng: &mut Rng) -> TemplatedFile {
+        let mut source = String::new();
+        let mut raws = Vec::new();
+        for i in 0..1 + rng.below(6) {
+            let len = 1 + rng.below(3);
+            let text: String = (0..len)
+                .map(|k| (b'a' + ((i + k) % 26) as u8) as char)
+                .collect();
+            let ty = ["literal", "templated", "comment", "block_start"][rng.below(4)];
+            raws.push(raw(&text, ty, source.len()));
+            source.push_str(&text);
+        }
+        let mut order: Vec<usize> = (0..raws.len()).collect();
+        for i in (1..order.len()).rev() {
+            order.swap(i, rng.below(i + 1));
+        }
+        let mut templated = String::new();
+        let mut slices = Vec::new();
+        for &r in order.iter().take(1 + rng.below(raws.len())) {
+            let (o, text) = (raws[r].source_idx, raws[r].raw.clone());
+            let o = o..o + text.len();
+            let at = templated.len();
+            match rng.below(3) {
+                0 => {
+                    templated.push_str(&text);
+                    slices.push(lit(o, at..at + text.len()));
+                }
+                1 => slices.push(lit(o, at..at)),
+                _ => {
+                    let len = rng.below(4);
+                    templated.push_str(&"X".repeat(len));
+                    slices.push(tpl(o, at..at + len));
+                }
+            }
+        }
+        TemplatedFile::copy(
+            source,
+            "random.sql".into(),
+            templated,
+            slices,
+            raws,
+            vec![],
+            vec![],
+        )
+    }
+
+    #[test]
+    fn no_range_of_an_accepted_file_panics() {
+        let mut rng = Rng(0x5eed_c8);
+        let (mut files, mut ranges) = (0, 0);
+        for _ in 0..3000 {
+            let Ok(map) = SourceMap::new(Arc::new(random_file(&mut rng))) else {
+                continue;
+            };
+            let n = map.templated_text().len();
+            for i in 0..=n {
+                for j in i..=n {
+                    if let Ok(s) = map.source_range(i..j) {
+                        assert!(s.end <= map.source_text().len());
+                        assert!(map.is_literal(i..j).is_ok());
+                    }
+                    ranges += 1;
+                }
+            }
+            files += 1;
+        }
+        assert!(
+            files > 2000 && ranges > 20000,
+            "{files} files, {ranges} ranges"
+        );
+    }
+
     #[test]
     fn a_broken_file_is_refused() {
         let new = |slices: Vec<TemplatedFileSlice>, raws: Vec<RawFileSlice>| {

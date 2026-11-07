@@ -25,25 +25,25 @@ so = load()
 
 GOOD = (
     "running 1 test\n"
-    f"{so.pass_line(53)} (775828 ranges)\n"
+    f"{so.pass_line(54)} (776608 ranges)\n"
     f"test {so.TEST} ... ok\n\n"
-    "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 4 filtered out\n"
+    "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 5 filtered out\n"
 )
 
 
 def test_a_passing_run_has_no_problem():
-    assert so.check_output(0, GOOD, 53) == []
+    assert so.check_output(0, GOOD, 54) == []
 
 
 @pytest.mark.parametrize(
     "code, output, fixtures",
     [
-        (101, GOOD, 53),
-        (0, GOOD.replace(f"{so.TEST} ... ok", f"{so.TEST} ... ignored"), 53),
-        (0, GOOD.replace("1 passed", "0 passed"), 53),
-        (0, GOOD.replace("53 of 53", "52 of 53"), 53),
-        (0, GOOD, 54),
-        (0, "", 53),
+        (101, GOOD, 54),
+        (0, GOOD.replace(f"{so.TEST} ... ok", f"{so.TEST} ... ignored"), 54),
+        (0, GOOD.replace("1 passed", "0 passed"), 54),
+        (0, GOOD.replace("54 of 54", "53 of 54"), 54),
+        (0, GOOD, 55),
+        (0, "", 54),
     ],
 )
 def test_the_check_fails_closed(code, output, fixtures):
@@ -115,3 +115,14 @@ def test_each_recorded_fixture_has_all_ranges_and_offsets(index):
     for ty, s0, s1, t0, t1 in fx["sliced_file"]:
         if ty == "literal" and t1 > t0:
             assert source[s0:s1] == fx["templated_str"][t0:t1]
+
+
+def test_the_fixtures_are_those_of_the_folders_and_of_the_jinja_test_table():
+    fixtures = so.all_fixtures()
+    assert len(fixtures) == so.FIXTURES == len(set(fixtures))
+    nested = "test/fixtures/templater/jinja_exclude_macro_path/model_directory/"
+    assert nested + "jinja_sub_directory.sql" in fixtures
+    assert all(f.startswith(so.FIXTURE_DIR + "/") for f in fixtures)
+    # Only the table fixture in a subfolder; no macro or loader file.
+    deep = [f for f in fixtures if f.count("/") > so.FIXTURE_DIR.count("/") + 2]
+    assert deep == [nested + "jinja_sub_directory.sql"]

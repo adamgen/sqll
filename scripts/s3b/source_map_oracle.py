@@ -7,8 +7,9 @@ Run it with the harness Python from the repository root:
     uv run --frozen --project harness python scripts/s3b/source_map_oracle.py check
 
 Both run the pinned sqlfluff of the tool venv (tools/sqlfluff, pure Python)
-on templater fixtures of the pinned sqlfluff (test/fixtures/templater/),
-with the config of the fixture folder and the dialect ansi if the config
+on the templater fixtures of the pinned sqlfluff (all_fixtures: each SQL
+file directly in a folder of test/fixtures/templater/, and each file of the
+case table of test/core/templaters/jinja_test.py), with the config of the fixture folder and the dialect ansi if the config
 has none. For each fixture the data are: the slices and the templated text
 that the templater gives; for each templated range (i, j), 0 <= i <= j <=
 the templated length, the result of templated_slice_to_source_slice and
@@ -23,7 +24,7 @@ crates/sqll_interfaces/tests/source_map.rs and a loop example).
 
 check (CI job build, scripts/verify): make the data of RECORD_FIXTURES
 again; it must be the text of RECORD_FILE. Then make the data of each
-templater fixture into WORK/all.json (the submodule must stay clean: the
+fixture of all_fixtures into WORK/all.json (the submodule must stay clean: the
 sqlfluff Python runs with -B, so it writes no bytecode) and run the ignored test TEST of
 crates/sqll_interfaces/tests/source_map.rs on it (cargo test --locked). The
 check fails unless both agree, cargo exits with 0, the test passes, and the
@@ -51,6 +52,8 @@ RECORD_FIXTURES = (
     "test/fixtures/templater/jinja_a/jinja.sql",
     "test/fixtures/templater/jinja_b/jinja.sql",
 )
+# The count of all_fixtures (docs/interfaces/source-map.md, "Proof").
+FIXTURES = 54
 DEFAULT_DIALECT = "ansi"
 TEST = "each_templater_fixture_maps_as_sqlfluff"
 ORACLE_ENV = "SQLL_SOURCE_MAP_ORACLE"
@@ -162,8 +165,20 @@ def run_dump(fixtures: list[str]) -> dict:
 
 
 def all_fixtures() -> list[str]:
-    paths = sorted((SQLFLUFF_ROOT / FIXTURE_DIR).glob("*/*.sql"))
-    return [p.relative_to(SQLFLUFF_ROOT).as_posix() for p in paths]
+    """Each SQL file directly in a fixture folder, and each SQL file of the
+    case table of the sqlfluff Jinja test (it has fixtures in subfolders).
+    A recursive search would also find the macro and loader files."""
+    sys.path.insert(0, str(ROOT / "harness"))
+    from sqll_harness.suites.templater import TEST_FILE, read_table
+
+    folder = SQLFLUFF_ROOT / FIXTURE_DIR
+    paths = set(folder.glob("*/*.sql"))
+    for subpath, _, _ in read_table(SQLFLUFF_ROOT / TEST_FILE):
+        path = folder / f"{subpath}.sql"
+        if not path.is_file():
+            raise DataError(f"no fixture file {path.relative_to(SQLFLUFF_ROOT)}")
+        paths.add(path)
+    return [p.relative_to(SQLFLUFF_ROOT).as_posix() for p in sorted(paths)]
 
 
 def submodule_commit() -> str:
@@ -260,6 +275,8 @@ def check() -> int:
             f"{RECORD_FILE.relative_to(ROOT)} is not the sqlfluff data ({COMMAND} record)"
         )
     fixtures = all_fixtures()
+    if len(fixtures) != FIXTURES:
+        problems.append(f"{len(fixtures)} templater fixtures, not {FIXTURES}")
     data = run_dump(fixtures)
     clean = subprocess.run(
         [str(ROOT / "scripts" / "check-submodule"), "after the sqlfluff data"],

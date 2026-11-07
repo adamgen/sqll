@@ -261,7 +261,12 @@ impl TemplatedFile {
         }
 
         // Define start and stop slices
-        let start_slices = &self.sliced_file[ts_start_sf_start..ts_start_sf_stop];
+        // sqll: no slice when the insertion point moved the start after the
+        // stop, as the Python slice gives (S3b C8). The base panicked.
+        let start_slices = self
+            .sliced_file
+            .get(ts_start_sf_start..ts_start_sf_stop)
+            .unwrap_or(&[]);
         let stop_slices = if ts_stop_sf_start == ts_stop_sf_stop {
             vec![self.sliced_file[ts_stop_sf_start].clone()]
         } else {
@@ -744,6 +749,38 @@ mod tests {
         assert_eq!(file.get_line_pos_of_char_pos(3, true), (2, 1));
         assert_eq!(file.get_line_pos_of_char_pos(5, false), (2, 3));
         assert_eq!(file.get_line_pos_of_char_pos(6, false), (3, 1));
+    }
+
+    // sqll (S3b C8): a start index after the stop index gives no start
+    // slice, as the Python slice. The answer is that of sqlfluff.
+    #[test]
+    fn test_templated_slice_to_source_slice_start_after_stop() {
+        let slice = |t: &str, o: std::ops::Range<usize>, p: std::ops::Range<usize>| {
+            TemplatedFileSlice::new(t.to_string(), Slice::from(o), Slice::from(p))
+        };
+        let raw = |r: &str, t: &str, i: usize| RawFileSlice::new(r.into(), t.into(), i, None, None);
+        let file = TemplatedFile::new(
+            "ab{x--cde".to_string(),
+            "f.sql".to_string(),
+            Some("abVcde".to_string()),
+            Some(vec![
+                slice("literal", 0..2, 0..2),
+                slice("templated", 2..4, 2..3),
+                slice("literal", 6..8, 3..5),
+                slice("literal", 8..9, 5..6),
+            ]),
+            Some(vec![
+                raw("ab", "literal", 0),
+                raw("{x", "templated", 2),
+                raw("--", "comment", 4),
+                raw("cd", "literal", 6),
+                raw("e", "literal", 8),
+            ]),
+        );
+        assert_eq!(
+            file.templated_slice_to_source_slice(Slice::from(3..5)),
+            Slice::from(4..8)
+        );
     }
 
     #[test]

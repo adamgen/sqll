@@ -17,10 +17,15 @@
 //!   source offset, and the syntax tree of the sqll parse of the templated
 //!   file gives the type, the ranges, the literal flag, and the source
 //!   position of each sqlfluff segment.
-//! - Each templater fixture of the pinned sqlfluff: the same check (ignored
-//!   by default; `scripts/s3b/source_map_oracle.py check` makes the data
-//!   and runs it).
+//! - The 54 templater fixtures of the pinned sqlfluff: each SQL file
+//!   directly in a folder of test/fixtures/templater/, and each file of the
+//!   case table of test/core/templaters/jinja_test.py (one is in a
+//!   subfolder). The same check (ignored by default;
+//!   `scripts/s3b/source_map_oracle.py check` makes the data and runs it).
+//! - An invented file with source slices out of order: no call panics, and
+//!   the answers are those of sqlfluff.
 
+use std::collections::BTreeMap;
 use std::ops::Range;
 use std::path::PathBuf;
 use std::str::FromStr;
@@ -68,6 +73,10 @@ fn signatures(t: &dyn Templater, map: &SourceMap, tree: &SyntaxTree) {
     let _: fn() -> TemplaterConfig = TemplaterConfig::new;
     let _: fn(&mut TemplaterConfig, &str, &str, &str) = TemplaterConfig::set;
     let _: for<'a> fn(&'a TemplaterConfig, &str, &str) -> Option<&'a str> = TemplaterConfig::get;
+    let _: for<'a> fn(&'a TemplaterConfig, &str) -> Option<&'a BTreeMap<String, String>> =
+        TemplaterConfig::section;
+    let config = TemplaterConfig::new();
+    let _: Vec<&str> = config.section_names().collect();
     let _ = TemplaterError::Template {
         message: String::new(),
         source_byte: Some(0),
@@ -119,6 +128,12 @@ fn signatures(t: &dyn Templater, map: &SourceMap, tree: &SyntaxTree) {
         Arc<SourceMap>,
     ) -> Result<Converted, sqll_syntax::ConvertError> = from_node_with_source;
     let _: fn(&str) -> Option<Box<dyn Templater>> = sqll_templater::by_name;
+    let _: &[&str] = sqll_templater::NAMES;
+
+    let _: fn(&str) -> Option<LineIndex> = LineIndex::new;
+    let _: fn(&LineIndex) -> usize = LineIndex::line_count;
+    let _: fn(&LineIndex, usize) -> Option<usize> = LineIndex::line_start;
+    let _: fn(&LineIndex, &str, usize) -> Option<LinePos> = LineIndex::line_pos;
 }
 
 fn ansi() -> Dialect {
@@ -337,6 +352,35 @@ fn the_hand_built_jinja_example_maps_ranges_points_and_positions() {
     assert_eq!(tree.source_text(), sqlfluff_file(JINJA_A));
 }
 
+/// An invented file that `SourceMap::new` accepts, with the source slices
+/// out of order: "ab{x--cde" to "abVcde" (the raw slice "--" is in no
+/// templated slice). No pinned fixture has this pattern. The answers are
+/// those of the pinned sqlfluff TemplatedFile; the unit tests of
+/// crates/sqll_source/src/map.rs check each range.
+#[test]
+fn no_call_of_an_accepted_file_panics() {
+    let slices = [
+        ("literal".to_string(), 0..2, 0..2),
+        ("templated".to_string(), 2..4, 2..3),
+        ("literal".to_string(), 6..8, 3..5),
+        ("literal".to_string(), 8..9, 5..6),
+    ];
+    let raws = [
+        ("literal".to_string(), 0, 0, None),
+        ("templated".to_string(), 2, 0, None),
+        ("comment".to_string(), 4, 0, None),
+        ("literal".to_string(), 6, 0, None),
+        ("literal".to_string(), 8, 0, None),
+    ];
+    let file = templated_file("ab{x--cde".into(), "f.sql", "abVcde", &slices, &raws);
+    let map = SourceMap::new(Arc::new(file)).expect("a valid file");
+    assert_eq!(map.source_range(3..5), Ok(4..8));
+    assert_eq!(map.is_literal(3..5), Ok(false));
+    assert_eq!(map.source_range(3..3), Ok(4..4));
+    assert_eq!(map.source_range(4..6), Ok(7..9));
+    assert_eq!(map.is_literal(4..6), Ok(true));
+}
+
 /// The fixtures of a data file of scripts/s3b/source_map_oracle.py.
 fn oracle(path: PathBuf) -> Vec<Value> {
     let text = std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("{}: {e}", path.display()));
@@ -355,7 +399,7 @@ fn text(v: &Value) -> String {
 }
 
 /// The `TemplatedFile` of a fixture of the data.
-fn fixture_file(fx: &Value) -> (String, TemplatedFile) {
+fn fixture_file(fx: &Value) -> TemplatedFile {
     let path = text(&fx["path"]);
     let source = sqlfluff_file(&path);
     let slices: Vec<(String, Range<usize>, Range<usize>)> = fx["sliced_file"]
@@ -377,14 +421,13 @@ fn fixture_file(fx: &Value) -> (String, TemplatedFile) {
             )
         })
         .collect();
-    let file = templated_file(
+    templated_file(
         source,
         &path,
         fx["templated_str"].as_str().unwrap(),
         &slices,
         &raws,
-    );
-    (path, file)
+    )
 }
 
 /// The counts of the checked data.
@@ -403,7 +446,7 @@ struct Counts {
 /// Check one fixture of the data: the map gives each sqlfluff answer, and
 /// the syntax tree of the sqll parse has each sqlfluff segment.
 fn check_fixture(fx: &Value, counts: &mut Counts) -> Result<(), String> {
-    let (path, file) = fixture_file(fx);
+    let file = fixture_file(fx);
     if file.source_str.chars().count() != num(&fx["source_chars"]) {
         return Err("the source text is not that of the data".into());
     }
@@ -483,7 +526,6 @@ fn check_fixture(fx: &Value, counts: &mut Counts) -> Result<(), String> {
         }
     }
     counts.fixtures += 1;
-    let _ = path;
     Ok(())
 }
 

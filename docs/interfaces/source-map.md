@@ -16,9 +16,10 @@ Status: frozen (Core track, task C8). Packages: `sqll_source` (Core:
 - `Templater`: `name()` (the config name, for example `raw`) and
   `process(source, fname, &TemplaterConfig) -> Result<TemplatedFile,
   TemplaterError>`. This is the sqlfluff `process` with one variant.
-- `TemplaterConfig`: the keys and values of the sqlfluff config sections
-  under `templater` (for example `templater:jinja:context`), as text. The
-  config (C11) fills it; each templater reads and converts its own values.
+- `TemplaterConfig` (`new`, `set`, `get`, `section`, `section_names`):
+  the keys and values of the sqlfluff config sections under `templater`
+  (for example `templater:jinja:context`), as text. The config (C11) fills
+  it; each templater reads and converts its own values.
 - `TemplaterError`: `Template { message, source_byte }` (sqlfluff TMP) or
   `Unsupported { message }`: a setting or a feature that sqll does not
   have. sqll fails closed: "unsupported" and exit code 2.
@@ -27,6 +28,7 @@ Status: frozen (Core track, task C8). Packages: `sqll_source` (Core:
   Python templaters, S11 the Jinja templater.
 - `SourceMap::new(Arc<TemplatedFile>)` checks the slices and gives the map.
   It refuses a file that breaks a rule (`InvalidFile`), so no call panics.
+  A file with source slices out of order is valid: it maps as sqlfluff.
   `SourceMap::identity(text, fname)` is the map of the raw templater. All
   offsets of the map are bytes:
   - `source_range(templated range)`: the sqlfluff
@@ -60,8 +62,8 @@ can split one lexed element at the edge of a template slice; then each part
 keeps the templated slice of the element. The tree gives each part its own
 range, inside that slice (4 segments of the templater fixtures).
 
-`LinePos` and `LineIndex` moved from `sqll_tree` to `sqll_source`;
-`sqll_tree` exports them again.
+`LinePos` and `LineIndex` (`new`, `line_count`, `line_start`, `line_pos`)
+moved from `sqll_tree` to `sqll_source`; `sqll_tree` exports them again.
 
 ## Proof (C8)
 
@@ -69,15 +71,20 @@ The data of the pinned sqlfluff come from its Jinja templater
 (`scripts/s3b/source_map_oracle.py`). The record
 [`results/S3b/C8-source-map.json`](../../results/S3b/C8-source-map.json)
 has them for `jinja_a` and `jinja_b` (a loop). `check` (CI job build) makes
-them again for each templater fixture and runs the ignored test.
+them again for 54 templater fixtures and runs the ignored test: each SQL
+file directly in a folder of `test/fixtures/templater/` (53), and each file
+of the case table of `test/core/templaters/jinja_test.py` (one more, in a
+subfolder). Each runs with the config of its folder, so with the Jinja
+templater.
 
 | Input | Files | Result |
 |---|---|---|
-| Templater fixtures: each templated range, each source offset, each segment (type, ranges, literal flag, source position) | 53 | 53 of 53 as sqlfluff: 775828 ranges (1341 ValueError), 6654 source offsets, 3092 segments |
+| Templater fixtures: each templated range, each source offset, each segment (type, ranges, literal flag, source position) | 54 | 54 of 54 as sqlfluff: 776608 ranges (1345 ValueError), 6711 source offsets, 3121 segments |
 | Record (`jinja_a`, `jinja_b`) | 2 | 1677 ranges, 211 source offsets, 94 segments |
 | Hand-built `jinja_a` (the slices of sqlfluff, the source text from the submodule) | 1 | ranges, points, positions, literal check |
+| Invented files with source slices out of order (no fixture has them; unit tests of `map.rs`) | 1 + 3000 random | each range as sqlfluff (one file); no panic (random files) |
 | Raw templater (multi-byte UTF-8, CRLF) | 1 | identity |
-| Dialect fixtures (`tests/tree.rs`): source range and position of each node | 2306 | 685224 nodes as the parser markers |
+| Dialect fixtures (`tests/tree.rs`): source range and position of each node, with no map and through the raw templater | 2306 | 685224 nodes as the parser markers, both ways; identity map |
 
 The ported `get_line_pos_of_char_pos` had a newline index with byte
 offsets (C7 finding). C8 changed it to code points, as sqlfluff
