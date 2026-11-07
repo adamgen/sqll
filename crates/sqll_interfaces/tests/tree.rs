@@ -290,14 +290,14 @@ fn report(what: &str, files: usize, total: Counts, problems: &[String]) {
     eprintln!(
         "tree: {passed} of {files} {what}: lossless and node for node equal \
          ({} nodes: {} raw, {} segment, {} meta, {} unparsable; {} with a position, \
-         {} with another ported line position; {} bytes, {} lines)",
+         {} with another source range; {} bytes, {} lines)",
         total.nodes,
         total.raw,
         total.segment,
         total.meta,
         total.unparsable,
         total.positioned,
-        total.ported_line_pos_differs,
+        total.source_differs,
         total.bytes,
         total.lines
     );

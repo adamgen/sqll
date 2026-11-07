@@ -13,4 +13,6 @@ publish = false
 [dependencies]
 hashbrown.workspace = true
 sqll_parser = { path = "../sqll_parser" }
+sqll_source = { path = "../sqll_source" }
 sqll_tree = { path = "../sqll_tree" }
+sqll_types = { path = "../sqll_types" }

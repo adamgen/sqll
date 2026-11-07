@@ -1,0 +1,13 @@
+# The source map crate of sqll (docs/decisions/s3b-core.md, Q2; S3b task
+# C8): the Templater interface and the map between the templated text and
+# the source text. This file is new sqll code (crates/ported.json, "new").
+[package]
+name = "sqll_source"
+version.workspace = true
+edition = "2021"
+rust-version.workspace = true
+license = "MIT"
+publish = false
+
+[dependencies]
+sqll_types = { path = "../sqll_types" }

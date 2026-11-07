@@ -15,9 +15,12 @@
 //! fails if they are not the same. C9 (the frozen parse interface) removes
 //! the copy.
 
+use std::sync::Arc;
+
 use sqll_dialects::Dialect;
 use sqll_lexer::{LexInput, Lexer};
 use sqll_parser::parser::{Node, Parser};
+use sqll_types::TemplatedFile;
 
 // The values of crates/sqll/src/parse.rs.
 pub const MAX_PARSE_DEPTH: usize = 600;
@@ -62,5 +65,12 @@ pub fn parse_tokens(dialect: Dialect, tokens: &[sqll_types::Token]) -> Result<No
 /// unlexable token); only a parse error is an error.
 pub fn parse(dialect: Dialect, sql: String) -> Result<Node, String> {
     let (tokens, _) = lexer(dialect).lex(LexInput::String(sql), true);
+    parse_tokens(dialect, &tokens)
+}
+
+/// Lex and parse the templated text of a `TemplatedFile` as `parse` does
+/// (S3b C8; the lexer input of the parse interface of C9).
+pub fn parse_file(dialect: Dialect, file: Arc<TemplatedFile>) -> Result<Node, String> {
+    let (tokens, _) = lexer(dialect).lex(LexInput::TemplatedFile(file), true);
     parse_tokens(dialect, &tokens)
 }

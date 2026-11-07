@@ -426,7 +426,7 @@
    "path": "crates/sqll_types/src/templater/templatefile.rs",
    "source": "sqlfluffrs/sqlfluffrs_types/src/templater/templatefile.rs",
    "source_sha256": "3d3842992052fdf7c83d363bc143bc45332f18268e54f52d6f2aa3dc16b4bd81",
-   "changed": null
+   "changed": "S3b C8 (the source map): the newline index of the source text and of the templated text has code point offsets, as the sqlfluff Python TemplatedFile (iter_indices_of_newlines, str.find). The source used byte offsets (char_indices), so get_line_pos_of_char_pos, which takes a code point offset, gave a wrong line position after a multi-byte character (S3b C7 finding). A new unit test checks it. For the 2306 dialect fixtures and the 84 S2 parse inputs, the output of sqll parse does not change."
   },
   {
    "path": "crates/sqll_types/src/token/config.rs",
@@ -639,7 +639,7 @@
   },
   {
    "path": "crates/sqll_tree/src/tree.rs",
-   "reason": "The lossless syntax tree, its builder, and its line index (S3b C7)."
+   "reason": "The lossless syntax tree and its builder (S3b C7), and the source ranges of its nodes (S3b C8)."
   },
   {
    "path": "crates/sqll_syntax/Cargo.toml",
@@ -651,7 +651,7 @@
   },
   {
    "path": "crates/sqll_syntax/src/convert.rs",
-   "reason": "The conversion from the parser tree to the syntax tree (S3b C7)."
+   "reason": "The conversion from the parser tree to the syntax tree (S3b C7), also with a source map (S3b C8)."
   },
   {
    "path": "crates/sqll_interfaces/src/parse.rs",
@@ -659,11 +659,47 @@
   },
   {
    "path": "crates/sqll_interfaces/src/tree_check.rs",
-   "reason": "The check of a converted syntax tree against its parser tree (S3b C7)."
+   "reason": "The check of a converted syntax tree against its parser tree (S3b C7), also its source ranges and positions (S3b C8)."
   },
   {
    "path": "crates/sqll_interfaces/tests/tree.rs",
    "reason": "The interface test of the syntax tree (S3b C7)."
+  },
+  {
+   "path": "crates/sqll_source/Cargo.toml",
+   "reason": "The manifest of the new source map crate (S3b C8)."
+  },
+  {
+   "path": "crates/sqll_source/src/lib.rs",
+   "reason": "The library of the source map crate (S3b C8)."
+  },
+  {
+   "path": "crates/sqll_source/src/lines.rs",
+   "reason": "The lines and positions of a text (S3b C7, moved from crates/sqll_tree/src/tree.rs in C8)."
+  },
+  {
+   "path": "crates/sqll_source/src/map.rs",
+   "reason": "The source map over the ported TemplatedFile (S3b C8)."
+  },
+  {
+   "path": "crates/sqll_source/src/templater.rs",
+   "reason": "The templater interface: the Templater trait, its settings, and its errors (S3b C8)."
+  },
+  {
+   "path": "crates/sqll_templater/Cargo.toml",
+   "reason": "The manifest of the new templater crate (S3b C8)."
+  },
+  {
+   "path": "crates/sqll_templater/src/lib.rs",
+   "reason": "The library of the templater crate (S3b C8)."
+  },
+  {
+   "path": "crates/sqll_templater/src/raw.rs",
+   "reason": "The raw templater (S3b C8). It has ported parts (THIRD_PARTY.md, \"Ported code\")."
+  },
+  {
+   "path": "crates/sqll_interfaces/tests/source_map.rs",
+   "reason": "The interface test of the source map (S3b C8)."
   }
  ]
 }

@@ -4,6 +4,7 @@
 // commit 0348222a3bcdb0226563f7349c5a39beb0641955.
 // Copyright (c) 2018-2026 Alan Cruickshank. MIT License: see
 // crates/LICENSE-sqlfluffrs.md. See THIRD_PARTY.md and crates/ported.json.
+// sqll changed this file. crates/ported.json gives the reason.
 
 use hashbrown::HashMap;
 use std::cmp::{max, min};
@@ -466,9 +467,13 @@ impl std::fmt::Display for TemplatedFile {
     }
 }
 
+// sqll: code point offsets (`chars().enumerate()`), as the Python `str.find`
+// of sqlfluff. The base used byte offsets (`char_indices`), so the line
+// position was wrong after a multi-byte character (S3b C8).
 fn iter_codepoint_indices_of_newlines(raw_str: &str) -> impl Iterator<Item = usize> + '_ {
     raw_str
-        .char_indices()
+        .chars()
+        .enumerate()
         .filter(|(_i, c)| *c == '\n')
         .map(|(idx, _)| idx)
 }
@@ -724,6 +729,21 @@ mod tests {
                 positions
             );
         }
+    }
+
+    // sqll (S3b C8): the offsets are code points, as in sqlfluff.
+    #[test]
+    fn test_indices_of_newlines_count_code_points() {
+        // "é" has 2 bytes, "😀" has 4 bytes.
+        assert_eq!(
+            iter_codepoint_indices_of_newlines("é\n😀\nx").collect::<Vec<_>>(),
+            vec![1, 3]
+        );
+        let file = TemplatedFile::from("é😀\nab\n".to_string());
+        assert_eq!(file.get_line_pos_of_char_pos(2, true), (1, 3));
+        assert_eq!(file.get_line_pos_of_char_pos(3, true), (2, 1));
+        assert_eq!(file.get_line_pos_of_char_pos(5, false), (2, 3));
+        assert_eq!(file.get_line_pos_of_char_pos(6, false), (3, 1));
     }
 
     #[test]

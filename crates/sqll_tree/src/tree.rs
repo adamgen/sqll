@@ -13,9 +13,20 @@
 //! next text of the buffer and a tree whose leaves do not cover the buffer.
 //! Thus the texts of the leaves, in order, are the templated text, with each
 //! byte one time. [`SyntaxTree::verify`] checks this again.
+//!
+//! A tree can have a [`SourceMap`] (docs/interfaces/source-map.md, task C8).
+//! Then each node also has a source byte range: a leaf and a meta node get
+//! theirs from the builder (the lexer position of sqlfluff), and a node with
+//! children spans the source ranges of its children, as the sqlfluff
+//! `PositionMarker.from_child_markers`. A tree with no source map, or with
+//! an identity map, has the templated range as the source range.
 
 use std::fmt;
 use std::ops::Range;
+use std::sync::Arc;
+
+use sqll_source::SourceMap;
+pub use sqll_source::{LineIndex, LinePos};
 
 use crate::kinds::{SegmentKind, SegmentType, Variant};
 
@@ -48,68 +59,6 @@ struct Record {
     next: u32,
 }
 
-/// A line and a position in the line, both from 1. The position counts
-/// characters (Unicode scalar values), as sqlfluff does. Only "\n" ends a
-/// line: the "\r" of "\r\n" is the last character of its line.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct LinePos {
-    pub line: usize,
-    pub pos: usize,
-}
-
-/// The byte offset of the start of each line of a text.
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct LineIndex {
-    starts: Box<[u32]>,
-}
-
-impl LineIndex {
-    /// The text must be shorter than 4 GiB ([`TreeBuilder::new`] checks it).
-    fn new(text: &str) -> Self {
-        let mut starts = vec![0u32];
-        starts.extend(
-            text.bytes()
-                .enumerate()
-                .filter(|&(_, b)| b == b'\n')
-                .map(|(i, _)| (i + 1) as u32),
-        );
-        LineIndex {
-            starts: starts.into_boxed_slice(),
-        }
-    }
-
-    /// The number of lines: the number of "\n" and 1.
-    pub fn line_count(&self) -> usize {
-        self.starts.len()
-    }
-
-    /// The byte offset of the start of a line (from 1), or `None` if the
-    /// text has no such line.
-    pub fn line_start(&self, line: usize) -> Option<usize> {
-        let i = line.checked_sub(1)?;
-        self.starts.get(i).map(|&s| s as usize)
-    }
-
-    /// The line and position of the character at a byte offset of `text`
-    /// (the text of this index). The offset `text.len()` is the position
-    /// after the last character. `None` if the offset is after the end or
-    /// not at the start of a character.
-    pub fn line_pos(&self, text: &str, byte: usize) -> Option<LinePos> {
-        if !text.is_char_boundary(byte) {
-            return None;
-        }
-        let line = self.starts.partition_point(|&s| s as usize <= byte);
-        let start = self.starts[line - 1] as usize;
-        let before = &text.as_bytes()[start..byte];
-        // Count the first byte of each character (not 0b10xxxxxx).
-        let chars = before.iter().filter(|&&b| b & 0xC0 != 0x80).count();
-        Some(LinePos {
-            line,
-            pos: chars + 1,
-        })
-    }
-}
-
 /// An error of the [`TreeBuilder`] or of [`SyntaxTree::verify`].
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum TreeError {
@@ -135,6 +84,15 @@ pub enum TreeError {
     TextLeft { at: usize },
     /// `verify` found a node that does not obey a rule of the tree.
     Invalid { node: usize, rule: &'static str },
+    /// A call with a source range on a builder with no source map.
+    NoSourceMap,
+    /// A leaf with no source range on a builder whose source map is not
+    /// the identity.
+    NoSourceRange,
+    /// The source range is not a range of characters of the source text,
+    /// or, for an identity map, not the templated range (at this templated
+    /// byte).
+    BadSourceRange { at: usize },
 }
 
 impl fmt::Display for TreeError {
@@ -155,11 +113,27 @@ impl fmt::Display for TreeError {
                 write!(f, "the leaves end at byte {at}, before the end of the text")
             }
             TreeError::Invalid { node, rule } => write!(f, "node {node}: {rule}"),
+            TreeError::NoSourceMap => {
+                write!(f, "a source range, but the builder has no source map")
+            }
+            TreeError::NoSourceRange => write!(f, "a leaf needs a source range"),
+            TreeError::BadSourceRange { at } => {
+                write!(f, "the source range at byte {at} is not valid")
+            }
         }
     }
 }
 
 impl std::error::Error for TreeError {}
+
+/// The source of a tree with a source map.
+#[derive(Clone)]
+struct Source {
+    map: Arc<SourceMap>,
+    /// The source byte range of each node, or `None` if the map is the
+    /// identity.
+    ranges: Option<Box<[(u32, u32)]>>,
+}
 
 /// A flat, immutable, lossless syntax tree.
 #[derive(Clone)]
@@ -167,6 +141,12 @@ pub struct SyntaxTree {
     text: Box<str>,
     nodes: Box<[Record]>,
     lines: LineIndex,
+    source: Option<Source>,
+}
+
+/// True if the range is in the text and starts and ends at a character.
+fn char_range(text: &str, start: usize, end: usize) -> bool {
+    start <= end && end <= text.len() && text.is_char_boundary(start) && text.is_char_boundary(end)
 }
 
 impl fmt::Debug for SyntaxTree {
@@ -175,6 +155,7 @@ impl fmt::Debug for SyntaxTree {
             .field("nodes", &self.nodes.len())
             .field("bytes", &self.text.len())
             .field("lines", &self.lines.line_count())
+            .field("source_map", &self.source.as_ref().map(|s| &s.map))
             .finish()
     }
 }
@@ -308,12 +289,69 @@ impl SyntaxTree {
             .expect("a node starts at a character")
     }
 
-    /// The heap bytes of the tree: the text, the node records, and the line
-    /// index.
+    /// The source map, or `None` if the tree has none (the templated text is
+    /// the source text).
+    pub fn source_map(&self) -> Option<&Arc<SourceMap>> {
+        self.source.as_ref().map(|s| &s.map)
+    }
+
+    /// The source text: the text before the templater.
+    pub fn source_text(&self) -> &str {
+        match &self.source {
+            Some(s) => s.map.source_text(),
+            None => &self.text,
+        }
+    }
+
+    /// The source byte range of the node. It is the templated range if the
+    /// tree has no source map or an identity map.
+    pub fn source_range(&self, id: NodeId) -> Range<usize> {
+        match self.source.as_ref().and_then(|s| s.ranges.as_ref()) {
+            Some(ranges) => {
+                let (start, end) = ranges[id.index()];
+                start as usize..end as usize
+            }
+            None => self.range(id),
+        }
+    }
+
+    /// The source line and position of the start of the node.
+    pub fn source_pos(&self, id: NodeId) -> LinePos {
+        match &self.source {
+            Some(s) => s
+                .map
+                .source_line_pos(self.source_range(id).start)
+                .expect("a source range starts at a character"),
+            None => self.start_pos(id),
+        }
+    }
+
+    /// True if the source range of the node has only literal source text
+    /// (`SourceMap::is_source_literal`, the sqlfluff `is_literal` of a
+    /// position marker): a fix can change the node.
+    pub fn is_literal(&self, id: NodeId) -> bool {
+        match &self.source {
+            Some(s) if s.ranges.is_some() => s
+                .map
+                .is_source_literal(self.source_range(id))
+                .unwrap_or(false),
+            _ => true,
+        }
+    }
+
+    /// The heap bytes of the tree: the text, the node records, the line
+    /// index, and the source ranges. The source map is shared and is not
+    /// part of it.
     pub fn heap_bytes(&self) -> usize {
+        let ranges = self
+            .source
+            .as_ref()
+            .and_then(|s| s.ranges.as_ref())
+            .map_or(0, |r| r.len() * std::mem::size_of::<(u32, u32)>());
         self.text.len()
             + self.nodes.len() * std::mem::size_of::<Record>()
-            + self.lines.starts.len() * std::mem::size_of::<u32>()
+            + self.lines.line_count() * std::mem::size_of::<u32>()
+            + ranges
     }
 
     /// Check each rule of the tree again: one root; each parent and
@@ -390,8 +428,48 @@ impl SyntaxTree {
         if cursor != self.text.len() {
             return Err(TreeError::TextLeft { at: cursor });
         }
-        if self.lines != LineIndex::new(&self.text) {
+        if Some(&self.lines) != LineIndex::new(&self.text).as_ref() {
             return invalid(0, "the line index is not that of the text");
+        }
+        self.verify_source()
+    }
+
+    /// The source rules: the text is the templated text of the map; with a
+    /// map that is not the identity, each node has a source range of
+    /// characters, and a node with children spans the source ranges of its
+    /// children (an empty one at the source end of the leaf or meta node
+    /// before it, if it has no child).
+    fn verify_source(&self) -> Result<(), TreeError> {
+        let invalid = |node: usize, rule: &'static str| Err(TreeError::Invalid { node, rule });
+        let Some(source) = &self.source else {
+            return Ok(());
+        };
+        if source.map.templated_text() != &*self.text {
+            return invalid(0, "the text is not the templated text of the source map");
+        }
+        let Some(ranges) = &source.ranges else {
+            return Ok(());
+        };
+        if ranges.len() != self.nodes.len() {
+            return invalid(0, "the tree does not have one source range for each node");
+        }
+        let text = source.map.source_text();
+        let mut source_cursor = 0u32;
+        for (i, &(start, end)) in ranges.iter().enumerate() {
+            if !char_range(text, start as usize, end as usize) {
+                return invalid(i, "the source range is not a range of characters");
+            }
+            if matches!(
+                self.nodes[i].kind.data().variant,
+                Variant::Segment | Variant::Unparsable
+            ) {
+                let want = span(&self.nodes, ranges, i).unwrap_or((source_cursor, source_cursor));
+                if (start, end) != want {
+                    return invalid(i, "the source range does not span the children");
+                }
+            } else {
+                source_cursor = end;
+            }
         }
         Ok(())
     }
@@ -418,14 +496,40 @@ impl Iterator for Children<'_> {
     }
 }
 
+/// The smallest start and the largest end of the source ranges of the
+/// children of node `i`, or `None` if it has no child.
+fn span(nodes: &[Record], ranges: &[(u32, u32)], i: usize) -> Option<(u32, u32)> {
+    let mut child = i + 1;
+    let mut out: Option<(u32, u32)> = None;
+    while child < nodes[i].next as usize {
+        let (s, e) = ranges[child];
+        out = Some(out.map_or((s, e), |(a, b)| (a.min(s), b.max(e))));
+        child = nodes[child].next as usize;
+    }
+    out
+}
+
+/// The source part of a builder with a source map.
+#[derive(Debug)]
+struct BuildSource {
+    map: Arc<SourceMap>,
+    /// The source range of each node, if the map is not the identity.
+    ranges: Option<Vec<(u32, u32)>>,
+    /// The source end of the last leaf or meta node.
+    cursor: u32,
+}
+
 /// Makes a [`SyntaxTree`] in pre-order: `start_node` and `finish_node` for a
-/// node with children, `leaf` for a leaf, and `meta` for a meta node.
+/// node with children, `leaf` for a leaf, and `meta` for a meta node. With a
+/// source map ([`TreeBuilder::with_source`]), `leaf_at` and `meta_at` also
+/// take the source range of the node.
 #[derive(Debug)]
 pub struct TreeBuilder {
     text: String,
     nodes: Vec<Record>,
     open: Vec<u32>,
     cursor: usize,
+    source: Option<BuildSource>,
 }
 
 impl TreeBuilder {
@@ -444,7 +548,22 @@ impl TreeBuilder {
             nodes: Vec::with_capacity(nodes),
             open: Vec::new(),
             cursor: 0,
+            source: None,
         })
+    }
+
+    /// A builder for the templated text of a source map, with space for this
+    /// number of nodes. If the map is not the identity, each leaf needs its
+    /// source range (`leaf_at`).
+    pub fn with_source(map: Arc<SourceMap>, nodes: usize) -> Result<Self, TreeError> {
+        let mut b = Self::with_capacity(map.templated_text().to_string(), nodes)?;
+        let ranges = (!map.is_identity()).then(|| Vec::with_capacity(nodes));
+        b.source = Some(BuildSource {
+            map,
+            ranges,
+            cursor: 0,
+        });
+        Ok(b)
     }
 
     /// The byte offset of the next leaf.
@@ -460,14 +579,67 @@ impl TreeBuilder {
         }
     }
 
-    /// Add a node at the cursor and return its id.
-    fn push(&mut self, kind: SegmentKind, len: usize) -> Result<NodeId, TreeError> {
+    /// The source range of a leaf or a meta node of `len` templated bytes
+    /// at the cursor: `source`, or, for `None`, the templated range (no map
+    /// or an identity map) or an empty range at the source cursor (a meta
+    /// node). Return `None` if the builder keeps no source range.
+    fn source_of(
+        &self,
+        len: usize,
+        source: Option<Range<usize>>,
+        leaf: bool,
+    ) -> Result<Option<(u32, u32)>, TreeError> {
+        let templated = self.cursor..self.cursor + len;
+        let bad = TreeError::BadSourceRange { at: self.cursor };
+        let Some(s) = &self.source else {
+            return match source {
+                Some(_) => Err(TreeError::NoSourceMap),
+                None => Ok(None),
+            };
+        };
+        if s.ranges.is_none() {
+            return match source {
+                Some(r) if r != templated => Err(bad),
+                _ => Ok(None),
+            };
+        }
+        let r = match source {
+            Some(r) => r,
+            None if leaf => return Err(TreeError::NoSourceRange),
+            None => s.cursor as usize..s.cursor as usize,
+        };
+        if !char_range(s.map.source_text(), r.start, r.end) {
+            return Err(bad);
+        }
+        Ok(Some((r.start as u32, r.end as u32)))
+    }
+
+    /// Add a node at the cursor and return its id. `source` is its source
+    /// range, if the builder keeps them.
+    fn push(
+        &mut self,
+        kind: SegmentKind,
+        len: usize,
+        source: Option<(u32, u32)>,
+    ) -> Result<NodeId, TreeError> {
         if self.open.is_empty() && !self.nodes.is_empty() {
             return Err(TreeError::SecondRoot);
         }
         let index = self.nodes.len();
         if index + 1 >= NONE as usize {
             return Err(TreeError::TooLarge);
+        }
+        if let Some(BuildSource {
+            ranges: Some(ranges),
+            cursor,
+            ..
+        }) = &mut self.source
+        {
+            // A node with children gets its range in `finish_node`.
+            ranges.push(source.unwrap_or((NONE, 0)));
+            if let Some((_, end)) = source {
+                *cursor = end;
+            }
         }
         let index = index as u32;
         self.nodes.push(Record {
@@ -484,7 +656,7 @@ impl TreeBuilder {
     /// children follow until `finish_node`.
     pub fn start_node(&mut self, kind: SegmentKind) -> Result<NodeId, TreeError> {
         Self::check(kind, "start_node", &[Variant::Segment, Variant::Unparsable])?;
-        let id = self.push(kind, 0)?;
+        let id = self.push(kind, 0, None)?;
         self.open.push(id.0);
         Ok(id)
     }
@@ -496,24 +668,76 @@ impl TreeBuilder {
         let r = &mut self.nodes[id as usize];
         r.end = self.cursor as u32;
         r.next = next;
+        if let Some(BuildSource {
+            ranges: Some(ranges),
+            cursor,
+            ..
+        }) = &mut self.source
+        {
+            let i = id as usize;
+            ranges[i] = span(&self.nodes, ranges, i).unwrap_or((*cursor, *cursor));
+        }
         Ok(NodeId(id))
     }
 
-    /// Add a leaf. `raw` must be the next text of the buffer.
+    /// Add a leaf. `raw` must be the next text of the buffer. A builder with
+    /// a source map that is not the identity refuses it: use `leaf_at`.
     pub fn leaf(&mut self, kind: SegmentKind, raw: &str) -> Result<NodeId, TreeError> {
+        self.add_leaf(kind, raw, None)
+    }
+
+    /// Add a leaf with its source byte range. For an identity map, the
+    /// source range must be the templated range.
+    pub fn leaf_at(
+        &mut self,
+        kind: SegmentKind,
+        raw: &str,
+        source: Range<usize>,
+    ) -> Result<NodeId, TreeError> {
+        self.add_leaf(kind, raw, Some(source))
+    }
+
+    fn add_leaf(
+        &mut self,
+        kind: SegmentKind,
+        raw: &str,
+        source: Option<Range<usize>>,
+    ) -> Result<NodeId, TreeError> {
         Self::check(kind, "leaf", &[Variant::Raw])?;
         if !self.text.as_bytes()[self.cursor..].starts_with(raw.as_bytes()) {
             return Err(TreeError::NotNextText { at: self.cursor });
         }
-        let id = self.push(kind, raw.len())?;
+        let source = self.source_of(raw.len(), source, true)?;
+        let id = self.push(kind, raw.len(), source)?;
         self.cursor += raw.len();
         Ok(id)
     }
 
     /// Add a meta node (or an empty node) with zero length at the cursor.
+    /// With a source map that is not the identity, its source range is
+    /// empty, at the source end of the leaf or meta node before it.
     pub fn meta(&mut self, kind: SegmentKind) -> Result<NodeId, TreeError> {
+        self.add_meta(kind, None)
+    }
+
+    /// Add a meta node with its source byte range (for example the source
+    /// text of a template tag for a placeholder).
+    pub fn meta_at(
+        &mut self,
+        kind: SegmentKind,
+        source: Range<usize>,
+    ) -> Result<NodeId, TreeError> {
+        self.add_meta(kind, Some(source))
+    }
+
+    fn add_meta(
+        &mut self,
+        kind: SegmentKind,
+        source: Option<Range<usize>>,
+    ) -> Result<NodeId, TreeError> {
         Self::check(kind, "meta", &[Variant::Meta, Variant::Empty])?;
-        self.push(kind, 0)
+        let source = self.source_of(0, source, false)?;
+        self.push(kind, 0, source)
     }
 
     /// The tree. It fails if a node is open, if there is no node, or if the
@@ -528,11 +752,16 @@ impl TreeBuilder {
         if self.cursor != self.text.len() {
             return Err(TreeError::TextLeft { at: self.cursor });
         }
-        let lines = LineIndex::new(&self.text);
+        let lines = LineIndex::new(&self.text).ok_or(TreeError::TooLarge)?;
+        let source = self.source.map(|s| Source {
+            map: s.map,
+            ranges: s.ranges.map(Vec::into_boxed_slice),
+        });
         Ok(SyntaxTree {
             text: self.text.into_boxed_str(),
             nodes: self.nodes.into_boxed_slice(),
             lines,
+            source,
         })
     }
 }
@@ -546,76 +775,6 @@ mod tests {
             .iter()
             .find(|k| k.data().variant == variant)
             .expect("a kind")
-    }
-
-    fn lines(text: &str) -> (LineIndex, Vec<Option<LinePos>>) {
-        let index = LineIndex::new(text);
-        let all = (0..=text.len() + 1)
-            .map(|b| index.line_pos(text, b))
-            .collect();
-        (index, all)
-    }
-
-    fn at(line: usize, pos: usize) -> Option<LinePos> {
-        Some(LinePos { line, pos })
-    }
-
-    #[test]
-    fn line_pos_counts_lines_at_newlines_and_characters_in_a_line() {
-        let (index, all) = lines("ab\ncd\n");
-        assert_eq!(index.line_count(), 3);
-        assert_eq!(
-            all,
-            [
-                at(1, 1),
-                at(1, 2),
-                at(1, 3),
-                at(2, 1),
-                at(2, 2),
-                at(2, 3),
-                at(3, 1),
-                None
-            ]
-        );
-        assert_eq!(index.line_start(1), Some(0));
-        assert_eq!(index.line_start(3), Some(6));
-        assert_eq!(index.line_start(0), None);
-        assert_eq!(index.line_start(4), None);
-    }
-
-    #[test]
-    fn line_pos_counts_a_multi_byte_character_one_time() {
-        // "é" has 2 bytes, "😀" has 4 bytes.
-        let text = "é😀x\n€";
-        let (_, all) = lines(text);
-        assert_eq!(all[0], at(1, 1));
-        assert_eq!(all[1], None, "inside é");
-        assert_eq!(all[2], at(1, 2));
-        assert_eq!(all[3..6], [None, None, None], "inside 😀");
-        assert_eq!(all[6], at(1, 3));
-        assert_eq!(all[7], at(1, 4), "the newline");
-        assert_eq!(all[8], at(2, 1));
-        assert_eq!(all[11], at(2, 2), "the end of the text");
-    }
-
-    #[test]
-    fn line_pos_keeps_the_carriage_return_in_its_line() {
-        let (index, all) = lines("a\r\nb\r\n\r\nc");
-        assert_eq!(index.line_count(), 4);
-        assert_eq!(all[1], at(1, 2), "\\r");
-        assert_eq!(all[2], at(1, 3), "\\n");
-        assert_eq!(all[3], at(2, 1));
-        assert_eq!(all[6], at(3, 1));
-        assert_eq!(all[7], at(3, 2));
-        assert_eq!(all[8], at(4, 1));
-        assert_eq!(all[9], at(4, 2));
-    }
-
-    #[test]
-    fn an_empty_text_has_one_line() {
-        let (index, all) = lines("");
-        assert_eq!(index.line_count(), 1);
-        assert_eq!(all, [at(1, 1), None]);
     }
 
     #[test]
@@ -717,5 +876,139 @@ mod tests {
             }),
             TreeError::TextLeft { at: 1 }
         );
+    }
+
+    /// "é{{x}}ü" to "éVALü" (bytes: source 0..2, 2..7, 7..9; templated
+    /// 0..2, 2..5, 5..7).
+    fn small_map() -> Arc<SourceMap> {
+        use sqll_source::{RawFileSlice, Slice, TemplatedFile, TemplatedFileSlice};
+        let slice = |ty: &str, o: Range<usize>, t: Range<usize>| {
+            TemplatedFileSlice::new(ty.into(), Slice::from(o), Slice::from(t))
+        };
+        let raw =
+            |text: &str, ty: &str, at| RawFileSlice::new(text.into(), ty.into(), at, None, None);
+        let file = TemplatedFile::new(
+            "é{{x}}ü".into(),
+            "small.sql".into(),
+            Some("éVALü".into()),
+            Some(vec![
+                slice("literal", 0..1, 0..1),
+                slice("templated", 1..6, 1..4),
+                slice("literal", 6..7, 4..5),
+            ]),
+            Some(vec![
+                raw("é", "literal", 0),
+                raw("{{x}}", "templated", 1),
+                raw("ü", "literal", 6),
+            ]),
+        );
+        Arc::new(SourceMap::new(Arc::new(file)).unwrap())
+    }
+
+    #[test]
+    fn a_tree_with_a_source_map_has_source_ranges() {
+        let file = kind(Variant::Segment, SegmentType::FILE);
+        let stmt = kind(Variant::Segment, SegmentType::STATEMENT);
+        let kw = kind(Variant::Raw, SegmentType::KEYWORD);
+        let indent = kind(Variant::Meta, SegmentType::INDENT);
+        let placeholder = kind(Variant::Meta, SegmentType::PLACEHOLDER);
+        let mut b = TreeBuilder::with_source(small_map(), 0).unwrap();
+        b.start_node(file).unwrap();
+        assert_eq!(b.leaf(kw, "é"), Err(TreeError::NoSourceRange));
+        let e = b.leaf_at(kw, "é", 0..2).unwrap();
+        let ph = b.meta_at(placeholder, 2..7).unwrap();
+        let st = b.start_node(stmt).unwrap();
+        let ind = b.meta(indent).unwrap();
+        let val = b.leaf_at(kw, "VAL", 2..7).unwrap();
+        let empty = b.start_node(stmt).unwrap();
+        b.finish_node().unwrap();
+        assert_eq!(
+            b.leaf_at(kw, "ü", 8..9),
+            Err(TreeError::BadSourceRange { at: 5 })
+        );
+        assert_eq!(
+            b.leaf_at(kw, "ü", 7..10),
+            Err(TreeError::BadSourceRange { at: 5 })
+        );
+        let u = b.leaf_at(kw, "ü", 7..9).unwrap();
+        b.finish_node().unwrap();
+        b.finish_node().unwrap();
+        let tree = b.finish().unwrap();
+        assert_eq!(tree.verify(), Ok(()));
+        assert_eq!(tree.source_text(), "é{{x}}ü");
+        assert_eq!(tree.text(), "éVALü");
+        let ranges: Vec<Range<usize>> = [NodeId::ROOT, e, ph, st, ind, val, empty, u]
+            .iter()
+            .map(|&n| tree.source_range(n))
+            .collect();
+        assert_eq!(ranges, [0..9, 0..2, 2..7, 2..9, 7..7, 2..7, 7..7, 7..9]);
+        assert_eq!(tree.range(val), 2..5);
+        assert_eq!(tree.source_pos(u), LinePos { line: 1, pos: 7 });
+        assert_eq!(tree.start_pos(u), LinePos { line: 1, pos: 5 });
+        let literal: Vec<bool> = [NodeId::ROOT, e, ph, val, u]
+            .iter()
+            .map(|&n| tree.is_literal(n))
+            .collect();
+        assert_eq!(literal, [false, true, false, false, true]);
+        assert!(tree.source_map().is_some());
+        assert_eq!(tree.heap_bytes(), 7 + 8 * 20 + 4 + 8 * 8);
+
+        // A broken source range.
+        let mut t = tree.clone();
+        let source = t.source.as_mut().unwrap();
+        let mut ranges = source.ranges.as_ref().unwrap().to_vec();
+        ranges[6] = (2, 7);
+        source.ranges = Some(ranges.clone().into_boxed_slice());
+        assert_eq!(
+            t.verify(),
+            Err(TreeError::Invalid {
+                node: 6,
+                rule: "the source range does not span the children"
+            })
+        );
+        ranges[6] = (7, 7);
+        ranges[1] = (0, 1);
+        t.source.as_mut().unwrap().ranges = Some(ranges.into_boxed_slice());
+        assert_eq!(
+            t.verify(),
+            Err(TreeError::Invalid {
+                node: 1,
+                rule: "the source range is not a range of characters"
+            })
+        );
+    }
+
+    #[test]
+    fn an_identity_map_or_no_map_gives_the_templated_ranges() {
+        let file = kind(Variant::Segment, SegmentType::FILE);
+        let kw = kind(Variant::Raw, SegmentType::KEYWORD);
+        let map = Arc::new(SourceMap::identity("a é".into(), "a.sql".into()).unwrap());
+        let mut b = TreeBuilder::with_source(map, 0).unwrap();
+        b.start_node(file).unwrap();
+        b.leaf(kw, "a").unwrap();
+        assert_eq!(
+            b.leaf_at(kw, " ", 1..3),
+            Err(TreeError::BadSourceRange { at: 1 })
+        );
+        b.leaf_at(kw, " ", 1..2).unwrap();
+        let e = b.leaf(kw, "é").unwrap();
+        b.finish_node().unwrap();
+        let tree = b.finish().unwrap();
+        assert_eq!(tree.verify(), Ok(()));
+        assert_eq!(tree.source_range(e), 2..4);
+        assert_eq!(tree.source_pos(e), LinePos { line: 1, pos: 3 });
+        assert!(tree.is_literal(e));
+        assert_eq!(tree.heap_bytes(), 4 + 4 * 20 + 4);
+
+        let mut b = TreeBuilder::new("a".into()).unwrap();
+        b.start_node(file).unwrap();
+        assert_eq!(b.leaf_at(kw, "a", 0..1), Err(TreeError::NoSourceMap));
+        b.leaf(kw, "a").unwrap();
+        b.finish_node().unwrap();
+        let tree = b.finish().unwrap();
+        assert!(tree.source_map().is_none());
+        assert_eq!(tree.source_text(), "a");
+        assert_eq!(tree.source_range(NodeId::ROOT), 0..1);
+        assert!(tree.is_literal(NodeId::ROOT));
     }
 }

@@ -127,6 +127,8 @@ Ported code (MIT, attribution in each file header):
 | `crates/sqll_tree/build/kinds.rs` | The node construction rules of `sqlfluffrs/sqlfluffrs_parser` as `crates/sqll_parser` has them: `src/parser/match_result.rs` (`MatchResult::apply`, `token_to_node`, `MatchedClass`), `src/parser/core.rs` (the terminal parser handlers, `aux_block_bounds`, `read_string_ids_from_aux`), `src/parser/table_driven/ref_grammar.rs` (`build_ref_wrap`) |
 | `crates/sqll_interfaces/src/parse.rs` | The lexer and parser calls and the limits of `crates/sqll/src/parse.rs` (its row above). S3b C7 moved them from `crates/sqll_interfaces/tests/segment_kinds.rs` |
 | `scripts/s3b/convert-cost/src/main.rs` | S3b C7 measurement, not sqll: the lexer and parser calls and the limits of `crates/sqll/src/parse.rs` (its row above) |
+| `crates/sqll_source/src/map.rs` | `sqlfluffrs/sqlfluffrs_types/src/templater/templatefile.rs`: the slice search of `find_slice_indices_of_templated_pos` and the rule for an empty slice of `templated_slice_to_source_slice` (S3b C8) |
+| `crates/sqll_templater/src/raw.rs` | `src/sqlfluff/core/templaters/base.py` (`RawTemplater.process`) (S3b C8) |
 
 ## sqlfluffrs in crates/
 

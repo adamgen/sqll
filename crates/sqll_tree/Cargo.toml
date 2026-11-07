@@ -10,6 +10,8 @@ publish = false
 build = "build.rs"
 
 [dependencies]
+# The source map of a tree and the lines of a text (S3b C8).
+sqll_source = { path = "../sqll_source" }
 
 # build.rs makes the segment kinds from the dialect tables and the lexers
 # (build/kinds.rs). It reads the dialect names from generated.json.
