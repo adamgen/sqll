@@ -7,7 +7,11 @@
 //!   raw templater gives no diagnostic and the tree of the steps (the
 //!   parser tree of `steps::parse_node`, converted with its source map),
 //!   node for node, with an identity source map. `free_memory` false gives
-//!   the same tree.
+//!   the same tree. The steps are those that `parse` calls, so this check
+//!   proves the conversion and the options, not the parser tree. The
+//!   independent proof of the tree is the fixture test of
+//!   `crates/sqll/src/output.rs` (against `Node::as_record`), the tree
+//!   guard, and the S1 report.
 //! - A templated file: the tree has the source ranges of the source map.
 //! - The diagnostics: a lex error, an unparsable section, and a parser stop
 //!   give the code, the message, and the places of sqlfluff (the values of
@@ -124,7 +128,29 @@ fn the_settings_are_the_sqlfluff_defaults() {
     assert_eq!(MAX_PARSE_NODES, 100_000);
     assert_eq!(MAX_PARSER_ITERATIONS, 3_000_000);
     assert_eq!(PARSER_WARN_THRESHOLD, 2_000_000);
-    assert_eq!(INDENTATION.len(), 14);
+    // The [sqlfluff:indentation] section of the default_config.cfg of the
+    // pinned sqlfluff, each value as bool(value) of the config value
+    // (sqlfluff reads True and False as booleans and 4 as a number; the
+    // other values are non-empty strings, thus true).
+    assert_eq!(
+        INDENTATION,
+        &[
+            ("indent_unit", true),              // space
+            ("tab_space_size", true),           // 4
+            ("indented_joins", false),          // False
+            ("indented_ctes", false),           // False
+            ("indented_using_on", true),        // True
+            ("indented_on_contents", true),     // True
+            ("indented_then", true),            // True
+            ("indented_then_contents", true),   // True
+            ("implicit_indents", true),         // forbid
+            ("template_blocks_indent", true),   // True
+            ("skip_indentation_in", true),      // script_content
+            ("skip_implicit_indents_in", true), // case_expression
+            ("trailing_comments", true),        // before
+            ("ignore_comment_lines", false),    // False
+        ]
+    );
     let o = ParseOptions::default();
     assert_eq!((o.max_parse_depth, o.free_memory), (600, true));
     for (value, want) in [(0, 10_000), (1, 1), (600, 600), (10_001, 10_000)] {

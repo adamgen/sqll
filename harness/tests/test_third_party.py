@@ -98,7 +98,7 @@ def test_the_new_files_with_ported_parts_are_named():
     }
     # 5 since S3b C9: the ported parse calls moved from crates/sqll/src/parse.rs
     # and crates/sqll_interfaces/src/parse.rs to crates/sqll_syntax/src/parse.rs.
-    assert len(headers) >= 5
+    assert len(headers) == 5
     assert named == headers
 
 

@@ -82,7 +82,8 @@ def test_the_profile_is_of_the_source_of_the_sessions():
     assert PROFILE["sqll_source_sha256"] == SESSIONS["sqll"]["source_sha256"]
     assert len(PROFILE["benchmarks"]) == 112
     # Since T17 the toggles are the phase functions of crates/sqll/src/parse.rs
-    # (link-time optimization inlines the functions of T14 to T16b).
+    # (link-time optimization inlines the functions of T14 to T16b). S3b C9
+    # moved them (PROFILE_PHASES_C9); this record keeps PROFILE_PHASES.
     assert PROFILE["phases"] == sp.PROFILE_PHASES
     for b in PROFILE["benchmarks"]:
         for phase in sp.PROFILE_PHASES:

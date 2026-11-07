@@ -177,9 +177,8 @@ parse: 2306 of 2306 dialect fixtures: the tree of the steps
   on 108 of 108 pairs and faster than sqlfluff on 112 of 112.
 - Reason of the remaining slowdown (G3.6): the conversion of the parser
   tree to the `SyntaxTree` (C7: 4.1% of the parse time) and the source map
-  of the file. callgrind on 3 large inputs: 3.0% to 4.2% more
-  instructions; the conversion is about 3.2% of them. The writer that
-  reads the `SyntaxTree` is faster than the writer of the `Node` tree.
+  of the file. The writer that reads the `SyntaxTree` is faster than the
+  writer of the `Node` tree.
   A cheaper hash and compare in the kind cache of the conversion gave no
   gain. The next step is a parser that builds the `SyntaxTree` with no
   `Node` tree (S4).

@@ -359,9 +359,9 @@ fn unparsable_sections(tree: &SyntaxTree, expected: Vec<(NodeId, String)>) -> Ve
 /// `SyntaxTree` with the parser tree (`Node`). They are not part of the
 /// frozen interface: new code calls `parse`.
 ///
-/// `setup_lexer`, `lex_sql`, and `parse_tokens` are not inlined, so that
-/// each step has a symbol for a profile also in the release build with
-/// link-time optimization (S3 T17).
+/// `lexer`, `lex`, and `parse_tokens` are not inlined, so that each step
+/// has a symbol for a profile also in the release build with link-time
+/// optimization (the phases of `scripts/s3/speed_profile.py`).
 pub mod steps {
     use super::*;
 
