@@ -6,31 +6,23 @@
 //!   kind, and each terminal grammar has a leaf kind.
 //! - Each kind gives its data again: the lookup of its data gives the kind.
 //! - Each node of the parse tree of each dialect fixture of the pinned
-//!   sqlfluff has a kind. The parse settings are those of `sqll parse`
-//!   (crates/sqll/src/parse.rs).
+//!   sqlfluff has a kind (`sqll_syntax::kind_of`). The parse is that of
+//!   `sqll parse` (src/parse.rs).
 //! - The counts are the recorded counts. A change of the tables or of the
 //!   kind rules must change the counts here and in the document.
-//! - The parse settings are those of crates/sqll/src/parse.rs.
-//!
-//! Parts of this file are a port of sqlfluff 4.4.0 code, through
-//! crates/sqll/src/parse.rs: the lexer and parser calls of
-//! sqlfluffrs/src/test_harness.rs (FixtureTest::run), the parser limits of
-//! sqlfluffrs/sqlfluffrs_parser/src/parser/python.rs (PyParser), and the
-//! parse limits and indentation defaults of
-//! src/sqlfluff/core/default_config.cfg.
-//! Source: https://github.com/sqlfluff/sqlfluff, tag 4.4.0,
-//! commit 0348222a3bcdb0226563f7349c5a39beb0641955.
-//! Copyright (c) 2018-2026 Alan Cruickshank. MIT License: see
-//! crates/LICENSE-sqlfluffrs.md. See THIRD_PARTY.md.
+//! - The parse settings of src/parse.rs are those of crates/sqll/src/parse.rs.
 
 use std::collections::{BTreeMap, BTreeSet};
-use std::path::{Path, PathBuf};
-use std::str::FromStr;
 
 use sqll_dialects::Dialect;
-use sqll_lexer::{LexInput, Lexer};
-use sqll_parser::parser::{MetaType, Node, Parser};
-use sqll_tree::{KindKey, Meta, SegmentKind, SegmentType, Variant};
+use sqll_interfaces::parse::{
+    parse, INDENTATION, MAX_PARSER_ITERATIONS, MAX_PARSE_DEPTH, MAX_PARSE_NODES,
+    PARSER_WARN_THRESHOLD,
+};
+use sqll_interfaces::{dialect_fixtures, dialects, root, with_parse_stack, FIXTURES};
+use sqll_parser::parser::Node;
+use sqll_syntax::kind_of;
+use sqll_tree::{KindKey, SegmentKind, SegmentType, Variant};
 use sqll_types::{GrammarContext, GrammarId, GrammarVariant};
 
 /// The recorded counts (docs/interfaces/segment-kinds.md).
@@ -43,45 +35,9 @@ const KINDS_BY_VARIANT: [(Variant, usize); 5] = [
     (Variant::Unparsable, 1),
     (Variant::Empty, 1),
 ];
-/// The dialects of generated.json.
-const DIALECTS: usize = 28;
-/// The dialect fixtures of the pinned sqlfluff (S1: 2306 parse cases).
-const FIXTURES: usize = 2306;
 /// The nodes of the trees of the dialect fixtures, and their distinct kinds.
 const FIXTURE_NODES: usize = 685224;
 const FIXTURE_KINDS: usize = 1525;
-
-fn root() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR")).join("../..")
-}
-
-/// The dialects of the tables: "dialect/<name>/mod.rs" under the prefix of
-/// generated.json (the rule of sqll_tree/build.rs).
-fn dialects() -> Vec<(String, Dialect)> {
-    let manifest = std::fs::read_to_string(root().join("crates/sqll_dialects/generated.json"))
-        .expect("read generated.json");
-    let json: serde_json::Value = serde_json::from_str(&manifest).expect("generated.json is JSON");
-    let prefix = json["prefix"].as_str().expect("generated.json: prefix");
-    let mut names = BTreeSet::new();
-    for file in json["files"].as_array().expect("generated.json: files") {
-        let path = file["path"].as_str().expect("generated.json: path");
-        let rel = path.strip_prefix(prefix).expect("a path under the prefix");
-        if let Some(name) = rel
-            .strip_prefix("dialect/")
-            .and_then(|r| r.strip_suffix("/mod.rs"))
-        {
-            names.insert(name.to_string());
-        }
-    }
-    assert_eq!(names.len(), DIALECTS, "the dialects of generated.json");
-    names
-        .into_iter()
-        .map(|n| {
-            let d = Dialect::from_str(&n).unwrap_or_else(|_| panic!("unknown dialect {n}"));
-            (n, d)
-        })
-        .collect()
-}
 
 const NONE: u32 = 0xFFFF_FFFF;
 
@@ -349,96 +305,11 @@ fn each_kind_gives_its_data_again() {
     assert_eq!(SegmentKind::from_index(KINDS as u16), None);
 }
 
-/// The key of a parser node.
-fn find(node: &Node) -> Option<SegmentKind> {
-    let none: &[String] = &[];
-    let base = KindKey {
-        variant: Variant::Empty,
-        class: "",
-        ty: "",
-        instance_types: none,
-        trim_chars: None,
-        quoted_value: None,
-        escape_replacements: None,
-        meta: None,
-        class_types: none,
-    };
-    let quoted;
-    let key = match node {
-        Node::Raw {
-            segment_class,
-            segment_type,
-            instance_types,
-            class_types,
-            segment_kwargs: k,
-            ..
-        } => {
-            quoted = k
-                .quoted_value
-                .as_ref()
-                .map(|(a, b)| (a.as_str(), b.as_str()));
-            KindKey {
-                variant: Variant::Raw,
-                class: segment_class,
-                ty: segment_type,
-                instance_types,
-                trim_chars: k.trim_chars.as_deref().map(Vec::as_slice),
-                quoted_value: quoted,
-                escape_replacements: k.escape_replacements.as_deref().map(Vec::as_slice),
-                class_types,
-                ..base
-            }
-        }
-        Node::Segment {
-            segment_class,
-            segment_type,
-            class_types,
-            ..
-        } => KindKey {
-            variant: Variant::Segment,
-            class: segment_class,
-            ty: segment_type.as_deref()?,
-            class_types,
-            ..base
-        },
-        Node::Meta { meta_type, .. } => {
-            let (ty, meta) = match meta_type {
-                MetaType::Indent { is_implicit } => (
-                    "indent",
-                    Meta::Indent {
-                        implicit: *is_implicit,
-                    },
-                ),
-                MetaType::Dedent { is_implicit } => (
-                    "dedent",
-                    Meta::Dedent {
-                        implicit: *is_implicit,
-                    },
-                ),
-                MetaType::Template { block_type, .. } => {
-                    ("placeholder", Meta::Template { block_type })
-                }
-                MetaType::TemplateLoop => ("template_loop", Meta::TemplateLoop),
-                MetaType::EndOfFile => ("end_of_file", Meta::EndOfFile),
-            };
-            KindKey {
-                variant: Variant::Meta,
-                ty,
-                meta: Some(meta),
-                ..base
-            }
-        }
-        Node::Unparsable { .. } => KindKey {
-            variant: Variant::Unparsable,
-            ty: "unparsable",
-            ..base
-        },
-        Node::Empty => KindKey {
-            ty: "empty",
-            ..base
-        },
-    };
-    SegmentKind::find(&key)
+#[derive(Default)]
+struct Seen {
+    nodes: usize,
+    kinds: BTreeSet<SegmentKind>,
+    missing: BTreeSet<String>,
 }
 
 fn children(node: &Node) -> &[Node] {
@@ -448,50 +319,9 @@ fn children(node: &Node) -> &[Node] {
     }
 }
 
-// The values of crates/sqll/src/parse.rs.
-const MAX_PARSE_DEPTH: usize = 600;
-const MAX_PARSE_NODES: usize = 100_000;
-const MAX_PARSER_ITERATIONS: usize = 3_000_000;
-const PARSER_WARN_THRESHOLD: usize = 2_000_000;
-const INDENTATION: &[(&str, bool)] = &[
-    ("indent_unit", true),
-    ("tab_space_size", true),
-    ("indented_joins", false),
-    ("indented_ctes", false),
-    ("indented_using_on", true),
-    ("indented_on_contents", true),
-    ("indented_then", true),
-    ("indented_then_contents", true),
-    ("implicit_indents", true),
-    ("template_blocks_indent", true),
-    ("skip_indentation_in", true),
-    ("skip_implicit_indents_in", true),
-    ("trailing_comments", true),
-    ("ignore_comment_lines", false),
-];
-
-fn parse(dialect: Dialect, sql: String) -> Result<Node, String> {
-    let lexer = Lexer::new(None, dialect.get_lexers().clone())
-        .with_bracket_pairs(dialect.get_bracket_pairs().clone());
-    let (tokens, _) = lexer.lex(LexInput::String(sql), true);
-    let indentation = INDENTATION.iter().copied().collect();
-    let mut parser =
-        Parser::new_with_max_parse_depth(&tokens, dialect, indentation, MAX_PARSE_DEPTH)
-            .with_parser_limits(MAX_PARSER_ITERATIONS, PARSER_WARN_THRESHOLD)
-            .with_node_limit(MAX_PARSE_NODES);
-    parser.root_parse().map_err(|e| e.message)
-}
-
-#[derive(Default)]
-struct Seen {
-    nodes: usize,
-    kinds: BTreeSet<SegmentKind>,
-    missing: BTreeSet<String>,
-}
-
 fn walk(node: &Node, seen: &mut Seen) {
     seen.nodes += 1;
-    match find(node) {
+    match kind_of(node) {
         Some(kind) => {
             seen.kinds.insert(kind);
         }
@@ -509,34 +339,20 @@ fn walk(node: &Node, seen: &mut Seen) {
 
 #[test]
 fn each_node_of_the_dialect_fixtures_has_a_kind() {
-    // The parser recurses: the stack of crates/sqll/src/main.rs.
-    let run = std::thread::Builder::new()
-        .stack_size(256 * 1024 * 1024)
-        .spawn(|| {
-            let folder = root().join("third_party/sqlfluff/test/fixtures/dialects");
-            let mut seen = Seen::default();
-            let mut files = 0;
-            let mut errors = Vec::new();
-            for (name, dialect) in dialects() {
-                let mut paths: Vec<PathBuf> = std::fs::read_dir(folder.join(&name))
-                    .unwrap_or_else(|e| panic!("{name}: {e}"))
-                    .map(|e| e.unwrap().path())
-                    .filter(|p| p.extension().is_some_and(|x| x == "sql"))
-                    .collect();
-                paths.sort();
-                for path in paths {
-                    files += 1;
-                    let sql = std::fs::read_to_string(&path).unwrap();
-                    match parse(dialect, sql) {
-                        Ok(tree) => walk(&tree, &mut seen),
-                        Err(e) => errors.push(format!("{}: {e}", path.display())),
-                    }
-                }
+    let (files, errors, seen) = with_parse_stack(|| {
+        let mut seen = Seen::default();
+        let mut files = 0;
+        let mut errors = Vec::new();
+        for (_, dialect, path) in dialect_fixtures() {
+            files += 1;
+            let sql = std::fs::read_to_string(&path).unwrap();
+            match parse(dialect, sql) {
+                Ok(tree) => walk(&tree, &mut seen),
+                Err(e) => errors.push(format!("{}: {e}", path.display())),
             }
-            (files, errors, seen)
-        })
-        .unwrap();
-    let (files, errors, seen) = run.join().unwrap();
+        }
+        (files, errors, seen)
+    });
     assert_eq!(files, FIXTURES, "the dialect fixtures");
     assert!(
         seen.missing.is_empty(),
@@ -557,9 +373,9 @@ fn each_node_of_the_dialect_fixtures_has_a_kind() {
     );
 }
 
-/// The parse settings above are a copy of crates/sqll/src/parse.rs, which is
-/// in the binary crate. This test fails if they are not the same. C9 (the
-/// frozen parse interface) removes the copy.
+/// The parse settings of src/parse.rs are a copy of crates/sqll/src/parse.rs,
+/// which is in the binary crate. This test fails if they are not the same.
+/// C9 (the frozen parse interface) removes the copy.
 #[test]
 fn the_parse_settings_are_those_of_sqll_parse() {
     let text = std::fs::read_to_string(root().join("crates/sqll/src/parse.rs"))

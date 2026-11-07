@@ -592,6 +592,7 @@ dependencies = [
  "sqll_dialects",
  "sqll_lexer",
  "sqll_parser",
+ "sqll_syntax",
  "sqll_tree",
  "sqll_types",
 ]
@@ -631,6 +632,15 @@ dependencies = [
  "sqll_dialects",
  "sqll_lexer",
  "sqll_parser",
+]
+
+[[package]]
+name = "sqll_syntax"
+version = "0.1.0"
+dependencies = [
+ "hashbrown 0.16.1",
+ "sqll_parser",
+ "sqll_tree",
 ]
 
 [[package]]

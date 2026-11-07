@@ -1,0 +1,36 @@
+# S3b task C7: the measurement tool of the conversion cost (the parser tree
+# to the SyntaxTree). This is not sqll and not a harness tool.
+# scripts/s3b/tree_check.py builds and runs it.
+#
+# It links the sqll crates by path. It is its own workspace, so the sqll
+# workspace and its Cargo.lock do not change. Its Cargo.lock has the crate
+# versions of the sqll Cargo.lock.
+[package]
+name = "sqll-s3b-convert-cost"
+version = "0.0.0"
+edition = "2021"
+publish = false
+license = "MIT"
+description = "S3b C7 measurement, not sqll: the cost of the conversion to the SyntaxTree"
+
+[workspace]
+
+[dependencies]
+serde_json = "1.0.149"
+sqll_dialects = { path = "../../../crates/sqll_dialects" }
+sqll_lexer = { path = "../../../crates/sqll_lexer" }
+sqll_parser = { path = "../../../crates/sqll_parser" }
+sqll_syntax = { path = "../../../crates/sqll_syntax" }
+sqll_tree = { path = "../../../crates/sqll_tree" }
+sqll_types = { path = "../../../crates/sqll_types" }
+
+# The release profile of the sqll workspace (Cargo.toml): the times are
+# those of the code that the sqll binary has.
+[profile.release]
+debug = false
+strip = true
+lto = "fat"
+codegen-units = 1
+
+[profile.release.package.sha2]
+opt-level = 3

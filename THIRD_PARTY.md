@@ -125,7 +125,8 @@ Ported code (MIT, attribution in each file header):
 | `crates/sqll/tests/cli.rs` | `test/conftest.py` (`process_struct`) |
 | `scripts/s3b/tree-cost/src/main.rs` | S3b C4 measurement, not sqll: the lexer and parser calls and the limits of `crates/sqll/src/parse.rs` (row above) |
 | `crates/sqll_tree/build/kinds.rs` | The node construction rules of `sqlfluffrs/sqlfluffrs_parser` as `crates/sqll_parser` has them: `src/parser/match_result.rs` (`MatchResult::apply`, `token_to_node`, `MatchedClass`), `src/parser/core.rs` (the terminal parser handlers, `aux_block_bounds`, `read_string_ids_from_aux`), `src/parser/table_driven/ref_grammar.rs` (`build_ref_wrap`) |
-| `crates/sqll_interfaces/tests/segment_kinds.rs` | The lexer and parser calls and the limits of `crates/sqll/src/parse.rs` (its row above) |
+| `crates/sqll_interfaces/src/parse.rs` | The lexer and parser calls and the limits of `crates/sqll/src/parse.rs` (its row above). S3b C7 moved them from `crates/sqll_interfaces/tests/segment_kinds.rs` |
+| `scripts/s3b/convert-cost/src/main.rs` | S3b C7 measurement, not sqll: the lexer and parser calls and the limits of `crates/sqll/src/parse.rs` (its row above) |
 
 ## sqlfluffrs in crates/
 
@@ -173,9 +174,8 @@ lines, and sha256 of each of the 85 files. The build copies them into
 
 The new sqll files in `crates/` (listed in `crates/ported.json`, "new") and
 `rust-toolchain.toml` have no sqlfluff code, but `crates/sqll/src/parse.rs`,
-`crates/sqll_tree/build/kinds.rs`, and
-`crates/sqll_interfaces/tests/segment_kinds.rs` have ported parts ("Ported
-code" above). The sqll binary (`crates/sqll`)
+`crates/sqll_tree/build/kinds.rs`, and `crates/sqll_interfaces/src/parse.rs`
+have ported parts ("Ported code" above). The sqll binary (`crates/sqll`)
 contains the ported crates and the tables. The tables are a substantial
 portion of sqlfluff, so each sqll binary carries the sqlfluff MIT copyright
 and permission notice: `sqll --license` prints `crates/LICENSE-sqlfluffrs.md`

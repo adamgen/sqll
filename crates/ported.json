@@ -36,7 +36,7 @@
    "path": "Cargo.toml",
    "source": "sqlfluffrs/Cargo.toml",
    "source_sha256": "b732205a4911557a6a5ba76b40e4a6557e88166523450b5b01731760b337a3a8",
-   "changed": "Only the workspace parts are kept: the members are the 4 ported crates in crates/ and the new sqll binary crate (crates/sqll), the workspace dependencies that they use, and the release profile. The workspace version is the sqll version. New: serde_json and sha2 (for build.rs of sqll_dialects), and opt-level 3 for sha2; regex-syntax (S3 T15, the match prefixes of the lexer regexes in sqll_types matcher.rs), the version that regex uses. No root package, no feature \"python\", no pyo3. S3 T17 (parse speed, build profile): the release profile has lto = \"fat\" and codegen-units = 1, so that the parser inlines the accessors of sqll_types; about 10% fewer instructions in the parse. S3 T18: the members also have the rules crate (crates/sqll_rules) and the native tests of the root crate (crates/sqll_base_tests). S3b C6: the members also have the syntax tree crate (crates/sqll_tree) and the interface test crate (crates/sqll_interfaces)."
+   "changed": "Only the workspace parts are kept: the members are the 4 ported crates in crates/ and the new sqll binary crate (crates/sqll), the workspace dependencies that they use, and the release profile. The workspace version is the sqll version. New: serde_json and sha2 (for build.rs of sqll_dialects), and opt-level 3 for sha2; regex-syntax (S3 T15, the match prefixes of the lexer regexes in sqll_types matcher.rs), the version that regex uses. No root package, no feature \"python\", no pyo3. S3 T17 (parse speed, build profile): the release profile has lto = \"fat\" and codegen-units = 1, so that the parser inlines the accessors of sqll_types; about 10% fewer instructions in the parse. S3 T18: the members also have the rules crate (crates/sqll_rules) and the native tests of the root crate (crates/sqll_base_tests). S3b C6: the members also have the syntax tree crate (crates/sqll_tree) and the interface test crate (crates/sqll_interfaces). S3b C7: the members also have the syntax crate (crates/sqll_syntax)."
   },
   {
    "path": "crates/sqll_base_tests/Cargo.toml",
@@ -631,11 +631,39 @@
   },
   {
    "path": "crates/sqll_interfaces/src/lib.rs",
-   "reason": "The empty library of the interface test crate (S3b C6)."
+   "reason": "The library of the interface test crate (S3b C6): the shared parts of the tests (S3b C7)."
   },
   {
    "path": "crates/sqll_interfaces/tests/segment_kinds.rs",
-   "reason": "The interface test of the segment kinds (S3b C6). It has ported parts (THIRD_PARTY.md, \"Ported code\")."
+   "reason": "The interface test of the segment kinds (S3b C6)."
+  },
+  {
+   "path": "crates/sqll_tree/src/tree.rs",
+   "reason": "The lossless syntax tree, its builder, and its line index (S3b C7)."
+  },
+  {
+   "path": "crates/sqll_syntax/Cargo.toml",
+   "reason": "The manifest of the new syntax crate (S3b C7)."
+  },
+  {
+   "path": "crates/sqll_syntax/src/lib.rs",
+   "reason": "The library of the syntax crate (S3b C7)."
+  },
+  {
+   "path": "crates/sqll_syntax/src/convert.rs",
+   "reason": "The conversion from the parser tree to the syntax tree (S3b C7)."
+  },
+  {
+   "path": "crates/sqll_interfaces/src/parse.rs",
+   "reason": "The parse of sqll parse for the interface tests (S3b C7, from tests/segment_kinds.rs of C6). It has ported parts (THIRD_PARTY.md, \"Ported code\")."
+  },
+  {
+   "path": "crates/sqll_interfaces/src/tree_check.rs",
+   "reason": "The check of a converted syntax tree against its parser tree (S3b C7)."
+  },
+  {
+   "path": "crates/sqll_interfaces/tests/tree.rs",
+   "reason": "The interface test of the syntax tree (S3b C7)."
   }
  ]
 }
