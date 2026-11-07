@@ -17,7 +17,7 @@ the crate `sqll_cli`, and C16 gives `docs/decisions/s3b-*.md` to Core.
 | C2 | `bench compare`: a table for each benchmark when it compares tools of one report | Merged (PR #58) |
 | C3 | Record the S3b plan and move the S3 code paths to the Core track | Merged (PR #59) |
 | C4 | Decision record: the S3b core design (answers to the 7 open interface questions): [docs/decisions/s3b-core.md](../docs/decisions/s3b-core.md) | Merged (PR #61) |
-| C5 | Speed check tool for each Core change (G3.6): `scripts/speed-check`, `results/S3b/speed/C5.json` | In review (PR #63) |
+| C5 | Speed check tool for each Core change (G3.6): `scripts/speed-check`, `results/S3b/speed/C5.json` | In review |
 | C6 | Typed segment kinds from the frozen dialect tables: one kind for each distinct static data of a node (variant, class, type, instance types, class types, segment kwargs); the build fails if the kinds do not fit in a `u16` | Not started |
 | C7 | Lossless syntax tree (`sqll_tree`) and the conversion from the parser tree | Not started |
 | C8 | Source map (`sqll_source`): `TemplatedFile` as the frozen templater interface, raw templater; the interface test crate `sqll_interfaces` | Not started |
