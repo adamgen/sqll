@@ -182,3 +182,30 @@ parse: 2306 of 2306 dialect fixtures: the tree of the steps
   A cheaper hash and compare in the kind cache of the conversion gave no
   gain. The next step is a parser that builds the `SyntaxTree` with no
   `Node` tree (S4).
+
+## C10: typed view proof
+
+Interface: [docs/interfaces/typed-view.md](../docs/interfaces/typed-view.md).
+The test output (`crates/sqll_interfaces/tests/typed_view.rs`, with
+`--nocapture`) and the check of the sqlfluff data
+(`scripts/s3b/crawl_oracle.py check`, record
+[results/S3b/C10-crawl.json](../results/S3b/C10-crawl.json)):
+
+```text
+typed view: 135 of 135 crawl cases as sqlfluff (6 fixtures, 1182 segments; 111 cases also as the fixture YAML)
+crawl check: PASS: 6 fixtures, 135 cases (111 YAML cases), 1182 segments
+```
+
+- Fix of C6: the meta kinds have the class types of their sqlfluff class
+  (a dedent is also an indent). With the meta kinds of C6, the test fails.
+  The type ids, the kind ids, and the kind counts did not change.
+- G4: native base tests 162 of 162 (`scripts/s3/base_native_tests.py
+  check`: 284 tests, 281 passed, 3 ignored); tree guard: 84 of 84 the same;
+  the syntax tree check of the 84 S2 parse inputs and the source map check
+  pass.
+- The sqll binary links `sqll_tree` and `sqll_syntax` (the kind data and
+  the conversion changed). Speed check
+  ([results/S3b/speed/C10.json](../results/S3b/speed/C10.json), base
+  `75f8ea231c4a`, head `b2502f889bec`): 112 benchmarks, 0 slower, 0
+  failures; total wall time head / base 1.006; head faster than sqruff on
+  108 of 108 pairs and faster than sqlfluff on 112 of 112.
