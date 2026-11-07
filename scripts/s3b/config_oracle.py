@@ -20,8 +20,9 @@ and make the data of RECORD_FILE:
   folder, a home folder, XDG_CONFIG_HOME, a path, --config,
   --ignore-local-config, and overrides), the settings of
   FluffConfig.from_path that are not those of base, or the error.
-- cli: for each scenario of CLI, the stdout and the exit code of
-  "sqlfluff parse" (with -m: the tree with no position keys).
+- cli: for each scenario of CLI, the stdout, the exit code, and the
+  warning lines of stderr (with no color codes) of "sqlfluff parse" (with
+  -m: the tree with no position keys).
 - jinja_as_raw: for each dialect fixture that is not empty and has no
   Jinja delimiter, the templated file of the Jinja templater (default
   settings) is that of the raw templater (text, sliced file, raw slices).
@@ -44,6 +45,7 @@ Exit code: 0 pass, 1 a failure.
 import argparse
 import json
 import os
+import re
 import subprocess
 import sys
 import tempfile
@@ -53,7 +55,7 @@ ROOT = Path(__file__).resolve().parents[2]
 SQLFLUFF_ROOT = ROOT / "third_party" / "sqlfluff"
 RECORD_FILE = ROOT / "results" / "S3b" / "C11-config.json"
 KIND = "sqll-s3b-c11-config"
-FORMAT = 1
+FORMAT = 2
 COMMAND = "uv run --frozen --project harness python scripts/s3b/config_oracle.py"
 DIALECT_DIR = "test/fixtures/dialects"
 JINJA_DELIMITERS = ("{{", "{%", "{#")
@@ -65,6 +67,15 @@ POSITION_KEYS = (
     "end_line_pos",
     "end_file_pos",
 )
+
+
+ANSI = re.compile(r"\x1b\[[0-9;]*m")
+
+
+def warning_lines(stderr: str, root: str) -> list:
+    """The lines of the sqlfluff log at level WARNING, with no color."""
+    lines = ANSI.sub("", stderr).replace(root, "<root>").splitlines()
+    return [line for line in lines if line.startswith("WARNING")]
 
 
 class DataError(Exception):
@@ -192,6 +203,12 @@ TOML = (
     ["array of tables", "[[tool.sqlfluff.x]]\na = 1\n[[tool.sqlfluff.x]]\na = 2\n"],
     ["crlf", '[tool.sqlfluff.core]\r\ndialect = "ansi"\r\n'],
     ["big int", "[tool.sqlfluff.core]\na = 99999999999999999999\n"],
+    [
+        "date in another tool",
+        "[tool.other]\nx = 1979-05-27T07:32:00Z\ny = [07:32:00, 2000-02-29]\n"
+        '[tool.sqlfluff.core]\ndialect = "ansi"\n',
+    ],
+    ["invalid date", "[tool.other]\nx = 1979-02-29\n"],
 )
 
 # The config of a folder: name -> text, or {"fixture": path} (a file of the
@@ -865,6 +882,70 @@ CLI = (
         None,
         SQL,
     ],
+    # sqlfluff reads stdin with sys.stdin.read(): no encoding setting, and
+    # the byte order mark stays.
+    [
+        "stdin keeps the byte order mark",
+        {"w/.sqlfluff": "[sqlfluff]\ndialect = ansi\n"},
+        "w",
+        ["-"],
+        None,
+        "\ufeffselect 1\n",
+    ],
+    [
+        "stdin with encoding utf-8-sig keeps the byte order mark",
+        {"w/.sqlfluff": "[sqlfluff]\ndialect = ansi\nencoding = utf-8-sig\n"},
+        "w",
+        ["-"],
+        None,
+        "\ufeffselect 1\n",
+    ],
+    [
+        "stdin with an encoding that is not UTF-8",
+        {"w/.sqlfluff": "[sqlfluff]\ndialect = ansi\nencoding = latin-1\n"},
+        "w",
+        ["-"],
+        None,
+        SQL,
+    ],
+    # paths_from_path loads the config files of the folders (as ignore
+    # files) before it applies the extensions.
+    [
+        "another extension under an invalid config",
+        {
+            "w/.sqlfluff": "[sqlfluff]\ndialect = ansi\n",
+            "w/s/.sqlfluff": "[sqlfluff]\nmax_parse_depth = -3\n",
+            "w/s/a.txt": SQL,
+        },
+        "w",
+        ["s/a.txt"],
+        None,
+        None,
+    ],
+    [
+        "another extension under an invalid pyproject.toml",
+        {
+            "w/.sqlfluff": "[sqlfluff]\ndialect = ansi\n",
+            "w/s/pyproject.toml": "[tool.sqlfluff.core]\nmax_parse_depth = -3\n",
+            "w/s/a.txt": SQL,
+        },
+        "w",
+        ["s/a.txt"],
+        None,
+        None,
+    ],
+    [
+        "a TOML date in another tool",
+        {
+            "w/pyproject.toml": "[tool.other]\nx = 1979-05-27\n"
+            '[tool.sqlfluff.core]\ndialect = "ansi"\n',
+            "w/a.sql": SQL,
+        },
+        "w",
+        ["a.sql"],
+        None,
+        None,
+    ],
     [
         "no-effect settings",
         {
@@ -1144,6 +1225,7 @@ def run_cli() -> list:
             "sqll": sqll,
             "stdin": stdin,
             "exit_code": proc.returncode,
+            "warnings": warning_lines(proc.stderr, root),
         }
         if "-m" in args and proc.returncode in (0, 1):
             record["tree"] = [strip(r["segments"]) for r in json.loads(proc.stdout)]
@@ -1214,8 +1296,8 @@ def record_data(data: dict) -> dict:
             'keeps its Python type: {"int": text}, {"float": repr}, {"dict": '
             "{...}}. defaults and base: [key path, value] of each setting. load: "
             "the settings that are not those of base, or the error. cli: the stdout "
-            "(with -m: the tree with no position keys) and the exit code of "
-            '"sqlfluff parse -f json". sqll: what sqll must do (null: the same; '
+            "(with -m: the tree with no position keys), the exit code, and the "
+            'warning lines of stderr with no color of "sqlfluff parse -f json". sqll: what sqll must do (null: the same; '
             "unsupported; exit2). jinja_as_raw: the dialect fixtures that are not "
             "empty and have no Jinja delimiter, whose Jinja templated file is that of "
             "the raw templater (text, sliced file, raw slices)."

@@ -15,8 +15,9 @@
 //    crates/LICENSE-sqlfluffrs.md.
 //
 // See THIRD_PARTY.md. Changes: Rust in place of Python; the parser works on
-// the characters of the text; a date or time value fails closed (sqlfluff
-// makes it a str); an int must fit in an i64.
+// the characters of the text; a date or time value is checked but not kept,
+// and it fails closed in `[tool.sqlfluff]` (sqlfluff makes it a str); an int
+// must fit in an i64.
 
 //! The TOML reader of sqlfluff (`pyproject.toml`, `[tool.sqlfluff]`).
 
@@ -35,6 +36,8 @@ enum TVal {
     Bool(bool),
     Array(Vec<TVal>),
     Table(OMap),
+    /// A date, a date and time, or a time. sqll does not keep its value.
+    DateTime,
 }
 
 type OMap = Vec<(String, TVal)>;
@@ -645,11 +648,14 @@ impl Parser {
             Some('{') => return self.parse_inline_table(pos),
             _ => {}
         }
-        if self.match_date(pos) || self.match_time(pos) {
-            return Err(TomlError::Unsupported(
-                "a TOML date or time value: sqll does not read it (sqlfluff makes it a str)"
-                    .to_string(),
-            ));
+        if let Some((end, valid)) = self.match_datetime(pos) {
+            if !valid {
+                return Err(self.err(pos, "Invalid date or datetime"));
+            }
+            return Ok((end, TVal::DateTime));
+        }
+        if let Some(end) = self.match_time(pos) {
+            return Ok((end, TVal::DateTime));
         }
         if let Some(end) = self.match_number(pos) {
             let text: String = self.src[pos..end.0].iter().collect();
@@ -690,22 +696,71 @@ impl Parser {
         }
     }
 
-    /// `RE_DATETIME` matches here (its date part is enough).
-    fn match_date(&self, pos: usize) -> bool {
-        self.digits(pos, 4)
+    fn number_at(&self, pos: usize, n: usize) -> u32 {
+        self.src[pos..pos + n]
+            .iter()
+            .fold(0, |v, c| v * 10 + c.to_digit(10).expect("a digit"))
+    }
+
+    /// A match of `RE_DATETIME` here: its end, and false if
+    /// `match_to_datetime` gives a `ValueError` (a year 0, or a day after
+    /// the end of the month).
+    fn match_datetime(&self, pos: usize) -> Option<(usize, bool)> {
+        let date = self.digits(pos, 4)
             && self.at(pos + 4) == Some('-')
             && self.two_digits_in(pos + 5, 1, 12)
             && self.at(pos + 7) == Some('-')
-            && self.two_digits_in(pos + 8, 1, 31)
+            && self.two_digits_in(pos + 8, 1, 31);
+        if !date {
+            return None;
+        }
+        let year = self.number_at(pos, 4);
+        let month = self.number_at(pos + 5, 2);
+        let day = self.number_at(pos + 8, 2);
+        let leap = year % 4 == 0 && (year % 100 != 0 || year % 400 == 0);
+        let days = match month {
+            2 if leap => 29,
+            2 => 28,
+            4 | 6 | 9 | 11 => 30,
+            _ => 31,
+        };
+        let valid = year >= 1 && day <= days;
+        let mut end = pos + 10;
+        if matches!(self.at(end), Some('T' | 't' | ' ')) {
+            if let Some(t) = self.match_time(end + 1) {
+                end = t;
+                if matches!(self.at(end), Some('Z' | 'z')) {
+                    end += 1;
+                } else if matches!(self.at(end), Some('+' | '-'))
+                    && self.two_digits_in(end + 1, 0, 23)
+                    && self.at(end + 3) == Some(':')
+                    && self.two_digits_in(end + 4, 0, 59)
+                {
+                    end += 6;
+                }
+            }
+        }
+        Some((end, valid))
     }
 
-    /// `RE_LOCALTIME` matches here.
-    fn match_time(&self, pos: usize) -> bool {
-        self.two_digits_in(pos, 0, 23)
+    /// A match of `RE_LOCALTIME` here: its end.
+    fn match_time(&self, pos: usize) -> Option<usize> {
+        let time = self.two_digits_in(pos, 0, 23)
             && self.at(pos + 2) == Some(':')
             && self.two_digits_in(pos + 3, 0, 59)
             && self.at(pos + 5) == Some(':')
-            && self.two_digits_in(pos + 6, 0, 59)
+            && self.two_digits_in(pos + 6, 0, 59);
+        if !time {
+            return None;
+        }
+        let mut end = pos + 8;
+        if self.at(end) == Some('.') && self.digits(end + 1, 1) {
+            end += 2;
+            while self.at(end).is_some_and(|c| c.is_ascii_digit()) {
+                end += 1;
+            }
+        }
+        Some(end)
     }
 
     /// Digits of `digit` with single "_" between them, from pos: the end.
@@ -812,10 +867,18 @@ fn in_context(path: &[String]) -> bool {
             .any(|c| c.iter().zip(path).all(|(a, b)| a == b))
 }
 
+fn date_unsupported(path: &[String]) -> ConfigError {
+    ConfigError::Unsupported(format!(
+        "setting {}: a TOML date or time value: sqll does not read it (sqlfluff makes it a str)",
+        path.join(":")
+    ))
+}
+
 /// `_validate_value` of sqlfluff: a table is a section, a list outside a
 /// context has the `str` of each item.
 fn validate_value(value: &TVal, path: &[String]) -> Result<Value, ConfigError> {
     Ok(match value {
+        TVal::DateTime => return Err(date_unsupported(path)),
         TVal::Table(t) => Value::Table(validate_structure(t, path)?),
         TVal::Array(items) if in_context(path) => Value::List(
             items
@@ -827,6 +890,9 @@ fn validate_value(value: &TVal, path: &[String]) -> Result<Value, ConfigError> {
             items
                 .iter()
                 .map(|i| {
+                    if *i == TVal::DateTime {
+                        return Err(date_unsupported(path));
+                    }
                     let v = scalar(i).ok_or_else(|| {
                         ConfigError::Unsupported(format!(
                             "setting {}: a TOML array or table in a list (sqlfluff makes it a str)",
@@ -847,7 +913,7 @@ fn scalar(value: &TVal) -> Option<Value> {
         TVal::Int(i) => Value::Int(*i),
         TVal::Float(f) => Value::Float(*f),
         TVal::Bool(b) => Value::Bool(*b),
-        TVal::Array(_) | TVal::Table(_) => return None,
+        TVal::Array(_) | TVal::Table(_) | TVal::DateTime => return None,
     })
 }
 
@@ -1030,7 +1096,6 @@ mod tests {
             "\u{feff}a = 1\n",
             "a = \"\\x\"\n",
             "= 1\n",
-            "a = 1979-05-27\n",
         ] {
             assert!(parse(bad).is_err(), "{bad:?}");
         }
@@ -1081,5 +1146,59 @@ mod tests {
             load_toml_string("[tool.black]\nx = 1\n", "p").unwrap(),
             Table::new()
         );
+    }
+
+    /// A date or time outside `[tool.sqlfluff]` is read as tomllib reads
+    /// it; in `[tool.sqlfluff]` it fails closed. An invalid date is a
+    /// decode error, as `match_to_datetime` gives a `ValueError`.
+    #[test]
+    fn dates_and_times() {
+        let doc = parse(
+            "a = 1979-05-27\nb = 1979-05-27T07:32:00Z\nc = 1979-05-27 07:32:00.999999-07:00\nd = 07:32:00.5\ne = [1979-05-27t00:00:00+23:59, 2000-02-29]\nf = 1\n",
+        )
+        .unwrap();
+        let keys: Vec<&str> = doc.iter().map(|(k, _)| k.as_str()).collect();
+        assert_eq!(keys, ["a", "b", "c", "d", "e", "f"]);
+        assert_eq!(doc[0].1, TVal::DateTime);
+        assert_eq!(doc[5].1, TVal::Int(1));
+        for bad in [
+            "a = 1979-02-29\n",
+            "a = 2100-02-29\n",
+            "a = 1979-04-31\n",
+            "a = 0000-01-01\n",
+        ] {
+            let Err(TomlError::Decode(m)) = parse(bad) else {
+                panic!("{bad:?}")
+            };
+            assert!(
+                m.starts_with("Invalid date or datetime (at line 1, column 5)"),
+                "{m}"
+            );
+        }
+        // A date with text after it is not a value.
+        assert!(parse("a = 1979-05-27x\n").is_err());
+        let t = load_toml_string(
+            "[tool.other]\nx = 1979-05-27\n[tool.sqlfluff.core]\ndialect = \"ansi\"\n",
+            "pyproject.toml",
+        )
+        .unwrap();
+        assert_eq!(
+            crate::dict::get(&t, &["core", "dialect"]),
+            Some(&Value::str("ansi"))
+        );
+        for text in [
+            "[tool.sqlfluff.core]\nd = 1979-05-27\n",
+            "[tool.sqlfluff.core]\nd = [07:32:00]\n",
+            "[tool.sqlfluff.templater.jinja.context]\nd = [1979-05-27]\n",
+            "[tool.sqlfluff.rules.x]\nd = 1979-05-27\n",
+        ] {
+            assert!(
+                matches!(
+                    load_toml_string(text, "p"),
+                    Err(ConfigError::Unsupported(_))
+                ),
+                "{text:?}"
+            );
+        }
     }
 }

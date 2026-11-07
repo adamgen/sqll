@@ -72,18 +72,30 @@ T12). Differences from `sqlfluff parse`:
   `warnings`, `verbose`, `recursion_limit`; an encoding that is not UTF-8;
   `use_rust_parser = False`; a rule or layout setting that is not the
   default; a glob in a path setting; a deprecated setting that sqlfluff
-  moves to its new key; a TOML date. sqlfluff runs these.
+  moves to its new key; a TOML date or time in `[tool.sqlfluff]`. sqlfluff
+  runs these.
 - A `.sqlfluffignore` file or an `ignore_paths` setting in a folder from
-  the working folder to the file gives `unsupported` and exit code 2. sqll
-  does not read them yet; sqlfluff gives `[]` for a file that they ignore.
+  the working folder to the file gives `unsupported` and exit code 2, also
+  when it does not match the file, and also for a file with another
+  extension. sqll does not read them yet; sqlfluff gives `[]` for a file
+  that they ignore. As in sqlfluff, sqll reads and checks the `.sqlfluff`
+  and `pyproject.toml` files of these folders before it applies
+  `sql_file_exts` (an invalid file gives exit code 2 also for a file with
+  another extension).
 - Where sqlfluff stops with a Python error and exit code 1 (for example an
   unknown dialect in a config file, or a config file that configparser
   cannot read), sqll gives exit code 2.
 - sqll writes each error to stderr; sqlfluff writes some of them (for
   example `Error loading config`) to stdout. The warning lines of sqll (a
   skipped file, the templater of a subfolder) are those of sqlfluff with no
-  color: `nocolor` has no effect in sqll.
+  color: `nocolor` has no effect in sqll. `crates/sqll/tests/cli_config.rs`
+  compares them with the warning lines of each scenario of
+  `results/S3b/C11-config.json` where sqll gives the sqlfluff result.
 - `-f` has only `json`, and it is the default.
+- Each other option of `sqlfluff parse` (for example `--rules`,
+  `--exclude-rules`, `--encoding`, `--ignore`, `--library-path`,
+  `--stdin-filename`, `--write-output`, `--nofail`, `-v`, `--nocolor`)
+  gives a usage error and exit code 2.
 - With `-m`, sqlfluff also adds the 6 source position keys
   (`start_line_no`, `start_line_pos`, `start_file_pos`, `end_line_no`,
   `end_line_pos`, `end_file_pos`) to each record. Thus the children of a
@@ -145,7 +157,11 @@ T12). Differences from `sqlfluff parse`:
 - An argument that is not UTF-8 (for example a file name) gives
   `unsupported: non-UTF-8 argument` and exit code 2. sqlfluff reads it.
 - sqll reads UTF-8 only (with or without a byte order mark). sqlfluff also
-  detects other encodings.
+  detects other encodings. For stdin (`-`), sqll and sqlfluff do not read
+  the `encoding` setting, and a byte order mark stays in the text (sqlfluff
+  reads `sys.stdin`; the mark is then unlexable). sqlfluff decodes stdin
+  with the encoding of the locale (with `surrogateescape`); sqll reads
+  UTF-8, and other bytes give `unsupported` and exit code 2.
 - PATH is one file, or `-` (stdin). A folder gives `unsupported: folder`.
 
 ## Adapter

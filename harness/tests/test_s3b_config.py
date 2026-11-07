@@ -56,6 +56,7 @@ def test_each_scenario_has_a_result_and_a_known_sqll_mark():
     for s in RECORD["cli"]:
         assert ("stdout" in s) != ("tree" in s), s["name"]
         assert s["sqll"] in (None, "unsupported", "exit2"), s["name"]
+        assert all(w.startswith("WARNING") for w in s["warnings"]), s["name"]
     # Each path of the record is relative to the scenario folder.
     assert str(REPO_ROOT) not in co.RECORD_FILE.read_text("utf8")
 
@@ -64,6 +65,12 @@ def test_the_rust_tests_read_the_record():
     for test in TESTS:
         text = test.read_text("utf8")
         assert "results/S3b/C11-config.json" in text, test
+
+
+def test_the_warning_lines_have_no_color():
+    assert co.warning_lines(
+        "\x1b[31mWARNING    x \x1b[0m\nother\n/r/a WARNING\n", "/r"
+    ) == ["WARNING    x "]
 
 
 def test_the_problems_include_a_count_change():

@@ -24,7 +24,7 @@ pub mod value;
 use std::fmt;
 
 pub use config::{Config, LoadOptions, TEMPLATERS};
-pub use defaults::defaults;
+pub use defaults::{default_table, defaults};
 pub use loader::{Env, Loader, CONFIG_FILES};
 pub use parse::{Encoding, ParseSettings, TemplaterName};
 pub use value::{coerce_value, Table, Value};

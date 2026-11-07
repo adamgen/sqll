@@ -13,7 +13,7 @@
 //! A loaded config: the sqlfluff defaults, the config files, and the
 //! command line overrides of the `core` section.
 
-use crate::defaults::defaults;
+use crate::defaults::default_table;
 use crate::dict::{get, nested_combine};
 use crate::loader::Loader;
 use crate::validate::validate_config_dict;
@@ -59,7 +59,7 @@ impl Config {
         } else {
             validate_config_dict(&mut configs, "<provided configs>")?;
         }
-        let mut table = nested_combine(&[&defaults(), &configs, &wrapped])?;
+        let mut table = nested_combine(&[default_table(), &configs, &wrapped])?;
         let core = match table.get_mut("core") {
             Some(Value::Table(core)) => core,
             _ => {

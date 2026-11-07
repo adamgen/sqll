@@ -17,7 +17,8 @@ use sqll_config::parse::{ParseSettings, TemplaterName};
 use sqll_config::toml::load_toml_string;
 use sqll_config::value::float_repr;
 use sqll_config::{
-    coerce_value, defaults, Config, ConfigError, Env, LoadOptions, Loader, Table, Value,
+    coerce_value, default_table, defaults, Config, ConfigError, Env, LoadOptions, Loader, Table,
+    Value,
 };
 
 fn repo() -> PathBuf {
@@ -48,6 +49,7 @@ fn signatures(c: &Config, l: &mut Loader, o: &LoadOptions, s: ParseSettings) {
     let _: Vec<(String, bool)> = c.indentation();
     let _: (Option<&Table>, Option<&Table>) = (c.rule_section("x"), c.templater_section("raw"));
     let _: fn(&Config, &Config) -> Result<ParseSettings, ConfigError> = ParseSettings::new;
+    let _: fn(&Config) -> Result<ParseSettings, ConfigError> = ParseSettings::for_stdin;
     let _: (Option<String>, TemplaterName, u64, u64) =
         (s.dialect, s.templater, s.max_parse_depth, s.max_parse_nodes);
     let _: (Option<u64>, Option<u64>, Vec<(String, bool)>) = (
@@ -57,6 +59,7 @@ fn signatures(c: &Config, l: &mut Loader, o: &LoadOptions, s: ParseSettings) {
     );
     let _: fn(&str) -> Result<Value, ConfigError> = coerce_value;
     let _: fn() -> Table = defaults;
+    let _: fn() -> &'static Table = default_table;
     let _ = LoadOptions {
         extra_config_path: None,
         ignore_local_config: false,

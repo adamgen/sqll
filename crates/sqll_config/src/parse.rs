@@ -9,7 +9,7 @@
 //! config), and each other setting from the config of the file.
 
 use crate::config::{rust_parser_enabled, Config};
-use crate::defaults::defaults;
+use crate::defaults::default_table;
 use crate::loader::{intermediate_paths, Loader};
 use crate::value::Value;
 use crate::ConfigError;
@@ -62,32 +62,6 @@ pub struct ParseSettings {
 fn unsupported(path: &str, value: &Value, why: &str) -> ConfigError {
     ConfigError::Unsupported(format!("setting {path} = {value}. {why}"))
 }
-
-/// The core settings that have no effect on the output of `sqlfluff parse
-/// -f json` (they are for the human output, lint, fix, or noqa comments;
-/// sqll reads no noqa comment: harness/sqll.md), or that sqlfluff makes
-/// from other settings.
-pub const NO_EFFECT: &[&str] = &[
-    "nocolor",
-    "color",
-    "output_line_length",
-    "processes",
-    "fix_even_unparsable",
-    "runaway_limit",
-    "render_variant_limit",
-    "max_line_length",
-    "warn_unused_ignores",
-    "ignore_templated_areas",
-    "large_file_skip_fail",
-    "disable_noqa",
-    "disable_noqa_except",
-    "use_rust_rules",
-    "rule_allowlist",
-    "rule_denylist",
-    "dialect_obj",
-    "templater_obj",
-    "ignore_paths",
-];
 
 /// An int setting from 0: `None` (and each value that Python sees as
 /// false) is the default.
@@ -148,7 +122,8 @@ pub fn check_ignore_files(loader: &mut Loader, path: &str) -> Result<(), ConfigE
                 "the ignore file {ignore}: sqll does not read .sqlfluffignore files yet (S7)"
             )));
         }
-        for name in [".sqlfluff", "pyproject.toml"] {
+        // The order of `ignore_file_loaders` (discovery.py).
+        for name in ["pyproject.toml", ".sqlfluff"] {
             let file = crate::loader::join(&folder, name);
             if !std::path::Path::new(&file).is_file() {
                 continue;
@@ -172,9 +147,21 @@ pub fn check_ignore_files(loader: &mut Loader, path: &str) -> Result<(), ConfigE
 
 impl ParseSettings {
     /// The settings of a parse of a file: `root` is the config of the
-    /// working folder, `file` the config of the file (for stdin, the root
-    /// config).
+    /// working folder, `file` the config of the file.
     pub fn new(root: &Config, file: &Config) -> Result<ParseSettings, ConfigError> {
+        ParseSettings::build(root, file, false)
+    }
+
+    /// The settings of a parse of stdin (the root config). sqlfluff reads
+    /// stdin with `sys.stdin.read()` (src/sqlfluff/cli/commands.py,
+    /// parse): it does not read the `encoding` setting, and a byte order
+    /// mark stays in the text. Thus the encoding is [`Encoding::Utf8`] and
+    /// the `encoding` setting has no effect.
+    pub fn for_stdin(root: &Config) -> Result<ParseSettings, ConfigError> {
+        ParseSettings::build(root, root, true)
+    }
+
+    fn build(root: &Config, file: &Config, stdin: bool) -> Result<ParseSettings, ConfigError> {
         let templater = root_templater(root)?;
         let templater_warning = (file.templater() != root.templater()).then(|| {
             format!(
@@ -215,12 +202,16 @@ impl ParseSettings {
             indentation: file.indentation(),
             large_file_skip_byte_limit: 0,
             large_file_skip_char_limit: 0,
-            encoding: Encoding::Autodetect,
+            encoding: if stdin {
+                Encoding::Utf8
+            } else {
+                Encoding::Autodetect
+            },
         };
         let core = file
             .section(&["core"])
             .expect("a config has a core section");
-        let default_table = defaults();
+        let default_table = default_table();
         for (key, value) in core {
             let path = format!("core:{key}");
             let default = crate::dict::get(&default_table, &["core", key]);
@@ -255,6 +246,7 @@ impl ParseSettings {
                         s.large_file_skip_char_limit = limit;
                     }
                 }
+                "encoding" if stdin => {}
                 "encoding" => s.encoding = encoding(&path, value)?,
                 "use_rust_parser" => {
                     if !rust_parser_enabled(value) {
@@ -293,7 +285,8 @@ impl ParseSettings {
                     }
                 }
                 // Another key has no effect on a parse, or sqlfluff does
-                // not read it.
+                // not read it. `ignore_paths` is checked before the parse
+                // (`check_ignore_files`).
                 _ => {}
             }
         }

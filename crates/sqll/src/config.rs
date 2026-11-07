@@ -69,7 +69,7 @@ pub fn load(args: &ParseArgs, path: &str) -> Result<Input, Error> {
     };
     let root = Config::from_root(&mut loader, &options).map_err(config_error)?;
     if path == "-" {
-        let settings = ParseSettings::new(&root, &root).map_err(config_error)?;
+        let settings = ParseSettings::for_stdin(&root).map_err(config_error)?;
         return Ok(Input::Parse(Box::new(ParseInput { settings })));
     }
     let meta = std::fs::metadata(path).map_err(|e| Error(format!("cannot read {path}: {e}")))?;
@@ -80,10 +80,14 @@ pub fn load(args: &ParseArgs, path: &str) -> Result<Input, Error> {
         ));
     }
     let exts = sql_file_exts(&root).map_err(config_error)?;
+    // sqlfluff loads the ignore files of the folders (and with them, each
+    // .sqlfluff and pyproject.toml file, with their checks) before it
+    // applies the extensions (paths_from_path in
+    // src/sqlfluff/core/linter/discovery.py).
+    check_ignore_files(&mut loader, path).map_err(config_error)?;
     if !has_sql_extension(path, &exts) {
         return Ok(Input::Skip("[]\n".to_string()));
     }
-    check_ignore_files(&mut loader, path).map_err(config_error)?;
     let file = Config::from_path(&mut loader, path, &options).map_err(config_error)?;
     let settings = ParseSettings::new(&root, &file).map_err(config_error)?;
     let limit = settings.large_file_skip_byte_limit;

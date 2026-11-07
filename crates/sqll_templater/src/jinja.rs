@@ -12,6 +12,13 @@ pub const JINJA_DELIMITERS: [&str; 3] = ["{{", "{%", "{#"];
 /// C11; the proof is `scripts/s3b/config_oracle.py`, `jinja_as_raw` in
 /// `results/S3b/C11-config.json`). For an empty text the Jinja templater
 /// gives no slice, and the raw templater one empty literal slice.
+///
+/// The condition is that of the short path of `JinjaTemplater.process` in
+/// sqlfluff 4.4.0 (src/sqlfluff/core/templaters/jinja.py: `in_str` is not
+/// empty and has no match of `\{[{%#]`). sqlfluff takes that path only with
+/// no Jinja environment, macro, or library setting; sqll checks those
+/// settings in `sqll_config::ParseSettings`. If the pinned sqlfluff changes
+/// that code, examine this function again.
 pub fn jinja_is_literal(text: &str) -> bool {
     !text.is_empty() && !JINJA_DELIMITERS.iter().any(|d| text.contains(d))
 }

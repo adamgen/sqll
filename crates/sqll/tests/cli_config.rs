@@ -3,7 +3,8 @@
 //! `each_cli_scenario_gives_the_sqlfluff_result` runs sqll on each CLI
 //! scenario of results/S3b/C11-config.json (scripts/s3b/config_oracle.py
 //! ran "sqlfluff parse -f json" of the pinned sqlfluff on it): the same
-//! stdout and exit code (with -m: the same tree with no position keys), or
+//! stdout and exit code (with -m: the same tree with no position keys) and
+//! the same warning lines on stderr (sqlfluff with no color), or
 //! "unsupported" with exit code 2 where sqll fails closed. The other tests
 //! show the settings of the Rust parser, which the pure Python sqlfluff of
 //! the record does not have.
@@ -150,6 +151,25 @@ fn each_cli_scenario_gives_the_sqlfluff_result() {
         let stderr = String::from_utf8_lossy(&out.stderr);
         let want_code = sc["exit_code"].as_i64().unwrap() as i32;
         let r = root.to_str().unwrap();
+        if sc["sqll"].is_null() {
+            let warnings: Vec<String> = stderr
+                .replace(r, "<root>")
+                .lines()
+                .filter(|l| l.starts_with("WARNING"))
+                .map(str::to_string)
+                .collect();
+            let want: Vec<String> = sc["warnings"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(|w| w.as_str().unwrap().to_string())
+                .collect();
+            if warnings != want {
+                problems.push(format!(
+                    "{name}: warning lines {warnings:?}, sqlfluff {want:?}"
+                ));
+            }
+        }
         match sc["sqll"].as_str() {
             Some("unsupported") => {
                 if code != 2 || !stderr.contains("unsupported: ") {
@@ -267,5 +287,41 @@ fn the_max_parse_depth_option_overrides_the_config() {
         None,
     );
     assert_eq!(out.status.code(), Some(0));
+    let _ = std::fs::remove_dir_all(&root);
+}
+
+/// Each other option of "sqlfluff parse" (src/sqlfluff/cli/commands.py:
+/// core_options and parse) gives a usage error and exit code 2
+/// (harness/sqll.md).
+#[test]
+fn the_other_sqlfluff_parse_options_give_a_usage_error() {
+    let root = new_root(10_002);
+    let files = serde_json::json!({"w/.sqlfluff": "[sqlfluff]\ndialect = ansi\n"});
+    make_files(&root, &files);
+    std::fs::create_dir_all(root.join("h")).unwrap();
+    for option in [
+        &["--rules", "CP01"][..],
+        &["--exclude-rules", "CP01"],
+        &["--encoding", "utf-8"],
+        &["--ignore", "parsing"],
+        &["--library-path", "x"],
+        &["--stdin-filename", "a.sql"],
+        &["--write-output", "o.json"],
+        &["--nofail"],
+        &["-v"],
+        &["--nocolor"],
+    ] {
+        let mut args: Vec<String> = ["parse", "-f", "json"].map(String::from).to_vec();
+        args.extend(option.iter().map(|s| s.to_string()));
+        args.push("-".into());
+        let out = run(&root, "w", &args, Some("select 1\n"));
+        let stderr = String::from_utf8_lossy(&out.stderr);
+        assert_eq!(out.status.code(), Some(2), "{option:?}: {stderr}");
+        assert!(
+            stderr.contains(&format!("No such option: {}", option[0])),
+            "{option:?}: {stderr}"
+        );
+        assert!(out.stdout.is_empty(), "{option:?}");
+    }
     let _ = std::fs::remove_dir_all(&root);
 }

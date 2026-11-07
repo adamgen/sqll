@@ -9,6 +9,8 @@
 //! pinned_sqlfluff` (tests/defaults.rs) reads `default_config.cfg` of the
 //! submodule and compares each value.
 
+use std::sync::OnceLock;
+
 use crate::dict::records_to_nested_dict;
 use crate::value::{Table, Value};
 
@@ -245,12 +247,21 @@ pub const DEFAULTS: &[(&[&str], D)] = &[
     (&["rules", "structure.join_condition_order", "preferred_first_table_in_join_clause"], D::Str("earlier")),
 ];
 
-/// The default config as a table.
+/// The default config as a table (a copy of [`default_table`]).
 pub fn defaults() -> Table {
-    records_to_nested_dict(
-        DEFAULTS
-            .iter()
-            .map(|(path, d)| (path.iter().map(|s| s.to_string()).collect(), d.value())),
-    )
-    .expect("the defaults have no key that is a value and a section")
+    default_table().clone()
+}
+
+/// The default config as a table. sqll makes it one time in a run
+/// (`sqll parse` reads it for each config and for the settings).
+pub fn default_table() -> &'static Table {
+    static TABLE: OnceLock<Table> = OnceLock::new();
+    TABLE.get_or_init(|| {
+        records_to_nested_dict(
+            DEFAULTS
+                .iter()
+                .map(|(path, d)| (path.iter().map(|s| s.to_string()).collect(), d.value())),
+        )
+        .expect("the defaults have no key that is a value and a section")
+    })
 }

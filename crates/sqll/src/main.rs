@@ -416,8 +416,11 @@ fn normpath(path: &str) -> String {
 }
 
 /// Read a SQL file as sqlfluff does for a UTF-8 file: with universal
-/// newlines ("\r\n" and "\r" become "\n"), and with no UTF-8 byte order
-/// mark, unless the `encoding` setting is `utf-8` (Python keeps the mark).
+/// newlines ("\r\n" and "\r" become "\n"; sqlfluff `render_string`), and
+/// with no UTF-8 byte order mark, unless the encoding is `utf-8` (Python
+/// keeps the mark). For stdin (`-`), the encoding is always `utf-8`
+/// (`ParseSettings::for_stdin`): sqlfluff reads `sys.stdin`, which keeps the
+/// mark.
 fn read_sql(path: &str, encoding: Encoding) -> Result<String, Error> {
     let mut data = Vec::new();
     let read = if path == "-" {
