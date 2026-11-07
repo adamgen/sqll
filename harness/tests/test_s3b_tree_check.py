@@ -54,7 +54,7 @@ def test_the_pass_line_is_the_line_of_the_rust_test():
         "utf8"
     )
     assert '"tree: {passed} of {files} {what}: lossless and node for node equal' in text
-    assert 'report("S2 parse inputs", files, total, &problems);' in text
+    assert 'report("S2 parse inputs", r.files, r.total, &r.problems);' in text
     assert f"const S2_PARSE_INPUTS: usize = {tc.PARSE_INPUTS};" in text
     assert f"fn {tc.TEST}()" in text
     assert f'const S2_INPUTS_ENV: &str = "{tc.INPUTS_ENV}";' in text

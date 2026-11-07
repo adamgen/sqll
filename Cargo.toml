@@ -19,6 +19,8 @@ members = [
     "crates/sqll_tree",
     "crates/sqll_interfaces",
     "crates/sqll_syntax",
+    "crates/sqll_source",
+    "crates/sqll_templater",
 ]
 
 [workspace.package]

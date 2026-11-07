@@ -7,19 +7,24 @@
 //!   and CRLF, an unparsable node.
 //! - Each of the 2306 dialect fixtures: the conversion of its parser tree
 //!   is lossless and equal to the parser tree, node for node
-//!   (`sqll_interfaces::tree_check`).
+//!   (`sqll_interfaces::tree_check`). Also through the raw templater
+//!   (`parse_file`, `from_node_with_source`): the same check, an identity
+//!   source map, and the same tree as with no map.
 //! - Each of the 84 S2 parse inputs: the same check (ignored by default;
 //!   `scripts/s3b/tree_check.py check` builds the inputs and runs it).
 
 use std::ops::Range;
 use std::path::PathBuf;
+use std::sync::Arc;
 
 use sqll_dialects::Dialect;
-use sqll_interfaces::parse::parse;
+use sqll_interfaces::parse::{parse, parse_file};
 use sqll_interfaces::tree_check::{check, Counts};
 use sqll_interfaces::{dialect_fixtures, dialects, with_parse_stack, FIXTURES};
 use sqll_parser::parser::Node;
-use sqll_syntax::{from_node, kind_of, ConvertError, Converted};
+use sqll_source::{SourceMap, Templater, TemplaterConfig};
+use sqll_syntax::{from_node, from_node_with_source, kind_of, ConvertError, Converted};
+use sqll_templater::RawTemplater;
 use sqll_tree::{
     Children, LineIndex, LinePos, NodeId, SegmentKind, SegmentType, SyntaxTree, TreeBuilder,
     TreeError, Variant,
@@ -101,6 +106,42 @@ fn convert(dialect: Dialect, sql: &str) -> Result<(Converted, Counts), String> {
     let converted = from_node(&root, sql.to_string()).map_err(|e| e.to_string())?;
     let counts = check(&root, sql, &converted)?;
     Ok((converted, counts))
+}
+
+/// Template one text with the raw templater, parse and convert it with its
+/// source map, and check the tree (also the source ranges and positions).
+/// It must be the tree of `convert`, with each source range and position
+/// the templated one.
+fn convert_raw(dialect: Dialect, sql: &str, plain: &SyntaxTree) -> Result<Counts, String> {
+    let file = RawTemplater
+        .process(sql, "fixture.sql", &TemplaterConfig::new())
+        .map_err(|e| e.to_string())?;
+    let map = Arc::new(SourceMap::new(Arc::new(file)).map_err(|e| e.to_string())?);
+    if !map.is_identity() {
+        return Err("the raw templater map is not the identity".into());
+    }
+    let root = parse_file(dialect, Arc::clone(map.file()))?;
+    let converted = from_node_with_source(&root, map).map_err(|e| e.to_string())?;
+    let counts = check(&root, sql, &converted)?;
+    let tree = &converted.tree;
+    if tree.node_count() != plain.node_count() {
+        return Err(format!(
+            "raw templater: {} nodes, not {}",
+            tree.node_count(),
+            plain.node_count()
+        ));
+    }
+    for (id, other) in tree.nodes().zip(plain.nodes()) {
+        let got = (tree.kind(id), tree.range(id), tree.source_range(id));
+        let want = (plain.kind(other), plain.range(other), plain.range(other));
+        if got != want || tree.source_pos(id) != tree.start_pos(id) || !tree.is_literal(id) {
+            return Err(format!(
+                "raw templater: node {}: {got:?}, not {want:?}",
+                id.index()
+            ));
+        }
+    }
+    Ok(counts)
 }
 
 fn convert_ok(sql: &'static str) -> Converted {
@@ -267,21 +308,41 @@ fn a_tree_made_with_the_builder() {
     );
 }
 
-/// Convert and check each file. Return the files, the summed counts, and
-/// the problems (one line each).
-fn run(files: Vec<(String, Dialect, PathBuf)>) -> (usize, Counts, Vec<String>) {
+/// The results of `run`: the files, the summed counts, and the problems
+/// (one line each); for the raw templater path too, if `run` took it.
+#[derive(Default)]
+struct Run {
+    files: usize,
+    total: Counts,
+    problems: Vec<String>,
+    raw_total: Counts,
+    raw_problems: Vec<String>,
+}
+
+/// Convert and check each file; with `raw`, also through the raw templater
+/// (`convert_raw`).
+fn run(files: Vec<(String, Dialect, PathBuf)>, raw: bool) -> Run {
     with_parse_stack(move || {
-        let mut total = Counts::default();
-        let mut problems = Vec::new();
-        let n = files.len();
+        let mut out = Run {
+            files: files.len(),
+            ..Run::default()
+        };
         for (_, dialect, path) in files {
             let sql = std::fs::read_to_string(&path).unwrap();
             match convert(dialect, &sql) {
-                Ok((_, counts)) => total += counts,
-                Err(e) => problems.push(format!("{}: {e}", path.display())),
+                Ok((converted, counts)) => {
+                    out.total += counts;
+                    if raw {
+                        match convert_raw(dialect, &sql, &converted.tree) {
+                            Ok(counts) => out.raw_total += counts,
+                            Err(e) => out.raw_problems.push(format!("{}: {e}", path.display())),
+                        }
+                    }
+                }
+                Err(e) => out.problems.push(format!("{}: {e}", path.display())),
             }
         }
-        (n, total, problems)
+        out
     })
 }
 
@@ -290,14 +351,14 @@ fn report(what: &str, files: usize, total: Counts, problems: &[String]) {
     eprintln!(
         "tree: {passed} of {files} {what}: lossless and node for node equal \
          ({} nodes: {} raw, {} segment, {} meta, {} unparsable; {} with a position, \
-         {} with another ported line position; {} bytes, {} lines)",
+         {} with another source range; {} bytes, {} lines)",
         total.nodes,
         total.raw,
         total.segment,
         total.meta,
         total.unparsable,
         total.positioned,
-        total.ported_line_pos_differs,
+        total.source_differs,
         total.bytes,
         total.lines
     );
@@ -308,11 +369,24 @@ fn report(what: &str, files: usize, total: Counts, problems: &[String]) {
 
 #[test]
 fn each_dialect_fixture_converts_lossless_and_node_for_node() {
-    let (files, total, problems) = run(dialect_fixtures());
-    report("dialect fixtures", files, total, &problems);
-    assert_eq!(files, FIXTURES, "the dialect fixtures");
-    assert_eq!(problems, Vec::<String>::new());
-    assert_eq!(total.nodes, FIXTURE_NODES, "the nodes of the fixture trees");
+    let r = run(dialect_fixtures(), true);
+    report("dialect fixtures", r.files, r.total, &r.problems);
+    report(
+        "dialect fixtures through the raw templater",
+        r.files,
+        r.raw_total,
+        &r.raw_problems,
+    );
+    assert_eq!(r.files, FIXTURES, "the dialect fixtures");
+    assert_eq!(r.problems, Vec::<String>::new());
+    assert_eq!(
+        r.total.nodes, FIXTURE_NODES,
+        "the nodes of the fixture trees"
+    );
+    assert_eq!(r.raw_problems, Vec::<String>::new());
+    assert_eq!(r.raw_total.nodes, FIXTURE_NODES);
+    assert_eq!(r.raw_total.positioned, r.total.positioned);
+    assert_eq!(r.raw_total.source_differs, 0);
 }
 
 /// The S2 parse inputs in the folder of SQLL_S2_PARSE_INPUTS:
@@ -335,9 +409,9 @@ fn s2_inputs() -> Vec<(String, Dialect, PathBuf)> {
 #[test]
 #[ignore = "needs the S2 inputs: scripts/s3b/tree_check.py check"]
 fn each_s2_parse_input_converts_lossless_and_node_for_node() {
-    let (files, total, problems) = run(s2_inputs());
-    report("S2 parse inputs", files, total, &problems);
-    assert_eq!(files, S2_PARSE_INPUTS, "the S2 parse inputs");
-    assert_eq!(problems, Vec::<String>::new());
-    assert_eq!(total.nodes, S2_NODES, "the nodes of the S2 input trees");
+    let r = run(s2_inputs(), false);
+    report("S2 parse inputs", r.files, r.total, &r.problems);
+    assert_eq!(r.files, S2_PARSE_INPUTS, "the S2 parse inputs");
+    assert_eq!(r.problems, Vec::<String>::new());
+    assert_eq!(r.total.nodes, S2_NODES, "the nodes of the S2 input trees");
 }

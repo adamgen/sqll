@@ -50,6 +50,15 @@ names of the sqlfluff 4.4.0 dialects and segment classes.
 `scripts/s3/sqruff_rules.py` reads them from the installed sqlfluff package.
 No sqlfluff code is copied.
 
+`scripts/s3b/source_map_oracle.py` (S3b task C8) imports and runs the
+installed sqlfluff 4.4.0 package (MIT): its `TemplatedFile` and its
+templaters, on the fixtures of `test/fixtures/templater/`.
+`results/S3b/C8-source-map.json` has its output for `jinja_a/jinja.sql`
+and `jinja_b/jinja.sql`: the templated texts, the slices, the source
+ranges, lines, and positions, and the segment types. It has no source text
+of the fixtures; the tests read the submodule. The random files of its
+`check` are invented, not sqlfluff data. No sqlfluff code is copied.
+
 `scripts/s3/sqlfluffrs_probe.py` (S3 research, task T5) copies the
 submodule into a scratch folder, runs `utils/rustify.py` there, and builds
 the sqlfluffrs crates and the probe there. The generated Rust files stay in
@@ -127,6 +136,8 @@ Ported code (MIT, attribution in each file header):
 | `crates/sqll_tree/build/kinds.rs` | The node construction rules of `sqlfluffrs/sqlfluffrs_parser` as `crates/sqll_parser` has them: `src/parser/match_result.rs` (`MatchResult::apply`, `token_to_node`, `MatchedClass`), `src/parser/core.rs` (the terminal parser handlers, `aux_block_bounds`, `read_string_ids_from_aux`), `src/parser/table_driven/ref_grammar.rs` (`build_ref_wrap`) |
 | `crates/sqll_interfaces/src/parse.rs` | The lexer and parser calls and the limits of `crates/sqll/src/parse.rs` (its row above). S3b C7 moved them from `crates/sqll_interfaces/tests/segment_kinds.rs` |
 | `scripts/s3b/convert-cost/src/main.rs` | S3b C7 measurement, not sqll: the lexer and parser calls and the limits of `crates/sqll/src/parse.rs` (its row above) |
+| `crates/sqll_source/src/map.rs` | `sqlfluffrs/sqlfluffrs_types/src/templater/templatefile.rs`: the slice search of `find_slice_indices_of_templated_pos` and the rule for an empty slice of `templated_slice_to_source_slice` (S3b C8) |
+| `crates/sqll_templater/src/raw.rs` | `src/sqlfluff/core/templaters/base.py` (`RawTemplater.process`) (S3b C8) |
 
 ## sqlfluffrs in crates/
 
@@ -174,8 +185,9 @@ lines, and sha256 of each of the 85 files. The build copies them into
 
 The new sqll files in `crates/` (listed in `crates/ported.json`, "new") and
 `rust-toolchain.toml` have no sqlfluff code, but `crates/sqll/src/parse.rs`,
-`crates/sqll_tree/build/kinds.rs`, and `crates/sqll_interfaces/src/parse.rs`
-have ported parts ("Ported code" above). The sqll binary (`crates/sqll`)
+`crates/sqll/tests/cli.rs`, `crates/sqll_tree/build/kinds.rs`,
+`crates/sqll_interfaces/src/parse.rs`, `crates/sqll_source/src/map.rs`, and
+`crates/sqll_templater/src/raw.rs` have ported parts ("Ported code" above). The sqll binary (`crates/sqll`)
 contains the ported crates and the tables. The tables are a substantial
 portion of sqlfluff, so each sqll binary carries the sqlfluff MIT copyright
 and permission notice: `sqll --license` prints `crates/LICENSE-sqlfluffrs.md`

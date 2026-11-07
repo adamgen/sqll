@@ -9,7 +9,10 @@ these details to the task list: a kind is the full static data of a node
 (C6), C6 makes the crate `sqll_interfaces`, C7 makes the crate
 `sqll_syntax` (the conversion; C9 adds `parse`), C8 makes the crate
 `sqll_source`, C13 makes the crate `sqll_cli`, and C16 gives
-`docs/decisions/s3b-*.md` to Core. The interface documents are in
+`docs/decisions/s3b-*.md` to Core. C8 changed the C4 design (C8 task
+text; the record has the change in Q2 and Q5): the raw templater is in
+the S6 package `sqll_templater`, not in `sqll_source` (Core owns
+`crates/**` until C16). The interface documents are in
 `docs/interfaces/` (a Core path since C6).
 
 ## Tasks
@@ -22,9 +25,9 @@ these details to the task list: a kind is the full static data of a node
 | C4 | Decision record: the S3b core design (answers to the 7 open interface questions): [docs/decisions/s3b-core.md](../docs/decisions/s3b-core.md) | Merged (PR #61) |
 | C5 | Speed check tool for each Core change (G3.6): `scripts/speed-check`, `results/S3b/speed/C5.json` | Merged (PR #63) |
 | C6 | Typed segment kinds from the frozen dialect tables: one kind for each distinct static data of a node (variant, class, type, instance types, class types, segment kwargs); the build fails if the kinds do not fit in a `u16`: [docs/interfaces/segment-kinds.md](../docs/interfaces/segment-kinds.md) | Merged (PR #64) |
-| C7 | Lossless syntax tree (`sqll_tree`) and the conversion from the parser tree (`sqll_syntax::from_node`): [docs/interfaces/tree.md](../docs/interfaces/tree.md) | In review |
-| C8 | Source map (`sqll_source`): `TemplatedFile` as the frozen templater interface, raw templater. C7 finding: the newline index of the ported `TemplatedFile` has byte offsets, not code point offsets, so its line position is wrong after a multi-byte character | Not started |
-| C9 | Frozen parse interface (lexer to parser to tree) and `sqll parse` output from `SyntaxTree`. Remove the copy of the parse settings in `crates/sqll_interfaces/src/parse.rs`: use the interface. Use the conversion cost of C7 in the speed plan | Not started |
+| C7 | Lossless syntax tree (`sqll_tree`) and the conversion from the parser tree (`sqll_syntax::from_node`): [docs/interfaces/tree.md](../docs/interfaces/tree.md) | Merged (PR #65) |
+| C8 | Source map (`sqll_source`): `TemplatedFile` as the frozen templater interface, raw templater (`sqll_templater`), source ranges of the tree. Fix of the C7 finding: the newline index of the ported `TemplatedFile` has code point offsets: [docs/interfaces/source-map.md](../docs/interfaces/source-map.md) | In review |
+| C9 | Frozen parse interface (lexer to parser to tree) and `sqll parse` output from `SyntaxTree`. Remove the copy of the parse settings in `crates/sqll_interfaces/src/parse.rs`: use the interface. Use the conversion cost of C7 in the speed plan. The lexer input is a `TemplatedFile` (C8). sqlfluff changes "\r\n" and "\r" to "\n" before the templater (`Linter.render_string`); `sqll parse` does not | Not started |
 | C10 | Typed view of the tree | Not started |
 | C11 | Config skeleton (`sqll_config`) and its use in `sqll parse` | Not started |
 | C12 | Rule and fix interface (`sqll_lint`) with CP01, CP03, CP04 as the proof | Not started |
@@ -75,8 +78,9 @@ tree: 84 of 84 S2 parse inputs: lossless and node for node equal (280339 nodes: 
 ```
 
 "Another ported line position": the ported `get_line_pos_of_char_pos` of
-`TemplatedFile` gives another line position after a multi-byte character
-(C8 finding above). The test fails if this occurs in an ASCII text.
+`TemplatedFile` gave another line position after a multi-byte character.
+C8 fixed it; now the test fails if the ported line position is another
+one (C8 section).
 
 The conversion cost (`scripts/s3b/tree_check.py measure`, record
 [results/S3b/C7-conversion.json](../results/S3b/C7-conversion.json); the
@@ -97,3 +101,44 @@ speed plan:
 
 The sqll binary does not link `sqll_tree` or `sqll_syntax` (`cargo tree -p
 sqll -e normal,build`), so C7 has no speed check (G3 rule above).
+
+## C8: source map proof
+
+Interface: [docs/interfaces/source-map.md](../docs/interfaces/source-map.md).
+The sqlfluff data: `scripts/s3b/source_map_oracle.py` (record
+[results/S3b/C8-source-map.json](../results/S3b/C8-source-map.json);
+`check` in the CI job build). The test output (with `--nocapture`):
+
+```text
+source map: 20000 of 20000 random files: as sqlfluff (211080 ranges, 17415 of them ValueError; 193773 source offsets)
+source map: 54 of 54 templater fixtures: as sqlfluff (776608 ranges, 1345 of them ValueError; 6711 source offsets; 3121 segments, 4 of them with a wider templated slice)
+source map: 3 of 3 recorded fixtures: as sqlfluff (1678 ranges, 15 of them ValueError; 212 source offsets; 96 segments, 0 of them with a wider templated slice)
+tree: 2306 of 2306 dialect fixtures: lossless and node for node equal (685224 nodes: 432300 raw, 182196 segment, 70728 meta, 0 unparsable; 685224 with a position, 0 with another source range; 1468552 bytes, 57623 lines)
+tree: 2306 of 2306 dialect fixtures through the raw templater: lossless and node for node equal (685224 nodes: 432300 raw, 182196 segment, 70728 meta, 0 unparsable; 685224 with a position, 0 with another source range; 1468552 bytes, 57623 lines)
+```
+
+- The 54 templater fixtures (53 SQL files directly in the fixture folders
+  and the subfolder case of the sqlfluff Jinja test table): the sqll lexer
+  and parser give the sqlfluff tree of each templated file, segment for
+  segment, with the source ranges, the literal flags, and the source
+  positions of sqlfluff.
+- Fixes of ported code (`crates/ported.json`; the interface document has
+  the details): the newline index and `raw_slices_spanning_source_slice`
+  count code points; `templated_slice_to_source_slice` does not panic for
+  source slices out of order; the parser keeps the `end_of_file` of an
+  empty templated text (the record has the empty file). `check` compares
+  20000 random invented files (seed 8) with the pinned sqlfluff: 0
+  differences. For the newline fix, the output of `sqll parse` (with and
+  without `-m`) of the 2306 dialect fixtures and the 84 S2 parse inputs
+  did not change (9560 runs).
+- G4: S1 dialect suite of sqll 2306 of 2306 exact; the known failures of
+  sqll (dialects, rules, autofix, templater) did not change; tree guard: 84
+  of 84 the same; native base tests 162 of 162; the syntax tree check of
+  the 84 S2 parse inputs passes.
+- The sqll binary links the fixes (`sqll_types`, `sqll_parser`), but not
+  `sqll_source` or `sqll_templater` (`cargo tree -p sqll -e
+  normal,build`). Speed check
+  ([results/S3b/speed/C8.json](../results/S3b/speed/C8.json), base
+  `ee2434a356fe`, head `265e52cdc39b`): 112 benchmarks, 0 slower, 0
+  failures; total wall time head / base 0.998; head faster than sqruff on
+  108 of 108 pairs and faster than sqlfluff on 112 of 112.

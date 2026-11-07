@@ -245,6 +245,7 @@ def test_each_file_of_the_source_crates_is_ported_or_excluded():
         "crates/sqll_rules/src/lib.rs",
         "crates/sqll_types/Cargo.toml",
         "crates/sqll_types/src/matcher.rs",
+        "crates/sqll_types/src/templater/templatefile.rs",
     ]
 
 

@@ -184,7 +184,8 @@ jobs:
   # pinned generator, compare them with crates/sqll_dialects/generated.json,
   # build the workspace (release, --locked) with no Python, run the Rust
   # tests with the list check of the base native tests, the S2 tree guard,
-  # and the syntax tree check of the S2 parse inputs. The artifact has
+  # the syntax tree check of the S2 parse inputs, and the source map check
+  # of the templater fixtures. The artifact has
   # out/sqll/build.json and the binaries.
   build:
     needs: [changes, image]
@@ -236,6 +237,18 @@ jobs:
       # node (the ignored test of crates/sqll_interfaces/tests/tree.rs).
       - name: Check the syntax trees of the S2 parse inputs
         run: uv run --frozen --project harness python scripts/s3b/tree_check.py check
+
+      # S3b C8: the source map gives the answers of the pinned sqlfluff for
+      # each templater fixture (each templated range, each source offset,
+      # and each segment of the parse tree) and for 20000 random invented
+      # files (each templated range and source offset), and the record
+      # results/S3b/C8-source-map.json is the sqlfluff data (the ignored
+      # test of crates/sqll_interfaces/tests/source_map.rs).
+      - name: Check the source map with sqlfluff
+        run: uv run --frozen --project harness python scripts/s3b/source_map_oracle.py check
+
+      - name: Check that the sqlfluff submodule is clean after the source map check
+        run: scripts/check-submodule "after the source map check"
 
       - uses: actions/upload-artifact@v7
         with:

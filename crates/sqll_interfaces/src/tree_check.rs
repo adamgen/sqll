@@ -1,6 +1,7 @@
-//! The check of a converted `SyntaxTree` against its parser tree (S3b C7,
-//! docs/interfaces/tree.md). The interface test of the tree runs it on the
-//! dialect fixtures and the S2 parse inputs.
+//! The check of a converted `SyntaxTree` against its parser tree (S3b C7
+//! and C8, docs/interfaces/tree.md and source-map.md). The interface tests
+//! of the tree and of the source map run it on the dialect fixtures, the S2
+//! parse inputs, and templated files.
 //!
 //! The check does not use the conversion code: it reads the `Node` tree and
 //! the tree side by side, in pre-order, and compares each node.
@@ -21,13 +22,16 @@ pub struct Counts {
     pub meta: usize,
     pub unparsable: usize,
     pub empty: usize,
-    /// The nodes with a position marker: their byte range and line position
-    /// are those of the marker.
+    /// The nodes with a position marker: their byte range, line position,
+    /// source range, source position, and literal flag are those of the
+    /// marker.
     pub positioned: usize,
-    /// The positioned nodes where the ported `get_line_pos_of_char_pos`
-    /// (sqll_types) gives another line position (only after a multi-byte
-    /// character; see `Check::position`).
-    pub ported_line_pos_differs: usize,
+    /// The positioned nodes whose source range is not their templated
+    /// range.
+    pub source_differs: usize,
+    /// The positioned nodes of a templated file whose marker has a wider
+    /// templated slice than their range (`Check::position`).
+    pub split: usize,
     pub bytes: usize,
     pub lines: usize,
 }
@@ -41,7 +45,8 @@ impl std::ops::AddAssign for Counts {
         self.unparsable += o.unparsable;
         self.empty += o.empty;
         self.positioned += o.positioned;
-        self.ported_line_pos_differs += o.ported_line_pos_differs;
+        self.source_differs += o.source_differs;
+        self.split += o.split;
         self.bytes += o.bytes;
         self.lines += o.lines;
     }
@@ -160,6 +165,8 @@ struct Check<'a> {
     text: &'a str,
     converted: &'a Converted,
     code_points: Vec<(usize, LinePos)>,
+    /// The code points of the source text.
+    source_points: Vec<(usize, LinePos)>,
     expected: usize,
     placeholders: usize,
     counts: Counts,
@@ -292,47 +299,83 @@ impl Check<'_> {
     }
 
     /// The byte range and the line position of the node are those of its
-    /// position marker (code point offsets of the templated text).
+    /// position marker (code point offsets of the templated text), and so
+    /// are the source range, the source line position, and the literal
+    /// flag (code point offsets of the source text).
     ///
-    /// The line position of sqlfluff comes from the code points
-    /// (`code_points`), not from the ported `get_line_pos_of_char_pos`: its
-    /// newline index has byte offsets (`char_indices`), so it is wrong after
-    /// a multi-byte character. The check counts these nodes; a text with
-    /// only ASCII must have none.
+    /// The line positions of sqlfluff come from the code points
+    /// (`code_points`). The ported `get_line_pos_of_char_pos` must give
+    /// them too (S3b C8: its newline index has code point offsets).
     fn position(&mut self, id: NodeId, pm: &PositionMarker) -> Result<(), String> {
         if pm.templated_file.templated_str != self.text {
             return Err("the position marker has another templated text".into());
         }
+        if pm.templated_file.source_str != self.tree.source_text() {
+            return Err("the position marker has another source text".into());
+        }
+        let points =
+            |v: &[(usize, LinePos)], start: usize, stop: usize| match (v.get(start), v.get(stop)) {
+                (Some(&a), Some(&b)) => Ok((a, b)),
+                _ => Err(format!(
+                    "the slice {start}..{stop} is after the end of the text"
+                )),
+            };
         let slice = pm.templated_slice;
-        let (start, stop) = match (
-            self.code_points.get(slice.start),
-            self.code_points.get(slice.stop),
-        ) {
-            (Some(&a), Some(&b)) => (a, b),
-            _ => return Err("the templated slice is after the end of the text".into()),
-        };
+        let (start, stop) = points(&self.code_points, slice.start, slice.stop)?;
         let range = self.tree.range(id);
+        let templated = self.tree.source_map().is_some_and(|m| !m.is_identity());
         if (start.0, stop.0) != (range.start, range.end) {
-            return Err(format!(
-                "byte range {range:?}, not that of the templated slice {}..{} ({}..{})",
-                slice.start, slice.stop, start.0, stop.0
-            ));
-        }
-        let got = self.tree.start_pos(id);
-        if got != start.1 {
-            return Err(format!("line position {got:?}, not {:?}", start.1));
-        }
-        let (line, pos) = pm
-            .templated_file
-            .get_line_pos_of_char_pos(slice.start, false);
-        if (line, pos) != (got.line, got.pos) {
-            if self.text.is_ascii() {
+            // The lexer of sqlfluff can split a lexed element at the edge of
+            // a template slice; each part keeps the templated slice of the
+            // element. The tree keeps the lossless range of each part.
+            if !(templated && start.0 <= range.start && range.end <= stop.0) {
                 return Err(format!(
-                    "line position {got:?}, but the ported position is line {line} position {pos} \
-                     in an ASCII text"
+                    "byte range {range:?}, not that of the templated slice {}..{} ({}..{})",
+                    slice.start, slice.stop, start.0, stop.0
                 ));
             }
-            self.counts.ported_line_pos_differs += 1;
+            self.counts.split += 1;
+        } else {
+            let got = self.tree.start_pos(id);
+            if got != start.1 {
+                return Err(format!("line position {got:?}, not {:?}", start.1));
+            }
+            let ported = pm
+                .templated_file
+                .get_line_pos_of_char_pos(slice.start, false);
+            if ported != (got.line, got.pos) {
+                return Err(format!(
+                    "line position {got:?}, but the ported position is {ported:?}"
+                ));
+            }
+        }
+
+        let source = pm.source_slice;
+        let (start, stop) = points(&self.source_points, source.start, source.stop)?;
+        let range = self.tree.source_range(id);
+        if (start.0, stop.0) != (range.start, range.end) {
+            return Err(format!(
+                "source range {range:?}, not that of the source slice {}..{} ({}..{})",
+                source.start, source.stop, start.0, stop.0
+            ));
+        }
+        let got = self.tree.source_pos(id);
+        let ported = pm.source_position();
+        if got != start.1 || ported != (got.line, got.pos) {
+            return Err(format!(
+                "source position {got:?}, not {:?} (ported {ported:?})",
+                start.1
+            ));
+        }
+        if self.tree.is_literal(id) != pm.is_literal() {
+            return Err(format!(
+                "is_literal is {}, not {}",
+                self.tree.is_literal(id),
+                pm.is_literal()
+            ));
+        }
+        if range != self.tree.range(id) {
+            self.counts.source_differs += 1;
         }
         self.counts.positioned += 1;
         Ok(())
@@ -343,8 +386,9 @@ impl Check<'_> {
 /// `text`: the tree obeys its rules (`verify`) and the lossless rule, and
 /// each node, in pre-order, has the type, the raw text, the parent, the
 /// number of children, the static data, the `is_type` answers, the byte
-/// range, and the line position of its `Node`. The expected texts and the
-/// placeholder source texts are those of the nodes.
+/// range, the line position, the source range, the source position, and the
+/// literal flag of its `Node`. The expected texts and the placeholder source
+/// texts are those of the nodes.
 pub fn check(root: &Node, text: &str, converted: &Converted) -> Result<Counts, String> {
     let tree = &converted.tree;
     tree.verify().map_err(|e| format!("verify: {e}"))?;
@@ -354,6 +398,7 @@ pub fn check(root: &Node, text: &str, converted: &Converted) -> Result<Counts, S
         text,
         converted,
         code_points: code_points(text),
+        source_points: code_points(tree.source_text()),
         expected: 0,
         placeholders: 0,
         counts: Counts::default(),

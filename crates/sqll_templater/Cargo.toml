@@ -1,0 +1,14 @@
+# The templaters of sqll (docs/decisions/s3b-core.md, Q5: the S6 package).
+# S3b task C8 adds the raw templater; S6 adds the placeholder and Python
+# format-string templaters. This file is new sqll code (crates/ported.json,
+# "new").
+[package]
+name = "sqll_templater"
+version.workspace = true
+edition = "2021"
+rust-version.workspace = true
+license = "MIT"
+publish = false
+
+[dependencies]
+sqll_source = { path = "../sqll_source" }

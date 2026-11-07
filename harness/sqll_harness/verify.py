@@ -531,6 +531,20 @@ def checks(jobs: int | None = None) -> list[Check]:
             ("build: Check the syntax trees of the S2 parse inputs",),
             needs=(SETUP,),
         ),
+        Check(
+            "source-map",
+            f"{UV} python scripts/s3b/source_map_oracle.py check",
+            ("build: Check the source map with sqlfluff",),
+            needs=(SETUP,),
+        ),
+        Check(
+            "submodule-after-source-map",
+            'scripts/check-submodule "after the source map check"',
+            (
+                "build: Check that the sqlfluff submodule is clean after the source"
+                " map check",
+            ),
+        ),
         # One unsharded run of all suites and tools, as all shards of CI.
         Check(
             "run",

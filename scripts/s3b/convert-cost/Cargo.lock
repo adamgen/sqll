@@ -586,12 +586,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "sqll_source"
+version = "0.1.0"
+dependencies = [
+ "sqll_types",
+]
+
+[[package]]
 name = "sqll_syntax"
 version = "0.1.0"
 dependencies = [
  "hashbrown 0.16.1",
  "sqll_parser",
+ "sqll_source",
  "sqll_tree",
+ "sqll_types",
 ]
 
 [[package]]
@@ -600,6 +609,7 @@ version = "0.1.0"
 dependencies = [
  "serde_json",
  "sqll_dialects",
+ "sqll_source",
  "sqll_types",
 ]
 

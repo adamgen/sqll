@@ -8,6 +8,10 @@
 //! tree goes to [`Converted`]: the expected text of an unparsable node and
 //! the source text of a template placeholder.
 //!
+//! [`from_node_with_source`] also gives the tree a source map (task C8): the
+//! source range of each leaf and meta node is the source slice of its
+//! position marker (the lexer position, as in sqlfluff).
+//!
 //! The lookup of a kind (`SegmentKind::find`) compares many strings. One
 //! conversion keeps the kind of each distinct static data that it found
 //! ([`KindCache`]): most nodes of a file repeat the static data of an
@@ -15,9 +19,11 @@
 
 use std::fmt;
 use std::hash::{BuildHasher, Hash, Hasher};
+use std::sync::Arc;
 
 use hashbrown::{DefaultHashBuilder, HashTable};
 use sqll_parser::parser::{MetaType, Node};
+use sqll_source::SourceMap;
 use sqll_tree::{KindKey, Meta, NodeId, SegmentKind, SyntaxTree, TreeBuilder, TreeError, Variant};
 
 /// The result of [`from_node`].
@@ -36,6 +42,19 @@ pub enum ConvertError {
     NoKind { node: usize, data: String },
     /// The tree builder refused the node at this pre-order index.
     Tree { node: usize, error: TreeError },
+    /// The leaf or meta node at this pre-order index has no position
+    /// marker, or its source slice is not in the source text.
+    NoSource { node: usize },
+    /// The templated slice of the position marker of the leaf or meta node
+    /// at this pre-order index does not contain the place of the node in
+    /// the tree (`range`, templated bytes). For example, the parser can put
+    /// a meta node before the text of an unparsable node that comes first
+    /// in the templated text. The tree would give the node a wrong range,
+    /// so the conversion fails.
+    NotAtPosition {
+        node: usize,
+        range: std::ops::Range<usize>,
+    },
 }
 
 impl fmt::Display for ConvertError {
@@ -43,6 +62,14 @@ impl fmt::Display for ConvertError {
         match self {
             ConvertError::NoKind { node, data } => write!(f, "node {node} has no kind: {data}"),
             ConvertError::Tree { node, error } => write!(f, "node {node}: {error}"),
+            ConvertError::NoSource { node } => {
+                write!(f, "node {node} has no source slice in the source text")
+            }
+            ConvertError::NotAtPosition { node, range } => write!(
+                f,
+                "node {node} is at the templated bytes {range:?}, not in the templated slice \
+                 of its position marker"
+            ),
         }
     }
 }
@@ -334,6 +361,9 @@ impl KindCache {
 
 struct Walk<'n> {
     builder: TreeBuilder,
+    /// The source map, if the leaves and meta nodes take the source slices
+    /// of their position markers.
+    map: Option<Arc<SourceMap>>,
     kinds: KindCache,
     expected: Vec<(NodeId, String)>,
     placeholders: Vec<(NodeId, String)>,
@@ -353,9 +383,16 @@ impl<'n> Walk<'n> {
         })?;
         let tree = |error| ConvertError::Tree { node: index, error };
         match node {
-            Node::Raw { raw, .. } => {
-                self.builder.leaf(kind, raw).map_err(tree)?;
-            }
+            Node::Raw {
+                raw, pos_marker, ..
+            } => match self.source(pos_marker, index, raw.len())? {
+                Some(source) => {
+                    self.builder.leaf_at(kind, raw, source).map_err(tree)?;
+                }
+                None => {
+                    self.builder.leaf(kind, raw).map_err(tree)?;
+                }
+            },
             Node::Segment { children, .. } => {
                 self.builder.start_node(kind).map_err(tree)?;
                 self.stack.push(children.iter());
@@ -367,8 +404,15 @@ impl<'n> Walk<'n> {
                 self.expected.push((id, expected.clone()));
                 self.stack.push(children.iter());
             }
-            Node::Meta { meta_type, .. } => {
-                let id = self.builder.meta(kind).map_err(tree)?;
+            Node::Meta {
+                meta_type,
+                pos_marker,
+            } => {
+                let id = match self.source(pos_marker, index, 0)? {
+                    Some(source) => self.builder.meta_at(kind, source),
+                    None => self.builder.meta(kind),
+                }
+                .map_err(tree)?;
                 if let MetaType::Template { source_str, .. } = meta_type {
                     self.placeholders.push((id, source_str.clone()));
                 }
@@ -379,14 +423,69 @@ impl<'n> Walk<'n> {
         }
         Ok(())
     }
+
+    /// The source byte range of the position marker of a leaf (`len`
+    /// templated bytes) or a meta node (`len` 0) at the cursor, or `None` if
+    /// the walk has no source map. The templated slice of the marker must
+    /// contain the node (it can be wider: the lexer can split one element
+    /// at the edge of a template slice, and each part keeps its slice).
+    fn source(
+        &self,
+        marker: &Option<sqll_types::PositionMarker>,
+        index: usize,
+        len: usize,
+    ) -> Result<Option<std::ops::Range<usize>>, ConvertError> {
+        let Some(map) = &self.map else {
+            return Ok(None);
+        };
+        let no_source = ConvertError::NoSource { node: index };
+        let marker = marker.as_ref().ok_or(no_source.clone())?;
+        let range = self.builder.cursor()..self.builder.cursor() + len;
+        let t = marker.templated_slice;
+        let inside = match (
+            map.templated_byte_of_char(t.start),
+            map.templated_byte_of_char(t.stop),
+        ) {
+            (Some(a), Some(b)) => a <= range.start && range.end <= b,
+            _ => false,
+        };
+        if !inside {
+            return Err(ConvertError::NotAtPosition { node: index, range });
+        }
+        let slice = marker.source_slice;
+        let start = map.source_byte_of_char(slice.start);
+        let end = map.source_byte_of_char(slice.stop);
+        match (start, end) {
+            (Some(a), Some(b)) => Ok(Some(a..b)),
+            _ => Err(no_source),
+        }
+    }
 }
 
 /// Convert a parser tree. `text` is the templated text; the leaves of the
 /// tree must give it, each byte one time, in order.
 pub fn from_node(root: &Node, text: String) -> Result<Converted, ConvertError> {
     let builder = TreeBuilder::new(text).map_err(|error| ConvertError::Tree { node: 0, error })?;
+    convert(root, builder, None)
+}
+
+/// Convert a parser tree of the templated text of a source map. The tree
+/// keeps the map. The source range of each leaf and meta node is the source
+/// slice of its position marker; a node with children spans its children.
+pub fn from_node_with_source(root: &Node, map: Arc<SourceMap>) -> Result<Converted, ConvertError> {
+    let builder = TreeBuilder::with_source(Arc::clone(&map), 0)
+        .map_err(|error| ConvertError::Tree { node: 0, error })?;
+    convert(root, builder, Some(map))
+}
+
+fn convert(
+    root: &Node,
+    builder: TreeBuilder,
+    map: Option<Arc<SourceMap>>,
+) -> Result<Converted, ConvertError> {
     let mut walk = Walk {
         builder,
+        map,
         kinds: KindCache::default(),
         expected: Vec::new(),
         placeholders: Vec::new(),
