@@ -166,3 +166,7 @@ tracks:
     stones: [S10]
     branches: [claude/s10, claude/s10-*]
     paths: [status/S10.md, ci/matrix.d/S10.json, results/S10/**]
+  S11:
+    stones: [S11]
+    branches: [claude/s11, claude/s11-*]
+    paths: [status/S11.md, ci/matrix.d/S11.json, results/S11/**]
