@@ -34,8 +34,11 @@ error lines and the JSON, which sqll writes from the tree, and `free` has
 no work (sqll exits with no drop of the tree). Since S3b C9, `record` has
 the conversion of the parser tree to the syntax tree (the parse interface,
 `docs/interfaces/parse.md`). The output and the exit code do not change.
-The other parser limits are the sqlfluff defaults
-(`max_parse_nodes` 100000, `rust_parser_max_iterations` 3000000). Exit
+The defaults of the other parser limits are those of sqlfluff
+(`max_parse_nodes` 100000, `rust_parser_max_iterations` 3000000); the
+config can change them. As in sqlfluff, the config of the file comes from
+the folders of the path that `os.path.normpath` gives (thus `t/../a.sql`
+does not read the config of `t`), and sqll reads that path. Exit
 codes: 0; 1 for a lex error, a parse error (also at a parser limit), or an
 unparsable segment (the error lines go to stderr; an unparsable segment has
 no line); 2 for a usage, input, or output error, or a parse tree that the
@@ -136,8 +139,8 @@ T12). Differences from `sqlfluff parse`:
   shows the difference: sqlfluff gives the tree for each one
   (`harness/not-reproduced.md`).
 - Each sub-parse of sqll (the main parse, and each probe for a terminator
-  or a delimiter) has its own count of iterations, with the limit 3000000
-  (`rust_parser_max_iterations`). When a sub-parse reaches the limit, the
+  or a delimiter) has its own count of iterations, with the limit
+  `rust_parser_max_iterations` (default 3000000). When a sub-parse reaches the limit, the
   full parse stops with `PRS: Parser exceeded maximum iteration limit
   (3000000)...`, `"segments": null`, and exit code 1. A probe that reaches
   a parser limit (iterations, depth, or nodes) also stops the full parse:

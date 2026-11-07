@@ -322,7 +322,8 @@ invented packages with a copyleft license.
 - `crates/sqll_config/src/toml.rs` (S3b C11) is a port of the parser. sqll
   reads `pyproject.toml` with it, as sqlfluff does with tomllib. Changes:
   Rust in place of Python; the parser works on characters; a date or time
-  value and an int over 64 bits fail closed.
+  value is checked but not kept, and it fails closed in `[tool.sqlfluff]`;
+  an int over 64 bits fails closed.
 
 ## S9 corpus
 

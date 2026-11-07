@@ -961,6 +961,50 @@ CLI = (
         None,
         None,
     ],
+    [
+        "a path with .. and a config in the folder it leaves",
+        {
+            "w/.sqlfluff": "[sqlfluff]\ndialect = ansi\n",
+            "w/t/.sqlfluff": "[sqlfluff]\nmax_parse_depth = 3\n",
+            "w/a.sql": SQL,
+        },
+        "w",
+        ["t/../a.sql"],
+        None,
+        None,
+    ],
+    [
+        "a path with .. and the dialect only in the folder it leaves",
+        {"w/t/.sqlfluff": "[sqlfluff]\ndialect = ansi\n", "w/a.sql": SQL},
+        "w",
+        ["t/../a.sql"],
+        None,
+        None,
+    ],
+    [
+        "a path with .. into another subfolder",
+        {
+            "w/.sqlfluff": "[sqlfluff]\ndialect = ansi\n",
+            "w/t/.sqlfluff": "[sqlfluff]\nmax_parse_depth = 3\n",
+            "w/s/a.sql": SQL,
+        },
+        "w",
+        ["t/../s/a.sql"],
+        None,
+        None,
+    ],
+    [
+        "a path with .. over the byte limit",
+        {
+            "w/.sqlfluff": "[sqlfluff]\ndialect = ansi\nlarge_file_skip_byte_limit = 5\n",
+            "w/t/.sqlfluff": "[sqlfluff]\nlarge_file_skip_byte_limit = 0\n",
+            "w/a.sql": SQL,
+        },
+        "w",
+        ["t/../a.sql"],
+        None,
+        None,
+    ],
 )
 
 

@@ -477,12 +477,14 @@ fn parse_command(args: &[String], start: Instant) -> Result<u8, Error> {
     })?;
     let dialect = parse::dialect(&name)
         .ok_or_else(|| Error(format!("Error loading dialect '{name}': no such dialect.")))?;
-    let sql = read_sql(&path, settings.encoding)?;
-    let filepath = if path == "-" {
-        "stdin".to_string()
+    // sqlfluff reads the file at the normalised path (as the config).
+    let (source, filepath) = if path == "-" {
+        ("-".to_string(), "stdin".to_string())
     } else {
-        normpath(&path)
+        let fname = normpath(&path);
+        (fname.clone(), fname)
     };
+    let sql = read_sql(&source, settings.encoding)?;
     if let Some(warning) = &settings.templater_warning {
         config::warn(warning);
     }

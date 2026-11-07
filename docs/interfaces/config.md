@@ -61,7 +61,10 @@ Each other value of these settings fails closed. Also fail closed: a glob
 in a path setting, a deprecated setting that sqlfluff moves to its new
 key, a TOML date or time in `[tool.sqlfluff]`, a TOML array of arrays or
 tables (outside a templater context), an int over 64 bits, a number with
-a non-ASCII digit, a `.sqlfluffignore` file, and `ignore_paths`. Not read
+a non-ASCII digit, a `.sqlfluffignore` file in a folder from the working
+folder to the file, and `ignore_paths` in a `.sqlfluff` or
+`pyproject.toml` file of such a folder (sqlfluff reads `ignore_paths`
+only there; in another file it has no effect). Not read
 yet: in-file config lines and `noqa` comments (S7-sqll, S5;
 harness/sqll.md).
 
@@ -75,7 +78,7 @@ harness/sqll.md).
   readers (26 and 21 cases, with the files of `test/fixtures/config/`),
   34 load scenarios (each config file kind, the order, the user config
   folder, `XDG_CONFIG_HOME`, `--config`, `--ignore-local-config`, the
-  overrides, and the errors), and 45 `sqlfluff parse` scenarios (the
+  overrides, and the errors), and 49 `sqlfluff parse` scenarios (the
   stdout, the exit code, and the warning lines of stderr). The interface
   test and `crates/sqll/tests/cli_config.rs` give the same answers, or fail
   closed where the record says so.

@@ -78,7 +78,7 @@ fn optional_count(path: &str, value: &Value) -> Result<Option<u64>, ConfigError>
 }
 
 /// The root config gives the templater; check it.
-pub fn root_templater(root: &Config) -> Result<TemplaterName, ConfigError> {
+fn root_templater(root: &Config) -> Result<TemplaterName, ConfigError> {
     match root.templater() {
         "raw" => Ok(TemplaterName::Raw),
         "jinja" => Ok(TemplaterName::Jinja),

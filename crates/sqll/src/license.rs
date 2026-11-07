@@ -67,7 +67,9 @@ pub fn text(version: &str) -> String {
          cbc944f4bc59639a444dd971c737788ba2283a91, Lib/tomllib (SPDX: MIT, \
          Copyright (c) 2021 Taneli Hukkinen; licensed to PSF under a Contributor \
          Agreement).\nLicense: MIT (the text of https://github.com/hukkin/tomli, tag \
-         2.0.1)\nChanges: Rust in place of Python; a date or time value is not read.",
+         2.0.1)\nChanges: Rust in place of Python; the parser works on characters; a date or \
+         time value is checked but not kept, and it fails closed in [tool.sqlfluff]; \
+         an int over 64 bits fails closed.",
         TOMLI,
     );
     section(

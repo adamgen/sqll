@@ -88,18 +88,30 @@ pub fn load(args: &ParseArgs, path: &str) -> Result<Input, Error> {
     if !has_sql_extension(path, &exts) {
         return Ok(Input::Skip("[]\n".to_string()));
     }
-    let file = Config::from_path(&mut loader, path, &options).map_err(config_error)?;
+    // From here sqlfluff uses the normalised path (`_process_exact_path`
+    // returns os.path.normpath(path)): the config of the file comes from the
+    // folders of that path, not from a folder that ".." leaves.
+    let fname = normpath(path);
+    let file = Config::from_path(&mut loader, &fname, &options).map_err(config_error)?;
     let settings = ParseSettings::new(&root, &file).map_err(config_error)?;
     let limit = settings.large_file_skip_byte_limit;
-    if limit != 0 && i128::from(meta.len()) > i128::from(limit) {
-        warn(&format!(
-            "Length of file '{}' is {} bytes which is over the limit of {limit} bytes. \
-             Skipping to avoid parser lock. Users can increase this limit in their config by \
-             setting the 'large_file_skip_byte_limit' value, or disable by setting it to zero.",
-            normpath(path),
+    if limit != 0 {
+        let size = if fname == path {
             meta.len()
-        ));
-        return Ok(Input::Skip("[]\n".to_string()));
+        } else {
+            std::fs::metadata(&fname)
+                .map_err(|e| Error(format!("cannot read {fname}: {e}")))?
+                .len()
+        };
+        if i128::from(size) > i128::from(limit) {
+            warn(&format!(
+                "Length of file '{fname}' is {size} bytes which is over the limit of {limit} \
+                 bytes. Skipping to avoid parser lock. Users can increase this limit in their \
+                 config by setting the 'large_file_skip_byte_limit' value, or disable by \
+                 setting it to zero."
+            ));
+            return Ok(Input::Skip("[]\n".to_string()));
+        }
     }
     Ok(Input::Parse(Box::new(ParseInput { settings })))
 }
