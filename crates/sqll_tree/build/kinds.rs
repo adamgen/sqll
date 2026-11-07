@@ -488,9 +488,6 @@ pub fn const_name(name: &str) -> String {
             }
         })
         .collect();
-    if out.is_empty() {
-        out = "EMPTY_NAME".to_string();
-    }
     if out.starts_with(|c: char| c.is_ascii_digit() || c == '_') {
         out.insert_str(0, "T");
     }
@@ -512,8 +509,12 @@ fn opt_strs(v: &Option<Vec<String>>) -> String {
 }
 
 /// The Rust code of OUT_DIR/kinds.rs. It fails if a count does not fit in
-/// a u16, or if two type names have the same constant name.
+/// a u16, if a type name is empty, or if two type names have the same
+/// constant name.
 pub fn code(k: &Kinds) -> Result<String, String> {
+    if k.types.contains("") {
+        return Err("a type name is empty".to_string());
+    }
     let limit = u16::MAX as usize + 1;
     if k.types.len() > limit {
         return Err(format!("{} type names do not fit in a u16", k.types.len()));

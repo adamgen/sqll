@@ -23,7 +23,7 @@ these details to the task list: a kind is the full static data of a node
 | C6 | Typed segment kinds from the frozen dialect tables: one kind for each distinct static data of a node (variant, class, type, instance types, class types, segment kwargs); the build fails if the kinds do not fit in a `u16`: [docs/interfaces/segment-kinds.md](../docs/interfaces/segment-kinds.md) | In review |
 | C7 | Lossless syntax tree (`sqll_tree`) and the conversion from the parser tree | Not started |
 | C8 | Source map (`sqll_source`): `TemplatedFile` as the frozen templater interface, raw templater | Not started |
-| C9 | Frozen parse interface (lexer to parser to tree) and `sqll parse` output from `SyntaxTree` | Not started |
+| C9 | Frozen parse interface (lexer to parser to tree) and `sqll parse` output from `SyntaxTree`. Remove the copy of the parse settings in `crates/sqll_interfaces/tests/segment_kinds.rs`: use the interface | Not started |
 | C10 | Typed view of the tree | Not started |
 | C11 | Config skeleton (`sqll_config`) and its use in `sqll parse` | Not started |
 | C12 | Rule and fix interface (`sqll_lint`) with CP01, CP03, CP04 as the proof | Not started |

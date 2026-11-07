@@ -588,6 +588,7 @@ dependencies = [
 name = "sqll_interfaces"
 version = "0.1.0"
 dependencies = [
+ "serde_json",
  "sqll_dialects",
  "sqll_lexer",
  "sqll_parser",

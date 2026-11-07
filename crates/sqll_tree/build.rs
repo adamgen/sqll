@@ -4,8 +4,8 @@
 //! sqll_dialects (build/kinds.rs) and writes OUT_DIR/kinds.rs, which
 //! src/kinds.rs includes. The dialect names are the dialects of
 //! crates/sqll_dialects/generated.json. The build fails if a dialect name is
-//! not known, if the kinds or the type names do not fit in a u16, or if two
-//! type names have one constant name.
+//! not known, if the kinds or the type names do not fit in a u16, if a type
+//! name is empty, or if two type names have one constant name.
 
 #[path = "build/kinds.rs"]
 mod kinds;

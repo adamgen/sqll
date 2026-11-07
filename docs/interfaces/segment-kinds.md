@@ -39,10 +39,10 @@ of `crates/sqll_dialects/generated.json` through `sqll_dialects`
 | Meta | Indent and dedent (implicit or not), a placeholder for each of 8 slice types, the template loop, the end of the file |
 
 Thus the kinds are a superset of the kinds that the parser makes. The
-build fails if the types or the kinds do not fit in a `u16`, or if two
-names have one constant. The table generator, the table format,
-`generated.json`, and the sqll version do not change. The parser does not
-use the kinds; C7 converts the parser tree.
+build fails if the types or the kinds do not fit in a `u16`, if a type
+name is empty, or if two names have one constant. The table generator, the
+table format, `generated.json`, and the sqll version do not change. The
+parser does not use the kinds; C7 converts the parser tree.
 
 ## Numbers (C6)
 
@@ -56,9 +56,11 @@ use the kinds; C7 converts the parser tree.
 | Distinct kinds in their trees | 1525 |
 
 The test fails if a type name of the tables has no type, if a segment type
-of a grammar that makes a node has no kind, if a kind does not give its
-data again, if a node of a fixture has no kind, or if a count is not the
-count above.
+of a grammar that makes a node has no kind, if a terminal grammar has no
+leaf kind, if a kind does not give its data again, if a node of a fixture
+has no kind, or if a count is not the count above. It copies the parse
+settings of `crates/sqll/src/parse.rs` and fails if they are not the same
+(C9 removes the copy).
 
 ## Rules for a change
 
