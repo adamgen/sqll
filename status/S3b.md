@@ -217,7 +217,7 @@ The check of the sqlfluff data (`scripts/s3b/config_oracle.py check`,
 record [results/S3b/C11-config.json](../results/S3b/C11-config.json)):
 
 ```text
-config check: PASS: 208 defaults, 40 coerce, 26 INI, 21 TOML, 34 load and 45 CLI scenarios; jinja as raw: 2303 of 2303 dialect fixtures that are not empty and have no Jinja delimiter
+config check: PASS: 208 defaults, 40 coerce, 26 INI, 21 TOML, 34 load and 49 CLI scenarios; jinja as raw: 2303 of 2303 dialect fixtures that are not empty and have no Jinja delimiter
 ```
 
 - `crates/sqll_config/tests/defaults.rs` reads `default_config.cfg` of the
@@ -234,12 +234,13 @@ config check: PASS: 208 defaults, 40 coerce, 26 INI, 21 TOML, 34 load and 45 CLI
   sqll did not change (2631; 0 new, 0 unexpected); tree guard: 84 of 84 the
   same; the syntax tree check of the 84 S2 parse inputs passes; native base
   tests 162 of 162 (`scripts/s3/base_native_tests.py check`: 314 tests,
-  311 passed, 3 ignored). Run again on the head after the review fixes.
+  311 passed, 3 ignored). Run again on the head after the review fixes
+  (round 2: `2ce6c0f`).
 - Speed check ([results/S3b/speed/C11.json](../results/S3b/speed/C11.json),
-  base `3104d473b8f1`, head `de6df6d29776`, after the review fixes): 112
-  benchmarks, 0 slower, 0 failures; total wall time head / base 1.012
-  (start 1.081, max 1.155; parse/small 1.042, parse/medium 1.013,
-  parse/large 0.997); head faster than sqruff on 108 of 108 pairs and
+  base `3104d473b8f1`, head `2ce6c0f520d7`, after the review fixes of
+  round 2): 112 benchmarks, 0 slower, 0 failures; total wall time head /
+  base 1.025 (start 1.074, max 1.148; parse/small 1.056, parse/medium
+  1.025, parse/large 1.012); head faster than sqruff on 108 of 108 pairs and
   faster than sqlfluff on 112 of 112. The speed check also compares the
   sqll version, settings, and statuses with `results/s2/baseline.json`:
   the same.
@@ -248,4 +249,4 @@ config check: PASS: 208 defaults, 40 coerce, 26 INI, 21 TOML, 34 load and 45 CLI
   settings as a `--config` file (`pyproject.toml`), as for sqlfluff; sqll
   reads and checks it and makes the root and the file config (about 0.4
   ms for each start). The default table is made one time in a run
-  (`default_table`); the total start ratio stayed 1.081.
+  (`default_table`).
