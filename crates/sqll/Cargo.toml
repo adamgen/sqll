@@ -8,16 +8,24 @@ license = "MIT"
 publish = false
 description = "sqll: a SQL toolchain. Parse output in the format of sqlfluff parse -f json."
 
+# Since S3b C9 the binary parses through the frozen parse interface
+# (sqll_syntax) and writes the output from the syntax tree (sqll_tree).
 [dependencies]
 serde_json.workspace = true
+sqll_source = { path = "../sqll_source" }
+sqll_syntax = { path = "../sqll_syntax" }
+sqll_templater = { path = "../sqll_templater" }
+sqll_tree = { path = "../sqll_tree" }
+
+# The tests compare the writer with the record of the parser tree
+# (sqll_parser), and test the lazy lexers (sqll_lexer, sqll_types).
+[dev-dependencies]
+serde.workspace = true
+serde_yaml_ng.workspace = true
 sqll_dialects = { path = "../sqll_dialects" }
 sqll_lexer = { path = "../sqll_lexer" }
 sqll_parser = { path = "../sqll_parser" }
 sqll_types = { path = "../sqll_types" }
-
-[dev-dependencies]
-serde.workspace = true
-serde_yaml_ng.workspace = true
 
 # build.rs reads the output of "cargo metadata" (build/notices.rs).
 [build-dependencies]

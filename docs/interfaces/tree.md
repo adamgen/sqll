@@ -69,8 +69,9 @@ multi-byte character, for 5938 nodes of the fixtures and 5737 of the S2
 inputs; C8 fixed it.)
 
 The conversion cost is in `results/S3b/C7-conversion.json` and in
-[status/S3b.md](../../status/S3b.md). The sqll binary does not use the tree
-before C9.
+[status/S3b.md](../../status/S3b.md). Since C9 the sqll binary parses
+through the parse interface ([parse.md](parse.md)) and writes its output
+from the tree.
 
 ## Rules for a change
 

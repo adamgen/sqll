@@ -1,8 +1,8 @@
 {
  "kind": "sqll-s3-hint-check",
- "commit": "464a754a0ea868df81e7e09fb6894837ce20c32a",
- "patch_sha256": "3a9c37ba2805dd57d1f9efef615bbbc166d10fddc1187ec1ec846bec48114615",
- "reference_sha256": "13ac2f4dc03cd64f41b408e08c8251039d33917262de94c07902cad77d8f80ab",
+ "commit": "41faeafc97b7525eae3d50917f3e9949cf7b4f3d",
+ "patch_sha256": "238c53ebaf6c6caf59fcaa11f3c698d1d04a4f5c51050e4b82d3adb18c70e164",
+ "reference_sha256": "1fb8eee81faf50103694b57933f8d3d5e516fdafdcea8088532e9dd89ec4a3f3",
  "options": [],
  "summary": {
   "inputs": 2390,

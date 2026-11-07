@@ -1,15 +1,15 @@
-diff --git a/crates/sqll/src/parse.rs b/crates/sqll/src/parse.rs
-index d38d566..3fb176d 100644
---- a/crates/sqll/src/parse.rs
-+++ b/crates/sqll/src/parse.rs
-@@ -97,6 +97,7 @@ pub fn parse(
-     let mut parser = parser(&tokens, dialect, options);
-     let root = parse_tokens(&mut parser, &mut errors);
-     timer.mark("parse");
+diff --git a/crates/sqll_syntax/src/parse.rs b/crates/sqll_syntax/src/parse.rs
+index 51f385d..955d4f7 100644
+--- a/crates/sqll_syntax/src/parse.rs
++++ b/crates/sqll_syntax/src/parse.rs
+@@ -259,6 +259,7 @@ pub fn parse(
+     let mut parser = steps::parser(&tokens, dialect, options);
+     let root = steps::parse_tokens(&mut parser);
+     let parse = clock.lap();
 +    eprintln!("{}", sqll_parser::hint_check::report());
-     if !free {
-         std::mem::forget(parser);
-         std::mem::forget(tokens);
+     let tree = match &root {
+         Ok(node) => {
+             let converted = from_node_with_source(node, map).map_err(ParseError::Convert)?;
 diff --git a/crates/sqll_parser/src/hint_check.rs b/crates/sqll_parser/src/hint_check.rs
 new file mode 100644
 index 0000000..60e873d

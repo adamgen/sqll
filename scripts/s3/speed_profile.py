@@ -375,12 +375,30 @@ PROFILE_JOBS = 4
 # Dialect::get_lexers, Lexer::lex, and Parser::root_parse. Since T17 the
 # release build has link-time optimization, which inlines some of them; the
 # toggles are the phase functions of crates/sqll/src/parse.rs, which are
-# not inlined: the same work, and setup also has Lexer::new.
+# not inlined: the same work, and setup also has Lexer::new. These are the
+# toggles of the S3 record of T17, for a source before S3b C9.
 PROFILE_PHASES = {
     "setup": "*sqll::parse::setup_lexer",
     "lex": "*sqll::parse::lex_sql",
     "parse": "*sqll::parse::parse_tokens",
 }
+# S3b C9 moved the phase functions to the steps of the parse interface
+# (crates/sqll_syntax/src/parse.rs, not inlined): the same work.
+PROFILE_PHASES_C9 = {
+    "setup": "*sqll_syntax::parse::steps::lexer",
+    "lex": "*sqll_syntax::parse::steps::lex",
+    "parse": "*sqll_syntax::parse::steps::parse_tokens",
+}
+# The file of the steps from S3b C9 on.
+C9_STEPS = Path("crates") / "sqll_syntax" / "src" / "parse.rs"
+
+
+def profile_phases(root: Path) -> dict[str, str]:
+    """The toggles for the source of root: those of C9 if root has the
+    steps of the parse interface, else those of the S3 records."""
+    return PROFILE_PHASES_C9 if (root / C9_STEPS).is_file() else PROFILE_PHASES
+
+
 # callgrind_annotate: "<Ir> (<share>%)  <file>:<function> [<object>]".
 ANNOTATE_LINE = re.compile(
     r"^\s*([\d,]+)\s+\(\s*([\d.]+)%\)\s+(.+?)(?:\s+\[(.+)\])?\s*$"
@@ -510,7 +528,13 @@ def callgrind(binary: Path, argv: list, out: Path, toggle: str | None) -> list[s
 
 
 def profile_one(
-    st: probe.Steps, binary: Path, inputs: Path, bid: str, folder: Path, full: bool
+    st: probe.Steps,
+    binary: Path,
+    inputs: Path,
+    bid: str,
+    folder: Path,
+    full: bool,
+    phases: dict[str, str],
 ) -> dict:
     dialect = bid.split("/")[1]
     argv = [
@@ -523,7 +547,7 @@ def profile_one(
     ]
     stem = bid.replace("/", "-")
     entry: dict[str, Any] = {"id": bid}
-    runs = {"all": None, **PROFILE_PHASES}
+    runs = {"all": None, **phases}
     for phase, toggle in runs.items():
         out = folder / f"{stem}.{phase}.out"
         cmd = callgrind(binary, argv, out, toggle)
@@ -538,6 +562,13 @@ def profile_one(
         if proc.returncode != 0:
             raise DataError(f"{bid}: callgrind {phase}: exit code {proc.returncode}")
         total, self_costs = annotate(out, inclusive=False)
+        if total <= 0:
+            # Fail closed: a toggle that matches no function that runs
+            # collects nothing.
+            raise DataError(
+                f"{bid}: callgrind {phase}: 0 Ir (the toggle {toggle} "
+                "matches no function that runs)"
+            )
         self_costs = self_by_function(self_costs)
         record = {"ir": total, "classes": classes_of(total, self_costs)}
         if full:
@@ -554,6 +585,7 @@ def profile(scratch: Path, task: str = "T14") -> dict:
     sessions = json.loads(task_files(task)[0].read_text("utf8"))
     rows = benchmark_rows(sessions)
     chosen = worst(sessions)
+    phases = profile_phases(ROOT)
     st = probe.Steps(scratch)
     target = scratch / "target-profile"
     env = {
@@ -608,6 +640,7 @@ def profile(scratch: Path, task: str = "T14") -> dict:
                 r["id"],
                 folder,
                 r["id"] in chosen,
+                phases,
             )
             for r in rows
         ]
@@ -617,7 +650,8 @@ def profile(scratch: Path, task: str = "T14") -> dict:
         "command": COMMAND_LINES["profile"] + task_flag(task) + " --scratch $SCRATCH",
         "method": "valgrind callgrind: the instruction count (Ir) of one run of "
         "the symbol build on the input of each benchmark; for each phase of "
-        "PROFILE_PHASES, one more run that collects only the cost of that "
+        "phases (PROFILE_PHASES; PROFILE_PHASES_C9 for a source from S3b C9 "
+        "on), one more run that collects only the cost of that "
         "function and its callees (--toggle-collect). The symbol build is the "
         "source of the sessions with debug line tables and no strip "
         "(CARGO_PROFILE_RELEASE_DEBUG=line-tables-only, "
@@ -631,7 +665,7 @@ def profile(scratch: Path, task: str = "T14") -> dict:
         "valgrind": valgrind,
         "host": bench_report.machine(),
         "sqll_source_sha256": build["source_sha256"],
-        "phases": PROFILE_PHASES,
+        "phases": phases,
         "cost_classes": {name: pattern for name, pattern in COST_CLASSES},
         "worst": chosen,
         "steps": st.entries,

@@ -26,8 +26,8 @@ the S6 package `sqll_templater`, not in `sqll_source` (Core owns
 | C5 | Speed check tool for each Core change (G3.6): `scripts/speed-check`, `results/S3b/speed/C5.json` | Merged (PR #63) |
 | C6 | Typed segment kinds from the frozen dialect tables: one kind for each distinct static data of a node (variant, class, type, instance types, class types, segment kwargs); the build fails if the kinds do not fit in a `u16`: [docs/interfaces/segment-kinds.md](../docs/interfaces/segment-kinds.md) | Merged (PR #64) |
 | C7 | Lossless syntax tree (`sqll_tree`) and the conversion from the parser tree (`sqll_syntax::from_node`): [docs/interfaces/tree.md](../docs/interfaces/tree.md) | Merged (PR #65) |
-| C8 | Source map (`sqll_source`): `TemplatedFile` as the frozen templater interface, raw templater (`sqll_templater`), source ranges of the tree. Fix of the C7 finding: the newline index of the ported `TemplatedFile` has code point offsets: [docs/interfaces/source-map.md](../docs/interfaces/source-map.md) | In review |
-| C9 | Frozen parse interface (lexer to parser to tree) and `sqll parse` output from `SyntaxTree`. Remove the copy of the parse settings in `crates/sqll_interfaces/src/parse.rs`: use the interface. Use the conversion cost of C7 in the speed plan. The lexer input is a `TemplatedFile` (C8). sqlfluff changes "\r\n" and "\r" to "\n" before the templater (`Linter.render_string`); `sqll parse` does not | Not started |
+| C8 | Source map (`sqll_source`): `TemplatedFile` as the frozen templater interface, raw templater (`sqll_templater`), source ranges of the tree. Fix of the C7 finding: the newline index of the ported `TemplatedFile` has code point offsets: [docs/interfaces/source-map.md](../docs/interfaces/source-map.md) | Merged (PR #66) |
+| C9 | Frozen parse interface (lexer to parser to tree; `sqll_syntax::parse`) and `sqll parse` output from `SyntaxTree`. The copy of the parse settings in `crates/sqll_interfaces/src/parse.rs` is gone: the tests use the steps of the interface. The lexer input is a `TemplatedFile` (C8). The caller changes "\r\n" and "\r" to "\n" before the templater, as sqlfluff (`Linter.render_string`); `sqll parse` does it when it reads the file: [docs/interfaces/parse.md](../docs/interfaces/parse.md) | In review |
 | C10 | Typed view of the tree | Not started |
 | C11 | Config skeleton (`sqll_config`) and its use in `sqll parse` | Not started |
 | C12 | Rule and fix interface (`sqll_lint`) with CP01, CP03, CP04 as the proof | Not started |
@@ -142,3 +142,43 @@ tree: 2306 of 2306 dialect fixtures through the raw templater: lossless and node
   `ee2434a356fe`, head `265e52cdc39b`): 112 benchmarks, 0 slower, 0
   failures; total wall time head / base 0.998; head faster than sqruff on
   108 of 108 pairs and faster than sqlfluff on 112 of 112.
+
+## C9: parse interface proof
+
+Interface: [docs/interfaces/parse.md](../docs/interfaces/parse.md). The
+test output (`crates/sqll_interfaces/tests/parse.rs`, with `--nocapture`):
+
+```text
+parse: 2306 dialect fixtures, 685224 nodes
+parse: 2306 of 2306 dialect fixtures: the tree of the steps
+```
+
+- `sqll parse` calls `sqll_syntax::parse` with the file of the raw
+  templater; the JSON writer reads the `SyntaxTree`. The sqll binary links
+  only `sqll_source`, `sqll_syntax`, `sqll_templater`, and `sqll_tree` of
+  the sqll crates directly (`cargo tree -p sqll -e normal --depth 1`).
+- The output did not change: the tree guard record is unchanged (84 of 84,
+  2 runs each). A local run compared the binaries of base `dddab8d` and of
+  C9 on the 2306 dialect fixtures, the 84 S2 parse inputs, and 9220
+  invented changed fixtures (cuts, deletions, copies, and added text; many
+  with lex errors and unparsable sections), each with no option, `-m`,
+  `-c`, and `-c -m`: 46440 runs, 0 differences in stdout, stderr, and
+  exit code, no exit code 2.
+- G4: native base tests 162 of 162 (`scripts/s3/base_native_tests.py
+  check`); the syntax tree check of the 84 S2 parse inputs and the source
+  map check pass. The S3 hint check patch moved to the parse interface
+  (cross-track, S3): `scripts/s3/hint_check.py` gives the T17 summary
+  again (2390 inputs, 974128 exclusions, 0 probe matches, 0 probe limits,
+  0 different runs).
+- Speed check ([results/S3b/speed/C9.json](../results/S3b/speed/C9.json),
+  base `dddab8dcf646`, head `5f4f1f476509`): 112 benchmarks, 0 slower, 0
+  failures; total wall time head / base 1.028 (start 1.024, parse/small
+  1.035, parse/medium 1.032, parse/large 1.026); head faster than sqruff
+  on 108 of 108 pairs and faster than sqlfluff on 112 of 112.
+- Reason of the remaining slowdown (G3.6): the conversion of the parser
+  tree to the `SyntaxTree` (C7: 4.1% of the parse time) and the source map
+  of the file. The writer that reads the `SyntaxTree` is faster than the
+  writer of the `Node` tree.
+  A cheaper hash and compare in the kind cache of the conversion gave no
+  gain. The next step is a parser that builds the `SyntaxTree` with no
+  `Node` tree (S4).

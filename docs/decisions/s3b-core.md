@@ -73,9 +73,10 @@ type; S6 needs no new type.
 
 Decision: one function in the Core crate `sqll_syntax`:
 `parse(&TemplatedFile, Dialect, &ParseOptions) -> Parsed { tree, errors }`.
-It lexes, parses, and makes the `SyntaxTree`. C9 moves
-`crates/sqll/src/parse.rs` into it. `sqll parse` prints the sqlfluff tree
-format from the `SyntaxTree`; its output does not change (tree guard).
+It lexes, parses, and makes the `SyntaxTree`. `sqll parse` prints the
+sqlfluff tree format from it with no output change. Change (C9):
+`Result<Parsed, ParseError>`; `tree` is an `Option`
+([parse.md](../interfaces/parse.md)).
 
 Reason: the rules, the code generation, and the CLI call one function;
 S4 can change the parser with no change to them.

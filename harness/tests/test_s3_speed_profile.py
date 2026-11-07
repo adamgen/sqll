@@ -309,3 +309,73 @@ def test_the_cost_classes_of_some_functions():
     }
     for function, want in cases.items():
         assert sp.cost_class(function) == want, function
+
+
+# The phase toggles (valgrind --toggle-collect).
+
+
+def test_the_toggles_are_those_of_the_source(tmp_path):
+    # A source before S3b C9 (no steps of the parse interface): the toggles
+    # of the S3 records.
+    assert sp.profile_phases(tmp_path) == sp.PROFILE_PHASES
+    steps = tmp_path / sp.C9_STEPS
+    steps.parent.mkdir(parents=True)
+    steps.write_text("", "utf8")
+    assert sp.profile_phases(tmp_path) == sp.PROFILE_PHASES_C9
+    assert sp.profile_phases(REPO_ROOT) == sp.PROFILE_PHASES_C9
+    assert sp.PROFILE_PHASES_C9.keys() == sp.PROFILE_PHASES.keys()
+
+
+def test_each_toggle_of_c9_is_a_function_that_is_not_inlined():
+    text = (REPO_ROOT / sp.C9_STEPS).read_text("utf8")
+    steps = text[text.index("pub mod steps {") :]
+    for toggle in sp.PROFILE_PHASES_C9.values():
+        assert toggle.startswith("*sqll_syntax::parse::steps::")
+        name = toggle.rsplit("::", 1)[1]
+        assert f"#[inline(never)]\n    pub fn {name}(" in steps, toggle
+
+
+def test_a_phase_with_0_ir_stops_the_profile(tmp_path, monkeypatch):
+    """A toggle that matches no function collects 0 Ir: DataError, not a
+    record with no cost."""
+
+    class Done:
+        returncode = 0
+
+    monkeypatch.setattr(sp.subprocess, "run", lambda *a, **k: Done())
+    ir = {"all": 1000, "setup": 100, "lex": 0, "parse": 500}
+
+    def annotate(path, inclusive):
+        phase = path.name.split(".")[1]
+        return ir[phase], ({"main": ir[phase]} if ir[phase] else {})
+
+    monkeypatch.setattr(sp, "annotate", annotate)
+
+    class Steps:
+        entries = []
+
+        @staticmethod
+        def show(a):
+            return str(a)
+
+    with pytest.raises(sp.DataError, match="callgrind lex: 0 Ir"):
+        sp.profile_one(
+            Steps(),
+            tmp_path / "sqll",
+            tmp_path,
+            "parse/ansi/large",
+            tmp_path,
+            False,
+            sp.PROFILE_PHASES_C9,
+        )
+    ir["lex"] = 200
+    entry = sp.profile_one(
+        Steps(),
+        tmp_path / "sqll",
+        tmp_path,
+        "parse/ansi/large",
+        tmp_path,
+        False,
+        sp.PROFILE_PHASES_C9,
+    )
+    assert {ph: entry[ph]["ir"] for ph in ir} == ir

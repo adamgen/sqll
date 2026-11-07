@@ -563,15 +563,15 @@
   },
   {
    "path": "crates/sqll/src/output.rs",
-   "reason": "The JSON output of \"sqlfluff parse -f json\" (the separators and escapes of Python json.dumps). Since S3 T15 it writes the JSON from the parse tree, with no record value between them; its tests compare it with the record of Node::as_record. New sqll code."
+   "reason": "The JSON output of \"sqlfluff parse -f json\" (the separators and escapes of Python json.dumps). Since S3 T15 it writes the JSON with no record value between; since S3b C9 it reads the syntax tree. Its tests compare it with the record of Node::as_record. New sqll code."
   },
   {
    "path": "crates/sqll/src/parse.rs",
-   "reason": "The lex and parse of one file. Parts are a port of sqlfluff 4.4.0 code by way of the T5 probe; the file header names the sources (THIRD_PARTY.md, \"Ported code\")."
+   "reason": "The parse of one file for \"sqll parse\": the raw templater and the frozen parse interface of sqll_syntax. Before S3b C9 it had the lexer and parser calls and the limits (ported parts); C9 moved them to crates/sqll_syntax/src/parse.rs. New sqll code."
   },
   {
    "path": "crates/sqll/src/timings.rs",
-   "reason": "The phase times of \"sqll parse --timings\" (S3 T14; T15 changed the record, write, and free phases). New sqll code."
+   "reason": "The phase times of \"sqll parse --timings\" (S3 T14; T15 changed the record, write, and free phases; S3b C9: the record phase is the conversion to the syntax tree). New sqll code."
   },
   {
    "path": "crates/sqll/tests/cli.rs",
@@ -647,15 +647,19 @@
   },
   {
    "path": "crates/sqll_syntax/src/lib.rs",
-   "reason": "The library of the syntax crate (S3b C7)."
+   "reason": "The library of the syntax crate (S3b C7; C9 adds the parse interface)."
   },
   {
    "path": "crates/sqll_syntax/src/convert.rs",
    "reason": "The conversion from the parser tree to the syntax tree (S3b C7), also with a source map (S3b C8)."
   },
   {
+   "path": "crates/sqll_syntax/src/parse.rs",
+   "reason": "The frozen parse interface (S3b C9): lex, parse, and convert one templated file, with its diagnostics. It has ported parts (THIRD_PARTY.md, \"Ported code\")."
+  },
+  {
    "path": "crates/sqll_interfaces/src/parse.rs",
-   "reason": "The parse of sqll parse for the interface tests (S3b C7, from tests/segment_kinds.rs of C6). It has ported parts (THIRD_PARTY.md, \"Ported code\")."
+   "reason": "The parser tree of sqll parse for the interface tests (S3b C7, from tests/segment_kinds.rs of C6). Since S3b C9 it calls the steps of the parse interface and keeps no copy of the settings. New sqll code."
   },
   {
    "path": "crates/sqll_interfaces/src/tree_check.rs",
@@ -700,6 +704,10 @@
   {
    "path": "crates/sqll_interfaces/tests/source_map.rs",
    "reason": "The interface test of the source map (S3b C8)."
+  },
+  {
+   "path": "crates/sqll_interfaces/tests/parse.rs",
+   "reason": "The interface test of the parse interface (S3b C9)."
   }
  ]
 }
