@@ -59,7 +59,8 @@ def test_the_pass_line_and_names_are_those_of_the_rust_test():
     text = (
         REPO_ROOT / "crates" / "sqll_interfaces" / "tests" / "source_map.rs"
     ).read_text("utf8")
-    assert '"source map: {} of {total} templater fixtures: as sqlfluff (' in text
+    assert '"source map: {} of {total} {what}: as sqlfluff (' in text
+    assert 'report(total, "templater fixtures", &counts, &problems);' in text
     assert '"source map: {} of {total} random files: as sqlfluff (' in text
     assert f"fn {so.TEST}()" in text
     assert f"fn {so.RANDOM_TEST}()" in text
