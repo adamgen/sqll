@@ -20,7 +20,7 @@ these details to the task list: a kind is the full static data of a node
 | C3 | Record the S3b plan and move the S3 code paths to the Core track | Merged (PR #59) |
 | C4 | Decision record: the S3b core design (answers to the 7 open interface questions): [docs/decisions/s3b-core.md](../docs/decisions/s3b-core.md) | Merged (PR #61) |
 | C5 | Speed check tool for each Core change (G3.6): `scripts/speed-check`, `results/S3b/speed/C5.json` | Merged (PR #63) |
-| C6 | Typed segment kinds from the frozen dialect tables: one kind for each distinct static data of a node (variant, class, type, instance types, class types, segment kwargs); the build fails if the kinds do not fit in a `u16`: [docs/interfaces/segment-kinds.md](../docs/interfaces/segment-kinds.md) | In review |
+| C6 | Typed segment kinds from the frozen dialect tables: one kind for each distinct static data of a node (variant, class, type, instance types, class types, segment kwargs); the build fails if the kinds do not fit in a `u16`: [docs/interfaces/segment-kinds.md](../docs/interfaces/segment-kinds.md) | In review (PR #64) |
 | C7 | Lossless syntax tree (`sqll_tree`) and the conversion from the parser tree | Not started |
 | C8 | Source map (`sqll_source`): `TemplatedFile` as the frozen templater interface, raw templater | Not started |
 | C9 | Frozen parse interface (lexer to parser to tree) and `sqll parse` output from `SyntaxTree` | Not started |
