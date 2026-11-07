@@ -80,3 +80,12 @@ def test_no_record_cites_another_s1_or_s2_input():
                 assert inputs[rel] == sha256(frozen), (path.name, rel)
             else:
                 assert rel in RECORDS.get(path.name, []), (path.name, rel)
+
+
+def test_the_quoted_documents_are_frozen_at_the_s3_decision():
+    for name, copy in phase_a.DOCUMENTS.items():
+        assert copy.startswith("results/s3/phase-a/")
+        assert phase_a.document_path(name) == REPO_ROOT / copy
+        text = (REPO_ROOT / copy).read_text("utf8")
+        assert text.startswith(f"# sqll {name.removesuffix('.md').capitalize()}")
+    assert phase_a.document_path("PROCESS.md") == REPO_ROOT / "PROCESS.md"
