@@ -15,6 +15,7 @@ sqlfluff reference: tag `4.4.0`, commit `0348222a3bcdb0226563f7349c5a39beb064195
 | S7 test conversion | S7-tests | Ready to start: S1 is approved | |
 | S9 | S9 | Approved (human owner, 2026-11-01) for sqlfluff, `sqlfluff[rs]`, and sqruff. The sqll results come after S3b | [status/S9.md](status/S9.md) |
 | S4, S5, S6, S7 sqll part, S8, S10 | | Not started. See "Needs:" in STONES.md | |
+| S11 | | Not started. The Jinja templater is the last stone (human owner, 2026-11-07) | |
 
 Approvals: the orchestrator approves the stones and the human decisions by
 the standing delegation of the human owner (CONSTITUTION.md, section 5).

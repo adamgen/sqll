@@ -192,8 +192,11 @@ def submodule_source(path: str) -> Source:
 
 def document(path: str, text: str) -> dict:
     """A quote of a file of this repository. The check finds the text in the
-    file (spaces normalized), so the quote does not depend on line numbers."""
-    if " ".join(text.split()) not in " ".join((ROOT / path).read_text("utf8").split()):
+    file (spaces normalized), so the quote does not depend on line numbers.
+    STONES.md and CONSTITUTION.md are read as at the S3 decision
+    (phase_a.DOCUMENTS)."""
+    full = phase_a.document_path(path)
+    if " ".join(text.split()) not in " ".join(full.read_text("utf8").split()):
         raise DataError(f"{path} does not have the text {text!r}")
     return {"document": path, "text": text}
 
