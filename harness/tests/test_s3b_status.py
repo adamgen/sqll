@@ -1,4 +1,4 @@
-"""S3b C3: the S3b plan in status/S3b.md and the S3b row of STATUS.md."""
+"""S3b C3 and C4: the S3b plan in status/S3b.md and the S3b row of STATUS.md."""
 
 import re
 
@@ -26,7 +26,8 @@ def test_each_task_has_a_known_state():
     found = tasks()
     assert found["C1"][1] == "Merged (PR #57)"
     assert found["C2"][1] == "Merged (PR #58)"
-    for task in TASKS[2:]:
+    assert found["C3"][1] == "Merged (PR #59)"
+    for task in TASKS[3:]:
         state = found[task][1]
         assert state in STATES or re.fullmatch(r"Merged \(PR #\d+\)", state), task
 
