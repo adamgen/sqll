@@ -33,8 +33,14 @@ from .base import (
 from .sqlfluff import _parse_output
 
 TIMEOUT_S = 600
-# SQLL_BIN sets another binary.
+# SQLL_BIN sets another binary, and SQLL_SOURCE_DIR the source folder that
+# its tool check compares with (default: the worktree).
 DEFAULT_BINARY = REPO_ROOT / "out" / "sqll" / "bin" / "sqll"
+SOURCE_ENV = "SQLL_SOURCE_DIR"
+# The base binary of a speed check (scripts/speed-check; tool "sqll-base").
+BASE_BINARY_ENV = "SQLL_BASE_BIN"
+BASE_SOURCE_ENV = "SQLL_BASE_SOURCE_DIR"
+DEFAULT_BASE_BINARY = REPO_ROOT / "out" / "sqll-base" / "bin" / "sqll"
 # The inputs of the source hash: these files, and each file under these
 # folders. They must be those of crates/sqll/build.rs.
 SOURCE_FILES = ("Cargo.toml", "Cargo.lock", "rust-toolchain.toml", "LICENSE")
@@ -46,6 +52,16 @@ BUILD_HELP = "Run scripts/build-sqll."
 def binary_path() -> Path:
     value = os.environ.get("SQLL_BIN")
     return Path(value) if value else DEFAULT_BINARY
+
+
+def source_root() -> Path:
+    value = os.environ.get(SOURCE_ENV)
+    return Path(value) if value else REPO_ROOT
+
+
+def base_binary_path() -> Path:
+    value = os.environ.get(BASE_BINARY_ENV)
+    return Path(value) if value else DEFAULT_BASE_BINARY
 
 
 def source_hash(root: Path = REPO_ROOT) -> tuple[str, int]:

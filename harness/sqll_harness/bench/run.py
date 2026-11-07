@@ -125,8 +125,8 @@ def plan(
 def check_tools(names: list[str]) -> list[str]:
     """Return the errors of the S1 tool check ("sqll-harness tools") of these
     tools. A tool with no check is an error."""
-    errors = [f"{n}: no tool check" for n in names if n not in s1_tools.CHECKS]
-    known = [n for n in names if n in s1_tools.CHECKS]
+    errors = [f"{n}: no tool check" for n in names if not s1_tools.known(n)]
+    known = [n for n in names if s1_tools.known(n)]
     for info in s1_tools.check(known) if known else []:
         errors += [f"{info.name}: {e}" for e in info.errors]
     return errors

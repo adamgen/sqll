@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import Any
 
 from ..adapters.base import EmptyHome, Unsupported, isolated_env
-from ..adapters.sqll import SqllAdapter, parse_options
+from ..adapters.sqll import SqllAdapter, base_binary_path, parse_options
 from .adapter import PARSE, BenchAdapter
 from .inputs import START
 from .tools import parse_record
@@ -107,3 +107,15 @@ class SqllBench(BenchAdapter):
 
     def read_violations(self, stdout: bytes, sql: str) -> list[dict] | None:
         raise ValueError("sqll has no lint output (unsupported: lint)")
+
+
+class SqllBaseBench(SqllBench):
+    """The base binary of a speed check (scripts/speed-check;
+    harness/bench.md, "Speed check of a change"): the adapter and settings
+    of sqll, with the binary SQLL_BASE_BIN. Thus the base and the head of a
+    change run in one report."""
+
+    name = "sqll-base"
+
+    def __init__(self, binary: Path | None = None) -> None:
+        super().__init__(binary or base_binary_path())

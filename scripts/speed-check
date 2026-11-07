@@ -1,0 +1,686 @@
+#!/usr/bin/env python3
+"""Speed check of a change (CONSTITUTION.md G3.6; harness/bench.md, "Speed
+check of a change").
+
+Run it with the harness Python:
+
+    uv run --frozen --project harness python scripts/speed-check run --task TASK --scratch DIR [--base REF] [--head REF] [--image IMAGE]
+    uv run --frozen --project harness python scripts/speed-check report --task TASK [--check]
+
+run takes the machine lock itself (flock /tmp/sqll-machine.lock; PROCESS.md,
+rule 7). It also accepts the lock from a parent "flock" command.
+1. HEAD is the commit of --head (default: HEAD). BASE is the commit of
+   --base (default: the merge base of HEAD and origin/main).
+2. For BASE, then HEAD: a git worktree of the commit in DIR/src/<role>, its
+   submodule, and its own scripts/build-sqll. The binary goes to
+   DIR/bin/<role>/sqll. Then the cargo output is deleted.
+3. One container of the CI image (no network, serial; the S2 method of
+   scripts/s3/speed_profile.py): the start and parse benchmarks of the full
+   profile for sqll (HEAD), sqll-base (BASE), sqlfluff, and sqruff. The
+   tools run in turn for each repeat. The tool check of each tool runs
+   first ("sqll-harness tools": a missing or stale binary stops the run).
+4. The record and its summary go to results/S3b/speed/TASK.json.
+
+report reads only the committed file and makes the summary again. With
+--check, it writes nothing and fails if the file is not the new text.
+
+Exit codes: 0 if no benchmark is slower (HEAD / BASE above the noise limit
+of harness/bench.md, "Slowdowns"), HEAD has no failure, and HEAD meets G3.4
+(faster than sqlfluff on each pair) and G3.5 (not slower than sqruff on a
+pair, faster on the total). 1 if not, or if report --check finds a
+difference. 2 if there is no result: a step failed, a binary is missing or
+stale, or the data do not agree (inputs, tools, results, or the stable data
+of results/s2/baseline.json).
+"""
+
+import argparse
+import fcntl
+import json
+import os
+import re
+import shutil
+import statistics
+import subprocess
+import sys
+import time
+from collections.abc import Iterator, Mapping
+from contextlib import contextmanager
+from dataclasses import asdict
+from pathlib import Path
+from typing import Any
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "harness"))
+sys.path.insert(0, str(ROOT / "scripts" / "s3"))
+import speed_profile  # noqa: E402
+import sqlfluffrs_probe as probe  # noqa: E402
+
+from sqll_harness.adapters import sqll as sqll_adapter  # noqa: E402
+from sqll_harness.bench import compare  # noqa: E402
+from sqll_harness.bench import definitions as bench_definitions  # noqa: E402
+from sqll_harness.bench import registry as bench_registry  # noqa: E402
+from sqll_harness.bench import report as bench_report  # noqa: E402
+from sqll_harness.bench import run as bench_run  # noqa: E402
+from sqll_harness.bench.timer import VALID  # noqa: E402
+from sqll_harness.paths import SQLFLUFF_ROOT, tools_dir  # noqa: E402
+
+SPEED_DIR = ROOT / "results" / "S3b" / "speed"
+BASELINE_FILE = ROOT / "results" / "s2" / "baseline.json"
+KIND = "sqll-s3b-speed-check"
+FORMAT = 1
+HEAD, BASE = "sqll", "sqll-base"
+OTHERS = ("sqruff", "sqlfluff")
+TOOLS = tuple(sorted((HEAD, BASE, *OTHERS)))
+COMMANDS = ("start", "parse")
+ROLES = {"base": BASE, "head": HEAD}
+TASK_NAME = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.-]*")
+LOCK_FILE = Path("/tmp/sqll-machine.lock")
+IDLE_TIMEOUT_S = 1800
+SESSION_TIMEOUT_S = 4 * 3600
+# The folders of the container.
+C_REPO, C_SCRATCH = "/repo", "/scratch"
+C_PYTHON = "/opt/sqll/harness-venv/bin/python"
+_SCRIPT = "uv run --frozen --project harness python scripts/speed-check"
+RULES = {
+    "sqruff": "G3.5: HEAD is not slower than sqruff on any pair and is faster "
+    "on the total of the pairs",
+    "sqlfluff": "G3.4: HEAD is faster than sqlfluff on each pair",
+}
+
+
+class Refused(Exception):
+    """There is no result: a step failed, or the data do not agree."""
+
+
+def task_file(task: str) -> Path:
+    if not TASK_NAME.fullmatch(task):
+        raise Refused(f"not a task name: {task!r}")
+    return SPEED_DIR / f"{task}.json"
+
+
+def dump(data: Any) -> str:
+    return probe.dump(data)
+
+
+# The machine lock.
+
+
+def _parent(pid: int) -> int:
+    try:
+        stat = Path(f"/proc/{pid}/stat").read_text()
+    except OSError:
+        return 0
+    return int(stat.rsplit(")", 1)[1].split()[1])
+
+
+def held_by_parent(path: Path, locks_text: str | None = None) -> bool:
+    """True if a parent process (for example "flock FILE command") holds
+    the flock of path."""
+    try:
+        st = os.stat(path)
+        text = locks_text if locks_text is not None else Path("/proc/locks").read_text()
+    except OSError:
+        return False
+    key = f"{os.major(st.st_dev):02x}:{os.minor(st.st_dev):02x}:{st.st_ino}"
+    holders = set()
+    for line in text.splitlines():
+        parts = line.split()
+        if len(parts) >= 6 and parts[1] == "FLOCK" and parts[5] == key:
+            holders.add(int(parts[4]))
+    pid = os.getppid()
+    while pid > 1:
+        if pid in holders:
+            return True
+        pid = _parent(pid)
+    return False
+
+
+@contextmanager
+def machine_lock(path: Path = LOCK_FILE) -> Iterator[str]:
+    """Hold the machine lock. Yield how: "taken" or "held by a parent"."""
+    if held_by_parent(path):
+        yield "held by a parent process"
+        return
+    fd = os.open(path, os.O_RDWR | os.O_CREAT, 0o666)
+    try:
+        try:
+            fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            print(f"speed-check: wait for the machine lock {path}", file=sys.stderr)
+            fcntl.flock(fd, fcntl.LOCK_EX)
+        yield "taken by scripts/speed-check"
+    finally:
+        os.close(fd)
+
+
+# run: the builds (host).
+
+
+def output(st: probe.Steps, step: str, argv: list) -> str:
+    return st.run(step, argv, ROOT).stdout.strip()
+
+
+def git(st: probe.Steps, step: str, *args: str) -> str:
+    return output(st, step, ["git", *args])
+
+
+def resolve(st: probe.Steps, head_ref: str, base_ref: str | None) -> dict:
+    head = git(st, "HEAD commit", "rev-parse", "--verify", f"{head_ref}^{{commit}}")
+    if base_ref is None:
+        base_ref = f"merge-base of {head_ref} and origin/main"
+        base = git(st, "BASE commit", "merge-base", head, "origin/main")
+    else:
+        base = git(st, "BASE commit", "rev-parse", "--verify", f"{base_ref}^{{commit}}")
+    return {
+        "base": {"ref": base_ref, "commit": base},
+        "head": {"ref": head_ref, "commit": head},
+    }
+
+
+def collect_binary(source: Path, dest: Path) -> dict:
+    """Copy the binary of a build of source to dest/sqll. Refused if the
+    build has no binary, or if the binary is not of source."""
+    built = source / "out" / "sqll" / "bin" / "sqll"
+    if not built.is_file():
+        raise Refused(f"the build has no binary: {built}")
+    dest.mkdir(parents=True, exist_ok=True)
+    binary = dest / "sqll"
+    shutil.copy2(built, binary)
+    record = binary_record(binary)
+    want, _ = sqll_adapter.source_hash(source)
+    if record["source_sha256"] != want:
+        raise Refused(
+            f"stale binary: source hash {record['source_sha256']}, the source "
+            f"{source} has {want}"
+        )
+    version = sqll_adapter.expected_version(source)
+    if record["version"] != version:
+        raise Refused(f"the binary has version {record['version']}, not {version}")
+    return record
+
+
+def binary_record(binary: Path) -> dict:
+    proc = subprocess.run(
+        [str(binary), "version", "--build"], capture_output=True, text=True
+    )
+    try:
+        build = json.loads(proc.stdout)
+        version, source = build["version"], build["source_sha256"]
+    except (ValueError, LookupError, TypeError):
+        raise Refused(
+            f"{binary} version --build: exit code {proc.returncode}"
+        ) from None
+    return {
+        "version": version,
+        "source_sha256": source,
+        "binary_sha256": probe.sha256_file(binary),
+    }
+
+
+def build_role(st: probe.Steps, scratch: Path, role: str, commit: str) -> dict:
+    source = scratch / "src" / role
+    start = time.perf_counter()
+    git(st, f"{role}: worktree", "worktree", "add", "--detach", str(source), commit)
+    st.run(
+        f"{role}: submodule",
+        ["git", "-c", "protocol.file.allow=always", "submodule", "update", "--init"],
+        source,
+        log=scratch / "logs" / f"{role}-submodule.log",
+    )
+    st.run(
+        f"{role}: scripts/build-sqll",
+        [source / "scripts" / "build-sqll"],
+        source,
+        set_env={"SQLL_TOOLS_DIR": str(tools_dir())},
+        unset=("SQLL_TABLES_DIR", "CARGO_TARGET_DIR", "SQLL_BIN"),
+        log=scratch / "logs" / f"{role}-build.log",
+    )
+    record = collect_binary(source, scratch / "bin" / role)
+    shutil.rmtree(source / "target", ignore_errors=True)
+    return record | {"build_s": round(time.perf_counter() - start, 1)}
+
+
+def remove_worktrees(st: probe.Steps, scratch: Path) -> None:
+    for role in ROLES:
+        source = scratch / "src" / role
+        if source.exists():
+            st.run(
+                f"{role}: remove the worktree",
+                ["git", "worktree", "remove", "--force", source],
+                ROOT,
+                check=False,
+            )
+
+
+def docker_argv(scratch: Path, image: str) -> list[str]:
+    argv = ["docker", "run", "--rm", "--network", "none"]
+    argv += ["-v", f"{ROOT}:{C_REPO}:ro", "-v", f"{scratch}:{C_SCRATCH}"]
+    if (ROOT / ".git").is_file():
+        # A linked worktree: the report reads the commit of the harness.
+        common = Path(
+            subprocess.run(
+                ["git", "rev-parse", "--path-format=absolute", "--git-common-dir"],
+                cwd=ROOT,
+                capture_output=True,
+                text=True,
+                check=True,
+            ).stdout.strip()
+        )
+        argv += ["-v", f"{common}:{common}:ro"]
+    env = {
+        "PYTHONPATH": f"{C_REPO}/harness",
+        "SQLL_BIN": f"{C_SCRATCH}/bin/head/sqll",
+        sqll_adapter.SOURCE_ENV: f"{C_SCRATCH}/src/head",
+        sqll_adapter.BASE_BINARY_ENV: f"{C_SCRATCH}/bin/base/sqll",
+        sqll_adapter.BASE_SOURCE_ENV: f"{C_SCRATCH}/src/base",
+    }
+    for k, v in env.items():
+        argv += ["-e", f"{k}={v}"]
+    argv += ["-w", C_REPO, image, C_PYTHON, "scripts/speed-check"]
+    return argv + ["run-inside", "--scratch", C_SCRATCH]
+
+
+def run(
+    task: str, scratch: Path, head_ref: str, base_ref: str | None, image: str | None
+) -> dict:
+    out_file = task_file(task)
+    scratch = scratch.absolute()
+    if scratch.exists() and any(scratch.iterdir()):
+        raise Refused(f"the scratch folder is not empty: {scratch}")
+    scratch.mkdir(parents=True, exist_ok=True)
+    st = probe.Steps(scratch)
+    started = time.perf_counter()
+    with machine_lock() as lock:
+        commits = resolve(st, head_ref, base_ref)
+        image = image or probe.ci_image()
+        image_id = output(
+            st, "CI image id", ["docker", "image", "inspect", "-f", "{{.Id}}", image]
+        )
+        docker = output(
+            st, "docker version", ["docker", "version", "-f", "{{.Server.Version}}"]
+        )
+        builds = {}
+        try:
+            for role in ROLES:
+                builds[role] = build_role(st, scratch, role, commits[role]["commit"])
+            load_before, waited = probe.wait_idle(IDLE_TIMEOUT_S)
+            session_start = time.perf_counter()
+            st.run(
+                "session",
+                docker_argv(scratch, image),
+                ROOT,
+                log=scratch / "logs" / "session.log",
+                timeout=SESSION_TIMEOUT_S,
+            )
+            session_s = round(time.perf_counter() - session_start, 1)
+            load_after = probe.read_load()
+        finally:
+            remove_worktrees(st, scratch)
+        if load_after[1] > probe.MAX_SESSION_LOAD:
+            raise Refused(
+                f"the 5-minute load average after the session is {load_after[1]}: "
+                "other processes ran during the serial session"
+            )
+        st.run(
+            "check the submodule after",
+            [ROOT / "scripts" / "check-submodule", "after the speed check"],
+            ROOT,
+        )
+    full = json.loads((scratch / "session.json").read_text("utf8"))
+    errors = bench_report.check(full)
+    if errors:
+        raise Refused("the session report: " + "; ".join(errors[:3]))
+    command = f"{_SCRIPT} run --task {task}"
+    command += f" --base {base_ref}" if base_ref else ""
+    command += f" --head {head_ref} --scratch $SCRATCH"
+    data = {
+        "kind": KIND,
+        "format": FORMAT,
+        "task": task,
+        "command": command,
+        "base": commits["base"] | builds["base"],
+        "head": commits["head"] | builds["head"],
+        "method": {
+            "text": "harness/bench.md, 'Speed check of a change': the S2 method "
+            "(the CI image in docker, one container, serial, no network, no other "
+            "load; the full profile; the tools run in turn for each repeat). The "
+            f"start and parse benchmarks of {', '.join(TOOLS)}.",
+            "image": image,
+            "image_id": image_id,
+            "docker": docker,
+            "host": bench_report.machine(),
+            "machine_lock": f"{LOCK_FILE}: {lock}",
+            "load_rule": f"the session starts when the 1-minute load average is "
+            f"below {probe.IDLE_LOAD}; after it, the 5-minute load average must be "
+            f"at most {probe.MAX_SESSION_LOAD}",
+            "load": {"before": load_before, "after": load_after, "idle_wait_s": waited},
+        },
+        "time_s": {
+            "build_base": builds["base"]["build_s"],
+            "build_head": builds["head"]["build_s"],
+            "session": session_s,
+            "total": round(time.perf_counter() - started, 1),
+        },
+        "steps": st.entries,
+        "report": speed_profile.compact(full),
+    }
+    data["summary"] = summarize(data)
+    out_file.parent.mkdir(parents=True, exist_ok=True)
+    out_file.write_text(dump(data), encoding="utf8")
+    return data
+
+
+# run-inside (in the CI image).
+
+
+def run_inside(scratch: Path) -> None:
+    errors = bench_run.check_tools(list(TOOLS))
+    if errors:
+        raise Refused("the tool check: " + "; ".join(errors))
+    defs = bench_definitions.load()
+    scope, benchmarks = bench_run.plan(
+        defs, tools=list(TOOLS), profile="full", commands=list(COMMANDS)
+    )
+    work = scratch / "work"
+    if work.exists():
+        shutil.rmtree(work)
+    rep = bench_run.run(
+        defs=defs,
+        adapters=[bench_registry.get(t) for t in TOOLS],
+        profile="full",
+        scope=scope,
+        benchmarks=benchmarks,
+        sqlfluff_root=SQLFLUFF_ROOT,
+        work=work,
+        progress=bench_run.progress_to_stderr,
+    )
+    (scratch / "session.json").write_text(dump(rep), "utf8")
+
+
+# The summary.
+
+
+def refusals(data: Mapping, defs: Mapping, baseline: Mapping) -> list[str]:
+    """Each reason why the record cannot give a result."""
+    rep = data["report"]
+    problems = []
+    dialects = sorted({b["dialect"] for b in defs["benchmarks"]})
+    want_scope = bench_report.scope(TOOLS, dialects, COMMANDS)
+    if rep["profile"] != "full":
+        problems.append(f"the profile is {rep['profile']}, not full")
+    if rep["scope"] != want_scope:
+        problems.append(f"the scope is {rep['scope']}, not {want_scope}")
+        return problems
+    if sorted(rep["tools"]) != list(TOOLS):
+        problems.append(f"the tools are {sorted(rep['tools'])}, not {list(TOOLS)}")
+        return problems
+    problems += bench_run.incomplete(rep, defs)
+    for role, tool in ROLES.items():
+        if rep["tools"][tool]["version"] != data[role]["version"]:
+            problems.append(f"{tool}: the version is not that of the {role} build")
+    if rep["tools"][BASE]["settings"] != rep["tools"][HEAD]["settings"]:
+        problems.append(f"{BASE} and {HEAD} have different settings")
+    for tool in (HEAD, *OTHERS):
+        if rep["tools"][tool]["settings"] != baseline["tools"][tool]["settings"]:
+            problems.append(f"{tool}: the settings are not those of the baseline")
+    for tool in OTHERS:
+        if rep["tools"][tool]["version"] != baseline["tools"][tool]["version"]:
+            problems.append(f"{tool}: the version is not that of the baseline")
+    before = {(r["id"], r["tool"]): r["status"] for r in baseline["results"]}
+    for r in rep["results"]:
+        if r["tool"] in OTHERS and r["status"] != before.get((r["id"], r["tool"])):
+            problems.append(
+                f"{r['tool']} {r['id']}: status {r['status']}, the baseline has "
+                f"{before.get((r['id'], r['tool']))}"
+            )
+        if r["tool"] == BASE and r["status"] != VALID:
+            problems.append(f"{BASE} {r['id']}: {r['status']}: {r['reason']}")
+    return problems
+
+
+def _median(result: Mapping | None) -> float | None:
+    if result is None or result["status"] != VALID:
+        return None
+    return result["stats"]["wall_s"]["median"]
+
+
+def _ratio(a: float | None, b: float | None) -> float | None:
+    return None if a is None or not b else round(a / b, 4)
+
+
+def rows(rep: Mapping) -> list[dict]:
+    """One row for each benchmark of the report: HEAD / BASE with the noise
+    limit (compare.benchmark_entry), and HEAD / each other tool."""
+    by_key = {(r["id"], r["tool"]): r for r in rep["results"]}
+    ids = sorted({i for i, t in by_key if t == HEAD}, key=speed_profile.sort_key)
+    out = []
+    for bid in ids:
+        head, base = by_key[(bid, HEAD)], by_key[(bid, BASE)]
+        entry = compare.benchmark_entry(base, head)
+        row = {
+            "id": bid,
+            "change": entry["change"],
+            "wall": entry["wall"],
+            "cpu": entry["cpu"],
+        }
+        for tool in OTHERS:
+            other = by_key.get((bid, tool))
+            row[tool] = {
+                "status": None if other is None else other["status"],
+                "wall_s": _median(other),
+                "head_ratio": _ratio(_median(head), _median(other)),
+            }
+        out.append(row)
+    return out
+
+
+def _groups(rep: Mapping, first: str, second: str) -> list[dict]:
+    """The subtotals of compare.tool_table: the ratio is second / first."""
+    table = compare.tool_table(rep, [first, second])
+    out = []
+    for g in [*table["groups"], table["total"]]:
+        out.append(
+            {
+                "group": g["group"],
+                "benchmarks": g["benchmarks"],
+                "wall_s": g["wall_s"],
+                "ratio": g["ratio"][second],
+                "faster": g["faster"],
+            }
+        )
+    return out
+
+
+def slowdowns(rep: Mapping, table: list[dict]) -> dict:
+    counts = {c: sum(r["change"] == c for r in table) for c in compare.CHANGES}
+    valid = [r for r in table if r["wall"] is not None]
+    groups = []
+    for name in (*speed_profile.GROUPS, "total"):
+        members = [
+            r
+            for r in valid
+            if name == "total" or speed_profile.group_of(r["id"]) == name
+        ]
+        ratios = sorted(r["wall"]["ratio"] for r in members)
+        base = round(sum(r["wall"]["base"] for r in members), 6)
+        head = round(sum(r["wall"]["new"] for r in members), 6)
+        groups.append(
+            {
+                "group": name,
+                "benchmarks": len(members),
+                "wall_s": {"base": base, "head": head},
+                "ratio": {
+                    "total": _ratio(head, base),
+                    "min": ratios[0] if ratios else None,
+                    "median": round(statistics.median(ratios), 4) if ratios else None,
+                    "max": ratios[-1] if ratios else None,
+                },
+                "slower": sum(r["change"] == compare.SLOWER for r in members),
+            }
+        )
+    return {
+        "formula": "ratio = HEAD / BASE of the median wall time and of the median "
+        "CPU time of a benchmark. A metric is slower if its ratio is more than 1 + "
+        "the noise limit (compare.Noise; harness/bench.md, 'Slowdowns'); a "
+        "benchmark is slower if a metric is slower. failure: HEAD is not valid.",
+        "noise": asdict(compare.NOISE),
+        "benchmarks": len(table),
+        "counts": counts,
+        "slower": [r["id"] for r in table if r["change"] == compare.SLOWER],
+        "failure": [r["id"] for r in table if r["change"] == compare.FAILURE],
+        "groups": groups,
+    }
+
+
+def g3(rep: Mapping, table: list[dict], tool: str) -> dict:
+    """G3.4 or G3.5 for HEAD and one other tool. A benchmark where the other
+    tool is valid and HEAD is not fails (harness/bench.md, "Validity")."""
+    pairs = [r for r in table if r[tool]["head_ratio"] is not None]
+    slower = [r["id"] for r in pairs if r[tool]["head_ratio"] > 1]
+    ties = [r["id"] for r in pairs if r[tool]["head_ratio"] == 1]
+    head_not_valid = [
+        r["id"] for r in table if r[tool]["status"] == VALID and r["wall"] is None
+    ]
+    groups = _groups(rep, tool, HEAD)
+    total = groups[-1]["ratio"]["total"]
+    if tool == "sqruff":
+        ok = not slower and total is not None and total < 1
+    else:
+        ok = not slower and not ties
+    ok = ok and not head_not_valid
+    return {
+        "rule": RULES[tool],
+        "ratio": f"head_ratio = the median wall time of HEAD / that of {tool}",
+        "pairs": len(pairs),
+        "no_pair": [
+            {"id": r["id"], "status": r[tool]["status"]}
+            for r in table
+            if r[tool]["head_ratio"] is None
+        ],
+        "head_faster": len(pairs) - len(slower) - len(ties),
+        "head_slower": slower,
+        "ties": ties,
+        "head_not_valid": head_not_valid,
+        "groups": groups,
+        "ok": ok,
+    }
+
+
+def summarize(data: Mapping) -> dict:
+    """The summary of a record. Refused if the record cannot give a result."""
+    defs = bench_definitions.load()
+    baseline = json.loads(BASELINE_FILE.read_text("utf8"))
+    problems = refusals(data, defs, baseline)
+    if problems:
+        more = f" and {len(problems) - 5} more" if len(problems) > 5 else ""
+        raise Refused("; ".join(problems[:5]) + more)
+    rep = data["report"]
+    table = rows(rep)
+    slow = slowdowns(rep, table)
+    checks = {tool: g3(rep, table, tool) for tool in OTHERS}
+    ok = not slow["slower"] and not slow["failure"]
+    ok = ok and all(c["ok"] for c in checks.values())
+    return {
+        "base": data["base"]["commit"],
+        "head": data["head"]["commit"],
+        "same_source": data["base"]["source_sha256"] == data["head"]["source_sha256"],
+        "slowdowns": slow,
+        "g3": checks,
+        "ok": ok,
+        "exit_code": 0 if ok else 1,
+        "benchmarks": table,
+    }
+
+
+def summary_lines(data: Mapping) -> list[str]:
+    s = data["summary"]
+    slow = s["slowdowns"]
+    c = slow["counts"]
+    lines = [
+        f"BASE {s['base'][:12]}, HEAD {s['head'][:12]}"
+        + (" (the same sqll source)" if s["same_source"] else ""),
+        f"HEAD / BASE: {slow['benchmarks']} benchmarks; slower {c['slower']}, "
+        f"faster {c['faster']}, same {c['same']}, failure {c['failure']}",
+    ]
+    for g in slow["groups"]:
+        r = g["ratio"]
+        lines.append(
+            f"  {g['group']}: {g['benchmarks']}, wall {g['wall_s']['base']:.4f} -> "
+            f"{g['wall_s']['head']:.4f} s ({r['total']}; min {r['min']}, max "
+            f"{r['max']}), slower {g['slower']}"
+        )
+    lines += [f"  slower: {i}" for i in slow["slower"]]
+    lines += [f"  failure: {i}" for i in slow["failure"]]
+    for tool, chk in s["g3"].items():
+        total = chk["groups"][-1]
+        lines.append(
+            f"HEAD / {tool}: {chk['pairs']} pairs, HEAD faster on "
+            f"{chk['head_faster']}, slower on {len(chk['head_slower'])}, ties "
+            f"{len(chk['ties'])}, HEAD not valid {len(chk['head_not_valid'])}; "
+            f"total {total['ratio']['total']} "
+            f"({'ok' if chk['ok'] else 'FAIL'}: {chk['rule']})"
+        )
+    lines.append(
+        "ok" if s["ok"] else "FAIL: see harness/bench.md, 'Speed check of a change'"
+    )
+    return lines
+
+
+def report(task: str, check: bool) -> int:
+    path = task_file(task)
+    if not path.is_file():
+        raise Refused(f"{probe.rel(path)} does not exist")
+    data = json.loads(path.read_text("utf8"))
+    if (
+        data.get("kind") != KIND
+        or data.get("format") != FORMAT
+        or data.get("task") != task
+    ):
+        raise Refused(f"{probe.rel(path)} is not the speed check record of {task}")
+    new = {k: v for k, v in data.items() if k != "summary"}
+    new["summary"] = summarize(new)
+    text = dump(new)
+    print("\n".join(summary_lines(new)))
+    if check:
+        if path.read_text("utf8") != text:
+            print(f"{probe.rel(path)} is not the summary of its record")
+            return 1
+        print(f"{probe.rel(path)} is up to date")
+    else:
+        path.write_text(text, encoding="utf8")
+        print(f"wrote {probe.rel(path)}")
+    return new["summary"]["exit_code"]
+
+
+def main(argv: list[str] | None = None) -> int:
+    p = argparse.ArgumentParser(prog="scripts/speed-check")
+    sub = p.add_subparsers(dest="command", required=True)
+    r = sub.add_parser("run", help="Build BASE and HEAD and run the benchmarks.")
+    r.add_argument("--task", required=True)
+    r.add_argument("--scratch", type=Path, required=True)
+    r.add_argument("--head", default="HEAD")
+    r.add_argument("--base", default=None, help="Default: merge-base HEAD origin/main.")
+    r.add_argument("--image", default=None, help="Default: sqll-ci:<ci/image_tag.py>.")
+    ri = sub.add_parser("run-inside", help="(In the CI image) the benchmarks.")
+    ri.add_argument("--scratch", type=Path, required=True)
+    rp = sub.add_parser("report", help="Make the summary again from the record.")
+    rp.add_argument("--task", required=True)
+    rp.add_argument("--check", action="store_true")
+    args = p.parse_args(argv)
+    try:
+        if args.command == "run":
+            data = run(args.task, args.scratch, args.head, args.base, args.image)
+            print("\n".join(summary_lines(data)))
+            print(f"wrote {probe.rel(task_file(args.task))}")
+            return data["summary"]["exit_code"]
+        if args.command == "run-inside":
+            run_inside(args.scratch)
+            return 0
+        return report(args.task, args.check)
+    except (Refused, probe.DataError, bench_run.RunError) as exc:
+        print(f"speed-check: error: {exc}", file=sys.stderr)
+        return 2
+
+
+if __name__ == "__main__":
+    sys.exit(main())

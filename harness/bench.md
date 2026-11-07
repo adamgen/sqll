@@ -296,3 +296,42 @@ gives the benchmarks that it leaves out, and why. On
 `results/s2/baseline.json`, the table has 112 rows (sqll has only `start`
 and `parse`), and the total ratio `sqlfluff/sqll` is the `wall_ratio` of
 `tool_totals`.
+
+## Speed check of a change
+
+`scripts/speed-check` (Core track; G3.6) measures a change against its
+base with the S2 method. Run it with the harness Python:
+
+```sh
+uv run --frozen --project harness python scripts/speed-check run --task C6 --scratch DIR
+uv run --frozen --project harness python scripts/speed-check report --task C6 --check
+```
+
+`run` takes the machine lock (`flock /tmp/sqll-machine.lock`, or the lock
+of a parent `flock`). HEAD is `--head` (default `HEAD`); BASE is `--base`
+(default: the merge base of HEAD and `origin/main`). For each, it makes a
+git worktree of the commit in the empty scratch folder `DIR` and builds sqll
+with the `scripts/build-sqll` of that commit (on the host). Then one
+container of the CI image (no network, serial, an idle machine) runs the
+`start` and `parse` benchmarks of the full profile for `sqll` (HEAD),
+`sqll-base` (BASE), sqlfluff, and sqruff. The tools run in turn for each
+repeat. `sqll-base` is a registry entry with the adapter and settings of
+sqll ([sqll.md](sqll.md), "Tool check"). The record and its summary go to
+`results/S3b/speed/<task>.json`:
+
+- HEAD / BASE for each benchmark, with the noise limit of "Slowdowns", and
+  the list of slower benchmarks. The pull request gives the reason for
+  each (PROCESS.md, rule 8).
+- G3.4 and G3.5: HEAD / sqlfluff and HEAD / sqruff for each pair of the
+  run. sqlfluff runs in the check, so the pairs are of one machine and one
+  session.
+
+`report` makes the summary again from the committed record only;
+`--check` fails if the file is not the new text
+(`harness/tests/test_speed_check.py`). Exit codes: 0 if no benchmark is
+slower and HEAD meets G3.4 and G3.5; 1 if not; 2 if there is no result
+(a step fails, a binary is missing or stale, a tool is missing, or the
+inputs, settings, versions, or sqlfluff and sqruff statuses are not those
+of the definitions and `results/s2/baseline.json`).
+
+Measured (C5, BASE = HEAD = main, a null change): XX
