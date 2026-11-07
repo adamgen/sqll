@@ -185,8 +185,9 @@ lines, and sha256 of each of the 85 files. The build copies them into
 
 The new sqll files in `crates/` (listed in `crates/ported.json`, "new") and
 `rust-toolchain.toml` have no sqlfluff code, but `crates/sqll/src/parse.rs`,
-`crates/sqll_tree/build/kinds.rs`, and `crates/sqll_interfaces/src/parse.rs`
-have ported parts ("Ported code" above). The sqll binary (`crates/sqll`)
+`crates/sqll/tests/cli.rs`, `crates/sqll_tree/build/kinds.rs`,
+`crates/sqll_interfaces/src/parse.rs`, `crates/sqll_source/src/map.rs`, and
+`crates/sqll_templater/src/raw.rs` have ported parts ("Ported code" above). The sqll binary (`crates/sqll`)
 contains the ported crates and the tables. The tables are a substantial
 portion of sqlfluff, so each sqll binary carries the sqlfluff MIT copyright
 and permission notice: `sqll --license` prints `crates/LICENSE-sqlfluffrs.md`

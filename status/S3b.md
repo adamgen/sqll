@@ -112,30 +112,25 @@ The sqlfluff data: `scripts/s3b/source_map_oracle.py` (record
 ```text
 source map: 20000 of 20000 random files: as sqlfluff (211080 ranges, 17415 of them ValueError; 193773 source offsets)
 source map: 54 of 54 templater fixtures: as sqlfluff (776608 ranges, 1345 of them ValueError; 6711 source offsets; 3121 segments, 4 of them with a wider templated slice)
-source map: 2 of 2 templater fixtures: as sqlfluff (1677 ranges, 15 of them ValueError; 211 source offsets; 94 segments, 0 of them with a wider templated slice)
+source map: 3 of 3 recorded fixtures: as sqlfluff (1678 ranges, 15 of them ValueError; 212 source offsets; 96 segments, 0 of them with a wider templated slice)
 tree: 2306 of 2306 dialect fixtures: lossless and node for node equal (685224 nodes: 432300 raw, 182196 segment, 70728 meta, 0 unparsable; 685224 with a position, 0 with another source range; 1468552 bytes, 57623 lines)
 tree: 2306 of 2306 dialect fixtures through the raw templater: lossless and node for node equal (685224 nodes: 432300 raw, 182196 segment, 70728 meta, 0 unparsable; 685224 with a position, 0 with another source range; 1468552 bytes, 57623 lines)
 ```
 
 - The 54 templater fixtures (53 SQL files directly in the fixture folders
   and the subfolder case of the sqlfluff Jinja test table): the sqll lexer
-  and parser give the sqlfluff
-  tree of each templated file, segment for segment, with the source ranges,
-  the literal flags, and the source positions of sqlfluff.
-- The fix of the ported newline index (code points, as sqlfluff): the
-  output of `sqll parse` (stdout, stderr, exit code; with and without
-  `-m`) of the 2306 dialect fixtures and the 84 S2 parse inputs did not
-  change (9560 runs). A lex error after a multi-byte character now has
-  the position of sqlfluff (before: `L2 P20`; sqlfluff and now: `L2 P22`).
-- The ported `templated_slice_to_source_slice` panicked for a valid file
-  with source slices out of order (review finding; no pinned fixture has
-  the pattern). Now it takes no start slice there, as the Python slice
-  (`crates/ported.json`). Unit tests: the invented file (each range as
-  the pinned sqlfluff) and 3000 random files with multi-byte characters,
-  parts of raw slices, and overlapping and empty source slices (no panic).
-  `check` compares 20000 such random files (seed 8) with the pinned
-  sqlfluff: 0 differences (output above). An earlier local run on 33000
-  random files has no record; the proof is the `check` run.
+  and parser give the sqlfluff tree of each templated file, segment for
+  segment, with the source ranges, the literal flags, and the source
+  positions of sqlfluff.
+- Fixes of ported code (`crates/ported.json`; the interface document has
+  the details): the newline index and `raw_slices_spanning_source_slice`
+  count code points; `templated_slice_to_source_slice` does not panic for
+  source slices out of order; the parser keeps the `end_of_file` of an
+  empty templated text (the record has the empty file). `check` compares
+  20000 random invented files (seed 8) with the pinned sqlfluff: 0
+  differences. For the newline fix, the output of `sqll parse` (with and
+  without `-m`) of the 2306 dialect fixtures and the 84 S2 parse inputs
+  did not change (9560 runs).
 - G4: S1 dialect suite of sqll 2306 of 2306 exact; the known failures of
   sqll (dialects, rules, autofix, templater) did not change; tree guard: 84
   of 84 the same; native base tests 162 of 162; the syntax tree check of

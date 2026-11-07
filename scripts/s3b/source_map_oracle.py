@@ -21,7 +21,8 @@ and position). The offsets are code points. The data have no text of the
 source file: the tests read the file.
 
 record: write RECORD_FILE for RECORD_FIXTURES (the hand-built example of
-crates/sqll_interfaces/tests/source_map.rs and a loop example).
+crates/sqll_interfaces/tests/source_map.rs, a loop example, and the empty
+dialect fixture, for which the Jinja templater gives no slices).
 
 check (CI job build, scripts/verify): make the data of RECORD_FIXTURES
 again; it must be the text of RECORD_FILE. Then make the data of each
@@ -53,9 +54,11 @@ KIND = "sqll-s3b-c8-source-map"
 FORMAT = 1
 COMMAND = "uv run --frozen --project harness python scripts/s3b/source_map_oracle.py"
 FIXTURE_DIR = "test/fixtures/templater"
+# The empty file: the Jinja templater gives no slices for it.
 RECORD_FIXTURES = (
     "test/fixtures/templater/jinja_a/jinja.sql",
     "test/fixtures/templater/jinja_b/jinja.sql",
+    "test/fixtures/dialects/ansi/empty_file.sql",
 )
 # The count of all_fixtures (docs/interfaces/source-map.md, "Proof").
 FIXTURES = 54
@@ -295,7 +298,7 @@ def record_data(data: dict) -> dict:
         "format": FORMAT,
         "about": (
             "S3b C8: the answers of the pinned sqlfluff TemplatedFile for the "
-            "source map, for two templater fixtures "
+            "source map, for two templater fixtures and the empty dialect fixture "
             "(scripts/s3b/source_map_oracle.py; docs/interfaces/source-map.md). "
             "Offsets are code points. ranges: [i, j, source start, source stop, "
             "is_source_slice_literal] for the templated slice i..j, or [i, j] for "

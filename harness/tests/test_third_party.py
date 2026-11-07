@@ -82,6 +82,24 @@ def test_each_file_with_sqlfluff_copyright_has_a_row():
     assert _files_with_copyright() <= _ported_rows() | _record_files()
 
 
+def test_the_new_files_with_ported_parts_are_named():
+    """THIRD_PARTY.md says that the new sqll files in crates/ have no
+    sqlfluff code, except the files it names. Those are the new files with
+    a "Parts of this file are a port" header."""
+    text = (REPO_ROOT / "THIRD_PARTY.md").read_text(encoding="utf-8")
+    start = text.index("The new sqll files in `crates/`")
+    sentence = text[start : text.index("have ported parts", start)]
+    named = set(re.findall(r"`(crates/[^`]+)`", sentence)) - {PORTED_RECORD}
+    headers = {
+        n["path"]
+        for n in _ported_record()["new"]
+        if (REPO_ROOT / n["path"]).is_file()
+        and "Parts of this file are a port" in _header(REPO_ROOT / n["path"])
+    }
+    assert len(headers) >= 6
+    assert named == headers
+
+
 def test_third_party_names_the_ported_crates_and_the_generated_tables():
     text = (REPO_ROOT / "THIRD_PARTY.md").read_text(encoding="utf-8")
     section = text.split("\n## sqlfluffrs in crates/\n", 1)[1].split("\n## ", 1)[0]

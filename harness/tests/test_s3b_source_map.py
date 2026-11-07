@@ -110,7 +110,7 @@ def test_the_writer_gives_the_data_again():
 DOC = json.loads(so.RECORD_FILE.read_text("utf8"))
 
 
-def test_the_record_is_the_data_of_the_two_fixtures_of_the_pinned_sqlfluff():
+def test_the_record_is_the_data_of_the_fixtures_of_the_pinned_sqlfluff():
     commit = (REPO_ROOT / "crates" / "sqll_dialects" / "generated.json").read_text(
         "utf8"
     )
@@ -124,7 +124,7 @@ def test_the_record_is_the_data_of_the_two_fixtures_of_the_pinned_sqlfluff():
     assert paths == list(so.RECORD_FIXTURES)
 
 
-@pytest.mark.parametrize("index", [0, 1])
+@pytest.mark.parametrize("index", [0, 1, 2])
 def test_each_recorded_fixture_has_all_ranges_and_offsets(index):
     fx = DOC["fixtures"][index]
     source = (so.SQLFLUFF_ROOT / fx["path"]).read_text("utf8")

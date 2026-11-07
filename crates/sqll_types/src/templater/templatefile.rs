@@ -169,7 +169,10 @@ impl TemplatedFile {
     pub fn raw_slices_spanning_source_slice(&self, source_slice: Slice) -> Vec<RawFileSlice> {
         // Special case: The source_slice is at the end of the file.
         let last_raw_slice = self.raw_sliced.last().unwrap();
-        if source_slice.start >= last_raw_slice.source_idx + last_raw_slice.raw.len() {
+        // sqll: the code point length (`chars().count()`), as the Python
+        // `len`, because `source_idx` is a code point offset (S3b C8). The
+        // base added the byte length.
+        if source_slice.start >= last_raw_slice.source_idx + last_raw_slice.raw.chars().count() {
             return vec![];
         }
         // First find the start index
@@ -749,6 +752,26 @@ mod tests {
         assert_eq!(file.get_line_pos_of_char_pos(3, true), (2, 1));
         assert_eq!(file.get_line_pos_of_char_pos(5, false), (2, 3));
         assert_eq!(file.get_line_pos_of_char_pos(6, false), (3, 1));
+    }
+
+    // sqll (S3b C8): the end of the file is a code point offset. The
+    // answers are those of the pinned sqlfluff TemplatedFile.
+    #[test]
+    fn test_raw_slices_spanning_source_slice_end_in_code_points() {
+        let file = TemplatedFile::from("é".to_string());
+        assert_eq!(
+            file.raw_slices_spanning_source_slice(Slice::from(1..1)),
+            vec![]
+        );
+        let file = TemplatedFile::from("éab".to_string());
+        assert_eq!(
+            file.raw_slices_spanning_source_slice(Slice::from(2..3)),
+            file.raw_sliced
+        );
+        assert_eq!(
+            file.raw_slices_spanning_source_slice(Slice::from(3..3)),
+            vec![]
+        );
     }
 
     // sqll (S3b C8): a start index after the stop index gives no start

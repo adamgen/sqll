@@ -177,16 +177,14 @@ fn char_count(text: &str) -> usize {
 /// source and in the templated text, or no templated text (sqlfluff:
 /// whitespace that a tag removes, or a branch that the render does not
 /// reach); the raw slices cover the source text, in order, each with its
-/// text.
+/// text. An empty text has no slices: the Jinja, Python, and placeholder
+/// templaters of sqlfluff give no slices for an empty file.
 fn check_file(
     file: &TemplatedFile,
     source: &Chars,
     templated: &Chars,
 ) -> Result<(), SourceMapError> {
     let (src, tpl) = (&file.source_str, &file.templated_str);
-    if file.sliced_file.is_empty() {
-        return invalid("no templated slice".into());
-    }
     let mut at = 0;
     for (i, s) in file.sliced_file.iter().enumerate() {
         let (t, o) = (s.templated_codepoint_slice, s.source_codepoint_slice);
@@ -218,9 +216,6 @@ fn check_file(
             "the templated slices end at {at}, not at the end of the templated text ({})",
             templated.count
         ));
-    }
-    if file.raw_sliced.is_empty() {
-        return invalid("no raw slice".into());
     }
     let mut at = 0;
     for (i, r) in file.raw_sliced.iter().enumerate() {
@@ -396,6 +391,10 @@ impl SourceMap {
     /// first slice that starts after `pos`.
     fn point_maps(&self, pos: usize) -> bool {
         let sliced: &[TemplatedFileSlice] = &self.file.sliced_file;
+        if sliced.is_empty() {
+            // The ported method gives the templated slice back.
+            return true;
+        }
         let Some(first) = sliced
             .iter()
             .position(|s| s.templated_codepoint_slice.stop >= pos)
@@ -712,6 +711,43 @@ mod tests {
             let inside = s.slice_type == LITERAL && t.start < chars.start && chars.end < t.stop;
             inside.then(|| &tpl[r.clone()])
         })
+    }
+
+    /// A file with no slices: the answers of the pinned sqlfluff
+    /// TemplatedFile. The Jinja, Python, and placeholder templaters give no
+    /// slices for an empty file (sqlfluff tests: python_test.py,
+    /// test__templater_python_slice_file, case ""; jinja_test.py,
+    /// test__templater_jinja_slice_file, case "").
+    #[test]
+    fn a_file_with_no_slices_maps_as_sqlfluff() {
+        let no_slices = |source: &str, raws: Vec<RawFileSlice>| {
+            let file = TemplatedFile::copy(
+                source.into(),
+                "f.sql".into(),
+                String::new(),
+                vec![],
+                raws,
+                vec![],
+                vec![],
+            );
+            SourceMap::new(Arc::new(file))
+        };
+        let empty = no_slices("", vec![]).expect("an empty file is valid");
+        assert!(empty.is_identity());
+        assert_eq!(empty.source_range(0..0), Ok(0..0));
+        assert_eq!(empty.is_literal(0..0), Ok(true));
+        assert_eq!(empty.source_pos(0), Ok(LinePos { line: 1, pos: 1 }));
+        // An invented file: the templater removed all of the source text.
+        let removed = no_slices("{# c #}", vec![raw("{# c #}", "comment", 0)]).unwrap();
+        assert!(!removed.is_identity());
+        assert_eq!(removed.source_range(0..0), Ok(0..0));
+        assert_eq!(removed.is_literal(0..0), Ok(true));
+        assert_eq!(removed.is_source_literal(0..7), Ok(false));
+        // The raw slices must cover the source text.
+        assert!(matches!(
+            no_slices("ab", vec![]),
+            Err(SourceMapError::InvalidFile(_))
+        ));
     }
 
     #[test]

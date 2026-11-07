@@ -12,7 +12,9 @@
 //!   reads the source text from the submodule; it keeps no copy of it. It
 //!   checks source ranges, points, positions, and the literal check.
 //! - The data of the pinned sqlfluff (results/S3b/C8-source-map.json,
-//!   scripts/s3b/source_map_oracle.py) for jinja_a and jinja_b (a loop):
+//!   scripts/s3b/source_map_oracle.py) for jinja_a, jinja_b (a loop), and
+//!   the empty dialect fixture test/fixtures/dialects/ansi/empty_file.sql
+//!   (the Jinja templater gives no slices for it):
 //!   the map gives the sqlfluff answer for each templated range and each
 //!   source offset, and the syntax tree of the sqll parse of the templated
 //!   file gives the type, the ranges, the literal flag, and the source
@@ -29,6 +31,8 @@
 //!   makes the data).
 //! - An invented file with source slices out of order: no call panics, and
 //!   the answers are those of sqlfluff.
+//! - An invented file where the parser puts a meta node before its place:
+//!   the conversion fails.
 
 use std::collections::BTreeMap;
 use std::ops::Range;
@@ -45,7 +49,7 @@ use sqll_source::{
     LineIndex, LinePos, RawFileSlice, Slice, SourceMap, SourceMapError, TemplatedFile,
     TemplatedFileSlice, Templater, TemplaterConfig, TemplaterError,
 };
-use sqll_syntax::{from_node, from_node_with_source, Converted};
+use sqll_syntax::{from_node, from_node_with_source, ConvertError, Converted};
 use sqll_templater::RawTemplater;
 use sqll_tree::{NodeId, SyntaxTree, TreeBuilder, TreeError};
 
@@ -388,6 +392,41 @@ fn no_call_of_an_accepted_file_panics() {
     assert_eq!(map.is_literal(4..6), Ok(true));
 }
 
+/// An invented Jinja file (no pinned fixture has this pattern):
+/// "SELECT {{- 1 -}} , 2" to "SELECT1, 2", with the slices that the pinned
+/// sqlfluff JinjaTemplater gives. The templated text is unparsable. sqlfluff
+/// and the sqll parser put the placeholder of "{{- 1 -}}" (templated 6..6)
+/// before the unparsable node (templated 0..10). The tree cannot give the
+/// placeholder its range, so the conversion fails (fail closed).
+#[test]
+fn a_meta_node_before_its_place_fails_the_conversion() {
+    let slices = [
+        ("literal".to_string(), 0..6, 0..6),
+        ("literal".to_string(), 6..7, 6..6),
+        ("templated".to_string(), 7..16, 6..7),
+        ("literal".to_string(), 16..17, 7..7),
+        ("literal".to_string(), 17..20, 7..10),
+    ];
+    let raws = [
+        ("literal".to_string(), 0, 0, None),
+        ("literal".to_string(), 6, 0, None),
+        ("templated".to_string(), 7, 0, None),
+        ("literal".to_string(), 16, 0, None),
+        ("literal".to_string(), 17, 0, None),
+    ];
+    let source = "SELECT {{- 1 -}} , 2";
+    let file = templated_file(source.into(), "f.sql", "SELECT1, 2", &slices, &raws);
+    let map = Arc::new(SourceMap::new(Arc::new(file)).expect("a valid file"));
+    let got = with_parse_stack(move || {
+        let root = parse_file(ansi(), Arc::clone(map.file())).unwrap();
+        from_node_with_source(&root, map).map(|_| ())
+    });
+    assert!(
+        matches!(got, Err(ConvertError::NotAtPosition { node: 1, .. })),
+        "{got:?}"
+    );
+}
+
 /// The fixtures of a data file of scripts/s3b/source_map_oracle.py.
 fn oracle(path: PathBuf) -> Vec<Value> {
     let text = std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("{}: {e}", path.display()));
@@ -582,9 +621,9 @@ fn run(fixtures: Vec<Value>) -> (Counts, Vec<String>) {
     })
 }
 
-fn report(total: usize, counts: &Counts, problems: &[String]) {
+fn report(total: usize, what: &str, counts: &Counts, problems: &[String]) {
     eprintln!(
-        "source map: {} of {total} templater fixtures: as sqlfluff ({} ranges, {} of them \
+        "source map: {} of {total} {what}: as sqlfluff ({} ranges, {} of them \
          ValueError; {} source offsets; {} segments, {} of them with a wider templated slice)",
         total - problems.len(),
         counts.ranges,
@@ -629,15 +668,15 @@ fn the_hand_built_example_is_the_sqlfluff_data() {
 fn the_recorded_fixtures_map_as_sqlfluff() {
     let fixtures = oracle(root().join(RECORD));
     let total = fixtures.len();
-    assert_eq!(total, 2, "jinja_a and jinja_b");
+    assert_eq!(total, 3, "jinja_a, jinja_b, and the empty file");
     let (counts, problems) = run(fixtures);
-    report(total, &counts, &problems);
+    report(total, "recorded fixtures", &counts, &problems);
     assert_eq!(problems, Vec::<String>::new());
-    // The recorded numbers: 351 + 1326 ranges; 57 + 154 source offsets;
-    // 25 + 69 segments.
+    // The recorded numbers: 351 + 1326 + 1 ranges; 57 + 154 + 1 source
+    // offsets; 25 + 69 + 2 segments.
     assert_eq!(
         (counts.ranges, counts.errors, counts.points, counts.segments),
-        (1677, 15, 211, 94)
+        (1678, 15, 212, 96)
     );
 }
 
@@ -650,7 +689,7 @@ fn each_templater_fixture_maps_as_sqlfluff() {
     let fixtures = oracle(path);
     let total = fixtures.len();
     let (counts, problems) = run(fixtures);
-    report(total, &counts, &problems);
+    report(total, "templater fixtures", &counts, &problems);
     assert_eq!(problems, Vec::<String>::new());
 }
 

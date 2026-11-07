@@ -631,6 +631,11 @@ impl MatchResult {
                 && self.insert_segments.is_empty()
                 && self.matched_slice.end == self.matched_slice.start + 1
                 && result_nodes.len() == 1
+                // sqll (S3b C8): only a raw node. The base took the node out
+                // of the list before it checked its variant, so a single
+                // meta token (the end_of_file of an empty templated text)
+                // was lost.
+                && matches!(result_nodes[0], Node::Raw { .. })
                 && !match_class.is_unparsable()
                 && match_class.segment_type.is_some()
             {

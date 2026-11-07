@@ -45,6 +45,16 @@ pub enum ConvertError {
     /// The leaf or meta node at this pre-order index has no position
     /// marker, or its source slice is not in the source text.
     NoSource { node: usize },
+    /// The templated slice of the position marker of the leaf or meta node
+    /// at this pre-order index does not contain the place of the node in
+    /// the tree (`range`, templated bytes). For example, the parser can put
+    /// a meta node before the text of an unparsable node that comes first
+    /// in the templated text. The tree would give the node a wrong range,
+    /// so the conversion fails.
+    NotAtPosition {
+        node: usize,
+        range: std::ops::Range<usize>,
+    },
 }
 
 impl fmt::Display for ConvertError {
@@ -55,6 +65,11 @@ impl fmt::Display for ConvertError {
             ConvertError::NoSource { node } => {
                 write!(f, "node {node} has no source slice in the source text")
             }
+            ConvertError::NotAtPosition { node, range } => write!(
+                f,
+                "node {node} is at the templated bytes {range:?}, not in the templated slice \
+                 of its position marker"
+            ),
         }
     }
 }
@@ -370,7 +385,7 @@ impl<'n> Walk<'n> {
         match node {
             Node::Raw {
                 raw, pos_marker, ..
-            } => match self.source(pos_marker, index)? {
+            } => match self.source(pos_marker, index, raw.len())? {
                 Some(source) => {
                     self.builder.leaf_at(kind, raw, source).map_err(tree)?;
                 }
@@ -393,7 +408,7 @@ impl<'n> Walk<'n> {
                 meta_type,
                 pos_marker,
             } => {
-                let id = match self.source(pos_marker, index)? {
+                let id = match self.source(pos_marker, index, 0)? {
                     Some(source) => self.builder.meta_at(kind, source),
                     None => self.builder.meta(kind),
                 }
@@ -409,18 +424,35 @@ impl<'n> Walk<'n> {
         Ok(())
     }
 
-    /// The source byte range of the position marker of a leaf or a meta
-    /// node, or `None` if the walk has no source map.
+    /// The source byte range of the position marker of a leaf (`len`
+    /// templated bytes) or a meta node (`len` 0) at the cursor, or `None` if
+    /// the walk has no source map. The templated slice of the marker must
+    /// contain the node (it can be wider: the lexer can split one element
+    /// at the edge of a template slice, and each part keeps its slice).
     fn source(
         &self,
         marker: &Option<sqll_types::PositionMarker>,
         index: usize,
+        len: usize,
     ) -> Result<Option<std::ops::Range<usize>>, ConvertError> {
         let Some(map) = &self.map else {
             return Ok(None);
         };
         let no_source = ConvertError::NoSource { node: index };
-        let slice = marker.as_ref().ok_or(no_source.clone())?.source_slice;
+        let marker = marker.as_ref().ok_or(no_source.clone())?;
+        let range = self.builder.cursor()..self.builder.cursor() + len;
+        let t = marker.templated_slice;
+        let inside = match (
+            map.templated_byte_of_char(t.start),
+            map.templated_byte_of_char(t.stop),
+        ) {
+            (Some(a), Some(b)) => a <= range.start && range.end <= b,
+            _ => false,
+        };
+        if !inside {
+            return Err(ConvertError::NotAtPosition { node: index, range });
+        }
+        let slice = marker.source_slice;
         let start = map.source_byte_of_char(slice.start);
         let end = map.source_byte_of_char(slice.stop);
         match (start, end) {
