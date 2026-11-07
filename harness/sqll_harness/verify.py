@@ -370,7 +370,7 @@ ORACLES = (
 # sqll later.
 INSTALLED_TOOLS = "--tool sqlfluff --tool sqlfluff-rs --tool sqruff"
 # The Python files that the lint job checks with ruff, after harness and ci.
-LINTED = f"{ORACLES} scripts/build-sqll scripts/s3 scripts/s3b"
+LINTED = f"{ORACLES} scripts/build-sqll scripts/speed-check scripts/s3 scripts/s3b"
 ORACLE_PY = '"$SQLL_TOOLS_DIR/sqlfluff-oracle/bin/python"'
 RS_PY = '"$SQLL_TOOLS_DIR/sqlfluff-rs-oracle/bin/python"'
 LINT_SUBMODULE = "lint: Check that the sqlfluff submodule is clean"

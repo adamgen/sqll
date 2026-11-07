@@ -178,5 +178,12 @@ The details in the report (`preflight`) are `fresh_build`,
 commit with the same tables, so `results/s1/summary.json` does not change
 for each commit.
 
+`SQLL_SOURCE_DIR` sets the source folder of the check (default: the
+worktree). The tool `sqll-base` is the base binary of a speed check
+(`scripts/speed-check`; [bench.md](bench.md), "Speed check of a change"):
+the binary `SQLL_BASE_BIN` and the source folder `SQLL_BASE_SOURCE_DIR`,
+with the same checks, adapter, and settings as sqll. A check or a run of
+all tools does not include it.
+
 The lint job checks only the tools of `scripts/setup` (`--tool sqlfluff
 --tool sqlfluff-rs --tool sqruff`), because it has no sqll build.
