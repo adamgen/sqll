@@ -1,0 +1,408 @@
+#!/usr/bin/env python3
+"""Make the S7 scope: the pytest nodes of the pinned sqlfluff tests that S7
+converts (docs/decisions/s7-tests-design.md, "Scope").
+
+Run it with the pinned sqlfluff and pytest that scripts/setup installs:
+
+  .tools/sqlfluff-oracle/bin/python scripts/s7-tests/inventory           # JSON to stdout
+  .tools/sqlfluff-oracle/bin/python scripts/s7-tests/inventory --write   # results/S7-tests/scope.json
+
+It runs "pytest --collect-only" in this process on test/ of the submodule,
+in place, with no bytecode and no cache. It runs no test. The pytest output
+goes to stderr. The exit code is 1 if a check of the scope rule fails.
+
+Scope rule. A node is in scope if:
+  cli              its file is in test/cli/
+  rules            its file is in test/rules/, and it is not a node of an S1
+                   suite (S1_SUITES)
+  config           its file is in test/core/config/
+  config_fixtures  it is in another file, and its test function names a path
+                   in test/fixtures/config (CONFIG_REF, "by": "source"), or
+                   it opens or lists such a path when it runs ("by": "run",
+                   from results/S7-tests/config-readers.json and
+                   config-readers-rs.json, the output of
+                   scripts/s7-tests/config-readers)
+
+pytest collects only the files that match python_files ("*_test.py"). The
+script also gives each other test module of the 3 folders by path
+("collected_by_path"), for example test/cli/test_parse_with_positions.py.
+
+Fail-closed checks for config_fixtures: a name of test/fixtures/config in a
+Python file outside the 3 folders must be in a collected test function. If it
+is only in the decorators of the function, the node must have it in its
+parameter values. A file outside the 3 folders that pytest cannot import
+must not have the name. Each node of the run records must be a collected
+node outside the 3 folders. Else the script stops with exit code 1.
+"""
+
+import argparse
+import ast
+import fnmatch
+import json
+import os
+import re
+import sys
+import tomllib
+from collections import Counter
+from importlib.metadata import version
+from pathlib import Path
+
+# Python and pytest must not write a bytecode file or a cache in the
+# submodule.
+sys.dont_write_bytecode = True
+
+import pytest  # noqa: E402
+from s7common import last_error_line, stdout_to_stderr  # noqa: E402
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
+SQLFLUFF_ROOT = REPO_ROOT / "third_party" / "sqlfluff"
+RECORDED = REPO_ROOT / "results" / "S7-tests" / "scope.json"
+# The run records of scripts/s7-tests/config-readers: with sqlfluff, and
+# with sqlfluff[rs] (the tests that need the Rust parser run only then).
+READERS = [
+    REPO_ROOT / "results" / "S7-tests" / "config-readers.json",
+    REPO_ROOT / "results" / "S7-tests" / "config-readers-rs.json",
+]
+FORMAT = 1
+
+GROUPS = {
+    "test/cli/": "cli",
+    "test/rules/": "rules",
+    "test/core/config/": "config",
+}
+# The S1 suites "rules" and "autofix" (scripts/sqlfluff-case-ids) already
+# convert these test functions.
+S1_SUITES = {
+    "test/rules/yaml_test_cases_test.py::test__rule_test_case": "rules",
+    "test/rules/std_fix_auto_test.py::test__std_fix_auto": "autofix",
+}
+# A name of the folder test/fixtures/config in Python source: a path text,
+# or the path parts "fixtures" and "config" in a join or a "/" expression.
+CONFIG_REF = re.compile(
+    r"""fixtures[/\\]+config(?![\w.-])|["']fixtures["']\s*[,/]\s*["']config["']"""
+)
+
+
+class Collector:
+    """A pytest plugin that keeps the collected items and the errors."""
+
+    def __init__(self) -> None:
+        self.items: list = []
+        self.errors: dict[str, str] = {}
+        self.python_files: list[str] = []
+
+    def pytest_configure(self, config) -> None:
+        self.python_files = list(config.getini("python_files"))
+
+    def pytest_collectreport(self, report) -> None:
+        if report.failed:
+            self.errors[report.nodeid] = last_error_line(str(report.longrepr))
+
+    def pytest_collection_finish(self, session) -> None:
+        self.items = list(session.items)
+
+
+def group_of(path: str) -> str | None:
+    for prefix, group in GROUPS.items():
+        if path.startswith(prefix):
+            return group
+    return None
+
+
+def by_path_files(root: Path, python_files: list[str]) -> list[str]:
+    """The test modules of the 3 folders that python_files does not match.
+
+    A test module is a Python file with a top-level "def test" or "class
+    Test". pytest collects such a file only when it is given by path.
+    """
+    out = []
+    for prefix in GROUPS:
+        for path in sorted((root / prefix).rglob("*.py")):
+            if any(fnmatch.fnmatch(path.name, p) for p in python_files):
+                continue
+            tree = ast.parse(path.read_text("utf8"))
+            for node in tree.body:
+                name = getattr(node, "name", "")
+                if (isinstance(node, ast.FunctionDef) and name.startswith("test")) or (
+                    isinstance(node, ast.ClassDef) and name.startswith("Test")
+                ):
+                    out.append(path.relative_to(root).as_posix())
+                    break
+    return out
+
+
+def targets(root: Path, rel: str, extra: list[str], python_files: list[str]) -> list:
+    """The pytest arguments that collect rel and the by-path files.
+
+    pytest drops a file argument in a folder argument. Thus a folder with a
+    by-path file in it is given as its subfolders and its test files.
+    """
+    if not any(e.startswith(rel + "/") for e in extra):
+        return [rel]
+    out = []
+    for child in sorted((root / rel).iterdir()):
+        sub = f"{rel}/{child.name}"
+        if child.is_dir() and child.name != "__pycache__":
+            out += targets(root, sub, extra, python_files)
+        elif sub in extra or any(fnmatch.fnmatch(child.name, p) for p in python_files):
+            out.append(sub)
+    return out
+
+
+def collect(root: Path) -> tuple[int, list, dict[str, str], list[str], list[str]]:
+    """Run pytest --collect-only on test/ and on the by-path files.
+
+    Return the pytest exit code, the items, the collection errors, the
+    by-path files, and the python_files patterns.
+    """
+    collector = Collector()
+    # The tests find their fixtures with paths relative to the sqlfluff root.
+    os.chdir(root)
+    with open("pyproject.toml", "rb") as f:
+        ini = tomllib.load(f)["tool"]["pytest"]["ini_options"]
+    python_files = ini["python_files"].split()
+    extra = by_path_files(root, python_files)
+    args = [
+        "--collect-only",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "--continue-on-collection-errors",
+        *targets(root, "test", extra, python_files),
+    ]
+    with stdout_to_stderr():
+        code = pytest.main(args, plugins=[collector])
+    if collector.python_files != python_files:
+        raise SystemExit(
+            f"error: pytest python_files {collector.python_files} is not"
+            f" {python_files} of pyproject.toml"
+        )
+    return int(code), collector.items, collector.errors, extra, python_files
+
+
+def function_ranges(source: str) -> dict[str, tuple[list, list]]:
+    """For each function (with its qualified name), the line ranges of its
+    decorators and of the rest of the function."""
+    out: dict[str, tuple[list, list]] = {}
+
+    def walk(body, prefix):
+        for node in body:
+            if isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef):
+                decorators = [(d.lineno, d.end_lineno) for d in node.decorator_list]
+                out[prefix + node.name] = (
+                    decorators,
+                    [(node.lineno, node.end_lineno)],
+                )
+            elif isinstance(node, ast.ClassDef):
+                walk(node.body, prefix + node.name + ".")
+
+    walk(ast.parse(source).body, "")
+    return out
+
+
+def ref_lines(source: str) -> list[int]:
+    """The line numbers of each name of test/fixtures/config in source."""
+    return sorted(
+        {source.count("\n", 0, m.start()) + 1 for m in CONFIG_REF.finditer(source)}
+    )
+
+
+def qualname(item) -> str:
+    return getattr(getattr(item, "function", None), "__qualname__", "")
+
+
+def inside(line: int, ranges: list) -> bool:
+    return any(a <= line <= b for a, b in ranges)
+
+
+def config_fixture_nodes(
+    root: Path, items: list, errors: dict[str, str]
+) -> tuple[set[str], list[str]]:
+    """Return the node ids outside the 3 folders that name test/fixtures/config,
+    and the errors of the fail-closed checks."""
+    problems: list[str] = []
+    by_file: dict[str, list] = {}
+    for item in items:
+        by_file.setdefault(item.nodeid.split("::")[0], []).append(item)
+    selected: set[str] = set()
+    for path in sorted((root / "test").rglob("*.py")):
+        rel = path.relative_to(root).as_posix()
+        if group_of(rel):
+            continue
+        source = path.read_text("utf8")
+        lines = ref_lines(source)
+        if not lines:
+            continue
+        if rel in errors:
+            problems.append(
+                f"{rel}: pytest cannot import it, and it names test/fixtures/config"
+            )
+            continue
+        ranges = function_ranges(source)
+        file_items = by_file.get(rel, [])
+        functions = {qualname(i) for i in file_items}
+        for line in lines:
+            owner = [
+                name
+                for name, (dec, body) in ranges.items()
+                if name in functions and inside(line, dec + body)
+            ]
+            if not owner:
+                problems.append(
+                    f"{rel}:{line}: names test/fixtures/config outside a collected"
+                    " test function"
+                )
+                continue
+            name = max(owner, key=len)
+            dec, body = ranges[name]
+            nodes = [i for i in file_items if qualname(i) == name]
+            if inside(line, body):
+                selected.update(i.nodeid for i in nodes)
+                continue
+            by_params = [
+                i.nodeid
+                for i in nodes
+                if hasattr(i, "callspec") and CONFIG_REF.search(repr(i.callspec.params))
+            ]
+            if not by_params:
+                problems.append(
+                    f"{rel}:{line}: names test/fixtures/config in a decorator, but"
+                    " no node has it in its parameter values"
+                )
+            selected.update(by_params)
+    return selected, problems
+
+
+def run_readers(paths: list[Path], items: list) -> tuple[set[str], list[str]]:
+    """The nodes of the run records (scripts/s7-tests/config-readers)."""
+    readers: set[str] = set()
+    problems: list[str] = []
+    for path in paths:
+        found, more = run_record(path, items)
+        readers |= found
+        problems += more
+    return readers, problems
+
+
+def run_record(path: Path, items: list) -> tuple[set[str], list[str]]:
+    data = json.loads(path.read_text("utf8"))
+    problems = []
+    if data["sqlfluff"] != version("sqlfluff"):
+        problems.append(
+            f"{path}: sqlfluff {data['sqlfluff']}, not {version('sqlfluff')}"
+        )
+    if data["skipped_folders"] != [p.rstrip("/") for p in GROUPS]:
+        problems.append(f"{path}: the skipped folders are not the scope folders")
+    collected = {i.nodeid for i in items}
+    for node in data["readers"]:
+        if node not in collected or group_of(node):
+            problems.append(
+                f"{path}: {node} is not a collected node outside the scope folders"
+            )
+    return set(data["readers"]), problems
+
+
+def scope(root: Path, readers_files: list[Path]) -> tuple[dict, list[str]]:
+    code, items, errors, extra, python_files = collect(root)
+    problems: list[str] = []
+    # With collection errors, pytest exits with code 1.
+    if code != (1 if errors else 0):
+        problems.append(f"pytest exit code {code}")
+    for nodeid in sorted(errors):
+        if group_of(nodeid):
+            problems.append(
+                f"{nodeid}: collection error in a scope folder: {errors[nodeid]}"
+            )
+    by_source, more = config_fixture_nodes(root, items, errors)
+    problems += more
+    by_run, more = run_readers(readers_files, items)
+    problems += more
+
+    nodes = []
+    s1 = Counter()
+    for item in items:
+        nodeid = item.nodeid
+        file = nodeid.split("::")[0]
+        test = nodeid.split("[")[0]
+        group = group_of(file)
+        if test in S1_SUITES:
+            s1[test] += 1
+            continue
+        if group:
+            nodes.append({"id": nodeid, "file": file, "group": group})
+        elif nodeid in by_source or nodeid in by_run:
+            by = [k for k, v in (("run", by_run), ("source", by_source)) if nodeid in v]
+            nodes.append(
+                {"id": nodeid, "file": file, "group": "config_fixtures", "by": by}
+            )
+
+    ids = Counter(n["id"] for n in nodes)
+    twice = sorted(i for i, n in ids.items() if n > 1)
+    if twice:
+        problems.append(f"node ids in the list 2 times: {twice}")
+    for test in S1_SUITES:
+        if not s1[test]:
+            problems.append(f"pytest collected no node of the S1 suite test {test}")
+    counts = Counter(n["group"] for n in nodes)
+    for group in [*GROUPS.values(), "config_fixtures"]:
+        if not counts[group]:
+            problems.append(f"no node in group {group}")
+    files = Counter((n["file"], n["group"]) for n in nodes)
+    out = {
+        "format": FORMAT,
+        "sqlfluff": version("sqlfluff"),
+        "pytest": pytest.__version__,
+        "python_files": python_files,
+        "counts": {g: counts[g] for g in [*GROUPS.values(), "config_fixtures"]}
+        | {"total": len(nodes)},
+        "files": {f: {"group": g, "nodes": n} for (f, g), n in sorted(files.items())},
+        "collected_by_path": extra,
+        "s1_suites": {t: {"suite": S1_SUITES[t], "nodes": s1[t]} for t in S1_SUITES},
+        "collection_errors": [
+            {"file": f, "error": e, "names_config_fixtures": False}
+            for f, e in sorted(errors.items())
+        ],
+        "nodes": nodes,
+    }
+    return out, problems
+
+
+def main(argv: list[str]) -> int:
+    parser = argparse.ArgumentParser(prog="inventory")
+    parser.add_argument("--write", action="store_true", help=f"write {RECORDED}")
+    parser.add_argument(
+        "--root",
+        type=Path,
+        default=SQLFLUFF_ROOT,
+        help="a sqlfluff checkout (for the unit tests; not with --write)",
+    )
+    parser.add_argument(
+        "--readers",
+        type=Path,
+        action="append",
+        help="a run record of scripts/s7-tests/config-readers; give it 1 or more"
+        " times (not with --write)",
+    )
+    args = parser.parse_args(argv)
+    if args.write and (args.root != SQLFLUFF_ROOT or args.readers):
+        parser.error("--write needs the pinned submodule and the recorded runs")
+    readers = [p.resolve() for p in args.readers or READERS]
+    out, problems = scope(args.root.resolve(), readers)
+    for p in problems:
+        print(f"error: {p}", file=sys.stderr)
+    for group, n in out["counts"].items():
+        print(f"{group}: {n}", file=sys.stderr)
+    text = json.dumps(out, indent=1) + "\n"
+    if problems:
+        return 1
+    if args.write:
+        RECORDED.parent.mkdir(parents=True, exist_ok=True)
+        RECORDED.write_text(text, "utf8")
+        print(f"wrote {RECORDED.relative_to(REPO_ROOT)}", file=sys.stderr)
+    else:
+        sys.stdout.write(text)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))
