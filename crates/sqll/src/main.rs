@@ -19,10 +19,11 @@
 //!
 //! Exit codes: 0, no error; 1, a lex error, a parse error (also at the
 //! parse depth limit or the parser iteration limit), or an unparsable
-//! segment; 2, a usage, input, or output error. A command or input that sqll
-//! does not support yet (for example an argument that is not UTF-8) prints
-//! "unsupported: <item>" and gives exit code 2. Only a panic (a sqll bug)
-//! gives another exit code (101).
+//! segment; 2, a usage, input, or output error, or a parse tree that the
+//! syntax tree refuses (a sqll bug; sqll_syntax::ParseError). A command or
+//! input that sqll does not support yet (for example an argument that is
+//! not UTF-8) prints "unsupported: <item>" and gives exit code 2. Only a
+//! panic (a sqll bug) gives another exit code (101).
 
 mod alloc;
 mod license;
@@ -88,11 +89,12 @@ const EXIT_ERROR: u8 = 2;
 /// An error that stops a command with exit code 2.
 struct Error(String);
 
-/// The stack of the thread that runs the command. The parser is iterative,
-/// but the record, the output, and the drop of the tree recurse once for
-/// each level of the tree. At the parse depth limit
-/// (parse::MAX_PARSE_DEPTH_LIMIT), the deepest trees that were measured
-/// need about 10 MiB in a release build and 33 MiB in a debug build
+/// The stack of the thread that runs the command. The parser and the
+/// conversion to the syntax tree are iterative, but the output (the writer
+/// of the record) and the drop of the parser tree recurse once for each
+/// level of the tree. At the parse depth limit
+/// (sqll_syntax::MAX_PARSE_DEPTH_LIMIT), the deepest trees that were
+/// measured need about 10 MiB in a release build and 33 MiB in a debug build
 /// (tests/cli.rs, the_parse_depth_has_a_limit_that_the_stack_can_hold).
 /// Linux reserves the stack, but uses memory only for the pages that the
 /// thread touches.
@@ -314,11 +316,11 @@ fn parse_args(args: &[String]) -> Result<Option<ParseArgs>, Error> {
     }
     let max_parse_depth = match &raw.max_parse_depth {
         None => parse::MAX_PARSE_DEPTH,
-        Some(text) => parse::depth_limit(text.parse().map_err(|_| {
+        Some(text) => text.parse().map_err(|_| {
             Error(format!(
                 "Invalid value for '--max-parse-depth': '{text}' is not a valid integer."
             ))
-        })?),
+        })?,
     };
     if let Some(extra) = raw.paths.get(1) {
         return Err(Error(format!(
@@ -436,18 +438,22 @@ fn parse_command(args: &[String], start: Instant) -> Result<u8, Error> {
         }
     }
     let sql = read_sql(&path)?;
-    let mut timer = timings::Timer::new(start);
-    timer.mark("init");
-    let parsed = parse::parse(sql, dialect, &args.options, &mut timer, false);
-    for e in &parsed.errors {
-        eprintln!("{e}");
-    }
-
     let filepath = if path == "-" {
         "stdin".to_string()
     } else {
         normpath(&path)
     };
+    let mut timer = timings::Timer::new(start);
+    timer.mark("init");
+    let parsed = parse::parse(sql, &filepath, dialect, &args.options, &mut timer, false)
+        .map_err(|e| Error(format!("cannot parse {path}: {e}")))?;
+    // The lex errors and the parser stop. An unparsable section has no
+    // line: the record shows it, and the exit code is 1.
+    let mut printed = 0;
+    for e in parsed.errors.iter().filter(|e| e.node.is_none()) {
+        eprintln!("{e}");
+        printed += 1;
+    }
     let record_options = output::RecordOptions {
         code_only: args.options.code_only,
         include_meta: args.options.include_meta,
@@ -455,14 +461,14 @@ fn parse_command(args: &[String], start: Instant) -> Result<u8, Error> {
     let written = output::write_parse_json(
         std::io::stdout().lock(),
         &filepath,
-        parsed.root.as_ref(),
+        parsed.tree.as_ref(),
         record_options,
     );
     let unparsable = written.map_err(|e| Error(format!("cannot write the output: {e}")))?;
     timer.mark("write");
     // "sqlfluff parse" gives exit code 1 for a lex error, a parse error, or
     // an unparsable segment.
-    let ok = parsed.errors.is_empty() && !unparsable;
+    let ok = printed == 0 && !unparsable;
     // The tree is not dropped (parse::parse).
     std::mem::forget(parsed);
     timer.mark("free");
@@ -474,7 +480,7 @@ fn parse_command(args: &[String], start: Instant) -> Result<u8, Error> {
 
 #[cfg(test)]
 mod tests {
-    use super::{has_sql_extension, normpath, SQL_FILE_EXTS};
+    use super::{has_sql_extension, normpath, PARSE_USAGE, SQL_FILE_EXTS};
 
     #[test]
     fn normpath_is_that_of_python_posixpath() {
@@ -503,19 +509,13 @@ mod tests {
     }
 
     #[test]
-    fn the_parse_depth_is_at_most_the_limit() {
-        use crate::parse::{depth_limit, MAX_PARSE_DEPTH_LIMIT};
-        assert_eq!(MAX_PARSE_DEPTH_LIMIT, 10_000);
-        for (value, want) in [
-            (0, 10_000),
-            (1, 1),
-            (600, 600),
-            (10_000, 10_000),
-            (10_001, 10_000),
-            (usize::MAX, 10_000),
-        ] {
-            assert_eq!(depth_limit(value), want, "{value}");
-        }
+    fn the_parse_depth_limit_is_that_of_the_help() {
+        assert!(PARSE_USAGE.contains(&format!(
+            "Default: {}. 0 and each\n                           value above {} give {}.",
+            crate::parse::MAX_PARSE_DEPTH,
+            sqll_syntax::MAX_PARSE_DEPTH_LIMIT,
+            sqll_syntax::MAX_PARSE_DEPTH_LIMIT
+        )));
     }
 
     #[test]

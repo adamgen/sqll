@@ -5,13 +5,14 @@
 //! escapes each character that is not printable ASCII (ensure_ascii):
 //! "\uXXXX", with a surrogate pair above U+FFFF.
 //!
-//! The writer walks the parse tree and writes the JSON of its record
-//! (Node::as_record of sqll_parser, with show_raw) with no record value
-//! between them (S3 T15). The tests compare the two.
+//! The writer walks the syntax tree (the parse interface, S3b C9) and
+//! writes the JSON of its record (Node::as_record of sqll_parser, with
+//! show_raw) with no record value between them (S3 T15). The tests compare
+//! the two.
 
 use std::io::{self, Write};
 
-use sqll_parser::parser::{MetaType, Node};
+use sqll_tree::{NodeId, SegmentKind, SegmentType, SyntaxTree, Variant};
 
 /// Write the text as a JSON string of Python json.dumps (ensure_ascii).
 pub fn write_json_str<W: Write>(w: &mut W, text: &str) -> io::Result<()> {
@@ -52,25 +53,50 @@ pub struct RecordOptions {
     pub include_meta: bool,
 }
 
-/// The key of a node in the record: Node::get_type, with no copy.
-fn key(node: &Node) -> &str {
-    match node {
-        Node::Raw { segment_type, .. } => segment_type,
-        Node::Segment { segment_type, .. } => segment_type.as_deref().unwrap_or_default(),
-        Node::Meta { meta_type, .. } => match meta_type {
-            MetaType::Indent { .. } => "indent",
-            MetaType::Dedent { .. } => "dedent",
-            MetaType::Template { .. } => "placeholder",
-            MetaType::TemplateLoop => "template_loop",
-            MetaType::EndOfFile => "end_of_file",
-        },
-        Node::Unparsable { .. } => "unparsable",
-        Node::Empty => "empty",
+/// The static facts of a kind for the record, computed at the first use of
+/// the kind (`KindFacts::of`).
+#[derive(Clone, Copy)]
+struct KindFacts {
+    /// `Node::is_code` of a leaf: no instance type, type, or class type of
+    /// whitespace, a newline, or a comment.
+    leaf_code: bool,
+    /// A leaf of this kind is code in its own value (`Node::to_tuple`): no
+    /// instance type "whitespace", "newline", or "comment".
+    value_code: bool,
+    /// The class types have "raw".
+    raw_class: bool,
+}
+
+impl KindFacts {
+    fn of(kind: SegmentKind) -> Self {
+        let data = kind.data();
+        let ty = data.ty.name();
+        let instance = |names: &[&str]| {
+            data.instance_types
+                .iter()
+                .any(|t| names.contains(&t.name()))
+        };
+        let class = |name: &str| data.class_types.iter().any(|t| t.name() == name);
+        let non_code = instance(&[
+            "whitespace",
+            "newline",
+            "comment",
+            "inline_comment",
+            "block_comment",
+            "trailing_newline",
+        ]) || ty.contains("comment")
+            || matches!(ty, "whitespace" | "newline")
+            || class("comment");
+        KindFacts {
+            leaf_code: !non_code,
+            value_code: !instance(&["whitespace", "newline", "comment"]),
+            raw_class: class("raw"),
+        }
     }
 }
 
 /// True if two of the keys are equal.
-fn has_duplicates(keys: &[&str]) -> bool {
+fn has_duplicates(keys: &[SegmentType]) -> bool {
     if keys.len() <= 16 {
         keys.iter()
             .enumerate()
@@ -83,29 +109,91 @@ fn has_duplicates(keys: &[&str]) -> bool {
 
 /// The writer of one record. `unparsable` becomes true if the record has
 /// the key "unparsable" (an unparsable segment).
-struct RecordWriter<'w, W: Write> {
+struct RecordWriter<'w, 't, W: Write> {
     w: &'w mut W,
+    tree: &'t SyntaxTree,
     options: RecordOptions,
     unparsable: bool,
+    /// The facts of each kind that the writer found, by kind index.
+    facts: Vec<Option<KindFacts>>,
+    /// `Node::is_code` of each node, only for `code_only`.
+    code: Vec<bool>,
+    /// The relevant children of the open nodes, one range for each.
+    stack: Vec<NodeId>,
+    keys: Vec<SegmentType>,
 }
 
-impl<W: Write> RecordWriter<'_, W> {
+impl<'w, 't, W: Write> RecordWriter<'w, 't, W> {
+    fn new(w: &'w mut W, tree: &'t SyntaxTree, options: RecordOptions) -> Self {
+        let mut writer = RecordWriter {
+            w,
+            tree,
+            options,
+            unparsable: false,
+            facts: vec![None; SegmentKind::COUNT],
+            code: Vec::new(),
+            stack: Vec::new(),
+            keys: Vec::new(),
+        };
+        if options.code_only {
+            writer.code = writer.code_flags();
+        }
+        writer
+    }
+
+    fn facts(&mut self, kind: SegmentKind) -> KindFacts {
+        let slot = &mut self.facts[kind.index() as usize];
+        *slot.get_or_insert_with(|| KindFacts::of(kind))
+    }
+
+    /// `Node::is_code` of each node: a leaf by its kind, an unparsable node
+    /// always, a segment if one of its children is code, else false. The
+    /// children of a node come after it, so one pass from the end sets each
+    /// segment from its children.
+    fn code_flags(&mut self) -> Vec<bool> {
+        let tree = self.tree;
+        let mut code: Vec<bool> = tree
+            .nodes()
+            .map(|id| match tree.variant(id) {
+                Variant::Raw => self.facts(tree.kind(id)).leaf_code,
+                Variant::Unparsable => true,
+                Variant::Segment | Variant::Meta | Variant::Empty => false,
+            })
+            .collect();
+        let ids: Vec<NodeId> = tree.nodes().collect();
+        for &id in ids.iter().rev() {
+            if !code[id.index()] {
+                continue;
+            }
+            if let Some(p) = tree.parent(id) {
+                if tree.variant(p) == Variant::Segment {
+                    code[p.index()] = true;
+                }
+            }
+        }
+        code
+    }
+
+    fn is_code(&self, id: NodeId) -> bool {
+        self.code[id.index()]
+    }
+
     /// Write {"key": value} of the node: structural_simplify(to_tuple(node)).
-    fn entry(&mut self, node: &Node) -> io::Result<()> {
+    fn entry(&mut self, id: NodeId) -> io::Result<()> {
         self.w.write_all(b"{")?;
-        self.pair(node)?;
+        self.pair(id)?;
         self.w.write_all(b"}")
     }
 
     /// Write "key": value of the node.
-    fn pair(&mut self, node: &Node) -> io::Result<()> {
-        let k = key(node);
-        if k == "unparsable" {
+    fn pair(&mut self, id: NodeId) -> io::Result<()> {
+        let ty = self.tree.ty(id);
+        if ty == SegmentType::UNPARSABLE {
             self.unparsable = true;
         }
-        write_json_str(self.w, k)?;
+        write_json_str(self.w, ty.name())?;
         self.w.write_all(b": ")?;
-        self.value(node)
+        self.value(id)
     }
 
     /// The value of the node in its 1-key mapping. This follows
@@ -113,104 +201,110 @@ impl<W: Write> RecordWriter<'_, W> {
     /// (parser/types.rs) with show_raw: a raw text is a string, a tuple with
     /// no children is null, and a tuple with children is a mapping, or a
     /// list of 1-key mappings if 2 children have the same key.
-    fn value(&mut self, node: &Node) -> io::Result<()> {
+    fn value(&mut self, id: NodeId) -> io::Result<()> {
         let RecordOptions {
             code_only,
             include_meta,
         } = self.options;
-        match node {
-            Node::Raw {
-                raw,
-                instance_types,
-                ..
-            } => {
-                let is_code = !instance_types
-                    .iter()
-                    .any(|t| matches!(t.as_str(), "whitespace" | "newline" | "comment"));
-                if code_only && !is_code {
+        let tree = self.tree;
+        match tree.variant(id) {
+            Variant::Raw => {
+                if code_only && !self.facts(tree.kind(id)).value_code {
                     self.w.write_all(b"null")
                 } else {
-                    write_json_str(self.w, raw)
+                    write_json_str(self.w, tree.raw(id))
                 }
             }
-            Node::Meta { .. } => {
+            Variant::Meta => {
                 if include_meta {
                     self.w.write_all(b"\"\"")
                 } else {
                     self.w.write_all(b"null")
                 }
             }
-            Node::Segment {
-                children,
-                class_types,
-                ..
-            } => {
-                let relevant: Vec<&Node> = children
-                    .iter()
-                    .filter(|c| !(code_only && !c.is_code()) && (include_meta || !c.is_meta()))
-                    .collect();
-                if relevant.len() == 1 && class_types.iter().any(|t| t == "raw") {
-                    if let Node::Raw { raw, .. } = relevant[0] {
-                        return write_json_str(self.w, raw);
+            Variant::Segment => {
+                let start = self.stack.len();
+                for c in tree.children(id) {
+                    if !(code_only && !self.is_code(c)) && (include_meta || !tree.is_meta(c)) {
+                        self.stack.push(c);
                     }
                 }
-                self.children(&relevant)
+                if self.stack.len() - start == 1
+                    && self.facts(tree.kind(id)).raw_class
+                    && tree.variant(self.stack[start]) == Variant::Raw
+                {
+                    let only = self.stack[start];
+                    self.stack.truncate(start);
+                    return write_json_str(self.w, tree.raw(only));
+                }
+                self.children(start)
             }
-            Node::Unparsable { children, .. } => {
-                let relevant: Vec<&Node> = children
-                    .iter()
-                    .filter(|c| !(code_only && !c.is_code()))
-                    .collect();
-                self.children(&relevant)
+            Variant::Unparsable => {
+                let start = self.stack.len();
+                for c in tree.children(id) {
+                    if !(code_only && !self.is_code(c)) {
+                        self.stack.push(c);
+                    }
+                }
+                self.children(start)
             }
-            Node::Empty => self.w.write_all(b"null"),
+            Variant::Empty => self.w.write_all(b"null"),
         }
     }
 
-    fn children(&mut self, children: &[&Node]) -> io::Result<()> {
-        if children.is_empty() {
+    /// Write the children `stack[start..]` and remove them from the stack.
+    fn children(&mut self, start: usize) -> io::Result<()> {
+        let end = self.stack.len();
+        if start == end {
             return self.w.write_all(b"null");
         }
-        let keys: Vec<&str> = children.iter().map(|c| key(c)).collect();
-        let list = has_duplicates(&keys);
+        self.keys.clear();
+        for i in start..end {
+            let ty = self.tree.ty(self.stack[i]);
+            self.keys.push(ty);
+        }
+        let list = has_duplicates(&self.keys);
         self.w.write_all(if list { b"[" } else { b"{" })?;
-        for (i, child) in children.iter().enumerate() {
-            if i > 0 {
+        for i in start..end {
+            if i > start {
                 self.w.write_all(b", ")?;
             }
+            let child = self.stack[i];
             if list {
                 self.entry(child)?;
             } else {
                 self.pair(child)?;
             }
         }
+        self.stack.truncate(start);
         self.w.write_all(if list { b"]" } else { b"}" })
     }
 }
 
 /// Write [{"filepath": PATH, "segments": RECORD}] and a newline. RECORD is
-/// the record of the root, or null if there is no root (a parse error).
-/// Return true if the record has an unparsable segment.
+/// the record of the root of the tree, or null if there is no tree (a
+/// parse error). Return true if the record has an unparsable segment.
 pub fn write_parse_json<W: Write>(
     out: W,
     filepath: &str,
-    root: Option<&Node>,
+    tree: Option<&SyntaxTree>,
     options: RecordOptions,
 ) -> io::Result<bool> {
     let mut out = io::BufWriter::with_capacity(1 << 16, out);
     out.write_all(b"[{\"filepath\": ")?;
     write_json_str(&mut out, filepath)?;
     out.write_all(b", \"segments\": ")?;
-    let mut writer = RecordWriter {
-        w: &mut out,
-        options,
-        unparsable: false,
+    let unparsable = match tree {
+        Some(tree) => {
+            let mut writer = RecordWriter::new(&mut out, tree, options);
+            writer.entry(tree.root())?;
+            writer.unparsable
+        }
+        None => {
+            out.write_all(b"null")?;
+            false
+        }
     };
-    match root {
-        Some(node) => writer.entry(node)?,
-        None => writer.w.write_all(b"null")?,
-    }
-    let unparsable = writer.unparsable;
     out.write_all(b"}]\n")?;
     out.flush()?;
     Ok(unparsable)
@@ -340,8 +434,10 @@ pub mod oracle {
 #[cfg(test)]
 mod tests {
     use std::borrow::Cow;
+    use std::sync::Arc;
 
-    use sqll_parser::parser::RawSegmentKwargs;
+    use sqll_parser::parser::{MetaType, Node, RawSegmentKwargs};
+    use sqll_tree::KindData;
 
     use super::*;
 
@@ -379,27 +475,64 @@ mod tests {
         }
     }
 
-    fn raw(segment_type: &'static str, text: &str, instance_types: &[&str]) -> Node {
-        Node::new_raw(
-            "RawSegment",
-            segment_type,
-            text.to_string(),
-            None,
-            instance_types.iter().map(|t| t.to_string()).collect(),
-            RawSegmentKwargs::default(),
-        )
+    fn names(types: &[SegmentType]) -> Vec<String> {
+        types.iter().map(|t| t.name().to_string()).collect()
     }
 
-    fn segment(
-        segment_type: Option<&'static str>,
-        class_types: &[&str],
-        children: Vec<Node>,
-    ) -> Node {
-        Node::Segment {
-            segment_class: Cow::Borrowed("Segment"),
-            segment_type: segment_type.map(Cow::Borrowed),
+    /// The first kind of the variant and type for which `pick` is true.
+    fn kind(variant: Variant, ty: &str, pick: impl Fn(&KindData) -> bool) -> SegmentKind {
+        let ty = SegmentType::from_name(ty).expect("a type");
+        *ty.kinds()
+            .iter()
+            .find(|k| k.data().variant == variant && pick(k.data()))
+            .unwrap_or_else(|| panic!("no {variant:?} kind of {ty:?}"))
+    }
+
+    /// The first kind of the variant for which `pick` is true.
+    fn kind_where(variant: Variant, pick: impl Fn(&KindData) -> bool) -> SegmentKind {
+        SegmentKind::all()
+            .find(|k| k.data().variant == variant && pick(k.data()))
+            .unwrap_or_else(|| panic!("no {variant:?} kind"))
+    }
+
+    fn has(types: &[SegmentType], name: &str) -> bool {
+        types.iter().any(|t| t.name() == name)
+    }
+
+    /// A parser leaf with the static data of the kind.
+    fn leaf(kind: SegmentKind, text: &str) -> Node {
+        let d = kind.data();
+        Node::Raw {
+            segment_class: Cow::Borrowed(d.class),
+            segment_type: Cow::Borrowed(d.ty.name()),
+            raw: text.to_string(),
             pos_marker: None,
-            class_types: class_types.iter().map(|t| t.to_string()).collect(),
+            instance_types: names(d.instance_types),
+            class_types: names(d.class_types),
+            segment_kwargs: RawSegmentKwargs {
+                trim_chars: d
+                    .trim_chars
+                    .map(|t| Arc::new(t.iter().map(|s| s.to_string()).collect())),
+                quoted_value: d.quoted_value.map(|(a, b)| (a.to_string(), b.to_string())),
+                escape_replacements: d.escape_replacements.map(|e| {
+                    Arc::new(
+                        e.iter()
+                            .map(|(a, b)| (a.to_string(), b.to_string()))
+                            .collect(),
+                    )
+                }),
+            },
+        }
+    }
+
+    /// A parser segment with the static data of the kind.
+    fn segment(kind: SegmentKind, children: Vec<Node>) -> Node {
+        let d = kind.data();
+        Node::Segment {
+            segment_class: Cow::Borrowed(d.class),
+            segment_type: Some(Cow::Borrowed(d.ty.name())),
+            pos_marker: None,
+            class_types: names(d.class_types),
             children,
         }
     }
@@ -411,19 +544,50 @@ mod tests {
         }
     }
 
+    /// The templated text of a parser tree: the texts of its leaves.
+    fn text(node: &Node, out: &mut String) {
+        match node {
+            Node::Raw { raw, .. } => out.push_str(raw),
+            Node::Segment { children, .. } | Node::Unparsable { children, .. } => {
+                children.iter().for_each(|c| text(c, out))
+            }
+            Node::Meta { .. } | Node::Empty => {}
+        }
+    }
+
     /// Trees with each case of the record: duplicate keys (a list), unique
     /// keys (a mapping), a segment of the class "raw" with 1 child, empty
     /// children, meta segments, comments and whitespace (code_only), an
-    /// unparsable segment, an empty node, and escapes.
+    /// unparsable segment, an empty node, and escapes. Each node has the
+    /// static data of a kind, so that the conversion takes it.
     fn trees() -> Vec<Node> {
-        let ws = || raw("whitespace", " ", &["whitespace"]);
-        let nl = || raw("newline", "\n", &["newline"]);
-        let kw = |t: &str| raw("keyword", t, &["keyword"]);
-        let comment = raw("comment", "-- \u{e9}\"x\\", &["comment"]);
-        let block = raw("block_comment", "/* b */", &["block_comment"]);
-        let literal = segment(Some("numeric_literal"), &["raw", "literal"], vec![kw("1")]);
-        let literal_ws = segment(Some("numeric_literal"), &["raw"], vec![ws(), kw("2")]);
-        let not_raw = segment(Some("column_index"), &["column_index"], vec![kw("3")]);
+        let any = |_: &KindData| true;
+        let ws = || leaf(kind(Variant::Raw, "whitespace", any), " ");
+        let nl = || leaf(kind(Variant::Raw, "newline", any), "\n");
+        let kw_kind = kind(Variant::Raw, "keyword", |d| {
+            has(d.instance_types, "keyword")
+        });
+        let kw = |t: &str| leaf(kw_kind, t);
+        let comment = leaf(
+            kind_where(Variant::Raw, |d| has(d.instance_types, "comment")),
+            "-- \u{e9}\"x\\",
+        );
+        let inline = leaf(kind(Variant::Raw, "inline_comment", any), "-- i");
+        let block = leaf(kind(Variant::Raw, "block_comment", any), "/* b */");
+        let file = kind(Variant::Segment, "file", any);
+        let raw_segment = kind_where(Variant::Segment, |d| has(d.class_types, "raw"));
+        let not_raw = kind(Variant::Segment, "column_reference", |d| {
+            !has(d.class_types, "raw")
+        });
+        let statement = kind(Variant::Segment, "select_statement", any);
+        let named = |ty: &str| segment(kind(Variant::Segment, ty, any), vec![]);
+        let literal = segment(raw_segment, vec![kw("1")]);
+        let literal_ws = segment(raw_segment, vec![ws(), kw("2")]);
+        let literal_meta = segment(
+            raw_segment,
+            vec![meta(MetaType::Indent { is_implicit: false }), kw("4")],
+        );
+        let column = segment(not_raw, vec![kw("3")]);
         let unparsable = Node::Unparsable {
             expected: "x".to_string(),
             pos_marker: None,
@@ -432,37 +596,34 @@ mod tests {
                 ws(),
                 meta(MetaType::Indent { is_implicit: false }),
                 comment.clone(),
+                segment(statement, vec![comment.clone()]),
             ],
         };
-        let statement = segment(
-            Some("select_statement"),
-            &["statement"],
+        let select = segment(
+            statement,
             vec![
                 kw("SELECT"),
                 meta(MetaType::Indent { is_implicit: true }),
                 ws(),
                 literal,
                 literal_ws,
-                not_raw,
-                raw("comma", ",", &["comma"]),
+                literal_meta,
+                column,
+                leaf(kind(Variant::Raw, "comma", any), ","),
                 kw("FROM"),
                 meta(MetaType::Dedent { is_implicit: false }),
                 comment.clone(),
                 block.clone(),
                 Node::Empty,
-                segment(None, &[], vec![]),
-                segment(
-                    Some("empty_segment"),
-                    &["raw"],
-                    vec![meta(MetaType::TemplateLoop)],
-                ),
+                segment(statement, vec![]),
+                segment(statement, vec![ws(), comment.clone()]),
+                segment(raw_segment, vec![meta(MetaType::TemplateLoop)]),
             ],
         );
         let unique = segment(
-            Some("file"),
-            &[],
+            file,
             vec![
-                statement.clone(),
+                select.clone(),
                 nl(),
                 unparsable.clone(),
                 meta(MetaType::EndOfFile),
@@ -473,32 +634,54 @@ mod tests {
             ],
         );
         let duplicates = segment(
-            Some("file"),
-            &[],
-            vec![statement.clone(), nl(), statement, nl(), unparsable],
+            file,
+            vec![select.clone(), nl(), select, nl(), unparsable.clone()],
         );
         let many: Vec<Node> = (0..40)
             .map(|i| kw(if i == 39 { "k0" } else { "k" }))
             .collect();
-        let many_unique: Vec<Node> = ["a", "b", "c", "d", "e", "f", "g", "h"]
+        let many_unique: Vec<Node> = [
+            "select_statement",
+            "column_reference",
+            "from_clause",
+            "where_clause",
+            "join_clause",
+            "table_reference",
+            "expression",
+            "function",
+        ]
+        .iter()
+        .map(|t| named(t))
+        .collect();
+        let many_types: Vec<Node> = ["expression", "function", "expression"]
             .iter()
-            .map(|t| segment(Some(t), &[], vec![]))
+            .cycle()
+            .take(20)
+            .map(|t| named(t))
+            .chain([named("from_clause")])
             .collect();
         vec![
             unique,
             duplicates,
-            segment(Some("file"), &[], many),
-            segment(Some("file"), &[], many_unique),
-            segment(Some("file"), &[], vec![]),
-            segment(Some("file"), &[], vec![comment, block, ws()]),
+            segment(file, many),
+            segment(file, many_unique),
+            segment(file, many_types),
+            segment(file, vec![]),
+            segment(file, vec![comment.clone(), inline, block, ws()]),
+            segment(file, vec![unparsable]),
             Node::Empty,
-            raw("keyword", "\t\u{1}\u{1f600}", &["keyword"]),
+            meta(MetaType::EndOfFile),
+            kw("\t\u{1}\u{1f600}"),
+            comment,
         ]
     }
 
     #[test]
     fn the_writer_gives_the_output_of_the_record() {
-        for (i, tree) in trees().iter().enumerate() {
+        for (i, node) in trees().iter().enumerate() {
+            let mut sql = String::new();
+            text(node, &mut sql);
+            let converted = sqll_syntax::from_node(node, sql).expect("the conversion");
             for code_only in [false, true] {
                 for include_meta in [false, true] {
                     let options = RecordOptions {
@@ -507,9 +690,10 @@ mod tests {
                     };
                     let mut got = Vec::new();
                     let unparsable =
-                        write_parse_json(&mut got, "d/\u{e9}.sql", Some(tree), options).unwrap();
+                        write_parse_json(&mut got, "d/\u{e9}.sql", Some(&converted.tree), options)
+                            .unwrap();
                     let (want, want_unparsable) =
-                        oracle::parse_json("d/\u{e9}.sql", Some(tree), code_only, include_meta);
+                        oracle::parse_json("d/\u{e9}.sql", Some(node), code_only, include_meta);
                     assert_eq!(
                         String::from_utf8(got).unwrap(),
                         String::from_utf8(want).unwrap(),
@@ -527,12 +711,41 @@ mod tests {
         assert!(!write_parse_json(&mut got, "stdin", None, options).unwrap());
         assert_eq!(got, oracle::parse_json("stdin", None, false, false).0);
     }
+
+    /// The facts of each kind are those of `Node::is_code` and of the
+    /// record of a leaf of the kind.
+    #[test]
+    fn the_facts_of_each_kind_are_those_of_the_parser_node() {
+        let mut leaves = 0;
+        for k in SegmentKind::all() {
+            let facts = KindFacts::of(k);
+            assert_eq!(facts.raw_class, has(k.data().class_types, "raw"), "{k:?}");
+            if k.data().variant != Variant::Raw {
+                continue;
+            }
+            leaves += 1;
+            let node = leaf(k, "x");
+            assert_eq!(facts.leaf_code, node.is_code(), "{k:?}");
+            let value = node.as_record(true, true, false);
+            let value_code = !matches!(
+                value,
+                Some(serde_yaml_ng::Value::Mapping(ref m))
+                    if m.values().all(serde_yaml_ng::Value::is_null)
+            );
+            assert_eq!(facts.value_code, value_code, "{k:?}");
+        }
+        assert!(leaves > 1000);
+    }
 }
 
 #[cfg(test)]
 mod fixture_tests {
     use std::path::{Path, PathBuf};
+    use std::sync::Arc;
     use std::time::Instant;
+
+    use sqll_syntax::parse::steps::parse_node;
+    use sqll_syntax::{ParseOptions, TemplatedFile};
 
     use super::*;
     use crate::parse;
@@ -559,9 +772,10 @@ mod fixture_tests {
         out
     }
 
-    /// The writer and the record give the same output and the same
-    /// unparsable flag for each dialect fixture file of the pinned sqlfluff
-    /// (2306 files), with each option set.
+    /// For each dialect fixture file of the pinned sqlfluff (2306 files),
+    /// with each option set: the writer over the tree of `sqll parse` gives
+    /// the output and the unparsable flag of the record of the parser tree
+    /// (Node::as_record, the output of sqll before C9).
     #[test]
     fn the_writer_gives_the_output_of_the_record_for_each_fixture() {
         let files = fixture_files();
@@ -575,8 +789,12 @@ mod fixture_tests {
         for (name, path) in &files {
             let dialect = parse::dialect(name).expect("a dialect");
             let text = std::fs::read_to_string(path).unwrap();
+            let file = Arc::new(TemplatedFile::from(text.clone()));
+            let root = parse_node(file, dialect, &ParseOptions::default()).expect("a tree");
             let mut timer = Timer::new(Instant::now());
-            let parsed = parse::parse(text, dialect, &options, &mut timer, true);
+            let parsed = parse::parse(text, "f.sql", dialect, &options, &mut timer, true)
+                .expect("the parse");
+            assert!(parsed.errors.is_empty(), "{}", path.display());
             for code_only in [false, true] {
                 for include_meta in [false, true] {
                     let record_options = RecordOptions {
@@ -585,10 +803,10 @@ mod fixture_tests {
                     };
                     let mut got = Vec::new();
                     let flag =
-                        write_parse_json(&mut got, "f.sql", parsed.root.as_ref(), record_options)
+                        write_parse_json(&mut got, "f.sql", parsed.tree.as_ref(), record_options)
                             .unwrap();
                     let (want, want_flag) =
-                        oracle::parse_json("f.sql", parsed.root.as_ref(), code_only, include_meta);
+                        oracle::parse_json("f.sql", Some(&root), code_only, include_meta);
                     assert!(got == want, "{}", path.display());
                     assert_eq!(flag, want_flag, "{}", path.display());
                     unparsable += usize::from(flag);

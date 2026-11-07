@@ -129,13 +129,12 @@ Ported code (MIT, attribution in each file header):
 | `harness/sqll_harness/adapters/config_files.py` | `src/sqlfluff/core/config/` (`load_config_up_to_path`, `load_config_at_path`, `_resolve_paths_in_config`, `load_ini_string`), `src/sqlfluff/core/helpers/file.py` (`iter_intermediate_paths`) |
 | `scripts/sqlfluff_oracle.py` | `test/conftest.py` (`fail_on_parse_error_after_fix`) |
 | `scripts/sqlfluff-autofix-oracle` | `test/rules/std_fix_auto_test.py` (`test_cases`) |
-| `crates/sqll/src/parse.rs` | The lexer and parser calls and the limits of the T5 probe (row below): `sqlfluffrs/src/test_harness.rs` (`FixtureTest::run`), `sqlfluffrs/sqlfluffrs_parser/src/parser/python.rs` (`PyParser` limits), `src/sqlfluff/core/default_config.cfg` (the parse limits and indentation defaults) |
+| `crates/sqll_syntax/src/parse.rs` | The lexer and parser calls and the limits of the T5 probe (row below): `sqlfluffrs/src/test_harness.rs` (`FixtureTest::run`), `sqlfluffrs/sqlfluffrs_parser/src/parser/python.rs` (`PyParser` limits), `src/sqlfluff/core/default_config.cfg` (the parse limits and indentation defaults). The message of an unparsable section: `src/sqlfluff/core/linter/linter.py` (`Linter.parse_rendered`). S3b C9 moved the calls and limits from `crates/sqll/src/parse.rs` |
 | `scripts/s3/probe-sqlfluffrs/src/main.rs` | S3 research code, not sqll: `sqlfluffrs/src/test_harness.rs` (`FixtureTest::run`), `sqlfluffrs/sqlfluffrs_parser/src/parser/python.rs` (`PyParser` limits), `src/sqlfluff/core/default_config.cfg` (the parse limits and indentation defaults) |
 | `crates/sqll/tests/cli.rs` | `test/conftest.py` (`process_struct`) |
-| `scripts/s3b/tree-cost/src/main.rs` | S3b C4 measurement, not sqll: the lexer and parser calls and the limits of `crates/sqll/src/parse.rs` (row above) |
+| `scripts/s3b/tree-cost/src/main.rs` | S3b C4 measurement, not sqll: the lexer and parser calls and the limits of `crates/sqll/src/parse.rs` before S3b C9 (now `crates/sqll_syntax/src/parse.rs`, row above) |
 | `crates/sqll_tree/build/kinds.rs` | The node construction rules of `sqlfluffrs/sqlfluffrs_parser` as `crates/sqll_parser` has them: `src/parser/match_result.rs` (`MatchResult::apply`, `token_to_node`, `MatchedClass`), `src/parser/core.rs` (the terminal parser handlers, `aux_block_bounds`, `read_string_ids_from_aux`), `src/parser/table_driven/ref_grammar.rs` (`build_ref_wrap`) |
-| `crates/sqll_interfaces/src/parse.rs` | The lexer and parser calls and the limits of `crates/sqll/src/parse.rs` (its row above). S3b C7 moved them from `crates/sqll_interfaces/tests/segment_kinds.rs` |
-| `scripts/s3b/convert-cost/src/main.rs` | S3b C7 measurement, not sqll: the lexer and parser calls and the limits of `crates/sqll/src/parse.rs` (its row above) |
+| `scripts/s3b/convert-cost/src/main.rs` | S3b C7 measurement, not sqll: the lexer and parser calls and the limits of `crates/sqll/src/parse.rs` before S3b C9 (now `crates/sqll_syntax/src/parse.rs`, row above) |
 | `crates/sqll_source/src/map.rs` | `sqlfluffrs/sqlfluffrs_types/src/templater/templatefile.rs`: the slice search of `find_slice_indices_of_templated_pos` and the rule for an empty slice of `templated_slice_to_source_slice` (S3b C8) |
 | `crates/sqll_templater/src/raw.rs` | `src/sqlfluff/core/templaters/base.py` (`RawTemplater.process`) (S3b C8) |
 
@@ -184,9 +183,9 @@ lines, and sha256 of each of the 85 files. The build copies them into
 `sqll_dialects`, so a sqll binary contains them.
 
 The new sqll files in `crates/` (listed in `crates/ported.json`, "new") and
-`rust-toolchain.toml` have no sqlfluff code, but `crates/sqll/src/parse.rs`,
+`rust-toolchain.toml` have no sqlfluff code, but `crates/sqll_syntax/src/parse.rs`,
 `crates/sqll/tests/cli.rs`, `crates/sqll_tree/build/kinds.rs`,
-`crates/sqll_interfaces/src/parse.rs`, `crates/sqll_source/src/map.rs`, and
+`crates/sqll_source/src/map.rs`, and
 `crates/sqll_templater/src/raw.rs` have ported parts ("Ported code" above). The sqll binary (`crates/sqll`)
 contains the ported crates and the tables. The tables are a substantial
 portion of sqlfluff, so each sqll binary carries the sqlfluff MIT copyright

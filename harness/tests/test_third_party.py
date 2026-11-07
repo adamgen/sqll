@@ -96,7 +96,9 @@ def test_the_new_files_with_ported_parts_are_named():
         if (REPO_ROOT / n["path"]).is_file()
         and "Parts of this file are a port" in _header(REPO_ROOT / n["path"])
     }
-    assert len(headers) >= 6
+    # 5 since S3b C9: the ported parse calls moved from crates/sqll/src/parse.rs
+    # and crates/sqll_interfaces/src/parse.rs to crates/sqll_syntax/src/parse.rs.
+    assert len(headers) >= 5
     assert named == headers
 
 

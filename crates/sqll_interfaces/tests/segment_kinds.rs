@@ -7,19 +7,15 @@
 //! - Each kind gives its data again: the lookup of its data gives the kind.
 //! - Each node of the parse tree of each dialect fixture of the pinned
 //!   sqlfluff has a kind (`sqll_syntax::kind_of`). The parse is that of
-//!   `sqll parse` (src/parse.rs).
+//!   `sqll parse` (the parse interface, src/parse.rs).
 //! - The counts are the recorded counts. A change of the tables or of the
 //!   kind rules must change the counts here and in the document.
-//! - The parse settings of src/parse.rs are those of crates/sqll/src/parse.rs.
 
 use std::collections::{BTreeMap, BTreeSet};
 
 use sqll_dialects::Dialect;
-use sqll_interfaces::parse::{
-    parse, INDENTATION, MAX_PARSER_ITERATIONS, MAX_PARSE_DEPTH, MAX_PARSE_NODES,
-    PARSER_WARN_THRESHOLD,
-};
-use sqll_interfaces::{dialect_fixtures, dialects, root, with_parse_stack, FIXTURES};
+use sqll_interfaces::parse::parse;
+use sqll_interfaces::{dialect_fixtures, dialects, with_parse_stack, FIXTURES};
 use sqll_parser::parser::Node;
 use sqll_syntax::kind_of;
 use sqll_tree::{KindKey, SegmentKind, SegmentType, Variant};
@@ -371,52 +367,4 @@ fn each_node_of_the_dialect_fixtures_has_a_kind() {
         FIXTURE_KINDS,
         "the distinct kinds of the fixture trees"
     );
-}
-
-/// The parse settings of src/parse.rs are a copy of crates/sqll/src/parse.rs,
-/// which is in the binary crate. This test fails if they are not the same.
-/// C9 (the frozen parse interface) removes the copy.
-#[test]
-fn the_parse_settings_are_those_of_sqll_parse() {
-    let text = std::fs::read_to_string(root().join("crates/sqll/src/parse.rs"))
-        .expect("read crates/sqll/src/parse.rs");
-    for line in [
-        format!(
-            "pub const MAX_PARSE_DEPTH: usize = {};",
-            fmt(MAX_PARSE_DEPTH)
-        ),
-        format!("const MAX_PARSE_NODES: usize = {};", fmt(MAX_PARSE_NODES)),
-        format!(
-            "const MAX_PARSER_ITERATIONS: usize = {};",
-            fmt(MAX_PARSER_ITERATIONS)
-        ),
-        format!(
-            "const PARSER_WARN_THRESHOLD: usize = {};",
-            fmt(PARSER_WARN_THRESHOLD)
-        ),
-    ] {
-        assert!(text.contains(&line), "parse.rs has no line {line:?}");
-    }
-    let mut block = String::from("const INDENTATION: &[(&str, bool)] = &[\n");
-    for (key, value) in INDENTATION {
-        block.push_str(&format!("    ({key:?}, {value}),\n"));
-    }
-    block.push_str("];\n");
-    assert!(
-        text.contains(&block),
-        "parse.rs has another INDENTATION:\n{block}"
-    );
-}
-
-/// A number with "_" between each 3 digits, as in parse.rs.
-fn fmt(n: usize) -> String {
-    let digits = n.to_string();
-    let mut out = String::new();
-    for (i, c) in digits.chars().enumerate() {
-        if i > 0 && (digits.len() - i) % 3 == 0 {
-            out.push('_');
-        }
-        out.push(c);
-    }
-    out
 }

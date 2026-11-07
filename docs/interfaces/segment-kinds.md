@@ -58,10 +58,9 @@ parser does not use the kinds; C7 converts the parser tree.
 The test fails if a type name of the tables has no type, if a segment type
 of a grammar that makes a node has no kind, if a terminal grammar has no
 leaf kind, if a kind does not give its data again, if a node of a fixture
-has no kind, or if a count is not the count above. The parse settings are
-a copy in `crates/sqll_interfaces/src/parse.rs` (since C7); the test fails
-if they are not those of `crates/sqll/src/parse.rs` (C9 removes the copy).
-The kind of a parser node is `sqll_syntax::kind_of` (since C7).
+has no kind, or if a count is not the count above. The parse is that of
+the parse interface ([parse.md](parse.md), since C9). The kind of a parser
+node is `sqll_syntax::kind_of` (since C7).
 
 ## Rules for a change
 
