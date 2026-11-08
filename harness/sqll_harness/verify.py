@@ -648,7 +648,8 @@ def checks(jobs: int | None = None) -> list[Check]:
             "oracle-autofix",
             _oracle(
                 "sqlfluff-autofix-oracle",
-                "--report out/report.json --out out/autofix-oracle.jsonl --passes-of sqll",
+                "--report out/report.json --out out/autofix-oracle.jsonl"
+                " --passes-of sqll",
             ),
             ("report: Compare the autofix results with the sqlfluff test",),
             needs=rep,
@@ -657,7 +658,8 @@ def checks(jobs: int | None = None) -> list[Check]:
             "oracle-templater",
             _oracle(
                 "sqlfluff-templater-oracle",
-                "--report out/report.json --out out/templater-oracle.jsonl --passes-of sqll",
+                "--report out/report.json --out out/templater-oracle.jsonl"
+                " --passes-of sqll",
             ),
             ("report: Compare the templater results with the sqlfluff test",),
             needs=rep,
