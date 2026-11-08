@@ -73,39 +73,7 @@ fn metadata_problems(rule: &dyn Rule) -> Vec<String> {
     out
 }
 
-/// Python `repr(text)` (for example the `{fname!r}` of the sqlfluff
-/// warnings): `'` quotes, or `"` quotes for a text with `'` and no `"`; an
-/// escape for `\`, the quote, `\t`, `\n`, `\r`, and the characters below
-/// U+0100 that Python does not print. sqll writes a character from U+0100 up
-/// as it is (Python writes an escape for some of them;
-/// docs/interfaces/config.md).
-pub fn py_repr(text: &str) -> String {
-    let quote = if text.contains('\'') && !text.contains('"') {
-        '"'
-    } else {
-        '\''
-    };
-    let mut out = String::with_capacity(text.len() + 2);
-    out.push(quote);
-    for c in text.chars() {
-        match c {
-            '\\' => out.push_str("\\\\"),
-            '\t' => out.push_str("\\t"),
-            '\n' => out.push_str("\\n"),
-            '\r' => out.push_str("\\r"),
-            c if c == quote => {
-                out.push('\\');
-                out.push(c);
-            }
-            '\0'..='\x1f' | '\x7f'..='\u{a0}' | '\u{ad}' => {
-                out.push_str(&format!("\\x{:02x}", u32::from(c)));
-            }
-            c => out.push(c),
-        }
-    }
-    out.push(quote);
-    out
-}
+pub use sqll_config::value::py_repr;
 
 /// Python `fnmatch.fnmatchcase`: `*`, `?`, `[seq]`, and `[!seq]`.
 pub fn fnmatch(name: &str, pattern: &str) -> bool {
@@ -396,29 +364,5 @@ impl Registry {
     /// The rule with this code.
     pub fn get(&self, code: &str) -> Option<&dyn Rule> {
         self.rules().find(|r| r.code() == code)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::py_repr;
-
-    #[test]
-    fn a_text_is_written_as_python_repr() {
-        // Python 3.13: repr() of each name.
-        for (name, want) in [
-            ("a.sql", "'a.sql'"),
-            ("it's.sql", "\"it's.sql\""),
-            ("a\"b.sql", "'a\"b.sql'"),
-            ("a'b\"c.sql", "'a\\'b\"c.sql'"),
-            ("a\\b.sql", "'a\\\\b.sql'"),
-            ("a\tb\nc\rd.sql", "'a\\tb\\nc\\rd.sql'"),
-            ("a\x01\x1f\x7f.sql", "'a\\x01\\x1f\\x7f.sql'"),
-            ("a\u{85}\u{a0}\u{ad}.sql", "'a\\x85\\xa0\\xad.sql'"),
-            ("\u{e9}\u{ff}\u{a1}.sql", "'\u{e9}\u{ff}\u{a1}.sql'"),
-            ("\u{1f600}.sql", "'\u{1f600}.sql'"),
-        ] {
-            assert_eq!(py_repr(name), want, "{name:?}");
-        }
     }
 }

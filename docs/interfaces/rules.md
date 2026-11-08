@@ -49,7 +49,8 @@ function is `eval` for each node of the crawl, with a `Result`.
   (`FixRecord`: the edit type, the text, and the source range of the
   anchor; the sqlfluff `LintFix.to_dict`), `LintedFile::rule_times`,
   `Registry::selection_warnings` (the warnings of `get_rulepack`), and
-  `registry::py_repr` (the Python `repr` of a name in a warning).
+  `registry::py_repr` (the Python `repr` of a name in a warning; it is
+  `sqll_config::value::py_repr`, which the config errors also use).
   `sqll_types::token::fmt::python_repr` is a second Python `repr` with
   different escapes; a later Core task can merge the two.
 

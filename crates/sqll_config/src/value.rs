@@ -5,7 +5,7 @@
 // Copyright (c) 2018-2026 Alan Cruickshank. MIT License: see
 // crates/LICENSE-sqlfluffrs.md. See THIRD_PARTY.md.
 //
-// The number rules of `py_int`, `py_float`, and `float_repr` give the
+// The rules of `py_int`, `py_float`, `float_repr`, and `py_repr` give the
 // results of Python 3.13 int(), float(), and repr(); no CPython code is
 // copied.
 
@@ -292,6 +292,40 @@ fn py_float(s: &str) -> Option<f64> {
     text.parse::<f64>().ok()
 }
 
+/// Python `repr(text)` (for example the `{fname!r}` of the sqlfluff
+/// warnings): `'` quotes, or `"` quotes for a text with `'` and no `"`; an
+/// escape for `\`, the quote, `\t`, `\n`, `\r`, and the characters below
+/// U+0100 that Python does not print. sqll writes a character from U+0100 up
+/// as it is (Python writes an escape for some of them;
+/// docs/interfaces/config.md).
+pub fn py_repr(text: &str) -> String {
+    let quote = if text.contains('\'') && !text.contains('"') {
+        '"'
+    } else {
+        '\''
+    };
+    let mut out = String::with_capacity(text.len() + 2);
+    out.push(quote);
+    for c in text.chars() {
+        match c {
+            '\\' => out.push_str("\\\\"),
+            '\t' => out.push_str("\\t"),
+            '\n' => out.push_str("\\n"),
+            '\r' => out.push_str("\\r"),
+            c if c == quote => {
+                out.push('\\');
+                out.push(c);
+            }
+            '\0'..='\x1f' | '\x7f'..='\u{a0}' | '\u{ad}' => {
+                out.push_str(&format!("\\x{:02x}", u32::from(c)));
+            }
+            c => out.push(c),
+        }
+    }
+    out.push(quote);
+    out
+}
+
 /// Python `repr(f)` of a float: the shortest digits that give the value
 /// again, in fixed notation if the decimal point is from 4 places before
 /// the first digit to 16 places after it, else in exponent notation.
@@ -376,6 +410,25 @@ mod tests {
         assert!(matches!(coerce_value("nan").unwrap(), Value::Float(f) if f.is_nan()));
         assert!(coerce_value("\u{0663}").is_err());
         assert!(coerce_value("99999999999999999999").is_err());
+    }
+
+    #[test]
+    fn a_text_is_written_as_python_repr() {
+        // Python 3.13: repr() of each name.
+        for (name, want) in [
+            ("a.sql", "'a.sql'"),
+            ("it's.sql", "\"it's.sql\""),
+            ("a\"b.sql", "'a\"b.sql'"),
+            ("a'b\"c.sql", "'a\\'b\"c.sql'"),
+            ("a\\b.sql", "'a\\\\b.sql'"),
+            ("a\tb\nc\rd.sql", "'a\\tb\\nc\\rd.sql'"),
+            ("a\x01\x1f\x7f.sql", "'a\\x01\\x1f\\x7f.sql'"),
+            ("a\u{85}\u{a0}\u{ad}.sql", "'a\\x85\\xa0\\xad.sql'"),
+            ("\u{e9}\u{ff}\u{a1}.sql", "'\u{e9}\u{ff}\u{a1}.sql'"),
+            ("\u{1f600}.sql", "'\u{1f600}.sql'"),
+        ] {
+            assert_eq!(py_repr(name), want, "{name:?}");
+        }
     }
 
     #[test]

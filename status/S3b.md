@@ -294,9 +294,9 @@ Commands: [harness/sqll.md](../harness/sqll.md), "Lint and fix". The crate
 main, the allocator, the license text, the version, and the dispatch.
 
 - `scripts/s3b/cli_oracle.py` records the output of sqlfluff 4.4.0 for
-  126 scenarios (record
+  129 scenarios (record
   [results/S3b/C13-cli.json](../results/S3b/C13-cli.json); `check` in the
-  CI job build). `crates/sqll/tests/cli.rs` runs sqll on each: 106 give
+  CI job build). `crates/sqll/tests/cli.rs` runs sqll on each: 109 give
   the same stdout, stderr, exit code, and changed files; 18 fail closed
   (`unsupported`, exit code 2; sqlfluff runs them); 2 are usage errors
   (exit code 2 for both). Each command, each format, and the exit codes
@@ -330,6 +330,4 @@ main, the allocator, the license text, the version, and the dispatch.
   benchmark is slower than the noise limit (harness/bench.md,
   "Slowdowns"), so G3.6 needs no reason. The start total (1.0194) is
   likely from the size of the binary: it links the lint and fix code and
-  is 3.8% larger (16666152 to 17292056 bytes). On an earlier head, the
-  start of `sqll parse` of `select 1` had 11 more page faults (median of
-  300 runs: 504 to 515).
+  is 3.8% larger (16666152 to 17292056 bytes).

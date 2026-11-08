@@ -26,6 +26,7 @@ pub mod files;
 pub mod record;
 pub mod yaml;
 
+use std::collections::HashMap;
 use std::fs::File;
 use std::io::{BufWriter, Write};
 use std::os::unix::fs::PermissionsExt;
@@ -694,6 +695,30 @@ fn tmp_prs_issues(issues: &[Issue], retained: bool) -> Vec<Issue> {
         .collect()
 }
 
+/// Adds the parse errors of one lint of a file to `by_file`, as sqlfluff
+/// `_handle_unparsable` fills its dict: one entry for each path, in the
+/// order of the first lint. With retained files (`--check`) it adds the
+/// errors to the entry; else a file with errors replaces them.
+fn add_unparsable(
+    by_file: &mut Vec<(String, Vec<Issue>)>,
+    by_path: &mut HashMap<String, usize>,
+    path: &str,
+    errors: Vec<Issue>,
+    retained: bool,
+) {
+    if !retained && errors.is_empty() {
+        return;
+    }
+    match by_path.get(path) {
+        Some(&n) if retained => by_file[n].1.extend(errors),
+        Some(&n) => by_file[n].1 = errors,
+        None => {
+            by_path.insert(path.to_string(), by_file.len());
+            by_file.push((path.to_string(), errors));
+        }
+    }
+}
+
 /// sqlfluff `print_out_residual_error_counts` (stderr).
 fn residual_errors(
     out: &mut Out,
@@ -777,6 +802,7 @@ pub fn fix_command(args: &[String]) -> Result<u8, Error> {
     // violations, and the parse errors of each file for the residual output.
     let (mut total, mut filtered, mut unfixable, mut fixable) = (0, 0, 0, 0);
     let mut by_file: Vec<(String, Vec<Issue>)> = Vec::new();
+    let mut by_path: HashMap<String, usize> = HashMap::new();
     for f in &files {
         let (mut linted, warnings) = match file::lint_file(&mut run, f)? {
             Outcome::Skipped(w) => {
@@ -819,9 +845,7 @@ pub fn fix_command(args: &[String]) -> Result<u8, Error> {
             fixable += fixes;
         }
         let errors = tmp_prs_issues(&linted.issues, check);
-        if check || !errors.is_empty() {
-            by_file.push((linted.path.clone(), errors));
-        }
+        add_unparsable(&mut by_file, &mut by_path, &linted.path, errors, check);
         if check {
             retained.push(linted);
         }

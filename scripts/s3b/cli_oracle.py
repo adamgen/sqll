@@ -79,6 +79,7 @@ FOLDER = {
     "d/b.sql": B,
     "d/z/e.sql": PRS,
 }
+OVERLAP = {"a.sql": A, "s/b.sql": "select a from t where x = 1 1\n"}
 # A pinned dialect fixture of sqlfluff (MIT, THIRD_PARTY.md).
 SELECT_DIV = (
     SQLFLUFF_ROOT / "test/fixtures/dialects/sparksql/select_div.sql"
@@ -542,6 +543,19 @@ SCENARIOS = [
         ["fix", *CP, "i.sql"],
         {"i.sql": "--sqlfluff:rules:CP01\nselect a FROM t\n"},
         sqll="unsupported",
+    ),
+    sc(
+        "lint invalid config value",
+        ["lint", *CP, "a.sql"],
+        {**FILES, ".sqlfluff": "[sqlfluff]\nrunaway_limit = 0\n"},
+    ),
+    # Two paths reach s/b.sql: one residual error entry for each file.
+    sc("fix overlapping paths", ["fix", *CP, ".", "s"], OVERLAP),
+    sc(
+        "fix check overlapping paths",
+        ["fix", *CP, "--check", ".", "s/b.sql"],
+        OVERLAP,
+        tty="y",
     ),
     sc("fix no dialect", ["fix", "--rules", "CP01", "a.sql"]),
     sc("fix path that does not exist", ["fix", *CP, "nope.sql"]),

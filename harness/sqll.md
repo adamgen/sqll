@@ -151,8 +151,8 @@ T12). Differences from `sqlfluff parse`:
 ## Lint and fix (S3b C13)
 
 `results/S3b/C13-cli.json` (`scripts/s3b/cli_oracle.py`; test
-`crates/sqll/tests/cli.rs`) has 126 scenarios of `lint`, `fix`, `rules`,
-and `dialects`. In 106 (69 lint, 30 fix, 4 rules, 3 dialects), sqll gives
+`crates/sqll/tests/cli.rs`) has 129 scenarios of `lint`, `fix`, `rules`,
+and `dialects`. In 109 (70 lint, 32 fix, 4 rules, 3 dialects), sqll gives
 the stdout, the stderr, the exit code (0, 1, 2), and the changed files of
 sqlfluff. 18 fail closed (13 lint, 3 fix, 2 rules; `unsupported`, exit
 code 2; sqlfluff runs them). 2 are usage errors (lint; exit code 2 for
@@ -225,8 +225,8 @@ of the case as a `--config` file (`pyproject.toml`). If sqll fails closed
 
 | Suite | Reason | Why |
 |---|---|---|
-| `rules` | `unsupported: lint` | sqll has no lint command (`Adapter.lints` is False). This includes the 2 CV06 cases with an empty `pass_str`, which the sqlfluff test does not check. |
-| `autofix`, `templater` | `unsupported: templater` | The suite parses as a user does (`parse_file`): with the config files, the templater of the config (default jinja), and the in-file config lines. sqll has only the raw templater (S6, S11) and reads no in-file config line. |
+| `rules` | `unsupported: lint` | The adapter does not run `sqll lint` yet (`Adapter.lints` is False; C14). This includes the 2 CV06 cases with an empty `pass_str`, which the sqlfluff test does not check. |
+| `autofix`, `templater` | `unsupported: templater` | The suite parses as a user does (`parse_file`): with the config files, the templater of the config (default jinja), and the in-file config lines. The adapter does not run sqll on these suites. sqll has the raw templater, and the jinja templater only for a file with no Jinja tag (S6, S11). `sqll parse` reads no in-file config line; `sqll lint` and `sqll fix` fail closed on one. |
 
 `known_failures/sqll.txt` lists these 2631 cases.
 

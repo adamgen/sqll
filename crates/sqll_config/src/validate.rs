@@ -12,7 +12,7 @@
 //! The checks of a config dict that sqlfluff does when it loads a file.
 //! Some of them change the dict (an empty `max_parse_depth` is 0).
 
-use crate::value::{Table, Value};
+use crate::value::{py_repr, Table, Value};
 use crate::ConfigError;
 
 /// A removed setting: its old key path, and its new key path if sqlfluff
@@ -84,7 +84,7 @@ const LAYOUT_KEYS: &[&str] = &[
 const IMPLICIT_INDENTS: &[&str] = &["forbid", "allow", "require"];
 
 fn invalid(reference: &str, what: String) -> ConfigError {
-    ConfigError::Invalid(format!("Config file {reference:?} set {what}"))
+    ConfigError::Invalid(format!("Config file {} set {what}", py_repr(reference)))
 }
 
 /// The checks of `validate_config_dict`, in its order.
@@ -114,7 +114,8 @@ fn removed(config: &Table, reference: &str) -> Result<(), ConfigError> {
                 Some(_) if !last => {
                     // sqlfluff asserts that the parent is a section.
                     return Err(ConfigError::Invalid(format!(
-                        "Config file {reference:?}: expected `{step}` to be a section not a value."
+                        "Config file {}: expected `{step}` to be a section not a value.",
+                        py_repr(reference)
                     )));
                 }
                 Some(_) => {}
@@ -150,7 +151,8 @@ fn layout(config: &Table, reference: &str) -> Result<(), ConfigError> {
     };
     let err = |what: String| {
         ConfigError::Invalid(format!(
-            "Config file {reference:?} set an invalid `layout` option. {what}See https://docs.sqlfluff.com/en/stable/perma/layout.html#configuring-layout for more details."
+            "Config file {} set an invalid `layout` option. {what}See https://docs.sqlfluff.com/en/stable/perma/layout.html#configuring-layout for more details.",
+            py_repr(reference)
         ))
     };
     let Value::Table(section) = section else {
@@ -301,6 +303,20 @@ mod tests {
     fn check(text: &str) -> Result<Table, ConfigError> {
         let mut t = load_ini_string(text, "x").unwrap();
         validate_config_dict(&mut t, "x").map(|_| t)
+    }
+
+    #[test]
+    fn the_file_name_of_an_error_is_python_repr() {
+        // sqlfluff validate.py: `{logging_reference!r}`.
+        let mut t = load_ini_string("[sqlfluff]\nrunaway_limit = 0\n", "x").unwrap();
+        let Err(ConfigError::Invalid(text)) = validate_config_dict(&mut t, "/a/.sqlfluff") else {
+            panic!("no error");
+        };
+        assert_eq!(
+            text,
+            "Config file '/a/.sqlfluff' set an invalid value for `runaway_limit`: 0. \
+             This value must be an integer of at least 1."
+        );
     }
 
     #[test]
