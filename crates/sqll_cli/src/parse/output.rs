@@ -748,8 +748,8 @@ mod fixture_tests {
     use sqll_syntax::{ParseOptions, TemplatedFile};
 
     use super::*;
-    use crate::parse;
-    use crate::timings::Timer;
+    use crate::parse::steps as parse;
+    use crate::parse::timings::Timer;
 
     fn fixture_files() -> Vec<(String, PathBuf)> {
         let dir = Path::new(env!("CARGO_MANIFEST_DIR"))

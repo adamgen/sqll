@@ -492,7 +492,10 @@ impl Parser {
                 return Err(self.err(pos, "Cannot overwrite a value"));
             };
             if nest.iter().any(|(n, _)| n == stem) {
-                return Err(self.err(pos, &format!("Duplicate inline table key {stem:?}")));
+                return Err(self.err(
+                    pos,
+                    &format!("Duplicate inline table key {}", crate::value::py_repr(stem)),
+                ));
             }
             let nested = matches!(value, TVal::Table(_) | TVal::Array(_));
             nest.push((stem.clone(), value));

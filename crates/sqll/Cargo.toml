@@ -6,27 +6,23 @@ edition = "2021"
 rust-version.workspace = true
 license = "MIT"
 publish = false
-description = "sqll: a SQL toolchain. Parse output in the format of sqlfluff parse -f json."
+description = "sqll: a SQL toolchain."
 
-# Since S3b C9 the binary parses through the frozen parse interface
-# (sqll_syntax) and writes the output from the syntax tree (sqll_tree).
-# Since S3b C11 it reads the config (sqll_config).
+# Since S3b C13 the commands and the output formats are in sqll_cli (C9:
+# the parse interface; C11: the config; C12: the rules).
 [dependencies]
-serde_json.workspace = true
-sqll_config = { path = "../sqll_config" }
-sqll_source = { path = "../sqll_source" }
-sqll_syntax = { path = "../sqll_syntax" }
-sqll_templater = { path = "../sqll_templater" }
-sqll_tree = { path = "../sqll_tree" }
+sqll_cli = { path = "../sqll_cli" }
 
-# The tests compare the writer with the record of the parser tree
-# (sqll_parser), and test the lazy lexers (sqll_lexer, sqll_types).
+# The tests read the JSON and YAML output and the C11 and C13 records, test
+# the lazy lexers (sqll_lexer, sqll_types), the rules table (sqll_cli,
+# sqll_lint), and "fix --check" on a pseudo terminal (libc).
 [dev-dependencies]
-serde.workspace = true
+libc.workspace = true
+serde_json.workspace = true
 serde_yaml_ng.workspace = true
 sqll_dialects = { path = "../sqll_dialects" }
 sqll_lexer = { path = "../sqll_lexer" }
-sqll_parser = { path = "../sqll_parser" }
+sqll_lint = { path = "../sqll_lint" }
 sqll_types = { path = "../sqll_types" }
 
 # build.rs reads the output of "cargo metadata" (build/notices.rs).

@@ -7,7 +7,9 @@
 // crates/LICENSE-sqlfluffrs.md. See THIRD_PARTY.md.
 
 //! Tests of the sqll command line: the parse record of fixture files, the
-//! exit codes, and the commands that sqll does not support yet.
+//! exit codes, and (S3b C13) the commands lint, fix, rules, and dialects
+//! with each output format, against the sqlfluff 4.4.0 runs of
+//! results/S3b/C13-cli.json (scripts/s3b/cli_oracle.py).
 //!
 //! The fixture files are the sqlfluff 4.4.0 dialect fixtures of the
 //! submodule (third_party/sqlfluff), read in place.
@@ -395,6 +397,23 @@ fn a_flag_does_not_take_a_value() {
     }
 }
 
+/// Each line of the options of a help text has the indent of click.
+#[test]
+fn each_option_line_of_the_help_has_an_indent() {
+    for command in ["parse", "lint", "fix", "rules", "dialects"] {
+        let out = sqll(&[command, "--help"]);
+        assert_eq!(code(&out), 0, "{command}: {}", stderr(&out));
+        let text = String::from_utf8(out.stdout).unwrap();
+        let (_, options) = text.split_once("\nOptions:\n").expect(command);
+        let lines: Vec<&str> = options.lines().collect();
+        assert!(lines.len() > 3, "{command}: {text}");
+        for line in lines {
+            assert!(line.starts_with("  "), "{command}: {line:?}");
+        }
+        assert!(options.contains("  -h, --help "), "{command}: {text}");
+    }
+}
+
 fn filepath(out: &Output) -> String {
     let text = String::from_utf8(out.stdout.clone()).expect("UTF-8 output");
     let value: Value = serde_yaml_ng::from_str(&text).expect("JSON output");
@@ -480,19 +499,6 @@ fn a_file_with_no_sql_extension_gives_an_empty_list() {
         "{}",
         stderr(&out)
     );
-}
-
-#[test]
-fn lint_and_fix_are_not_supported_yet() {
-    for command in ["lint", "fix"] {
-        let out = sqll(&[command, "--dialect", "ansi", "x.sql"]);
-        assert_eq!(code(&out), 2);
-        assert!(out.stdout.is_empty());
-        assert_eq!(
-            stderr(&out),
-            format!("Error: unsupported: {command}. sqll has no rules until stone S5.\n")
-        );
-    }
 }
 
 #[test]
@@ -812,4 +818,337 @@ fn timings_add_only_the_last_stderr_line() {
         assert!((sum - total).abs() < 1e-5, "{sql}: {sum} {total}");
         assert!(record["tokens"].as_u64().unwrap() > 0, "{sql}");
     }
+}
+
+// S3b C13: lint, fix, rules, and dialects against the sqlfluff runs.
+
+fn repo() -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR")).join("../..")
+}
+
+fn cli_record() -> serde_json::Value {
+    let text = std::fs::read_to_string(repo().join("results/S3b/C13-cli.json"))
+        .expect("read results/S3b/C13-cli.json");
+    serde_json::from_str(&text).expect("the record is JSON")
+}
+
+/// Each time value of a json or yaml lint record as 0.0
+/// (scripts/s3b/cli_oracle.py, mask_timings).
+fn mask_timings(text: &str) -> String {
+    let mut out = String::with_capacity(text.len());
+    let mut rest = text;
+    while let Some(i) = rest.find("\"timings\": {") {
+        let start = i + "\"timings\": {".len();
+        let end = start + rest[start..].find('}').expect("the end of the timings");
+        out.push_str(&rest[..start]);
+        let mut first = true;
+        for item in rest[start..end].split(", ") {
+            if item.is_empty() {
+                continue;
+            }
+            let (key, _) = item.rsplit_once(": ").expect("a key and a time");
+            if !first {
+                out.push_str(", ");
+            }
+            first = false;
+            out.push_str(key);
+            out.push_str(": 0.0");
+        }
+        rest = &rest[end..];
+    }
+    out.push_str(rest);
+    let mut lines = Vec::new();
+    let mut in_timings = false;
+    for line in out.split('\n') {
+        if in_timings && line.starts_with("    ") {
+            let (key, value) = line.rsplit_once(": ").expect("a key and a time");
+            assert!(value.parse::<f64>().is_ok(), "a time: {line}");
+            lines.push(format!("{key}: 0.0"));
+        } else {
+            in_timings = line == "  timings:";
+            lines.push(line.to_string());
+        }
+    }
+    lines.join("\n")
+}
+
+fn c13_root(i: usize) -> PathBuf {
+    let dir = std::env::temp_dir().join(format!("sqll-c13-cli-{}-{i}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&dir);
+    std::fs::create_dir_all(&dir).expect("create a folder");
+    std::fs::canonicalize(&dir).expect("the real path")
+}
+
+fn read_files(root: &Path, dir: &Path, out: &mut std::collections::BTreeMap<String, String>) {
+    for entry in std::fs::read_dir(dir).unwrap() {
+        let path = entry.unwrap().path();
+        let rel = path
+            .strip_prefix(root)
+            .unwrap()
+            .to_str()
+            .unwrap()
+            .to_string();
+        if rel == "h" {
+            continue;
+        }
+        if path.is_dir() {
+            read_files(root, &path, out);
+        } else {
+            out.insert(
+                rel,
+                String::from_utf8(std::fs::read(&path).unwrap()).unwrap(),
+            );
+        }
+    }
+}
+
+fn scenario_command(root: &Path, sc: &serde_json::Value) -> Command {
+    let args: Vec<&str> = sc["args"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|a| a.as_str().unwrap())
+        .collect();
+    let mut cmd = Command::new(SQLL);
+    cmd.args(&args)
+        .current_dir(root.join(sc["cwd"].as_str().unwrap()))
+        .env("HOME", root.join("h"))
+        .env_remove("XDG_CONFIG_HOME")
+        .env_remove("NO_COLOR")
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped());
+    cmd
+}
+
+/// A pseudo terminal: the master and the slave file.
+fn open_pty() -> (std::fs::File, std::fs::File) {
+    use std::os::fd::FromRawFd;
+    // SAFETY: posix_openpt, grantpt, unlockpt, and ptsname_r on a new fd.
+    unsafe {
+        let master = libc::posix_openpt(libc::O_RDWR | libc::O_NOCTTY);
+        assert!(master >= 0, "posix_openpt");
+        assert_eq!(libc::grantpt(master), 0);
+        assert_eq!(libc::unlockpt(master), 0);
+        let mut name = [0 as libc::c_char; 128];
+        assert_eq!(libc::ptsname_r(master, name.as_mut_ptr(), name.len()), 0);
+        let name = std::ffi::CStr::from_ptr(name.as_ptr())
+            .to_str()
+            .unwrap()
+            .to_string();
+        let slave = std::fs::OpenOptions::new()
+            .read(true)
+            .write(true)
+            .open(name)
+            .unwrap();
+        (std::fs::File::from_raw_fd(master), slave)
+    }
+}
+
+/// Run with stdin a pseudo terminal; type the answer when sqll waits for a
+/// key in raw mode after the prompt (scripts/s3b/cli_oracle.py, run_tty).
+fn run_tty(mut cmd: Command, answer: &str) -> Output {
+    use std::io::{Read, Write};
+    use std::os::fd::AsRawFd;
+    let (mut master, slave) = open_pty();
+    let slave_fd = slave.as_raw_fd();
+    let mut child = cmd
+        .stdin(Stdio::from(slave.try_clone().unwrap()))
+        .spawn()
+        .expect("run sqll");
+    let mut stdout = child.stdout.take().unwrap();
+    let mut stderr = child.stderr.take().unwrap();
+    let err = std::thread::spawn(move || {
+        let mut v = Vec::new();
+        stderr.read_to_end(&mut v).unwrap();
+        v
+    });
+    let (tx, rx) = std::sync::mpsc::channel::<Vec<u8>>();
+    std::thread::spawn(move || {
+        let mut buf = [0u8; 4096];
+        loop {
+            match stdout.read(&mut buf) {
+                Ok(0) | Err(_) => break,
+                Ok(n) => tx.send(buf[..n].to_vec()).unwrap(),
+            }
+        }
+    });
+    let mut out = Vec::new();
+    let mut typed = false;
+    let deadline = std::time::Instant::now() + std::time::Duration::from_secs(300);
+    loop {
+        match rx.recv_timeout(std::time::Duration::from_millis(20)) {
+            Ok(chunk) => out.extend(chunk),
+            Err(std::sync::mpsc::RecvTimeoutError::Disconnected) => break,
+            Err(std::sync::mpsc::RecvTimeoutError::Timeout) => {}
+        }
+        if !typed && String::from_utf8_lossy(&out).contains("[Y/n] ") {
+            // SAFETY: termios is plain data; tcgetattr fills it.
+            let mut t: libc::termios = unsafe { std::mem::zeroed() };
+            assert_eq!(unsafe { libc::tcgetattr(slave_fd, &mut t) }, 0);
+            if t.c_lflag & libc::ICANON == 0 {
+                master.write_all(answer.as_bytes()).unwrap();
+                typed = true;
+            }
+        }
+        assert!(std::time::Instant::now() < deadline, "sqll does not end");
+    }
+    let status = child.wait().unwrap();
+    Output {
+        status,
+        stdout: out,
+        stderr: err.join().unwrap(),
+    }
+}
+
+fn run_scenario(root: &Path, sc: &serde_json::Value) -> Output {
+    use std::io::Write;
+    let mut cmd = scenario_command(root, sc);
+    if let Some(answer) = sc["tty"].as_str() {
+        return run_tty(cmd, answer);
+    }
+    let mut child = cmd.stdin(Stdio::piped()).spawn().expect("run sqll");
+    let input = sc["stdin"].as_str().unwrap_or("").to_string();
+    let mut pipe = child.stdin.take().unwrap();
+    let writer = std::thread::spawn(move || {
+        let _ = pipe.write_all(input.as_bytes());
+    });
+    let out = child.wait_with_output().expect("wait for sqll");
+    writer.join().unwrap();
+    out
+}
+
+/// sqll lint, fix, rules, and dialects on each scenario of the record:
+/// the sqlfluff stdout, stderr, exit code, and changed files ("sqll":
+/// null), or what the mark of the scenario says.
+#[test]
+fn each_c13_scenario_gives_the_sqlfluff_result() {
+    let rec = cli_record();
+    assert_eq!(rec["sqlfluff"]["version"], "4.4.0");
+    let scenarios = rec["scenarios"].as_array().unwrap();
+    assert_eq!(scenarios.len(), rec["count"].as_u64().unwrap() as usize);
+    let mut problems = Vec::new();
+    let mut marks = std::collections::BTreeMap::new();
+    for (i, sc) in scenarios.iter().enumerate() {
+        let name = sc["name"].as_str().unwrap();
+        let root = c13_root(i);
+        for (rel, content) in sc["files"].as_object().unwrap() {
+            let path = root.join(rel);
+            std::fs::create_dir_all(path.parent().unwrap()).unwrap();
+            std::fs::write(&path, content.as_str().unwrap()).unwrap();
+        }
+        for folder in [sc["cwd"].as_str().unwrap(), "h"] {
+            std::fs::create_dir_all(root.join(folder)).unwrap();
+        }
+        let mut before = std::collections::BTreeMap::new();
+        read_files(&root, &root, &mut before);
+        let out = run_scenario(&root, sc);
+        let mut after = std::collections::BTreeMap::new();
+        read_files(&root, &root, &mut after);
+        let changed: serde_json::Map<String, serde_json::Value> = after
+            .into_iter()
+            .filter(|(k, v)| before.get(k) != Some(v))
+            .map(|(k, v)| (k, serde_json::Value::String(mask_timings(&v))))
+            .collect();
+        let r = root.to_str().unwrap();
+        let code = out.status.code().expect("an exit code");
+        let stdout = mask_timings(&String::from_utf8_lossy(&out.stdout).replace(r, "<root>"));
+        let stderr = String::from_utf8_lossy(&out.stderr).replace(r, "<root>");
+        let want_code = sc["exit_code"].as_i64().unwrap() as i32;
+        let mark = sc["sqll"].as_str().unwrap_or("same");
+        *marks.entry(mark).or_insert(0) += 1;
+        let mut check = |what: &str, got: &str, want: &str| {
+            if got != want {
+                problems.push(format!("{name}: {what}:\n  got  {got:?}\n  want {want:?}"));
+            }
+        };
+        match mark {
+            "same" => {
+                check("exit code", &code.to_string(), &want_code.to_string());
+                check("stdout", &stdout, sc["stdout"].as_str().unwrap());
+                check("stderr", &stderr, sc["stderr"].as_str().unwrap());
+                check(
+                    "files",
+                    &serde_json::Value::Object(changed).to_string(),
+                    &sc["after"].to_string(),
+                );
+            }
+            "unsupported" => {
+                if code != 2 || !stderr.contains("unsupported: ") || !changed.is_empty() {
+                    problems.push(format!("{name}: sqll must fail closed: {code} {stderr}"));
+                }
+            }
+            "usage" => {
+                if code != 2 || want_code != 2 || !stderr.starts_with("Error: ") {
+                    problems.push(format!("{name}: a usage error: {code} {stderr}"));
+                }
+            }
+            other => panic!("{name}: an unknown mark {other}"),
+        }
+        let _ = std::fs::remove_dir_all(&root);
+    }
+    assert!(problems.is_empty(), "{}", problems.join("\n"));
+    eprintln!(
+        "cli: {} of {} C13 scenarios as the record ({marks:?})",
+        scenarios.len(),
+        scenarios.len()
+    );
+}
+
+/// The rules table of sqll for each of the 79 sqlfluff rules is the
+/// `sqlfluff rules` output of the record (the text wrap of each rule).
+#[test]
+fn the_rules_table_is_that_of_sqlfluff_for_each_sqlfluff_rule() {
+    let rec = cli_record();
+    let sc = rec["scenarios"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|s| s["name"] == "rules default")
+        .expect("the scenario rules default");
+    let codes: Vec<&str> = sqll_lint::RULES.iter().map(|r| r.code).collect();
+    assert_eq!(codes.len(), 79);
+    let plain = sqll_cli::color::Painter { plain: true };
+    let got = sqll_cli::info::format_rules(&plain, &codes, 80) + "\n";
+    assert_eq!(got, sc["stdout"].as_str().unwrap());
+}
+
+/// `sqll fix` writes each file when its lint ends, as sqlfluff
+/// (`lint_paths` with `apply_fixes`). A later file that fails closed stops
+/// the command with exit code 2; the files before it stay fixed
+/// (harness/sqll.md, "Fail closed"). sqlfluff fixes both files here, so
+/// the record of cli_oracle.py has no such scenario.
+#[test]
+fn a_file_that_fails_closed_stops_the_fix_after_the_earlier_files() {
+    let dir = scratch("fail-closed-after-fix");
+    std::fs::create_dir_all(dir.join("x")).unwrap();
+    std::fs::create_dir_all(dir.join("y")).unwrap();
+    std::fs::write(dir.join("x/a.sql"), "select a FROM t\n").unwrap();
+    std::fs::write(dir.join("y/b.sql"), "select a FROM t -- noqa\n").unwrap();
+    let run = |args: &[&str]| {
+        Command::new(SQLL)
+            .args(args)
+            .current_dir(&dir)
+            .env("HOME", &dir)
+            .env_remove("XDG_CONFIG_HOME")
+            .output()
+            .expect("run sqll")
+    };
+    let lint = run(&["lint", "--dialect", "ansi", "--rules", "CP01", "x", "y"]);
+    assert_eq!(code(&lint), 2);
+    assert!(
+        stderr(&lint).contains("unsupported: a noqa comment"),
+        "{}",
+        stderr(&lint)
+    );
+    assert!(String::from_utf8_lossy(&lint.stdout).contains("== [x/a.sql] FAIL"));
+    let fix = run(&["fix", "--dialect", "ansi", "--rules", "CP01", "x", "y"]);
+    assert_eq!(code(&fix), 2);
+    assert!(
+        stderr(&fix).contains("unsupported: a noqa comment"),
+        "{}",
+        stderr(&fix)
+    );
+    let read = |p: &str| std::fs::read_to_string(dir.join(p)).unwrap();
+    assert_eq!(read("x/a.sql"), "select a from t\n");
+    assert_eq!(read("y/b.sql"), "select a FROM t -- noqa\n");
 }

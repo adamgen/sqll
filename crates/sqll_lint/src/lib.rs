@@ -26,7 +26,7 @@ pub mod sqlfluff;
 use std::fmt;
 
 pub use config::{LintSettings, RuleConfig, Valid, Validation};
-pub use fix::{apply_edits, Edit, Fix, FixRefusal, SourceEdit};
+pub use fix::{apply_edits, Edit, Fix, FixRecord, FixRefusal, SourceEdit};
 pub use linter::{LintedFile, Linter, SourceParser, TemplaterParser, Violation};
 pub use registry::{Registry, RulePack};
 pub use rule::{CrawlBehaviour, LintPhase, LintResult, Memory, Rule, RuleContext};

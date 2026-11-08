@@ -32,7 +32,8 @@ fn combine_into(out: &mut Table, table: &Table) -> Result<(), ConfigError> {
             (Some(Value::Table(have)), Value::Table(add)) => combine_into(have, add)?,
             (Some(Value::Table(_)), other) => {
                 return Err(ConfigError::Invalid(format!(
-                    "Key {key:?} is a dict in one config but not another! PANIC: {other}"
+                    "Key {} is a dict in one config but not another! PANIC: {other}",
+                    crate::value::py_repr(key)
                 )))
             }
             _ => {

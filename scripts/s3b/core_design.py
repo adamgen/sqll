@@ -22,8 +22,8 @@ files and runs no tool. A changed source value fails the check. The
 "claims" are the sentences of the record (CLAIMS) with these values. Each
 claim must be in the record, and each number of the record must be in a
 claim (doc_problems). Note: the value "unsupported_exit_code" reads
-crates/sqll/src/main.rs. If task C13 moves EXIT_ERROR to sqll_cli, change
-the path here (the check fails closed until then).
+crates/sqll_cli/src/lib.rs (task C13 moved EXIT_ERROR there from
+crates/sqll/src/main.rs).
 
 With --check, the command writes nothing and fails if the file is not the
 new text (measure: the "data" part; the commit can differ). record --check
@@ -373,8 +373,8 @@ def record() -> dict:
     )
     matched(
         "unsupported_exit_code",
-        "crates/sqll/src/main.rs",
-        r"^const EXIT_ERROR: u8 = (\d+);$",
+        "crates/sqll_cli/src/lib.rs",
+        r"^pub const EXIT_ERROR: u8 = (\d+);$",
     )
     texts = {k: x["text"] for k, x in values.items()}
     return {

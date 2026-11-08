@@ -1,0 +1,151 @@
+{
+ "kind": "sqll-s3b-c13-memory",
+ "about": "S3b C13: the peak memory of sqll lint and fix on many files in one process (scripts/s3b/memory_check.py; status/S3b.md, C13).",
+ "command": "uv run --frozen --project harness python scripts/s3b/memory_check.py measure",
+ "method": "1. Build the S2 inputs (harness/bench.md) and take the 3 ansi parse inputs\n   (small, medium, large).\n2. For each count in COPIES, write that many copies of the 3 inputs to a new\n   folder (3 x count files), and a config file with\n   large_file_skip_byte_limit = 0 (else the large input is skipped).\n3. Run sqll on the folder in one process, for each mode of MODES (lint with\n   the human and the json format, fix), with the rules CP01, CP03, CP04.\n   Each run starts from new copies.\n4. Peak memory: the VmHWM of /proc/<pid>/status, read each 5 ms while the\n   process runs (the last value before the exit), and ru_maxrss of\n   os.wait4. On Linux ru_maxrss also has the RSS of this Python process\n   at the start of the child (Core issue #38); the record gives it as the\n   floor (the ru_maxrss of /bin/true started the same way).\n5. Output: the bytes of stdout of each run (to a file).",
+ "sqll": {
+  "version": "0.1.0+tables.5371ded8ae219be1a62cd34b1b793d36c41bc9fa432f344de5d84f48d2d059e8",
+  "tables_sha256": "5371ded8ae219be1a62cd34b1b793d36c41bc9fa432f344de5d84f48d2d059e8",
+  "source_sha256": "f0c48889fea5e4568eb8e2d61cde0a122781dbc99239b064b8e8a74de3d6edee",
+  "source_files": 168
+ },
+ "inputs": {
+  "ansi/small": 1019,
+  "ansi/medium": 4096,
+  "ansi/large": 16377
+ },
+ "floor_ru_maxrss_kib": 29756,
+ "max_ratio": 1.1,
+ "runs": [
+  {
+   "exit_code": 1,
+   "seconds": 0.073,
+   "vmhwm_kib": 26724,
+   "ru_maxrss_kib": 29756,
+   "stdout_bytes": 35246,
+   "mode": "lint human",
+   "copies": 1,
+   "files": 3
+  },
+  {
+   "exit_code": 1,
+   "seconds": 0.598,
+   "vmhwm_kib": 27136,
+   "ru_maxrss_kib": 29756,
+   "stdout_bytes": 352334,
+   "mode": "lint human",
+   "copies": 10,
+   "files": 30
+  },
+  {
+   "exit_code": 1,
+   "seconds": 5.755,
+   "vmhwm_kib": 27216,
+   "ru_maxrss_kib": 29756,
+   "stdout_bytes": 3523214,
+   "mode": "lint human",
+   "copies": 100,
+   "files": 300
+  },
+  {
+   "exit_code": 1,
+   "seconds": 58.745,
+   "vmhwm_kib": 27612,
+   "ru_maxrss_kib": 30780,
+   "stdout_bytes": 35232014,
+   "mode": "lint human",
+   "copies": 1000,
+   "files": 3000
+  },
+  {
+   "exit_code": 1,
+   "seconds": 0.088,
+   "vmhwm_kib": 26716,
+   "ru_maxrss_kib": 30780,
+   "stdout_bytes": 131438,
+   "mode": "lint json",
+   "copies": 1,
+   "files": 3
+  },
+  {
+   "exit_code": 1,
+   "seconds": 0.554,
+   "vmhwm_kib": 30304,
+   "ru_maxrss_kib": 30780,
+   "stdout_bytes": 1314380,
+   "mode": "lint json",
+   "copies": 10,
+   "files": 30
+  },
+  {
+   "exit_code": 1,
+   "seconds": 6.199,
+   "vmhwm_kib": 43672,
+   "ru_maxrss_kib": 43352,
+   "stdout_bytes": 13143798,
+   "mode": "lint json",
+   "copies": 100,
+   "files": 300
+  },
+  {
+   "exit_code": 1,
+   "seconds": 59.469,
+   "vmhwm_kib": 219484,
+   "ru_maxrss_kib": 219308,
+   "stdout_bytes": 131437810,
+   "mode": "lint json",
+   "copies": 1000,
+   "files": 3000
+  },
+  {
+   "exit_code": 0,
+   "seconds": 0.242,
+   "vmhwm_kib": 28200,
+   "ru_maxrss_kib": 30780,
+   "stdout_bytes": 35418,
+   "mode": "fix",
+   "copies": 1,
+   "files": 3
+  },
+  {
+   "exit_code": 0,
+   "seconds": 1.518,
+   "vmhwm_kib": 28856,
+   "ru_maxrss_kib": 30780,
+   "stdout_bytes": 353515,
+   "mode": "fix",
+   "copies": 10,
+   "files": 30
+  },
+  {
+   "exit_code": 0,
+   "seconds": 15.36,
+   "vmhwm_kib": 28472,
+   "ru_maxrss_kib": 30780,
+   "stdout_bytes": 3534476,
+   "mode": "fix",
+   "copies": 100,
+   "files": 300
+  },
+  {
+   "exit_code": 0,
+   "seconds": 155.561,
+   "vmhwm_kib": 29140,
+   "ru_maxrss_kib": 30780,
+   "stdout_bytes": 35344077,
+   "mode": "fix",
+   "copies": 1000,
+   "files": 3000
+  }
+ ],
+ "ratio_largest_to_previous": {
+  "lint human": 1.015,
+  "lint json": 5.026,
+  "fix": 1.023
+ },
+ "bounded_modes": [
+  "lint human",
+  "fix"
+ ],
+ "pass": true
+}

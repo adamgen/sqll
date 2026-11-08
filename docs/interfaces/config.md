@@ -40,6 +40,11 @@ Design: [s3b-core.md](../decisions/s3b-core.md), Q6.
   the settings for stdin. sqlfluff reads stdin with `sys.stdin.read()`, so
   the `encoding` setting has no effect and a UTF-8 byte order mark stays
   in the text.
+- `ParseSettings::for_lint(root, file, stdin)` (C13): the settings of the
+  parse of `sqll lint` and `fix`; the rule settings, `ignore`, and
+  `warnings` are not checked here (the rule registry and the command read
+  them). `parse::check_ignore_folder` (C13): the ignore file check of one
+  folder, for each folder that a lint walks.
 - `ConfigError`: `Invalid` (sqlfluff refuses the config), `Io`, and
   `Unsupported` (fail closed: `sqll parse` prints `unsupported: ...` and
   gives exit code 2).
@@ -81,8 +86,9 @@ harness/sqll.md).
 - Where sqlfluff stops with a Python error and exit code 1 (for example an
   unknown dialect in a config file, or a config file that configparser
   cannot read), sqll gives exit code 2.
-- sqll writes each error to stderr; sqlfluff writes some (for example
-  `Error loading config`) to stdout. The warning lines of sqll (a skipped
+- `sqll parse` writes each error to stderr; sqlfluff writes some (for
+  example `Error loading config`) to stdout. `sqll lint` and `sqll fix`
+  write them to stdout, as sqlfluff does. The warning lines of sqll (a skipped
   file, the templater of a subfolder, `large_file_skip_char_limit`) are
   those of sqlfluff with no color: `nocolor` has no effect. As in
   sqlfluff, a file that `large_file_skip_char_limit` does not skip gets
@@ -90,6 +96,9 @@ harness/sqll.md).
   exception: in a file name, sqll writes each character from U+0100 up as
   it is, but Python `repr()` writes an escape for some of them (for
   example U+200B).
+- A `layout` section with 2 or more invalid keys: sqll writes the Python
+  set of the keys in sorted order. The order of sqlfluff changes from run
+  to run (the hash seed of Python).
 
 ## Proof (C11)
 

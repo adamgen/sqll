@@ -10,7 +10,7 @@ use sqll_source::{Templater, TemplaterConfig};
 use sqll_syntax::{Dialect, ParseOptions, Parsed};
 use sqll_templater::RawTemplater;
 
-use crate::timings::Timer;
+use crate::parse::timings::Timer;
 
 /// Return the dialect with this sqlfluff name.
 pub fn dialect(name: &str) -> Option<Dialect> {

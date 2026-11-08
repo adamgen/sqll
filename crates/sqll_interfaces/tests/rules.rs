@@ -30,7 +30,7 @@ use sqll_lint::{
     CONFIG_VALIDATION, RULES,
 };
 use sqll_source::{
-    LinePos, RawFileSlice, Slice, SourceMap, Templater, TemplatedFile, TemplatedFileSlice,
+    LinePos, RawFileSlice, Slice, SourceMap, TemplatedFile, TemplatedFileSlice, Templater,
     TemplaterConfig, TemplaterError,
 };
 use sqll_syntax::{Dialect, ParseOptions, Parsed};
@@ -90,6 +90,9 @@ fn signatures(
 
     let _: fn(Vec<Box<dyn Rule>>) -> Result<Registry, String> = Registry::new;
     let _: Result<RulePack<'_>, LintError> = registry.select(config);
+    // S3b C13: the warnings of get_rulepack.
+    let _: fn(&Config) -> Vec<String> = Registry::selection_warnings;
+    let _: fn(&str) -> String = sqll_lint::registry::py_repr;
     let _: Option<&dyn Rule> = registry.get("CP01");
     let _: &Vec<(&dyn Rule, RuleConfig)> = &pack.rules;
     let _: fn(&Config, &str) -> RuleConfig = RuleConfig::new;
@@ -114,9 +117,20 @@ fn signatures(
     let out = out.unwrap();
     let _: (String, Vec<Violation>, Vec<String>) = (out.fixed, out.violations, out.warnings);
     let v = &out_violation();
-    let _: (&str, &str, &String, &Range<usize>, LinePos, LinePos) =
-        (v.code, v.name, &v.description, &v.source_range, v.start, v.end);
+    let _: (&str, &str, &String, &Range<usize>, LinePos, LinePos) = (
+        v.code,
+        v.name,
+        &v.description,
+        &v.source_range,
+        v.start,
+        v.end,
+    );
     let _: (&Vec<SourceEdit>, bool, bool) = (&v.fixes, v.literal, v.fixable());
+    // S3b C13: the output records of the fixes and the rule times.
+    let _: &Vec<sqll_lint::FixRecord> = &v.fix_records;
+    let r: sqll_lint::FixRecord = f.record(tree);
+    let _: (&'static str, String, Range<usize>) = (r.edit_type, r.text, r.anchor_source);
+    let _: &Vec<(&'static str, std::time::Duration)> = &out.rule_times;
     let _: &[SqlfluffRule] = RULES;
     let _: &[(&str, Validation)] = CONFIG_VALIDATION;
 }
@@ -200,7 +214,10 @@ fn the_manifest_is_that_of_sqlfluff() {
         assert_eq!(crawler["type"].as_str(), Some("SegmentSeekerCrawler"));
         assert_eq!(strs(&crawler["types"]), names, "{}", rule.code());
         assert_eq!(crawler["allow_recurse"].as_bool(), Some(allow_recurse));
-        assert_eq!(crawler["works_on_unparsable"].as_bool(), Some(works_on_unparsable));
+        assert_eq!(
+            crawler["works_on_unparsable"].as_bool(),
+            Some(works_on_unparsable)
+        );
     }
 }
 
@@ -216,7 +233,10 @@ struct TestRule {
 
 impl TestRule {
     fn new(code: &str, crawl: CrawlBehaviour, eval: EvalFn) -> Box<dyn Rule> {
-        let m = RULES.iter().find(|r| r.code == code).expect("a sqlfluff rule");
+        let m = RULES
+            .iter()
+            .find(|r| r.code == code)
+            .expect("a sqlfluff rule");
         Box::new(TestRule { m, crawl, eval })
     }
 }
@@ -297,7 +317,9 @@ fn config(core: &[(&str, Value)]) -> Config {
 #[test]
 fn the_registry_checks_the_rule_metadata() {
     assert!(Registry::new(vec![upper_rule()]).is_ok());
-    let err = Registry::new(vec![upper_rule(), upper_rule()]).err().unwrap();
+    let err = Registry::new(vec![upper_rule(), upper_rule()])
+        .err()
+        .unwrap();
     assert!(err.contains("CP01: two rules have this code"), "{err}");
 
     struct Wrong;
@@ -322,8 +344,18 @@ fn the_registry_checks_the_rule_metadata() {
         }
     }
     let err = Registry::new(vec![Box::new(Wrong)]).err().unwrap();
-    for what in ["name", "groups", "aliases", "lint phase", "fix flag", "config keywords"] {
-        assert!(err.contains(&format!("CP01: the {what} is not")), "{what}: {err}");
+    for what in [
+        "name",
+        "groups",
+        "aliases",
+        "lint phase",
+        "fix flag",
+        "config keywords",
+    ] {
+        assert!(
+            err.contains(&format!("CP01: the {what} is not")),
+            "{what}: {err}"
+        );
     }
     assert!(!err.contains("the description"), "{err}");
 
@@ -367,21 +399,46 @@ fn the_selection_is_that_of_sqlfluff_and_fails_closed() {
     // The default (rules = all) selects each sqlfluff rule.
     let m = unsupported(&[]);
     assert!(m.starts_with("rules AL01, AL02, "), "{m}");
-    assert!(!m.contains("CP01") && m.contains("CP02") && m.contains("ST11"), "{m}");
+    assert!(
+        !m.contains("CP01") && m.contains("CP02") && m.contains("ST11"),
+        "{m}"
+    );
     // Codes, names, aliases, globs, and the deny list.
     let s = Value::str;
     assert_eq!(codes(&[("rules", s("CP01"))]).unwrap(), ["CP01"]);
-    assert_eq!(codes(&[("rules", s("capitalisation.functions"))]).unwrap(), ["CP03"]);
-    assert_eq!(codes(&[("rules", s("L040,L010"))]).unwrap(), ["CP01", "CP04"]);
-    assert_eq!(codes(&[("rules", s("CP0[134]"))]).unwrap(), ["CP01", "CP03", "CP04"]);
-    assert_eq!(codes(&[("rules", s("CP0[!25]"))]).unwrap(), ["CP01", "CP03", "CP04"]);
-    assert_eq!(codes(&[("rules", s("capitalisation.?iterals"))]).unwrap(), ["CP04"]);
     assert_eq!(
-        codes(&[("rules", s("capitalisation")), ("exclude_rules", s("CP02,CP05"))]).unwrap(),
+        codes(&[("rules", s("capitalisation.functions"))]).unwrap(),
+        ["CP03"]
+    );
+    assert_eq!(
+        codes(&[("rules", s("L040,L010"))]).unwrap(),
+        ["CP01", "CP04"]
+    );
+    assert_eq!(
+        codes(&[("rules", s("CP0[134]"))]).unwrap(),
+        ["CP01", "CP03", "CP04"]
+    );
+    assert_eq!(
+        codes(&[("rules", s("CP0[!25]"))]).unwrap(),
+        ["CP01", "CP03", "CP04"]
+    );
+    assert_eq!(
+        codes(&[("rules", s("capitalisation.?iterals"))]).unwrap(),
+        ["CP04"]
+    );
+    assert_eq!(
+        codes(&[
+            ("rules", s("capitalisation")),
+            ("exclude_rules", s("CP02,CP05"))
+        ])
+        .unwrap(),
         ["CP01", "CP03", "CP04"]
     );
     // A group with a rule that sqll does not have.
-    assert_eq!(unsupported(&[("rules", s("capitalisation"))]), "rules CP02, CP05: sqll does not have them yet (S5)");
+    assert_eq!(
+        unsupported(&[("rules", s("capitalisation"))]),
+        "rules CP02, CP05: sqll does not have them yet (S5)"
+    );
     // An unknown reference selects nothing (sqlfluff warns).
     assert_eq!(codes(&[("rules", s("XX99"))]).unwrap(), Vec::<&str>::new());
 
@@ -412,10 +469,15 @@ fn the_selection_is_that_of_sqlfluff_and_fails_closed() {
         )])),
     )]);
     let c = Config::new(configs, &overrides).unwrap();
-    assert!(matches!(registry.select(&c), Err(LintError::Unsupported(m)) if m.contains("ignore_words_regex")));
+    assert!(
+        matches!(registry.select(&c), Err(LintError::Unsupported(m)) if m.contains("ignore_words_regex"))
+    );
     // A linter setting that sqll cannot do fails closed.
     let c = config(&[("fix_even_unparsable", Value::Bool(true))]);
-    assert!(matches!(LintSettings::from_config(&c), Err(LintError::Unsupported(_))));
+    assert!(matches!(
+        LintSettings::from_config(&c),
+        Err(LintError::Unsupported(_))
+    ));
     assert_eq!(
         LintSettings::from_config(&config(&[])).unwrap(),
         LintSettings::default()
@@ -425,12 +487,20 @@ fn the_selection_is_that_of_sqlfluff_and_fails_closed() {
 #[test]
 fn the_validation_is_python_membership() {
     let v = Validation::Values(&[Valid::Bool(true), Valid::Bool(false)]);
-    assert!(v.accepts(&Value::Bool(true)) && v.accepts(&Value::Int(1)) && v.accepts(&Value::Float(0.0)));
+    assert!(
+        v.accepts(&Value::Bool(true)) && v.accepts(&Value::Int(1)) && v.accepts(&Value::Float(0.0))
+    );
     assert!(!v.accepts(&Value::str("True")) && !v.accepts(&Value::Int(2)));
     let r = Validation::Range(0, 1000);
-    assert!(r.accepts(&Value::Int(0)) && r.accepts(&Value::Int(999)) && r.accepts(&Value::Bool(true)));
+    assert!(
+        r.accepts(&Value::Int(0)) && r.accepts(&Value::Int(999)) && r.accepts(&Value::Bool(true))
+    );
     assert!(r.accepts(&Value::Float(5.0)) && !r.accepts(&Value::Float(5.5)));
-    assert!(!r.accepts(&Value::Int(1000)) && !r.accepts(&Value::Int(-1)) && !r.accepts(&Value::str("5")));
+    assert!(
+        !r.accepts(&Value::Int(1000))
+            && !r.accepts(&Value::Int(-1))
+            && !r.accepts(&Value::str("5"))
+    );
 }
 
 // A test templater: `{{ name }}` gives the value of the context (section
@@ -461,7 +531,13 @@ impl Templater for VarTemplater {
                 Slice::from(src_cp..src_cp + n_src),
                 Slice::from(tpl_cp..tpl_cp + n_tpl),
             ));
-            raws.push(RawFileSlice::new(raw.to_string(), ty.to_string(), src_cp, Some(block), None));
+            raws.push(RawFileSlice::new(
+                raw.to_string(),
+                ty.to_string(),
+                src_cp,
+                Some(block),
+                None,
+            ));
             templated.push_str(out);
             src_cp += n_src;
             tpl_cp += n_tpl;
@@ -472,13 +548,29 @@ impl Templater for VarTemplater {
                 .filter_map(|d| source[at..].find(d).map(|i| at + i))
                 .min();
             let Some(start) = next else {
-                push("literal", &source[at..], &source[at..], block, &mut templated);
+                push(
+                    "literal",
+                    &source[at..],
+                    &source[at..],
+                    block,
+                    &mut templated,
+                );
                 break;
             };
             if start > at {
-                push("literal", &source[at..start], &source[at..start], block, &mut templated);
+                push(
+                    "literal",
+                    &source[at..start],
+                    &source[at..start],
+                    block,
+                    &mut templated,
+                );
             }
-            let close = if source[start..].starts_with("{{") { "}}" } else { "%}" };
+            let close = if source[start..].starts_with("{{") {
+                "}}"
+            } else {
+                "%}"
+            };
             let end = source[start..]
                 .find(close)
                 .map(|i| start + i + 2)
@@ -551,7 +643,8 @@ fn tree_of(source: &str) -> SyntaxTree {
 
 #[test]
 fn the_test_templater_gives_the_c8_hand_built_map() {
-    let source = std::fs::read_to_string(root().join("third_party/sqlfluff").join(JINJA_A)).unwrap();
+    let source =
+        std::fs::read_to_string(root().join("third_party/sqlfluff").join(JINJA_A)).unwrap();
     let file = VarTemplater.process(&source, JINJA_A, &context()).unwrap();
     // JINJA_A_TEMPLATED and JINJA_A_SLICES of tests/source_map.rs: the
     // slices of the pinned sqlfluff JinjaTemplater.
@@ -591,7 +684,8 @@ fn leaf(tree: &SyntaxTree, raw: &str) -> NodeId {
 #[test]
 fn a_fix_maps_to_the_source_or_is_refused() {
     // jinja_a: "SELECT 56 FROM {{ testing_schema }}.{{ testing_table }}\n"
-    let source = std::fs::read_to_string(root().join("third_party/sqlfluff").join(JINJA_A)).unwrap();
+    let source =
+        std::fs::read_to_string(root().join("third_party/sqlfluff").join(JINJA_A)).unwrap();
     let tree = tree_of(&source);
     let edit = |fix: Fix| fix.source_edit(&tree);
     let at = |range: Range<usize>, text: &str| {
@@ -605,13 +699,19 @@ fn a_fix_maps_to_the_source_or_is_refused() {
     let tbl2 = leaf(&tree, "tbl2");
     // A literal range maps exactly.
     assert_eq!(
-        edit(Fix::Replace { anchor: from, text: "from".into() }),
+        edit(Fix::Replace {
+            anchor: from,
+            text: "from".into()
+        }),
         at(10..14, "from")
     );
     assert_eq!(edit(Fix::Delete { anchor: from }), at(10..14, ""));
     // A templated range is refused.
     assert_eq!(
-        edit(Fix::Replace { anchor: sch1, text: "x".into() }),
+        edit(Fix::Replace {
+            anchor: sch1,
+            text: "x".into()
+        }),
         Err(FixRefusal::Templated { templated: 15..19 })
     );
     assert_eq!(
@@ -621,15 +721,24 @@ fn a_fix_maps_to_the_source_or_is_refused() {
     // An insertion next to a templated range goes next to its literal
     // neighbour: before the tag, or after it.
     assert_eq!(
-        edit(Fix::CreateBefore { anchor: sch1, text: "a".into() }),
+        edit(Fix::CreateBefore {
+            anchor: sch1,
+            text: "a".into()
+        }),
         at(15..15, "a")
     );
     assert_eq!(
-        edit(Fix::CreateAfter { anchor: sch1, text: "b".into() }),
+        edit(Fix::CreateAfter {
+            anchor: sch1,
+            text: "b".into()
+        }),
         at(35..35, "b")
     );
     assert_eq!(
-        edit(Fix::CreateAfter { anchor: tbl2, text: "c".into() }),
+        edit(Fix::CreateAfter {
+            anchor: tbl2,
+            text: "c".into()
+        }),
         at(55..55, "c")
     );
     // A node with no text and an empty fix changes nothing.
@@ -647,7 +756,10 @@ fn a_fix_maps_to_the_source_or_is_refused() {
         anchor,
         text: text.into(),
     };
-    assert_eq!(result_edits(&tree, &[up(select, "SELECT")]).unwrap().len(), 1);
+    assert_eq!(
+        result_edits(&tree, &[up(select, "SELECT")]).unwrap().len(),
+        1
+    );
     assert_eq!(result_edits(&tree, &[up(from, "FROM")]).unwrap().len(), 1);
     assert_eq!(
         result_edits(&tree, &[up(select, "SELECT"), up(from, "FROM")]),
@@ -682,35 +794,74 @@ fn a_fix_maps_to_the_source_or_is_refused() {
 #[test]
 fn the_anchor_check_and_the_edits_are_those_of_sqlfluff() {
     let a = NodeId::ROOT;
-    let replace = Fix::Replace { anchor: a, text: "x".into() };
-    let before = Fix::CreateBefore { anchor: a, text: "x".into() };
-    let after = Fix::CreateAfter { anchor: a, text: "y".into() };
-    assert_eq!(check_anchors(&[replace.clone(), replace.clone()]), Some(vec![replace.clone()]));
-    assert_eq!(check_anchors(&[before.clone(), after.clone()]).map(|v| v.len()), Some(2));
+    let replace = Fix::Replace {
+        anchor: a,
+        text: "x".into(),
+    };
+    let before = Fix::CreateBefore {
+        anchor: a,
+        text: "x".into(),
+    };
+    let after = Fix::CreateAfter {
+        anchor: a,
+        text: "y".into(),
+    };
+    assert_eq!(
+        check_anchors(&[replace.clone(), replace.clone()]),
+        Some(vec![replace.clone()])
+    );
+    assert_eq!(
+        check_anchors(&[before.clone(), after.clone()]).map(|v| v.len()),
+        Some(2)
+    );
     assert_eq!(check_anchors(&[replace.clone(), after.clone()]), None);
-    assert_eq!(check_anchors(&[before.clone(), before, after]), Some(vec![
-        Fix::CreateBefore { anchor: a, text: "x".into() },
-        Fix::CreateAfter { anchor: a, text: "y".into() },
-    ]));
+    assert_eq!(
+        check_anchors(&[before.clone(), before, after]),
+        Some(vec![
+            Fix::CreateBefore {
+                anchor: a,
+                text: "x".into()
+            },
+            Fix::CreateAfter {
+                anchor: a,
+                text: "y".into()
+            },
+        ])
+    );
 
-    let e = |r: Range<usize>, t: &str| SourceEdit { range: r, text: t.into() };
+    let e = |r: Range<usize>, t: &str| SourceEdit {
+        range: r,
+        text: t.into(),
+    };
     let src = "abcdef";
     // Insertions at one point: after an anchor, then before an anchor, then
     // the change of a range; each kind keeps its order.
     assert_eq!(
-        apply_edits(src, &[
-            (e(2..4, "X"), false),
-            (e(2..2, "b1"), false),
-            (e(2..2, "a1"), true),
-            (e(2..2, "b2"), false),
-            (e(4..4, "Z"), true),
-        ]),
+        apply_edits(
+            src,
+            &[
+                (e(2..4, "X"), false),
+                (e(2..2, "b1"), false),
+                (e(2..2, "a1"), true),
+                (e(2..2, "b2"), false),
+                (e(4..4, "Z"), true),
+            ]
+        ),
         Some("aba1b1b2XZef".into())
     );
     // Overlaps fail.
-    assert_eq!(apply_edits(src, &[(e(1..3, ""), false), (e(2..4, ""), false)]), None);
-    assert_eq!(apply_edits(src, &[(e(1..4, ""), false), (e(2..2, "x"), false)]), None);
-    assert_eq!(apply_edits(src, &[(e(1..3, ""), false), (e(1..3, "y"), false)]), None);
+    assert_eq!(
+        apply_edits(src, &[(e(1..3, ""), false), (e(2..4, ""), false)]),
+        None
+    );
+    assert_eq!(
+        apply_edits(src, &[(e(1..4, ""), false), (e(2..2, "x"), false)]),
+        None
+    );
+    assert_eq!(
+        apply_edits(src, &[(e(1..3, ""), false), (e(1..3, "y"), false)]),
+        None
+    );
     assert_eq!(apply_edits(src, &[(e(5..9, ""), false)]), None);
 }
 
@@ -760,11 +911,29 @@ fn a_fix_round_trips_through_the_templated_source_map() {
     assert_eq!(
         got,
         [
-            ("CP01", at(1, 1), at(1, 7), "select must be upper case.", true),
-            ("CP01", at(1, 11), at(1, 15), "from must be upper case.", true),
+            (
+                "CP01",
+                at(1, 1),
+                at(1, 7),
+                "select must be upper case.",
+                true
+            ),
+            (
+                "CP01",
+                at(1, 11),
+                at(1, 15),
+                "from must be upper case.",
+                true
+            ),
         ]
     );
-    assert_eq!(linted.violations[1].fixes, [SourceEdit { range: 10..14, text: "FROM".into() }]);
+    assert_eq!(
+        linted.violations[1].fixes,
+        [SourceEdit {
+            range: 10..14,
+            text: "FROM".into()
+        }]
+    );
     // A lint gives the same violations and no fix.
     let linted = lint(vec![upper_rule()], &[], source, false).unwrap();
     assert_eq!(linted.fixed, source);
@@ -804,14 +973,20 @@ fn runaway(ctx: &mut RuleContext<'_, '_>) -> Result<Vec<LintResult>, LintError> 
         .filter(|&id| tree.children(id).next().is_none() && !tree.raw(id).is_empty())
         .last()
         .expect("a leaf");
-    Ok(vec![LintResult::new(id).with_fix(Fix::CreateAfter { anchor: id, text: "\n".into() })])
+    Ok(vec![LintResult::new(id).with_fix(Fix::CreateAfter {
+        anchor: id,
+        text: "\n".into(),
+    })])
 }
 
 /// A rule with two fixes of one anchor (a conflict).
 fn conflict(ctx: &mut RuleContext<'_, '_>) -> Result<Vec<LintResult>, LintError> {
     let id = ctx.segment.id();
     Ok(vec![LintResult::new(id)
-        .with_fix(Fix::Replace { anchor: id, text: "X".into() })
+        .with_fix(Fix::Replace {
+            anchor: id,
+            text: "X".into(),
+        })
         .with_fix(Fix::Delete { anchor: id })])
 }
 
@@ -820,8 +995,14 @@ fn overlap(ctx: &mut RuleContext<'_, '_>) -> Result<Vec<LintResult>, LintError> 
     let id = ctx.segment.id();
     let parent = ctx.parent().expect("a parent").id();
     Ok(vec![LintResult::new(id)
-        .with_fix(Fix::Replace { anchor: id, text: "X".into() })
-        .with_fix(Fix::Replace { anchor: parent, text: "Y".into() })])
+        .with_fix(Fix::Replace {
+            anchor: id,
+            text: "X".into(),
+        })
+        .with_fix(Fix::Replace {
+            anchor: parent,
+            text: "Y".into(),
+        })])
 }
 
 /// A rule that breaks the SQL.
@@ -830,7 +1011,10 @@ fn unparsable(ctx: &mut RuleContext<'_, '_>) -> Result<Vec<LintResult>, LintErro
     if ctx.segment.raw() != "FROM" {
         return Ok(Vec::new());
     }
-    Ok(vec![LintResult::new(id).with_fix(Fix::Replace { anchor: id, text: "FROM (".into() })])
+    Ok(vec![LintResult::new(id).with_fix(Fix::Replace {
+        anchor: id,
+        text: "FROM (".into(),
+    })])
 }
 
 /// The rules that ran (the description is the code).
@@ -870,7 +1054,10 @@ fn the_fix_loop_is_that_of_sqlfluff() {
         if ctx.segment.raw() != "SELECT" {
             return Ok(Vec::new());
         }
-        Ok(vec![LintResult::new(id).with_fix(Fix::CreateAfter { anchor: id, text: " ".into() })])
+        Ok(vec![LintResult::new(id).with_fix(Fix::CreateAfter {
+            anchor: id,
+            text: " ".into(),
+        })])
     }
     let rule = TestRule::new("LT01", kw, same_point);
     let linted = lint(vec![rule], &core, source, true).unwrap();
@@ -900,7 +1087,12 @@ fn the_fix_loop_is_that_of_sqlfluff() {
     // The phases: a lint runs each rule one time; a fix runs each rule in
     // the first loop, then the main rules until no change, then the post
     // rules (CP01 is a post rule) one more time.
-    let rules = || vec![TestRule::new("AL01", root, record_call), TestRule::new("CP01", root, record_call)];
+    let rules = || {
+        vec![
+            TestRule::new("AL01", root, record_call),
+            TestRule::new("CP01", root, record_call),
+        ]
+    };
     CALLS.lock().unwrap().clear();
     lint(rules(), &[], source, false).unwrap();
     assert_eq!(*CALLS.lock().unwrap(), ["AL01", "CP01"]);
@@ -913,7 +1105,10 @@ fn the_fix_loop_is_that_of_sqlfluff() {
         Err(LintError::Unsupported("x".into()))
     }
     let rule = TestRule::new("LT01", root, fails);
-    assert_eq!(lint(vec![rule], &[], source, true), Err(LintError::Unsupported("x".into())));
+    assert_eq!(
+        lint(vec![rule], &[], source, true),
+        Err(LintError::Unsupported("x".into()))
+    );
 
     // A noqa comment fails closed, unless noqa is off.
     let noqa = "SELECT 56 FROM sch1.tbl2 -- noqa: CP01\n";
@@ -945,7 +1140,9 @@ fn the_crawl_skips_unparsable_sections_and_keeps_the_memory() {
     let types: &'static [SegmentType] = Box::leak(types.into_boxed_slice());
     let off = CrawlBehaviour::seeker(types);
     let crawled = off.crawl(&tree);
-    assert!(crawled.iter().all(|id| !inside.contains(id) && *id != unparsable));
+    assert!(crawled
+        .iter()
+        .all(|id| !inside.contains(id) && *id != unparsable));
     let raws: Vec<&str> = crawled.iter().map(|&id| tree.raw(id)).collect();
     assert_eq!(raws, ["SELECT", "FROM"]);
     let on = CrawlBehaviour::SegmentSeeker {
@@ -954,7 +1151,11 @@ fn the_crawl_skips_unparsable_sections_and_keeps_the_memory() {
         works_on_unparsable: true,
     };
     let crawled = on.crawl(&tree);
-    let code: Vec<NodeId> = inside.iter().copied().filter(|&id| tree.node(id).is_code()).collect();
+    let code: Vec<NodeId> = inside
+        .iter()
+        .copied()
+        .filter(|&id| tree.node(id).is_code())
+        .collect();
     assert!(!code.is_empty() && code.iter().all(|id| crawled.contains(id)));
     // allow_recurse false: no match inside a match.
     let statement: &'static [SegmentType] = &[SegmentType::STATEMENT, SegmentType::KEYWORD];
@@ -980,8 +1181,10 @@ fn the_crawl_skips_unparsable_sections_and_keeps_the_memory() {
             memory: &mut memory,
         };
         upper_keywords(&mut ctx).unwrap();
-        assert_eq!(ctx.parent_stack().first().map(|n| n.id()), Some(NodeId::ROOT));
+        assert_eq!(
+            ctx.parent_stack().first().map(|n| n.id()),
+            Some(NodeId::ROOT)
+        );
     }
     assert_eq!(memory.get::<usize>(), Some(&crawled.len()));
 }
-

@@ -3,7 +3,8 @@
 // harness tool.
 //
 // Parts of this file are a port of sqlfluff 4.4.0 code (its sqlfluffrs
-// crates), through crates/sqll/src/parse.rs: the lexer and parser calls of
+// crates), through crates/sqll/src/parse.rs (S3b C9 moved these calls to
+// crates/sqll_syntax/src/parse.rs): the lexer and parser calls of
 // sqlfluffrs/src/test_harness.rs (FixtureTest::run) and the parser limits of
 // sqlfluffrs/sqlfluffrs_parser/src/parser/python.rs (PyParser). The limits
 // and the indentation values are the defaults of
@@ -46,7 +47,8 @@ use sqll_lexer::{LexInput, Lexer};
 use sqll_parser::parser::{Node, Parser};
 use sqll_types::Token;
 
-// The values of crates/sqll/src/parse.rs.
+// The default values of sqll parse (crates/sqll_config/src/defaults.rs,
+// crates/sqll_cli/src/parse/steps.rs).
 const MAX_PARSE_DEPTH: usize = 600;
 const MAX_PARSE_NODES: usize = 100_000;
 const MAX_PARSER_ITERATIONS: usize = 3_000_000;

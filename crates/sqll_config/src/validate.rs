@@ -12,7 +12,7 @@
 //! The checks of a config dict that sqlfluff does when it loads a file.
 //! Some of them change the dict (an empty `max_parse_depth` is 0).
 
-use crate::value::{Table, Value};
+use crate::value::{py_repr, Table, Value};
 use crate::ConfigError;
 
 /// A removed setting: its old key path, and its new key path if sqlfluff
@@ -84,11 +84,28 @@ const LAYOUT_KEYS: &[&str] = &[
 const IMPLICIT_INDENTS: &[&str] = &["forbid", "allow", "require"];
 
 fn invalid(reference: &str, what: String) -> ConfigError {
-    ConfigError::Invalid(format!("Config file {reference:?} set {what}"))
+    ConfigError::Invalid(format!("Config file {reference} set {what}"))
 }
 
-/// The checks of `validate_config_dict`, in its order.
+/// The checks of `validate_config_dict`, in its order. `reference` is a
+/// Python `str` (the messages show its repr).
 pub fn validate_config_dict(config: &mut Table, reference: &str) -> Result<(), ConfigError> {
+    validate_as(config, &py_repr(reference))
+}
+
+/// As [`validate_config_dict`], but `reference` is a Python `Path`: the
+/// ignore file check of sqlfluff (`_load_configfile` of discovery.py)
+/// loads the file as `Path(filepath).resolve()`, so the messages show
+/// `PosixPath('...')`.
+pub(crate) fn validate_config_dict_path(
+    config: &mut Table,
+    reference: &str,
+) -> Result<(), ConfigError> {
+    validate_as(config, &format!("PosixPath({})", py_repr(reference)))
+}
+
+/// The checks; `reference` is the Python repr of the file name.
+fn validate_as(config: &mut Table, reference: &str) -> Result<(), ConfigError> {
     removed(config, reference)?;
     layout(config, reference)?;
     indentation(config, reference)?;
@@ -114,7 +131,7 @@ fn removed(config: &Table, reference: &str) -> Result<(), ConfigError> {
                 Some(_) if !last => {
                     // sqlfluff asserts that the parent is a section.
                     return Err(ConfigError::Invalid(format!(
-                        "Config file {reference:?}: expected `{step}` to be a section not a value."
+                        "Config file {reference}: expected `{step}` to be a section not a value."
                     )));
                 }
                 Some(_) => {}
@@ -135,7 +152,7 @@ fn removed(config: &Table, reference: &str) -> Result<(), ConfigError> {
             }
             Some(new) => {
                 return Err(ConfigError::Unsupported(format!(
-                    "setting {key} in {reference:?}: a deprecated sqlfluff setting; sqlfluff moves it to {}",
+                    "setting {key} in {reference}: a deprecated sqlfluff setting; sqlfluff moves it to {}",
                     new.join(":")
                 )))
             }
@@ -150,7 +167,7 @@ fn layout(config: &Table, reference: &str) -> Result<(), ConfigError> {
     };
     let err = |what: String| {
         ConfigError::Invalid(format!(
-            "Config file {reference:?} set an invalid `layout` option. {what}See https://docs.sqlfluff.com/en/stable/perma/layout.html#configuring-layout for more details."
+            "Config file {reference} set an invalid `layout` option. {what}See https://docs.sqlfluff.com/en/stable/perma/layout.html#configuring-layout for more details."
         ))
     };
     let Value::Table(section) = section else {
@@ -171,18 +188,23 @@ fn layout(config: &Table, reference: &str) -> Result<(), ConfigError> {
         ));
     }
     for (name, value) in types {
+        let name = py_repr(name);
         let Value::Table(t) = value else {
             return Err(err(format!(
-                "Layout config for {name:?} is invalid. Expected a section. "
+                "Layout config for {name} is invalid. Expected a section. "
             )));
         };
-        let bad: Vec<&String> = t
+        // A Python set. For 2 or more keys the set order of sqlfluff
+        // changes with the hash seed of the run; sqll gives the sorted order.
+        let bad: Vec<String> = t
             .keys()
             .filter(|k| !LAYOUT_KEYS.contains(&k.as_str()))
+            .map(|k| py_repr(k))
             .collect();
         if !bad.is_empty() {
             return Err(err(format!(
-                "Layout config for type {name:?} is invalid. Found the following invalid keys: {bad:?}. "
+                "Layout config for type {name} is invalid. Found the following invalid keys: {{{}}}. ",
+                bad.join(", ")
             )));
         }
         if let Some(k) = t
@@ -191,7 +213,7 @@ fn layout(config: &Table, reference: &str) -> Result<(), ConfigError> {
             .map(|(k, _)| k)
         {
             return Err(err(format!(
-                "Layout config for type {name:?} is invalid. Found the an unexpected section rather than value for {k}. "
+                "Layout config for type {name} is invalid. Found the an unexpected section rather than value for {k}. "
             )));
         }
     }
@@ -301,6 +323,48 @@ mod tests {
     fn check(text: &str) -> Result<Table, ConfigError> {
         let mut t = load_ini_string(text, "x").unwrap();
         validate_config_dict(&mut t, "x").map(|_| t)
+    }
+
+    #[test]
+    fn the_file_name_of_an_error_is_python_repr() {
+        // sqlfluff validate.py: `{logging_reference!r}`.
+        let mut t = load_ini_string("[sqlfluff]\nrunaway_limit = 0\n", "x").unwrap();
+        let Err(ConfigError::Invalid(text)) = validate_config_dict(&mut t, "/a/.sqlfluff") else {
+            panic!("no error");
+        };
+        assert_eq!(
+            text,
+            "Config file '/a/.sqlfluff' set an invalid value for `runaway_limit`: 0. \
+             This value must be an integer of at least 1."
+        );
+    }
+
+    #[test]
+    fn the_texts_of_an_error_are_python_repr() {
+        let err = |text: &str, path: bool| {
+            let mut t = load_ini_string(text, "x").unwrap();
+            let r = if path {
+                validate_config_dict_path(&mut t, "/a/.sqlfluff")
+            } else {
+                validate_config_dict(&mut t, "/a/.sqlfluff")
+            };
+            match r {
+                Err(ConfigError::Invalid(text)) => text,
+                other => panic!("no error: {other:?}"),
+            }
+        };
+        assert!(err("[sqlfluff]\nrunaway_limit = 0\n", true)
+            .starts_with("Config file PosixPath('/a/.sqlfluff') set an invalid value"));
+        assert!(
+            err("[sqlfluff:indentation]\nimplicit_indents = maybe\n", false)
+                .contains("`implicit_indents`: 'maybe'. Valid")
+        );
+        assert!(
+            err("[sqlfluff:layout:type:comma]\nfoo = 1\nbar = 2\n", false).contains(
+                "Layout config for type 'comma' is invalid. Found the following invalid keys: \
+             {'bar', 'foo'}. "
+            )
+        );
     }
 
     #[test]

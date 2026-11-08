@@ -547,7 +547,7 @@
   },
   {
    "path": "crates/sqll/Cargo.toml",
-   "reason": "The sqll binary crate (T12). New sqll code. S3 T19: license = \"MIT\", and serde_json for build.rs (the cargo metadata of the notice list). S3b C11: sqll_config."
+   "reason": "The sqll binary crate (T12). New sqll code. S3 T19: license = \"MIT\", and serde_json for build.rs (the cargo metadata of the notice list). S3b C11: sqll_config. S3b C13: the dependency is sqll_cli; dev-dependencies libc and sqll_lint for tests/cli.rs."
   },
   {
    "path": "crates/sqll/build.rs",
@@ -559,23 +559,23 @@
   },
   {
    "path": "crates/sqll/src/main.rs",
-   "reason": "The sqll command line: parse, version, and the unsupported lint and fix commands, in the command shape of sqlfluff. New sqll code. normpath is a port of CPython v3.13.16 Lib/posixpath.py normpath (PSF-2.0, crates/LICENSE-cpython.txt, THIRD_PARTY.md). Since S3 T17 it sets the global allocator (alloc.rs). S3 T19: the option --license (license.rs). S3b C11: the parse options of the config (--config, --ignore-local-config, -t/--templater, -d)."
+   "reason": "The sqll command line: parse, version, and the unsupported lint and fix commands, in the command shape of sqlfluff. New sqll code. normpath is a port of CPython v3.13.16 Lib/posixpath.py normpath (PSF-2.0, crates/LICENSE-cpython.txt, THIRD_PARTY.md). Since S3 T17 it sets the global allocator (alloc.rs). S3 T19: the option --license (license.rs). S3b C11: the parse options of the config (--config, --ignore-local-config, -t/--templater, -d). S3b C13: main keeps the allocator, the license text, the version, and the dispatch; the commands, the options of parse, and normpath moved to sqll_cli (crates/sqll_cli/src/lib.rs, parse/mod.rs)."
   },
   {
-   "path": "crates/sqll/src/output.rs",
-   "reason": "The JSON output of \"sqlfluff parse -f json\" (the separators and escapes of Python json.dumps). Since S3 T15 it writes the JSON with no record value between; since S3b C9 it reads the syntax tree. Its tests compare it with the record of Node::as_record. New sqll code."
+   "path": "crates/sqll_cli/src/parse/output.rs",
+   "reason": "The JSON output of \"sqlfluff parse -f json\" (the separators and escapes of Python json.dumps). Since S3 T15 it writes the JSON with no record value between; since S3b C9 it reads the syntax tree. Its tests compare it with the record of Node::as_record. New sqll code. S3b C13: moved from crates/sqll/src/output.rs to the CLI crate sqll_cli; lint uses its JSON string writer."
   },
   {
-   "path": "crates/sqll/src/parse.rs",
-   "reason": "The parse of one file for \"sqll parse\": the raw templater and the frozen parse interface of sqll_syntax. Before S3b C9 it had the lexer and parser calls and the limits (ported parts); C9 moved them to crates/sqll_syntax/src/parse.rs. New sqll code. S3b C11: the parse options come from the config (sqll_config::ParseSettings)."
+   "path": "crates/sqll_cli/src/parse/steps.rs",
+   "reason": "The parse of one file for \"sqll parse\": the raw templater and the frozen parse interface of sqll_syntax. Before S3b C9 it had the lexer and parser calls and the limits (ported parts); C9 moved them to crates/sqll_syntax/src/parse.rs. New sqll code. S3b C11: the parse options come from the config (sqll_config::ParseSettings). S3b C13: moved from crates/sqll/src/parse.rs to the CLI crate sqll_cli; lint and fix use its parse options."
   },
   {
-   "path": "crates/sqll/src/timings.rs",
-   "reason": "The phase times of \"sqll parse --timings\" (S3 T14; T15 changed the record, write, and free phases; S3b C9: the record phase is the conversion to the syntax tree). New sqll code."
+   "path": "crates/sqll_cli/src/parse/timings.rs",
+   "reason": "The phase times of \"sqll parse --timings\" (S3 T14; T15 changed the record, write, and free phases; S3b C9: the record phase is the conversion to the syntax tree). New sqll code. S3b C13: moved from crates/sqll/src/timings.rs to the CLI crate sqll_cli."
   },
   {
    "path": "crates/sqll/tests/cli.rs",
-   "reason": "Tests of the sqll command line on sqlfluff 4.4.0 dialect fixtures (read in place in the submodule). Parts are a port of sqlfluff 4.4.0 code (process_struct of test/conftest.py); the file header names the source (THIRD_PARTY.md, \"Ported code\"). S3b C11: the dialect of the .sqlfluff file of a fixture folder."
+   "reason": "Tests of the sqll command line on sqlfluff 4.4.0 dialect fixtures (read in place in the submodule). Parts are a port of sqlfluff 4.4.0 code (process_struct of test/conftest.py); the file header names the source (THIRD_PARTY.md, \"Ported code\"). S3b C11: the dialect of the .sqlfluff file of a fixture folder. S3b C13: lint, fix, rules, and dialects against the sqlfluff runs of results/S3b/C13-cli.json, the rules table of each sqlfluff rule, and fix --check on a pseudo terminal."
   },
   {
    "path": "crates/sqll/tests/lazy_lexers.rs",
@@ -583,7 +583,7 @@
   },
   {
    "path": "crates/LICENSE-cpython.txt",
-   "reason": "A copy of LICENSE of CPython tag v3.13.16 (sha256 78b12c3a81360b357002334f0e70ea0e92eebf7a9b358805c03c48484945f3bb): the PSF License Agreement of the normpath port in crates/sqll/src/main.rs (THIRD_PARTY.md, \"CPython\")."
+   "reason": "A copy of LICENSE of CPython tag v3.13.16 (sha256 78b12c3a81360b357002334f0e70ea0e92eebf7a9b358805c03c48484945f3bb): the PSF License Agreement of the normpath port in crates/sqll_cli/src/lib.rs and the textwrap port in crates/sqll_cli/src/text.rs (THIRD_PARTY.md, \"CPython\")."
   },
   {
    "path": "crates/sqll_rules/tests/capitalisation.rs",
@@ -770,8 +770,8 @@
    "reason": "The interface test of the config (S3b C11)."
   },
   {
-   "path": "crates/sqll/src/config.rs",
-   "reason": "The config steps of \"sqll parse\" (S3b C11): the root config, the config of the file, the size limits, and the templater check, in the order of sqlfluff parse. New sqll code."
+   "path": "crates/sqll_cli/src/parse/config.rs",
+   "reason": "The config steps of \"sqll parse\" (S3b C11): the root config, the config of the file, the size limits, and the templater check, in the order of sqlfluff parse. New sqll code. S3b C13: moved from crates/sqll/src/config.rs to the CLI crate sqll_cli."
   },
   {
    "path": "crates/sqll/tests/cli_config.rs",
@@ -803,15 +803,15 @@
   },
   {
    "path": "crates/sqll_lint/src/fix.rs",
-   "reason": "Fixes and their source edits (S3b C12): a port of parts of sqlfluff 4.4.0 src/sqlfluff/core/rules/fix.py, rules/base.py, and linter/fix.py (MIT; THIRD_PARTY.md, \"Ported code\")."
+   "reason": "Fixes and their source edits (S3b C12): a port of parts of sqlfluff 4.4.0 src/sqlfluff/core/rules/fix.py, rules/base.py, and linter/fix.py (MIT; THIRD_PARTY.md, \"Ported code\"). S3b C13: FixRecord (LintFix.to_dict)."
   },
   {
    "path": "crates/sqll_lint/src/registry.rs",
-   "reason": "The rule registry and the rule selection (S3b C12): a port of parts of sqlfluff 4.4.0 src/sqlfluff/core/rules/base.py (MIT; THIRD_PARTY.md, \"Ported code\")."
+   "reason": "The rule registry and the rule selection (S3b C12): a port of parts of sqlfluff 4.4.0 src/sqlfluff/core/rules/base.py (MIT; THIRD_PARTY.md, \"Ported code\"). S3b C13: selected_codes, selection_warnings (the warnings of get_rulepack), and py_repr."
   },
   {
    "path": "crates/sqll_lint/src/linter.rs",
-   "reason": "The linter and the fix loop (S3b C12): a port of parts of sqlfluff 4.4.0 src/sqlfluff/core/linter/linter.py, linted_file.py, and rules/base.py (MIT; THIRD_PARTY.md, \"Ported code\")."
+   "reason": "The linter and the fix loop (S3b C12): a port of parts of sqlfluff 4.4.0 src/sqlfluff/core/linter/linter.py, linted_file.py, and rules/base.py (MIT; THIRD_PARTY.md, \"Ported code\"). S3b C13: the fix records and the rule times of a violation and of a file."
   },
   {
    "path": "crates/sqll_lint/src/sqlfluff.rs",
@@ -824,6 +824,66 @@
   {
    "path": "crates/sqll_interfaces/tests/rules.rs",
    "reason": "The interface test of the rule and fix interface (S3b C12)."
+  },
+  {
+   "path": "crates/sqll_cli/Cargo.toml",
+   "reason": "The package of the commands and the output formats of the command line (S3b C13). New sqll code."
+  },
+  {
+   "path": "crates/sqll_cli/src/lib.rs",
+   "reason": "The CLI crate (S3b C13): the errors, the exit codes, the dispatch of a command, and the SQL file reader. New sqll code; normpath is a port of CPython v3.13.16 Lib/posixpath.py normpath (PSF-2.0, crates/LICENSE-cpython.txt, THIRD_PARTY.md), moved from crates/sqll/src/main.rs."
+  },
+  {
+   "path": "crates/sqll_cli/src/args.rs",
+   "reason": "The option reader of lint, fix, rules, and dialects, as click reads options (S3b C13). New sqll code."
+  },
+  {
+   "path": "crates/sqll_cli/src/color.rs",
+   "reason": "The colors of the sqlfluff CLI (S3b C13): a port of parts of sqlfluff 4.4.0 src/sqlfluff/core/types.py and cli/formatters.py (MIT; THIRD_PARTY.md, \"Ported code\")."
+  },
+  {
+   "path": "crates/sqll_cli/src/info.rs",
+   "reason": "The commands rules and dialects (S3b C13): a port of parts of sqlfluff 4.4.0 src/sqlfluff/cli/commands.py and cli/formatters.py (MIT; THIRD_PARTY.md, \"Ported code\")."
+  },
+  {
+   "path": "crates/sqll_cli/src/pyfmt.rs",
+   "reason": "Python repr() of a float (S3b C13). New sqll code."
+  },
+  {
+   "path": "crates/sqll_cli/src/text.rs",
+   "reason": "The text layout of the sqlfluff CLI (S3b C13): a port of CPython v3.13.16 Lib/textwrap.py (wrap; PSF-2.0, crates/LICENSE-cpython.txt) and of parts of sqlfluff 4.4.0 src/sqlfluff/cli/helpers.py and formatters.py (MIT; THIRD_PARTY.md, \"Ported code\")."
+  },
+  {
+   "path": "crates/sqll_cli/src/tty.rs",
+   "reason": "The terminal check and the key read of fix --check, as click 8.4.2 getchar (S3b C13). New sqll code."
+  },
+  {
+   "path": "crates/sqll_cli/src/parse/mod.rs",
+   "reason": "The command parse (S3b C13: moved from crates/sqll/src/main.rs). New sqll code."
+  },
+  {
+   "path": "crates/sqll_cli/src/lint/mod.rs",
+   "reason": "The commands lint and fix (S3b C13): a port of parts of sqlfluff 4.4.0 src/sqlfluff/cli/commands.py, cli/outputstream.py, and core/linter (MIT; THIRD_PARTY.md, \"Ported code\")."
+  },
+  {
+   "path": "crates/sqll_cli/src/lint/file.rs",
+   "reason": "The lint of one file (S3b C13): a port of parts of sqlfluff 4.4.0 src/sqlfluff/core/linter/linter.py, runner.py, linted_file.py, and core/errors.py (MIT; THIRD_PARTY.md, \"Ported code\")."
+  },
+  {
+   "path": "crates/sqll_cli/src/lint/files.rs",
+   "reason": "The files of the paths of a lint (S3b C13): a port of parts of sqlfluff 4.4.0 src/sqlfluff/core/linter/discovery.py (MIT; THIRD_PARTY.md, \"Ported code\")."
+  },
+  {
+   "path": "crates/sqll_cli/src/lint/record.rs",
+   "reason": "The records and the output formats of lint (S3b C13): a port of parts of sqlfluff 4.4.0 src/sqlfluff/cli/commands.py, cli/formatters.py, core/errors.py, core/rules/fix.py, and core/linter/linted_dir.py (MIT; THIRD_PARTY.md, \"Ported code\")."
+  },
+  {
+   "path": "crates/sqll_cli/src/lint/yaml.rs",
+   "reason": "The YAML output of lint (S3b C13): a port of parts of PyYAML 6.0.3 yaml/emitter.py, resolver.py, and representer.py (MIT, crates/LICENSE-pyyaml.txt; THIRD_PARTY.md, \"Ported code\")."
+  },
+  {
+   "path": "crates/LICENSE-pyyaml.txt",
+   "reason": "A copy of LICENSE of PyYAML 6.0.3 (sha256 8d3928f9dc4490fd635707cb88eb26bd764102a7282954307d3e5167a577e8a4; the dist-info of the tool venv of sqlfluff): the MIT license of the YAML emitter port in crates/sqll_cli/src/lint/yaml.rs (THIRD_PARTY.md, \"PyYAML\")."
   }
  ]
 }

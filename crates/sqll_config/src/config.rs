@@ -177,7 +177,8 @@ impl Config {
         match self.core("templater") {
             Some(Value::Str(name)) if TEMPLATERS.contains(&name.as_str()) => Ok(()),
             Some(Value::Str(name)) => Err(ConfigError::Invalid(format!(
-                "Requested templater {name:?} which is not currently available. Try one of {}",
+                "Requested templater {} which is not currently available. Try one of {}",
+                crate::value::py_repr(name),
                 TEMPLATERS.join(", ")
             ))),
             Some(v) => Err(ConfigError::Invalid(format!(

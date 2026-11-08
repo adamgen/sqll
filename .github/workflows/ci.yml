@@ -287,6 +287,13 @@ jobs:
       - name: Check that the sqlfluff submodule is clean after the rule check
         run: scripts/check-submodule "after the rule check"
 
+      # S3b C13: the record results/S3b/C13-cli.json is the output of the
+      # pinned sqlfluff for each lint, fix, rules, and dialects scenario.
+      # The test crates/sqll/tests/cli.rs (Rust tests above) checks sqll
+      # against the record. The script checks the submodule itself.
+      - name: Check the CLI data with sqlfluff
+        run: uv run --frozen --project harness python scripts/s3b/cli_oracle.py check
+
       - uses: actions/upload-artifact@v7
         with:
           name: sqll-build

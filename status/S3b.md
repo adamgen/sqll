@@ -30,8 +30,8 @@ the S6 package `sqll_templater`, not in `sqll_source` (Core owns
 | C9 | Frozen parse interface (lexer to parser to tree; `sqll_syntax::parse`) and `sqll parse` output from `SyntaxTree`. The copy of the parse settings in `crates/sqll_interfaces/src/parse.rs` is gone: the tests use the steps of the interface. The lexer input is a `TemplatedFile` (C8). The caller changes "\r\n" and "\r" to "\n" before the templater, as sqlfluff (`Linter.render_string`); `sqll parse` does it when it reads the file: [docs/interfaces/parse.md](../docs/interfaces/parse.md) | Merged (PR #67) |
 | C10 | Typed view of the tree (`sqll_tree::view`): `NodeRef`, the sqlfluff query helpers (`child`, `children_of`, `first_descendant`, `crawl` as `recursive_crawl`), `AstNode`, `typed_node!`, and the typed nodes of the core set. Fix of C6: the meta kinds have the class types of their sqlfluff class: [docs/interfaces/typed-view.md](../docs/interfaces/typed-view.md) | Merged (PR #68) |
 | C11 | Config skeleton (`sqll_config`) and its use in `sqll parse`: the config model, the sqlfluff defaults, the reader of the config files in the sqlfluff order, `--config`, `--ignore-local-config`, and the overrides; a setting that sqll cannot do fails closed: [docs/interfaces/config.md](../docs/interfaces/config.md) | Merged (PR #69) |
-| C12 | Rule and fix interface (`sqll_lint`) with CP01, CP03, CP04 as the proof: the `Rule` trait, the lint results and fixes (source edits through the source map; a fix in a templated range is refused), the fix loop, and the rule registry. CP01, CP03, CP04 of `sqll_rules` implement it: [docs/interfaces/rules.md](../docs/interfaces/rules.md) | In review |
-| C13 | CLI skeleton (`sqll_cli`): lint, fix, rules, dialects, and output formats. If `EXIT_ERROR` moves, change its path in `scripts/s3b/core_design.py` | Not started |
+| C12 | Rule and fix interface (`sqll_lint`) with CP01, CP03, CP04 as the proof: the `Rule` trait, the lint results and fixes (source edits through the source map; a fix in a templated range is refused), the fix loop, and the rule registry. CP01, CP03, CP04 of `sqll_rules` implement it: [docs/interfaces/rules.md](../docs/interfaces/rules.md) | Merged (PR #71) |
+| C13 | CLI skeleton (`sqll_cli`): lint, fix, rules, dialects, and the output formats; `EXIT_ERROR` is in `crates/sqll_cli/src/lib.rs` (`scripts/s3b/core_design.py` reads it there): [harness/sqll.md](../harness/sqll.md) | In review |
 | C14 | Harness adapters: `sqll lint` and `fix` in the S1 harness and the S2 benchmarks. Also remove the path for a base binary from before C11 in `harness/sqll_harness/bench/sqll.py` (`legacy_options`, `LEGACY_FIXED`, the `reads_config` probe): after C11, the base of each speed check reads the config | Not started |
 | C15 | Code generation interface: tree to schema | Not started |
 | C16 | Package ownership of the later tracks and the interface index; `docs/decisions/s3b-*.md` to the Core paths | Not started |
@@ -286,3 +286,54 @@ rule fixtures (CP01, CP03, CP04), jinja: 0 passed, 0 failed, 0 unsupported, 6 no
   -p sqll -e normal,build`: 0 lines), and C12 changes no code that it
   links. Thus C12 has no speed check (G3 rule above). C13 links it.
 
+
+## C13: CLI proof
+
+Commands: [harness/sqll.md](../harness/sqll.md), "Lint and fix". The crate
+`sqll_cli` has the commands and the output formats; `crates/sqll` keeps
+main, the allocator, the license text, the version, and the dispatch.
+
+- `scripts/s3b/cli_oracle.py` records the output of sqlfluff 4.4.0 for
+  144 scenarios (record
+  [results/S3b/C13-cli.json](../results/S3b/C13-cli.json); `check` in the
+  CI job build). `crates/sqll/tests/cli.rs` runs sqll on each: 120 give
+  the same stdout, stderr, exit code, and changed files; 22 fail closed
+  (`unsupported`, exit code 2; sqlfluff runs them); 2 are usage errors
+  (exit code 2 for both). Each command, each format, and the exit codes
+  0, 1, and 2 have scenarios. The rules table of each of the 79 sqlfluff
+  rules is that of `sqlfluff rules` (the record keeps that output of the
+  scenario "rules default").
+- Fail closed: the default `rules = all` (79 rules) and each selection
+  with a rule that sqll does not have give `unsupported: rules ...` and
+  exit code 2, in `lint`, `fix`, and `rules`. An in-file config line
+  (`-- sqlfluff` or `--sqlfluff`) fails closed. A file that fails closed
+  stops the command after the earlier files (`fix` has written their
+  fixes; harness/sqll.md, "Fail closed").
+- Memory (the allocator note of S3 T17; `scripts/s3b/memory_check.py`,
+  record [results/S3b/C13-memory.json](../results/S3b/C13-memory.json)):
+  the peak RSS (VmHWM) of 3, 30, 300, and 3000 files in one process
+  (copies of the 3 ansi S2 parse inputs; the binary of commit `bb082d7`,
+  as in the speed check): lint 26.1 to 27.0 MiB, fix 27.5 to
+  28.5 MiB (3000 / 300 files: 1.015 and 1.023). The allocator
+  needs no change: the free lists give the blocks of a file to the next
+  file. The json format keeps the output of each file until the end
+  (214 MiB for 3000 files; `stdout_bytes` 131437810). Core issue #38 is
+  not needed: VmHWM is read from `/proc`.
+- G4: `cargo test --workspace --locked` passes; tree guard: 84 of 84 the
+  same (local, 2 runs each). The S1 suites, the native base tests, and
+  the bench check: CI on the pull request.
+- Speed check ([results/S3b/speed/C13.json](../results/S3b/speed/C13.json),
+  base `0b57b6cddabe`, head `bb082d76f4b0`, after the review fixes of
+  round 5): 112 benchmarks, 0 slower, 0 failures; total wall time head /
+  base 0.9914 (start 1.0136, parse/small 1.0005, parse/medium 0.997,
+  parse/large 0.9846); head faster than sqruff on 108 of 108 pairs and
+  faster than sqlfluff on 112 of 112. No benchmark is slower than the
+  noise limit (harness/bench.md, "Slowdowns"), so G3.6 needs no reason.
+  The start total (1.0136) is likely from the size of the binary: it
+  links the lint and fix code and is 3.9% larger (16666152 to 17313664
+  bytes).
+- The review fixes of round 6 (after `bb082d7`) change only the Ctrl-C
+  or Ctrl-D answer of `fix --check`, the visibility of 2 functions of
+  `sqll_config`, and the format of 2 lines. They do not change the code
+  that `parse`, `lint`, or `fix` run on a file, so the memory and speed
+  records stay.

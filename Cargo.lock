@@ -549,18 +549,14 @@ checksum = "67b1b7a3b5fe4f1376887184045fcf45c69e92af734b7aaddc05fb777b6fbd03"
 name = "sqll"
 version = "0.1.0"
 dependencies = [
- "serde",
+ "libc",
  "serde_json",
  "serde_yaml_ng",
  "sha2",
- "sqll_config",
+ "sqll_cli",
  "sqll_dialects",
  "sqll_lexer",
- "sqll_parser",
- "sqll_source",
- "sqll_syntax",
- "sqll_templater",
- "sqll_tree",
+ "sqll_lint",
  "sqll_types",
 ]
 
@@ -577,6 +573,26 @@ dependencies = [
  "sqll_lexer",
  "sqll_parser",
  "sqll_types",
+]
+
+[[package]]
+name = "sqll_cli"
+version = "0.1.0"
+dependencies = [
+ "fancy-regex",
+ "libc",
+ "regex",
+ "serde",
+ "serde_json",
+ "serde_yaml_ng",
+ "sqll_config",
+ "sqll_lint",
+ "sqll_parser",
+ "sqll_rules",
+ "sqll_source",
+ "sqll_syntax",
+ "sqll_templater",
+ "sqll_tree",
 ]
 
 [[package]]
