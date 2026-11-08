@@ -1,0 +1,16 @@
+# The rule and fix interface of sqll (docs/decisions/s3b-core.md, Q4; S3b
+# task C12): the Rule trait, the lint results and fixes, the fix loop, and
+# the rule registry. This file is new sqll code (crates/ported.json, "new").
+[package]
+name = "sqll_lint"
+version.workspace = true
+edition = "2021"
+rust-version.workspace = true
+license = "MIT"
+publish = false
+
+[dependencies]
+sqll_config = { path = "../sqll_config" }
+sqll_source = { path = "../sqll_source" }
+sqll_syntax = { path = "../sqll_syntax" }
+sqll_tree = { path = "../sqll_tree" }

@@ -573,6 +573,17 @@ def checks(jobs: int | None = None) -> list[Check]:
                 " check",
             ),
         ),
+        Check(
+            "rules",
+            f"{UV} python scripts/s3b/rules_oracle.py check",
+            ("build: Check the rule data with sqlfluff",),
+            needs=(SETUP,),
+        ),
+        Check(
+            "submodule-after-rules",
+            'scripts/check-submodule "after the rule check"',
+            ("build: Check that the sqlfluff submodule is clean after the rule check",),
+        ),
         # One unsharded run of all suites and tools, as all shards of CI.
         Check(
             "run",

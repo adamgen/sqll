@@ -4,10 +4,12 @@
 // commit 0348222a3bcdb0226563f7349c5a39beb0641955.
 // Copyright (c) 2018-2026 Alan Cruickshank. MIT License: see
 // crates/LICENSE-sqlfluffrs.md. See THIRD_PARTY.md and crates/ported.json.
+// sqll changed this file. crates/ported.json gives the reason.
 
-//! CP03 (function-name capitalisation) detection over the parse arena.
+//! CP03 (function-name capitalisation) over the rule interface of
+//! `sqll_lint`.
 //!
-//! Thin wrapper over [`crate::capitalisation::detect`] — see that module for
+//! Thin wrapper over [`crate::capitalisation::eval`] — see that module for
 //! the shared walk/refute/apply logic. CP03 has no target/parent exclusions of
 //! its own (`Rule_CP03` sets `_exclude_types`/`_exclude_parent_types` to empty
 //! tuples); the qualified-function-name skip (multi-part names are likely
@@ -17,35 +19,59 @@
 //! Unlike CP01, CP03 reads `extended_capitalisation_policy`, so `policy` may
 //! additionally be `pascal`, `camel`, or `snake`.
 
-use std::collections::HashSet;
+use sqll_lint::{CrawlBehaviour, LintError, LintPhase, LintResult, Rule, RuleConfig, RuleContext};
+use sqll_tree::SegmentType;
 
-use sqlfluffrs_parser::Arena;
+use crate::capitalisation::{eval, settings, Targets};
 
-use crate::capitalisation::detect;
+const TARGET_TYPES: [SegmentType; 2] = [SegmentType::FUNCTION_NAME_IDENTIFIER, SegmentType::BARE_FUNCTION];
+const EXCLUDE_TYPES: [SegmentType; 0] = [];
+const EXCLUDE_PARENT_TYPES: [SegmentType; 0] = [];
 
-const TARGET_TYPES: [&str; 2] = ["function_name_identifier", "bare_function"];
-const EXCLUDE_TYPES: [&str; 0] = [];
-const EXCLUDE_PARENT_TYPES: [&str; 0] = [];
+const TARGETS: Targets = Targets {
+    code: "CP03",
+    target_types: &TARGET_TYPES,
+    exclude_types: &EXCLUDE_TYPES,
+    exclude_parent_types: &EXCLUDE_PARENT_TYPES,
+    policy_key: "extended_capitalisation_policy",
+    description_elem: "Function names",
+};
 
-/// Detect CP03 violations on a parsed arena.
-///
-/// Returns `(leaf_index, fixed_raw)` for every function-name leaf that needs a
-/// capitalisation fix. `leaf_index` is the position in the arena's depth-first
-/// leaf order, which matches Python's `raw_segments`, so the caller anchors via
-/// `raw_segments[leaf_index]`.
-pub fn cp03_violations(
-    arena: &Arena,
-    policy: &str,
-    ignore_words: &HashSet<String>,
-    ignore_templated: bool,
-) -> Vec<(usize, String)> {
-    detect(
-        arena,
-        &TARGET_TYPES,
-        &EXCLUDE_TYPES,
-        &EXCLUDE_PARENT_TYPES,
-        policy,
-        ignore_words,
-        ignore_templated,
-    )
+/// The rule `CP03` (`capitalisation.functions`).
+pub struct RuleCP03;
+
+impl Rule for RuleCP03 {
+    fn code(&self) -> &'static str {
+        "CP03"
+    }
+    fn name(&self) -> &'static str {
+        "capitalisation.functions"
+    }
+    fn description(&self) -> &'static str {
+        "Inconsistent capitalisation of function names."
+    }
+    fn groups(&self) -> &'static [&'static str] {
+        &["all", "core", "capitalisation"]
+    }
+    fn aliases(&self) -> &'static [&'static str] {
+        &["L030"]
+    }
+    fn config_keywords(&self) -> &'static [&'static str] {
+        &["extended_capitalisation_policy", "ignore_words", "ignore_words_regex"]
+    }
+    fn lint_phase(&self) -> LintPhase {
+        LintPhase::Post
+    }
+    fn is_fix_compatible(&self) -> bool {
+        true
+    }
+    fn crawl_behaviour(&self) -> CrawlBehaviour {
+        CrawlBehaviour::seeker(&TARGET_TYPES)
+    }
+    fn check_config(&self, config: &RuleConfig) -> Result<(), LintError> {
+        settings(config, TARGETS.policy_key).map(|_| ())
+    }
+    fn eval(&self, context: &mut RuleContext<'_, '_>) -> Result<Vec<LintResult>, LintError> {
+        eval(context, &TARGETS)
+    }
 }

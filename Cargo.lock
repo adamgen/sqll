@@ -602,7 +602,9 @@ dependencies = [
  "sqll_config",
  "sqll_dialects",
  "sqll_lexer",
+ "sqll_lint",
  "sqll_parser",
+ "sqll_rules",
  "sqll_source",
  "sqll_syntax",
  "sqll_templater",
@@ -620,6 +622,16 @@ dependencies = [
  "sqll_dialects",
  "sqll_types",
  "uuid",
+]
+
+[[package]]
+name = "sqll_lint"
+version = "0.1.0"
+dependencies = [
+ "sqll_config",
+ "sqll_source",
+ "sqll_syntax",
+ "sqll_tree",
 ]
 
 [[package]]
@@ -641,10 +653,14 @@ dependencies = [
 name = "sqll_rules"
 version = "0.1.0"
 dependencies = [
- "hashbrown 0.16.1",
- "sqll_dialects",
- "sqll_lexer",
- "sqll_parser",
+ "serde_json",
+ "serde_yaml_ng",
+ "sqll_config",
+ "sqll_lint",
+ "sqll_source",
+ "sqll_syntax",
+ "sqll_templater",
+ "sqll_tree",
 ]
 
 [[package]]

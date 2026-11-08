@@ -22,6 +22,7 @@ members = [
     "crates/sqll_source",
     "crates/sqll_templater",
     "crates/sqll_config",
+    "crates/sqll_lint",
 ]
 
 [workspace.package]

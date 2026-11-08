@@ -99,7 +99,8 @@ def test_the_new_files_with_ported_parts_are_named():
     # 5 since S3b C9: the ported parse calls moved from crates/sqll/src/parse.rs
     # and crates/sqll_interfaces/src/parse.rs to crates/sqll_syntax/src/parse.rs.
     # 6 since S3b C11: crates/sqll_config/src/value.rs (coerce_value).
-    assert len(headers) == 6
+    # 12 since S3b C12: the 6 files of crates/sqll_lint/src/ but lib.rs.
+    assert len(headers) == 12
     assert named == headers
 
 
@@ -279,7 +280,7 @@ def test_sqll_is_under_the_mit_license():
 def test_each_crate_of_the_workspace_has_the_mit_license():
     workspace = tomllib.loads((REPO_ROOT / "Cargo.toml").read_text("utf-8"))
     members = workspace["workspace"]["members"]
-    assert len(members) == 13
+    assert len(members) == 14
     for member in members:
         manifest = tomllib.loads((REPO_ROOT / member / "Cargo.toml").read_text("utf-8"))
         assert manifest["package"]["license"] == "MIT", member

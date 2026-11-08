@@ -274,6 +274,19 @@ jobs:
       - name: Check that the sqlfluff submodule is clean after the config check
         run: scripts/check-submodule "after the config check"
 
+      # S3b C12: the record results/S3b/C12-rules.json is the rule manifest,
+      # the rule config validation, and the rule test helper answers for the
+      # CP01, CP03, and CP04 rule fixtures of the pinned sqlfluff, and
+      # crates/sqll_lint/src/sqlfluff.rs is its table. The tests
+      # crates/sqll_interfaces/tests/rules.rs and
+      # crates/sqll_rules/tests/fixtures.rs (Rust tests above) check sqll
+      # against the record.
+      - name: Check the rule data with sqlfluff
+        run: uv run --frozen --project harness python scripts/s3b/rules_oracle.py check
+
+      - name: Check that the sqlfluff submodule is clean after the rule check
+        run: scripts/check-submodule "after the rule check"
+
       - uses: actions/upload-artifact@v7
         with:
           name: sqll-build
