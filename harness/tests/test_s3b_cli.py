@@ -85,3 +85,17 @@ def test_the_timings_are_masked():
         '{"timings": {"templating": 0.0, "CP01": 0.0}}\n  timings:\n    lexing: 0.0\n'
     )
     assert "each_c13_scenario_gives_the_sqlfluff_result" in TEST.read_text("utf8")
+
+
+def test_the_memory_record_shows_no_growth_for_lint_and_fix():
+    """scripts/s3b/memory_check.py: the record of C13 (status/S3b.md)."""
+    record = json.loads((REPO_ROOT / "results/S3b/C13-memory.json").read_text("utf8"))
+    assert record["kind"] == "sqll-s3b-c13-memory"
+    assert record["pass"] is True
+    for mode in record["bounded_modes"]:
+        peaks = [r["vmhwm_kib"] for r in record["runs"] if r["mode"] == mode]
+        files = [r["files"] for r in record["runs"] if r["mode"] == mode]
+        assert files == [3, 30, 300, 3000], mode
+        assert max(peaks) <= min(peaks) * 1.10, mode
+        assert record["ratio_largest_to_previous"][mode] <= record["max_ratio"]
+    assert all(r["exit_code"] in (0, 1) for r in record["runs"])

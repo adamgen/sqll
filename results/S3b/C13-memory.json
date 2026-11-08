@@ -6,7 +6,7 @@
  "sqll": {
   "version": "0.1.0+tables.5371ded8ae219be1a62cd34b1b793d36c41bc9fa432f344de5d84f48d2d059e8",
   "tables_sha256": "5371ded8ae219be1a62cd34b1b793d36c41bc9fa432f344de5d84f48d2d059e8",
-  "source_sha256": "97cad8ffd59c7572ab6bcda6a6ae342c693ec878895d76fdb8f07049e971b6da",
+  "source_sha256": "eb0096cfa3dc5a3e4492bcf573d6ad48f4b60927fc321d86649a46dc662a5c7e",
   "source_files": 168
  },
  "inputs": {
@@ -14,113 +14,113 @@
   "ansi/medium": 4096,
   "ansi/large": 16377
  },
- "floor_ru_maxrss_kib": 29804,
+ "floor_ru_maxrss_kib": 30420,
  "max_ratio": 1.1,
  "runs": [
   {
    "exit_code": 1,
-   "seconds": 0.094,
-   "vmhwm_kib": 26804,
-   "ru_maxrss_kib": 29804,
+   "seconds": 0.074,
+   "vmhwm_kib": 26820,
+   "ru_maxrss_kib": 30420,
    "mode": "lint human",
    "copies": 1,
    "files": 3
   },
   {
    "exit_code": 1,
-   "seconds": 0.67,
-   "vmhwm_kib": 27228,
-   "ru_maxrss_kib": 29804,
+   "seconds": 0.718,
+   "vmhwm_kib": 27244,
+   "ru_maxrss_kib": 30420,
    "mode": "lint human",
    "copies": 10,
    "files": 30
   },
   {
    "exit_code": 1,
-   "seconds": 6.104,
-   "vmhwm_kib": 27272,
-   "ru_maxrss_kib": 29804,
+   "seconds": 6.39,
+   "vmhwm_kib": 27284,
+   "ru_maxrss_kib": 30420,
    "mode": "lint human",
    "copies": 100,
    "files": 300
   },
   {
    "exit_code": 1,
-   "seconds": 62.142,
-   "vmhwm_kib": 27680,
-   "ru_maxrss_kib": 30700,
+   "seconds": 72.119,
+   "vmhwm_kib": 27696,
+   "ru_maxrss_kib": 31316,
    "mode": "lint human",
    "copies": 1000,
    "files": 3000
   },
   {
    "exit_code": 1,
-   "seconds": 0.084,
-   "vmhwm_kib": 26800,
-   "ru_maxrss_kib": 30700,
+   "seconds": 0.09,
+   "vmhwm_kib": 26820,
+   "ru_maxrss_kib": 31316,
    "mode": "lint json",
    "copies": 1,
    "files": 3
   },
   {
    "exit_code": 1,
-   "seconds": 0.612,
-   "vmhwm_kib": 30388,
-   "ru_maxrss_kib": 30700,
+   "seconds": 0.837,
+   "vmhwm_kib": 30404,
+   "ru_maxrss_kib": 31316,
    "mode": "lint json",
    "copies": 10,
    "files": 30
   },
   {
    "exit_code": 1,
-   "seconds": 5.679,
-   "vmhwm_kib": 62716,
-   "ru_maxrss_kib": 63496,
+   "seconds": 7.724,
+   "vmhwm_kib": 44500,
+   "ru_maxrss_kib": 44168,
    "mode": "lint json",
    "copies": 100,
    "files": 300
   },
   {
    "exit_code": 1,
-   "seconds": 68.506,
-   "vmhwm_kib": 471780,
-   "ru_maxrss_kib": 471780,
+   "seconds": 76.869,
+   "vmhwm_kib": 222176,
+   "ru_maxrss_kib": 221876,
    "mode": "lint json",
    "copies": 1000,
    "files": 3000
   },
   {
    "exit_code": 0,
-   "seconds": 0.21,
+   "seconds": 0.185,
    "vmhwm_kib": 28288,
-   "ru_maxrss_kib": 30700,
+   "ru_maxrss_kib": 31316,
    "mode": "fix",
    "copies": 1,
    "files": 3
   },
   {
    "exit_code": 0,
-   "seconds": 1.84,
-   "vmhwm_kib": 28984,
-   "ru_maxrss_kib": 30700,
+   "seconds": 1.865,
+   "vmhwm_kib": 29000,
+   "ru_maxrss_kib": 31316,
    "mode": "fix",
    "copies": 10,
    "files": 30
   },
   {
    "exit_code": 0,
-   "seconds": 21.232,
-   "vmhwm_kib": 29008,
-   "ru_maxrss_kib": 30700,
+   "seconds": 19.309,
+   "vmhwm_kib": 29020,
+   "ru_maxrss_kib": 31316,
    "mode": "fix",
    "copies": 100,
    "files": 300
   },
   {
    "exit_code": 0,
-   "seconds": 205.421,
-   "vmhwm_kib": 29208,
-   "ru_maxrss_kib": 30700,
+   "seconds": 183.147,
+   "vmhwm_kib": 29220,
+   "ru_maxrss_kib": 31316,
    "mode": "fix",
    "copies": 1000,
    "files": 3000
@@ -128,7 +128,7 @@
  ],
  "ratio_largest_to_previous": {
   "lint human": 1.015,
-  "lint json": 7.522,
+  "lint json": 4.993,
   "fix": 1.007
  },
  "bounded_modes": [

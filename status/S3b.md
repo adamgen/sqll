@@ -286,3 +286,42 @@ rule fixtures (CP01, CP03, CP04), jinja: 0 passed, 0 failed, 0 unsupported, 6 no
   -p sqll -e normal,build`: 0 lines), and C12 changes no code that it
   links. Thus C12 has no speed check (G3 rule above). C13 links it.
 
+
+## C13: CLI proof
+
+Commands: [harness/sqll.md](../harness/sqll.md), "Lint and fix". The crate
+`sqll_cli` has the commands and the output formats; `crates/sqll` keeps
+main, the allocator, the license text, the version, and the dispatch.
+
+- `scripts/s3b/cli_oracle.py` records the output of sqlfluff 4.4.0 for
+  117 scenarios (record
+  [results/S3b/C13-cli.json](../results/S3b/C13-cli.json); `check` in the
+  CI job build). `crates/sqll/tests/cli.rs` runs sqll on each: 101 give
+  the same stdout, stderr, exit code, and changed files; 13 fail closed
+  (`unsupported`, exit code 2; sqlfluff runs them); 2 are usage errors
+  (exit code 2 for both); 1 is `rules` with only the rules of sqll. Each
+  command, each format, and the exit codes 0, 1, and 2 have scenarios.
+  The rules table of each of the 79 sqlfluff rules is that of `sqlfluff
+  rules`.
+- Fail closed: the default `rules = all` (79 rules) and each selection
+  with a rule that sqll does not have give `unsupported: rules ...` and
+  exit code 2.
+- Memory (the allocator note of S3 T17; `scripts/s3b/memory_check.py`,
+  record [results/S3b/C13-memory.json](../results/S3b/C13-memory.json)):
+  the peak RSS (VmHWM) of 3, 30, 300, and 3000 files in one process
+  (copies of the 3 ansi S2 parse inputs): lint 26.2 to 27.0 MiB, fix
+  27.6 to 28.5 MiB (3000 / 300 files: 1.015 and 1.007). The allocator
+  needs no change: the free lists give the blocks of a file to the next
+  file. The json format keeps the output of each file until the end
+  (217 MiB for 3000 files, 131 MB of output). Core issue #38 is not
+  needed: VmHWM is read from `/proc`.
+- G4: `cargo test --workspace --locked` passes; tree guard: 84 of 84 the
+  same (local, 2 runs each). The S1 suites, the native base tests, and
+  the bench check: CI on the pull request.
+- Speed check ([results/S3b/speed/C13.json](../results/S3b/speed/C13.json),
+  base `0b57b6cddabe`, head `0889a6202dee`): 112 benchmarks, 0 slower, 0
+  failures; total wall time head / base 1.0035 (start 1.027, parse/small
+  1.020, parse/medium 1.011, parse/large 0.995); head faster than sqruff
+  on 108 of 108 pairs and faster than sqlfluff on 112 of 112. No
+  benchmark is slower than the noise limit (harness/bench.md,
+  "Slowdowns").
