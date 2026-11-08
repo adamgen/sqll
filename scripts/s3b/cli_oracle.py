@@ -26,9 +26,11 @@ The "sqll" field says what sqll must do:
 - null: the same stdout, stderr, exit code, and files;
 - "unsupported": exit code 2 and "unsupported:" on stderr; no file
   changes (sqll fails closed);
-- "usage": exit code 2 for both (a usage error: the texts differ);
-- "rules_subset": the stdout of sqlfluff with only the rules of sqll; the
-  same stderr and exit code.
+- "usage": exit code 2 for both (a usage error: the texts differ).
+
+For the scenarios of KEEP_OUTPUT, the record also keeps the stdout of an
+"unsupported" scenario: the rules table of each sqlfluff rule
+(crates/sqll/tests/cli.rs compares the table of sqll with it).
 
 crates/sqll/tests/cli.rs runs sqll on each scenario.
 
@@ -408,6 +410,20 @@ SCENARIOS = [
         sqll="unsupported",
     ),
     sc(
+        "lint in-file config no space",
+        ["lint", *CP, "i.sql"],
+        {
+            "i.sql": "--sqlfluff:rules:capitalisation.keywords:capitalisation_policy:upper\nselect a from t\n"
+        },
+        sqll="unsupported",
+    ),
+    sc(
+        "lint in-file config no space rules",
+        ["lint", "--dialect", "ansi", "--rules", "CP01", "i.sql"],
+        {"i.sql": "select 1\r\n--sqlfluff:rules:LT01\r\nSELECT a from t\r\n"},
+        sqll="unsupported",
+    ),
+    sc(
         "lint jinja tag",
         ["lint", *CP, "j.sql"],
         {"j.sql": "SELECT {{ 1 }} from t\n"},
@@ -492,6 +508,12 @@ SCENARIOS = [
         ["fix", *CP, "--FIX-EVEN-UNPARSABLE", "e.sql", "a.sql"],
         sqll="unsupported",
     ),
+    sc(
+        "fix in-file config no space",
+        ["fix", *CP, "i.sql"],
+        {"i.sql": "--sqlfluff:rules:CP01\nselect a FROM t\n"},
+        sqll="unsupported",
+    ),
     sc("fix no dialect", ["fix", "--rules", "CP01", "a.sql"]),
     sc("fix path that does not exist", ["fix", *CP, "nope.sql"]),
     # rules and dialects.
@@ -506,7 +528,13 @@ SCENARIOS = [
         ["rules", "--color"],
         {".sqlfluff": "[sqlfluff]\nrules = capitalisation.keywords,CP03,L040\n"},
     ),
-    sc("rules default", ["rules"], {}, sqll="rules_subset"),
+    sc("rules default", ["rules"], {}, sqll="unsupported"),
+    sc(
+        "rules not in sqll",
+        ["rules"],
+        {".sqlfluff": "[sqlfluff]\nrules = CP01,LT01\n"},
+        sqll="unsupported",
+    ),
     sc(
         "rules line length",
         ["rules"],
@@ -516,6 +544,9 @@ SCENARIOS = [
     sc("dialects color", ["dialects", "--color"], {}),
     sc("dialects nocolor", ["dialects", "-n"], {}),
 ]
+
+# The unsupported scenarios that keep their stdout.
+KEEP_OUTPUT = ("rules default",)
 
 TIMINGS_JSON = re.compile(r'("timings": \{)([^}]*)(\})')
 JSON_NUMBER = re.compile(r": -?[0-9][0-9.e+-]*")
@@ -629,6 +660,8 @@ def run_scenario(binary: Path, s: dict) -> dict:
         if s["sqll"] == "unsupported":
             # sqll fails closed: only the exit code of sqlfluff is kept (some
             # of these outputs have times or a process order).
+            if s["name"] in KEEP_OUTPUT:
+                return {**s, "exit_code": code, "stdout": stdout}
             return {**s, "exit_code": code}
         return {
             **s,
@@ -672,7 +705,7 @@ def record_data(cli: list) -> dict:
             "S3b C13: the stdout, stderr, exit code, and changed files of the pinned "
             "sqlfluff for each scenario (scripts/s3b/cli_oracle.py; harness/sqll.md). "
             '"<root>" is the scenario folder; each time value of a lint record is 0.0. '
-            "sqll: what sqll must do (null: the same; unsupported; usage; rules_subset)."
+            "sqll: what sqll must do (null: the same; unsupported; usage)."
         ),
         "command": f"{COMMAND} record",
         "sqlfluff": {

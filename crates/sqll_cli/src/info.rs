@@ -13,8 +13,9 @@
 //! `_format_rule_description`, and `format_dialects`, sqlfluff 4.4.0; MIT,
 //! see THIRD_PARTY.md).
 //!
-//! `sqll rules` shows only the rules of sqll (the registry of sqll_rules)
-//! that the config selects. sqlfluff shows each selected rule.
+//! `sqll rules` shows the rules that the config selects. If the config
+//! selects a rule that sqll does not have (also with the default `rules =
+//! all`), it fails closed: "unsupported: rules ...", exit code 2.
 
 use sqll_config::{Config, ConfigError, Env, LoadOptions, Loader, Table, Value};
 use sqll_lint::{Registry, RULES};
@@ -68,7 +69,8 @@ const OPTS: &[Opt] = &[
 const RULES_USAGE: &str = "\
 Usage: sqll rules [OPTIONS]
 
-  Show the rules of sqll that the config selects (the dialect is ansi).
+  Show the rules that the config selects (the dialect is ansi). A rule
+  that sqll does not have gives \"unsupported\" and exit code 2.
 
 Options:
   -v, --verbose        Verbosity. No effect on this command.
@@ -223,21 +225,15 @@ pub fn rules_command(args: &[String]) -> Result<u8, Error> {
         eprintln!("{w}");
     }
     let registry = Registry::new(sqll_rules::rules()).map_err(Error::new)?;
-    let invalid = |e: sqll_lint::LintError| {
-        Error::stdout(painter.paint(&format!("Error loading rules: {e}"), Some(Color::Red)))
-    };
-    let rules_section = config.section(&["rules"]).cloned().unwrap_or_default();
-    sqll_lint::config::validate_options(&rules_section).map_err(invalid)?;
-    let codes: Vec<&str> = Registry::selected_codes(&config)
-        .into_iter()
-        .filter(|c| registry.has(c))
-        .collect();
-    for code in &codes {
-        let rule = registry.get(code).expect("the registry has the rule");
-        if let Some(section) = config.rule_section(rule.name()) {
-            sqll_lint::config::validate_options(section).map_err(invalid)?;
+    // The sqlfluff `get_rulepack`. A selected rule that sqll does not have
+    // fails closed (the default `rules = all` selects each sqlfluff rule).
+    let pack = registry.select(&config).map_err(|e| match e {
+        sqll_lint::LintError::Unsupported(_) => Error::new(e.to_string()),
+        other => {
+            Error::stdout(painter.paint(&format!("Error loading rules: {other}"), Some(Color::Red)))
         }
-    }
+    })?;
+    let codes: Vec<&str> = pack.rules.iter().map(|(r, _)| r.code()).collect();
     println!("{}", format_rules(&painter, &codes, width));
     Ok(EXIT_OK)
 }

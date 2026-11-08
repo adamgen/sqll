@@ -20,7 +20,7 @@ license text, the version, and the dispatch.
 | `sqll parse [-d D] [-t T] [--config F] [--ignore-local-config] [-f json] [-c] [-m] [--max-parse-depth N] [--timings] PATH` | The record of `sqlfluff parse -f json` |
 | `sqll lint [OPTIONS] [PATHS]...` | `sqlfluff lint`: formats `human`, `json`, `yaml`, `github-annotation`, `github-annotation-native`, `none` ("Lint and fix" below) |
 | `sqll fix [OPTIONS] [PATHS]...` | `sqlfluff fix`: in place, `--check`, `-f`, `-x`, stdin |
-| `sqll rules` | `sqlfluff rules`, with only the rules of sqll |
+| `sqll rules` | `sqlfluff rules`; a selected rule that sqll does not have fails closed |
 | `sqll dialects` | `sqlfluff dialects` |
 
 `sqll parse` prints the record of `sqlfluff parse -f json`. Since S3b C11
@@ -30,7 +30,7 @@ option that overrides the config value `max_parse_depth` (default 600);
 `sqlfluff parse` has no such option. `--timings` (a sqll option for the
 speed work, S3 T14) adds one JSON line to the end of stderr: the seconds
 of each phase (`init`, `setup`, `lex`, `parse`, `record`, `write`, `free`;
-`crates/sqll/src/timings.rs`), their sum, and the token count. Since S3
+`crates/sqll_cli/src/parse/timings.rs`), their sum, and the token count. Since S3
 T15, `write` has the stderr error lines and the JSON, which sqll writes
 from the tree, and `free` has no work (sqll exits with no drop of the
 tree). Since S3b C9, `record` has the conversion of the parser tree to the
@@ -66,7 +66,8 @@ T12). Differences from `sqlfluff parse`:
   `-- noqa`, `-- noqa: PRS`, or `-- noqa: disable=all`) removes the lex or
   parse error of its lines. Then sqlfluff gives exit code 0 and sqll gives
   exit code 1. The output is the same.
-- sqll reads no in-file config line (`-- sqlfluff:...`). sqlfluff applies
+- sqll reads no in-file config line (`-- sqlfluff:...` or
+  `--sqlfluff:...`). sqlfluff applies
   them, also with `--ignore-local-config`. A line can change the dialect,
   `max_parse_depth`, or another setting, so the tree and the exit code can
   be different. Only 1 dialect file has such a line, with no effect
@@ -151,7 +152,7 @@ T12). Differences from `sqlfluff parse`:
 
 `sqll lint` and `sqll fix` give the stdout, the stderr, the exit codes (0,
 1, 2), and the changed files of `sqlfluff lint` and `sqlfluff fix` for the
-117 scenarios of `results/S3b/C13-cli.json` (`scripts/s3b/cli_oracle.py`;
+121 scenarios of `results/S3b/C13-cli.json` (`scripts/s3b/cli_oracle.py`;
 test `crates/sqll/tests/cli.rs`). The time values of a json or yaml record
 are those of sqll. PATHS are files, folders, or `-` (stdin); no path is the
 working folder. The config is that of `sqll parse` (C11), with the rule
@@ -167,22 +168,28 @@ Options: `-d`, `-t`, `-r/--rules`, `-e/--exclude-rules`, `--config`,
 
 Fail closed (`unsupported`, exit code 2), never a silent skip:
 
-- a rule that the config selects and sqll does not have: the default
-  `rules = all` selects the 79 rules of sqlfluff, so `--rules` (or the
-  config) must select only CP01, CP03, or CP04;
+- a rule that the config selects and sqll does not have, also in `sqll
+  rules`: the default `rules = all` selects the 79 rules of sqlfluff, so
+  `--rules` (or the config) must select only CP01, CP03, or CP04;
 - each other sqlfluff option (for example `-v`, `--bench`,
   `--stdin-filename`, `--library-path`, `--persist-timing`,
   `--show-lint-violations`, `--FIX-EVEN-UNPARSABLE`), the formats `sarif`
   and `gitlab`, and more than one process for more than one file;
-- a `noqa` comment (C12), an in-file config line (`-- sqlfluff`), an
+- a `noqa` comment (C12), an in-file config line (`-- sqlfluff` or
+  `--sqlfluff` at the start of a line), an
   ignore file (`.sqlfluffignore`, `ignore_paths`), a Jinja tag,
   `large_file_skip_char_limit`, and `verbose` other than 0;
 - a parse error with no position in sqll (a parser stop, for example an
   unclosed bracket): sqlfluff gives it a position and no tree.
 
+sqll does these checks for each file in turn. Thus a file that fails closed
+stops the command after the earlier files: `lint` has printed their
+results, and `fix` has written their fixes (as sqlfluff, `fix` writes each
+file when its lint ends). Test: `crates/sqll/tests/cli.rs`,
+`a_file_that_fails_closed_stops_the_fix_after_the_earlier_files`.
+
 Other differences from sqlfluff:
 
-- `sqll rules` shows only the rules of sqll that the config selects.
 - A usage error (an unknown option or value) has another text; the exit
   code is 2, as in sqlfluff.
 - `fix --check` reads the key from the terminal as click does. If there is
@@ -192,10 +199,11 @@ Other differences from sqlfluff:
 - The warning texts of the fix loop are those of C12 (some are sqll only).
 
 Memory: the peak RSS of `lint` (human format) and `fix` does not grow with
-the number of files: 26.2 and 27.0 MiB (lint), 27.6 and 28.5 MiB (fix)
+the number of files: 26.2 and 27.1 MiB (lint), 27.6 and 28.5 MiB (fix)
 for 3 and 3000 files (`results/S3b/C13-memory.json`). The `json` and
 `yaml` formats keep the output text of each file until the end, as
-sqlfluff keeps the records: 217 MiB for 3000 files with 131 MB of output.
+sqlfluff keeps the records: 215 MiB for 3000 files with 131 MB of output
+(`stdout_bytes` of the record).
 
 ## Adapter
 

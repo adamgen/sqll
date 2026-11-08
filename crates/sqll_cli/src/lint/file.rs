@@ -253,19 +253,23 @@ fn is_line_break(c: char) -> bool {
     )
 }
 
-/// The first line (from 1) that starts with "-- sqlfluff" (an in-file
-/// config line of `process_raw_file_for_config`), if any.
+/// The first line (from 1) that starts with "-- sqlfluff" or "--sqlfluff"
+/// (an in-file config line of `process_raw_file_for_config`), if any. The
+/// lines are those of Python `str.splitlines`: "\r\n" is one line break.
 fn config_line(text: &str) -> Option<usize> {
     let mut line = 1;
     let mut at_start = true;
+    let mut after_cr = false;
     for (i, c) in text.char_indices() {
-        if at_start && text[i..].starts_with("-- sqlfluff") {
+        if at_start && (text[i..].starts_with("-- sqlfluff") || text[i..].starts_with("--sqlfluff"))
+        {
             return Some(line);
         }
         at_start = is_line_break(c);
-        if at_start {
+        if at_start && !(c == '\n' && after_cr) {
             line += 1;
         }
+        after_cr = c == '\r';
     }
     None
 }
@@ -416,7 +420,10 @@ fn lint_text(
     let mut warnings = Vec::new();
     if let Some(line) = config_line(&source) {
         return Err(unsupported(
-            &format!("an in-file config line (\"-- sqlfluff\") at line {line} of {fname}"),
+            &format!(
+                "an in-file config line (\"-- sqlfluff\" or \"--sqlfluff\") at line {line} \
+                 of {fname}"
+            ),
             "sqll does not read in-file config lines yet (S7)",
         ));
     }
@@ -607,5 +614,22 @@ mod tests {
         assert_eq!(config_line("select 1 -- sqlfluff:x\n"), None);
         assert_eq!(config_line("a\u{c}-- sqlfluff"), Some(2));
         assert_eq!(config_line(" -- sqlfluff"), None);
+    }
+
+    #[test]
+    fn an_in_file_config_line_with_no_space_is_found() {
+        // sqlfluff 4.4.0 fluffconfig.py: startswith(("-- sqlfluff", "--sqlfluff")).
+        assert_eq!(config_line("--sqlfluff:rules:LT01\nselect 1\n"), Some(1));
+        assert_eq!(config_line("select 1\n--sqlfluff:dialect:ansi"), Some(2));
+        assert_eq!(config_line("select 1 --sqlfluff:x\n"), None);
+        assert_eq!(config_line("--sqlfluffx"), Some(1));
+        assert_eq!(config_line("-- sqlfluf\n--sqlflu\n"), None);
+    }
+
+    #[test]
+    fn the_line_of_an_in_file_config_line_counts_crlf_as_one_break() {
+        assert_eq!(config_line("a\r\nb\r\n--sqlfluff:x\r\n"), Some(3));
+        assert_eq!(config_line("a\r\rb\n-- sqlfluff:x"), Some(4));
+        assert_eq!(config_line("a\n\r-- sqlfluff:x"), Some(3));
     }
 }

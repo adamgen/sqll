@@ -39,12 +39,13 @@ def test_the_writer_gives_the_record_again():
 
 def test_each_scenario_has_a_known_mark_and_its_data():
     for s in RECORD["scenarios"]:
-        assert s["sqll"] in (None, "unsupported", "usage", "rules_subset"), s["name"]
+        assert s["sqll"] in (None, "unsupported", "usage"), s["name"]
         assert isinstance(s["exit_code"], int), s["name"]
         if s["sqll"] == "unsupported":
             # sqll fails closed where sqlfluff runs.
             assert s["exit_code"] != 2, s["name"]
-            assert "stdout" not in s, s["name"]
+            assert ("stdout" in s) == (s["name"] in co.KEEP_OUTPUT), s["name"]
+            assert "stderr" not in s and "after" not in s, s["name"]
         else:
             assert {"stdout", "stderr", "after"} <= set(s), s["name"]
     assert co.problems_of(RECORD["scenarios"]) == []
@@ -99,3 +100,17 @@ def test_the_memory_record_shows_no_growth_for_lint_and_fix():
         assert max(peaks) <= min(peaks) * 1.10, mode
         assert record["ratio_largest_to_previous"][mode] <= record["max_ratio"]
     assert all(r["exit_code"] in (0, 1) for r in record["runs"])
+    # The output bytes of each run (status/S3b.md gives those of lint json).
+    for r in record["runs"]:
+        assert r["stdout_bytes"] > 0, r
+    big = [r for r in record["runs"] if r["mode"] == "lint json" and r["files"] == 3000]
+    assert big[0]["stdout_bytes"] > 100_000_000
+
+
+def test_the_rules_table_scenario_keeps_its_output():
+    """The scenario of KEEP_OUTPUT is unsupported in sqll (the default
+    "rules = all") and keeps the sqlfluff table of each rule."""
+    for name in co.KEEP_OUTPUT:
+        s = next(s for s in RECORD["scenarios"] if s["name"] == name)
+        assert s["sqll"] == "unsupported" and s["exit_code"] == 0
+        assert s["stdout"].count("\n      groups: ") == 79

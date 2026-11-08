@@ -59,7 +59,7 @@ conversion can refuse a tree; neither may be a silent skip.
 `parse` does not change the text. sqlfluff changes "\r\n" and "\r" to
 "\n" before the templater (`Linter.render_string`). Thus the caller does it
 before the templater: `sqll parse` does it when it reads the file
-(`read_sql` of `crates/sqll/src/main.rs`). A `TemplatedFile` with "\r" is
+(`read_sql` of `crates/sqll_cli/src/lib.rs`). A `TemplatedFile` with "\r" is
 valid: the "\r" of "\r\n" is the last character of its line
 ([tree.md](tree.md)).
 

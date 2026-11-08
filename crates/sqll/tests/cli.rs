@@ -1000,24 +1000,6 @@ fn run_scenario(root: &Path, sc: &serde_json::Value) -> Output {
     out
 }
 
-/// The sqlfluff `rules` output with only the blocks of these codes.
-fn rules_subset(text: &str, codes: &[&str]) -> String {
-    let mut out = String::new();
-    let mut keep = true;
-    for line in text.split_inclusive('\n') {
-        let code = line.get(..4).filter(|c| {
-            line.get(4..5) == Some(":") && c.chars().all(|ch| ch.is_ascii_alphanumeric())
-        });
-        if let Some(code) = code {
-            keep = codes.contains(&code);
-        }
-        if line.starts_with("====") || keep {
-            out.push_str(line);
-        }
-    }
-    out
-}
-
 /// sqll lint, fix, rules, and dialects on each scenario of the record:
 /// the sqlfluff stdout, stderr, exit code, and changed files ("sqll":
 /// null), or what the mark of the scenario says.
@@ -1083,12 +1065,6 @@ fn each_c13_scenario_gives_the_sqlfluff_result() {
                     problems.push(format!("{name}: a usage error: {code} {stderr}"));
                 }
             }
-            "rules_subset" => {
-                let want = rules_subset(sc["stdout"].as_str().unwrap(), &["CP01", "CP03", "CP04"]);
-                check("exit code", &code.to_string(), &want_code.to_string());
-                check("stdout", &stdout, &want);
-                check("stderr", &stderr, sc["stderr"].as_str().unwrap());
-            }
             other => panic!("{name}: an unknown mark {other}"),
         }
         let _ = std::fs::remove_dir_all(&root);
@@ -1117,4 +1093,45 @@ fn the_rules_table_is_that_of_sqlfluff_for_each_sqlfluff_rule() {
     let plain = sqll_cli::color::Painter { plain: true };
     let got = sqll_cli::info::format_rules(&plain, &codes, 80) + "\n";
     assert_eq!(got, sc["stdout"].as_str().unwrap());
+}
+
+/// `sqll fix` writes each file when its lint ends, as sqlfluff
+/// (`lint_paths` with `apply_fixes`). A later file that fails closed stops
+/// the command with exit code 2; the files before it stay fixed
+/// (harness/sqll.md, "Fail closed"). sqlfluff fixes both files here, so
+/// the record of cli_oracle.py has no such scenario.
+#[test]
+fn a_file_that_fails_closed_stops_the_fix_after_the_earlier_files() {
+    let dir = scratch("fail-closed-after-fix");
+    std::fs::create_dir_all(dir.join("x")).unwrap();
+    std::fs::create_dir_all(dir.join("y")).unwrap();
+    std::fs::write(dir.join("x/a.sql"), "select a FROM t\n").unwrap();
+    std::fs::write(dir.join("y/b.sql"), "select a FROM t -- noqa\n").unwrap();
+    let run = |args: &[&str]| {
+        Command::new(SQLL)
+            .args(args)
+            .current_dir(&dir)
+            .env("HOME", &dir)
+            .env_remove("XDG_CONFIG_HOME")
+            .output()
+            .expect("run sqll")
+    };
+    let lint = run(&["lint", "--dialect", "ansi", "--rules", "CP01", "x", "y"]);
+    assert_eq!(code(&lint), 2);
+    assert!(
+        stderr(&lint).contains("unsupported: a noqa comment"),
+        "{}",
+        stderr(&lint)
+    );
+    assert!(String::from_utf8_lossy(&lint.stdout).contains("== [x/a.sql] FAIL"));
+    let fix = run(&["fix", "--dialect", "ansi", "--rules", "CP01", "x", "y"]);
+    assert_eq!(code(&fix), 2);
+    assert!(
+        stderr(&fix).contains("unsupported: a noqa comment"),
+        "{}",
+        stderr(&fix)
+    );
+    let read = |p: &str| std::fs::read_to_string(dir.join(p)).unwrap();
+    assert_eq!(read("x/a.sql"), "select a from t\n");
+    assert_eq!(read("y/b.sql"), "select a FROM t -- noqa\n");
 }

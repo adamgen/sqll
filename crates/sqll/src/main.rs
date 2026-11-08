@@ -52,7 +52,7 @@ Commands:
   fix       Fix SQL files.
   lint      Lint SQL files.
   parse     Parse a SQL file and print the parse tree (JSON).
-  rules     Show the rules of sqll that the config selects.
+  rules     Show the rules that the config selects.
   version   Show the version of sqll.
 ";
 

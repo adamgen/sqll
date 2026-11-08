@@ -10,7 +10,7 @@
 //!   the same tree. The steps are those that `parse` calls, so this check
 //!   proves the conversion and the options, not the parser tree. The
 //!   independent proof of the tree is the fixture test of
-//!   `crates/sqll/src/output.rs` (against `Node::as_record`), the tree
+//!   `crates/sqll_cli/src/parse/output.rs` (against `Node::as_record`), the tree
 //!   guard, and the S1 report.
 //! - A templated file: the tree has the source ranges of the source map.
 //! - The diagnostics: a lex error, an unparsable section, and a parser stop

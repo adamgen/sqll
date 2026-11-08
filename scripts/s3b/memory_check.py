@@ -22,6 +22,7 @@ Method:
    os.wait4. On Linux ru_maxrss also has the RSS of this Python process
    at the start of the child (Core issue #38); the record gives it as the
    floor (the ru_maxrss of /bin/true started the same way).
+5. Output: the bytes of stdout of each run (to a file).
 
 The record (RECORD_FILE) has each run and the ratio of the peak of the
 largest count to that of the count before it, for each mode. The check
@@ -78,11 +79,25 @@ def vmhwm(pid: int) -> int | None:
     return None
 
 
-def run(argv: list[str], cwd: Path, env: dict) -> dict:
+def run(argv: list[str], cwd: Path, env: dict, out: Path) -> dict:
     start = time.monotonic()
-    proc = subprocess.Popen(
-        argv, cwd=cwd, env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
-    )
+    with open(out, "wb") as stdout:
+        proc = subprocess.Popen(
+            argv, cwd=cwd, env=env, stdout=stdout, stderr=subprocess.DEVNULL
+        )
+        peak, status, usage = wait(proc)
+    proc.returncode = os.waitstatus_to_exitcode(status)
+    return {
+        "exit_code": proc.returncode,
+        "seconds": round(time.monotonic() - start, 3),
+        "vmhwm_kib": peak,
+        "ru_maxrss_kib": usage.ru_maxrss,
+        "stdout_bytes": out.stat().st_size,
+    }
+
+
+def wait(proc: subprocess.Popen) -> tuple:
+    """Wait for the process; read its VmHWM each 5 ms."""
     peak = 0
     while True:
         pid, status, usage = os.wait4(proc.pid, os.WNOHANG)
@@ -92,13 +107,7 @@ def run(argv: list[str], cwd: Path, env: dict) -> dict:
         if value:
             peak = max(peak, value)
         time.sleep(0.005)
-    proc.returncode = os.waitstatus_to_exitcode(status)
-    return {
-        "exit_code": proc.returncode,
-        "seconds": round(time.monotonic() - start, 3),
-        "vmhwm_kib": peak,
-        "ru_maxrss_kib": usage.ru_maxrss,
-    }
+    return peak, status, usage
 
 
 def build_inputs(folder: Path) -> dict[str, bytes]:
@@ -127,7 +136,8 @@ def measure(binary: Path) -> dict:
         env = {k: v for k, v in os.environ.items() if not k.startswith("PYTHON")}
         env["HOME"] = str(home)
         env.pop("XDG_CONFIG_HOME", None)
-        floor = run(["/bin/true"], tmp, env)["ru_maxrss_kib"]
+        out = tmp / "stdout"
+        floor = run(["/bin/true"], tmp, env, out)["ru_maxrss_kib"]
         runs = []
         for mode, args in MODES.items():
             for copies in COPIES:
@@ -142,7 +152,7 @@ def measure(binary: Path) -> dict:
                 (work / ".sqlfluff").write_text(
                     "[sqlfluff]\nlarge_file_skip_byte_limit = 0\n", encoding="ascii"
                 )
-                r = run([str(binary.resolve()), *args, "files"], work, env)
+                r = run([str(binary.resolve()), *args, "files"], work, env, out)
                 r.update(mode=mode, copies=copies, files=copies * len(inputs))
                 print(f"memory_check: {json.dumps(r)}", flush=True)
                 runs.append(r)
