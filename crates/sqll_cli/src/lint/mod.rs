@@ -901,7 +901,8 @@ pub fn fix_command(args: &[String]) -> Result<u8, Error> {
             })?;
             let answer = match key {
                 crate::tty::Key::Abort => {
-                    out.echo("");
+                    // click getchar: echo(file=sys.stderr), then Abort.
+                    out.err("");
                     out.err("Aborted!");
                     out.flush()?;
                     return Ok(EXIT_FAIL);

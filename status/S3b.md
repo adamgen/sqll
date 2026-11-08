@@ -294,10 +294,10 @@ Commands: [harness/sqll.md](../harness/sqll.md), "Lint and fix". The crate
 main, the allocator, the license text, the version, and the dispatch.
 
 - `scripts/s3b/cli_oracle.py` records the output of sqlfluff 4.4.0 for
-  139 scenarios (record
+  144 scenarios (record
   [results/S3b/C13-cli.json](../results/S3b/C13-cli.json); `check` in the
-  CI job build). `crates/sqll/tests/cli.rs` runs sqll on each: 119 give
-  the same stdout, stderr, exit code, and changed files; 18 fail closed
+  CI job build). `crates/sqll/tests/cli.rs` runs sqll on each: 120 give
+  the same stdout, stderr, exit code, and changed files; 22 fail closed
   (`unsupported`, exit code 2; sqlfluff runs them); 2 are usage errors
   (exit code 2 for both). Each command, each format, and the exit codes
   0, 1, and 2 have scenarios. The rules table of each of the 79 sqlfluff
@@ -332,3 +332,8 @@ main, the allocator, the license text, the version, and the dispatch.
   The start total (1.0136) is likely from the size of the binary: it
   links the lint and fix code and is 3.9% larger (16666152 to 17313664
   bytes).
+- The review fixes of round 6 (after `bb082d7`) change only the Ctrl-C
+  or Ctrl-D answer of `fix --check`, the visibility of 2 functions of
+  `sqll_config`, and the format of 2 lines. They do not change the code
+  that `parse`, `lint`, or `fix` run on a file, so the memory and speed
+  records stay.

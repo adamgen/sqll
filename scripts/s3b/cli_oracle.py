@@ -87,6 +87,11 @@ LAST_FIX = {"m.sql": "select a FROM t\n", "s/b.sql": "select a FROM t\n"}
 SELECT_DIV = (
     SQLFLUFF_ROOT / "test/fixtures/dialects/sparksql/select_div.sql"
 ).read_text(encoding="utf-8")
+# A pinned linter fixture of sqlfluff (MIT, THIRD_PARTY.md): a parse error
+# and a lex error with U+200D (Cf) in its text.
+PARSE_LEX_ERROR = (
+    SQLFLUFF_ROOT / "test/fixtures/linter/parse_lex_error.sql"
+).read_text(encoding="utf-8")
 CP = ["--dialect", "ansi", "--rules", "CP01,CP03,CP04"]
 LONG_PRS = "SELECT a FROM t, ORDER a b c d e f g h i j k l m n o p q r s t u v w x y z aa bb cc dd ee\n"
 LONG = "SELECT a, b, c FROM t WHERE a = 1 AND b = 2 AND c = 3 AND d = 4 OR e = 5 AND f = 6\n"
@@ -534,6 +539,7 @@ SCENARIOS = [
     sc("fix check enter", ["fix", *CP, "--check", "a.sql"], tty="\r"),
     sc("fix check no", ["fix", *CP, "--check", "a.sql"], tty="n"),
     sc("fix check other key", ["fix", *CP, "--check", "a.sql"], tty="x"),
+    sc("fix check abort", ["fix", *CP, "--check", "a.sql"], tty="\x03"),
     sc("fix check no fixes", ["fix", *CP, "--check", "b.sql"]),
     sc("fix default rules", ["fix", "--dialect", "ansi", "a.sql"], sqll="unsupported"),
     sc(
@@ -601,6 +607,31 @@ SCENARIOS = [
         tty="y",
     ),
     sc("fix no dialect", ["fix", "--rules", "CP01", "a.sql"]),
+    # The parse error of this fixture has no position in sqll.
+    sc(
+        "lint parse lex error fixture",
+        ["lint", *CP, "p.sql"],
+        {"p.sql": PARSE_LEX_ERROR},
+        sqll="unsupported",
+    ),
+    sc(
+        "lint parse lex error fixture yaml",
+        ["lint", *CP, "-f", "yaml", "p.sql"],
+        {"p.sql": PARSE_LEX_ERROR},
+        sqll="unsupported",
+    ),
+    sc(
+        "lint parse lex error fixture ignore parsing",
+        ["lint", *CP, "--ignore", "parsing", "p.sql"],
+        {"p.sql": PARSE_LEX_ERROR},
+        sqll="unsupported",
+    ),
+    sc(
+        "fix parse lex error fixture",
+        ["fix", *CP, "p.sql"],
+        {"p.sql": PARSE_LEX_ERROR},
+        sqll="unsupported",
+    ),
     sc("fix path that does not exist", ["fix", *CP, "nope.sql"]),
     # rules and dialects.
     sc(

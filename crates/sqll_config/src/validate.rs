@@ -97,7 +97,10 @@ pub fn validate_config_dict(config: &mut Table, reference: &str) -> Result<(), C
 /// ignore file check of sqlfluff (`_load_configfile` of discovery.py)
 /// loads the file as `Path(filepath).resolve()`, so the messages show
 /// `PosixPath('...')`.
-pub fn validate_config_dict_path(config: &mut Table, reference: &str) -> Result<(), ConfigError> {
+pub(crate) fn validate_config_dict_path(
+    config: &mut Table,
+    reference: &str,
+) -> Result<(), ConfigError> {
     validate_as(config, &format!("PosixPath({})", py_repr(reference)))
 }
 

@@ -293,7 +293,7 @@ impl<'e> Loader<'e> {
     /// As [`Loader::load_file`], but sqlfluff gives the file name as a
     /// `Path` (the ignore file check of discovery.py), so a message of the
     /// check of the values shows `PosixPath('...')`.
-    pub fn load_file_as_path(&self, filepath: &str) -> Result<Table, ConfigError> {
+    pub(crate) fn load_file_as_path(&self, filepath: &str) -> Result<Table, ConfigError> {
         self.read_file(filepath, true)
     }
 
