@@ -322,13 +322,9 @@ main, the allocator, the license text, the version, and the dispatch.
   same (local, 2 runs each). The S1 suites, the native base tests, and
   the bench check: CI on the pull request.
 - Speed check ([results/S3b/speed/C13.json](../results/S3b/speed/C13.json),
-  base `0b57b6cddabe`, head `4b0edc5dc4bc`): 112 benchmarks, 0 slower, 0
-  failures; total wall time head / base 1.0056 (start 1.028, parse/small
-  1.011, parse/medium 1.007, parse/large 1.001); head faster than sqruff
-  on 108 of 108 pairs and faster than sqlfluff on 112 of 112. No
+  base `0b57b6cddabe`, head `6360d12d1fbd`): 112 benchmarks, 0 slower, 0
+  failures; total wall time head / base 1.0009 (start 1.0132, parse/small
+  0.9914, parse/medium 1.0219, parse/large 0.9942); head faster than
+  sqruff on 108 of 108 pairs and faster than sqlfluff on 112 of 112. No
   benchmark is slower than the noise limit (harness/bench.md,
-  "Slowdowns"). The reason for the small start difference: the CLI code
-  makes the binary 3.8% larger (16666152 to 17293816 bytes), and the
-  start of `sqll parse` of `select 1` has 11 more page faults (median of
-  300 runs: 504 to 515). Its instructions grow only 0.2% (callgrind:
-  8105787 to 8122959).
+  "Slowdowns"), so G3.6 needs no reason.

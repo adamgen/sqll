@@ -80,9 +80,9 @@ FOLDER = {
     "d/z/e.sql": PRS,
 }
 # A pinned dialect fixture of sqlfluff (MIT, THIRD_PARTY.md).
-SELECT_DIV = (SQLFLUFF_ROOT / "test/fixtures/dialects/sparksql/select_div.sql").read_text(
-    encoding="utf-8"
-)
+SELECT_DIV = (
+    SQLFLUFF_ROOT / "test/fixtures/dialects/sparksql/select_div.sql"
+).read_text(encoding="utf-8")
 CP = ["--dialect", "ansi", "--rules", "CP01,CP03,CP04"]
 LONG_PRS = "SELECT a FROM t, ORDER a b c d e f g h i j k l m n o p q r s t u v w x y z aa bb cc dd ee\n"
 LONG = "SELECT a, b, c FROM t WHERE a = 1 AND b = 2 AND c = 3 AND d = 4 OR e = 5 AND f = 6\n"
@@ -142,7 +142,16 @@ SCENARIOS = [
     # sqlfluff counts one segment.
     sc(
         "lint json sparksql div",
-        ["lint", "--dialect", "sparksql", "--rules", "CP01", "-f", "json", "select_div.sql"],
+        [
+            "lint",
+            "--dialect",
+            "sparksql",
+            "--rules",
+            "CP01",
+            "-f",
+            "json",
+            "select_div.sql",
+        ],
         {"select_div.sql": SELECT_DIV},
     ),
     sc(
