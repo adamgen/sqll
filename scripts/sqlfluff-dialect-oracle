@@ -45,7 +45,7 @@ prefix.
 
 With --passes-of TOOL (and --report), each case that TOOL passes in the
 report must pass in the oracle; the exit code is 1 if one does not. The CI
-report job uses it for sqll (S3b C14).
+job `dialect-oracle (sqlfluff)` and scripts/verify use it for sqll (S3b C14).
 """
 
 import argparse

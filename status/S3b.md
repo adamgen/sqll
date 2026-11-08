@@ -338,7 +338,6 @@ main, the allocator, the license text, the version, and the dispatch.
   that `parse`, `lint`, or `fix` run on a file, so the memory and speed
   records stay.
 
-
 ## C14: harness adapter proof
 
 Adapter: [harness/sqll.md](../harness/sqll.md), "Adapter" and "Benchmark

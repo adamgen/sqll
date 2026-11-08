@@ -282,9 +282,10 @@ config/pyproject.toml input.sql`, with the settings of the benchmark in the
 config file (S3b C11). `lint` and `fix` run only if sqll has each rule that
 the settings of the benchmark select (`sqll rules`, S3b C14). The S2
 settings select all rules (`rules = all`), so `lint` and `fix` give
-`unsupported: rule ...` with no run, and the statuses of `results/s2/baseline.json` do not change. The
-S9 corpus does not run sqll by default until its corpus results after S3b
-(`LATER` in `sqll_harness/corpus/run.py`).
+`unsupported: rule ...` with no run, and the statuses of
+`results/s2/baseline.json` do not change. The S9 corpus does not run sqll
+by default until its corpus results after S3b (`LATER` in
+`sqll_harness/corpus/run.py`).
 
 ## Tree guard
 
