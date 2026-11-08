@@ -235,8 +235,9 @@ config check: PASS: 208 defaults, 40 coerce, 26 INI, 21 TOML, 34 load and 66 CLI
   same; the syntax tree check of the 84 S2 parse inputs passes; native base
   tests 162 of 162 (`scripts/s3/base_native_tests.py check`: 317 tests,
   314 passed, 3 ignored). Run again on the head after the review fixes
-  (round 5: `9bfbed7`; the S1 suite and the known failures: CI job
-  report on that head, `results/s1/summary.json` is equal).
+  (round 5: `ba3cb5c`, the same sqll source as the speed check head
+  `9bfbed7`; the S1 suite and the known failures: CI job report on
+  `ba3cb5c`, `results/s1/summary.json` is equal).
 - Speed check ([results/S3b/speed/C11.json](../results/S3b/speed/C11.json),
   base `3104d473b8f1`, head `9bfbed79736e`, after the review fixes of
   round 5): 112 benchmarks, 0 slower, 0 failures; total wall time head /
