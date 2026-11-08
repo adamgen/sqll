@@ -114,3 +114,34 @@ def test_the_rules_table_scenario_keeps_its_output():
         s = next(s for s in RECORD["scenarios"] if s["name"] == name)
         assert s["sqll"] == "unsupported" and s["exit_code"] == 0
         assert s["stdout"].count("\n      groups: ") == 79
+
+
+
+def test_the_documents_give_the_counts_of_the_record():
+    """harness/sqll.md and status/S3b.md give the scenario counts of the
+    record by mark (a false count in a document blocks a merge)."""
+    by_mark: dict = {None: {}, "unsupported": {}, "usage": {}}
+    for s in RECORD["scenarios"]:
+        counts = by_mark[s["sqll"]]
+        counts[s["args"][0]] = counts.get(s["args"][0], 0) + 1
+
+    def listing(mark):
+        return ", ".join(
+            f"{n} {c}"
+            for c in ("lint", "fix", "rules", "dialects")
+            if (n := by_mark[mark].get(c))
+        )
+
+    total = len(RECORD["scenarios"])
+    same, closed, usage = (sum(by_mark[m].values()) for m in by_mark)
+    assert by_mark["usage"].keys() == {"lint"}
+    doc = " ".join((REPO_ROOT / "harness/sqll.md").read_text("utf8").split())
+    assert f"has {total} scenarios of `lint`, `fix`, `rules`, and `dialects`." in doc
+    assert f"In {same} ({listing(None)})," in doc
+    assert f"{closed} fail closed ({listing('unsupported')};" in doc
+    assert f"{usage} are usage errors (lint;" in doc
+    status = " ".join((REPO_ROOT / "status/S3b.md").read_text("utf8").split())
+    assert f"sqlfluff 4.4.0 for {total} scenarios" in status
+    assert f"{same} give the same stdout, stderr, exit code, and changed files;" in status
+    assert f"{closed} fail closed (`unsupported`" in status
+    assert f"{usage} are usage errors" in status

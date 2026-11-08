@@ -92,6 +92,7 @@ fn signatures(
     let _: Result<RulePack<'_>, LintError> = registry.select(config);
     // S3b C13: the warnings of get_rulepack.
     let _: fn(&Config) -> Vec<String> = Registry::selection_warnings;
+    let _: fn(&str) -> String = sqll_lint::registry::py_repr;
     let _: Option<&dyn Rule> = registry.get("CP01");
     let _: &Vec<(&dyn Rule, RuleConfig)> = &pack.rules;
     let _: fn(&Config, &str) -> RuleConfig = RuleConfig::new;

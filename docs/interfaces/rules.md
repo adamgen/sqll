@@ -47,8 +47,11 @@ function is `eval` for each node of the crawl, with a `Result`.
   and the `noqa` settings.
 - C13 adds, for the output of `sqll lint`: `Violation::fix_records`
   (`FixRecord`: the edit type, the text, and the source range of the
-  anchor; the sqlfluff `LintFix.to_dict`), `LintedFile::rule_times`, and
-  `Registry::selection_warnings` (the warnings of `get_rulepack`).
+  anchor; the sqlfluff `LintFix.to_dict`), `LintedFile::rule_times`,
+  `Registry::selection_warnings` (the warnings of `get_rulepack`), and
+  `registry::py_repr` (the Python `repr` of a name in a warning).
+  `sqll_types::token::fmt::python_repr` is a second Python `repr` with
+  different escapes; a later Core task can merge the two.
 
 ## Fixes and the source map
 

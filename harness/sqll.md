@@ -150,10 +150,13 @@ T12). Differences from `sqlfluff parse`:
 
 ## Lint and fix (S3b C13)
 
-`sqll lint` and `sqll fix` give the stdout, the stderr, the exit codes (0,
-1, 2), and the changed files of `sqlfluff lint` and `sqlfluff fix` for the
-126 scenarios of `results/S3b/C13-cli.json` (`scripts/s3b/cli_oracle.py`;
-test `crates/sqll/tests/cli.rs`). The time values of a json or yaml record
+`results/S3b/C13-cli.json` (`scripts/s3b/cli_oracle.py`; test
+`crates/sqll/tests/cli.rs`) has 126 scenarios of `lint`, `fix`, `rules`,
+and `dialects`. In 106 (69 lint, 30 fix, 4 rules, 3 dialects), sqll gives
+the stdout, the stderr, the exit code (0, 1, 2), and the changed files of
+sqlfluff. 18 fail closed (13 lint, 3 fix, 2 rules; `unsupported`, exit
+code 2; sqlfluff runs them). 2 are usage errors (lint; exit code 2 for
+both, the texts differ). The time values of a json or yaml record
 are those of sqll. PATHS are files, folders, or `-` (stdin); no path is the
 working folder. The config is that of `sqll parse` (C11), with the rule
 settings, `ignore`, and `warnings`.
@@ -200,7 +203,9 @@ Other differences from sqlfluff:
 - In a lex or parse error text, sqll writes a character of the
   categories Cf, Co, and Cn (Python `str.isprintable()` is false; for
   example U+00AD, U+200B, or a byte order mark on stdin) as it is.
-  sqlfluff writes an escape (`\u200b`). No pinned fixture has one.
+  sqlfluff writes an escape (`\u200b`). In the yaml format, the quote
+  style, the line folds, and the escapes of all of that text can then also
+  change. No pinned fixture has one.
 
 Memory: the peak RSS of `lint` (human format) and `fix` does not grow with
 the number of files: 26.2 and 27.0 MiB (lint), 27.6 and 28.5 MiB (fix)

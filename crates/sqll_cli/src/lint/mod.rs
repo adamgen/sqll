@@ -93,8 +93,7 @@ const FIX_OPTS: &[Opt] = common_opts!(
     args::not_yet(&["--show-lint-violations"], ArgKind::Flag),
 );
 
-const COMMON_HELP: &str = "\
-  -n, --nocolor / --color  No color, or color, in the output.
+const COMMON_HELP: &str = "  -n, --nocolor / --color  No color, or color, in the output.
   -d, --dialect TEXT       The dialect of the SQL.
   -t, --templater TEXT     The templater (default: jinja). sqll has raw, and
                            jinja only for a file with no Jinja tag.

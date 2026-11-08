@@ -397,6 +397,23 @@ fn a_flag_does_not_take_a_value() {
     }
 }
 
+/// Each line of the options of a help text has the indent of click.
+#[test]
+fn each_option_line_of_the_help_has_an_indent() {
+    for command in ["parse", "lint", "fix", "rules", "dialects"] {
+        let out = sqll(&[command, "--help"]);
+        assert_eq!(code(&out), 0, "{command}: {}", stderr(&out));
+        let text = String::from_utf8(out.stdout).unwrap();
+        let (_, options) = text.split_once("\nOptions:\n").expect(command);
+        let lines: Vec<&str> = options.lines().collect();
+        assert!(lines.len() > 3, "{command}: {text}");
+        for line in lines {
+            assert!(line.starts_with("  "), "{command}: {line:?}");
+        }
+        assert!(options.contains("  -h, --help "), "{command}: {text}");
+    }
+}
+
 fn filepath(out: &Output) -> String {
     let text = String::from_utf8(out.stdout.clone()).expect("UTF-8 output");
     let value: Value = serde_yaml_ng::from_str(&text).expect("JSON output");
