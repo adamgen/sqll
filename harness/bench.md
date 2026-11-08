@@ -223,7 +223,8 @@ runs all 280 benchmarks, valid, and the definitions do not change.
 
 sqll (S3 T13, `bench/sqll.py`) joined with no change to the definitions.
 It has the commands of the sqlfluff adapter (S3b C14). `lint` and `fix`
-run only if sqll has each rule that the settings select (`sqll rules`).
+run only if sqll has each rule that the settings of the benchmark select
+(`sqll rules`).
 The settings select all rules (`rules = all`) and sqll has 3 until S5, so
 `lint` and `fix` are `unsupported: rule ...` with no run
 (`unsupported_command`); the baseline statuses do not change. Thus G3.4

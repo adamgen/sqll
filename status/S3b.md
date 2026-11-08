@@ -357,8 +357,12 @@ jinja as raw check: PASS: 3422 inputs (3361 rule, 61 autofix), 3178 equal (2522 
   2631): rules `rule` 2476, `setting` 7 (`ignore_words_regex`), `templater`
   6 (a Jinja tag); autofix `rule` 36, `setting` 4, `templater` 21;
   templater 43 `templater`. 0 new failures, 0 unexpected passes. No autofix
-  case runs `sqll fix`: each has a rule that sqll does not have, a Jinja
-  tag or setting, or a setting that sqll refuses.
+  case gets a fix from sqll: the adapter stops 54 before `sqll fix` (a rule
+  that sqll does not have, or a Jinja tag or setting), and sqll refuses 7 (the
+  default rule set in 3, a setting in 4). Each autofix case also needs
+  `sqll fix --show-lint-violations` (the second run of the suite), so
+  autofix stays at 0 of 61 until the S7 sqll part (CLI parity) adds this
+  option.
 - CI run 42519307509 (head `9a3968c`, all jobs pass): the report job gives
   the same summary (`results/s1/summary.json is equal to the summary`), so
   the known-failure check has 0 new failures and 0 unexpected passes. The

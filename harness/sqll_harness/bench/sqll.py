@@ -67,12 +67,12 @@ class SqllBench(BenchAdapter):
     def version(self) -> str:
         return self.s1.version()
 
-    def unsupported_command(self, command: str) -> str | None:
+    def unsupported_command(self, command: str, config: dict[str, Any]) -> str | None:
         if command not in self.commands:
             return command
         if command in (LINT, FIX):
             have, every = self.s1.rules()
-            rules = selected_rules(self.config(None), every)
+            rules = selected_rules(config, every)
             missing = [r for r in rules if r not in have]
             if missing:
                 shown = ", ".join(missing[:3]) + (", ..." if len(missing) > 3 else "")

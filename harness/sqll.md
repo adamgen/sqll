@@ -266,7 +266,7 @@ not pass, each `unsupported`):
 |---|---|---|---|
 | `dialects` | 2306 | 2306 | 0 |
 | `rules` | 2527 | 38 (CP01, CP03, CP04) | 2489: `rule` 2476, `setting` 7 (`ignore_words_regex`), `templater` 6 (a Jinja tag) |
-| `autofix` | 61 | 0 | 61: `rule` 36, `setting` 4, `templater` 21 |
+| `autofix` | 61 | 0 | 61: `rule` 36 (3 of them: sqll refuses the default rule set), `setting` 4, `templater` 21 |
 | `templater` | 43 | 0 | 43: `templater` |
 
 The CI oracles (`--passes-of sqll`; [rules.md](rules.md), "Agreement with
@@ -280,9 +280,9 @@ tool"). The commands are those of the sqlfluff adapter: `sqll parse -f
 json`, `lint -f json`, or `fix`, then `--ignore-local-config --config
 config/pyproject.toml input.sql`, with the settings of the benchmark in the
 config file (S3b C11). `lint` and `fix` run only if sqll has each rule that
-the settings select (`sqll rules`, S3b C14). The S2 settings select all
-rules (`rules = all`), so `lint` and `fix` give `unsupported: rule ...` with
-no run, and the statuses of `results/s2/baseline.json` do not change. The
+the settings of the benchmark select (`sqll rules`, S3b C14). The S2
+settings select all rules (`rules = all`), so `lint` and `fix` give
+`unsupported: rule ...` with no run, and the statuses of `results/s2/baseline.json` do not change. The
 S9 corpus does not run sqll by default until its corpus results after S3b
 (`LATER` in `sqll_harness/corpus/run.py`).
 

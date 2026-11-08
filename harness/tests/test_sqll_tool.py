@@ -314,5 +314,3 @@ def test_with_no_binary_each_case_of_the_other_suites_stops(suite, tmp_path):
     for case in cases:
         result = cli._run_one(module, adapter, case, SQLFLUFF_ROOT)
         assert result.status != "pass", case.id
-    assert adapter.lints is True
-    assert all(a.lints for a in ADAPTERS.values())

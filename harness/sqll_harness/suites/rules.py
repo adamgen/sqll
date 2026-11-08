@@ -409,11 +409,7 @@ def run(adapter: Adapter, case: RuleCase, sqlfluff_root: Path) -> CaseResult:
     """Run one case as rules__test_helper in sqlfluff does."""
     if case.skip:
         return CaseResult(case.id, NAME, adapter.name, SKIP, reason=str(case.skip))
-    if not adapter.lints:
-        raise Unsupported("lint")
-    check_case_rules = getattr(adapter, "check_case_rules", None)
-    if check_case_rules is not None:
-        check_case_rules(rule_codes(case.rule))
+    adapter.check_case_rules(rule_codes(case.rule))
     if any("\r" in s for s in (case.pass_str, case.fail_str, case.fix_str) if s):
         # sqlfluff reads a file with universal newlines: "\r" becomes "\n".
         # The test gives the string, so no file can give the same input.

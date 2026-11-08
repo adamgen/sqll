@@ -325,8 +325,9 @@ class BenchAdapter(ABC):
             base["core"] = {"dialect": dialect, **base.get("core", {})}
         return self.layer(base)
 
-    def unsupported_command(self, command: str) -> str | None:
-        """Return the command if the tool does not have it, else None."""
+    def unsupported_command(self, command: str, config: dict[str, Any]) -> str | None:
+        """Return the item if the tool cannot run command with config (the
+        config of the benchmark), else None."""
         return None
 
     def unsupported(self, config: dict[str, Any]) -> str | None:
@@ -366,7 +367,7 @@ class BenchAdapter(ABC):
         folder = folder or ctx.work_root / self.name / benchmark["id"]
         bj = BenchJob(dict(benchmark), self.name, folder, ctx)
         config = self.config(benchmark["dialect"])
-        item = self.unsupported_command(command) or self.unsupported(config)
+        item = self.unsupported_command(command, config) or self.unsupported(config)
         if item is not None:
             bj.status, bj.reason = UNSUPPORTED, f"unsupported: {item}"
             return bj

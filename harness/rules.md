@@ -136,8 +136,8 @@ The exit code is 1 if a status is different or a case is only in one of the
 two. `--passes-of TOOL` also checks that the sqlfluff test passes each case
 that TOOL passes in the report (exit code 1 if not). The CI `report` job
 uses `--passes-of sqll` in the rule, autofix, and templater oracles, and
-the dialect oracle of sqlfluff (S3b C14). Only CI runs it: the CI `report`
-job on the merged report.
+the CI job `dialect-oracle (sqlfluff)` uses it in the dialect oracle
+(S3b C14). CI and `scripts/verify` run these checks on the merged report.
 `scripts/test` does not, because it runs sqlfluff through Python, not through
 a binary. As the autouse fixture `fail_on_parse_error_after_fix` of
 `test/conftest.py`, the oracle makes `_report_conflicting_fixes_same_anchor`

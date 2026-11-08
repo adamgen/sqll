@@ -223,6 +223,31 @@ def test_lint_and_fix_are_unsupported_with_no_run(command, bench_inputs_dir, tmp
     assert calls(log) == []
 
 
+@pytest.mark.parametrize("command", ["lint", "fix"])
+def test_the_rule_check_uses_the_config_of_the_benchmark(
+    command, bench_inputs_dir, tmp_path
+):
+    # The config of a benchmark can select other rules than the record
+    # config (dialect None). The check must read the config of the job.
+    binary, log = fake_sqll(tmp_path)
+
+    class DialectRules(SqllBench):
+        def layer(self, config):
+            if config.get("core", {}).get("dialect") == "ansi":
+                config["core"]["rules"] = "CP01"
+            return config
+
+    ctx = Context(definitions.load(), bench_inputs_dir, tmp_path / "work")
+    adapter = DialectRules(binary)
+    assert selected_rules(adapter.config(None), frozenset(EVERY)) == sorted(EVERY)
+    bj = adapter.job(bench(command, dialect="ansi"), ctx)
+    assert bj.status != UNSUPPORTED
+    assert bj.job is not None
+    bj = adapter.job(bench(command), ctx)
+    assert (bj.status, bj.reason) == (UNSUPPORTED, ALL_REASON.format(command=command))
+    assert calls(log) == []
+
+
 def test_lint_and_fix_run_when_sqll_has_each_rule(bench_inputs_dir, tmp_path):
     binary, log = fake_sqll(tmp_path, have=EVERY)
     ctx = Context(definitions.load(), bench_inputs_dir, tmp_path / "work")
@@ -233,7 +258,7 @@ def test_lint_and_fix_run_when_sqll_has_each_rule(bench_inputs_dir, tmp_path):
         config = bj.folder / "config" / "pyproject.toml"
         argv = [str(binary), *adapter.commands[command], "--ignore-local-config"]
         assert bj.job.argv == [*argv, "--config", str(config), INPUT_FILE]
-        assert adapter.unsupported_command(command) is None
+        assert adapter.unsupported_command(command, adapter.config("tsql")) is None
         m = bj.measure(SMOKE)
         if command == "parse":
             assert (m.status, m.reason) == (VALID, None)
