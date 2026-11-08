@@ -72,10 +72,11 @@ of the submodule into a temporary folder. No sqlfluff code is copied.
 
 `scripts/s3b/cli_oracle.py` (S3b task C13) runs the `sqlfluff` command of
 the installed sqlfluff 4.4.0 package (MIT): `lint`, `fix`, `rules`, and
-`dialects`, on invented files and on the pinned fixture
-`test/fixtures/dialects/sparksql/select_div.sql`.
+`dialects`, on invented files and on the pinned fixtures
+`test/fixtures/dialects/sparksql/select_div.sql` and
+`test/fixtures/linter/parse_lex_error.sql`.
 `results/S3b/C13-cli.json` has, for each scenario, the input files (with
-the text of that fixture), the arguments, and the stdout, stderr, exit
+the text of these fixtures), the arguments, and the stdout, stderr, exit
 code, and changed files of sqlfluff. The stdout of the scenario
 "rules default" is the rules table of sqlfluff (the code, name, and
 description of each rule). No sqlfluff code is copied.

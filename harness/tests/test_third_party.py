@@ -364,3 +364,25 @@ def test_third_party_gives_the_allow_list_of_the_build():
     assert f"The allow list, in the order of choice: {', '.join(allowed)}." in section
     for word in ("`cargo metadata`", NOTICES, "crates/sqll/tests/license.rs"):
         assert word in section, word
+
+
+CLI_ORACLE = "scripts/s3b/cli_oracle.py"
+
+
+def _paragraph(start: str) -> str:
+    text = (REPO_ROOT / "THIRD_PARTY.md").read_text(encoding="utf-8")
+    found = [p for p in text.split("\n\n") if p.startswith(start)]
+    assert len(found) == 1, start
+    return found[0]
+
+
+def test_third_party_names_each_sqlfluff_fixture_of_the_cli_oracle():
+    """G4.3: the record of the CLI oracle names each sqlfluff test file that
+    the script reads (its text goes into results/S3b/C13-cli.json)."""
+    source = (REPO_ROOT / CLI_ORACLE).read_text(encoding="utf-8")
+    paths = re.findall(r'SQLFLUFF_ROOT\s*/\s*"(test/[^"]+)"', source)
+    assert len(paths) >= 2
+    paragraph = _paragraph(f"`{CLI_ORACLE}`")
+    for path in paths:
+        assert (REPO_ROOT / "third_party/sqlfluff" / path).is_file(), path
+        assert f"`{path}`" in paragraph, path
