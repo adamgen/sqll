@@ -11,6 +11,7 @@ publish = false
 
 [dependencies]
 serde_json.workspace = true
+sqll_config = { path = "../sqll_config" }
 sqll_dialects = { path = "../sqll_dialects" }
 sqll_lexer = { path = "../sqll_lexer" }
 sqll_parser = { path = "../sqll_parser" }

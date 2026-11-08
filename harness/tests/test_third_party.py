@@ -98,7 +98,8 @@ def test_the_new_files_with_ported_parts_are_named():
     }
     # 5 since S3b C9: the ported parse calls moved from crates/sqll/src/parse.rs
     # and crates/sqll_interfaces/src/parse.rs to crates/sqll_syntax/src/parse.rs.
-    assert len(headers) == 5
+    # 6 since S3b C11: crates/sqll_config/src/value.rs (coerce_value).
+    assert len(headers) == 6
     assert named == headers
 
 
@@ -193,7 +194,59 @@ def test_only_the_cpython_records_name_the_psf():
                 continue
             if "Python Software Foundation" in text:
                 found.add(str(path.relative_to(REPO_ROOT)))
-    assert found <= {CPYTHON_LICENSE, PORTED_RECORD, "crates/sqll/src/main.rs"}, found
+    ports = {"crates/sqll/src/main.rs", "crates/sqll_config/src/ini.rs"}
+    assert found <= {CPYTHON_LICENSE, PORTED_RECORD, *ports}, found
+
+
+def test_the_configparser_port_keeps_the_psf_license_and_notice():
+    """S3b C11: the INI reader of sqll_config is a port of configparser."""
+    head = (REPO_ROOT / "crates/sqll_config/src/ini.rs").read_text("utf-8")
+    head = " ".join(
+        line.removeprefix("//").strip() for line in head.split("\n\n")[0].splitlines()
+    )
+    for word in (
+        "Lib/configparser.py",
+        f"tag {CPYTHON_TAG}",
+        CPYTHON_COMMIT,
+        PSF_NOTICE,
+        CPYTHON_LICENSE,
+        "Changes:",
+    ):
+        assert word in head, word
+    section = " ".join(_cpython_section().split())
+    assert "`crates/sqll_config/src/ini.rs`" in section
+    new = {n["path"]: n["reason"] for n in _ported_record()["new"]}
+    assert CPYTHON_LICENSE in new["crates/sqll_config/src/ini.rs"]
+
+
+TOMLI_LICENSE = "crates/LICENSE-tomli.txt"
+TOMLI_LICENSE_SHA256 = (
+    "b80816b0d530b8accb4c2211783790984a6e3b61922c2b5ee92f3372ab2742fe"
+)
+
+
+def test_the_tomllib_port_keeps_the_mit_license_and_notice():
+    """S3b C11: the TOML reader of sqll_config is a port of tomllib (MIT)."""
+    data = (REPO_ROOT / TOMLI_LICENSE).read_bytes()
+    assert hashlib.sha256(data).hexdigest() == TOMLI_LICENSE_SHA256
+    assert data.startswith(b"MIT License\n\nCopyright (c) 2021 Taneli Hukkinen\n")
+    head = (REPO_ROOT / "crates/sqll_config/src/toml.rs").read_text("utf-8")
+    for word in (
+        "Lib/tomllib",
+        "SPDX-License-Identifier: MIT",
+        "Taneli",
+        TOMLI_LICENSE,
+    ):
+        assert word in head, word
+    section = _section("tomllib")
+    for word in (
+        f"`{TOMLI_LICENSE}`",
+        "Taneli Hukkinen",
+        "`crates/sqll_config/src/toml.rs`",
+    ):
+        assert word in section, word
+    new = {n["path"]: n["reason"] for n in _ported_record()["new"]}
+    assert TOMLI_LICENSE_SHA256 in new[TOMLI_LICENSE]
 
 
 # The license of sqll and the notices of the binary (S3 T19).
@@ -226,7 +279,7 @@ def test_sqll_is_under_the_mit_license():
 def test_each_crate_of_the_workspace_has_the_mit_license():
     workspace = tomllib.loads((REPO_ROOT / "Cargo.toml").read_text("utf-8"))
     members = workspace["workspace"]["members"]
-    assert len(members) == 12
+    assert len(members) == 13
     for member in members:
         manifest = tomllib.loads((REPO_ROOT / member / "Cargo.toml").read_text("utf-8"))
         assert manifest["package"]["license"] == "MIT", member

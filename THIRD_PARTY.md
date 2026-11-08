@@ -59,6 +59,17 @@ ranges, lines, and positions, and the segment types. It has no source text
 of the fixtures; the tests read the submodule. The random files of its
 `check` are invented, not sqlfluff data. No sqlfluff code is copied.
 
+`scripts/s3b/config_oracle.py` (S3b task C11) imports and runs the
+installed sqlfluff 4.4.0 package (MIT): its config reader, its templaters,
+and its `parse` command. It reads the config fixtures of
+`test/fixtures/config/`, `tox.ini`, `pyproject.toml`, and
+`src/sqlfluff/core/default_config.cfg` of the submodule, and the dialect
+fixtures. `results/S3b/C11-config.json` has its output: the values of the
+default config, the dicts that sqlfluff reads from these files (the record
+names each file; it has no copy of a file), and the output of
+`sqlfluff parse` for invented files. The tests copy the cited fixture files
+of the submodule into a temporary folder. No sqlfluff code is copied.
+
 `scripts/s3/sqlfluffrs_probe.py` (S3 research, task T5) copies the
 submodule into a scratch folder, runs `utils/rustify.py` there, and builds
 the sqlfluffrs crates and the probe there. The generated Rust files stay in
@@ -137,6 +148,14 @@ Ported code (MIT, attribution in each file header):
 | `scripts/s3b/convert-cost/src/main.rs` | S3b C7 measurement, not sqll: the lexer and parser calls and the limits of `crates/sqll/src/parse.rs` before S3b C9 (now `crates/sqll_syntax/src/parse.rs`, row above) |
 | `crates/sqll_source/src/map.rs` | `sqlfluffrs/sqlfluffrs_types/src/templater/templatefile.rs`: the slice search of `find_slice_indices_of_templated_pos` and the rule for an empty slice of `templated_slice_to_source_slice` (S3b C8) |
 | `crates/sqll_templater/src/raw.rs` | `src/sqlfluff/core/templaters/base.py` (`RawTemplater.process`) (S3b C8) |
+| `crates/sqll_config/src/value.rs` | `src/sqlfluff/core/config/ini.py` (`coerce_value`) (S3b C11) |
+| `crates/sqll_config/src/dict.rs` | `src/sqlfluff/core/helpers/dict.py` (`nested_combine`, `records_to_nested_dict`, `iter_records_from_nested_dict`) (S3b C11) |
+| `crates/sqll_config/src/ini.rs` | `src/sqlfluff/core/config/ini.py` (`load_ini_string`) (S3b C11; also CPython below) |
+| `crates/sqll_config/src/toml.rs` | `src/sqlfluff/core/config/toml.py` (`load_toml_file_config` and its helpers) (S3b C11; also tomllib below) |
+| `crates/sqll_config/src/defaults.rs` | The values of `src/sqlfluff/core/default_config.cfg` (S3b C11) |
+| `crates/sqll_config/src/validate.rs` | `src/sqlfluff/core/config/validate.py` and `removed.py` (S3b C11) |
+| `crates/sqll_config/src/loader.rs` | `src/sqlfluff/core/config/loader.py`, `file.py`, and `src/sqlfluff/core/helpers/file.py` (`iter_intermediate_paths`) (S3b C11) |
+| `crates/sqll_config/src/config.rs` | `src/sqlfluff/core/config/fluffconfig.py` (`FluffConfig`, parts) and `src/sqlfluff/core/helpers/string.py` (`split_comma_separated_string`) (S3b C11) |
 
 ## sqlfluffrs in crates/
 
@@ -185,8 +204,11 @@ lines, and sha256 of each of the 85 files. The build copies them into
 The new sqll files in `crates/` (listed in `crates/ported.json`, "new") and
 `rust-toolchain.toml` have no sqlfluff code, but `crates/sqll_syntax/src/parse.rs`,
 `crates/sqll/tests/cli.rs`, `crates/sqll_tree/build/kinds.rs`,
-`crates/sqll_source/src/map.rs`, and
-`crates/sqll_templater/src/raw.rs` have ported parts ("Ported code" above). The sqll binary (`crates/sqll`)
+`crates/sqll_source/src/map.rs`, `crates/sqll_templater/src/raw.rs`, and
+`crates/sqll_config/src/value.rs` have ported parts ("Ported code" above),
+and the other files of `crates/sqll_config/src/` but `lib.rs` and
+`parse.rs` are ports of sqlfluff code ("Ported code" above) and of CPython
+code ("CPython", "tomllib" below). The sqll binary (`crates/sqll`)
 contains the ported crates and the tables. The tables are a substantial
 portion of sqlfluff, so each sqll binary carries the sqlfluff MIT copyright
 and permission notice: `sqll --license` prints `crates/LICENSE-sqlfluffrs.md`
@@ -279,6 +301,29 @@ invented packages with a copyleft license.
   uses it to print the file path as sqlfluff does. Changes: Rust in place
   of Python; only `str` paths (no `bytes`); the root slashes are found in
   the function, not with `splitroot`.
+- `crates/sqll_config/src/ini.rs` (S3b C11) is a port of the reader of
+  `RawConfigParser` in `Lib/configparser.py` of the same tag (`_read_inner`
+  and the functions that it calls, `_join_multiline_values`, `items`). sqll
+  reads the sqlfluff INI config files with it. Changes: Rust in place of
+  Python; only the settings that sqlfluff uses (delimiter "=", full-line
+  comments, strict, empty lines in values, no interpolation); an error
+  stops the read.
+
+## tomllib
+
+- Source: https://github.com/python/cpython, `Lib/tomllib/` (`_parser.py`,
+  `_re.py`), tag `v3.13.16`, commit
+  `cbc944f4bc59639a444dd971c737788ba2283a91`. The files have the notice
+  "SPDX-License-Identifier: MIT", "SPDX-FileCopyrightText: 2021 Taneli
+  Hukkinen", "Licensed to PSF under a Contributor Agreement" (the code of
+  tomli).
+- License: MIT. The license text is in `crates/LICENSE-tomli.txt`, a copy
+  of `LICENSE` of https://github.com/hukkin/tomli, tag `2.0.1`.
+- `crates/sqll_config/src/toml.rs` (S3b C11) is a port of the parser. sqll
+  reads `pyproject.toml` with it, as sqlfluff does with tomllib. Changes:
+  Rust in place of Python; the parser works on characters; a date or time
+  value is checked but not kept, and it fails closed in `[tool.sqlfluff]`;
+  an int over 64 bits fails closed.
 
 ## S9 corpus
 

@@ -553,6 +553,7 @@ dependencies = [
  "serde_json",
  "serde_yaml_ng",
  "sha2",
+ "sqll_config",
  "sqll_dialects",
  "sqll_lexer",
  "sqll_parser",
@@ -579,6 +580,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "sqll_config"
+version = "0.1.0"
+
+[[package]]
 name = "sqll_dialects"
 version = "0.1.0"
 dependencies = [
@@ -594,6 +599,7 @@ version = "0.1.0"
 dependencies = [
  "serde_json",
  "serde_yaml_ng",
+ "sqll_config",
  "sqll_dialects",
  "sqll_lexer",
  "sqll_parser",

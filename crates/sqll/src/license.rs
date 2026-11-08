@@ -6,8 +6,11 @@ pub const SQLL: &str = include_str!("../../../LICENSE");
 /// The sqlfluff MIT license: the ported sqlfluffrs crates and the generated
 /// dialect tables.
 pub const SQLFLUFF: &str = include_str!("../../LICENSE-sqlfluffrs.md");
-/// The CPython license of the normpath port (main.rs).
+/// The CPython license of the normpath port (main.rs) and of the
+/// configparser port (sqll_config ini.rs).
 pub const CPYTHON: &str = include_str!("../../LICENSE-cpython.txt");
+/// The MIT license of tomli, of the tomllib port (sqll_config toml.rs).
+pub const TOMLI: &str = include_str!("../../LICENSE-tomli.txt");
 /// The MIT notice of the Rust project (the Rust standard library).
 pub const RUST: &str = include_str!("../../LICENSE-rust-MIT.txt");
 /// The tag of rust-lang/rust that RUST comes from: the toolchain of
@@ -47,12 +50,27 @@ pub fn text(version: &str) -> String {
     section(
         &mut out,
         "CPython",
-        "The sqll binary contains a port of normpath of Lib/posixpath.py of CPython.\n\
+        "The sqll binary contains a port of normpath of Lib/posixpath.py and of the \
+         reader of RawConfigParser of Lib/configparser.py of CPython.\n\
          Source: https://github.com/python/cpython, tag v3.13.16, commit \
          cbc944f4bc59639a444dd971c737788ba2283a91.\nLicense: PSF-2.0\n\
-         Changes: Rust in place of Python; only str paths; the root slashes are \
-         found in the function, not with splitroot.",
+         Changes: Rust in place of Python; normpath: only str paths, and the root \
+         slashes are found in the function, not with splitroot; configparser: only \
+         the settings that sqlfluff uses, and an error stops the read.",
         CPYTHON,
+    );
+    section(
+        &mut out,
+        "tomllib",
+        "The sqll binary contains a port of Lib/tomllib of CPython (tomli).\n\
+         Source: https://github.com/python/cpython, tag v3.13.16, commit \
+         cbc944f4bc59639a444dd971c737788ba2283a91, Lib/tomllib (SPDX: MIT, \
+         Copyright (c) 2021 Taneli Hukkinen; licensed to PSF under a Contributor \
+         Agreement).\nLicense: MIT (the text of https://github.com/hukkin/tomli, tag \
+         2.0.1)\nChanges: Rust in place of Python; the parser works on characters; a date or \
+         time value is checked but not kept, and it fails closed in [tool.sqlfluff]; \
+         an int over 64 bits fails closed.",
+        TOMLI,
     );
     section(
         &mut out,

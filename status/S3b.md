@@ -28,11 +28,11 @@ the S6 package `sqll_templater`, not in `sqll_source` (Core owns
 | C7 | Lossless syntax tree (`sqll_tree`) and the conversion from the parser tree (`sqll_syntax::from_node`): [docs/interfaces/tree.md](../docs/interfaces/tree.md) | Merged (PR #65) |
 | C8 | Source map (`sqll_source`): `TemplatedFile` as the frozen templater interface, raw templater (`sqll_templater`), source ranges of the tree. Fix of the C7 finding: the newline index of the ported `TemplatedFile` has code point offsets: [docs/interfaces/source-map.md](../docs/interfaces/source-map.md) | Merged (PR #66) |
 | C9 | Frozen parse interface (lexer to parser to tree; `sqll_syntax::parse`) and `sqll parse` output from `SyntaxTree`. The copy of the parse settings in `crates/sqll_interfaces/src/parse.rs` is gone: the tests use the steps of the interface. The lexer input is a `TemplatedFile` (C8). The caller changes "\r\n" and "\r" to "\n" before the templater, as sqlfluff (`Linter.render_string`); `sqll parse` does it when it reads the file: [docs/interfaces/parse.md](../docs/interfaces/parse.md) | Merged (PR #67) |
-| C10 | Typed view of the tree (`sqll_tree::view`): `NodeRef`, the sqlfluff query helpers (`child`, `children_of`, `first_descendant`, `crawl` as `recursive_crawl`), `AstNode`, `typed_node!`, and the typed nodes of the core set. Fix of C6: the meta kinds have the class types of their sqlfluff class: [docs/interfaces/typed-view.md](../docs/interfaces/typed-view.md) | In review |
-| C11 | Config skeleton (`sqll_config`) and its use in `sqll parse` | Not started |
+| C10 | Typed view of the tree (`sqll_tree::view`): `NodeRef`, the sqlfluff query helpers (`child`, `children_of`, `first_descendant`, `crawl` as `recursive_crawl`), `AstNode`, `typed_node!`, and the typed nodes of the core set. Fix of C6: the meta kinds have the class types of their sqlfluff class: [docs/interfaces/typed-view.md](../docs/interfaces/typed-view.md) | Merged (PR #68) |
+| C11 | Config skeleton (`sqll_config`) and its use in `sqll parse`: the config model, the sqlfluff defaults, the reader of the config files in the sqlfluff order, `--config`, `--ignore-local-config`, and the overrides; a setting that sqll cannot do fails closed: [docs/interfaces/config.md](../docs/interfaces/config.md) | In review |
 | C12 | Rule and fix interface (`sqll_lint`) with CP01, CP03, CP04 as the proof | Not started |
 | C13 | CLI skeleton (`sqll_cli`): lint, fix, rules, dialects, and output formats. If `EXIT_ERROR` moves, change its path in `scripts/s3b/core_design.py` | Not started |
-| C14 | Harness adapters: `sqll lint` and `fix` in the S1 harness and the S2 benchmarks | Not started |
+| C14 | Harness adapters: `sqll lint` and `fix` in the S1 harness and the S2 benchmarks. Also remove the path for a base binary from before C11 in `harness/sqll_harness/bench/sqll.py` (`legacy_options`, `LEGACY_FIXED`, the `reads_config` probe): after C11, the base of each speed check reads the config | Not started |
 | C15 | Code generation interface: tree to schema | Not started |
 | C16 | Package ownership of the later tracks and the interface index; `docs/decisions/s3b-*.md` to the Core paths | Not started |
 | C17 | S3b exit: proof, exit record, and STATUS "S3b awaiting human approval" | Not started |
@@ -209,3 +209,46 @@ crawl check: PASS: 6 fixtures, 135 cases (111 YAML cases), 1182 segments
   `75f8ea231c4a`, head `b2502f889bec`): 112 benchmarks, 0 slower, 0
   failures; total wall time head / base 1.006; head faster than sqruff on
   108 of 108 pairs and faster than sqlfluff on 112 of 112.
+
+## C11: config proof
+
+Interface: [docs/interfaces/config.md](../docs/interfaces/config.md).
+The check of the sqlfluff data (`scripts/s3b/config_oracle.py check`,
+record [results/S3b/C11-config.json](../results/S3b/C11-config.json)):
+
+```text
+config check: PASS: 208 defaults, 40 coerce, 26 INI, 21 TOML, 34 load and 66 CLI scenarios; jinja as raw: 2303 of 2303 dialect fixtures that are not empty and have no Jinja delimiter
+```
+
+- `crates/sqll_config/tests/defaults.rs` reads `default_config.cfg` of the
+  submodule: the 208 defaults are equal. The interface test
+  (`crates/sqll_interfaces/tests/config.rs`, 6 tests) and
+  `crates/sqll/tests/cli_config.rs` (4 tests) give the sqlfluff answer of
+  each case (in the CLI scenarios also the warning lines of stderr), or
+  fail closed where the record says so.
+- `sqll parse` reads the config. The jinja templater (the default) is done
+  only for a text that is not empty and has no Jinja delimiter; then
+  sqlfluff gives the file of the raw templater (`jinja_as_raw`). For an
+  empty text it does not (the raw templater gives an empty literal slice).
+- G4: S1 dialect suite of sqll 2306 of 2306 exact; the known failures of
+  sqll did not change (2631; 0 new, 0 unexpected); tree guard: 84 of 84 the
+  same; the syntax tree check of the 84 S2 parse inputs passes; native base
+  tests 162 of 162 (`scripts/s3/base_native_tests.py check`: 318 tests,
+  315 passed, 3 ignored). Run again on the head after the review fixes
+  (round 5: `ba3cb5c`, the same sqll source as the speed check head
+  `9bfbed7`; the S1 suite and the known failures: CI job report on
+  `ba3cb5c`, `results/s1/summary.json` is equal).
+- Speed check ([results/S3b/speed/C11.json](../results/S3b/speed/C11.json),
+  base `3104d473b8f1`, head `9bfbed79736e`, after the review fixes of
+  round 5): 112 benchmarks, 0 slower, 0 failures; total wall time head /
+  base 1.018 (start 1.082, max 1.205; parse/small 1.047, parse/medium
+  1.029, parse/large 1.000); head faster than sqruff on 108 of 108 pairs and
+  faster than sqlfluff on 112 of 112. The speed check also compares the
+  sqll version, settings, and statuses with `results/s2/baseline.json`:
+  the same.
+- Reason of the start change (G3.6; no benchmark is slower than the noise
+  limit): the config is in the start path. The benchmark gives the
+  settings as a `--config` file (`pyproject.toml`), as for sqlfluff; sqll
+  reads and checks it and makes the root and the file config (about 0.4
+  ms for each start). The default table is made one time in a run
+  (`default_table`).

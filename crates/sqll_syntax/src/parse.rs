@@ -78,8 +78,9 @@ pub fn depth_limit(max_parse_depth: usize) -> usize {
 }
 
 /// The settings of a parse. `ParseOptions::default()` gives the sqlfluff
-/// defaults. Later tasks can add fields (the config, C11), so make a value
-/// with `default()` and then set the fields.
+/// defaults. Later tasks can add fields, so make a value with `default()`
+/// and then set the fields. Since S3b C11, `sqll parse` sets them from the
+/// config (`sqll_config::ParseSettings`).
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[non_exhaustive]
 pub struct ParseOptions {
@@ -91,6 +92,16 @@ pub struct ParseOptions {
     /// that exits after its output uses false, because the operating system
     /// frees the memory at less cost (S3 T15). Default: true.
     pub free_memory: bool,
+    /// The sqlfluff `max_parse_nodes`: 0 is no limit (C11).
+    pub max_parse_nodes: usize,
+    /// The sqlfluff `rust_parser_max_iterations` (C11).
+    pub max_parser_iterations: usize,
+    /// The sqlfluff `rust_parser_warn_threshold` (C11).
+    pub parser_warn_threshold: usize,
+    /// The `[sqlfluff:indentation]` section, each value as `bool(value)`
+    /// (C11). A conditional indent of the grammar reads its key; a missing
+    /// key is false.
+    pub indentation: Vec<(String, bool)>,
 }
 
 impl Default for ParseOptions {
@@ -98,8 +109,37 @@ impl Default for ParseOptions {
         ParseOptions {
             max_parse_depth: MAX_PARSE_DEPTH,
             free_memory: true,
+            max_parse_nodes: MAX_PARSE_NODES,
+            max_parser_iterations: MAX_PARSER_ITERATIONS,
+            parser_warn_threshold: PARSER_WARN_THRESHOLD,
+            indentation: INDENTATION
+                .iter()
+                .map(|(k, v)| (k.to_string(), *v))
+                .collect(),
         }
     }
+}
+
+/// A `&'static str` for an indentation key: the parser keeps its config
+/// keys as `&'static str`. A key that is not a default key is kept one time
+/// for the process.
+fn static_key(key: &str) -> &'static str {
+    use std::collections::HashSet;
+    use std::sync::{Mutex, OnceLock};
+    if let Some((k, _)) = INDENTATION.iter().find(|(k, _)| *k == key) {
+        return k;
+    }
+    static KEYS: OnceLock<Mutex<HashSet<&'static str>>> = OnceLock::new();
+    let mut keys = KEYS
+        .get_or_init(Default::default)
+        .lock()
+        .unwrap_or_else(|e| e.into_inner());
+    if let Some(k) = keys.get(key) {
+        return k;
+    }
+    let k: &'static str = Box::leak(key.to_string().into_boxed_str());
+    keys.insert(k);
+    k
 }
 
 /// The code of a [`Diagnostic`], as sqlfluff gives it.
@@ -422,11 +462,15 @@ pub mod steps {
 
     /// The parser of the tokens, with the limits of the options.
     pub fn parser<'a>(tokens: &'a [Token], dialect: Dialect, options: &ParseOptions) -> Parser<'a> {
-        let indentation = INDENTATION.iter().copied().collect();
+        let indentation = options
+            .indentation
+            .iter()
+            .map(|(k, v)| (super::static_key(k), *v))
+            .collect();
         let depth = depth_limit(options.max_parse_depth);
         Parser::new_with_max_parse_depth(tokens, dialect, indentation, depth)
-            .with_parser_limits(MAX_PARSER_ITERATIONS, PARSER_WARN_THRESHOLD)
-            .with_node_limit(MAX_PARSE_NODES)
+            .with_parser_limits(options.max_parser_iterations, options.parser_warn_threshold)
+            .with_node_limit(options.max_parse_nodes)
     }
 
     /// The parser tree, or the diagnostic of the parser stop.

@@ -10,8 +10,10 @@ description = "sqll: a SQL toolchain. Parse output in the format of sqlfluff par
 
 # Since S3b C9 the binary parses through the frozen parse interface
 # (sqll_syntax) and writes the output from the syntax tree (sqll_tree).
+# Since S3b C11 it reads the config (sqll_config).
 [dependencies]
 serde_json.workspace = true
+sqll_config = { path = "../sqll_config" }
 sqll_source = { path = "../sqll_source" }
 sqll_syntax = { path = "../sqll_syntax" }
 sqll_templater = { path = "../sqll_templater" }
