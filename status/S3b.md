@@ -235,13 +235,13 @@ config check: PASS: 208 defaults, 40 coerce, 26 INI, 21 TOML, 34 load and 66 CLI
   same; the syntax tree check of the 84 S2 parse inputs passes; native base
   tests 162 of 162 (`scripts/s3/base_native_tests.py check`: 317 tests,
   314 passed, 3 ignored). Run again on the head after the review fixes
-  (round 4: `0cae3f0`; the S1 suite and the known failures: CI job
+  (round 5: `9bfbed7`; the S1 suite and the known failures: CI job
   report on that head, `results/s1/summary.json` is equal).
 - Speed check ([results/S3b/speed/C11.json](../results/S3b/speed/C11.json),
-  base `3104d473b8f1`, head `0cae3f0c0f48`, after the review fixes of
-  round 4): 112 benchmarks, 0 slower, 0 failures; total wall time head /
-  base 1.028 (start 1.070, max 1.143; parse/small 1.050, parse/medium
-  1.023, parse/large 1.020); head faster than sqruff on 108 of 108 pairs and
+  base `3104d473b8f1`, head `9bfbed79736e`, after the review fixes of
+  round 5): 112 benchmarks, 0 slower, 0 failures; total wall time head /
+  base 1.018 (start 1.082, max 1.205; parse/small 1.047, parse/medium
+  1.029, parse/large 1.000); head faster than sqruff on 108 of 108 pairs and
   faster than sqlfluff on 112 of 112. The speed check also compares the
   sqll version, settings, and statuses with `results/s2/baseline.json`:
   the same.

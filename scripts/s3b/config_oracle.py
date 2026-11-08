@@ -1142,7 +1142,9 @@ CLI = (
     ],
     [
         "char limit with stdin under the limit",
-        {"w/.sqlfluff": "[sqlfluff]\ndialect = ansi\nlarge_file_skip_char_limit = 500\n"},
+        {
+            "w/.sqlfluff": "[sqlfluff]\ndialect = ansi\nlarge_file_skip_char_limit = 500\n"
+        },
         "w",
         ["-"],
         None,
