@@ -312,22 +312,23 @@ main, the allocator, the license text, the version, and the dispatch.
 - Memory (the allocator note of S3 T17; `scripts/s3b/memory_check.py`,
   record [results/S3b/C13-memory.json](../results/S3b/C13-memory.json)):
   the peak RSS (VmHWM) of 3, 30, 300, and 3000 files in one process
-  (copies of the 3 ansi S2 parse inputs; the binary of commit `2233654`,
-  as in the speed check): lint 26.1 to 27.0 MiB, fix 27.6 to
-  28.5 MiB (3000 / 300 files: 1.015 and 1.007). The allocator
+  (copies of the 3 ansi S2 parse inputs; the binary of commit `bb082d7`,
+  as in the speed check): lint 26.1 to 27.0 MiB, fix 27.5 to
+  28.5 MiB (3000 / 300 files: 1.015 and 1.023). The allocator
   needs no change: the free lists give the blocks of a file to the next
   file. The json format keeps the output of each file until the end
-  (214 MiB for 3000 files; `stdout_bytes` 131437839). Core issue #38 is
+  (214 MiB for 3000 files; `stdout_bytes` 131437810). Core issue #38 is
   not needed: VmHWM is read from `/proc`.
 - G4: `cargo test --workspace --locked` passes; tree guard: 84 of 84 the
   same (local, 2 runs each). The S1 suites, the native base tests, and
   the bench check: CI on the pull request.
 - Speed check ([results/S3b/speed/C13.json](../results/S3b/speed/C13.json),
-  base `0b57b6cddabe`, head `22336548e3d9`): 112 benchmarks, 0 slower, 0
-  failures; total wall time head / base 1.0023 (start 1.0194, parse/small
-  1.0053, parse/medium 1.0082, parse/large 0.9974); head faster than
-  sqruff on 108 of 108 pairs and faster than sqlfluff on 112 of 112. No
-  benchmark is slower than the noise limit (harness/bench.md,
-  "Slowdowns"), so G3.6 needs no reason. The start total (1.0194) is
-  likely from the size of the binary: it links the lint and fix code and
-  is 3.8% larger (16666152 to 17292056 bytes).
+  base `0b57b6cddabe`, head `bb082d76f4b0`, after the review fixes of
+  round 5): 112 benchmarks, 0 slower, 0 failures; total wall time head /
+  base 0.9914 (start 1.0136, parse/small 1.0005, parse/medium 0.997,
+  parse/large 0.9846); head faster than sqruff on 108 of 108 pairs and
+  faster than sqlfluff on 112 of 112. No benchmark is slower than the
+  noise limit (harness/bench.md, "Slowdowns"), so G3.6 needs no reason.
+  The start total (1.0136) is likely from the size of the binary: it
+  links the lint and fix code and is 3.9% larger (16666152 to 17313664
+  bytes).

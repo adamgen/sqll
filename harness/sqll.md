@@ -208,7 +208,7 @@ Other differences from sqlfluff:
   change. No pinned fixture has one.
 
 Memory: the peak RSS of `lint` (human format) and `fix` does not grow with
-the number of files: 26.1 and 27.0 MiB (lint), 27.6 and 28.5 MiB (fix)
+the number of files: 26.1 and 27.0 MiB (lint), 27.5 and 28.5 MiB (fix)
 for 3 and 3000 files (`results/S3b/C13-memory.json`). The `json` and
 `yaml` formats keep the output text of each file until the end, as
 sqlfluff keeps the records: 214 MiB for 3000 files with 131 MB of output
