@@ -1,0 +1,139 @@
+{
+ "kind": "sqll-s3b-c13-memory",
+ "about": "S3b C13: the peak memory of sqll lint and fix on many files in one process (scripts/s3b/memory_check.py; status/S3b.md, C13).",
+ "command": "uv run --frozen --project harness python scripts/s3b/memory_check.py measure",
+ "method": "1. Build the S2 inputs (harness/bench.md) and take the 3 ansi parse inputs\n   (small, medium, large).\n2. For each count in COPIES, write that many copies of the 3 inputs to a new\n   folder (3 x count files), and a config file with\n   large_file_skip_byte_limit = 0 (else the large input is skipped).\n3. Run sqll on the folder in one process, for each mode of MODES (lint with\n   the human and the json format, fix), with the rules CP01, CP03, CP04.\n   Each run starts from new copies.\n4. Peak memory: the VmHWM of /proc/<pid>/status, read each 5 ms while the\n   process runs (the last value before the exit), and ru_maxrss of\n   os.wait4. On Linux ru_maxrss also has the RSS of this Python process\n   at the start of the child (Core issue #38); the record gives it as the\n   floor (the ru_maxrss of /bin/true started the same way).",
+ "sqll": {
+  "version": "0.1.0+tables.5371ded8ae219be1a62cd34b1b793d36c41bc9fa432f344de5d84f48d2d059e8",
+  "tables_sha256": "5371ded8ae219be1a62cd34b1b793d36c41bc9fa432f344de5d84f48d2d059e8",
+  "source_sha256": "7f90bab3fc2e85b86540a8933de5d639a5ce75306e3bbb84021dda324dfaaa8e",
+  "source_files": 167
+ },
+ "inputs": {
+  "ansi/small": 1019,
+  "ansi/medium": 4096,
+  "ansi/large": 16377
+ },
+ "floor_ru_maxrss_kib": 29824,
+ "max_ratio": 1.1,
+ "runs": [
+  {
+   "exit_code": 1,
+   "seconds": 0.074,
+   "vmhwm_kib": 26752,
+   "ru_maxrss_kib": 29824,
+   "mode": "lint human",
+   "copies": 1,
+   "files": 3
+  },
+  {
+   "exit_code": 1,
+   "seconds": 0.617,
+   "vmhwm_kib": 28708,
+   "ru_maxrss_kib": 29824,
+   "mode": "lint human",
+   "copies": 10,
+   "files": 30
+  },
+  {
+   "exit_code": 1,
+   "seconds": 6.001,
+   "vmhwm_kib": 28732,
+   "ru_maxrss_kib": 29824,
+   "mode": "lint human",
+   "copies": 100,
+   "files": 300
+  },
+  {
+   "exit_code": 1,
+   "seconds": 56.864,
+   "vmhwm_kib": 29396,
+   "ru_maxrss_kib": 30848,
+   "mode": "lint human",
+   "copies": 1000,
+   "files": 3000
+  },
+  {
+   "exit_code": 1,
+   "seconds": 0.074,
+   "vmhwm_kib": 26744,
+   "ru_maxrss_kib": 30848,
+   "mode": "lint json",
+   "copies": 1,
+   "files": 3
+  },
+  {
+   "exit_code": 1,
+   "seconds": 0.692,
+   "vmhwm_kib": 32720,
+   "ru_maxrss_kib": 32660,
+   "mode": "lint json",
+   "copies": 10,
+   "files": 30
+  },
+  {
+   "exit_code": 1,
+   "seconds": 6.521,
+   "vmhwm_kib": 129636,
+   "ru_maxrss_kib": 129432,
+   "mode": "lint json",
+   "copies": 100,
+   "files": 300
+  },
+  {
+   "exit_code": 1,
+   "seconds": 67.64,
+   "vmhwm_kib": 1116644,
+   "ru_maxrss_kib": 1116416,
+   "mode": "lint json",
+   "copies": 1000,
+   "files": 3000
+  },
+  {
+   "exit_code": 0,
+   "seconds": 0.172,
+   "vmhwm_kib": 28240,
+   "ru_maxrss_kib": 30848,
+   "mode": "fix",
+   "copies": 1,
+   "files": 3
+  },
+  {
+   "exit_code": 0,
+   "seconds": 1.704,
+   "vmhwm_kib": 29412,
+   "ru_maxrss_kib": 30848,
+   "mode": "fix",
+   "copies": 10,
+   "files": 30
+  },
+  {
+   "exit_code": 0,
+   "seconds": 16.1,
+   "vmhwm_kib": 40432,
+   "ru_maxrss_kib": 40224,
+   "mode": "fix",
+   "copies": 100,
+   "files": 300
+  },
+  {
+   "exit_code": 0,
+   "seconds": 188.13,
+   "vmhwm_kib": 142996,
+   "ru_maxrss_kib": 142604,
+   "mode": "fix",
+   "copies": 1000,
+   "files": 3000
+  }
+ ],
+ "ratio_largest_to_previous": {
+  "lint human": 1.023,
+  "lint json": 8.614,
+  "fix": 3.537
+ },
+ "bounded_modes": [
+  "lint human",
+  "fix"
+ ],
+ "pass": false
+}

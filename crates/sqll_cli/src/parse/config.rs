@@ -13,7 +13,8 @@ use sqll_config::{
     Config, ConfigError, Env, LoadOptions, Loader, ParseSettings, Table, TemplaterName, Value,
 };
 
-use crate::{normpath, unsupported, Error, ParseArgs};
+use crate::parse::ParseArgs;
+use crate::{normpath, unsupported, Error};
 
 /// What "sqll parse" does with the path.
 pub enum Input {
@@ -29,8 +30,8 @@ pub struct ParseInput {
 
 fn config_error(e: ConfigError) -> Error {
     match e {
-        ConfigError::Unsupported(_) => Error(e.to_string()),
-        other => Error(format!("Error loading config: {other}")),
+        ConfigError::Unsupported(_) => Error::new(e.to_string()),
+        other => Error::new(format!("Error loading config: {other}")),
     }
 }
 
@@ -72,7 +73,8 @@ pub fn load(args: &ParseArgs, path: &str) -> Result<Input, Error> {
         let settings = ParseSettings::for_stdin(&root).map_err(config_error)?;
         return Ok(Input::Parse(Box::new(ParseInput { settings })));
     }
-    let meta = std::fs::metadata(path).map_err(|e| Error(format!("cannot read {path}: {e}")))?;
+    let meta =
+        std::fs::metadata(path).map_err(|e| Error::new(format!("cannot read {path}: {e}")))?;
     if meta.is_dir() {
         return Err(unsupported(
             &format!("folder {path}"),
@@ -100,7 +102,7 @@ pub fn load(args: &ParseArgs, path: &str) -> Result<Input, Error> {
             meta.len()
         } else {
             std::fs::metadata(&fname)
-                .map_err(|e| Error(format!("cannot read {fname}: {e}")))?
+                .map_err(|e| Error::new(format!("cannot read {fname}: {e}")))?
                 .len()
         };
         if i128::from(size) > i128::from(limit) {

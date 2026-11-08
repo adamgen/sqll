@@ -40,6 +40,11 @@ Design: [s3b-core.md](../decisions/s3b-core.md), Q6.
   the settings for stdin. sqlfluff reads stdin with `sys.stdin.read()`, so
   the `encoding` setting has no effect and a UTF-8 byte order mark stays
   in the text.
+- `ParseSettings::for_lint(root, file, stdin)` (C13): the settings of the
+  parse of `sqll lint` and `fix`; the rule settings, `ignore`, and
+  `warnings` are not checked here (the rule registry and the command read
+  them). `parse::check_ignore_folder` (C13): the ignore file check of one
+  folder, for each folder that a lint walks.
 - `ConfigError`: `Invalid` (sqlfluff refuses the config), `Io`, and
   `Unsupported` (fail closed: `sqll parse` prints `unsupported: ...` and
   gives exit code 2).

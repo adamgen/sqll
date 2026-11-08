@@ -119,30 +119,40 @@ pub fn has_sql_extension(path: &str, exts: &[String]) -> bool {
 pub fn check_ignore_files(loader: &mut Loader, path: &str) -> Result<(), ConfigError> {
     let env = loader.env().clone();
     for folder in intermediate_paths(&env, path, &env.cwd) {
-        let ignore = crate::loader::join(&folder, ".sqlfluffignore");
-        if std::path::Path::new(&ignore).is_file() {
-            return Err(ConfigError::Unsupported(format!(
-                "the ignore file {ignore}: sqll does not read .sqlfluffignore files yet (S7)"
-            )));
+        check_ignore_folder(loader, &folder)?;
+    }
+    Ok(())
+}
+
+/// The ignore files of one folder (as [`check_ignore_files`]): a
+/// `.sqlfluffignore` file, or `ignore_paths` in its `pyproject.toml` or
+/// `.sqlfluff` file, fails closed. A lint of a folder (S3b C13) checks each
+/// folder that it walks.
+pub fn check_ignore_folder(loader: &mut Loader, folder: &str) -> Result<(), ConfigError> {
+    let env = loader.env().clone();
+    let ignore = crate::loader::join(folder, ".sqlfluffignore");
+    if std::path::Path::new(&ignore).is_file() {
+        return Err(ConfigError::Unsupported(format!(
+            "the ignore file {ignore}: sqll does not read .sqlfluffignore files yet (S7)"
+        )));
+    }
+    // The order of `ignore_file_loaders` (discovery.py).
+    for name in ["pyproject.toml", ".sqlfluff"] {
+        let file = crate::loader::join(folder, name);
+        if !std::path::Path::new(&file).is_file() {
+            continue;
         }
-        // The order of `ignore_file_loaders` (discovery.py).
-        for name in ["pyproject.toml", ".sqlfluff"] {
-            let file = crate::loader::join(&folder, name);
-            if !std::path::Path::new(&file).is_file() {
-                continue;
-            }
-            let config = loader.load_file(&env.realpath(&file))?;
-            let patterns = crate::dict::get(&config, &["core", "ignore_paths"]);
-            let any = match patterns {
-                Some(Value::Str(_)) => true,
-                Some(Value::List(l)) => !l.is_empty(),
-                _ => false,
-            };
-            if any {
-                return Err(ConfigError::Unsupported(format!(
-                    "setting core:ignore_paths in {file}: sqll does not read ignore patterns yet (S7)"
-                )));
-            }
+        let config = loader.load_file(&env.realpath(&file))?;
+        let patterns = crate::dict::get(&config, &["core", "ignore_paths"]);
+        let any = match patterns {
+            Some(Value::Str(_)) => true,
+            Some(Value::List(l)) => !l.is_empty(),
+            _ => false,
+        };
+        if any {
+            return Err(ConfigError::Unsupported(format!(
+                "setting core:ignore_paths in {file}: sqll does not read ignore patterns yet (S7)"
+            )));
         }
     }
     Ok(())
@@ -152,7 +162,20 @@ impl ParseSettings {
     /// The settings of a parse of a file: `root` is the config of the
     /// working folder, `file` the config of the file.
     pub fn new(root: &Config, file: &Config) -> Result<ParseSettings, ConfigError> {
-        ParseSettings::build(root, file, false)
+        ParseSettings::build(root, file, false, false)
+    }
+
+    /// The settings of the parse of a lint or a fix (S3b C13): as
+    /// [`ParseSettings::new`] (or [`ParseSettings::for_stdin`] if `stdin`),
+    /// but the rule settings (`rules`, `exclude_rules`, the `rules` and
+    /// `layout` sections), `ignore`, and `warnings` are not checked: the
+    /// rule registry and the command read them.
+    pub fn for_lint(
+        root: &Config,
+        file: &Config,
+        stdin: bool,
+    ) -> Result<ParseSettings, ConfigError> {
+        ParseSettings::build(root, file, stdin, true)
     }
 
     /// The settings of a parse of stdin (the root config). sqlfluff reads
@@ -161,10 +184,15 @@ impl ParseSettings {
     /// mark stays in the text. Thus the encoding is [`Encoding::Utf8`] and
     /// the `encoding` setting has no effect.
     pub fn for_stdin(root: &Config) -> Result<ParseSettings, ConfigError> {
-        ParseSettings::build(root, root, true)
+        ParseSettings::build(root, root, true, false)
     }
 
-    fn build(root: &Config, file: &Config, stdin: bool) -> Result<ParseSettings, ConfigError> {
+    fn build(
+        root: &Config,
+        file: &Config,
+        stdin: bool,
+        lint: bool,
+    ) -> Result<ParseSettings, ConfigError> {
         let templater = root_templater(root)?;
         let templater_warning = (file.templater() != root.templater()).then(|| {
             format!(
@@ -271,6 +299,7 @@ impl ParseSettings {
                         ));
                     }
                 }
+                "ignore" | "warnings" | "rules" | "exclude_rules" if lint => {}
                 "ignore" | "warnings" => {
                     if value.is_truthy() {
                         return Err(unsupported(
@@ -306,7 +335,8 @@ impl ParseSettings {
         }
         // sqlfluff checks the rule and layout settings in each parse
         // (get_rulepack); sqll can only do their defaults.
-        for section in ["rules", "layout"] {
+        let sections: &[&str] = if lint { &[] } else { &["rules", "layout"] };
+        for &section in sections {
             let have = file.get(&[section]);
             let want = default_table.get(section);
             if !matches!((have, want), (Some(h), Some(w)) if h.py_eq(w)) {

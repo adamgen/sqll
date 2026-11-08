@@ -100,7 +100,8 @@ def test_the_new_files_with_ported_parts_are_named():
     # and crates/sqll_interfaces/src/parse.rs to crates/sqll_syntax/src/parse.rs.
     # 6 since S3b C11: crates/sqll_config/src/value.rs (coerce_value).
     # 12 since S3b C12: the 6 files of crates/sqll_lint/src/ but lib.rs.
-    assert len(headers) == 12
+    # 19 since S3b C13: 7 files of crates/sqll_cli/src/.
+    assert len(headers) == 19
     assert named == headers
 
 
@@ -160,7 +161,8 @@ def test_the_cpython_port_keeps_the_psf_license_and_notice():
     ):
         assert word in section, word
 
-    main = (REPO_ROOT / "crates/sqll/src/main.rs").read_text(encoding="utf-8")
+    # S3b C13 moved normpath from crates/sqll/src/main.rs to sqll_cli.
+    main = (REPO_ROOT / "crates/sqll_cli/src/lib.rs").read_text(encoding="utf-8")
     comment = " ".join(
         line.strip().removeprefix("///").strip()
         for line in main.split("fn normpath", 1)[0].splitlines()[-12:]
@@ -178,7 +180,7 @@ def test_the_cpython_port_keeps_the_psf_license_and_notice():
 
     new = {n["path"]: n["reason"] for n in _ported_record()["new"]}
     assert CPYTHON_LICENSE_SHA256 in new[CPYTHON_LICENSE]
-    assert CPYTHON_LICENSE in new["crates/sqll/src/main.rs"]
+    assert CPYTHON_LICENSE in new["crates/sqll_cli/src/lib.rs"]
 
 
 def test_only_the_cpython_records_name_the_psf():
@@ -195,7 +197,11 @@ def test_only_the_cpython_records_name_the_psf():
                 continue
             if "Python Software Foundation" in text:
                 found.add(str(path.relative_to(REPO_ROOT)))
-    ports = {"crates/sqll/src/main.rs", "crates/sqll_config/src/ini.rs"}
+    ports = {
+        "crates/sqll_cli/src/lib.rs",
+        "crates/sqll_cli/src/text.rs",
+        "crates/sqll_config/src/ini.rs",
+    }
     assert found <= {CPYTHON_LICENSE, PORTED_RECORD, *ports}, found
 
 
@@ -250,6 +256,53 @@ def test_the_tomllib_port_keeps_the_mit_license_and_notice():
     assert TOMLI_LICENSE_SHA256 in new[TOMLI_LICENSE]
 
 
+def test_the_textwrap_port_keeps_the_psf_license_and_notice():
+    """S3b C13: the text wrap of the rules and dialects tables is a port of
+    textwrap.wrap."""
+    text = (REPO_ROOT / "crates/sqll_cli/src/text.rs").read_text("utf-8")
+    head = " ".join(
+        line.removeprefix("//!").strip()
+        for line in text.split("use std")[0].splitlines()
+    )
+    for word in (
+        "Lib/textwrap.py",
+        f"tag {CPYTHON_TAG}",
+        CPYTHON_COMMIT,
+        PSF_NOTICE,
+        CPYTHON_LICENSE,
+        "Changes:",
+    ):
+        assert word in head, word
+    section = " ".join(_cpython_section().split())
+    assert "`crates/sqll_cli/src/text.rs`" in section
+    new = {n["path"]: n["reason"] for n in _ported_record()["new"]}
+    assert CPYTHON_LICENSE in new["crates/sqll_cli/src/text.rs"]
+
+
+PYYAML_LICENSE = "crates/LICENSE-pyyaml.txt"
+PYYAML_LICENSE_SHA256 = (
+    "8d3928f9dc4490fd635707cb88eb26bd764102a7282954307d3e5167a577e8a4"
+)
+
+
+def test_the_pyyaml_port_keeps_the_mit_license_and_notice():
+    """S3b C13: the YAML output of sqll lint is a port of the PyYAML emitter."""
+    data = (REPO_ROOT / PYYAML_LICENSE).read_bytes()
+    assert hashlib.sha256(data).hexdigest() == PYYAML_LICENSE_SHA256
+    assert data.startswith("Copyright (c) 2017-2021 Ingy döt Net\n".encode())
+    head = (REPO_ROOT / "crates/sqll_cli/src/lint/yaml.rs").read_text("utf-8")
+    head = " ".join(line.removeprefix("//!").strip() for line in head.splitlines()[:20])
+    for word in ("PyYAML 6.0.3", "Kirill Simonov", PYYAML_LICENSE, "Changes:"):
+        assert word in head, word
+    section = _section("PyYAML")
+    for word in (f"`{PYYAML_LICENSE}`", "`crates/sqll_cli/src/lint/yaml.rs`", "6.0.3"):
+        assert word in section, word
+    new = {n["path"]: n["reason"] for n in _ported_record()["new"]}
+    assert PYYAML_LICENSE_SHA256 in new[PYYAML_LICENSE]
+    license_rs = (REPO_ROOT / "crates/sqll/src/license.rs").read_text("utf-8")
+    assert "LICENSE-pyyaml.txt" in license_rs
+
+
 # The license of sqll and the notices of the binary (S3 T19).
 
 SQLL_COPYRIGHT = "Copyright (c) 2026 The sqll authors"
@@ -280,7 +333,7 @@ def test_sqll_is_under_the_mit_license():
 def test_each_crate_of_the_workspace_has_the_mit_license():
     workspace = tomllib.loads((REPO_ROOT / "Cargo.toml").read_text("utf-8"))
     members = workspace["workspace"]["members"]
-    assert len(members) == 14
+    assert len(members) == 15
     for member in members:
         manifest = tomllib.loads((REPO_ROOT / member / "Cargo.toml").read_text("utf-8"))
         assert manifest["package"]["license"] == "MIT", member

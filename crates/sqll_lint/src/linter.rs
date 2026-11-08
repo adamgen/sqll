@@ -15,13 +15,14 @@
 
 use std::collections::HashSet;
 use std::ops::Range;
+use std::time::{Duration, Instant};
 
 use sqll_source::{LinePos, Templater, TemplaterConfig, TemplaterError};
 use sqll_syntax::{Diagnostic, Dialect, ParseOptions, Parsed};
 use sqll_tree::{NodeId, SegmentType, SyntaxTree};
 
 use crate::config::{LintSettings, RuleConfig};
-use crate::fix::{apply_edits, check_anchors, result_edits, Fix, SourceEdit};
+use crate::fix::{apply_edits, check_anchors, result_edits, Fix, FixRecord, SourceEdit};
 use crate::registry::RulePack;
 use crate::rule::{LintPhase, Memory, Rule, RuleContext};
 use crate::LintError;
@@ -71,6 +72,9 @@ pub struct Violation {
     pub end: LinePos,
     /// The source edits of the fixes. Empty: the violation is not fixable.
     pub fixes: Vec<SourceEdit>,
+    /// The output records of the fixes (the sqlfluff `fixes` of the
+    /// violation record), in the order of the rule. Empty if `fixes` is.
+    pub fix_records: Vec<FixRecord>,
     /// The anchor is in literal source text (not templated).
     pub literal: bool,
     targets_templated: bool,
@@ -79,6 +83,12 @@ pub struct Violation {
 impl Violation {
     pub fn fixable(&self) -> bool {
         !self.fixes.is_empty()
+    }
+
+    /// Make the violation not fixable.
+    pub fn clear_fixes(&mut self) {
+        self.fixes.clear();
+        self.fix_records.clear();
     }
 }
 
@@ -93,6 +103,9 @@ pub struct LintedFile {
     pub parse_errors: Vec<Diagnostic>,
     /// The notes of the fix loop (the sqlfluff warnings of the linter).
     pub warnings: Vec<String>,
+    /// The time of each rule in the loops, by code, in the order of the
+    /// first run (the sqlfluff `get_rule_timing_dict`).
+    pub rule_times: Vec<(&'static str, Duration)>,
 }
 
 /// The line and position of a source byte of the tree.
@@ -161,6 +174,7 @@ fn crawl(
                 continue;
             }
             let source_range = tree.source_range(result.anchor);
+            let fix_records = fixes.iter().map(|f| f.record(tree)).collect();
             out.violations.push(Violation {
                 code: rule.code(),
                 name: rule.name(),
@@ -171,6 +185,7 @@ fn crawl(
                 end: source_line_pos(tree, source_range.end),
                 source_range,
                 fixes: edits,
+                fix_records,
                 literal: !is_templated(tree, result.anchor),
                 targets_templated: rule.targets_templated(),
             });
@@ -227,6 +242,7 @@ impl Linter<'_> {
             violations: Vec::new(),
             parse_errors: parsed.errors,
             warnings: Vec::new(),
+            rule_times: Vec::new(),
         };
         // No tree (the parser stopped): no rule runs, as in sqlfluff.
         let Some(tree) = parsed.tree else {
@@ -260,7 +276,11 @@ impl Linter<'_> {
             let mut rules: Vec<usize> = (0..self.pack.rules.len())
                 .filter(|&i| phases.len() == 1 || self.pack.rules[i].0.lint_phase() == phase)
                 .collect();
-            let loops = if phase == LintPhase::Main { loop_limit } else { 2 };
+            let loops = if phase == LintPhase::Main {
+                loop_limit
+            } else {
+                2
+            };
             let mut stable = false;
             for n in 0..loops {
                 let first = phase == phases[0] && n == 0;
@@ -273,88 +293,94 @@ impl Linter<'_> {
                     if fix && !first && !rule.is_fix_compatible() {
                         continue;
                     }
-                    let crawled = crawl(*rule, config, self.dialect, &current.tree)?;
-                    let start = initial.len();
-                    if first {
-                        initial.extend(crawled.violations);
-                    }
-                    if !fix || crawled.fixes.is_empty() {
-                        continue;
-                    }
-                    let edits = check_anchors(&crawled.fixes).and_then(|fixes| {
-                        fixes
-                            .iter()
-                            .map(|f| {
-                                let after = matches!(f, Fix::CreateAfter { .. });
-                                f.source_edit(&current.tree)
-                                    .ok()
-                                    .map(|e| e.map(|e| (e, after)))
-                            })
-                            .collect::<Option<Vec<_>>>()
-                            .map(|v| v.into_iter().flatten().collect::<Vec<_>>())
-                    });
-                    let Some(edits) = edits else {
-                        out.warnings.push(format!(
-                            "Rule {} returned conflicting fixes with the same anchor. \
-                             The fixes are not applied.",
-                            rule.code()
-                        ));
+                    let started = Instant::now();
+                    'rule: {
+                        let crawled = crawl(*rule, config, self.dialect, &current.tree)?;
+                        let start = initial.len();
                         if first {
-                            for v in &mut initial[start..] {
-                                v.fixes.clear();
-                            }
+                            initial.extend(crawled.violations);
                         }
-                        continue;
-                    };
-                    let plain: Vec<SourceEdit> = edits.iter().map(|(e, _)| e.clone()).collect();
-                    if last_fixes.as_ref() == Some(&plain) {
-                        continue;
-                    }
-                    last_fixes = Some(plain);
-                    let Some(new_source) = apply_edits(&current.source, &edits) else {
-                        out.warnings.push(format!(
-                            "Rule {} returned fixes that overlap. The fixes are not applied.",
-                            rule.code()
-                        ));
-                        if first {
-                            for v in &mut initial[start..] {
-                                v.fixes.clear();
-                            }
+                        if !fix || crawled.fixes.is_empty() {
+                            break 'rule;
                         }
-                        continue;
-                    };
-                    if new_source == current.source {
-                        continue;
-                    }
-                    let valid = match parser.parse(&new_source) {
-                        Ok(Parsed {
-                            tree: Some(tree),
+                        let edits = check_anchors(&crawled.fixes).and_then(|fixes| {
+                            fixes
+                                .iter()
+                                .map(|f| {
+                                    let after = matches!(f, Fix::CreateAfter { .. });
+                                    f.source_edit(&current.tree)
+                                        .ok()
+                                        .map(|e| e.map(|e| (e, after)))
+                                })
+                                .collect::<Option<Vec<_>>>()
+                                .map(|v| v.into_iter().flatten().collect::<Vec<_>>())
+                        });
+                        let Some(edits) = edits else {
+                            out.warnings.push(format!(
+                                "Rule {} returned conflicting fixes with the same anchor. \
+                                 The fixes are not applied.",
+                                rule.code()
+                            ));
+                            if first {
+                                for v in &mut initial[start..] {
+                                    v.clear_fixes();
+                                }
+                            }
+                            break 'rule;
+                        };
+                        let plain: Vec<SourceEdit> = edits.iter().map(|(e, _)| e.clone()).collect();
+                        if last_fixes.as_ref() == Some(&plain) {
+                            break 'rule;
+                        }
+                        last_fixes = Some(plain);
+                        let Some(new_source) = apply_edits(&current.source, &edits) else {
+                            out.warnings.push(format!(
+                                "Rule {} returned fixes that overlap. The fixes are not applied.",
+                                rule.code()
+                            ));
+                            if first {
+                                for v in &mut initial[start..] {
+                                    v.clear_fixes();
+                                }
+                            }
+                            break 'rule;
+                        };
+                        if new_source == current.source {
+                            break 'rule;
+                        }
+                        let valid = match parser.parse(&new_source) {
+                            Ok(Parsed {
+                                tree: Some(tree),
+                                errors,
+                                ..
+                            }) if errors.len() <= current.errors => Some((tree, errors.len())),
+                            _ => None,
+                        };
+                        let Some((tree, errors)) = valid else {
+                            out.warnings.push(format!(
+                                "Fixes for {} not applied, as it would result in an unparsable file. \
+                                 Please report this as a bug with a minimal query which \
+                                 demonstrates this warning.",
+                                rule.code()
+                            ));
+                            break 'rule;
+                        };
+                        if previous.contains(&new_source) {
+                            out.warnings.push(format!(
+                                "One fix for {} not applied, it would re-cause the same error.",
+                                rule.code()
+                            ));
+                            break 'rule;
+                        }
+                        previous.insert(new_source.clone());
+                        current = Current {
+                            source: new_source,
+                            tree,
                             errors,
-                            ..
-                        }) if errors.len() <= current.errors => Some((tree, errors.len())),
-                        _ => None,
-                    };
-                    let Some((tree, errors)) = valid else {
-                        out.warnings.push(format!(
-                            "Fixes for {} not applied, as it would result in an unparsable file.",
-                            rule.code()
-                        ));
-                        continue;
-                    };
-                    if previous.contains(&new_source) {
-                        out.warnings.push(format!(
-                            "One fix for {} not applied, it would re-cause the same error.",
-                            rule.code()
-                        ));
-                        continue;
+                        };
+                        changed = true;
                     }
-                    previous.insert(new_source.clone());
-                    current = Current {
-                        source: new_source,
-                        tree,
-                        errors,
-                    };
-                    changed = true;
+                    add_time(&mut out.rule_times, rule.code(), started.elapsed());
                 }
                 if fix && !changed {
                     stable = true;
@@ -362,9 +388,10 @@ impl Linter<'_> {
                 }
             }
             if fix && !stable {
-                out.warnings.push(format!("Loop limit on fixes reached [{loop_limit}]."));
+                out.warnings
+                    .push(format!("Loop limit on fixes reached [{loop_limit}]."));
                 for v in &mut initial {
-                    v.fixes.clear();
+                    v.clear_fixes();
                 }
                 // As sqlfluff: the original source, and no removal of the
                 // violations in templated sections.
@@ -378,6 +405,14 @@ impl Linter<'_> {
     }
 }
 
+/// Add a time to the time of a rule.
+fn add_time(times: &mut Vec<(&'static str, Duration)>, code: &'static str, time: Duration) {
+    match times.iter_mut().find(|(c, _)| *c == code) {
+        Some((_, t)) => *t += time,
+        None => times.push((code, time)),
+    }
+}
+
 /// The sqlfluff `remove_templated_errors` (if `remove_templated`), then
 /// `deduplicate_in_source_space`: no duplicate, sorted by line and
 /// position.
@@ -386,14 +421,7 @@ fn finish(violations: Vec<Violation>, remove_templated: bool) -> Vec<Violation> 
     let mut out: Vec<Violation> = violations
         .into_iter()
         .filter(|v| !remove_templated || v.literal || v.targets_templated)
-        .filter(|v| {
-            seen.insert((
-                v.code,
-                v.start,
-                v.description.clone(),
-                v.fixes.clone(),
-            ))
-        })
+        .filter(|v| seen.insert((v.code, v.start, v.description.clone(), v.fixes.clone())))
         .collect();
     out.sort_by_key(|v| v.start);
     out

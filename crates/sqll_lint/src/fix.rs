@@ -49,6 +49,17 @@ pub struct SourceEdit {
     pub text: String,
 }
 
+/// The output record of a fix (the sqlfluff `LintFix.to_dict`): the edit
+/// type, the text (empty for a delete), and the source byte range of the
+/// anchor. The output gives a `create_before` the start of the range, and a
+/// `create_after` its end.
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+pub struct FixRecord {
+    pub edit_type: &'static str,
+    pub text: String,
+    pub anchor_source: Range<usize>,
+}
+
 /// Why a fix cannot change the source.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum FixRefusal {
@@ -70,7 +81,9 @@ impl fmt::Display for FixRefusal {
                 "the edit of the templated bytes {}..{} is not in literal source text",
                 templated.start, templated.end
             ),
-            FixRefusal::MultipleBlocks => f.write_str("the fixes touch more than one template block"),
+            FixRefusal::MultipleBlocks => {
+                f.write_str("the fixes touch more than one template block")
+            }
             FixRefusal::SourceMap(e) => write!(f, "the source map refused the edit: {e}"),
         }
     }
@@ -99,6 +112,21 @@ impl Fix {
             Fix::CreateBefore { .. } => "create_before",
             Fix::CreateAfter { .. } => "create_after",
             Fix::Delete { .. } => "delete",
+        }
+    }
+
+    /// The output record of the fix.
+    pub fn record(&self, tree: &SyntaxTree) -> FixRecord {
+        let text = match self {
+            Fix::Replace { text, .. }
+            | Fix::CreateBefore { text, .. }
+            | Fix::CreateAfter { text, .. } => text.clone(),
+            Fix::Delete { .. } => String::new(),
+        };
+        FixRecord {
+            edit_type: self.edit_type(),
+            text,
+            anchor_source: tree.source_range(self.anchor()),
         }
     }
 
@@ -202,9 +230,7 @@ fn insertion_point(map: &SourceMap, at: usize) -> Result<Range<usize>, FixRefusa
             return Ok(source.end..source.end);
         }
     }
-    Err(FixRefusal::Templated {
-        templated: at..at,
-    })
+    Err(FixRefusal::Templated { templated: at..at })
 }
 
 /// The block index of each raw slice that a literal source edit touches

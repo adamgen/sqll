@@ -1,0 +1,35 @@
+# The commands and the output formats of the sqll command line (S3b task
+# C13; docs/decisions/s3b-core.md, Q6): parse, lint, fix, rules, and
+# dialects. The binary crate sqll keeps main, the allocator, the license
+# text, and the dispatch. This file is new sqll code (crates/ported.json,
+# "new").
+[package]
+name = "sqll_cli"
+version.workspace = true
+edition = "2021"
+rust-version.workspace = true
+license = "MIT"
+publish = false
+
+# fancy-regex: the word split of Python textwrap (lookbehind). regex: the
+# YAML resolvers. libc: isatty and the raw terminal of "fix --check". Each is
+# in Cargo.lock already.
+[dependencies]
+fancy-regex.workspace = true
+libc.workspace = true
+regex.workspace = true
+sqll_config = { path = "../sqll_config" }
+sqll_lint = { path = "../sqll_lint" }
+sqll_rules = { path = "../sqll_rules" }
+sqll_source = { path = "../sqll_source" }
+sqll_syntax = { path = "../sqll_syntax" }
+sqll_templater = { path = "../sqll_templater" }
+sqll_tree = { path = "../sqll_tree" }
+
+# The tests of the parse output compare the writer with the record of the
+# parser tree (sqll_parser).
+[dev-dependencies]
+serde.workspace = true
+serde_json.workspace = true
+serde_yaml_ng.workspace = true
+sqll_parser = { path = "../sqll_parser" }

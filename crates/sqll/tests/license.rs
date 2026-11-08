@@ -71,6 +71,9 @@ fn the_license_has_the_sqll_license_and_the_other_notices() {
     let tomli = read("crates/LICENSE-tomli.txt");
     assert!(tomli.starts_with("MIT License\n\nCopyright (c) 2021 Taneli Hukkinen\n"));
     assert!(text.contains(tomli.trim_end()), "the tomli MIT license");
+    let pyyaml = read("crates/LICENSE-pyyaml.txt");
+    assert!(pyyaml.starts_with("Copyright (c) 2017-2021 Ingy d\u{f6}t Net\n"));
+    assert!(text.contains(pyyaml.trim_end()), "the PyYAML MIT license");
     // The changes of the port are those of THIRD_PARTY.md ("tomllib").
     let words = |s: &str| {
         s.replace('`', "")

@@ -62,8 +62,45 @@ fn metadata_problems(rule: &dyn Rule) -> Vec<String> {
     check("aliases", rule.aliases() == m.aliases);
     check("lint phase", rule.lint_phase() == m.lint_phase);
     check("fix flag", rule.is_fix_compatible() == m.is_fix_compatible);
-    check("config keywords", rule.config_keywords() == m.config_keywords);
-    check("targets_templated flag", rule.targets_templated() == m.targets_templated);
+    check(
+        "config keywords",
+        rule.config_keywords() == m.config_keywords,
+    );
+    check(
+        "targets_templated flag",
+        rule.targets_templated() == m.targets_templated,
+    );
+    out
+}
+
+/// Python `repr()` of a text: in `'` quotes, or in `"` quotes for a text
+/// with `'` and no `"`, with an escape for `\\`, the quote, and each
+/// control character.
+pub fn py_repr(text: &str) -> String {
+    let quote = if text.contains('\'') && !text.contains('"') {
+        '"'
+    } else {
+        '\''
+    };
+    let mut out = String::with_capacity(text.len() + 2);
+    out.push(quote);
+    for c in text.chars() {
+        match c {
+            '\\' => out.push_str("\\\\"),
+            '\t' => out.push_str("\\t"),
+            '\n' => out.push_str("\\n"),
+            '\r' => out.push_str("\\r"),
+            c if c == quote => {
+                out.push('\\');
+                out.push(c);
+            }
+            '\0'..='\x1f' | '\x7f'..='\u{a0}' | '\u{ad}' => {
+                out.push_str(&format!("\\x{:02x}", u32::from(c)));
+            }
+            c => out.push(c),
+        }
+    }
+    out.push(quote);
     out
 }
 
@@ -80,9 +117,7 @@ fn glob(n: &[char], p: &[char]) -> bool {
         Some('*') => (0..=n.len()).any(|i| glob(&n[i..], &p[1..])),
         Some('?') => !n.is_empty() && glob(&n[1..], &p[1..]),
         Some('[') => match class(p) {
-            Some((matches, len)) => {
-                !n.is_empty() && matches(n[0]) && glob(&n[1..], &p[len..])
-            }
+            Some((matches, len)) => !n.is_empty() && matches(n[0]) && glob(&n[1..], &p[len..]),
             None => n.first() == Some(&'[') && glob(&n[1..], &p[1..]),
         },
         Some(&c) => n.first() == Some(&c) && glob(&n[1..], &p[1..]),
@@ -162,8 +197,10 @@ impl Registry {
     /// sqlfluff, also for the rules that sqll does not have.
     pub fn reference_map() -> BTreeMap<String, BTreeSet<String>> {
         let one = |code: &str| BTreeSet::from([code.to_string()]);
-        let mut map: BTreeMap<String, BTreeSet<String>> =
-            RULES.iter().map(|r| (r.code.to_string(), one(r.code))).collect();
+        let mut map: BTreeMap<String, BTreeSet<String>> = RULES
+            .iter()
+            .map(|r| (r.code.to_string(), one(r.code)))
+            .collect();
         for r in RULES {
             if !r.name.is_empty() && !map.contains_key(r.name) {
                 map.insert(r.name.to_string(), one(r.code));
@@ -173,7 +210,10 @@ impl Registry {
         for r in RULES {
             for g in r.groups {
                 if !map.contains_key(*g) {
-                    groups.entry(g.to_string()).or_default().insert(r.code.to_string());
+                    groups
+                        .entry(g.to_string())
+                        .or_default()
+                        .insert(r.code.to_string());
                 }
             }
         }
@@ -182,7 +222,10 @@ impl Registry {
         for r in RULES {
             for a in r.aliases {
                 if !map.contains_key(*a) {
-                    aliases.entry(a.to_string()).or_default().insert(r.code.to_string());
+                    aliases
+                        .entry(a.to_string())
+                        .or_default()
+                        .insert(r.code.to_string());
                 }
             }
         }
@@ -192,10 +235,7 @@ impl Registry {
 
     /// The sqlfluff `_expand_rule_refs`: the codes of the references (a
     /// reference, or a glob over all references).
-    pub fn expand(
-        refs: &[String],
-        map: &BTreeMap<String, BTreeSet<String>>,
-    ) -> BTreeSet<String> {
+    pub fn expand(refs: &[String], map: &BTreeMap<String, BTreeSet<String>>) -> BTreeSet<String> {
         let mut out = BTreeSet::new();
         for r in refs {
             match map.get(r) {
@@ -212,12 +252,82 @@ impl Registry {
         out
     }
 
-    /// The sqlfluff `get_rulepack`: the rules that the config selects, with
-    /// their config. It fails closed if it selects a rule that sqll does
-    /// not have, and fails as sqlfluff for an invalid rule config value.
-    pub fn select(&self, config: &Config) -> Result<RulePack<'_>, LintError> {
-        let rules_section = config.section(&["rules"]).cloned().unwrap_or_default();
-        validate_options(&rules_section)?;
+    /// The warnings of the sqlfluff `get_rulepack` for a config, in its
+    /// order: each rule section for no rule (and its match by reference),
+    /// and the references of `rules` and of `exclude_rules` that match no
+    /// reference. sqlfluff logs them each time that it makes a rule pack.
+    pub fn selection_warnings(config: &Config) -> Vec<String> {
+        let map = Registry::reference_map();
+        let mut out = Vec::new();
+        if let Some(rules) = config.section(&["rules"]) {
+            for (key, value) in rules {
+                if !matches!(value, Value::Table(_)) || RULES.iter().any(|r| r.name == key) {
+                    continue;
+                }
+                out.push(format!(
+                    "Rule configuration contain a section for unexpected rule {}. \
+                     These values will be ignored.",
+                    py_repr(key)
+                ));
+                let Some(codes) = map.get(key) else {
+                    continue;
+                };
+                if codes.len() == 1 {
+                    let code = codes.iter().next().expect("one code");
+                    let name = sqlfluff_rule(code).map_or("", |r| r.name);
+                    out.push(format!(
+                        "The reference was however found as a match for rule {code} with name \
+                         {}. SQLFluff assumes configuration for this rule will be specified \
+                         in 'sqlfluff:rules:{name}'.",
+                        py_repr(name)
+                    ));
+                } else if !codes.is_empty() {
+                    let set: Vec<String> = codes.iter().map(|c| py_repr(c)).collect();
+                    out.push(format!(
+                        "The reference was found as a match for multiple rules: {{{}}}. Config \
+                         should be specified by the name of the relevant rule e.g. \
+                         'sqlfluff:rules:capitalisation.keywords'.",
+                        set.join(", ")
+                    ));
+                }
+            }
+        }
+        let list = |key: &str| -> Vec<String> {
+            match config.core(key) {
+                Some(Value::List(items)) => items.iter().filter_map(Value::py_str).collect(),
+                _ => Vec::new(),
+            }
+        };
+        let unknown = |refs: Vec<String>| -> Vec<String> {
+            refs.into_iter()
+                .filter(|r| !map.keys().any(|k| fnmatch(k, r)))
+                .collect()
+        };
+        let py_list = |items: &[String]| -> String {
+            let parts: Vec<String> = items.iter().map(|i| py_repr(i)).collect();
+            format!("[{}]", parts.join(", "))
+        };
+        let allow = unknown(list("rule_allowlist"));
+        if !allow.is_empty() {
+            out.push(format!(
+                "Tried to allowlist unknown rule references: {}",
+                py_list(&allow)
+            ));
+        }
+        let deny = unknown(list("rule_denylist"));
+        if !deny.is_empty() {
+            out.push(format!(
+                "Tried to denylist unknown rules references: {}",
+                py_list(&deny)
+            ));
+        }
+        out
+    }
+
+    /// The codes of the sqlfluff rules that the config selects (`rules` and
+    /// `exclude_rules`, as the sqlfluff `get_rulepack`), in code order. Also
+    /// the rules that sqll does not have.
+    pub fn selected_codes(config: &Config) -> Vec<&'static str> {
         let map = Registry::reference_map();
         let list = |key: &str| -> Vec<String> {
             match config.core(key) {
@@ -232,11 +342,21 @@ impl Registry {
         let deny = list("rule_denylist");
         let allowed = Registry::expand(&allow, &map);
         let denied = Registry::expand(&deny, &map);
-        let codes: Vec<&str> = RULES
+        RULES
             .iter()
             .map(|r| r.code)
             .filter(|c| allowed.contains(*c) && !denied.contains(*c))
-            .collect();
+            .collect()
+    }
+
+    /// The sqlfluff `get_rulepack`: the rules that the config selects, with
+    /// their config. It fails closed if it selects a rule that sqll does
+    /// not have, and fails as sqlfluff for an invalid rule config value.
+    pub fn select(&self, config: &Config) -> Result<RulePack<'_>, LintError> {
+        let rules_section = config.section(&["rules"]).cloned().unwrap_or_default();
+        validate_options(&rules_section)?;
+        let map = Registry::reference_map();
+        let codes = Registry::selected_codes(config);
         let missing: Vec<&str> = codes.iter().copied().filter(|c| !self.has(c)).collect();
         if !missing.is_empty() {
             return Err(LintError::Unsupported(format!(

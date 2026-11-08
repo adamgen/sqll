@@ -8,8 +8,9 @@ path). `scripts/test` and `scripts/verify` build it before the run. In CI the
 
 ## Commands
 
-The commands follow the shape of the sqlfluff CLI, so that S3b can add to
-them.
+The commands follow the shape of the sqlfluff CLI. Since S3b C13 they are
+in the crate `sqll_cli`; the crate `sqll` keeps main, the allocator, the
+license text, the version, and the dispatch.
 
 | Command | Result |
 |---|---|
@@ -17,7 +18,10 @@ them.
 | `sqll --license` | The sqll license (MIT) and the notices of the code in the binary (THIRD_PARTY.md, "sqll") |
 | `sqll version [--build]` | The version, or the build record (JSON): version, `tables_sha256`, `source_sha256`, `source_files` |
 | `sqll parse [-d D] [-t T] [--config F] [--ignore-local-config] [-f json] [-c] [-m] [--max-parse-depth N] [--timings] PATH` | The record of `sqlfluff parse -f json` |
-| `sqll lint`, `sqll fix` | `Error: unsupported: lint` (or `fix`), exit code 2 (rules come in S5) |
+| `sqll lint [OPTIONS] [PATHS]...` | `sqlfluff lint`: formats `human`, `json`, `yaml`, `github-annotation`, `github-annotation-native`, `none` ("Lint and fix" below) |
+| `sqll fix [OPTIONS] [PATHS]...` | `sqlfluff fix`: in place, `--check`, `-f`, `-x`, stdin |
+| `sqll rules` | `sqlfluff rules`, with only the rules of sqll |
+| `sqll dialects` | `sqlfluff dialects` |
 
 `sqll parse` prints the record of `sqlfluff parse -f json`. Since S3b C11
 it reads the sqlfluff config as `sqlfluff parse` does
@@ -142,6 +146,55 @@ T12). Differences from `sqlfluff parse`:
   locale; sqll reads UTF-8, and other bytes give `unsupported` and exit
   code 2.
 - PATH is one file, or `-` (stdin). A folder gives `unsupported: folder`.
+
+## Lint and fix (S3b C13)
+
+`sqll lint` and `sqll fix` give the stdout, the stderr, the exit codes (0,
+1, 2), and the changed files of `sqlfluff lint` and `sqlfluff fix` for the
+117 scenarios of `results/S3b/C13-cli.json` (`scripts/s3b/cli_oracle.py`;
+test `crates/sqll/tests/cli.rs`). The time values of a json or yaml record
+are those of sqll. PATHS are files, folders, or `-` (stdin); no path is the
+working folder. The config is that of `sqll parse` (C11), with the rule
+settings, `ignore`, and `warnings`.
+
+Options: `-d`, `-t`, `-r/--rules`, `-e/--exclude-rules`, `--config`,
+`--ignore-local-config`, `--encoding`, `-i/--ignore`, `--disable-noqa`,
+`--disable-noqa-except`, `-n/--nocolor`, `--color`, `-q`, `-p` (1 only),
+`--disable-progress-bar` (no effect), `--warn-unused-ignores`,
+`--disregard-sqlfluffignores`; lint: `-f`, `--write-output`,
+`--annotation-level`, `--nofail`; fix: `-f/--force`, `--check`,
+`-x/--fixed-suffix`.
+
+Fail closed (`unsupported`, exit code 2), never a silent skip:
+
+- a rule that the config selects and sqll does not have: the default
+  `rules = all` selects the 79 rules of sqlfluff, so `--rules` (or the
+  config) must select only CP01, CP03, or CP04;
+- each other sqlfluff option (for example `-v`, `--bench`,
+  `--stdin-filename`, `--library-path`, `--persist-timing`,
+  `--show-lint-violations`, `--FIX-EVEN-UNPARSABLE`), the formats `sarif`
+  and `gitlab`, and more than one process for more than one file;
+- a `noqa` comment (C12), an in-file config line (`-- sqlfluff`), an
+  ignore file (`.sqlfluffignore`, `ignore_paths`), a Jinja tag,
+  `large_file_skip_char_limit`, and `verbose` other than 0;
+- a parse error with no position in sqll (a parser stop, for example an
+  unclosed bracket): sqlfluff gives it a position and no tree.
+
+Other differences from sqlfluff:
+
+- `sqll rules` shows only the rules of sqll that the config selects.
+- A usage error (an unknown option or value) has another text; the exit
+  code is 2, as in sqlfluff.
+- `fix --check` reads the key from the terminal as click does. If there is
+  no terminal, sqll gives exit code 2 (sqlfluff stops with a Python error).
+- The rule section warning with more than one match lists the codes in
+  order; sqlfluff writes a Python set (its order changes from run to run).
+- The warning texts of the fix loop are those of C12 (some are sqll only).
+
+Memory: the peak RSS of `lint` (human format) and `fix` does not grow with
+the number of files: 29 MiB for 3 and for 3000 files
+(`results/S3b/C13-memory.json`). The `json` and `yaml` formats keep the
+output text of each file until the end, as sqlfluff keeps the records.
 
 ## Adapter
 

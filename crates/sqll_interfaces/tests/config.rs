@@ -50,6 +50,11 @@ fn signatures(c: &Config, l: &mut Loader, o: &LoadOptions, s: ParseSettings) {
     let _: (Option<&Table>, Option<&Table>) = (c.rule_section("x"), c.templater_section("raw"));
     let _: fn(&Config, &Config) -> Result<ParseSettings, ConfigError> = ParseSettings::new;
     let _: fn(&Config) -> Result<ParseSettings, ConfigError> = ParseSettings::for_stdin;
+    // S3b C13: the settings of the parse of a lint or a fix, and the ignore
+    // file check of one folder.
+    let _: fn(&Config, &Config, bool) -> Result<ParseSettings, ConfigError> =
+        ParseSettings::for_lint;
+    let _: Result<(), ConfigError> = sqll_config::parse::check_ignore_folder(l, ".");
     let _: (Option<String>, TemplaterName, u64, u64) =
         (s.dialect, s.templater, s.max_parse_depth, s.max_parse_nodes);
     let _: (Option<u64>, Option<u64>, Vec<(String, bool)>) = (

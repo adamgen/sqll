@@ -45,6 +45,12 @@ function is `eval` for each node of the crawl, with a `Result`.
   source edits, literal flag), `parse_errors`, and `warnings`.
 - `LintSettings::from_config`: `runaway_limit`, `ignore_templated_areas`,
   and the `noqa` settings.
+- C13 adds, for the output of `sqll lint`: `Violation::fix_records`
+  (`FixRecord`: the edit type, the text, and the source range of the
+  anchor; the sqlfluff `LintFix.to_dict`), `LintedFile::rule_times`,
+  `Registry::selected_codes` (the codes of `rules` and `exclude_rules`,
+  also of rules that sqll does not have), and
+  `Registry::selection_warnings` (the warnings of `get_rulepack`).
 
 ## Fixes and the source map
 
@@ -93,8 +99,9 @@ unsupported templater setting.
   also refuses a change of a block tag or a comment slice. sqll has no
   source-only fix (`LintFix.source`, JJ01 is S11).
 - Overlapping source edits of one rule: no fix of that rule applies.
-- Not yet: the placeholder rule of `remove_templated_errors` (S6), the
-  `ignore` and `warnings` settings (C13), and `noqa` (S5).
+- Not yet: the placeholder rule of `remove_templated_errors` (S6) and
+  `noqa` (S5). The `ignore` and `warnings` settings are read by `sqll
+  lint` and `fix` (C13, harness/sqll.md).
 - CP01, CP03, CP04: a target with children changes the memory as in
   sqlfluff; if it needs a fix, sqlfluff raises an exception and sqll fails
   closed. A node with one target leaf child of the same text is not
