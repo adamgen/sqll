@@ -116,7 +116,6 @@ def test_the_rules_table_scenario_keeps_its_output():
         assert s["stdout"].count("\n      groups: ") == 79
 
 
-
 def test_the_documents_give_the_counts_of_the_record():
     """harness/sqll.md and status/S3b.md give the scenario counts of the
     record by mark (a false count in a document blocks a merge)."""
@@ -142,6 +141,37 @@ def test_the_documents_give_the_counts_of_the_record():
     assert f"{usage} are usage errors (lint;" in doc
     status = " ".join((REPO_ROOT / "status/S3b.md").read_text("utf8").split())
     assert f"sqlfluff 4.4.0 for {total} scenarios" in status
-    assert f"{same} give the same stdout, stderr, exit code, and changed files;" in status
+    same_text = f"{same} give the same stdout, stderr, exit code, and changed files;"
+    assert same_text in status
     assert f"{closed} fail closed (`unsupported`" in status
     assert f"{usage} are usage errors" in status
+
+
+def test_the_documents_give_the_numbers_of_the_memory_record():
+    """harness/sqll.md and status/S3b.md give the peaks (MiB, one decimal)
+    and the output bytes of results/S3b/C13-memory.json."""
+    record = json.loads((REPO_ROOT / "results/S3b/C13-memory.json").read_text("utf8"))
+
+    def peak(mode, files):
+        kib = next(
+            r["vmhwm_kib"]
+            for r in record["runs"]
+            if r["mode"] == mode and r["files"] == files
+        )
+        return f"{kib / 1024:.1f}"
+
+    doc = " ".join((REPO_ROOT / "harness/sqll.md").read_text("utf8").split())
+    status = " ".join((REPO_ROOT / "status/S3b.md").read_text("utf8").split())
+    lint = (peak("lint human", 3), peak("lint human", 3000))
+    fix = (peak("fix", 3), peak("fix", 3000))
+    assert f"{lint[0]} and {lint[1]} MiB (lint), {fix[0]} and {fix[1]} MiB (fix)" in doc
+    assert f"lint {lint[0]} to {lint[1]} MiB, fix {fix[0]} to {fix[1]} MiB" in status
+    ratios = record["ratio_largest_to_previous"]
+    assert f"1.015 and {ratios['fix']:.3f})" in status
+    assert f"(3000 / 300 files: {ratios['lint human']:.3f} and" in status
+    big = next(
+        r for r in record["runs"] if r["mode"] == "lint json" and r["files"] == 3000
+    )
+    mib = round(big["vmhwm_kib"] / 1024)
+    assert f"{mib} MiB for 3000 files with" in doc
+    assert f"({mib} MiB for 3000 files; `stdout_bytes` {big['stdout_bytes']})" in status
