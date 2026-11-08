@@ -359,10 +359,20 @@ jinja as raw check: PASS: 3422 inputs (3361 rule, 61 autofix), 3178 equal (2522 
   templater 43 `templater`. 0 new failures, 0 unexpected passes. No autofix
   case runs `sqll fix`: each has a rule that sqll does not have, a Jinja
   tag or setting, or a setting that sqll refuses.
-- Each sqll pass is a pass of the sqlfluff test: the rule oracle with
-  `--passes-of sqll` gives `sqll rules: 2527 cases, 38 pass, 38 of them
-  pass in the oracle` (local). CI runs it in the report job (rule, autofix,
-  and templater oracles) and in the sqlfluff dialect oracle.
+- CI run 42519307509 (head `9a3968c`, all jobs pass): the report job gives
+  the same summary (`results/s1/summary.json is equal to the summary`), so
+  the known-failure check has 0 new failures and 0 unexpected passes. The
+  sqll rule and autofix cases that run and pass: rules 38, autofix 0.
+- Each sqll pass is a pass of the sqlfluff test. In the CI report job, the
+  oracles with `--passes-of sqll` give `sqll rules: 2527 cases, 38 pass, 38
+  of them pass in the oracle`, `sqll autofix: 61 cases, 0 pass, 0 of them
+  pass in the oracle`, and `sqll templater: 43 cases, 0 pass, 0 of them pass
+  in the oracle`. The job dialect-oracle (sqlfluff) gives `sqll dialects:
+  2306 cases, 2306 pass, 2306 of them pass in the oracle`.
+- CI run 42519307509 also passes the S2 smoke bench check against
+  `results/s2/baseline.json`, the build job (the tree guard, the native base
+  tests, and the jinja as raw check), and the S1 dialect suite of sqll
+  (2306 of 2306).
 - S2: `lint` and `fix` of sqll are `unsupported: rule ...` with no run (the
   settings select all rules), so the statuses of
   `results/s2/baseline.json` do not change.
