@@ -294,9 +294,9 @@ Commands: [harness/sqll.md](../harness/sqll.md), "Lint and fix". The crate
 main, the allocator, the license text, the version, and the dispatch.
 
 - `scripts/s3b/cli_oracle.py` records the output of sqlfluff 4.4.0 for
-  121 scenarios (record
+  126 scenarios (record
   [results/S3b/C13-cli.json](../results/S3b/C13-cli.json); `check` in the
-  CI job build). `crates/sqll/tests/cli.rs` runs sqll on each: 101 give
+  CI job build). `crates/sqll/tests/cli.rs` runs sqll on each: 106 give
   the same stdout, stderr, exit code, and changed files; 18 fail closed
   (`unsupported`, exit code 2; sqlfluff runs them); 2 are usage errors
   (exit code 2 for both). Each command, each format, and the exit codes

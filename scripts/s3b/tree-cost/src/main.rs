@@ -2,7 +2,8 @@
 // (docs/decisions/s3b-core.md). This is not sqll and not a harness tool.
 //
 // Parts of this file are a port of sqlfluff 4.4.0 code (its sqlfluffrs
-// crates), through crates/sqll/src/parse.rs: the lexer and parser calls of
+// crates), through crates/sqll/src/parse.rs (S3b C9 moved these calls to
+// crates/sqll_syntax/src/parse.rs): the lexer and parser calls of
 // sqlfluffrs/src/test_harness.rs (FixtureTest::run) and the parser limits of
 // sqlfluffrs/sqlfluffrs_parser/src/parser/python.rs (PyParser). The limits
 // and the indentation values are the defaults of
@@ -17,8 +18,9 @@
 //   sqll-s3b-tree-cost tables DIALECT...
 //
 // parse: for each line, one JSON object on stdout with the counts of the
-// tree that sqll parse makes for the file (the settings of
-// crates/sqll/src/parse.rs), and the heap blocks and bytes of:
+// tree that sqll parse makes for the file (the default settings of sqll
+// parse: crates/sqll_cli/src/parse/steps.rs), and the heap blocks and
+// bytes of:
 // - parse: the allocations of Parser::root_parse (a second parse, after a
 //   first parse that makes the lazy values of the dialect);
 // - node_tree: the blocks and bytes that a clone of the Node tree keeps (a
@@ -48,7 +50,8 @@ use sqll_lexer::{LexInput, Lexer};
 use sqll_parser::parser::{MetaType, Node, Parser};
 use sqll_parser::Arena;
 
-// The values of crates/sqll/src/parse.rs.
+// The default values of sqll parse (crates/sqll_config/src/defaults.rs,
+// crates/sqll_cli/src/parse/steps.rs).
 const MAX_PARSE_DEPTH: usize = 600;
 const MAX_PARSE_NODES: usize = 100_000;
 const MAX_PARSER_ITERATIONS: usize = 3_000_000;

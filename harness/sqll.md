@@ -152,7 +152,7 @@ T12). Differences from `sqlfluff parse`:
 
 `sqll lint` and `sqll fix` give the stdout, the stderr, the exit codes (0,
 1, 2), and the changed files of `sqlfluff lint` and `sqlfluff fix` for the
-121 scenarios of `results/S3b/C13-cli.json` (`scripts/s3b/cli_oracle.py`;
+126 scenarios of `results/S3b/C13-cli.json` (`scripts/s3b/cli_oracle.py`;
 test `crates/sqll/tests/cli.rs`). The time values of a json or yaml record
 are those of sqll. PATHS are files, folders, or `-` (stdin); no path is the
 working folder. The config is that of `sqll parse` (C11), with the rule
@@ -197,6 +197,10 @@ Other differences from sqlfluff:
 - The rule section warning with more than one match lists the codes in
   order; sqlfluff writes a Python set (its order changes from run to run).
 - The warning texts of the fix loop are those of C12 (some are sqll only).
+- In a lex or parse error text, sqll writes a character of the
+  categories Cf, Co, and Cn (Python `str.isprintable()` is false; for
+  example U+00AD, U+200B, or a byte order mark on stdin) as it is.
+  sqlfluff writes an escape (`\u200b`). No pinned fixture has one.
 
 Memory: the peak RSS of `lint` (human format) and `fix` does not grow with
 the number of files: 26.2 and 27.0 MiB (lint), 27.6 and 28.5 MiB (fix)

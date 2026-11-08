@@ -12,6 +12,7 @@ use sqll_config::parse::{check_ignore_files, has_sql_extension, sql_file_exts};
 use sqll_config::{
     Config, ConfigError, Env, LoadOptions, Loader, ParseSettings, Table, TemplaterName, Value,
 };
+use sqll_lint::registry::py_repr;
 
 use crate::parse::ParseArgs;
 use crate::{normpath, unsupported, Error};
@@ -157,40 +158,6 @@ pub fn skip_by_chars(settings: &ParseSettings, sql: &str, filepath: &str) -> boo
     false
 }
 
-/// Python `repr(text)` (the `{fname!r}` of the sqlfluff warnings): `'`
-/// quotes, or `"` quotes for a text with `'` and no `"`; an escape for `\`,
-/// the quote, `\t`, `\n`, `\r`, and the characters below U+0100 that Python
-/// does not print. sqll writes a character from U+0100 up as it is (Python
-/// writes an escape for some of them; docs/interfaces/config.md).
-fn py_repr(text: &str) -> String {
-    let quote = if text.contains('\'') && !text.contains('"') {
-        '"'
-    } else {
-        '\''
-    };
-    let mut out = String::with_capacity(text.len() + 2);
-    out.push(quote);
-    for c in text.chars() {
-        match c {
-            '\\' => out.push_str("\\\\"),
-            '\t' => out.push_str("\\t"),
-            '\n' => out.push_str("\\n"),
-            '\r' => out.push_str("\\r"),
-            c if c == quote => {
-                out.push('\\');
-                out.push(c);
-            }
-            // Cc, the no-break space (Zs), and the soft hyphen (Cf).
-            '\0'..='\x1f' | '\x7f'..='\u{a0}' | '\u{ad}' => {
-                out.push_str(&format!("\\x{:02x}", u32::from(c)));
-            }
-            c => out.push(c),
-        }
-    }
-    out.push(quote);
-    out
-}
-
 /// The jinja templater: sqll can do it only for a text that is not empty
 /// and has no Jinja delimiter (then it gives the file of the raw
 /// templater).
@@ -202,28 +169,4 @@ pub fn check_templater(settings: &ParseSettings, sql: &str) -> Result<(), Error>
         ));
     }
     Ok(())
-}
-
-#[cfg(test)]
-mod tests {
-    use super::py_repr;
-
-    #[test]
-    fn a_file_name_is_written_as_python_repr() {
-        // Python 3.13: repr() of each name.
-        for (name, want) in [
-            ("a.sql", "'a.sql'"),
-            ("it's.sql", "\"it's.sql\""),
-            ("a\"b.sql", "'a\"b.sql'"),
-            ("a'b\"c.sql", "'a\\'b\"c.sql'"),
-            ("a\\b.sql", "'a\\\\b.sql'"),
-            ("a\tb\nc\rd.sql", "'a\\tb\\nc\\rd.sql'"),
-            ("a\x01\x1f\x7f.sql", "'a\\x01\\x1f\\x7f.sql'"),
-            ("a\u{85}\u{a0}\u{ad}.sql", "'a\\x85\\xa0\\xad.sql'"),
-            ("\u{e9}\u{ff}\u{a1}.sql", "'\u{e9}\u{ff}\u{a1}.sql'"),
-            ("\u{1f600}.sql", "'\u{1f600}.sql'"),
-        ] {
-            assert_eq!(py_repr(name), want, "{name:?}");
-        }
-    }
 }

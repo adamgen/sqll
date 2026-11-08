@@ -79,6 +79,10 @@ FOLDER = {
     "d/b.sql": B,
     "d/z/e.sql": PRS,
 }
+# A pinned dialect fixture of sqlfluff (MIT, THIRD_PARTY.md).
+SELECT_DIV = (SQLFLUFF_ROOT / "test/fixtures/dialects/sparksql/select_div.sql").read_text(
+    encoding="utf-8"
+)
 CP = ["--dialect", "ansi", "--rules", "CP01,CP03,CP04"]
 LONG_PRS = "SELECT a FROM t, ORDER a b c d e f g h i j k l m n o p q r s t u v w x y z aa bb cc dd ee\n"
 LONG = "SELECT a, b, c FROM t WHERE a = 1 AND b = 2 AND c = 3 AND d = 4 OR e = 5 AND f = 6\n"
@@ -133,6 +137,19 @@ SCENARIOS = [
         "lint output_line_length",
         ["lint", *CP, "a.sql"],
         {"a.sql": A, ".sqlfluff": "[sqlfluff]\noutput_line_length = 60\n"},
+    ),
+    # A node of a raw class with one leaf child (binary_operator "div"):
+    # sqlfluff counts one segment.
+    sc(
+        "lint json sparksql div",
+        ["lint", "--dialect", "sparksql", "--rules", "CP01", "-f", "json", "select_div.sql"],
+        {"select_div.sql": SELECT_DIV},
+    ),
+    sc(
+        "lint yaml sparksql div",
+        ["lint", "--dialect", "sparksql", "--rules", "CP01", "-f", "yaml", "-"],
+        {},
+        stdin="SELECT 3 div 2\n",
     ),
     # lint: the other formats.
     sc("lint json", ["lint", *CP, "-f", "json", "a.sql", "b.sql", "e.sql", "l.sql"]),
@@ -458,6 +475,9 @@ SCENARIOS = [
     sc("fix stdin clean", ["fix", *CP, "-"], {}, stdin=B),
     sc("fix stdin parse error", ["fix", *CP, "-"], {}, stdin="SELECT a from t WHERE\n"),
     sc("fix stdin crlf", ["fix", *CP, "-"], {}, stdin="select a\r\nFROM t\r\n"),
+    sc("fix stdin crlf clean", ["fix", *CP, "-"], {}, stdin="select a\r\nfrom t\r\n"),
+    sc("fix stdin cr clean", ["fix", *CP, "-"], {}, stdin="select a\rfrom t\r"),
+    sc("fix stdin cr", ["fix", *CP, "-"], {}, stdin="SELECT a\rfrom t\r"),
     sc(
         "fix fixed-suffix",
         ["fix", *CP, "-x", "_fixed", "a.sql", "f.sql"],

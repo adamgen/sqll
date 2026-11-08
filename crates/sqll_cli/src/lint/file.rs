@@ -24,11 +24,12 @@ use std::time::{Duration, Instant};
 use sqll_config::{
     Config, ConfigError, Env, LoadOptions, Loader, ParseSettings, TemplaterName, Value,
 };
+use sqll_lint::registry::py_repr;
 use sqll_lint::{LintError, LintSettings, Linter, Registry, SourceParser};
 use sqll_source::{LineIndex, Templater, TemplaterConfig, TemplaterError};
 use sqll_syntax::{Code, Dialect, ParseOptions, Parsed};
 use sqll_templater::RawTemplater;
-use sqll_tree::SyntaxTree;
+use sqll_tree::{SegmentType, SyntaxTree, Variant};
 
 use crate::parse::steps;
 use crate::{read_sql, unsupported, Error, Source, SqlText};
@@ -130,6 +131,9 @@ pub struct Linted {
     /// The source text after the fixes (fix only).
     pub fixed: String,
     pub bom: bool,
+    /// For stdin, the text as read, if universal newlines changed it
+    /// ([`SqlText::raw_stdin`]).
+    pub raw_stdin: Option<String>,
 }
 
 impl Linted {
@@ -199,11 +203,6 @@ fn lint_error(e: LintError) -> Error {
         LintError::Invalid(m) => Error::user(m),
         LintError::Parse(m) => Error::new(m),
     }
-}
-
-/// Python `repr()` of a file name (the `{fname!r}` of sqlfluff).
-pub fn py_repr(text: &str) -> String {
-    sqll_lint::registry::py_repr(text)
 }
 
 /// Lint a file (a path of the file list).
@@ -340,15 +339,31 @@ impl SourceParser for Recorder<'_> {
     }
 }
 
+/// The sqlfluff `count_segments` of the tree. A node of a raw class (for
+/// example `binary_operator` of the sparksql `div`) with one leaf child is
+/// one raw segment in sqlfluff (`RawSegment.from_result_segments`), so the
+/// two nodes count one time, as in the JSON writer (parse/output.rs).
 fn tree_stats(tree: &SyntaxTree, source: &str) -> Stats {
-    let leaves = tree
-        .nodes()
-        .filter(|&id| tree.descendants(id).len() == 0)
-        .count();
+    let mut leaves = 0;
+    let mut raw_wrappers = 0;
+    for id in tree.nodes() {
+        let mut children = tree.children(id);
+        match (children.next(), children.next()) {
+            (None, _) => leaves += 1,
+            (Some(only), None)
+                if tree.variant(id) == Variant::Segment
+                    && tree.variant(only) == Variant::Raw
+                    && tree.kind(id).data().class_types.contains(&SegmentType::RAW) =>
+            {
+                raw_wrappers += 1;
+            }
+            _ => {}
+        }
+    }
     Stats {
         source_chars: source.chars().count(),
         templated_chars: tree.text().chars().count(),
-        segments: tree.node_count(),
+        segments: tree.node_count() - raw_wrappers,
         raw_segments: leaves,
     }
 }
@@ -416,7 +431,11 @@ fn lint_text(
     config: &Config,
     settings: &ParseSettings,
 ) -> Result<Outcome, Error> {
-    let SqlText { text: source, bom } = sql;
+    let SqlText {
+        text: source,
+        bom,
+        raw_stdin,
+    } = sql;
     let mut warnings = Vec::new();
     if let Some(line) = config_line(&source) {
         return Err(unsupported(
@@ -598,6 +617,7 @@ fn lint_text(
             source,
             fixed,
             bom,
+            raw_stdin,
         }),
         warnings,
     ))

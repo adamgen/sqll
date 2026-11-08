@@ -90,8 +90,7 @@ fn signatures(
 
     let _: fn(Vec<Box<dyn Rule>>) -> Result<Registry, String> = Registry::new;
     let _: Result<RulePack<'_>, LintError> = registry.select(config);
-    // S3b C13: the selection of the codes and the warnings of get_rulepack.
-    let _: fn(&Config) -> Vec<&'static str> = Registry::selected_codes;
+    // S3b C13: the warnings of get_rulepack.
     let _: fn(&Config) -> Vec<String> = Registry::selection_warnings;
     let _: Option<&dyn Rule> = registry.get("CP01");
     let _: &Vec<(&dyn Rule, RuleConfig)> = &pack.rules;

@@ -933,7 +933,7 @@ fn stdin_fix(run: &mut Run<'_>, out: &mut Out, line_length: usize) -> Result<u8,
     let text = if fixable {
         &linted.fixed
     } else {
-        &linted.source
+        linted.raw_stdin.as_ref().unwrap_or(&linted.source)
     };
     if unfixable {
         let msg = out

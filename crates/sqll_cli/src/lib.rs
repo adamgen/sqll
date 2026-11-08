@@ -168,6 +168,10 @@ pub struct SqlText {
     /// True if a UTF-8 byte order mark was removed: a fix writes it again,
     /// as Python with the encoding `utf-8-sig` does.
     pub bom: bool,
+    /// For stdin, the text as read, if universal newlines changed it.
+    /// sqlfluff reads `sys.stdin` with no newline change, and `fix -` with
+    /// no fixable violation writes that text (`_stdin_fix`).
+    pub raw_stdin: Option<String>,
 }
 
 /// Read a SQL file as sqlfluff does for a UTF-8 file: with universal
@@ -199,12 +203,20 @@ pub fn read_sql(source: &Source, encoding: Encoding) -> Result<SqlText, Error> {
             "sqll reads only UTF-8 files",
         )
     })?;
-    let text = if text.contains('\r') {
-        text.replace("\r\n", "\n").replace('\r', "\n")
-    } else {
-        text
-    };
-    Ok(SqlText { text, bom })
+    if !text.contains('\r') {
+        return Ok(SqlText {
+            text,
+            bom,
+            raw_stdin: None,
+        });
+    }
+    let universal = text.replace("\r\n", "\n").replace('\r', "\n");
+    let raw_stdin = matches!(source, Source::Stdin).then_some(text);
+    Ok(SqlText {
+        text: universal,
+        bom,
+        raw_stdin,
+    })
 }
 
 #[cfg(test)]

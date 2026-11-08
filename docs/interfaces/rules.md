@@ -47,9 +47,7 @@ function is `eval` for each node of the crawl, with a `Result`.
   and the `noqa` settings.
 - C13 adds, for the output of `sqll lint`: `Violation::fix_records`
   (`FixRecord`: the edit type, the text, and the source range of the
-  anchor; the sqlfluff `LintFix.to_dict`), `LintedFile::rule_times`,
-  `Registry::selected_codes` (the codes of `rules` and `exclude_rules`,
-  also of rules that sqll does not have), and
+  anchor; the sqlfluff `LintFix.to_dict`), `LintedFile::rule_times`, and
   `Registry::selection_warnings` (the warnings of `get_rulepack`).
 
 ## Fixes and the source map
