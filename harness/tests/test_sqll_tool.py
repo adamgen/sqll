@@ -3,8 +3,8 @@
 The tool check must fail closed: a missing binary, another version, a stale
 binary (its source hash is not that of the worktree), a binary that needs
 libpython, and a binary that does not parse. The tests use fake binaries,
-so they need no build. The adapter must give "unsupported: <item>" for each
-rule, autofix, and templater case of the pinned fixtures.
+so they need no build. test_sqll_lint.py tests the lint and fix path of the
+adapter (S3b C14).
 """
 
 import hashlib
@@ -18,7 +18,6 @@ from sqll_harness import cli, tools
 from sqll_harness.adapters import ADAPTERS
 from sqll_harness.adapters import sqll as sqll_adapter
 from sqll_harness.adapters.base import Unsupported
-from sqll_harness.cases import FAIL, UNSUPPORTED
 from sqll_harness.paths import REPO_ROOT, SQLFLUFF_ROOT, TOOL_SPECS_DIR
 from sqll_harness.suites import SUITES
 
@@ -304,34 +303,16 @@ def test_the_parse_command(tmp_path):
 
 
 @pytest.mark.parametrize("suite", ["rules", "autofix", "templater"])
-def test_each_pinned_case_of_the_other_suites_is_unsupported(suite, tmp_path):
-    # No binary: these items fail before a run of the binary.
+def test_with_no_binary_each_case_of_the_other_suites_stops(suite, tmp_path):
+    # S3b C14: the adapter reads the rules of sqll from the binary. With no
+    # binary, no case passes: each one is an error.
     adapter = sqll_adapter.SqllAdapter(tmp_path / "no-binary")
     module = SUITES[suite]
     cases = module.discover(SQLFLUFF_ROOT)
-    item = "lint" if suite == "rules" else "templater"
     counts = {"rules": 2527, "autofix": 61, "templater": 43}
     assert len(cases) == counts[suite]
     for case in cases:
         result = cli._run_one(module, adapter, case, SQLFLUFF_ROOT)
-        assert result.status == FAIL, case.id
-        assert result.reason == f"{UNSUPPORTED}{item}", case.id
-
-
-def test_lint_and_fix_are_unsupported(tmp_path):
-    adapter = sqll_adapter.SqllAdapter(tmp_path / "no-binary")
-    calls = [
-        (lambda: adapter.lint([], ["CP01"], "ansi", None, tmp_path), "lint"),
-        (
-            lambda: adapter.fix(tmp_path / "x.sql", ["CP01"], "ansi", None, tmp_path),
-            "fix",
-        ),
-        (lambda: adapter.fix_file(tmp_path / "x.sql", None, "ansi", tmp_path), "fix"),
-        (lambda: adapter.parse_file(tmp_path / "x.sql", None, tmp_path), "templater"),
-    ]
-    for call, item in calls:
-        with pytest.raises(Unsupported) as exc:
-            call()
-        assert exc.value.item == item
-    assert adapter.lints is False
-    assert all(a.lints for name, a in ADAPTERS.items() if name != "sqll")
+        assert result.status != "pass", case.id
+    assert adapter.lints is True
+    assert all(a.lints for a in ADAPTERS.values())

@@ -591,6 +591,13 @@ def checks(jobs: int | None = None) -> list[Check]:
             ("build: Check the CLI data with sqlfluff",),
             needs=(SETUP,),
         ),
+        # S3b C14: the script checks the submodule after its sqlfluff runs.
+        Check(
+            "jinja-raw",
+            f"{UV} python scripts/s3b/jinja_raw_oracle.py check",
+            ("build: Check the jinja as raw proof with sqlfluff",),
+            needs=(SETUP,),
+        ),
         # One unsharded run of all suites and tools, as all shards of CI.
         Check(
             "run",
@@ -632,7 +639,7 @@ def checks(jobs: int | None = None) -> list[Check]:
             "oracle-rules",
             _oracle(
                 "sqlfluff-rule-oracle",
-                "--report out/report.json --out out/oracle.jsonl",
+                "--report out/report.json --out out/oracle.jsonl --passes-of sqll",
             ),
             ("report: Compare the rule results with the sqlfluff test",),
             needs=rep,
@@ -641,7 +648,7 @@ def checks(jobs: int | None = None) -> list[Check]:
             "oracle-autofix",
             _oracle(
                 "sqlfluff-autofix-oracle",
-                "--report out/report.json --out out/autofix-oracle.jsonl",
+                "--report out/report.json --out out/autofix-oracle.jsonl --passes-of sqll",
             ),
             ("report: Compare the autofix results with the sqlfluff test",),
             needs=rep,
@@ -650,7 +657,7 @@ def checks(jobs: int | None = None) -> list[Check]:
             "oracle-templater",
             _oracle(
                 "sqlfluff-templater-oracle",
-                "--report out/report.json --out out/templater-oracle.jsonl",
+                "--report out/report.json --out out/templater-oracle.jsonl --passes-of sqll",
             ),
             ("report: Compare the templater results with the sqlfluff test",),
             needs=rep,
@@ -672,7 +679,8 @@ def checks(jobs: int | None = None) -> list[Check]:
             "dialect-oracle-sqlfluff",
             _oracle(
                 "sqlfluff-dialect-oracle",
-                "--report out/report.json --out out/dialect-oracle-sqlfluff.jsonl",
+                "--passes-of sqll --report out/report.json"
+                " --out out/dialect-oracle-sqlfluff.jsonl",
             ),
             ("dialect-oracle: Compare the dialect results with the sqlfluff tests",),
             needs=rep,

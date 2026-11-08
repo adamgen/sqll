@@ -294,6 +294,14 @@ jobs:
       - name: Check the CLI data with sqlfluff
         run: uv run --frozen --project harness python scripts/s3b/cli_oracle.py check
 
+      # S3b C14: the record results/S3b/C14-jinja-raw.json has each SQL input
+      # of the rule and autofix suites for which the Jinja templater of the
+      # pinned sqlfluff gives the file of the raw templater. The sqll
+      # adapter runs a jinja case only for these texts. The script checks
+      # the submodule itself.
+      - name: Check the jinja as raw proof with sqlfluff
+        run: uv run --frozen --project harness python scripts/s3b/jinja_raw_oracle.py check
+
       - uses: actions/upload-artifact@v7
         with:
           name: sqll-build
@@ -401,28 +409,31 @@ jobs:
             out/report.json --out out/summary.json
           cat out/summary.json
 
-      # The sqlfluff test of each rule case must give the same status.
+      # The sqlfluff test of each rule case must give the same status, and
+      # must pass each case that sqll passes (S3b C14).
       - name: Compare the rule results with the sqlfluff test
         run: |
           "$SQLL_TOOLS_DIR/sqlfluff-oracle/bin/python" \
             scripts/sqlfluff-rule-oracle --report out/report.json \
-            --out out/oracle.jsonl
+            --out out/oracle.jsonl --passes-of sqll
           scripts/check-submodule "after the comparison"
 
-      # The sqlfluff test of each autofix case must give the same status.
+      # The sqlfluff test of each autofix case must give the same status, and
+      # must pass each case that sqll passes (S3b C14).
       - name: Compare the autofix results with the sqlfluff test
         run: |
           "$SQLL_TOOLS_DIR/sqlfluff-oracle/bin/python" \
             scripts/sqlfluff-autofix-oracle --report out/report.json \
-            --out out/autofix-oracle.jsonl
+            --out out/autofix-oracle.jsonl --passes-of sqll
           scripts/check-submodule "after the comparison"
 
-      # The sqlfluff test of each templater case must give the same status.
+      # The sqlfluff test of each templater case must give the same status,
+      # and must pass each case that sqll passes (S3b C14).
       - name: Compare the templater results with the sqlfluff test
         run: |
           "$SQLL_TOOLS_DIR/sqlfluff-oracle/bin/python" \
             scripts/sqlfluff-templater-oracle --report out/report.json \
-            --out out/templater-oracle.jsonl
+            --out out/templater-oracle.jsonl --passes-of sqll
           scripts/check-submodule "after the comparison"
 
       # The sqlfluff tests with the Rust parser and rules (--rust) must give
@@ -481,9 +492,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          # The sqlfluff tests must also pass each case that sqll passes.
           - tool: sqlfluff
             venv: sqlfluff-oracle
-            args: ""
+            args: --passes-of sqll
           - tool: sqlfluff-rs
             venv: sqlfluff-rs-oracle
             args: --rust

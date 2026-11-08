@@ -40,6 +40,14 @@ def add_tool_arguments(parser: argparse.ArgumentParser) -> None:
         action="store_true",
         help="Use the Rust parser and rules, as the sqlfluff-rs adapter does.",
     )
+    parser.add_argument(
+        "--passes-of",
+        action="append",
+        default=[],
+        metavar="TOOL",
+        help="With --report: each case that TOOL passes in the report must "
+        "pass in the oracle. Repeat for more tools.",
+    )
 
 
 def setup_tool(args: argparse.Namespace) -> Counter | None:
@@ -203,3 +211,33 @@ def compare_with_report(oracle: Results, report: Path, suite: str, tool: str) ->
     for i in differ:
         print(f"  {i}: oracle {oracle[i][0]} ({oracle[i][1]}), harness {harness[i]}")
     return 1 if only_oracle or only_harness or differ else 0
+
+
+def check_passes(oracle: Results, report: Path, suite: str, tools: list[str]) -> int:
+    """Check that each case of one suite that a tool passes in a report also
+    passes in the oracle (the sqlfluff test).
+
+    Print the counts and each such case that the oracle does not pass.
+    Return 1 if there is one, or if the report has no case of the suite for
+    a tool, else 0.
+    """
+    if not tools:
+        return 0
+    data = json.loads(report.read_text(encoding="utf8"))
+    status = 0
+    for tool in tools:
+        cases = [c for c in data["cases"] if c["suite"] == suite and c["tool"] == tool]
+        passed = sorted(c["id"] for c in cases if c["status"] == "pass")
+        wrong = [i for i in passed if oracle.get(i, ("no case", ""))[0] != "pass"]
+        print(
+            f"{tool} {suite}: {len(cases)} cases, {len(passed)} pass, "
+            f"{len(passed) - len(wrong)} of them pass in the oracle"
+        )
+        for i in wrong:
+            got = oracle.get(i, ("no case", ""))
+            print(f"  {i}: {tool} pass, oracle {got[0]} ({got[1]})")
+        if wrong or not cases:
+            status = 1
+        if not cases:
+            print(f"  the report has no {suite} case of {tool}")
+    return status

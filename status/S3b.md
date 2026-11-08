@@ -31,8 +31,8 @@ the S6 package `sqll_templater`, not in `sqll_source` (Core owns
 | C10 | Typed view of the tree (`sqll_tree::view`): `NodeRef`, the sqlfluff query helpers (`child`, `children_of`, `first_descendant`, `crawl` as `recursive_crawl`), `AstNode`, `typed_node!`, and the typed nodes of the core set. Fix of C6: the meta kinds have the class types of their sqlfluff class: [docs/interfaces/typed-view.md](../docs/interfaces/typed-view.md) | Merged (PR #68) |
 | C11 | Config skeleton (`sqll_config`) and its use in `sqll parse`: the config model, the sqlfluff defaults, the reader of the config files in the sqlfluff order, `--config`, `--ignore-local-config`, and the overrides; a setting that sqll cannot do fails closed: [docs/interfaces/config.md](../docs/interfaces/config.md) | Merged (PR #69) |
 | C12 | Rule and fix interface (`sqll_lint`) with CP01, CP03, CP04 as the proof: the `Rule` trait, the lint results and fixes (source edits through the source map; a fix in a templated range is refused), the fix loop, and the rule registry. CP01, CP03, CP04 of `sqll_rules` implement it: [docs/interfaces/rules.md](../docs/interfaces/rules.md) | Merged (PR #71) |
-| C13 | CLI skeleton (`sqll_cli`): lint, fix, rules, dialects, and the output formats; `EXIT_ERROR` is in `crates/sqll_cli/src/lib.rs` (`scripts/s3b/core_design.py` reads it there): [harness/sqll.md](../harness/sqll.md) | In review |
-| C14 | Harness adapters: `sqll lint` and `fix` in the S1 harness and the S2 benchmarks. Also remove the path for a base binary from before C11 in `harness/sqll_harness/bench/sqll.py` (`legacy_options`, `LEGACY_FIXED`, the `reads_config` probe): after C11, the base of each speed check reads the config | Not started |
+| C13 | CLI skeleton (`sqll_cli`): lint, fix, rules, dialects, and the output formats; `EXIT_ERROR` is in `crates/sqll_cli/src/lib.rs` (`scripts/s3b/core_design.py` reads it there): [harness/sqll.md](../harness/sqll.md) | Merged (PR #72) |
+| C14 | Harness adapters: `sqll lint` and `fix` in the S1 harness and the S2 benchmarks; the jinja as raw record (`results/S3b/C14-jinja-raw.json`); the oracle check of each sqll pass (`--passes-of sqll`). The path for a base binary from before C11 in `harness/sqll_harness/bench/sqll.py` is removed: [harness/sqll.md](../harness/sqll.md), "Adapter" | In review |
 | C15 | Code generation interface: tree to schema | Not started |
 | C16 | Package ownership of the later tracks and the interface index; `docs/decisions/s3b-*.md` to the Core paths | Not started |
 | C17 | S3b exit: proof, exit record, and STATUS "S3b awaiting human approval" | Not started |
@@ -337,3 +337,35 @@ main, the allocator, the license text, the version, and the dispatch.
   `sqll_config`, and the format of 2 lines. They do not change the code
   that `parse`, `lint`, or `fix` run on a file, so the memory and speed
   records stay.
+
+
+## C14: harness adapter proof
+
+Adapter: [harness/sqll.md](../harness/sqll.md), "Adapter" and "Benchmark
+adapter". The jinja as raw check (`scripts/s3b/jinja_raw_oracle.py check`,
+record [results/S3b/C14-jinja-raw.json](../results/S3b/C14-jinja-raw.json)):
+
+```text
+jinja as raw check: PASS: 3422 inputs (3361 rule, 61 autofix), 3178 equal (2522 texts), 244 with a Jinja delimiter, 0 notes
+```
+
+- S1 results of sqll (local run of the 4 suites, `sqll-harness run --tool
+  sqll`; `results/s1/summary.json`): dialects 2306 of 2306 exact; rules 38
+  of 2527 pass (CP01, CP03, CP04; 24 with a fix check), autofix 0 of 61,
+  templater 0 of 43. The parity number is 2344 of 4937 (was 2306). Each of
+  the 2593 other cases is `unsupported` (`known_failures/sqll.txt`, was
+  2631): rules `rule` 2476, `setting` 7 (`ignore_words_regex`), `templater`
+  6 (a Jinja tag); autofix `rule` 36, `setting` 4, `templater` 21;
+  templater 43 `templater`. 0 new failures, 0 unexpected passes. No autofix
+  case runs `sqll fix`: each has a rule that sqll does not have, a Jinja
+  tag or setting, or a setting that sqll refuses.
+- Each sqll pass is a pass of the sqlfluff test: the rule oracle with
+  `--passes-of sqll` gives `sqll rules: 2527 cases, 38 pass, 38 of them
+  pass in the oracle` (local). CI runs it in the report job (rule, autofix,
+  and templater oracles) and in the sqlfluff dialect oracle.
+- S2: `lint` and `fix` of sqll are `unsupported: rule ...` with no run (the
+  settings select all rules), so the statuses of
+  `results/s2/baseline.json` do not change.
+- C14 changes no file under `crates/` (no code of the sqll binary), so it
+  has no speed check (G3 rule above), and the tree guard and the native
+  base tests are those of C13.

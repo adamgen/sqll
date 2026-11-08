@@ -12,7 +12,7 @@ default --tool is sqlfluff-rs. The exit code is 1 if the Python parser runs.
 
   .tools/sqlfluff-oracle/bin/python scripts/sqlfluff-rule-oracle \\
       [--cases GLOB] [--report out/report.json] [--out out/oracle.jsonl]
-      [--check-prefixes] [--rust] [--tool TOOL]
+      [--check-prefixes] [--rust] [--tool TOOL] [--passes-of TOOL]
 
 It writes one JSON line for each case to --out (default: stdout): {"id",
 "status", "reason"}. With --report, it compares the status of each case with
@@ -23,6 +23,10 @@ one of the two.
 With --check-prefixes, a case key that starts with "expect_pass_" or
 "expect_fail_" must have that status. The harness test fixtures use these
 prefixes. The exit code is 1 if a status is different or no key has a prefix.
+
+With --passes-of TOOL (and --report), each case that TOOL passes in the
+report must pass in the oracle; the exit code is 1 if one does not. The CI
+report job uses it for sqll (S3b C14).
 """
 
 import argparse
@@ -42,6 +46,7 @@ from sqlfluff_oracle import (
     ROOT,
     Results,
     check_prefixes,
+    check_passes,
     compare_with_report,
     fail_on_parse_error_after_fix,
     failure_reason,
@@ -94,7 +99,9 @@ def main() -> int:
         status = check_prefixes(oracle) or status
     if args.report is None:
         return status
-    return compare_with_report(oracle, args.report, "rules", args.tool) or status
+    compared = compare_with_report(oracle, args.report, "rules", args.tool)
+    passes = check_passes(oracle, args.report, "rules", args.passes_of)
+    return compared or passes or status
 
 
 if __name__ == "__main__":

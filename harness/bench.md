@@ -222,13 +222,14 @@ are the same for each tool. Proof: through the registry, a test-double tool
 runs all 280 benchmarks, valid, and the definitions do not change.
 
 sqll (S3 T13, `bench/sqll.py`) joined with no change to the definitions.
-It has only `parse` until S5: `start` and `parse` run `sqll parse -f json
---dialect D`; `lint` and `fix` are `unsupported: lint` and `unsupported:
-fix`, with no run (`unsupported_command`). Thus G3.4 and G3.5 for lint and
-fix, and the G3.5 total, are for later stones. sqll has the settings of
-all tools: the raw templater, no size limit, and no rule in a parse. A
-fake sqll binary runs all 280 benchmarks through the registry
-(`tests/test_sqll_bench.py`).
+It has the commands of the sqlfluff adapter (S3b C14). `lint` and `fix`
+run only if sqll has each rule that the settings select (`sqll rules`).
+The settings select all rules (`rules = all`) and sqll has 3 until S5, so
+`lint` and `fix` are `unsupported: rule ...` with no run
+(`unsupported_command`); the baseline statuses do not change. Thus G3.4
+and G3.5 for lint and fix, and the G3.5 total, are for later stones. sqll
+has the settings of all tools. A fake sqll binary runs all 280 benchmarks
+through the registry (`tests/test_sqll_bench.py`).
 
 ## CI and slowdowns
 

@@ -220,30 +220,71 @@ sqlfluff keeps the records: 214 MiB for 3000 files with 131 MB of output
 
 ## Adapter
 
-`sqll_harness/adapters/sqll.py`. `parse()` runs sqll as the sqlfluff
-adapter runs sqlfluff: `sqll parse -f json` with `-c` and `-m` as asked,
-`--templater raw --dialect D --ignore-local-config`, and the extra config
-of the case as a `--config` file (`pyproject.toml`). If sqll fails closed
-(exit code 2, `unsupported: <item>`), the case gives `unsupported:
-<item>`. The other items fail before a run of the binary:
+`sqll_harness/adapters/sqll.py` runs sqll as the sqlfluff adapter runs
+sqlfluff (S3b C14):
 
-| Suite | Reason | Why |
-|---|---|---|
-| `rules` | `unsupported: lint` | The adapter does not run `sqll lint` yet (`Adapter.lints` is False; C14). This includes the 2 CV06 cases with an empty `pass_str`, which the sqlfluff test does not check. |
-| `autofix`, `templater` | `unsupported: templater` | The suite parses as a user does (`parse_file`): with the config files, the templater of the config (default jinja), and the in-file config lines. The adapter does not run sqll on these suites. sqll has the raw templater, and the jinja templater only for a file with no Jinja tag (S6, S11). `sqll parse` reads no in-file config line; `sqll lint` and `sqll fix` fail closed on one. |
+- `parse()` (dialects suite): `sqll parse -f json` with `-c` and `-m` as
+  asked, `--templater raw --dialect D --ignore-local-config`, and the extra
+  config of the case as a `--config` file (`pyproject.toml`).
+- `lint()` and `fix()` (rules suite): `sqll lint -f json --nofail` and
+  `sqll fix`, with `--ignore-local-config --encoding utf-8 --rules R`, and
+  `--dialect D` or the case config as a `--config` file.
+- `parse_file()` and `fix_file()` (autofix and templater suites): `sqll
+  parse -f json` and `sqll fix --nocolor --dialect D [--rules R]` in the
+  working folder, with the config files of the user.
 
-`known_failures/sqll.txt` lists these 2631 cases.
+Before a run, the adapter fails closed (`unsupported: <item>`, status
+`fail`) if one of these is not true:
+
+| Item | Check |
+|---|---|
+| `rule` | Each rule of the case is in the sqll registry. The adapter reads it from `sqll rules`: with no config it fails closed and names the rules that sqll does not have; a second run with these in `exclude_rules` gives the table of the rules that sqll has. A rule case with no SQL string (2 CV06 cases) also needs its rule (`check_case_rules`). |
+| `templater` | The templater is `raw`, or `jinja` (the sqlfluff default) with no templater setting and no `core.library_path`, and each SQL file is a text of `results/S3b/C14-jinja-raw.json`. In a run as a user: the templater of the working folder, and the config of the file sets no other one. Each other templater is unsupported. |
+| `in-file config line` | No line of a SQL file starts with `-- sqlfluff` or `--sqlfluff`. |
+| `output field` | `fix_file` with the violations of the fix (`sqll fix` has no `--show-lint-violations`), and `parse_file` with `-m` (sqll gives no source positions). |
+| `setting` | A config file that the harness does not read (`[tool.sqlfluff]` in `pyproject.toml`) in a run as a user. |
+
+sqll checks each other setting, option, and input itself: if it cannot do
+it, it exits with code 2 and `unsupported: <item>` (C11, C13), and the
+adapter raises `Unsupported(<item>)`. Another exit code that is not 0 or 1
+gives `error`. Thus a run never ignores a setting.
+
+The jinja as raw record: `scripts/s3b/jinja_raw_oracle.py` (`check` in the
+CI job build) runs the Jinja and the raw templater of the pinned sqlfluff
+(`process_with_variants`, after the newline change of
+`Linter.render_string`) on each SQL input of the rule and autofix suites
+whose templater is jinja, with the config of the input. An input is equal
+if both give one variant, no error, and the same text, sliced file, and
+raw slices. The record has the sha256 of each equal text: 3422 inputs,
+3178 equal (2522 texts). The 244 inputs with a Jinja delimiter are not
+equal; each other input is equal.
+
+Results in 4.4.0 (`known_failures/sqll.txt` lists the 2593 cases that do
+not pass, each `unsupported`):
+
+| Suite | Cases | Pass | Unsupported |
+|---|---|---|---|
+| `dialects` | 2306 | 2306 | 0 |
+| `rules` | 2527 | 38 (CP01, CP03, CP04) | 2489: `rule` 2476, `setting` 7 (`ignore_words_regex`), `templater` 6 (a Jinja tag) |
+| `autofix` | 61 | 0 | 61: `rule` 36, `setting` 4, `templater` 21 |
+| `templater` | 43 | 0 | 43: `templater` |
+
+The CI oracles (`--passes-of sqll`; [rules.md](rules.md), "Agreement with
+the sqlfluff test") check that the sqlfluff test passes each case that
+sqll passes.
 
 ## Benchmark adapter
 
 `sqll_harness/bench/sqll.py` (S2 benchmarks, [bench.md](bench.md), "Add a
-tool"). `start` and `parse` run `sqll parse -f json --ignore-local-config
---config config/pyproject.toml input.sql`, with the settings of the
-benchmark in the config file (S3b C11; a base binary from before C11 gets
-`--dialect D`).
-`lint` and `fix` give `unsupported: lint` and `unsupported: fix` with no
-run. The S9 corpus does not run sqll by default until its corpus results
-after S3b (`LATER` in `sqll_harness/corpus/run.py`).
+tool"). The commands are those of the sqlfluff adapter: `sqll parse -f
+json`, `lint -f json`, or `fix`, then `--ignore-local-config --config
+config/pyproject.toml input.sql`, with the settings of the benchmark in the
+config file (S3b C11). `lint` and `fix` run only if sqll has each rule that
+the settings select (`sqll rules`, S3b C14). The S2 settings select all
+rules (`rules = all`), so `lint` and `fix` give `unsupported: rule ...` with
+no run, and the statuses of `results/s2/baseline.json` do not change. The
+S9 corpus does not run sqll by default until its corpus results after S3b
+(`LATER` in `sqll_harness/corpus/run.py`).
 
 ## Tree guard
 

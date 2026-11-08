@@ -115,12 +115,21 @@ class Adapter(ABC):
     lint_fields: frozenset[str] | None = None
     # False: the tool has no lint command. Each rule case then fails with
     # "unsupported: lint", also a case whose sqlfluff test checks nothing
-    # (for example an empty pass_str).
+    # (for example an empty pass_str). No adapter uses it now.
     lints: bool = True
 
     @abstractmethod
     def version(self) -> str:
         """Return the version of the tool."""
+
+    def check_case_rules(self, codes: list[str]) -> None:
+        """Raise Unsupported if the tool does not have a rule of a rule case.
+
+        The rules suite calls it before it runs a case, also for a case with
+        no SQL string (no lint). Default: no check here; the lint run checks
+        the rules.
+        """
+        return None
 
     @abstractmethod
     def parse(
