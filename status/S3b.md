@@ -363,7 +363,7 @@ jinja as raw check: PASS: 3422 inputs (3361 rule, 61 autofix), 3178 equal (2522 
   `sqll fix --show-lint-violations` (the second run of the suite), so
   autofix stays at 0 of 61 until the S7 sqll part (CLI parity) adds this
   option.
-- CI run 42519307509 (head `9a3968c`, all jobs pass): the report job gives
+- CI run 42527275145 (head `6b535f5`, all jobs pass): the report job gives
   the same summary (`results/s1/summary.json is equal to the summary`), so
   the known-failure check has 0 new failures and 0 unexpected passes. The
   sqll rule and autofix cases that run and pass: rules 38, autofix 0.
@@ -373,7 +373,7 @@ jinja as raw check: PASS: 3422 inputs (3361 rule, 61 autofix), 3178 equal (2522 
   pass in the oracle`, and `sqll templater: 43 cases, 0 pass, 0 of them pass
   in the oracle`. The job dialect-oracle (sqlfluff) gives `sqll dialects:
   2306 cases, 2306 pass, 2306 of them pass in the oracle`.
-- CI run 42519307509 also passes the S2 smoke bench check against
+- CI run 42527275145 also passes the S2 smoke bench check against
   `results/s2/baseline.json`, the build job (the tree guard, the native base
   tests, and the jinja as raw check), and the S1 dialect suite of sqll
   (2306 of 2306).
