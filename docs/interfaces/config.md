@@ -51,7 +51,7 @@ Design: [s3b-core.md](../decisions/s3b-core.md), Q6.
 | `dialect`, `max_parse_depth`, `max_parse_nodes`, `rust_parser_max_iterations`, `rust_parser_warn_threshold`, `[sqlfluff:indentation]`, `large_file_skip_char_limit`, `sql_file_exts` | As sqlfluff (with the Rust parser) |
 | `large_file_skip_byte_limit` | As sqlfluff, but a text (TOML) must be a nonzero int as Python `int()` reads it, in ASCII |
 | `templater` | `raw`; `jinja` (the default) only with its default settings and for a text that is not empty and has no `{{`, `{%`, or `{#` (`sqll_templater::jinja_is_literal`): then it gives the file of `raw` |
-| `encoding` | `autodetect` (UTF-8 only), `utf-8`, `utf-8-sig`. No effect for stdin, as in sqlfluff |
+| `encoding` | `autodetect` (UTF-8 only), and an ASCII name that Python `codecs.lookup` finds as `utf-8` or `utf-8-sig` (for example `UTF8`, `utf8.ucs2`, `utf-8-sig`; not `utf.8`). No effect for stdin, as in sqlfluff |
 | `use_rust_parser` | Only the values that run the Rust parser |
 | `rules`, `exclude_rules`, `[sqlfluff:rules:*]`, `[sqlfluff:layout:*]` | Only the defaults (sqlfluff checks them in a parse) |
 | `ignore`, `warnings` | Only empty |
@@ -84,7 +84,9 @@ harness/sqll.md).
 - sqll writes each error to stderr; sqlfluff writes some (for example
   `Error loading config`) to stdout. The warning lines of sqll (a skipped
   file, the templater of a subfolder) are those of sqlfluff with no
-  color: `nocolor` has no effect.
+  color: `nocolor` has no effect. One exception: in a file name, sqll
+  writes each character from U+0100 up as it is, but Python `repr()`
+  writes an escape for some of them (for example U+200B).
 
 ## Proof (C11)
 
@@ -96,7 +98,7 @@ harness/sqll.md).
   readers (26 and 21 cases, with the files of `test/fixtures/config/`),
   34 load scenarios (each config file kind, the order, the user config
   folder, `XDG_CONFIG_HOME`, `--config`, `--ignore-local-config`, the
-  overrides, and the errors), and 52 `sqlfluff parse` scenarios (the
+  overrides, and the errors), and 58 `sqlfluff parse` scenarios (the
   stdout, the exit code, and the warning lines of stderr). The interface
   test and `crates/sqll/tests/cli_config.rs` give the same answers, or fail
   closed where the record says so.

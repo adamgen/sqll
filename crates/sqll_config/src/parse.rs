@@ -349,15 +349,15 @@ fn first_difference(have: Option<&Value>, want: Option<&Value>, path: &str) -> S
     }
 }
 
-/// The `encoding` setting: `autodetect`, or a name of the Python UTF-8
-/// codecs (after the Python name normalization).
 /// The byte limit of a text value, as Python `int(text)` in sqlfluff
 /// `load_raw_file_and_config` gives it: ASCII digits with an optional sign,
-/// `_` between digits, and whitespace around. sqll reads only ASCII; each
-/// other text is `None` (fail closed). A text of 0 is also `None`: sqlfluff
+/// `_` between digits, and the white space that `int()` strips around them
+/// (the Unicode `White_Space` characters, as `char::is_whitespace`; not
+/// U+001C to U+001F). sqll reads only ASCII digits; each other text is
+/// `None` (fail closed). A text of 0 is also `None`: sqlfluff
 /// then skips each file that is not empty, and 0 is "no limit" in sqll.
 fn byte_limit_of_text(text: &str) -> Option<i64> {
-    let text = text.trim_matches([' ', '\t', '\n', '\r', '\x0b', '\x0c']);
+    let text = text.trim_matches(char::is_whitespace);
     let digits = text.strip_prefix(['+', '-']).unwrap_or(text);
     if digits.is_empty()
         || !digits.bytes().all(|b| b.is_ascii_digit() || b == b'_')
@@ -371,6 +371,14 @@ fn byte_limit_of_text(text: &str) -> Option<i64> {
     (limit != 0).then_some(limit)
 }
 
+/// The `encoding` setting: `autodetect`, or a name that Python
+/// `codecs.lookup` finds as the module `utf_8` or `utf_8_sig`. As in
+/// `encodings.search_function` of Python: the name is normalized (lower
+/// case, each run of characters other than letters, digits, and `.` to one
+/// `_`). A name with a non-ASCII character fails closed. An alias (`utf8`, `u8`, `utf`, `utf8_ucs2`,
+/// `utf8_ucs4`, `cp65001`) is found with the name or with the name after
+/// `.` to `_`. Else the name itself is the module name, and a module name
+/// with a `.` is not found (for example `utf.8`: Python `LookupError`).
 fn encoding(path: &str, value: &Value) -> Result<Encoding, ConfigError> {
     let Value::Str(name) = value else {
         return Err(unsupported(path, value, "sqll reads only an encoding name"));
@@ -378,23 +386,39 @@ fn encoding(path: &str, value: &Value) -> Result<Encoding, ConfigError> {
     if name == "autodetect" {
         return Ok(Encoding::Autodetect);
     }
+    if !name.is_ascii() {
+        return Err(unsupported(
+            path,
+            value,
+            "sqll reads only an ASCII encoding name",
+        ));
+    }
     let mut norm = String::new();
     let mut punct = false;
-    for c in name.to_lowercase().chars() {
-        if c.is_alphanumeric() || c == '.' {
+    for c in name.to_ascii_lowercase().chars() {
+        if c.is_ascii_alphanumeric() || c == '.' {
             if punct && !norm.is_empty() {
                 norm.push('_');
             }
-            if c.is_ascii() {
-                norm.push(c);
-            }
+            norm.push(c);
             punct = false;
         } else {
             punct = true;
         }
     }
-    match norm.replace('.', "_").as_str() {
-        "utf_8" | "utf8" | "u8" | "utf" | "cp65001" => Ok(Encoding::Utf8),
+    let utf8_alias = |n: &str| {
+        matches!(
+            n,
+            "utf8" | "u8" | "utf" | "utf8_ucs2" | "utf8_ucs4" | "cp65001"
+        )
+    };
+    let module = if utf8_alias(&norm) || utf8_alias(&norm.replace('.', "_")) {
+        "utf_8"
+    } else {
+        norm.as_str()
+    };
+    match module {
+        "utf_8" => Ok(Encoding::Utf8),
         "utf_8_sig" => Ok(Encoding::Utf8Sig),
         _ => Err(unsupported(
             path,
@@ -453,13 +477,20 @@ mod tests {
 
     #[test]
     fn a_byte_limit_text_is_read_as_python_int() {
-        // Python: int(" +1_0 ") == 10, int("-5") == -5, and int("0x5"),
-        // int("1__0"), int("_1"), int("1.0") give ValueError.
+        // Python: int(" +1_0 ") == 10, int("-5") == -5,
+        // int("\u3000" "8" "\u2028") == 8, and int("0x5"), int("1__0"),
+        // int("_1"), int("1.0"), int("\x1c5"), int("\u200b5") give
+        // ValueError.
         for (text, want) in [
             ("5", Some(5)),
             (" +1_0 ", Some(10)),
             ("-5", Some(-5)),
             ("\t7\n", Some(7)),
+            ("\u{3000}8\u{2028}", Some(8)),
+            ("\u{85}9\u{a0}", Some(9)),
+            ("\u{1c}5", None),
+            ("5\u{1f}", None),
+            ("\u{200b}5", None),
             ("0", None),
             ("0_0", None),
             ("0x5", None),
@@ -488,6 +519,55 @@ mod tests {
                 .large_file_skip_byte_limit,
             5
         );
+    }
+
+    #[test]
+    fn an_encoding_name_is_read_as_python_codecs_lookup() {
+        // Python 3.13 (the sqlfluff venv): codecs.lookup(name).name, or
+        // LookupError ("-"). sqll reads a UTF-8 name and fails closed on
+        // each other name (also on a non-ASCII name that Python reads).
+        for (name, python) in [
+            ("utf-8", "utf-8"),
+            ("UTF8", "utf-8"),
+            ("utf_8", "utf-8"),
+            ("Utf -- 8", "utf-8"),
+            ("  utf-8 ", "utf-8"),
+            ("u8", "utf-8"),
+            ("utf", "utf-8"),
+            ("cp65001", "utf-8"),
+            ("utf8.ucs2", "utf-8"),
+            ("UTF8.UCS4", "utf-8"),
+            ("utf8_ucs2", "utf-8"),
+            ("u.8", "-"),
+            ("utf.8", "-"),
+            ("UTF.8", "-"),
+            (".utf8", "-"),
+            ("utf8.", "-"),
+            ("utf_8.", "-"),
+            ("utf-8-sig", "utf-8-sig"),
+            ("UTF 8 SIG", "utf-8-sig"),
+            ("utf_8.sig", "-"),
+            ("utf-8.sig", "-"),
+            ("utf.8.sig", "-"),
+            ("utf8-sig", "-"),
+            ("utf-16", "utf-16"),
+            ("latin-1", "iso8859-1"),
+        ] {
+            let got = encoding("x", &Value::Str(name.to_string()));
+            match python {
+                "utf-8" => assert_eq!(got.ok(), Some(Encoding::Utf8), "{name:?}"),
+                "utf-8-sig" => assert_eq!(got.ok(), Some(Encoding::Utf8Sig), "{name:?}"),
+                _ => assert!(matches!(got, Err(ConfigError::Unsupported(_))), "{name:?}"),
+            }
+        }
+        // Python reads these as UTF-8 (a non-ASCII letter is removed);
+        // sqll fails closed.
+        for name in ["utf-8\u{e9}", "\u{e9}utf8"] {
+            assert!(matches!(
+                encoding("x", &Value::Str(name.to_string())),
+                Err(ConfigError::Unsupported(_))
+            ));
+        }
     }
 
     #[test]

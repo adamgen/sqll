@@ -1044,6 +1044,76 @@ CLI = (
         None,
         None,
     ],
+    # Python codecs.lookup finds an alias with the name after "." to "_",
+    # but not a module name with a ".": "utf.8" is a LookupError (exit 1).
+    [
+        "encoding utf.8 is not a Python codec name",
+        {
+            "w/.sqlfluff": "[sqlfluff]\ndialect = ansi\nencoding = utf.8\n",
+            "w/a.sql": SQL,
+        },
+        "w",
+        ["a.sql"],
+        "unsupported",
+        None,
+    ],
+    [
+        "encoding utf_8.sig in TOML is not a Python codec name",
+        {
+            "w/pyproject.toml": '[tool.sqlfluff.core]\ndialect = "ansi"\n'
+            'encoding = "utf_8.sig"\n',
+            "w/a.sql": SQL,
+        },
+        "w",
+        ["a.sql"],
+        "unsupported",
+        None,
+    ],
+    [
+        "encoding utf8.ucs2 is a Python alias of utf-8",
+        {
+            "w/.sqlfluff": "[sqlfluff]\ndialect = ansi\nencoding = utf8.ucs2\n",
+            "w/a.sql": SQL,
+        },
+        "w",
+        ["a.sql"],
+        None,
+        None,
+    ],
+    # The skip warnings write the file name with repr() ({fname!r}).
+    [
+        "byte limit warning for a file name with a quote",
+        {
+            "w/.sqlfluff": "[sqlfluff]\ndialect = ansi\nlarge_file_skip_byte_limit = 3\n",
+            "w/it's.sql": SQL,
+        },
+        "w",
+        ["it's.sql"],
+        None,
+        None,
+    ],
+    [
+        "byte limit warning for a file name with quotes, a backslash, and a tab",
+        {
+            "w/.sqlfluff": "[sqlfluff]\ndialect = ansi\nlarge_file_skip_byte_limit = 3\n",
+            "w/a'b\"c\\d\te\u00ad.sql": SQL,
+        },
+        "w",
+        ["a'b\"c\\d\te\u00ad.sql"],
+        None,
+        None,
+    ],
+    [
+        "char limit warning for a file name with a quote",
+        {
+            "w/.sqlfluff": "[sqlfluff]\ndialect = ansi\nlarge_file_skip_char_limit = 3\n",
+            "w/it's.sql": SQL,
+        },
+        "w",
+        ["it's.sql"],
+        None,
+        None,
+    ],
 )
 
 

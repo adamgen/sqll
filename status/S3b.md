@@ -217,7 +217,7 @@ The check of the sqlfluff data (`scripts/s3b/config_oracle.py check`,
 record [results/S3b/C11-config.json](../results/S3b/C11-config.json)):
 
 ```text
-config check: PASS: 208 defaults, 40 coerce, 26 INI, 21 TOML, 34 load and 52 CLI scenarios; jinja as raw: 2303 of 2303 dialect fixtures that are not empty and have no Jinja delimiter
+config check: PASS: 208 defaults, 40 coerce, 26 INI, 21 TOML, 34 load and 58 CLI scenarios; jinja as raw: 2303 of 2303 dialect fixtures that are not empty and have no Jinja delimiter
 ```
 
 - `crates/sqll_config/tests/defaults.rs` reads `default_config.cfg` of the
