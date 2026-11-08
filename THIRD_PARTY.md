@@ -156,6 +156,12 @@ Ported code (MIT, attribution in each file header):
 | `crates/sqll_config/src/validate.rs` | `src/sqlfluff/core/config/validate.py` and `removed.py` (S3b C11) |
 | `crates/sqll_config/src/loader.rs` | `src/sqlfluff/core/config/loader.py`, `file.py`, and `src/sqlfluff/core/helpers/file.py` (`iter_intermediate_paths`) (S3b C11) |
 | `crates/sqll_config/src/config.rs` | `src/sqlfluff/core/config/fluffconfig.py` (`FluffConfig`, parts) and `src/sqlfluff/core/helpers/string.py` (`split_comma_separated_string`) (S3b C11) |
+| `crates/sqll_lint/src/rule.rs` | `src/sqlfluff/core/rules/base.py` (`BaseRule`, `LintResult`) and `crawlers.py` (`RootOnlyCrawler`, `SegmentSeekerCrawler`, `passes_filter`) (S3b C12) |
+| `crates/sqll_lint/src/config.rs` | `src/sqlfluff/core/rules/base.py` (`RuleSet._validate_config_options`, the rule keyword arguments of `get_rulepack`) and `src/sqlfluff/core/helpers/string.py` (`split_comma_separated_string`) (S3b C12) |
+| `crates/sqll_lint/src/fix.rs` | `src/sqlfluff/core/rules/fix.py` (`LintFix`), `rules/base.py` (`discard_unsafe_fixes`), and `linter/fix.py` (`AnchorEditInfo`, `compute_anchor_edit_info`) (S3b C12) |
+| `crates/sqll_lint/src/registry.rs` | `src/sqlfluff/core/rules/base.py` (`rule_reference_map`, `_expand_rule_refs`, `get_rulepack`) (S3b C12) |
+| `crates/sqll_lint/src/linter.rs` | `src/sqlfluff/core/linter/linter.py` (`lint_fix_parsed`, `remove_templated_errors`), `linted_file.py` (`deduplicate_in_source_space`), and `rules/base.py` (`crawl`, `_process_lint_result`) (S3b C12) |
+| `crates/sqll_lint/src/sqlfluff.rs` | The rule manifest (code, name, description, groups, aliases, phase, config keywords) of `src/sqlfluff/rules/` and the validation lists of the rule config info, as data (S3b C12, `scripts/s3b/rules_oracle.py`) |
 
 ## sqlfluffrs in crates/
 
@@ -178,7 +184,8 @@ The sqll engine crates are a port of the sqlfluffrs crates of sqlfluff.
 | `crates/sqll_base_tests/tests` | `sqlfluffrs/tests` |
 
 `crates/sqll_rules` has the rules CP01, CP03, and CP04 as a library (S3
-T18); the sqll binary does not use it yet. `crates/sqll_base_tests` has the
+T18; since S3b C12 over the rule interface of `crates/sqll_lint`); the sqll
+binary does not use it yet. `crates/sqll_base_tests` has the
 native tests of the root crate `sqlfluffrs` (its library keeps that name).
 They read the sqlfluff fixtures in place in the submodule. Their
 dev-dependency `blake2` 0.10.6 (crates.io, MIT OR Apache-2.0) and its new
@@ -204,8 +211,12 @@ lines, and sha256 of each of the 85 files. The build copies them into
 The new sqll files in `crates/` (listed in `crates/ported.json`, "new") and
 `rust-toolchain.toml` have no sqlfluff code, but `crates/sqll_syntax/src/parse.rs`,
 `crates/sqll/tests/cli.rs`, `crates/sqll_tree/build/kinds.rs`,
-`crates/sqll_source/src/map.rs`, `crates/sqll_templater/src/raw.rs`, and
-`crates/sqll_config/src/value.rs` have ported parts ("Ported code" above),
+`crates/sqll_source/src/map.rs`, `crates/sqll_templater/src/raw.rs`,
+`crates/sqll_config/src/value.rs`, and the files of the lint crate but
+`lib.rs` (`crates/sqll_lint/src/rule.rs`, `crates/sqll_lint/src/config.rs`,
+`crates/sqll_lint/src/fix.rs`, `crates/sqll_lint/src/registry.rs`,
+`crates/sqll_lint/src/linter.rs`, `crates/sqll_lint/src/sqlfluff.rs`)
+have ported parts ("Ported code" above),
 and the other files of `crates/sqll_config/src/` but `lib.rs` and
 `parse.rs` are ports of sqlfluff code ("Ported code" above) and of CPython
 code ("CPython", "tomllib" below). The sqll binary (`crates/sqll`)

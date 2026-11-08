@@ -36,7 +36,7 @@
    "path": "Cargo.toml",
    "source": "sqlfluffrs/Cargo.toml",
    "source_sha256": "b732205a4911557a6a5ba76b40e4a6557e88166523450b5b01731760b337a3a8",
-   "changed": "Only the workspace parts are kept: the members are the 4 ported crates in crates/ and the new sqll binary crate (crates/sqll), the workspace dependencies that they use, and the release profile. The workspace version is the sqll version. New: serde_json and sha2 (for build.rs of sqll_dialects), and opt-level 3 for sha2; regex-syntax (S3 T15, the match prefixes of the lexer regexes in sqll_types matcher.rs), the version that regex uses. No root package, no feature \"python\", no pyo3. S3 T17 (parse speed, build profile): the release profile has lto = \"fat\" and codegen-units = 1, so that the parser inlines the accessors of sqll_types; about 10% fewer instructions in the parse. S3 T18: the members also have the rules crate (crates/sqll_rules) and the native tests of the root crate (crates/sqll_base_tests). S3b C6: the members also have the syntax tree crate (crates/sqll_tree) and the interface test crate (crates/sqll_interfaces). S3b C7: the members also have the syntax crate (crates/sqll_syntax). S3b C11: the members also have the config crate (crates/sqll_config)."
+   "changed": "Only the workspace parts are kept: the members are the 4 ported crates in crates/ and the new sqll binary crate (crates/sqll), the workspace dependencies that they use, and the release profile. The workspace version is the sqll version. New: serde_json and sha2 (for build.rs of sqll_dialects), and opt-level 3 for sha2; regex-syntax (S3 T15, the match prefixes of the lexer regexes in sqll_types matcher.rs), the version that regex uses. No root package, no feature \"python\", no pyo3. S3 T17 (parse speed, build profile): the release profile has lto = \"fat\" and codegen-units = 1, so that the parser inlines the accessors of sqll_types; about 10% fewer instructions in the parse. S3 T18: the members also have the rules crate (crates/sqll_rules) and the native tests of the root crate (crates/sqll_base_tests). S3b C6: the members also have the syntax tree crate (crates/sqll_tree) and the interface test crate (crates/sqll_interfaces). S3b C7: the members also have the syntax crate (crates/sqll_syntax). S3b C11: the members also have the config crate (crates/sqll_config). S3b C12: the members also have the lint crate (crates/sqll_lint)."
   },
   {
    "path": "crates/sqll_base_tests/Cargo.toml",
@@ -174,7 +174,7 @@
    "path": "crates/sqll_parser/src/parser/arena.rs",
    "source": "sqlfluffrs/sqlfluffrs_parser/src/parser/arena.rs",
    "source_sha256": "f8c028beb8fa362c3611ea4ecf9ca62ea2510f394fe9d9a7c28d2b420c296a2f",
-   "changed": "S3 T18: Arena::from_node is public (pub, not pub(crate)), so that the rules crate (sqll_rules) and its tests can make an arena from a parse tree. The source makes it only in the Python bindings (python.rs, not ported). The parse does not use it."
+   "changed": "S3 T18: Arena::from_node is public (pub, not pub(crate)), so that the rules crate (sqll_rules) and its tests can make an arena from a parse tree. The source makes it only in the Python bindings (python.rs, not ported). The parse does not use it. S3b C12: the rules crate uses the rule interface of sqll_lint, not the arena; Arena::from_node stays public, and the unit tests of the arena (native base tests) use it."
   },
   {
    "path": "crates/sqll_parser/src/parser/cache.rs",
@@ -294,37 +294,37 @@
    "path": "crates/sqll_rules/Cargo.toml",
    "source": "sqlfluffrs/sqlfluffrs_rules/Cargo.toml",
    "source_sha256": "aa57e9ec9c16071d4d779c794b1a36a41672443b7030ec0be29ad497b1d676ae",
-   "changed": "S3 T18: the package name is sqll_rules, and the workspace gives the version. The dependency keeps the sqlfluffrs crate name (\"package\" key), so that the ported code does not change. No feature \"python\" and no Python bindings. New dev-dependencies for the sqll tests (tests/rules.rs): hashbrown, sqll_dialects, and sqll_lexer. S3 T19: license = \"MIT\" (crates/LICENSE-sqlfluffrs.md covers each sqlfluffrs crate; THIRD_PARTY.md)."
+   "changed": "S3 T18: the package name is sqll_rules, and the workspace gives the version. The dependency keeps the sqlfluffrs crate name (\"package\" key), so that the ported code does not change. No feature \"python\" and no Python bindings. New dev-dependencies for the sqll tests (tests/rules.rs): hashbrown, sqll_dialects, and sqll_lexer. S3 T19: license = \"MIT\" (crates/LICENSE-sqlfluffrs.md covers each sqlfluffrs crate; THIRD_PARTY.md). S3b C12: the dependencies are sqll_config, sqll_lint, and sqll_tree (the rule interface), not the parser; the dev-dependencies are those of the tests (tests/capitalisation.rs, the S3 T18 tests/rules.rs; tests/fixtures.rs): serde_json, serde_yaml_ng, sqll_source, sqll_syntax, and sqll_templater."
   },
   {
    "path": "crates/sqll_rules/src/capitalisation.rs",
    "source": "sqlfluffrs/sqlfluffrs_rules/src/capitalisation.rs",
    "source_sha256": "de2ece27ddb95748606be65b419f949871d26ba69f3dc959b34ebff78b2f76d8",
-   "changed": null
+   "changed": "S3b C12: the shared logic runs over the rule interface of sqll_lint (the typed view of the SyntaxTree), not over the parse arena. The arena walk (walk, detect) is replaced by eval: the Rule_CP01._eval of one node of the crawl, with the state machine in the memory of the crawl. evaluate also gives the concrete policy, so that a result has the description of sqlfluff (Rule_CP01._handle_segment). New: settings (the rule config; ignore_words_regex fails closed), and a target with children: it changes the memory as in sqlfluff, a fix of it fails closed (sqlfluff raises an exception), and a node with one target leaf child of the same text is not examined (the child is). The case functions (is_capitalizable to apply_policy) and the refute logic of evaluate do not change."
   },
   {
    "path": "crates/sqll_rules/src/cp01.rs",
    "source": "sqlfluffrs/sqlfluffrs_rules/src/cp01.rs",
    "source_sha256": "62e6463fb538728e087a85d6d49e1de3466fbfee7f205f2cab1c02d42021d47b",
-   "changed": null
+   "changed": "S3b C12: the rule CP01 implements sqll_lint::Rule (the metadata of the sqlfluff rule, the crawl of its target types, check_config, and eval over the shared logic), not a function over the parse arena; the target and exclude types are SegmentType values. The anchor of a result is a node of the SyntaxTree, not a leaf index."
   },
   {
    "path": "crates/sqll_rules/src/cp03.rs",
    "source": "sqlfluffrs/sqlfluffrs_rules/src/cp03.rs",
    "source_sha256": "2f22ebb1a909ade7d262c78491b3a04b79e4367453efbfd4c2d9ca9d09f0f615",
-   "changed": null
+   "changed": "S3b C12: the rule CP03 implements sqll_lint::Rule (the metadata of the sqlfluff rule, the crawl of its target types, check_config, and eval over the shared logic), not a function over the parse arena; the target and exclude types are SegmentType values. The anchor of a result is a node of the SyntaxTree, not a leaf index."
   },
   {
    "path": "crates/sqll_rules/src/cp04.rs",
    "source": "sqlfluffrs/sqlfluffrs_rules/src/cp04.rs",
    "source_sha256": "e92e856c0a96b26167a16d3daf2b6d4dad8317b03e2974f34ffdd89be01a47c9",
-   "changed": null
+   "changed": "S3b C12: the rule CP04 implements sqll_lint::Rule (the metadata of the sqlfluff rule, the crawl of its target types, check_config, and eval over the shared logic), not a function over the parse arena; the target and exclude types are SegmentType values. The anchor of a result is a node of the SyntaxTree, not a leaf index."
   },
   {
    "path": "crates/sqll_rules/src/lib.rs",
    "source": "sqlfluffrs/sqlfluffrs_rules/src/lib.rs",
    "source_sha256": "afc17fbf36bc7eb4ce7c3dec39628105a1f1e05d962ca72d772d60db1d1f4d79",
-   "changed": "S3 T18: removed the module \"python\" (feature \"python\", the Python bindings)."
+   "changed": "S3 T18: removed the module \"python\" (feature \"python\", the Python bindings). S3b C12: the module documentation describes the rule interface of sqll_lint, and the function rules gives the rules for the registry."
   },
   {
    "path": "crates/sqll_types/Cargo.toml",
@@ -586,8 +586,8 @@
    "reason": "A copy of LICENSE of CPython tag v3.13.16 (sha256 78b12c3a81360b357002334f0e70ea0e92eebf7a9b358805c03c48484945f3bb): the PSF License Agreement of the normpath port in crates/sqll/src/main.rs (THIRD_PARTY.md, \"CPython\")."
   },
   {
-   "path": "crates/sqll_rules/tests/rules.rs",
-   "reason": "Tests of the ported rules CP01, CP03, and CP04 on sqll parse trees (S3 T18). The expected texts are the output of sqlfluff 4.4.0 fix. New sqll code."
+   "path": "crates/sqll_rules/tests/capitalisation.rs",
+   "reason": "Tests of the ported rules CP01, CP03, and CP04 on sqll parse trees (S3 T18; since S3b C12 through the rule interface and the fix loop of sqll_lint). The expected texts are the output of sqlfluff 4.4.0 fix. New sqll code. S3b C12 renamed it from tests/rules.rs: the test binary of crates/sqll_interfaces/tests/rules.rs has that name, and the base test check needs unique names."
   },
   {
    "path": "crates/sqll/build/notices.rs",
@@ -784,6 +784,46 @@
   {
    "path": "crates/LICENSE-tomli.txt",
    "reason": "A copy of LICENSE of https://github.com/hukkin/tomli, tag 2.0.1 (sha256 b80816b0d530b8accb4c2211783790984a6e3b61922c2b5ee92f3372ab2742fe): the MIT license of the tomllib port in crates/sqll_config/src/toml.rs (THIRD_PARTY.md, \"tomllib\")."
+  },
+  {
+   "path": "crates/sqll_lint/Cargo.toml",
+   "reason": "The package of the rule and fix interface (S3b C12). New sqll code."
+  },
+  {
+   "path": "crates/sqll_lint/src/lib.rs",
+   "reason": "The rule and fix interface (S3b C12): the module list and LintError. New sqll code."
+  },
+  {
+   "path": "crates/sqll_lint/src/rule.rs",
+   "reason": "The Rule trait, the crawl, the rule context, and the lint result (S3b C12): a port of parts of sqlfluff 4.4.0 src/sqlfluff/core/rules/base.py and crawlers.py (MIT; THIRD_PARTY.md, \"Ported code\")."
+  },
+  {
+   "path": "crates/sqll_lint/src/config.rs",
+   "reason": "The config of a rule and of the linter (S3b C12): a port of parts of sqlfluff 4.4.0 src/sqlfluff/core/rules/base.py and helpers/string.py (MIT; THIRD_PARTY.md, \"Ported code\")."
+  },
+  {
+   "path": "crates/sqll_lint/src/fix.rs",
+   "reason": "Fixes and their source edits (S3b C12): a port of parts of sqlfluff 4.4.0 src/sqlfluff/core/rules/fix.py, rules/base.py, and linter/fix.py (MIT; THIRD_PARTY.md, \"Ported code\")."
+  },
+  {
+   "path": "crates/sqll_lint/src/registry.rs",
+   "reason": "The rule registry and the rule selection (S3b C12): a port of parts of sqlfluff 4.4.0 src/sqlfluff/core/rules/base.py (MIT; THIRD_PARTY.md, \"Ported code\")."
+  },
+  {
+   "path": "crates/sqll_lint/src/linter.rs",
+   "reason": "The linter and the fix loop (S3b C12): a port of parts of sqlfluff 4.4.0 src/sqlfluff/core/linter/linter.py, linted_file.py, and rules/base.py (MIT; THIRD_PARTY.md, \"Ported code\")."
+  },
+  {
+   "path": "crates/sqll_lint/src/sqlfluff.rs",
+   "reason": "The rule manifest and the config validation of sqlfluff 4.4.0 (S3b C12), made from results/S3b/C12-rules.json by scripts/s3b/rules_oracle.py (data of sqlfluff, MIT; THIRD_PARTY.md)."
+  },
+  {
+   "path": "crates/sqll_rules/tests/fixtures.rs",
+   "reason": "The CP01, CP03, and CP04 cases of the sqlfluff rule fixtures, read from the submodule (S3b C12). New sqll code."
+  },
+  {
+   "path": "crates/sqll_interfaces/tests/rules.rs",
+   "reason": "The interface test of the rule and fix interface (S3b C12)."
   }
  ]
 }

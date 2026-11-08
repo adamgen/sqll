@@ -154,6 +154,23 @@ fails closed for it: CI runs no dialect oracle for sqll. No 4.4.0 dialect
 fixture has the pattern: sqlfluff passes 2306 of 2306 dialect cases and
 the dialect oracle agrees, and sqll gives the same tree in 2306 of 2306.
 
+### sqll rules (S3b C12)
+
+The rule fixture test of sqll (`crates/sqll_rules/tests/fixtures.rs`)
+compares each CP01, CP03, and CP04 case that it runs with the pinned
+sqlfluff (`results/S3b/C12-rules.json`). These differences are known only
+from invented inputs ([docs/interfaces/rules.md](../docs/interfaces/rules.md),
+"Differences from sqlfluff"):
+
+- CP01, CP03, CP04 do not examine a node with one target leaf child of the
+  same text (the child is examined). If sqlfluff has such a node with
+  children and it needs a fix, sqlfluff gives an "Unexpected exception"
+  violation and sqll gives the fix. Each of the 38 CP cases that sqll runs
+  agrees with sqlfluff, so none of them has such a node with a fix.
+- sqll refuses a fix that changes a block tag or a comment slice of a
+  templated file; sqlfluff can apply it. The pinned cases with Jinja are not
+  run before S11.
+
 ## sqruff
 
 No sqlfluff test runs sqruff, so the harness compares the sqruff output with

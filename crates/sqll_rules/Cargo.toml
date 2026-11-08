@@ -14,15 +14,19 @@ rust-version.workspace = true
 license = "MIT"
 publish = false
 
-# Rust-native lint rules. Detection runs over the parse arena's public read API
-# (sqlfluffrs_parser::Arena); fixes are still applied Python-side for now.
-# sqll: no Python bindings. The ported code uses the sqlfluffrs crate name of
-# the parser.
+# Rust-native lint rules. Detection runs over the rule interface of sqll_lint
+# (the typed view of the SyntaxTree); the fix loop of sqll_lint applies the
+# fixes. sqll: no Python bindings.
 [dependencies]
-sqlfluffrs_parser = { package = "sqll_parser", path = "../sqll_parser" }
+sqll_config = { path = "../sqll_config" }
+sqll_lint = { path = "../sqll_lint" }
+sqll_tree = { path = "../sqll_tree" }
 
-# The tests of sqll (tests/rules.rs) lex and parse SQL for the rules.
+# The tests of sqll (tests/capitalisation.rs, tests/fixtures.rs) parse SQL with the
+# raw templater and read the rule fixtures and the record of S3b C12.
 [dev-dependencies]
-hashbrown.workspace = true
-sqlfluffrs_dialects = { package = "sqll_dialects", path = "../sqll_dialects" }
-sqlfluffrs_lexer = { package = "sqll_lexer", path = "../sqll_lexer" }
+serde_json.workspace = true
+serde_yaml_ng.workspace = true
+sqll_source = { path = "../sqll_source" }
+sqll_syntax = { path = "../sqll_syntax" }
+sqll_templater = { path = "../sqll_templater" }

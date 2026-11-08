@@ -29,8 +29,8 @@ the S6 package `sqll_templater`, not in `sqll_source` (Core owns
 | C8 | Source map (`sqll_source`): `TemplatedFile` as the frozen templater interface, raw templater (`sqll_templater`), source ranges of the tree. Fix of the C7 finding: the newline index of the ported `TemplatedFile` has code point offsets: [docs/interfaces/source-map.md](../docs/interfaces/source-map.md) | Merged (PR #66) |
 | C9 | Frozen parse interface (lexer to parser to tree; `sqll_syntax::parse`) and `sqll parse` output from `SyntaxTree`. The copy of the parse settings in `crates/sqll_interfaces/src/parse.rs` is gone: the tests use the steps of the interface. The lexer input is a `TemplatedFile` (C8). The caller changes "\r\n" and "\r" to "\n" before the templater, as sqlfluff (`Linter.render_string`); `sqll parse` does it when it reads the file: [docs/interfaces/parse.md](../docs/interfaces/parse.md) | Merged (PR #67) |
 | C10 | Typed view of the tree (`sqll_tree::view`): `NodeRef`, the sqlfluff query helpers (`child`, `children_of`, `first_descendant`, `crawl` as `recursive_crawl`), `AstNode`, `typed_node!`, and the typed nodes of the core set. Fix of C6: the meta kinds have the class types of their sqlfluff class: [docs/interfaces/typed-view.md](../docs/interfaces/typed-view.md) | Merged (PR #68) |
-| C11 | Config skeleton (`sqll_config`) and its use in `sqll parse`: the config model, the sqlfluff defaults, the reader of the config files in the sqlfluff order, `--config`, `--ignore-local-config`, and the overrides; a setting that sqll cannot do fails closed: [docs/interfaces/config.md](../docs/interfaces/config.md) | In review |
-| C12 | Rule and fix interface (`sqll_lint`) with CP01, CP03, CP04 as the proof | Not started |
+| C11 | Config skeleton (`sqll_config`) and its use in `sqll parse`: the config model, the sqlfluff defaults, the reader of the config files in the sqlfluff order, `--config`, `--ignore-local-config`, and the overrides; a setting that sqll cannot do fails closed: [docs/interfaces/config.md](../docs/interfaces/config.md) | Merged (PR #69) |
+| C12 | Rule and fix interface (`sqll_lint`) with CP01, CP03, CP04 as the proof: the `Rule` trait, the lint results and fixes (source edits through the source map; a fix in a templated range is refused), the fix loop, and the rule registry. CP01, CP03, CP04 of `sqll_rules` implement it: [docs/interfaces/rules.md](../docs/interfaces/rules.md) | In review |
 | C13 | CLI skeleton (`sqll_cli`): lint, fix, rules, dialects, and output formats. If `EXIT_ERROR` moves, change its path in `scripts/s3b/core_design.py` | Not started |
 | C14 | Harness adapters: `sqll lint` and `fix` in the S1 harness and the S2 benchmarks. Also remove the path for a base binary from before C11 in `harness/sqll_harness/bench/sqll.py` (`legacy_options`, `LEGACY_FIXED`, the `reads_config` probe): after C11, the base of each speed check reads the config | Not started |
 | C15 | Code generation interface: tree to schema | Not started |
@@ -252,3 +252,37 @@ config check: PASS: 208 defaults, 40 coerce, 26 INI, 21 TOML, 34 load and 66 CLI
   reads and checks it and makes the root and the file config (about 0.4
   ms for each start). The default table is made one time in a run
   (`default_table`).
+
+## C12: rule interface proof
+
+Interface: [docs/interfaces/rules.md](../docs/interfaces/rules.md). The
+check of the sqlfluff data (`scripts/s3b/rules_oracle.py check`, record
+[results/S3b/C12-rules.json](../results/S3b/C12-rules.json)) and the
+test output (`crates/sqll_rules/tests/fixtures.rs`, with `--nocapture`):
+
+```text
+rules check: PASS: 79 rules, 37 validated config keywords, 51 rule fixture cases
+rule fixtures (CP01, CP03, CP04), config: 25 passed, 0 failed, 7 unsupported, 0 not run
+rule fixtures (CP01, CP03, CP04), default: 13 passed, 0 failed, 0 unsupported, 0 not run
+rule fixtures (CP01, CP03, CP04), jinja: 0 passed, 0 failed, 0 unsupported, 6 not run
+```
+
+- The cases are read from the submodule. "default": only the raw
+  templater and the default config (13 of 13 pass). "config": a rule
+  setting or a dialect; the 7 unsupported cases set `ignore_words_regex`
+  (fail closed). "jinja": a Jinja delimiter; not run (S11). A case passes
+  if the `rules__test_helper` checks pass and each violation (code, lines,
+  positions, description, fixable) and fixed text is that of sqlfluff.
+- The 12 cases of `crates/sqll_rules/tests/rules.rs` (S3 T18; now
+  `tests/capitalisation.rs`) pass on the new interface, through the fix
+  loop. New: 3 cases of a target with
+  children (the expected texts are sqlfluff output).
+- Interface test (`crates/sqll_interfaces/tests/rules.rs`, 11 tests): a
+  test templater gives the C8 hand-built map of `jinja_a`; a test rule
+  fixes the literal keywords through the fix loop and keeps the tags; a
+  fix of the output of a tag is refused (with `ignore_templated_areas`
+  false, the violation is not fixable).
+- The sqll binary does not link `sqll_lint` or `sqll_rules` (`cargo tree
+  -p sqll -e normal,build`: 0 lines), and C12 changes no code that it
+  links. Thus C12 has no speed check (G3 rule above). C13 links it.
+
