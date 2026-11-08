@@ -233,8 +233,8 @@ config check: PASS: 208 defaults, 40 coerce, 26 INI, 21 TOML, 34 load and 66 CLI
 - G4: S1 dialect suite of sqll 2306 of 2306 exact; the known failures of
   sqll did not change (2631; 0 new, 0 unexpected); tree guard: 84 of 84 the
   same; the syntax tree check of the 84 S2 parse inputs passes; native base
-  tests 162 of 162 (`scripts/s3/base_native_tests.py check`: 317 tests,
-  314 passed, 3 ignored). Run again on the head after the review fixes
+  tests 162 of 162 (`scripts/s3/base_native_tests.py check`: 318 tests,
+  315 passed, 3 ignored). Run again on the head after the review fixes
   (round 5: `ba3cb5c`, the same sqll source as the speed check head
   `9bfbed7`; the S1 suite and the known failures: CI job report on
   `ba3cb5c`, `results/s1/summary.json` is equal).

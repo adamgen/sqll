@@ -86,9 +86,10 @@ harness/sqll.md).
   file, the templater of a subfolder, `large_file_skip_char_limit`) are
   those of sqlfluff with no color: `nocolor` has no effect. As in
   sqlfluff, a file that `large_file_skip_char_limit` does not skip gets
-  its warning two times, and a limit of `True` is written as `True`. One exception: in a file name, sqll
-  writes each character from U+0100 up as it is, but Python `repr()`
-  writes an escape for some of them (for example U+200B).
+  its warning two times, and a limit of `True` is written as `True`. One
+  exception: in a file name, sqll writes each character from U+0100 up as
+  it is, but Python `repr()` writes an escape for some of them (for
+  example U+200B).
 
 ## Proof (C11)
 

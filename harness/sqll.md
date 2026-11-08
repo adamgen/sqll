@@ -21,37 +21,38 @@ them.
 
 `sqll parse` prints the record of `sqlfluff parse -f json`. Since S3b C11
 it reads the sqlfluff config as `sqlfluff parse` does
-([config.md](../docs/interfaces/config.md)). `--max-parse-depth`
-is a sqll option that overrides the config value `max_parse_depth`
-(default 600); `sqlfluff parse` has no such option. `--timings` (a sqll option for the speed work, S3 T14) adds
-one JSON line to the end of stderr: the seconds of each phase (`init`,
-`setup`, `lex`, `parse`, `record`, `write`, `free`; `crates/sqll/src/timings.rs`),
-their sum, and the token count. Since S3 T15, `write` has the stderr
-error lines and the JSON, which sqll writes from the tree, and `free` has
-no work (sqll exits with no drop of the tree). Since S3b C9, `record` has
-the conversion of the parser tree to the syntax tree (the parse interface,
-`docs/interfaces/parse.md`). The output and the exit code do not change.
-The defaults of the other parser limits are those of sqlfluff
-(`max_parse_nodes` 100000, `rust_parser_max_iterations` 3000000); the
-config can change them. As in sqlfluff, the config of the file comes from
-the folders of the path that `os.path.normpath` gives (thus `t/../a.sql`
-does not read the config of `t`), and sqll reads that path. Only the PATH
-`-` is stdin: `./-` is the file `-`, as in sqlfluff. Exit
-codes: 0; 1 for a lex error, a parse error (also at a parser limit), or an
-unparsable segment (the error lines go to stderr; an unparsable segment has
-no line); 2 for a usage, input, or output error, or a parse tree that the
-syntax tree refuses (a sqll bug, `sqll_syntax::ParseError`; no input of the
-tests gives it). Only a panic (a sqll bug) gives another exit code (101).
-stdout has only the JSON record: the bytes of the sqlfluff output (Python
-`json.dumps`) and a new line. The `filepath` is the path as
-`os.path.normpath` gives it (`stdin` for `-`). A file with an extension
-that is not in `sql_file_exts` of the config (default `.sql`, `.sql.j2`,
-`.dml`, `.ddl`, `.pkb`; in any case) gives `[]` and exit code 0, as in
-sqlfluff. A file over `large_file_skip_byte_limit` (default 20000 bytes)
-gives `[]` and exit code 0, and one over `large_file_skip_char_limit`
-gives `"segments": null` and exit code 0, as in sqlfluff (a warning line on
-stderr). As in click, sqll reads all arguments before `-h`: an unknown
-option or a missing value is an error also with `-h`.
+([config.md](../docs/interfaces/config.md)). `--max-parse-depth` is a sqll
+option that overrides the config value `max_parse_depth` (default 600);
+`sqlfluff parse` has no such option. `--timings` (a sqll option for the
+speed work, S3 T14) adds one JSON line to the end of stderr: the seconds
+of each phase (`init`, `setup`, `lex`, `parse`, `record`, `write`, `free`;
+`crates/sqll/src/timings.rs`), their sum, and the token count. Since S3
+T15, `write` has the stderr error lines and the JSON, which sqll writes
+from the tree, and `free` has no work (sqll exits with no drop of the
+tree). Since S3b C9, `record` has the conversion of the parser tree to the
+syntax tree (the parse interface, `docs/interfaces/parse.md`). The output
+and the exit code do not change. The defaults of the other parser limits
+are those of sqlfluff (`max_parse_nodes` 100000,
+`rust_parser_max_iterations` 3000000); the config can change them. As in
+sqlfluff, the config of the file comes from the folders of the path that
+`os.path.normpath` gives (thus `t/../a.sql` does not read the config of
+`t`), and sqll reads that path. Only the PATH `-` is stdin: `./-` is the
+file `-`, as in sqlfluff. Exit codes: 0; 1 for a lex error, a parse error
+(also at a parser limit), or an unparsable segment (the error lines go to
+stderr; an unparsable segment has no line); 2 for a usage, input, or
+output error, or a parse tree that the syntax tree refuses (a sqll bug,
+`sqll_syntax::ParseError`; no input of the tests gives it). Only a panic
+(a sqll bug) gives another exit code (101). stdout has only the JSON
+record: the bytes of the sqlfluff output (Python `json.dumps`) and a new
+line. The `filepath` is the path as `os.path.normpath` gives it (`stdin`
+for `-`). A file with an extension that is not in `sql_file_exts` of the
+config (default `.sql`, `.sql.j2`, `.dml`, `.ddl`, `.pkb`; in any case)
+gives `[]` and exit code 0, as in sqlfluff. A file over
+`large_file_skip_byte_limit` (default 20000 bytes) gives `[]` and exit
+code 0, and one over `large_file_skip_char_limit` gives `"segments": null`
+and exit code 0, as in sqlfluff (a warning line on stderr). As in click,
+sqll reads all arguments before `-h`: an unknown option or a missing value
+is an error also with `-h`.
 
 For the 2306 dialect files, sqll and `sqlfluff parse --templater raw
 --ignore-local-config` give the same output and exit code (status/S3.md,
@@ -115,9 +116,10 @@ T12). Differences from `sqlfluff parse`:
   (`harness/not-reproduced.md`).
 - Each sub-parse of sqll (the main parse, and each probe for a terminator
   or a delimiter) has its own count of iterations, with the limit
-  `rust_parser_max_iterations` (default 3000000). When a sub-parse reaches the limit, the
-  full parse stops with `PRS: Parser exceeded maximum iteration limit
-  (3000000)...`, `"segments": null`, and exit code 1. A probe that reaches
+  `rust_parser_max_iterations` (default 3000000). When a sub-parse
+  reaches the limit, the full parse stops with `PRS: Parser exceeded
+  maximum iteration limit (<limit>)...` (the limit of the config),
+  `"segments": null`, and exit code 1. A probe that reaches
   a parser limit (iterations, depth, or nodes) also stops the full parse:
   the parse does not continue after it. But sqll does not run a terminator
   probe where the simple hint of the terminator cannot match (S3 T17), as
@@ -125,11 +127,12 @@ T12). Differences from `sqlfluff parse`:
   such a probe reaches a limit, sqll can give the tree where the sqlfluff
   Rust parser stops. No dialect file or S2 parse input has such a probe
   (`scripts/s3/hint_check.py`, `results/s3/speed/T17-hint-check.json`).
-  The sqlfluff Python parser has no iteration limit. A long flat expression can reach the limit in a small
-  file. Examples: `select a=a=...=a` with 7853 `=a` (15715 bytes; 7852 give
-  the tree) reaches it in the main parse, and `select a from t order by
-  a=a=...=a` with 7854 `=a` (15735 bytes; 7853 give the tree) reaches it
-  in a probe. For the two examples, the sqlfluff Python parser gives the
+  The sqlfluff Python parser has no iteration limit. A long flat
+  expression can reach the limit in a small file. Examples:
+  `select a=a=...=a` with 7853 `=a` (15715 bytes; 7852 give the tree)
+  reaches it in the main parse, and `select a from t order by a=a=...=a`
+  with 7854 `=a` (15735 bytes; 7853 give the tree) reaches it in a
+  probe. For the two examples, the sqlfluff Python parser gives the
   tree with exit code 0, and sqlfluff with the Rust parser stops with a
   `PanicException` and exit code 1. No dialect file reaches the limit.
 - An argument that is not UTF-8 (for example a file name) gives
