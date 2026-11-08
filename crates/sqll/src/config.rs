@@ -119,26 +119,39 @@ pub fn load(args: &ParseArgs, path: &str) -> Result<Input, Error> {
 
 /// The character limit of the templater (`large_file_check`): true if the
 /// file is skipped. sqlfluff then prints the record with no segments.
+/// sqlfluff checks the limit two times: `process_with_variants` and the
+/// `process` that it calls have the check. Thus a file that is not skipped
+/// gets the deprecation warning two times.
 pub fn skip_by_chars(settings: &ParseSettings, sql: &str, filepath: &str) -> bool {
     let limit = settings.large_file_skip_char_limit;
     if limit == 0 {
         return false;
     }
-    warn(
-        "The config value large_file_skip_char_limit was found set. This feature will be \
-         removed in a future release, please use the more efficient \
-         'large_file_skip_byte_limit' instead.",
-    );
+    let deprecated = || {
+        warn(
+            "The config value large_file_skip_char_limit was found set. This feature will be \
+             removed in a future release, please use the more efficient \
+             'large_file_skip_byte_limit' instead.",
+        )
+    };
+    deprecated();
     let chars = sql.chars().count();
     if i128::try_from(chars).unwrap_or(i128::MAX) > i128::from(limit) {
+        // Python f"{limit}" writes the bool True as "True".
+        let shown = if settings.large_file_skip_char_limit_is_true {
+            "True".to_string()
+        } else {
+            limit.to_string()
+        };
         warn(&format!(
-            "Length of file {} is over {limit} characters. Skipping to avoid parser \
+            "Length of file {} is over {shown} characters. Skipping to avoid parser \
              lock. Users can increase this limit in their config by setting the \
              'large_file_skip_char_limit' value, or disable by setting it to zero.",
             py_repr(filepath)
         ));
         return true;
     }
+    deprecated();
     false
 }
 

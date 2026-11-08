@@ -56,6 +56,9 @@ pub struct ParseSettings {
     pub large_file_skip_byte_limit: i64,
     /// `large_file_skip_char_limit` (0: no limit).
     pub large_file_skip_char_limit: i64,
+    /// True if `large_file_skip_char_limit` is the bool True (limit 1):
+    /// sqlfluff then writes the limit as `True` in its warning.
+    pub large_file_skip_char_limit_is_true: bool,
     pub encoding: Encoding,
 }
 
@@ -202,6 +205,7 @@ impl ParseSettings {
             indentation: file.indentation(),
             large_file_skip_byte_limit: 0,
             large_file_skip_char_limit: 0,
+            large_file_skip_char_limit_is_true: false,
             encoding: if stdin {
                 Encoding::Utf8
             } else {
@@ -253,6 +257,7 @@ impl ParseSettings {
                         s.large_file_skip_byte_limit = limit;
                     } else {
                         s.large_file_skip_char_limit = limit;
+                        s.large_file_skip_char_limit_is_true = *value == Value::Bool(true);
                     }
                 }
                 "encoding" if stdin => {}
@@ -375,10 +380,11 @@ fn byte_limit_of_text(text: &str) -> Option<i64> {
 /// `codecs.lookup` finds as the module `utf_8` or `utf_8_sig`. As in
 /// `encodings.search_function` of Python: the name is normalized (lower
 /// case, each run of characters other than letters, digits, and `.` to one
-/// `_`). A name with a non-ASCII character fails closed. An alias (`utf8`, `u8`, `utf`, `utf8_ucs2`,
-/// `utf8_ucs4`, `cp65001`) is found with the name or with the name after
-/// `.` to `_`. Else the name itself is the module name, and a module name
-/// with a `.` is not found (for example `utf.8`: Python `LookupError`).
+/// `_`). A name with a non-ASCII character fails closed. An alias
+/// (`utf8`, `u8`, `utf`, `utf8_ucs2`, `utf8_ucs4`, `cp65001`) is found with
+/// the name or with the name after `.` to `_`. Else the name itself is the
+/// module name, and a module name with a `.` is not found (for example
+/// `utf.8`: Python `LookupError`).
 fn encoding(path: &str, value: &Value) -> Result<Encoding, ConfigError> {
     let Value::Str(name) = value else {
         return Err(unsupported(path, value, "sqll reads only an encoding name"));
@@ -473,6 +479,25 @@ mod tests {
         assert!(s
             .indentation
             .contains(&("indented_joins".to_string(), true)));
+    }
+
+    #[test]
+    fn a_char_limit_of_true_is_one_and_is_written_as_true() {
+        // sqlfluff: `len(in_str) > True` is `len(in_str) > 1`, and the
+        // warning writes f"{limit}", that is "True".
+        for (text, limit, is_true) in [
+            ("True", 1, true),
+            ("1", 1, false),
+            ("500", 500, false),
+            ("False", 0, false),
+        ] {
+            let s = settings(&format!(
+                "[sqlfluff]\nlarge_file_skip_char_limit = {text}\n"
+            ))
+            .unwrap();
+            assert_eq!(s.large_file_skip_char_limit, limit, "{text}");
+            assert_eq!(s.large_file_skip_char_limit_is_true, is_true, "{text}");
+        }
     }
 
     #[test]

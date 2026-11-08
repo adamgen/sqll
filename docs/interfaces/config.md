@@ -83,8 +83,10 @@ harness/sqll.md).
   cannot read), sqll gives exit code 2.
 - sqll writes each error to stderr; sqlfluff writes some (for example
   `Error loading config`) to stdout. The warning lines of sqll (a skipped
-  file, the templater of a subfolder) are those of sqlfluff with no
-  color: `nocolor` has no effect. One exception: in a file name, sqll
+  file, the templater of a subfolder, `large_file_skip_char_limit`) are
+  those of sqlfluff with no color: `nocolor` has no effect. As in
+  sqlfluff, a file that `large_file_skip_char_limit` does not skip gets
+  its warning two times, and a limit of `True` is written as `True`. One exception: in a file name, sqll
   writes each character from U+0100 up as it is, but Python `repr()`
   writes an escape for some of them (for example U+200B).
 
@@ -98,7 +100,7 @@ harness/sqll.md).
   readers (26 and 21 cases, with the files of `test/fixtures/config/`),
   34 load scenarios (each config file kind, the order, the user config
   folder, `XDG_CONFIG_HOME`, `--config`, `--ignore-local-config`, the
-  overrides, and the errors), and 58 `sqlfluff parse` scenarios (the
+  overrides, and the errors), and 66 `sqlfluff parse` scenarios (the
   stdout, the exit code, and the warning lines of stderr). The interface
   test and `crates/sqll/tests/cli_config.rs` give the same answers, or fail
   closed where the record says so.

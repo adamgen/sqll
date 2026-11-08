@@ -1114,6 +1114,100 @@ CLI = (
         None,
         None,
     ],
+    # large_file_check decorates process_with_variants and the process that
+    # it calls (src/sqlfluff/core/templaters/base.py): a file that is not
+    # skipped gets the deprecation warning two times.
+    [
+        "char limit with a file under the limit",
+        {
+            "w/.sqlfluff": "[sqlfluff]\ndialect = ansi\nlarge_file_skip_char_limit = 500\n",
+            "w/a.sql": SQL,
+        },
+        "w",
+        ["a.sql"],
+        None,
+        None,
+    ],
+    [
+        "char limit with a file under the limit and the raw templater",
+        {
+            "w/.sqlfluff": "[sqlfluff]\ndialect = ansi\ntemplater = raw\n"
+            "large_file_skip_char_limit = 500\n",
+            "w/a.sql": SQL,
+        },
+        "w",
+        ["a.sql"],
+        None,
+        None,
+    ],
+    [
+        "char limit with stdin under the limit",
+        {"w/.sqlfluff": "[sqlfluff]\ndialect = ansi\nlarge_file_skip_char_limit = 500\n"},
+        "w",
+        ["-"],
+        None,
+        SQL,
+    ],
+    [
+        "char limit with an empty file and the raw templater",
+        {
+            "w/.sqlfluff": "[sqlfluff]\ndialect = ansi\ntemplater = raw\n"
+            "large_file_skip_char_limit = 5\n",
+            "w/a.sql": "",
+        },
+        "w",
+        ["a.sql"],
+        None,
+        None,
+    ],
+    [
+        "char limit with an empty file and the jinja templater",
+        {
+            "w/.sqlfluff": "[sqlfluff]\ndialect = ansi\nlarge_file_skip_char_limit = 5\n",
+            "w/a.sql": "",
+        },
+        "w",
+        ["a.sql"],
+        "unsupported",
+        None,
+    ],
+    # The warning writes f"{limit}": the bool True is "True" (and is 1 in
+    # len(in_str) > limit).
+    [
+        "an INI char limit of True",
+        {
+            "w/.sqlfluff": "[sqlfluff]\ndialect = ansi\nlarge_file_skip_char_limit = True\n",
+            "w/a.sql": SQL,
+        },
+        "w",
+        ["a.sql"],
+        None,
+        None,
+    ],
+    [
+        "a TOML char limit of true",
+        {
+            "w/pyproject.toml": '[tool.sqlfluff.core]\ndialect = "ansi"\n'
+            "large_file_skip_char_limit = true\n",
+            "w/a.sql": SQL,
+        },
+        "w",
+        ["a.sql"],
+        None,
+        None,
+    ],
+    [
+        "a char limit of True and a file of one character",
+        {
+            "w/.sqlfluff": "[sqlfluff]\ndialect = ansi\ntemplater = raw\n"
+            "large_file_skip_char_limit = True\n",
+            "w/a.sql": "\n",
+        },
+        "w",
+        ["a.sql"],
+        None,
+        None,
+    ],
 )
 
 
