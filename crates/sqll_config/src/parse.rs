@@ -142,7 +142,7 @@ pub fn check_ignore_folder(loader: &mut Loader, folder: &str) -> Result<(), Conf
         if !std::path::Path::new(&file).is_file() {
             continue;
         }
-        let config = loader.load_file(&env.realpath(&file))?;
+        let config = loader.load_file_as_path(&env.realpath(&file))?;
         let patterns = crate::dict::get(&config, &["core", "ignore_paths"]);
         let any = match patterns {
             Some(Value::Str(_)) => true,

@@ -151,8 +151,8 @@ T12). Differences from `sqlfluff parse`:
 ## Lint and fix (S3b C13)
 
 `results/S3b/C13-cli.json` (`scripts/s3b/cli_oracle.py`; test
-`crates/sqll/tests/cli.rs`) has 129 scenarios of `lint`, `fix`, `rules`,
-and `dialects`. In 109 (70 lint, 32 fix, 4 rules, 3 dialects), sqll gives
+`crates/sqll/tests/cli.rs`) has 139 scenarios of `lint`, `fix`, `rules`,
+and `dialects`. In 119 (74 lint, 38 fix, 4 rules, 3 dialects), sqll gives
 the stdout, the stderr, the exit code (0, 1, 2), and the changed files of
 sqlfluff. 18 fail closed (13 lint, 3 fix, 2 rules; `unsupported`, exit
 code 2; sqlfluff runs them). 2 are usage errors (lint; exit code 2 for

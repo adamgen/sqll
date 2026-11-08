@@ -26,7 +26,7 @@ use std::path::{Component, Path, PathBuf};
 use crate::dict::nested_combine;
 use crate::ini::load_ini_string;
 use crate::toml::load_toml_string;
-use crate::validate::validate_config_dict;
+use crate::validate::{validate_config_dict, validate_config_dict_path};
 use crate::value::{Table, Value};
 use crate::ConfigError;
 
@@ -287,6 +287,17 @@ impl<'e> Loader<'e> {
     /// `pyproject.toml`, else INI), make its path settings relative to its
     /// folder, and check it.
     pub fn load_file(&self, filepath: &str) -> Result<Table, ConfigError> {
+        self.read_file(filepath, false)
+    }
+
+    /// As [`Loader::load_file`], but sqlfluff gives the file name as a
+    /// `Path` (the ignore file check of discovery.py), so a message of the
+    /// check of the values shows `PosixPath('...')`.
+    pub fn load_file_as_path(&self, filepath: &str) -> Result<Table, ConfigError> {
+        self.read_file(filepath, true)
+    }
+
+    fn read_file(&self, filepath: &str, as_path: bool) -> Result<Table, ConfigError> {
         let data = fs::read(filepath).map_err(|e| ConfigError::Io(format!("{filepath}: {e}")))?;
         let text = String::from_utf8(data).map_err(|_| {
             ConfigError::Invalid(format!("{filepath}: the config file is not UTF-8"))
@@ -300,7 +311,11 @@ impl<'e> Loader<'e> {
             load_ini_string(&text, filepath)?
         };
         resolve_paths(&mut config, filepath, &mut Vec::new())?;
-        validate_config_dict(&mut config, filepath)?;
+        if as_path {
+            validate_config_dict_path(&mut config, filepath)?;
+        } else {
+            validate_config_dict(&mut config, filepath)?;
+        }
         Ok(config)
     }
 

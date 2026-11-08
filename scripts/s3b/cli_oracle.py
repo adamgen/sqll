@@ -80,6 +80,9 @@ FOLDER = {
     "d/z/e.sql": PRS,
 }
 OVERLAP = {"a.sql": A, "s/b.sql": "select a from t where x = 1 1\n"}
+# A file is in the LintedDir of the last path that reaches it.
+LAST_PRS = {"m.sql": OVERLAP["s/b.sql"], "s/b.sql": OVERLAP["s/b.sql"]}
+LAST_FIX = {"m.sql": "select a FROM t\n", "s/b.sql": "select a FROM t\n"}
 # A pinned dialect fixture of sqlfluff (MIT, THIRD_PARTY.md).
 SELECT_DIV = (
     SQLFLUFF_ROOT / "test/fixtures/dialects/sparksql/select_div.sql"
@@ -549,12 +552,52 @@ SCENARIOS = [
         ["lint", *CP, "a.sql"],
         {**FILES, ".sqlfluff": "[sqlfluff]\nrunaway_limit = 0\n"},
     ),
+    # The ignore file check loads a sub folder config as a Path.
+    sc(
+        "lint invalid config value in a sub folder",
+        ["lint", *CP, "."],
+        {"a.sql": A, "d/b.sql": B, "d/.sqlfluff": "[sqlfluff]\nrunaway_limit = 0\n"},
+    ),
+    sc(
+        "fix invalid config value in a sub folder no ignore files",
+        ["fix", *CP, "--disregard-sqlfluffignores", "."],
+        {"a.sql": A, "d/b.sql": B, "d/.sqlfluff": "[sqlfluff]\nrunaway_limit = 0\n"},
+    ),
+    sc(
+        "lint invalid config text value",
+        ["lint", *CP, "a.sql"],
+        {**FILES, ".sqlfluff": "[sqlfluff:indentation]\nimplicit_indents = maybe\n"},
+    ),
+    sc(
+        "lint invalid layout key",
+        ["lint", *CP, "a.sql"],
+        {**FILES, ".sqlfluff": "[sqlfluff:layout:type:comma]\nfoo = bar\n"},
+    ),
+    sc(
+        "lint invalid templater",
+        ["lint", *CP, "a.sql"],
+        {**FILES, ".sqlfluff": "[sqlfluff]\ntemplater = foo\n"},
+    ),
     # Two paths reach s/b.sql: one residual error entry for each file.
     sc("fix overlapping paths", ["fix", *CP, ".", "s"], OVERLAP),
     sc(
         "fix check overlapping paths",
         ["fix", *CP, "--check", ".", "s/b.sql"],
         OVERLAP,
+        tty="y",
+    ),
+    sc("fix last path file", ["fix", *CP, "s/b.sql", "m.sql", "s/b.sql"], LAST_PRS),
+    sc("fix last path folder", ["fix", *CP, "s", "m.sql", "s"], LAST_PRS),
+    sc("fix last path dot", ["fix", *CP, "s", ".", "s/b.sql"], LAST_PRS),
+    sc(
+        "fix check last path parse errors",
+        ["fix", *CP, "--check", "s/b.sql", "m.sql", "s/b.sql"],
+        LAST_PRS,
+    ),
+    sc(
+        "fix check last path fixable",
+        ["fix", *CP, "--check", "s", "m.sql", "s"],
+        LAST_FIX,
         tty="y",
     ),
     sc("fix no dialect", ["fix", "--rules", "CP01", "a.sql"]),

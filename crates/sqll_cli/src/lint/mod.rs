@@ -353,12 +353,14 @@ fn check_processes(root: &Config, files: usize) -> Result<(), Error> {
     Ok(())
 }
 
-/// The files of the paths (sqlfluff `lint_paths`): all paths first.
+/// The files of the paths (sqlfluff `lint_paths`): all paths first. With
+/// each file, the index of its `LintedDir`: that of the last path that
+/// reaches the file (`expanded_path_to_linted_dir`).
 fn expand_paths(
     run: &mut Run<'_>,
     paths: &[String],
     ignore_files: bool,
-) -> Result<Vec<String>, Error> {
+) -> Result<Vec<(String, usize)>, Error> {
     let exts = sql_file_exts(&run.root).map_err(file::config_error)?;
     let paths: Vec<String> = if paths.is_empty() {
         vec![std::env::current_dir()
@@ -375,10 +377,20 @@ fn expand_paths(
         paths.to_vec()
     };
     let mut out = Vec::new();
-    for path in &paths {
-        out.extend(files::files_of(&mut run.loader, path, &exts, ignore_files)?);
+    let mut dir_of: HashMap<String, usize> = HashMap::new();
+    for (i, path) in paths.iter().enumerate() {
+        for f in files::files_of(&mut run.loader, path, &exts, ignore_files)? {
+            dir_of.insert(f.clone(), i);
+            out.push(f);
+        }
     }
-    Ok(out)
+    Ok(out
+        .into_iter()
+        .map(|f| {
+            let dir = dir_of[&f];
+            (f, dir)
+        })
+        .collect())
 }
 
 /// The counts of a lint (sqlfluff `LintedDir` stats).
@@ -531,7 +543,7 @@ pub fn lint_command(args: &[String]) -> Result<u8, Error> {
     if stdin {
         lint_one(&mut run, &mut out, None)?;
     } else {
-        for f in &files {
+        for (f, _) in &files {
             lint_one(&mut run, &mut out, Some(f))?;
         }
     }
@@ -696,13 +708,13 @@ fn tmp_prs_issues(issues: &[Issue], retained: bool) -> Vec<Issue> {
 }
 
 /// Adds the parse errors of one lint of a file to `by_file`, as sqlfluff
-/// `_handle_unparsable` fills its dict: one entry for each path, in the
-/// order of the first lint. With retained files (`--check`) it adds the
-/// errors to the entry; else a file with errors replaces them.
+/// `_handle_unparsable` fills its dict: one entry for each path. With
+/// retained files (`--check`) it adds the errors to the entry; else a file
+/// with errors replaces them. `dir` is the `LintedDir` of the file.
 fn add_unparsable(
-    by_file: &mut Vec<(String, Vec<Issue>)>,
+    by_file: &mut Vec<(usize, String, Vec<Issue>)>,
     by_path: &mut HashMap<String, usize>,
-    path: &str,
+    (path, dir): (&str, usize),
     errors: Vec<Issue>,
     retained: bool,
 ) {
@@ -710,13 +722,22 @@ fn add_unparsable(
         return;
     }
     match by_path.get(path) {
-        Some(&n) if retained => by_file[n].1.extend(errors),
-        Some(&n) => by_file[n].1 = errors,
+        Some(&n) if retained => by_file[n].2.extend(errors),
+        Some(&n) => by_file[n].2 = errors,
         None => {
             by_path.insert(path.to_string(), by_file.len());
-            by_file.push((path.to_string(), errors));
+            by_file.push((dir, path.to_string(), errors));
         }
     }
+}
+
+/// The entries of `add_unparsable` in the sqlfluff dict order: the
+/// `LintedDir`s in path order, and in each dir the order of the first lint.
+fn unparsable_in_dir_order(
+    mut by_file: Vec<(usize, String, Vec<Issue>)>,
+) -> Vec<(String, Vec<Issue>)> {
+    by_file.sort_by_key(|e| e.0);
+    by_file.into_iter().map(|(_, p, e)| (p, e)).collect()
 }
 
 /// sqlfluff `print_out_residual_error_counts` (stderr).
@@ -796,14 +817,14 @@ pub fn fix_command(args: &[String]) -> Result<u8, Error> {
     // fix keeps the files only for --check (sqlfluff `retain_files`), so
     // that its memory does not grow with the number of files (status/S3b.md,
     // C13).
-    let mut retained: Vec<Box<Linted>> = Vec::new();
+    let mut retained: Vec<(usize, Box<Linted>)> = Vec::new();
     let mut skipped = 0;
     // The counts of _handle_unparsable and of the fixable and unfixable
     // violations, and the parse errors of each file for the residual output.
     let (mut total, mut filtered, mut unfixable, mut fixable) = (0, 0, 0, 0);
-    let mut by_file: Vec<(String, Vec<Issue>)> = Vec::new();
+    let mut by_file: Vec<(usize, String, Vec<Issue>)> = Vec::new();
     let mut by_path: HashMap<String, usize> = HashMap::new();
-    for f in &files {
+    for (f, dir) in &files {
         let (mut linted, warnings) = match file::lint_file(&mut run, f)? {
             Outcome::Skipped(w) => {
                 out.log(&w);
@@ -845,12 +866,21 @@ pub fn fix_command(args: &[String]) -> Result<u8, Error> {
             fixable += fixes;
         }
         let errors = tmp_prs_issues(&linted.issues, check);
-        add_unparsable(&mut by_file, &mut by_path, &linted.path, errors, check);
+        add_unparsable(
+            &mut by_file,
+            &mut by_path,
+            (&linted.path, *dir),
+            errors,
+            check,
+        );
         if check {
-            retained.push(linted);
+            retained.push((*dir, linted));
         }
     }
+    let by_file = unparsable_in_dir_order(by_file);
     residual_errors(&mut out, total, filtered, &by_file, s.line_length);
+    // persist_changes: the LintedDirs in path order (a stable sort).
+    retained.sort_by_key(|(dir, _)| *dir);
     let mut code = if filtered > 0 { EXIT_FAIL } else { EXIT_OK };
     if fixable > 0 {
         if check {
@@ -883,7 +913,7 @@ pub fn fix_command(args: &[String]) -> Result<u8, Error> {
                 out.dispatch(OutKind::Status, "Attempting fixes...");
                 out.dispatch(OutKind::Status, "Persisting Changes...");
                 let mut all = true;
-                for l in &retained {
+                for (_, l) in &retained {
                     let (label, ok) = persist(l, &suffix)?;
                     dispatch_persist(&mut out, &l.path, label);
                     all &= ok;

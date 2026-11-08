@@ -143,11 +143,12 @@ impl PartialEq for Number {
     }
 }
 
-/// A short form of a value for messages: a string in quotes.
+/// A short form of a value for messages: Python `repr` (a table is
+/// `{...}`).
 impl fmt::Display for Value {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Value::Str(s) => write!(f, "{s:?}"),
+            Value::Str(s) => f.write_str(&py_repr(s)),
             Value::List(items) => {
                 f.write_str("[")?;
                 for (i, item) in items.iter().enumerate() {
