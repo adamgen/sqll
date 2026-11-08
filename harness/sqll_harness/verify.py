@@ -584,6 +584,13 @@ def checks(jobs: int | None = None) -> list[Check]:
             'scripts/check-submodule "after the rule check"',
             ("build: Check that the sqlfluff submodule is clean after the rule check",),
         ),
+        # S3b C13: the script checks the submodule after its sqlfluff runs.
+        Check(
+            "cli",
+            f"{UV} python scripts/s3b/cli_oracle.py check",
+            ("build: Check the CLI data with sqlfluff",),
+            needs=(SETUP,),
+        ),
         # One unsharded run of all suites and tools, as all shards of CI.
         Check(
             "run",

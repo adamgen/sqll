@@ -539,19 +539,31 @@ pub fn lint_command(args: &[String]) -> Result<u8, Error> {
     pieces.sort_by(|a, b| a.0.cmp(&b.0));
     let texts: Vec<&str> = pieces.iter().map(|(_, t)| t.as_str()).collect();
     let nonempty: Vec<&str> = texts.iter().copied().filter(|t| !t.is_empty()).collect();
-    let payload = match format.as_str() {
-        "json" => format!("[{}]", texts.join(", ")),
-        "yaml" if texts.is_empty() => "[]\n".to_string(),
-        "yaml" => texts.concat(),
-        "github-annotation" => format!("[{}]", nonempty.join(", ")),
-        "github-annotation-native" => nonempty.join("\n"),
-        _ => String::new(),
+    // The payload in parts, so that the output is not copied once more.
+    let parts: Vec<&str> = match format.as_str() {
+        "json" => framed("[", &texts, ", ", "]"),
+        "yaml" if texts.is_empty() => vec!["[]\n"],
+        "yaml" => texts.clone(),
+        "github-annotation" => framed("[", &nonempty, ", ", "]"),
+        "github-annotation-native" => framed("", &nonempty, "\n", ""),
+        _ => Vec::new(),
     };
-    if !payload.is_empty() {
+    if parts.iter().any(|p| !p.is_empty()) {
         match &write_output {
-            Some(path) => std::fs::write(path, &payload)
-                .map_err(|e| Error::new(format!("cannot write {path}: {e}")))?,
-            None => out.echo(&payload),
+            Some(path) => {
+                let fail = |e: std::io::Error| Error::new(format!("cannot write {path}: {e}"));
+                let mut f = BufWriter::new(File::create(path).map_err(fail)?);
+                for part in &parts {
+                    f.write_all(part.as_bytes()).map_err(fail)?;
+                }
+                f.flush().map_err(fail)?;
+            }
+            None => {
+                for part in &parts {
+                    let _ = out.stdout.write_all(part.as_bytes());
+                }
+                out.echo("");
+            }
         }
     }
     let code = if p.flag("nofail") {
@@ -572,6 +584,19 @@ pub fn lint_command(args: &[String]) -> Result<u8, Error> {
     };
     out.flush()?;
     Ok(code)
+}
+
+/// The parts of `open + items.join(sep) + close`.
+fn framed<'a>(open: &'a str, items: &[&'a str], sep: &'a str, close: &'a str) -> Vec<&'a str> {
+    let mut out = vec![open];
+    for (i, item) in items.iter().enumerate() {
+        if i > 0 {
+            out.push(sep);
+        }
+        out.push(item);
+    }
+    out.push(close);
+    out
 }
 
 /// sqlfluff `completion_message`.

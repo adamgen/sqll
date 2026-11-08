@@ -281,7 +281,8 @@ def test_each_package_of_the_workspace_is_in_the_table():
         "[docs/decisions/s3b-core.md](../docs/decisions/s3b-core.md)",
         # The plan changes of the record (task list).
         "the build fails if the kinds do not fit in a `u16`",
-        "change its path in `scripts/s3b/core_design.py`",
+        # C13 moved EXIT_ERROR (the status names the new place).
+        "`scripts/s3b/core_design.py` reads it there",
         "`docs/decisions/s3b-*.md` to the Core paths",
     ],
 )
