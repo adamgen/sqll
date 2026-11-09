@@ -185,8 +185,8 @@ jobs:
   # build the workspace (release, --locked) with no Python, run the Rust
   # tests with the list check of the base native tests, the S2 tree guard,
   # the syntax tree check of the S2 parse inputs, the source map check of
-  # the templater fixtures, and the crawl check of the typed view. The
-  # artifact has
+  # the templater fixtures, the crawl check of the typed view, and the
+  # check of the JSON Schema output. The artifact has
   # out/sqll/build.json and the binaries.
   build:
     needs: [changes, image]
@@ -301,6 +301,16 @@ jobs:
       # the submodule itself.
       - name: Check the jinja as raw proof with sqlfluff
         run: uv run --frozen --project harness python scripts/s3b/jinja_raw_oracle.py check
+
+      # S3b C15: the JSON Schema writer of the code generation interface
+      # (crates/sqll_schema) writes the schema of each case of
+      # crates/sqll_interfaces/tests/schema.rs again; it must be the record
+      # results/S3b/C15-schema.json and results/S3b/C15-schema/. The
+      # jsonschema package validates each schema against the JSON Schema
+      # draft 2020-12 meta-schema, and the examples of each case against
+      # the schema.
+      - name: Check the JSON Schema output with the meta-schema
+        run: uv run --frozen --project harness python scripts/s3b/schema_check.py check
 
       - uses: actions/upload-artifact@v7
         with:

@@ -1,0 +1,15 @@
+# The code generation of sqll (S8; docs/interfaces/schema.md). S3b task C15
+# adds a stub that implements the Describe interface of sqll_schema for one
+# minimal case. This file is new sqll code (crates/ported.json, "new").
+[package]
+name = "sqll_codegen"
+version.workspace = true
+edition = "2021"
+rust-version.workspace = true
+license = "MIT"
+publish = false
+
+[dependencies]
+sqll_schema = { path = "../sqll_schema" }
+sqll_syntax = { path = "../sqll_syntax" }
+sqll_tree = { path = "../sqll_tree" }

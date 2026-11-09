@@ -1,0 +1,554 @@
+{
+  "cases": [
+    {
+      "dialect": "ansi",
+      "invalid": [
+        {
+          "parameters": {},
+          "row": {
+            "ID": "1",
+            "NOTE": null,
+            "Name": "x",
+            "OK": true
+          }
+        },
+        {
+          "parameters": {},
+          "row": {
+            "ID": 1.5,
+            "NOTE": null,
+            "Name": "x",
+            "OK": true
+          }
+        },
+        {
+          "parameters": {},
+          "row": {
+            "ID": 1,
+            "NOTE": null,
+            "Name": "x",
+            "OK": null
+          }
+        },
+        {
+          "parameters": {},
+          "row": {
+            "ID": 1,
+            "NOTE": null,
+            "OK": true
+          }
+        },
+        {
+          "parameters": {},
+          "row": {
+            "ID": 1,
+            "NOTE": null,
+            "Name": "x",
+            "OK": true,
+            "name": "x"
+          }
+        },
+        {
+          "parameters": {
+            "a": 1
+          },
+          "row": {
+            "ID": 1,
+            "NOTE": null,
+            "Name": "x",
+            "OK": true
+          }
+        },
+        {
+          "row": {
+            "ID": 1,
+            "NOTE": null,
+            "Name": "x",
+            "OK": true
+          }
+        }
+      ],
+      "name": "minimal",
+      "origin": "sqll_codegen::LiteralSelect (raw templater, sqll_syntax::parse, describe_file)",
+      "schema": "C15-schema/minimal.json",
+      "sql": "SELECT 1 AS id, 'x' AS \"Name\", TRUE AS ok, NULL AS note\n",
+      "valid": [
+        {
+          "parameters": {},
+          "row": {
+            "ID": 1,
+            "NOTE": null,
+            "Name": "x",
+            "OK": true
+          }
+        },
+        {
+          "parameters": {},
+          "row": {
+            "ID": 1,
+            "NOTE": "any",
+            "Name": "x",
+            "OK": true
+          }
+        }
+      ]
+    },
+    {
+      "dialect": null,
+      "invalid": [
+        {
+          "parameters": {
+            "id": null,
+            "name": "n"
+          },
+          "row": {
+            "Quote \"q\"": "",
+            "at": "10:00:00Z",
+            "blob": "AAE=",
+            "created": "2026-11-09T10:00:00Z",
+            "day": "2026-11-09",
+            "doc": {
+              "k": [
+                1,
+                null
+              ]
+            },
+            "id": 1,
+            "local": "2026-11-09 10:00:00",
+            "mood": "happy",
+            "name": "a",
+            "ok": null,
+            "other": 3,
+            "price": "12.50",
+            "ratio": null,
+            "span": "1 day",
+            "tags": [
+              "a",
+              null
+            ],
+            "uid": "1b4e28ba-2fa1-11d2-883f-0016d3cca427"
+          }
+        },
+        {
+          "parameters": {
+            "id": 7
+          },
+          "row": {
+            "Quote \"q\"": "",
+            "at": "10:00:00Z",
+            "blob": "AAE=",
+            "created": "2026-11-09T10:00:00Z",
+            "day": "2026-11-09",
+            "doc": {
+              "k": [
+                1,
+                null
+              ]
+            },
+            "id": 1,
+            "local": "2026-11-09 10:00:00",
+            "mood": "happy",
+            "name": "a",
+            "ok": null,
+            "other": 3,
+            "price": "12.50",
+            "ratio": null,
+            "span": "1 day",
+            "tags": [
+              "a",
+              null
+            ],
+            "uid": "1b4e28ba-2fa1-11d2-883f-0016d3cca427"
+          }
+        },
+        {
+          "parameters": [
+            7,
+            "n"
+          ],
+          "row": {
+            "Quote \"q\"": "",
+            "at": "10:00:00Z",
+            "blob": "AAE=",
+            "created": "2026-11-09T10:00:00Z",
+            "day": "2026-11-09",
+            "doc": {
+              "k": [
+                1,
+                null
+              ]
+            },
+            "id": 1,
+            "local": "2026-11-09 10:00:00",
+            "mood": "happy",
+            "name": "a",
+            "ok": null,
+            "other": 3,
+            "price": "12.50",
+            "ratio": null,
+            "span": "1 day",
+            "tags": [
+              "a",
+              null
+            ],
+            "uid": "1b4e28ba-2fa1-11d2-883f-0016d3cca427"
+          }
+        },
+        {
+          "parameters": {
+            "id": 7,
+            "name": null
+          },
+          "row": {
+            "Quote \"q\"": "",
+            "at": "10:00:00Z",
+            "blob": "AAE=",
+            "created": "2026-11-09T10:00:00Z",
+            "day": "2026-11-09",
+            "doc": {
+              "k": [
+                1,
+                null
+              ]
+            },
+            "id": 1,
+            "local": "2026-11-09 10:00:00",
+            "mood": "happy",
+            "name": "a",
+            "ok": null,
+            "other": 3,
+            "price": 12.5,
+            "ratio": null,
+            "span": "1 day",
+            "tags": [
+              "a",
+              null
+            ],
+            "uid": "1b4e28ba-2fa1-11d2-883f-0016d3cca427"
+          }
+        },
+        {
+          "parameters": {
+            "id": 7,
+            "name": null
+          },
+          "row": {
+            "Quote \"q\"": "",
+            "at": "10:00:00Z",
+            "blob": "AAE=",
+            "created": "2026-11-09T10:00:00Z",
+            "day": "2026-11-09",
+            "doc": null,
+            "id": 1,
+            "local": "2026-11-09 10:00:00",
+            "mood": "happy",
+            "name": "a",
+            "ok": null,
+            "other": 3,
+            "price": "12.50",
+            "ratio": null,
+            "span": "1 day",
+            "tags": [
+              "a",
+              null
+            ],
+            "uid": "1b4e28ba-2fa1-11d2-883f-0016d3cca427"
+          }
+        },
+        {
+          "parameters": {
+            "id": 7,
+            "name": null
+          },
+          "row": {
+            "Quote \"q\"": "",
+            "at": "10:00:00Z",
+            "blob": "AAE=",
+            "created": "2026-11-09T10:00:00Z",
+            "day": "2026-11-09",
+            "doc": {
+              "k": [
+                1,
+                null
+              ]
+            },
+            "id": 1,
+            "local": "2026-11-09 10:00:00",
+            "mood": "happy",
+            "name": "a",
+            "ok": null,
+            "other": 3,
+            "price": "12.50",
+            "ratio": null,
+            "span": "1 day",
+            "tags": "a",
+            "uid": "1b4e28ba-2fa1-11d2-883f-0016d3cca427"
+          }
+        },
+        {
+          "parameters": {
+            "id": 7,
+            "name": null
+          },
+          "row": {
+            "Quote \"q\"": "",
+            "at": "10:00:00Z",
+            "blob": "AAE=",
+            "created": "2026-11-09T10:00:00Z",
+            "day": "2026-11-09",
+            "doc": {
+              "k": [
+                1,
+                null
+              ]
+            },
+            "id": 1,
+            "local": "2026-11-09 10:00:00",
+            "mood": "happy",
+            "name": "a",
+            "ok": null,
+            "other": 3,
+            "price": "12.50",
+            "ratio": null,
+            "span": "1 day",
+            "tags": [
+              1
+            ],
+            "uid": "1b4e28ba-2fa1-11d2-883f-0016d3cca427"
+          }
+        },
+        {
+          "parameters": {
+            "id": 7,
+            "name": null
+          },
+          "row": {
+            "Quote \"q\"": "",
+            "at": "10:00:00Z",
+            "blob": 1,
+            "created": "2026-11-09T10:00:00Z",
+            "day": "2026-11-09",
+            "doc": {
+              "k": [
+                1,
+                null
+              ]
+            },
+            "id": 1,
+            "local": "2026-11-09 10:00:00",
+            "mood": "happy",
+            "name": "a",
+            "ok": null,
+            "other": 3,
+            "price": "12.50",
+            "ratio": null,
+            "span": "1 day",
+            "tags": [
+              "a",
+              null
+            ],
+            "uid": "1b4e28ba-2fa1-11d2-883f-0016d3cca427"
+          }
+        },
+        {
+          "extra": 1,
+          "parameters": {
+            "id": 7,
+            "name": null
+          },
+          "row": {
+            "Quote \"q\"": "",
+            "at": "10:00:00Z",
+            "blob": "AAE=",
+            "created": "2026-11-09T10:00:00Z",
+            "day": "2026-11-09",
+            "doc": {
+              "k": [
+                1,
+                null
+              ]
+            },
+            "id": 1,
+            "local": "2026-11-09 10:00:00",
+            "mood": "happy",
+            "name": "a",
+            "ok": null,
+            "other": 3,
+            "price": "12.50",
+            "ratio": null,
+            "span": "1 day",
+            "tags": [
+              "a",
+              null
+            ],
+            "uid": "1b4e28ba-2fa1-11d2-883f-0016d3cca427"
+          }
+        }
+      ],
+      "name": "named",
+      "origin": "hand-built description (writer test)",
+      "schema": "C15-schema/named.json",
+      "sql": null,
+      "valid": [
+        {
+          "parameters": {
+            "id": 7,
+            "name": null
+          },
+          "row": {
+            "Quote \"q\"": "",
+            "at": "10:00:00Z",
+            "blob": "AAE=",
+            "created": "2026-11-09T10:00:00Z",
+            "day": "2026-11-09",
+            "doc": {
+              "k": [
+                1,
+                null
+              ]
+            },
+            "id": 1,
+            "local": "2026-11-09 10:00:00",
+            "mood": "happy",
+            "name": "a",
+            "ok": null,
+            "other": 3,
+            "price": "12.50",
+            "ratio": null,
+            "span": "1 day",
+            "tags": [
+              "a",
+              null
+            ],
+            "uid": "1b4e28ba-2fa1-11d2-883f-0016d3cca427"
+          }
+        },
+        {
+          "parameters": {
+            "id": 7,
+            "name": "n"
+          },
+          "row": {
+            "Quote \"q\"": "",
+            "at": "10:00:00Z",
+            "blob": "AAE=",
+            "created": "2026-11-09T10:00:00Z",
+            "day": "2026-11-09",
+            "doc": {
+              "k": [
+                1,
+                null
+              ]
+            },
+            "id": 1,
+            "local": "2026-11-09 10:00:00",
+            "mood": "happy",
+            "name": "a",
+            "ok": null,
+            "other": 3,
+            "price": "12.50",
+            "ratio": null,
+            "span": "1 day",
+            "tags": [
+              "a",
+              null
+            ],
+            "uid": "1b4e28ba-2fa1-11d2-883f-0016d3cca427"
+          }
+        }
+      ]
+    },
+    {
+      "dialect": null,
+      "invalid": [
+        {
+          "parameters": [
+            1
+          ]
+        },
+        {
+          "parameters": [
+            1,
+            "x",
+            3
+          ]
+        },
+        {
+          "parameters": [
+            null,
+            "x"
+          ]
+        },
+        {
+          "parameters": {
+            "1": 1,
+            "2": "x"
+          }
+        },
+        {
+          "parameters": [
+            1,
+            "x"
+          ],
+          "row": {}
+        }
+      ],
+      "name": "question_mark",
+      "origin": "hand-built description (writer test)",
+      "schema": "C15-schema/question_mark.json",
+      "sql": null,
+      "valid": [
+        {
+          "parameters": [
+            1,
+            "x"
+          ]
+        },
+        {
+          "parameters": [
+            1,
+            null
+          ]
+        }
+      ]
+    },
+    {
+      "dialect": null,
+      "invalid": [
+        {
+          "parameters": [
+            "u",
+            "d"
+          ]
+        },
+        {
+          "parameters": [
+            "u",
+            "d"
+          ],
+          "row": {
+            "n": "3"
+          }
+        }
+      ],
+      "name": "numeric_dollar",
+      "origin": "hand-built description (writer test)",
+      "schema": "C15-schema/numeric_dollar.json",
+      "sql": null,
+      "valid": [
+        {
+          "parameters": [
+            "1b4e28ba-2fa1-11d2-883f-0016d3cca427",
+            "2026-11-09"
+          ],
+          "row": {
+            "n": 3
+          }
+        }
+      ]
+    }
+  ],
+  "command": "uv run --frozen --project harness python scripts/s3b/schema_check.py write",
+  "kind": "sqll-s3b-c15-schema",
+  "meta_schema": "https://json-schema.org/draft/2020-12/schema"
+}

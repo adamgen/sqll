@@ -36,7 +36,7 @@
    "path": "Cargo.toml",
    "source": "sqlfluffrs/Cargo.toml",
    "source_sha256": "b732205a4911557a6a5ba76b40e4a6557e88166523450b5b01731760b337a3a8",
-   "changed": "Only the workspace parts are kept: the members are the 4 ported crates in crates/ and the new sqll binary crate (crates/sqll), the workspace dependencies that they use, and the release profile. The workspace version is the sqll version. New: serde_json and sha2 (for build.rs of sqll_dialects), and opt-level 3 for sha2; regex-syntax (S3 T15, the match prefixes of the lexer regexes in sqll_types matcher.rs), the version that regex uses. No root package, no feature \"python\", no pyo3. S3 T17 (parse speed, build profile): the release profile has lto = \"fat\" and codegen-units = 1, so that the parser inlines the accessors of sqll_types; about 10% fewer instructions in the parse. S3 T18: the members also have the rules crate (crates/sqll_rules) and the native tests of the root crate (crates/sqll_base_tests). S3b C6: the members also have the syntax tree crate (crates/sqll_tree) and the interface test crate (crates/sqll_interfaces). S3b C7: the members also have the syntax crate (crates/sqll_syntax). S3b C11: the members also have the config crate (crates/sqll_config). S3b C12: the members also have the lint crate (crates/sqll_lint)."
+   "changed": "Only the workspace parts are kept: the members are the 4 ported crates in crates/ and the new sqll binary crate (crates/sqll), the workspace dependencies that they use, and the release profile. The workspace version is the sqll version. New: serde_json and sha2 (for build.rs of sqll_dialects), and opt-level 3 for sha2; regex-syntax (S3 T15, the match prefixes of the lexer regexes in sqll_types matcher.rs), the version that regex uses. No root package, no feature \"python\", no pyo3. S3 T17 (parse speed, build profile): the release profile has lto = \"fat\" and codegen-units = 1, so that the parser inlines the accessors of sqll_types; about 10% fewer instructions in the parse. S3 T18: the members also have the rules crate (crates/sqll_rules) and the native tests of the root crate (crates/sqll_base_tests). S3b C6: the members also have the syntax tree crate (crates/sqll_tree) and the interface test crate (crates/sqll_interfaces). S3b C7: the members also have the syntax crate (crates/sqll_syntax). S3b C11: the members also have the config crate (crates/sqll_config). S3b C12: the members also have the lint crate (crates/sqll_lint). S3b C15: the members also have the code generation interface crate (crates/sqll_schema) and the code generation crate (crates/sqll_codegen)."
   },
   {
    "path": "crates/sqll_base_tests/Cargo.toml",
@@ -884,6 +884,42 @@
   {
    "path": "crates/LICENSE-pyyaml.txt",
    "reason": "A copy of LICENSE of PyYAML 6.0.3 (sha256 8d3928f9dc4490fd635707cb88eb26bd764102a7282954307d3e5167a577e8a4; the dist-info of the tool venv of sqlfluff): the MIT license of the YAML emitter port in crates/sqll_cli/src/lint/yaml.rs (THIRD_PARTY.md, \"PyYAML\")."
+  },
+  {
+   "path": "crates/sqll_schema/Cargo.toml",
+   "reason": "The package of the code generation interface (S3b C15). New sqll code."
+  },
+  {
+   "path": "crates/sqll_schema/src/lib.rs",
+   "reason": "The code generation interface (S3b C15): the module list. New sqll code."
+  },
+  {
+   "path": "crates/sqll_schema/src/description.rs",
+   "reason": "The description of a query: the statement kind, the parameters, the columns, the types, and the source ranges (S3b C15). The ParamStyle names are the param_style names of the sqlfluff 4.4.0 placeholder templater (KNOWN_STYLES; no code is copied). New sqll code."
+  },
+  {
+   "path": "crates/sqll_schema/src/catalog.rs",
+   "reason": "The catalog of tables and columns for the code generation (S3b C15). New sqll code."
+  },
+  {
+   "path": "crates/sqll_schema/src/describe.rs",
+   "reason": "The Describe trait and describe_file (S3b C15). New sqll code."
+  },
+  {
+   "path": "crates/sqll_schema/src/json.rs",
+   "reason": "The JSON Schema (draft 2020-12) writer of a description (S3b C15). New sqll code."
+  },
+  {
+   "path": "crates/sqll_codegen/Cargo.toml",
+   "reason": "The package of the code generation (S8; S3b C15 adds the stub). New sqll code."
+  },
+  {
+   "path": "crates/sqll_codegen/src/lib.rs",
+   "reason": "The stub of the code generation (S3b C15): the Describe implementation LiteralSelect. New sqll code."
+  },
+  {
+   "path": "crates/sqll_interfaces/tests/schema.rs",
+   "reason": "The interface test of the code generation interface (S3b C15). New sqll code."
   }
  ]
 }

@@ -598,6 +598,13 @@ def checks(jobs: int | None = None) -> list[Check]:
             ("build: Check the jinja as raw proof with sqlfluff",),
             needs=(SETUP,),
         ),
+        # S3b C15: the JSON Schema output and the meta-schema (no sqlfluff).
+        Check(
+            "schema",
+            f"{UV} python scripts/s3b/schema_check.py check",
+            ("build: Check the JSON Schema output with the meta-schema",),
+            needs=(SETUP,),
+        ),
         # One unsharded run of all suites and tools, as all shards of CI.
         Check(
             "run",

@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "question_mark",
+  "type": "object",
+  "properties": {
+    "parameters": {
+      "$ref": "#/$defs/parameters"
+    }
+  },
+  "required": [
+    "parameters"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "parameters": {
+      "type": "array",
+      "prefixItems": [
+        {
+          "type": "integer",
+          "x-sqll-type": "integer",
+          "x-sqll-nullability": "not_null",
+          "x-sqll-position": 1,
+          "x-sqll-style": "question_mark",
+          "x-sqll-sources": [
+            {
+              "start": 30,
+              "end": 31,
+              "line": 1,
+              "pos": 31
+            }
+          ]
+        },
+        {
+          "type": [
+            "string",
+            "null"
+          ],
+          "x-sqll-type": "text",
+          "x-sqll-nullability": "unknown",
+          "x-sqll-position": 2,
+          "x-sqll-style": "question_mark",
+          "x-sqll-sources": [
+            {
+              "start": 33,
+              "end": 34,
+              "line": 1,
+              "pos": 34
+            }
+          ]
+        }
+      ],
+      "items": false,
+      "minItems": 2,
+      "maxItems": 2
+    }
+  },
+  "x-sqll-statement": "insert",
+  "x-sqll-source": {
+    "start": 0,
+    "end": 40,
+    "line": 1,
+    "pos": 1
+  }
+}

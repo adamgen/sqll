@@ -8,7 +8,8 @@ The design of C6 to C16 is in the C4 record
 these details to the task list: a kind is the full static data of a node
 (C6), C6 makes the crate `sqll_interfaces`, C7 makes the crate
 `sqll_syntax` (the conversion; C9 adds `parse`), C8 makes the crate
-`sqll_source`, C13 makes the crate `sqll_cli`, and C16 gives
+`sqll_source`, C13 makes the crate `sqll_cli`, C15 makes the crates
+`sqll_schema` and `sqll_codegen` (an S8 package), and C16 gives
 `docs/decisions/s3b-*.md` to Core. C8 changed the C4 design (C8 task
 text; the record has the change in Q2 and Q5): the raw templater is in
 the S6 package `sqll_templater`, not in `sqll_source` (Core owns
@@ -32,8 +33,8 @@ the S6 package `sqll_templater`, not in `sqll_source` (Core owns
 | C11 | Config skeleton (`sqll_config`) and its use in `sqll parse`: the config model, the sqlfluff defaults, the reader of the config files in the sqlfluff order, `--config`, `--ignore-local-config`, and the overrides; a setting that sqll cannot do fails closed: [docs/interfaces/config.md](../docs/interfaces/config.md) | Merged (PR #69) |
 | C12 | Rule and fix interface (`sqll_lint`) with CP01, CP03, CP04 as the proof: the `Rule` trait, the lint results and fixes (source edits through the source map; a fix in a templated range is refused), the fix loop, and the rule registry. CP01, CP03, CP04 of `sqll_rules` implement it: [docs/interfaces/rules.md](../docs/interfaces/rules.md) | Merged (PR #71) |
 | C13 | CLI skeleton (`sqll_cli`): lint, fix, rules, dialects, and the output formats; `EXIT_ERROR` is in `crates/sqll_cli/src/lib.rs` (`scripts/s3b/core_design.py` reads it there): [harness/sqll.md](../harness/sqll.md) | Merged (PR #72) |
-| C14 | Harness adapters: `sqll lint` and `fix` in the S1 harness and the S2 benchmarks; the jinja as raw record (`results/S3b/C14-jinja-raw.json`); the oracle check of each sqll pass (`--passes-of sqll`). The path for a base binary from before C11 in `harness/sqll_harness/bench/sqll.py` is removed: [harness/sqll.md](../harness/sqll.md), "Adapter" | In review |
-| C15 | Code generation interface: tree to schema | Not started |
+| C14 | Harness adapters: `sqll lint` and `fix` in the S1 harness and the S2 benchmarks; the jinja as raw record (`results/S3b/C14-jinja-raw.json`); the oracle check of each sqll pass (`--passes-of sqll`). The path for a base binary from before C11 in `harness/sqll_harness/bench/sqll.py` is removed: [harness/sqll.md](../harness/sqll.md), "Adapter" | Merged (PR #74) |
+| C15 | Code generation interface: tree to schema (`sqll_schema`: the description of a query, `Describe`, the JSON Schema writer) and the S8 stub `sqll_codegen::LiteralSelect`; the jsonschema package validates the output in CI (`scripts/s3b/schema_check.py`): [docs/interfaces/schema.md](../docs/interfaces/schema.md) | In review |
 | C16 | Package ownership of the later tracks and the interface index; `docs/decisions/s3b-*.md` to the Core paths | Not started |
 | C17 | S3b exit: proof, exit record, and STATUS "S3b awaiting human approval" | Not started |
 
@@ -382,3 +383,34 @@ jinja as raw check: PASS: 3422 inputs (3361 rule, 61 autofix), 3178 equal (2522 
 - C14 changes no file under `crates/` (no code of the sqll binary), so it
   has no speed check (G3 rule above), and the tree guard and the native
   base tests are those of C13.
+
+## C15: code generation interface proof
+
+Interface: [docs/interfaces/schema.md](../docs/interfaces/schema.md). The
+check of the JSON Schema output (`scripts/s3b/schema_check.py check`,
+record [results/S3b/C15-schema.json](../results/S3b/C15-schema.json) and
+`results/S3b/C15-schema/`):
+
+```text
+schema check: PASS: 4 schemas valid against the JSON Schema draft 2020-12 meta-schema; 7 valid examples pass and 23 invalid examples fail
+```
+
+- `sqll_schema` (Core): the description of a query, `Describe`,
+  `describe_file`, the catalog, and the JSON Schema writer. `sqll_codegen`
+  (S8): the stub `LiteralSelect` (an ANSI `SELECT` of literals with
+  aliases); each other form gives `unsupported`.
+- The check writes the record again with cargo (the ignored test
+  `write_the_record` of `crates/sqll_interfaces/tests/schema.rs`), compares
+  it with the committed record, and validates it with the `jsonschema`
+  package (4.26.0, a new dev dependency of the harness; THIRD_PARTY.md). CI
+  runs it in the job build. `harness/tests/test_s3b_schema.py` validates
+  the committed record and shows that a changed schema fails.
+- Interface test (`crates/sqll_interfaces/tests/schema.rs`): 11 passed, 1
+  ignored (`write_the_record`).
+- G4: `cargo test --workspace --locked --no-fail-fast` passes (local: 357
+  passed, 0 failed, 4 ignored). The S1 suites, the tree guard, and the
+  native base tests: CI on the pull request.
+- G3: the sqll binary does not link `sqll_schema` or `sqll_codegen`, and
+  C15 changes no code that it links: `cargo tree -p sqll -e normal,build`
+  gives the same output as on main (0 lines with the new crates). Thus C15
+  has no speed check (G3 rule above).
