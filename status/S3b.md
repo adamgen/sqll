@@ -418,6 +418,14 @@ schema check: PASS: 4 schemas valid against the JSON Schema draft 2020-12 meta-s
   passed, 0 failed, 4 ignored; round 1: 358 passed, 0 failed, 4 ignored).
   The S1 suites, the tree guard, and the native base tests: CI on the pull
   request (see the CI run below).
+- CI run 42551279130 (head `da3393c`, all jobs pass): the job
+  dialect-oracle (sqlfluff) gives `sqll dialects: 2306 cases, 2306 pass,
+  2306 of them pass in the oracle`; the job report gives
+  `results/s1/summary.json is equal to the summary` (0 new failures, 0
+  unexpected passes); the job build gives `base native tests: PASS: 162
+  base tests pass in the base; sqll: 362 tests, 358 passed, 0 failed, 4
+  ignored`, `tree guard: 84 of 84 inputs, 2 runs each: same output as the
+  record`, and the schema check line above.
 - G3: the sqll binary does not link `sqll_schema` or `sqll_codegen`, and
   C15 changes no code that it links: `cargo tree -p sqll -e normal,build`
   gives the same output as on main (0 lines with the new crates). Thus C15
