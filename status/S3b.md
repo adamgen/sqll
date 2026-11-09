@@ -392,7 +392,7 @@ record [results/S3b/C15-schema.json](../results/S3b/C15-schema.json) and
 `results/S3b/C15-schema/`):
 
 ```text
-schema check: PASS: 4 schemas valid against the JSON Schema draft 2020-12 meta-schema; 7 valid examples pass and 23 invalid examples fail
+schema check: PASS: 4 schemas valid against the JSON Schema draft 2020-12 meta-schema; 8 valid examples pass and 29 invalid examples fail
 ```
 
 - `sqll_schema` (Core): the description of a query, `Describe`,
@@ -402,14 +402,22 @@ schema check: PASS: 4 schemas valid against the JSON Schema draft 2020-12 meta-s
 - The check writes the record again with cargo (the ignored test
   `write_the_record` of `crates/sqll_interfaces/tests/schema.rs`), compares
   it with the committed record, and validates it with the `jsonschema`
-  package (4.26.0, a new dev dependency of the harness; THIRD_PARTY.md). CI
-  runs it in the job build. `harness/tests/test_s3b_schema.py` validates
-  the committed record and shows that a changed schema fails.
-- Interface test (`crates/sqll_interfaces/tests/schema.rs`): 11 passed, 1
+  package (4.26.0, a new dev dependency of the harness; THIRD_PARTY.md),
+  with the format check (`rfc3339-validator` 0.1.4 checks `date-time` and
+  `time`; a format with no checker fails the check). CI runs it in the job
+  build. `harness/tests/test_s3b_schema.py` validates the committed
+  record, shows that a changed schema fails, and shows that for each
+  format one invalid example fails only by its format.
+- Review round 1: `Time` has no format (the RFC 3339 format `time` needs a
+  time zone offset), and the new `TimeTz` has the format `time`. The stub
+  refuses a comma at the end of the select clause and an integer out of
+  the range of `i64`.
+- Interface test (`crates/sqll_interfaces/tests/schema.rs`): 12 passed, 1
   ignored (`write_the_record`).
 - G4: `cargo test --workspace --locked --no-fail-fast` passes (local: 357
-  passed, 0 failed, 4 ignored). The S1 suites, the tree guard, and the
-  native base tests: CI on the pull request.
+  passed, 0 failed, 4 ignored; round 1: 358 passed, 0 failed, 4 ignored).
+  The S1 suites, the tree guard, and the native base tests: CI on the pull
+  request (see the CI run below).
 - G3: the sqll binary does not link `sqll_schema` or `sqll_codegen`, and
   C15 changes no code that it links: `cargo tree -p sqll -e normal,build`
   gives the same output as on main (0 lines with the new crates). Thus C15

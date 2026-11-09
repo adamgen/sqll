@@ -17,9 +17,10 @@ use sqll_tree::{NodeRef, SegmentType};
 ///
 /// - A column name is the alias: a naked identifier in upper case (the
 ///   ANSI rule), a quoted identifier with no quotes.
-/// - The literals: an integer (digits only) is `integer`, a string in
-///   single quotes is `text`, `TRUE` and `FALSE` are `boolean` (each not
-///   NULL); `NULL` is NULL with an unknown type.
+/// - The literals: an integer (digits only, in the range of `i64`) is
+///   `integer`, a string in single quotes is `text`, `TRUE` and `FALSE`
+///   are `boolean` (each not NULL); `NULL` is NULL with an unknown type.
+/// - A comma at the end of the select clause gives `Unsupported`.
 /// - Each other form gives [`DescribeError::Unsupported`].
 #[derive(Clone, Copy, Debug, Default)]
 pub struct LiteralSelect;
@@ -44,7 +45,9 @@ impl Describe for LiteralSelect {
             .cast()
             .ok_or_else(|| unsupported_type(select.first_code_child(), *select))?;
         let mut columns = Vec::new();
+        let mut last = None;
         for (i, child) in clause.children().filter(|c| c.is_code()).enumerate() {
+            last = Some(child);
             let expected = if i == 0 {
                 SegmentType::KEYWORD
             } else if i % 2 == 1 {
@@ -63,6 +66,12 @@ impl Describe for LiteralSelect {
             return Err(DescribeError::unsupported(
                 *clause,
                 "a select with no column",
+            ));
+        }
+        if let Some(comma) = last.filter(|c| c.is_type(SegmentType::COMMA)) {
+            return Err(DescribeError::unsupported(
+                comma,
+                "a comma at the end of the select clause",
             ));
         }
         Ok(Description {
@@ -126,6 +135,13 @@ fn literal(value: NodeRef<'_>) -> Result<(SqlType, Nullability), DescribeError> 
         && !raw.is_empty()
         && raw.bytes().all(|b| b.is_ascii_digit())
     {
+        // A larger literal is a NUMERIC (or an error) in the database.
+        if raw.parse::<i64>().is_err() {
+            return Err(DescribeError::unsupported(
+                value,
+                format!("the integer {raw} is not in the range of a 64-bit integer"),
+            ));
+        }
         Ok((SqlType::Integer, Nullability::NotNull))
     } else if value.is_type(SegmentType::QUOTED_LITERAL) && raw.starts_with('\'') {
         Ok((SqlType::Text, Nullability::NotNull))

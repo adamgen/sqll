@@ -160,7 +160,6 @@
         },
         "at": {
           "type": "string",
-          "format": "time",
           "x-sqll-type": "time",
           "x-sqll-nullability": "not_null",
           "x-sqll-source": {
@@ -170,15 +169,27 @@
             "pos": 43
           }
         },
-        "local": {
+        "at_tz": {
           "type": "string",
-          "x-sqll-type": "timestamp",
+          "format": "time",
+          "x-sqll-type": "timetz",
           "x-sqll-nullability": "not_null",
           "x-sqll-source": {
             "start": 47,
             "end": 51,
             "line": 1,
             "pos": 48
+          }
+        },
+        "local": {
+          "type": "string",
+          "x-sqll-type": "timestamp",
+          "x-sqll-nullability": "not_null",
+          "x-sqll-source": {
+            "start": 52,
+            "end": 56,
+            "line": 1,
+            "pos": 53
           }
         },
         "created": {
@@ -190,10 +201,10 @@
           "x-sqll-type": "timestamptz",
           "x-sqll-nullability": "nullable",
           "x-sqll-source": {
-            "start": 52,
-            "end": 56,
+            "start": 57,
+            "end": 61,
             "line": 1,
-            "pos": 53
+            "pos": 58
           }
         },
         "span": {
@@ -201,10 +212,10 @@
           "x-sqll-type": "interval",
           "x-sqll-nullability": "not_null",
           "x-sqll-source": {
-            "start": 57,
-            "end": 61,
+            "start": 62,
+            "end": 66,
             "line": 1,
-            "pos": 58
+            "pos": 63
           }
         },
         "uid": {
@@ -213,10 +224,10 @@
           "x-sqll-type": "uuid",
           "x-sqll-nullability": "not_null",
           "x-sqll-source": {
-            "start": 62,
-            "end": 66,
+            "start": 67,
+            "end": 71,
             "line": 1,
-            "pos": 63
+            "pos": 68
           }
         },
         "doc": {
@@ -226,10 +237,10 @@
           "x-sqll-type": "json",
           "x-sqll-nullability": "not_null",
           "x-sqll-source": {
-            "start": 67,
-            "end": 71,
+            "start": 72,
+            "end": 76,
             "line": 1,
-            "pos": 68
+            "pos": 73
           }
         },
         "tags": {
@@ -243,25 +254,15 @@
           "x-sqll-type": "array<text>",
           "x-sqll-nullability": "not_null",
           "x-sqll-source": {
-            "start": 72,
-            "end": 76,
-            "line": 1,
-            "pos": 73
-          }
-        },
-        "mood": {
-          "x-sqll-type": "named<mood>",
-          "x-sqll-nullability": "nullable",
-          "x-sqll-source": {
             "start": 77,
             "end": 81,
             "line": 1,
             "pos": 78
           }
         },
-        "other": {
-          "x-sqll-type": "unknown",
-          "x-sqll-nullability": "unknown",
+        "mood": {
+          "x-sqll-type": "named<mood>",
+          "x-sqll-nullability": "nullable",
           "x-sqll-source": {
             "start": 82,
             "end": 86,
@@ -269,15 +270,25 @@
             "pos": 83
           }
         },
-        "Quote \"q\"": {
-          "type": "string",
-          "x-sqll-type": "text",
-          "x-sqll-nullability": "not_null",
+        "other": {
+          "x-sqll-type": "unknown",
+          "x-sqll-nullability": "unknown",
           "x-sqll-source": {
             "start": 87,
             "end": 91,
             "line": 1,
             "pos": 88
+          }
+        },
+        "Quote \"q\"": {
+          "type": "string",
+          "x-sqll-type": "text",
+          "x-sqll-nullability": "not_null",
+          "x-sqll-source": {
+            "start": 92,
+            "end": 96,
+            "line": 1,
+            "pos": 93
           }
         }
       },
@@ -290,6 +301,7 @@
         "blob",
         "day",
         "at",
+        "at_tz",
         "local",
         "created",
         "span",

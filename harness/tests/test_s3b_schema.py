@@ -46,7 +46,63 @@ def change(folder: Path, case: str, edit) -> None:
 def test_the_committed_record_is_valid():
     problems, counts = sc.validate(sc.FOLDER)
     assert problems == []
-    assert counts == {"schemas": 4, "valid": 7, "invalid": 23}
+    assert counts == {"schemas": 4, "valid": 8, "invalid": 29}
+
+
+def test_each_format_of_the_record_has_an_invalid_example_of_only_that_format():
+    """For each format, an invalid example fails only by the format check:
+    so the check of the format runs."""
+    from jsonschema import Draft202012Validator
+
+    record = json.loads(sc.RECORD.read_text("utf8"))
+    used, refused = set(), set()
+    for case in record["cases"]:
+        schema = json.loads((sc.FOLDER / case["schema"]).read_text("utf8"))
+        used |= sc.formats(schema)
+        validator = Draft202012Validator(schema, format_checker=sc.FORMAT_CHECKER)
+        for example in case["invalid"]:
+            errors = list(validator.iter_errors(example))
+            if errors and all(e.validator == "format" for e in errors):
+                refused |= {e.validator_value for e in errors}
+    assert used == {"date", "time", "date-time", "uuid"}
+    assert refused == used
+
+
+def test_the_time_formats_need_an_offset():
+    """The RFC 3339 formats "time" and "date-time" need a time zone offset.
+    Thus a time or a timestamp with no time zone has no format."""
+    checker = sc.FORMAT_CHECKER
+    assert checker.conforms("10:00:00+02:00", "time")
+    assert not checker.conforms("10:00:00", "time")
+    assert checker.conforms("2026-11-09T10:00:00Z", "date-time")
+    assert not checker.conforms("2026-11-09T10:00:00", "date-time")
+    named = json.loads((sc.RECORD_DIR / "named.json").read_text("utf8"))
+    row = named["$defs"]["row"]["properties"]
+    assert "format" not in row["at"] and row["at"]["x-sqll-type"] == "time"
+    assert "format" not in row["local"]
+    assert row["at_tz"]["format"] == "time"
+    assert row["created"]["format"] == "date-time"
+
+
+def test_a_format_with_no_checker_fails(record, monkeypatch):
+    from jsonschema import FormatChecker
+
+    monkeypatch.setattr(sc, "FORMAT_CHECKER", FormatChecker(formats=["date", "uuid"]))
+    problems, _ = sc.validate(record)
+    assert problems == [
+        "named: the jsonschema package has no checker of the format 'date-time'",
+        "named: the jsonschema package has no checker of the format 'time'",
+    ]
+
+
+def test_formats_finds_only_the_format_keywords():
+    schema = {
+        "properties": {"format": {"type": "string", "format": "uuid"}},
+        "required": ["format"],
+        "prefixItems": [{"format": "date"}],
+        "x-sqll-name": "format",
+    }
+    assert sc.formats(schema) == {"uuid", "date"}
 
 
 def test_the_record_has_the_cases_and_the_draft():
@@ -169,5 +225,7 @@ def test_third_party_names_the_locked_versions_of_the_validator():
         "attrs",
         "referencing",
         "rpds-py",
+        "rfc3339-validator",
+        "six",
     ):
         assert f"`{name}` {versions[name]}" in text, name

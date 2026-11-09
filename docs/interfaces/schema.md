@@ -22,8 +22,9 @@ generation of S8 (`sqll_codegen`) implements `Describe`.
 - `ParamStyle`: the 12 `param_style` names of the sqlfluff placeholder
   templater (`name`, `from_name`, `is_positional`, `has_name`).
 - `SqlType`: `Boolean`, `Integer`, `Decimal`, `Float`, `Text`, `Bytes`,
-  `Date`, `Time`, `Timestamp`, `TimestampTz`, `Interval`, `Uuid`, `Json`,
-  `Array(item)`, `Named(name)`, `Unknown`. `Nullability`: `NotNull`,
+  `Date`, `Time`, `TimeTz`, `Timestamp`, `TimestampTz`, `Interval`,
+  `Uuid`, `Json`, `Array(item)`, `Named(name)`, `Unknown`. `Time` and
+  `Timestamp` have no time zone; `TimeTz` and `TimestampTz` have one. `Nullability`: `NotNull`,
   `Nullable`, `Unknown`.
 - `Catalog`: `tables` (`Table`: `schema`, `name`, `columns` of
   `CatalogColumn`), `table(schema, name)` and `column(name)` (exact names;
@@ -61,10 +62,12 @@ with `parameters` and `row` (`$ref` to `$defs`; no `row` if `columns` is
 - `row`: a closed object; the properties are the columns in order, and
   `required` has each column in order.
 - Types: `Boolean` boolean, `Integer` integer, `Float` number, `Decimal`
-  string (a JSON number can lose digits), `Text`, `Timestamp`, and
+  string (a JSON number can lose digits), `Text`, `Time`, `Timestamp`, and
   `Interval` string, `Bytes` string with `contentEncoding: base64`, `Date`,
-  `Time`, `TimestampTz`, and `Uuid` string with the `format` `date`,
-  `time`, `date-time`, and `uuid`, `Array` array (items can be null).
+  `TimeTz`, `TimestampTz`, and `Uuid` string with the `format` `date`,
+  `time`, `date-time`, and `uuid`, `Array` array (items can be null). The
+  RFC 3339 formats `time` and `date-time` need a time zone offset (for
+  example `10:00:00Z`), so `Time` and `Timestamp` have no format.
   `Json`, `Named`, and `Unknown` permit each JSON value.
 - NULL: `Nullable` and `Unknown` add `"null"` to the type. `NotNull` with
   no JSON type gives `not: {type: null}`.
@@ -76,8 +79,9 @@ with `parameters` and `row` (`$ref` to `$defs`; no `row` if `columns` is
 ## The stub (S8)
 
 `sqll_codegen::LiteralSelect` describes only an ANSI `SELECT` of literals,
-each with an alias, and nothing else: an integer (digits only), a string
-in single quotes, `TRUE`, `FALSE`, and `NULL`. A naked alias is in upper
+each with an alias, and nothing else: an integer (digits only, in the
+range of `i64`), a string in single quotes, `TRUE`, `FALSE`, and `NULL`. A
+comma at the end of the select clause gives `Unsupported`. A naked alias is in upper
 case (the ANSI rule); a quoted alias has no quotes. Each other form, a
 value from a template tag, and each other dialect give `Unsupported`. Not
 in C15 (S8): type inference, the DDL reader, the parameters, and the code
@@ -87,7 +91,7 @@ generation.
 
 - The interface test runs the minimal case end to end (raw templater,
   `parse`, `describe_file`, the stub, the writer), the source ranges
-  through a test templater, 13 forms that the stub refuses (one is a value
+  through a test templater, 15 forms that the stub refuses (one is a value
   from a template tag), the parse errors, the statement kinds, the 12
   sqlfluff `param_style` names (read from the submodule), the catalog, and
   the writer refusals.
@@ -99,7 +103,10 @@ generation.
 - `scripts/s3b/schema_check.py check` (CI job build) writes the record
   again with cargo, compares it, and validates it with the `jsonschema`
   package: each schema against the draft 2020-12 meta-schema, and each
-  example against its schema.
+  example against its schema, with the format check. A format with no
+  checker fails the check (`date-time` and `time` need
+  `rfc3339-validator`). For each format, one invalid example fails only
+  by its format.
 
 ## Rules for a change
 

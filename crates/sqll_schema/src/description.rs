@@ -175,7 +175,10 @@ pub enum SqlType {
     Text,
     Bytes,
     Date,
+    /// A time of day with no time zone.
     Time,
+    /// A time of day with a time zone.
+    TimeTz,
     /// A timestamp with no time zone.
     Timestamp,
     /// A timestamp with a time zone.
@@ -204,6 +207,7 @@ impl SqlType {
             SqlType::Bytes => "bytes".into(),
             SqlType::Date => "date".into(),
             SqlType::Time => "time".into(),
+            SqlType::TimeTz => "timetz".into(),
             SqlType::Timestamp => "timestamp".into(),
             SqlType::TimestampTz => "timestamptz".into(),
             SqlType::Interval => "interval".into(),

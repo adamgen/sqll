@@ -235,13 +235,17 @@ fn json_type(ty: &SqlType) -> (Option<&'static str>, Vec<(String, Json)>) {
         // An exact decimal is a string: a JSON number can lose digits.
         SqlType::Decimal => (Some("string"), vec![]),
         SqlType::Float => (Some("number"), vec![]),
-        SqlType::Text | SqlType::Timestamp | SqlType::Interval => (Some("string"), vec![]),
+        // A value with no time zone has no format: the RFC 3339 formats
+        // "time" and "date-time" need an offset.
+        SqlType::Text | SqlType::Time | SqlType::Timestamp | SqlType::Interval => {
+            (Some("string"), vec![])
+        }
         SqlType::Bytes => (
             Some("string"),
             vec![("contentEncoding".into(), Json::from("base64"))],
         ),
         SqlType::Date => (Some("string"), format("date")),
-        SqlType::Time => (Some("string"), format("time")),
+        SqlType::TimeTz => (Some("string"), format("time")),
         SqlType::TimestampTz => (Some("string"), format("date-time")),
         SqlType::Uuid => (Some("string"), format("uuid")),
         SqlType::Array(item) => (

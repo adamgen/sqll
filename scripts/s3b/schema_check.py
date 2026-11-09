@@ -15,7 +15,9 @@ the new files.
 
 validate: for each case of the record (FOLDER, default results/S3b): the
 schema is valid against the meta-schema of JSON Schema draft 2020-12, its
-"$schema" is that draft, each "valid" example passes the schema, and each
+"$schema" is that draft, the jsonschema package has a checker for each
+"format" of the schema (fail closed: "date-time" and "time" need the
+package rfc3339-validator), each "valid" example passes the schema, and each
 "invalid" example fails it. It runs no cargo (harness/tests/test_s3b_schema.py
 validates the committed record).
 
@@ -46,6 +48,7 @@ COMMAND = "uv run --frozen --project harness python scripts/s3b/schema_check.py"
 TEST = "write_the_record"
 OUT_ENV = "SQLL_SCHEMA_OUT"
 CASES = ("minimal", "named", "question_mark", "numeric_dollar")
+FORMAT_CHECKER = Draft202012Validator.FORMAT_CHECKER
 
 
 class DataError(Exception):
@@ -89,9 +92,7 @@ def validate(folder: Path) -> tuple[list[str], dict]:
         if not case.get("valid") or not case.get("invalid"):
             problems.append(f"{name}: no valid or no invalid example")
             continue
-        validator = Draft202012Validator(
-            schema, format_checker=Draft202012Validator.FORMAT_CHECKER
-        )
+        validator = Draft202012Validator(schema, format_checker=FORMAT_CHECKER)
         for i, example in enumerate(case["valid"]):
             errors = [e.message for e in validator.iter_errors(example)]
             if errors:
@@ -106,7 +107,8 @@ def validate(folder: Path) -> tuple[list[str], dict]:
 
 def schema_problems(schema: object, title: str) -> list[str]:
     """The problems of one schema: not valid against the draft 2020-12
-    meta-schema, another "$schema", or another title."""
+    meta-schema, a format with no checker, another "$schema", or another
+    title."""
     if not isinstance(schema, dict):
         return ["the schema is not a JSON object"]
     problems = []
@@ -116,11 +118,32 @@ def schema_problems(schema: object, title: str) -> list[str]:
         problems.append(
             f"not valid against the meta-schema at /{path}: {error.message}"
         )
+    for name in sorted(formats(schema)):
+        if name not in FORMAT_CHECKER.checkers:
+            problems.append(
+                f"the jsonschema package has no checker of the format {name!r}"
+            )
     if schema.get("$schema") != DRAFT:
         problems.append(f"$schema is not {DRAFT}")
     if schema.get("title") != title:
         problems.append(f"the title is not {title!r}")
     return problems
+
+
+def formats(schema: object) -> set[str]:
+    """The values of each "format" keyword in the schema. A property named
+    "format" has an object as its value, so it is not a keyword."""
+    found = set()
+    if isinstance(schema, dict):
+        for key, item in schema.items():
+            if key == "format" and isinstance(item, str):
+                found.add(item)
+            else:
+                found |= formats(item)
+    elif isinstance(schema, list):
+        for item in schema:
+            found |= formats(item)
+    return found
 
 
 def run_test(out: Path) -> None:

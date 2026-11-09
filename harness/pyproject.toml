@@ -15,6 +15,7 @@ sqll-harness = "sqll_harness.cli:main"
 dev = [
     "jsonschema>=4.25",
     "pytest>=8.3",
+    "rfc3339-validator>=0.1.4",
     "ruff==0.14.0",
 ]
 

@@ -300,6 +300,16 @@ fn the_minimal_case_is_described_end_to_end() {
 }
 
 #[test]
+fn the_largest_integer_of_the_stub_is_the_largest_i64() {
+    let d = one("SELECT 9223372036854775807 AS big\n").expect("a description");
+    let column = &d.columns.expect("columns")[0];
+    assert_eq!(
+        (column.name.as_str(), &column.ty),
+        ("BIG", &SqlType::Integer)
+    );
+}
+
+#[test]
 fn each_statement_of_a_file_is_described_in_order() {
     let source = "SELECT 1 AS a;\n\nSELECT b AS c FROM t;\nSELECT 'q' AS \"x\"\"y\"\n";
     let all = describe(source, "ansi").expect("a clean parse");
@@ -331,7 +341,7 @@ fn the_source_ranges_come_from_the_source_map() {
 
 #[test]
 fn the_stub_fails_closed() {
-    let cases: [(&str, &str, &str); 12] = [
+    let cases: [(&str, &str, &str); 14] = [
         (
             "SELECT 1\n",
             "ansi",
@@ -341,6 +351,16 @@ fn the_stub_fails_closed() {
             "SELECT 1.5 AS a\n",
             "ansi",
             "the literal 1.5 (numeric_literal)",
+        ),
+        (
+            "SELECT 9223372036854775808 AS a\n",
+            "ansi",
+            "the integer 9223372036854775808 is not in the range of a 64-bit integer",
+        ),
+        (
+            "SELECT 1 AS a, 2 AS b,\n",
+            "ansi",
+            "a comma at the end of the select clause",
         ),
         (
             "SELECT -1 AS a\n",
@@ -551,6 +571,7 @@ fn named() -> Description {
         ("blob", SqlType::Bytes, Nullability::Nullable),
         ("day", SqlType::Date, Nullability::NotNull),
         ("at", SqlType::Time, Nullability::NotNull),
+        ("at_tz", SqlType::TimeTz, Nullability::NotNull),
         ("local", SqlType::Timestamp, Nullability::NotNull),
         ("created", SqlType::TimestampTz, Nullability::Nullable),
         ("span", SqlType::Interval, Nullability::NotNull),
@@ -625,12 +646,15 @@ struct Case {
     invalid: Vec<Json>,
 }
 
+const UUID: &str = "1b4e28ba-2fa1-11d2-883f-0016d3cca427";
+
 fn named_row() -> Json {
     json!({
         "id": 1, "ok": null, "price": "12.50", "ratio": null, "name": "a",
-        "blob": "AAE=", "day": "2026-11-09", "at": "10:00:00Z",
+        "blob": "AAE=", "day": "2026-11-09", "at": "10:00:00",
+        "at_tz": "10:00:00+02:00",
         "local": "2026-11-09 10:00:00", "created": "2026-11-09T10:00:00Z",
-        "span": "1 day", "uid": "1b4e28ba-2fa1-11d2-883f-0016d3cca427",
+        "span": "1 day", "uid": UUID,
         "doc": {"k": [1, null]}, "tags": ["a", null], "mood": "happy",
         "other": 3, "Quote \"q\"": "",
     })
@@ -682,6 +706,11 @@ fn cases() -> Vec<Case> {
             valid: vec![
                 full.clone(),
                 with(full.clone(), "parameters", json!({"id": 7, "name": "n"})),
+                with(
+                    full.clone(),
+                    "row",
+                    with(named_row(), "at_tz", json!("10:00:00Z")),
+                ),
             ],
             invalid: vec![
                 with(full.clone(), "parameters", json!({"id": null, "name": "n"})),
@@ -692,6 +721,27 @@ fn cases() -> Vec<Case> {
                 with(full.clone(), "row", with(named_row(), "tags", json!("a"))),
                 with(full.clone(), "row", with(named_row(), "tags", json!([1]))),
                 with(full.clone(), "row", with(named_row(), "blob", json!(1))),
+                // Each of these fails only by its format.
+                with(
+                    full.clone(),
+                    "row",
+                    with(named_row(), "day", json!("09.11.2026")),
+                ),
+                with(
+                    full.clone(),
+                    "row",
+                    with(named_row(), "at_tz", json!("10:00:00")),
+                ),
+                with(
+                    full.clone(),
+                    "row",
+                    with(named_row(), "created", json!("2026-11-09T10:00:00")),
+                ),
+                with(
+                    full.clone(),
+                    "row",
+                    with(named_row(), "uid", json!("1b4e28ba")),
+                ),
                 with(full, "extra", json!(1)),
             ],
         },
@@ -720,12 +770,15 @@ fn cases() -> Vec<Case> {
             dialect: None,
             description: numeric_dollar(),
             valid: vec![json!({
-                "parameters": ["1b4e28ba-2fa1-11d2-883f-0016d3cca427", "2026-11-09"],
+                "parameters": [UUID, "2026-11-09"],
                 "row": {"n": 3}
             })],
             invalid: vec![
-                json!({"parameters": ["u", "d"]}),
-                json!({"parameters": ["u", "d"], "row": {"n": "3"}}),
+                json!({"parameters": [UUID, "2026-11-09"]}),
+                json!({"parameters": [UUID, "2026-11-09"], "row": {"n": "3"}}),
+                // Each of these fails only by its format.
+                json!({"parameters": ["u", "2026-11-09"], "row": {"n": 3}}),
+                json!({"parameters": [UUID, "d"], "row": {"n": 3}}),
             ],
         },
     ]
