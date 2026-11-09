@@ -149,10 +149,12 @@ can give a tree where the test stops with `Maximum parse depth exceeded`:
 in the 18 measured forms, for 2 to 65 more levels of nesting. An example
 is `select` and 35 nested brackets around `1` with the depth 600. Thus an
 invented dialect fixture with such a nesting and a YAML tree can give a
-false pass of sqll in the dialect suite. No check
-fails closed for it: CI runs no dialect oracle for sqll. No 4.4.0 dialect
-fixture has the pattern: sqlfluff passes 2306 of 2306 dialect cases and
-the dialect oracle agrees, and sqll gives the same tree in 2306 of 2306.
+false pass of sqll in the dialect suite. For the pinned fixtures a check
+fails closed for it (S3b C14): the CI dialect oracle (`--passes-of sqll`)
+fails if sqll passes a case that the sqlfluff test does not pass. No check
+runs sqll on an invented fixture. No 4.4.0 dialect fixture has the
+pattern: sqlfluff passes 2306 of 2306 dialect cases and the dialect oracle
+agrees, and sqll gives the same tree in 2306 of 2306.
 
 ### sqll rules (S3b C12)
 
@@ -170,6 +172,26 @@ from invented inputs ([docs/interfaces/rules.md](../docs/interfaces/rules.md),
 - sqll refuses a fix that changes a block tag or a comment slice of a
   templated file; sqlfluff can apply it. The pinned cases with Jinja are not
   run before S11.
+
+### sqll in the rule and autofix suites (S3b C14)
+
+The adapter runs `sqll lint` and `sqll fix` as the sqlfluff adapter runs
+sqlfluff ([sqll.md](sqll.md), "Adapter"). Thus the limits of the rule and
+autofix suites above (for example the fix mode lists and
+`is_fix_compatible`) also apply to sqll. For the pinned cases a check fails
+closed: the CI rule, autofix, and templater oracles (`--passes-of sqll`)
+fail if sqll passes a case that the sqlfluff test does not pass. No check
+runs sqll on an invented case. In 4.4.0, each of the 38 rule cases that
+sqll passes also passes in the sqlfluff test.
+
+The jinja templater: the adapter runs sqll only for a text of
+`results/S3b/C14-jinja-raw.json`, and only with no templater setting and no
+`core.library_path`. The record has the texts for which the pinned
+sqlfluff gives the file of the raw templater, with the config of each
+pinned input that has the text. The record does not prove a text with
+another config. JinjaTemplater.process of sqlfluff 4.4.0 reads only the
+templater settings and `library_path` before it gives the raw file for a
+text with no Jinja delimiter. No check runs sqll on an invented case.
 
 ## sqruff
 

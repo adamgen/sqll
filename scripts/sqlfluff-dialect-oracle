@@ -25,7 +25,7 @@ parser runs in the "tree" or "parse" part.
 
   .tools/sqlfluff-oracle/bin/python scripts/sqlfluff-dialect-oracle \\
       [--root DIR] [--report out/report.json] [--out out/dialect-oracle.jsonl]
-      [--check-prefixes] [--rust] [--tool TOOL]
+      [--check-prefixes] [--rust] [--tool TOOL] [--passes-of TOOL]
 
 The current folder of the test is --root, because the test finds the cases
 in test/fixtures/dialects/<dialect>/ relative to it. The default is the
@@ -42,6 +42,10 @@ With --check-prefixes, a case whose YAML file name starts with "expect_pass_"
 or "expect_fail_" must have that status. The harness test fixtures use these
 prefixes. The exit code is 1 if a status is different or no case has a
 prefix.
+
+With --passes-of TOOL (and --report), each case that TOOL passes in the
+report must pass in the oracle; the exit code is 1 if one does not. The CI
+job `dialect-oracle (sqlfluff)` and scripts/verify use it for sqll (S3b C14).
 """
 
 import argparse
@@ -63,6 +67,7 @@ from sqlfluff_oracle import (
     add_tool_arguments,
     check_prefixes,
     check_rust_runs,
+    check_passes,
     compare_with_report,
     failure_reason,
     setup_tool,
@@ -220,7 +225,9 @@ def main() -> int:
         status = check_prefixes(oracle) or status
     if report is None:
         return status
-    return compare_with_report(oracle, report, "dialects", args.tool) or status
+    compared = compare_with_report(oracle, report, "dialects", args.tool)
+    passes = check_passes(oracle, report, "dialects", args.passes_of)
+    return compared or passes or status
 
 
 if __name__ == "__main__":

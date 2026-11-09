@@ -13,7 +13,13 @@ from test_case_counts import COUNTS
 
 from sqll_harness import known_failures, summary
 from sqll_harness.adapters import sqll
-from sqll_harness.paths import KNOWN_FAILURES_DIR, RECORDED_SUMMARY, REPO_ROOT
+from sqll_harness.paths import (
+    KNOWN_FAILURES_DIR,
+    RECORDED_SUMMARY,
+    REPO_ROOT,
+    SQLFLUFF_ROOT,
+)
+from sqll_harness.suites import SUITES
 
 TOOLS = ("sqlfluff", "sqlfluff-rs", "sqruff", "sqll")
 # The sqll version is the crate version and the table manifest hash, so it is
@@ -76,19 +82,26 @@ def test_code_only_check_passes():
     assert "code_only" not in RESULTS["sqll"]["suites"]
 
 
-def test_sqll_passes_each_dialect_case_and_supports_no_other_case():
-    # S3: sqll has only the parse command. Each rule, autofix, and templater
-    # case fails with the reason "unsupported: <item>".
+def test_sqll_passes_each_dialect_case_and_each_other_failure_is_unsupported():
+    # S3b C14: sqll lints and fixes only with the rules that it has (CP01,
+    # CP03, CP04). Each rule, autofix, and templater case that it does not
+    # pass fails with the reason "unsupported: <item>".
     suites = RESULTS["sqll"]["suites"]
     assert suites["dialects"]["passed"] == 2306
     assert suites["dialects"]["checks"] == {"exact": 2306, "no_unparsable": 2306}
     known = _known("sqll")
     for name in ("rules", "autofix", "templater"):
-        assert suites[name]["passed"] == 0
-        assert suites[name]["failed"] == suites[name]["total"]
+        assert suites[name]["error"] == 0
         listed = {i: r for i, r in known.items() if i.startswith(f"{name}/")}
-        assert len(listed) == suites[name]["total"]
+        assert len(listed) == suites[name]["failed"]
         assert all(r.startswith("unsupported: ") for r in listed.values())
+    assert suites["rules"]["passed"] == 38
+    assert suites["autofix"]["passed"] == suites["templater"]["passed"] == 0
+    # Each rule case that sqll passes is a case of a rule of sqll.
+    ids = {c.id for c in SUITES["rules"].discover(SQLFLUFF_ROOT)}
+    passed = ids - set(known)
+    assert len(passed) == 38
+    assert all(i.split("/")[1] in ("CP01", "CP03", "CP04") for i in passed)
     assert not [i for i in known if i.startswith("dialects/")]
     assert RECORDED["tools"]["sqll"]["preflight"] == {
         "fresh_build": True,

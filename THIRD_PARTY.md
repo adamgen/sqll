@@ -81,6 +81,15 @@ code, and changed files of sqlfluff. The stdout of the scenario
 "rules default" is the rules table of sqlfluff (the code, name, and
 description of each rule). No sqlfluff code is copied.
 
+`scripts/s3b/jinja_raw_oracle.py` (S3b task C14) imports and runs the
+installed sqlfluff 4.4.0 package (MIT): `JinjaTemplater`, `RawTemplater`,
+`Linter._normalise_newlines`, and `FluffConfig`. It reads the rule
+fixtures of `test/fixtures/rules/std_rule_cases/` and the autofix fixtures
+of `test/fixtures/linter/autofix/` through the harness suites, and the
+root config of the submodule. `results/S3b/C14-jinja-raw.json` has only
+sha256 values of fixture texts and counts. It has no fixture text. No
+sqlfluff code is copied.
+
 `scripts/s3/sqlfluffrs_probe.py` (S3 research, task T5) copies the
 submodule into a scratch folder, runs `utils/rustify.py` there, and builds
 the sqlfluffrs crates and the probe there. The generated Rust files stay in
