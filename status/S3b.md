@@ -14,7 +14,10 @@ these details to the task list: a kind is the full static data of a node
 text; the record has the change in Q2 and Q5): the raw templater is in
 the S6 package `sqll_templater`, not in `sqll_source` (Core owns
 `crates/**` until C16). The interface documents are in
-`docs/interfaces/` (a Core path since C6).
+`docs/interfaces/` (a Core path since C6); the index is
+[docs/interfaces/README.md](../docs/interfaces/README.md) (C16). Since
+C16, `tracks.yml` gives `src/**` and `tests/**` of each later package to
+its track.
 
 ## Tasks
 
@@ -34,8 +37,8 @@ the S6 package `sqll_templater`, not in `sqll_source` (Core owns
 | C12 | Rule and fix interface (`sqll_lint`) with CP01, CP03, CP04 as the proof: the `Rule` trait, the lint results and fixes (source edits through the source map; a fix in a templated range is refused), the fix loop, and the rule registry. CP01, CP03, CP04 of `sqll_rules` implement it: [docs/interfaces/rules.md](../docs/interfaces/rules.md) | Merged (PR #71) |
 | C13 | CLI skeleton (`sqll_cli`): lint, fix, rules, dialects, and the output formats; `EXIT_ERROR` is in `crates/sqll_cli/src/lib.rs` (`scripts/s3b/core_design.py` reads it there): [harness/sqll.md](../harness/sqll.md) | Merged (PR #72) |
 | C14 | Harness adapters: `sqll lint` and `fix` in the S1 harness and the S2 benchmarks; the jinja as raw record (`results/S3b/C14-jinja-raw.json`); the oracle check of each sqll pass (`--passes-of sqll`). The path for a base binary from before C11 in `harness/sqll_harness/bench/sqll.py` is removed: [harness/sqll.md](../harness/sqll.md), "Adapter" | Merged (PR #74) |
-| C15 | Code generation interface: tree to schema (`sqll_schema`: the description of a query, `Describe`, the JSON Schema writer) and the S8 stub `sqll_codegen::LiteralSelect`; the jsonschema package validates the output in CI (`scripts/s3b/schema_check.py`): [docs/interfaces/schema.md](../docs/interfaces/schema.md) | In review |
-| C16 | Package ownership of the later tracks and the interface index; `docs/decisions/s3b-*.md` to the Core paths | Not started |
+| C15 | Code generation interface: tree to schema (`sqll_schema`: the description of a query, `Describe`, the JSON Schema writer) and the S8 stub `sqll_codegen::LiteralSelect`; the jsonschema package validates the output in CI (`scripts/s3b/schema_check.py`): [docs/interfaces/schema.md](../docs/interfaces/schema.md) | Merged (PR #75) |
+| C16 | Package ownership of the later tracks and the interface index; `docs/decisions/s3b-*.md` to the Core paths; the empty S10 package `sqll_plpgsql`: [docs/interfaces/README.md](../docs/interfaces/README.md) | In review |
 | C17 | S3b exit: proof, exit record, and STATUS "S3b awaiting human approval" | Not started |
 
 Rules for each task:

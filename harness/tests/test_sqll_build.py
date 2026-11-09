@@ -203,6 +203,8 @@ C13_CRATES = ["sqll_cli"]
 # S3b C15: the code generation interface crate and the code generation crate
 # (an S8 package).
 C15_CRATES = ["sqll_schema", "sqll_codegen"]
+# S3b C16: the empty PL/pgSQL crate (an S10 package).
+C16_CRATES = ["sqll_plpgsql"]
 
 
 def test_the_workspace_has_the_ported_crates_the_binary_and_no_python():
@@ -210,11 +212,11 @@ def test_the_workspace_has_the_ported_crates_the_binary_and_no_python():
     members = [f"crates/{c}" for c in CRATES + T18_CRATES] + ["crates/sqll"]
     members += [f"crates/{c}" for c in C6_CRATES + C7_CRATES + C8_CRATES]
     members += [f"crates/{c}" for c in C11_CRATES + C12_CRATES + C13_CRATES]
-    members += [f"crates/{c}" for c in C15_CRATES]
+    members += [f"crates/{c}" for c in C15_CRATES + C16_CRATES]
     assert cargo["workspace"]["members"] == members
     lock = tomllib.loads((REPO_ROOT / "Cargo.lock").read_text("utf8"))
     names = {p["name"] for p in lock["package"]}
-    later = [*C11_CRATES, *C12_CRATES, *C13_CRATES, *C15_CRATES]
+    later = [*C11_CRATES, *C12_CRATES, *C13_CRATES, *C15_CRATES, *C16_CRATES]
     assert {
         *CRATES,
         *T18_CRATES,

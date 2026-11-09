@@ -56,6 +56,10 @@ tracks:
       # scripts/**, harness/**, ci/**, and known_failures/** above also
       # match the sqll paths in these folders (for example
       # scripts/build-sqll and ci/matrix.d/S3.json).
+      # crates/**: the tracks S4 to S10 own src/** and tests/** of their
+      # packages (S3b C16; docs/decisions/s3b-core.md, Q5). Core keeps each
+      # other file: each Cargo.toml and build.rs, the Core packages, and
+      # the interface tests (crates/sqll_interfaces).
       - Cargo.toml
       - Cargo.lock
       - rust-toolchain.toml
@@ -63,8 +67,10 @@ tracks:
       - results/s3/tree-guard.json
       - results/s3/base-native-tests.json
       - results/s3/base-native-tests.log
-      # The documents of the frozen interfaces (S3b, from task C6).
+      # The documents of the frozen interfaces (S3b, from task C6) and the
+      # S3b design records (C16).
       - docs/interfaces/**
+      - docs/decisions/s3b-*.md
 
   S3:
     # S3 is approved and closed. It keeps only its frozen records. Its
@@ -141,33 +147,66 @@ tracks:
       - harness/sqll_harness/corpus/**
       - harness/tests/test_s9_*.py
 
-  # Placeholders. A track starts when each stone that its stone needs is
-  # approved (STONES.md). S3b adds the paths of the sqll packages that each
-  # track owns.
+  # The later tracks. A track starts when each stone that its stone needs
+  # is approved (STONES.md). The tracks S4 to S10 also own src/** and
+  # tests/** of their sqll packages (S3b C16; docs/decisions/s3b-core.md,
+  # Q5).
   S4:
     stones: [S4]
     branches: [claude/s4, claude/s4-*]
-    paths: [status/S4.md, ci/matrix.d/S4.json, results/S4/**]
+    paths:
+      - status/S4.md
+      - ci/matrix.d/S4.json
+      - results/S4/**
+      - crates/sqll_parser/src/**
+      - crates/sqll_parser/tests/**
+      - crates/sqll_dialects/src/**
+      - crates/sqll_dialects/tests/**
   S5:
     stones: [S5]
     branches: [claude/s5, claude/s5-*]
-    paths: [status/S5.md, ci/matrix.d/S5.json, results/S5/**]
+    paths:
+      - status/S5.md
+      - ci/matrix.d/S5.json
+      - results/S5/**
+      - crates/sqll_rules/src/**
+      - crates/sqll_rules/tests/**
   S6:
     stones: [S6]
     branches: [claude/s6, claude/s6-*]
-    paths: [status/S6.md, ci/matrix.d/S6.json, results/S6/**]
+    paths:
+      - status/S6.md
+      - ci/matrix.d/S6.json
+      - results/S6/**
+      - crates/sqll_templater/src/**
+      - crates/sqll_templater/tests/**
   S7-sqll:
     stones: [S7]
     branches: [claude/s7-sqll, claude/s7-sqll-*]
-    paths: [status/S7-sqll.md, ci/matrix.d/S7-sqll.json, results/S7-sqll/**]
+    paths:
+      - status/S7-sqll.md
+      - ci/matrix.d/S7-sqll.json
+      - results/S7-sqll/**
+      - crates/sqll_cli/src/**
+      - crates/sqll_cli/tests/**
   S8:
     stones: [S8]
     branches: [claude/s8, claude/s8-*]
-    paths: [status/S8.md, ci/matrix.d/S8.json, results/S8/**]
+    paths:
+      - status/S8.md
+      - ci/matrix.d/S8.json
+      - results/S8/**
+      - crates/sqll_codegen/src/**
+      - crates/sqll_codegen/tests/**
   S10:
     stones: [S10]
     branches: [claude/s10, claude/s10-*]
-    paths: [status/S10.md, ci/matrix.d/S10.json, results/S10/**]
+    paths:
+      - status/S10.md
+      - ci/matrix.d/S10.json
+      - results/S10/**
+      - crates/sqll_plpgsql/src/**
+      - crates/sqll_plpgsql/tests/**
   S11:
     stones: [S11]
     branches: [claude/s11, claude/s11-*]

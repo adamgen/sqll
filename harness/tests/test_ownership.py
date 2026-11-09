@@ -159,8 +159,151 @@ def test_each_tracked_file_of_s3_is_a_record_or_a_core_gate():
         want = "core" if path in S3_GATES else "S3"
         assert ownership.owner(path, TRACKS) == want, path
     for path in _tracked_files():
-        if path.startswith("crates/") or path in SQLL_CODE:
+        if path in SQLL_CODE:
             assert ownership.owner(path, TRACKS) == "core", path
+        elif path.startswith("crates/"):
+            want = PACKAGE_OWNERS.get(_package_part(path), "core")
+            assert ownership.owner(path, TRACKS) == want, path
+
+
+# S3b C16: each later track owns src/** and tests/** of its packages
+# (docs/decisions/s3b-core.md, Q5). Core keeps each Cargo.toml and build.rs,
+# the Core packages, and the interface tests.
+
+PACKAGE_OWNERS = {
+    "sqll_parser": "S4",
+    "sqll_dialects": "S4",
+    "sqll_rules": "S5",
+    "sqll_templater": "S6",
+    "sqll_cli": "S7-sqll",
+    "sqll_codegen": "S8",
+    "sqll_plpgsql": "S10",
+}
+CORE_PACKAGES = (
+    "sqll",
+    "sqll_base_tests",
+    "sqll_config",
+    "sqll_interfaces",
+    "sqll_lexer",
+    "sqll_lint",
+    "sqll_schema",
+    "sqll_source",
+    "sqll_syntax",
+    "sqll_tree",
+    "sqll_types",
+)
+
+
+def _package_part(path: str) -> str | None:
+    """Return the package of a path in src/ or tests/ of a package, else
+    None."""
+    parts = path.split("/")
+    if len(parts) > 3 and parts[0] == "crates" and parts[2] in ("src", "tests"):
+        return parts[1]
+    return None
+
+
+def _packages() -> list[str]:
+    return sorted(p.parent.name for p in (REPO_ROOT / "crates").glob("*/Cargo.toml"))
+
+
+def test_the_package_lists_have_each_package_of_crates_once():
+    assert sorted([*PACKAGE_OWNERS, *CORE_PACKAGES]) == _packages()
+
+
+@pytest.mark.parametrize("package, track", sorted(PACKAGE_OWNERS.items()))
+def test_each_later_track_owns_src_and_tests_of_its_packages(package, track):
+    for path in (
+        f"crates/{package}/src/lib.rs",
+        f"crates/{package}/src/a/b.rs",
+        f"crates/{package}/tests/x.rs",
+    ):
+        assert ownership.owner(path, TRACKS) == track, path
+    for path in (
+        f"crates/{package}/Cargo.toml",
+        f"crates/{package}/build.rs",
+        f"crates/{package}/build/x.rs",
+        f"crates/{package}/x.json",
+        f"crates/{package}/benches/x.rs",
+    ):
+        assert ownership.owner(path, TRACKS) == "core", path
+    ok, text = ownership.check(f"claude/{track.lower()}-x", [], [path], TRACKS)
+    assert not ok, text
+    ok, text = ownership.check(
+        f"claude/{track.lower()}-x", [], [f"crates/{package}/src/lib.rs"], TRACKS
+    )
+    assert ok, text
+    ok, text = ownership.check("claude/s3b", [], [f"crates/{package}/src/x.rs"], TRACKS)
+    assert not ok, text
+
+
+def test_one_file_of_each_package_has_its_owner():
+    files = {
+        "crates/sqll_parser/src/lib.rs": "S4",
+        "crates/sqll_dialects/src/lib.rs": "S4",
+        "crates/sqll_dialects/tests/build_tables.rs": "S4",
+        "crates/sqll_rules/src/lib.rs": "S5",
+        "crates/sqll_templater/src/lib.rs": "S6",
+        "crates/sqll_cli/src/lib.rs": "S7-sqll",
+        "crates/sqll_codegen/src/lib.rs": "S8",
+        "crates/sqll_plpgsql/src/lib.rs": "S10",
+        "crates/sqll/src/main.rs": "core",
+        "crates/sqll_tree/src/lib.rs": "core",
+        "crates/sqll_lint/src/lib.rs": "core",
+        "crates/sqll_schema/src/lib.rs": "core",
+    }
+    tracked = set(_tracked_files())
+    for path, track in files.items():
+        assert path in tracked, path
+        assert ownership.owner(path, TRACKS) == track, path
+
+
+def test_core_owns_each_cargo_toml_and_build_rs():
+    tracked = _tracked_files()
+    for package in _packages():
+        assert f"crates/{package}/Cargo.toml" in tracked, package
+    for path in tracked:
+        name = path.rsplit("/", 1)[-1]
+        if path.startswith("crates/") and name in ("Cargo.toml", "build.rs"):
+            assert ownership.owner(path, TRACKS) == "core", path
+    for path in ("Cargo.toml", "Cargo.lock", "crates/ported.json"):
+        assert ownership.owner(path, TRACKS) == "core", path
+
+
+@pytest.mark.parametrize("package", CORE_PACKAGES)
+def test_core_owns_each_file_of_the_core_packages(package):
+    for path in (f"crates/{package}/src/lib.rs", f"crates/{package}/tests/x.rs"):
+        assert ownership.owner(path, TRACKS) == "core", path
+    for path in _tracked_files():
+        if path.startswith(f"crates/{package}/"):
+            assert ownership.owner(path, TRACKS) == "core", path
+
+
+def test_core_owns_each_frozen_interface_document_and_test():
+    tracked = _tracked_files()
+    interface_files = [
+        p
+        for p in tracked
+        if p.startswith(("crates/sqll_interfaces/", "docs/interfaces/"))
+    ]
+    tests = [p for p in interface_files if p.startswith("crates/sqll_interfaces/tests/")]
+    docs = [p for p in interface_files if p.startswith("docs/interfaces/")]
+    assert len(tests) == 8 and len(docs) == 9, interface_files
+    assert "docs/interfaces/README.md" in docs
+    for path in interface_files:
+        assert ownership.owner(path, TRACKS) == "core", path
+    for track in TRACKS:
+        if track == ownership.CORE:
+            continue
+        ok, _ = ownership.check(f"claude/{track.lower()}-x", [], tests, TRACKS)
+        assert not ok, track
+
+
+def test_core_owns_the_s3b_design_records():
+    for path in ("docs/decisions/s3b-core.md", "docs/decisions/s3b-x.md"):
+        assert ownership.owner(path, TRACKS) == "core", path
+    assert ownership.owner("docs/decisions/s3-exit.md", TRACKS) == "S3"
+    assert ownership.owner("docs/decisions/s9-corpus.md", TRACKS) == "S9"
 
 
 def test_only_the_core_track_can_change_the_sqll_code():

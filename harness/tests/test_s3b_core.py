@@ -268,6 +268,17 @@ def test_the_package_table_gives_an_owner_track_for_each_package():
     assert set(rows.values()) <= set(tracks)
 
 
+def test_tracks_yml_gives_each_package_to_its_owner_in_the_table():
+    # S3b C16: the owner track owns src/** and tests/** of the package; Core
+    # keeps its Cargo.toml.
+    ownership = ci_module("ownership")
+    tracks = ownership.load()
+    for package, track in package_rows().items():
+        for path in (f"crates/{package}/src/lib.rs", f"crates/{package}/tests/x.rs"):
+            assert ownership.owner(path, tracks) == track, path
+        assert ownership.owner(f"crates/{package}/Cargo.toml", tracks) == "core"
+
+
 def test_each_package_of_the_workspace_is_in_the_table():
     cargo = (REPO_ROOT / "Cargo.toml").read_text("utf8")
     members = re.findall(r'"crates/(\w+)"', cargo)
