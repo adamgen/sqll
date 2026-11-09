@@ -286,7 +286,9 @@ def test_core_owns_each_frozen_interface_document_and_test():
         for p in tracked
         if p.startswith(("crates/sqll_interfaces/", "docs/interfaces/"))
     ]
-    tests = [p for p in interface_files if p.startswith("crates/sqll_interfaces/tests/")]
+    tests = [
+        p for p in interface_files if p.startswith("crates/sqll_interfaces/tests/")
+    ]
     docs = [p for p in interface_files if p.startswith("docs/interfaces/")]
     assert len(tests) == 8 and len(docs) == 9, interface_files
     assert "docs/interfaces/README.md" in docs

@@ -433,3 +433,41 @@ schema check: PASS: 4 schemas valid against the JSON Schema draft 2020-12 meta-s
   C15 changes no code that it links: `cargo tree -p sqll -e normal,build`
   gives the same output as on main (0 lines with the new crates). Thus C15
   has no speed check (G3 rule above).
+
+## C16: package ownership proof
+
+Index: [docs/interfaces/README.md](../docs/interfaces/README.md).
+`tracks.yml` gives `src/**` and `tests/**` of each later package to its
+track (the C4 table, Q5): S4 `sqll_parser` and `sqll_dialects`, S5
+`sqll_rules`, S6 `sqll_templater`, S7-sqll `sqll_cli`, S8
+`sqll_codegen`, S10 `sqll_plpgsql`. Core keeps each other file under
+`crates/` (each `Cargo.toml` and `build.rs`, the Core packages, and
+`crates/sqll_interfaces`) and `docs/decisions/s3b-*.md`.
+
+- S10 gets `src/**` and `tests/**` of `sqll_plpgsql`, not
+  `crates/sqll_plpgsql/**`: with `**`, S10 would own its `Cargo.toml`,
+  and the C4 rule (Q5) gives each `Cargo.toml` to Core. The new empty
+  package has a `Cargo.toml` (Core) and `src/lib.rs` (S10 in the new
+  `tracks.yml`), so the pull request has the label `cross-track`.
+- `ci/ownership.py` on a local merge commit of the pull request (base
+  `f9c2a1f`): the base `tracks.yml` passes; the new `tracks.yml` fails
+  only for `crates/sqll_plpgsql/src/lib.rs` (owned by S10) with no label,
+  and passes with the label `cross-track`.
+- `harness/tests/test_ownership.py`: the owner of a file of each package
+  (S4 to S10 for `src/` and `tests/`; core for each `Cargo.toml`,
+  `build.rs`, and each file of the Core packages and of
+  `crates/sqll_interfaces`), each frozen interface document and test is a
+  Core path, and each tracked file under `crates/` has its owner.
+  `harness/tests/test_s3b_core.py` compares the C4 table with
+  `tracks.yml`.
+- `harness/tests/test_s3b_interfaces.py`: the index has the 8 interfaces;
+  each document and test exists, and each document names its test; each
+  file of `crates/sqll_interfaces/tests/` and of `docs/interfaces/` is in
+  the index. A missing or changed row fails.
+- Local: `cargo test --workspace --locked --no-fail-fast` passes (358
+  passed, 0 failed, 4 ignored); harness tests 2323 passed, 222 skipped
+  (the tool tests; CI runs them); ruff passes.
+- G3: the sqll binary does not link `sqll_plpgsql`, and C16 changes no
+  code that it links: `cargo tree -p sqll -e normal,build` gives the same
+  output as on main (0 lines with `sqll_plpgsql`). Thus C16 has no speed
+  check.
