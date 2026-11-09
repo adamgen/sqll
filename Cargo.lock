@@ -596,6 +596,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "sqll_codegen"
+version = "0.1.0"
+dependencies = [
+ "sqll_schema",
+ "sqll_syntax",
+ "sqll_tree",
+]
+
+[[package]]
 name = "sqll_config"
 version = "0.1.0"
 
@@ -615,12 +624,14 @@ version = "0.1.0"
 dependencies = [
  "serde_json",
  "serde_yaml_ng",
+ "sqll_codegen",
  "sqll_config",
  "sqll_dialects",
  "sqll_lexer",
  "sqll_lint",
  "sqll_parser",
  "sqll_rules",
+ "sqll_schema",
  "sqll_source",
  "sqll_syntax",
  "sqll_templater",
@@ -676,6 +687,15 @@ dependencies = [
  "sqll_source",
  "sqll_syntax",
  "sqll_templater",
+ "sqll_tree",
+]
+
+[[package]]
+name = "sqll_schema"
+version = "0.1.0"
+dependencies = [
+ "sqll_source",
+ "sqll_syntax",
  "sqll_tree",
 ]
 

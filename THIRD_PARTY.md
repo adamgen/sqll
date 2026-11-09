@@ -417,3 +417,12 @@ The oracle scripts (`scripts/sqlfluff-*-oracle`) and
 `pytest`, MIT), pinned in `tools/sqlfluff-oracle/uv.lock`.
 With `--rust` they run the pinned `sqlfluff[rs]` and pytest of
 `tools/sqlfluff-rs-oracle/uv.lock`. The harness does not use them.
+
+The harness test dependency `jsonschema` 4.26.0 (PyPI, MIT) validates the
+JSON Schema output of sqll (S3b C15, `scripts/s3b/schema_check.py`). It
+reads the draft 2020-12 meta-schema of `jsonschema-specifications`
+2025.9.1 (MIT). Its other dependencies are `attrs` 26.1.0, `referencing`
+0.37.0, and `rpds-py` 2026.9.1 (each MIT). `rfc3339-validator` 0.1.4
+(MIT) and its dependency `six` 1.17.0 (MIT) let it check the formats
+`date-time` and `time`. The pins are in `harness/uv.lock`. sqll does not
+contain or distribute them.
