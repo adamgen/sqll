@@ -9,6 +9,8 @@ source:
 license: MIT
 nodes:
   - node: test/rules/std_LT05_LT09_combo_test.py::test__rules__std_LT05_LT09_long_line_fix
+    asserts:
+      L28: ["long_line_fix:fixed"]
     cases:
       - name: long_line_fix
         run: api

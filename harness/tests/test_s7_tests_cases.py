@@ -35,6 +35,7 @@ VALID = {
     "nodes": [
         {
             "node": NODE,
+            "asserts": {"L11": ["raised:violations[0]"]},
             "cases": [
                 {
                     "name": "raised",
@@ -54,6 +55,10 @@ VALID_CLI = {
     "nodes": [
         {
             "node": CLI_NODE,
+            "asserts": {
+                "L114:ret_code": ["dialect:exit_code"],
+                "L120": ["dialect:stdout.contains[0]", "dialect:files[a.sql]"],
+            },
             "cases": [
                 {
                     "name": "dialect",
@@ -246,6 +251,100 @@ CASE = "nodes.0.cases.0"
         (VALID, "nodes.0.node", f"{CLI_NODE}", False, "is not a node of"),
         (VALID, "nodes.0.cases", [], False, "cases must be a list with one or more"),
         (VALID, "nodes.0.extra", 1, False, "unknown keys ['extra']"),
+        # The asserts map of a node (the trace oracle reads it).
+        (VALID, "nodes.0.asserts", None, True, "has no asserts map"),
+        (VALID, "nodes.0.asserts", [], False, "must map each assert id to a list"),
+        (
+            VALID,
+            "nodes.0.asserts",
+            {"11": ["raised:violations[0]"]},
+            False,
+            "is not an assert id",
+        ),
+        (
+            VALID,
+            "nodes.0.asserts",
+            {"L11:Ret": ["raised:violations[0]"]},
+            False,
+            "is not an assert id",
+        ),
+        (
+            VALID,
+            "nodes.0.asserts.L11",
+            [],
+            False,
+            "a list of one or more different checks",
+        ),
+        (
+            VALID,
+            "nodes.0.asserts.L11",
+            "raised:violations[0]",
+            False,
+            "a list of one or more",
+        ),
+        (
+            VALID,
+            "nodes.0.asserts.L11",
+            ["raised:violations[0]"] * 2,
+            False,
+            "different checks",
+        ),
+        (
+            VALID,
+            "nodes.0.asserts.L11",
+            ["violations[0]"],
+            False,
+            "is not <case name>:<check>",
+        ),
+        (
+            VALID,
+            "nodes.0.asserts.L11",
+            ["other:violations[0]"],
+            False,
+            "is not <case name>:<check>",
+        ),
+        (
+            VALID,
+            "nodes.0.asserts.L11",
+            ["raised:violations[1]"],
+            False,
+            "the case has no such check",
+        ),
+        (
+            VALID,
+            "nodes.0.asserts.L11",
+            ["raised:fixed"],
+            False,
+            "the case has no such check",
+        ),
+        (
+            VALID,
+            "nodes.0.asserts.L11",
+            ["raised:violations.0"],
+            False,
+            "is not <case name>:<check>",
+        ),
+        (
+            VALID,
+            "nodes.0.asserts.L11",
+            ["raised:violations[0].count.x"],
+            False,
+            "the case has no such check",
+        ),
+        (
+            VALID_CLI,
+            "nodes.0.asserts.L120",
+            ["dialect:files[b.sql]"],
+            False,
+            "the case has no such check",
+        ),
+        (
+            VALID_CLI,
+            "nodes.0.asserts.L120",
+            ["dialect:stdout.contains[1]"],
+            False,
+            "the case has no such check",
+        ),
         # The cases.
         (VALID, f"{CASE}.run", "python", False, ".run: must be one of"),
         (VALID, f"{CASE}.name", "", False, ".name: '' is not a new"),
@@ -481,3 +580,22 @@ def test_design_record_gives_each_key_of_the_format():
 def test_scope_counts_of_the_loader():
     assert len(SCOPE["nodes"]) == SCOPE["counts"]["total"] == 643
     assert json.loads(caseformat.SCOPE_FILE.read_text("utf8")) == SCOPE
+
+
+def test_resolve_check(tmp_path):
+    case = load_set(tmp_path, {CLI_PATH: VALID_CLI}).nodes[0].cases[0]
+    resolve = caseformat.resolve_check
+    assert resolve(case, "exit_code") == 2
+    assert resolve(case, "stdout.contains[0]") == "x"
+    assert resolve(case, "stdout[contains][0]") == "x"
+    assert resolve(case, "files[a.sql]") == "select 1\n"
+    assert resolve(case, "violations[0].file") == "a.sql"
+    for bad in ("stdout.contains[1]", "stdout.contains.0", "stderr", "x y", ""):
+        with pytest.raises(KeyError):
+            resolve(case, bad)
+
+
+def test_each_recorded_node_has_an_asserts_map():
+    for _, data in _raw_case_files():
+        for node in data["nodes"]:
+            assert node["asserts"], node["node"]

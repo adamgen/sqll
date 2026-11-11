@@ -9,6 +9,11 @@ source:
 license: MIT
 nodes:
   - node: test/rules/std_AL04_test.py::test__rules__std_AL04_one_aliases_two_duplicate
+    asserts:
+      L31: ["one_aliases_two_duplicate:violations[0]"]
+      L32: ["one_aliases_two_duplicate:violations[1]"]
+      L43: ["one_aliases_two_duplicate:violations[0].records[0]"]
+      L44: ["one_aliases_two_duplicate:violations[0].records[1]"]
     cases:
       - name: one_aliases_two_duplicate
         run: api

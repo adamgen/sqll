@@ -7,6 +7,7 @@ load (CaseFormatError), and the message names each error.
 """
 
 import json
+import re
 from dataclasses import dataclass, field
 from pathlib import Path, PurePosixPath
 from typing import Any
@@ -61,7 +62,7 @@ MATCHERS = ("equals", "startswith", "contains", "not_contains", "json")
 
 _HEADER_KEYS = {"source", "license", "nodes"}
 _SOURCE_KEYS = {"project", "version", "commit", "file"}
-_NODE_KEYS = {"node", "cases"}
+_NODE_KEYS = {"node", "asserts", "cases"}
 _COMMON_KEYS = {"name", "run", "needs_jinja", "checks"}
 _CLI_KEYS = _COMMON_KEYS | {"argv", "cwd", "stdin", "files", "sqruff"}
 _API_KEYS = _COMMON_KEYS | {
@@ -76,6 +77,37 @@ _CLI_CHECKS = {"exit_code", "stdout", "stderr", "files", "violations"}
 _API_CHECKS = {"lint": {"violations"}, "fix": {"fixed"}}
 _VIOLATION_CHECK_KEYS = {"file", "select", "count", "min_count", "records", "exact"}
 _EXCLUSION_KEYS = {"node", "class", "reason"}
+# The id of an assert of the source test (asserts.py) and a reference to a
+# check of a case: "<case name>:<path>", for example
+# "directed:stdout.contains[0]" or "raised:violations[0].records[1]".
+ASSERT_ID = re.compile(r"^L[1-9][0-9]*(:[a-z_]+)?$")
+_NAME = r"[A-Za-z_][A-Za-z_0-9]*"
+_PATH = rf"({_NAME})((?:\.{_NAME}|\[[^\]]+\])*)"
+_CHECK_REF = re.compile(rf"^([^:\s]+):{_PATH}$")
+_REF_PART = re.compile(rf"\.({_NAME})|\[([^\]]+)\]")
+
+
+def resolve_check(case: "Case", path: str) -> Any:
+    """The check of a case at path ("exit_code", "stdout.contains[0]",
+    "violations[1].records[0]", "files[a.sql]"). [n] is an index of a list,
+    [key] and .key a key of a mapping. KeyError if no check is there."""
+    match = re.fullmatch(_PATH, path)
+    if match is None:
+        raise KeyError(path)
+    value: Any = case.checks
+    parts = [(match.group(1), None)]
+    parts += [(m.group(1), m.group(2)) for m in _REF_PART.finditer(match.group(2))]
+    for key, bracket in parts:
+        if bracket is not None and isinstance(value, list):
+            if not bracket.isdigit() or int(bracket) >= len(value):
+                raise KeyError(path)
+            value = value[int(bracket)]
+            continue
+        key = key if bracket is None else bracket
+        if not isinstance(value, dict) or key not in value:
+            raise KeyError(path)
+        value = value[key]
+    return value
 
 
 class CaseFormatError(Exception):
@@ -116,12 +148,15 @@ class Case:
 
 @dataclass
 class Node:
-    """One pytest node of the sqlfluff tests and its cases."""
+    """One pytest node of the sqlfluff tests and its cases. asserts maps the
+    id of each assert of the source test to the checks that cite it
+    ("<case name>:<path>"); the trace oracle reads it."""
 
     id: str
     group: str
     case_file: str
     cases: list[Case]
+    asserts: dict[str, list[str]] = field(default_factory=dict)
 
     @property
     def needs_jinja(self) -> bool:
@@ -361,16 +396,48 @@ def _to_case(data: dict[str, Any]) -> Case:
     return Case(run=data["run"], checks=data["checks"], **names)
 
 
+def _check_asserts(
+    err: _Errors, at: str, value: Any, cases: list[Case]
+) -> dict[str, list[str]]:
+    """Check the asserts map of a node: each key is an assert id, each value
+    a list of one or more references to a check of a case of the node."""
+    if not isinstance(value, dict):
+        err.add(f"{at}.asserts", "must map each assert id to a list of checks")
+        return {}
+    by_name = {c.name: c for c in cases}
+    out: dict[str, list[str]] = {}
+    for aid, refs in value.items():
+        where = f"{at}.asserts.{aid}"
+        if not isinstance(aid, str) or not ASSERT_ID.match(aid):
+            err.add(where, "is not an assert id (L<line> or L<line>:<name>)")
+            continue
+        if not _is_str_list(refs) or len(set(refs)) != len(refs):
+            err.add(where, "must be a list of one or more different checks")
+            continue
+        for ref in refs:
+            match = _CHECK_REF.match(ref)
+            case = by_name.get(match.group(1)) if match else None
+            if case is None:
+                err.add(where, f"{ref!r} is not <case name>:<check> of a case")
+                continue
+            try:
+                resolve_check(case, ref.split(":", 1)[1])
+            except KeyError:
+                err.add(where, f"{ref!r}: the case has no such check")
+        out[aid] = refs
+    return out
+
+
 def parse_case_file(
     data: Any, rel_path: str, scope_files: dict[str, Any]
-) -> tuple[str, list[tuple[str, list[Case]]], list[str]]:
+) -> tuple[str, list[tuple[str, list[Case], dict[str, list[str]]]], list[str]]:
     """Check the content of one case file.
 
-    Return the source file, the (node id, cases) pairs, and the errors.
-    rel_path is the path of the case file relative to CASES_DIR.
+    Return the source file, the (node id, cases, asserts) items, and the
+    errors. rel_path is the path of the case file relative to CASES_DIR.
     """
     err = _Errors(rel_path)
-    nodes: list[tuple[str, list[Case]]] = []
+    nodes: list[tuple[str, list[Case], dict[str, list[str]]]] = []
     if not isinstance(data, dict):
         err.add("file", "must be a mapping")
         return "", nodes, err.items
@@ -439,7 +506,14 @@ def parse_case_file(
             (_check_cli if run == "cli" else _check_api)(err, where, case)
             if len(err.items) == before:
                 good.append(_to_case(case))
-        nodes.append((node_id, good))
+        if "asserts" not in item:
+            # The trace oracle needs it: a check must cite each assert of the
+            # source test (design record, "Trace oracle").
+            err.add(at, "has no asserts map")
+            cited = {}
+        else:
+            cited = _check_asserts(err, at, item["asserts"], good)
+        nodes.append((node_id, good, cited))
     return file, nodes, err.items
 
 
@@ -514,14 +588,14 @@ def load(
             continue
         _, pairs, errs = parse_case_file(data, rel, scope["files"])
         errors += errs
-        for node_id, cases in pairs:
+        for node_id, cases, cited in pairs:
             if node_id not in scope_ids:
                 errors.append(f"{rel}: {node_id}: not in scope.json")
             elif node_id in owner:
                 errors.append(f"{rel}: {node_id}: also in {owner[node_id]}")
             else:
                 owner[node_id] = rel
-                nodes.append(Node(node_id, scope_ids[node_id], rel, cases))
+                nodes.append(Node(node_id, scope_ids[node_id], rel, cases, cited))
     exclusions: list[Exclusion] = []
     if exclusions_file.exists():
         try:

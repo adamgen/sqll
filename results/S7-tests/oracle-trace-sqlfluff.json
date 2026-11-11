@@ -1,0 +1,1478 @@
+{
+ "kind": "sqll-s7-tests-trace",
+ "format": 1,
+ "sqlfluff": "4.4.0",
+ "sqlfluffrs": null,
+ "rust": false,
+ "pytest": "9.1.1",
+ "pytest_exit_code": 0,
+ "root_config": {},
+ "parse_runs": null,
+ "collection_errors": {},
+ "nodes": {
+  "test/cli/commands_test.py::test__cli__command_directed": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "cli",
+     "inputs": {
+      "argv": [
+       "lint",
+       "--disable-progress-bar",
+       "test/fixtures/linter/indentation_error_simple.sql"
+      ],
+      "stdin": null,
+      "cwd": "{sqlfluff}",
+      "unsupported": []
+     },
+     "outputs": {
+      "exit_code": 1,
+      "stdout": "== [test/fixtures/linter/indentation_error_simple.sql] FAIL\nL:   2 | P:   1 | LT02 | Expected indent of 4 spaces. [layout.indent]\nL:   5 | P:  10 | CP01 | Keywords must be consistently upper case.\n                       | [capitalisation.keywords]\nAll Finished!\n",
+      "stderr": ""
+     }
+    }
+   ],
+   "untraced": [],
+   "processes": []
+  },
+  "test/cli/commands_test.py::test__cli__command_dialect": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "cli",
+     "inputs": {
+      "argv": [
+       "lint",
+       "-n",
+       "--dialect",
+       "faslkjh",
+       "test/fixtures/linter/indentation_error_simple.sql"
+      ],
+      "stdin": null,
+      "cwd": "{sqlfluff}",
+      "unsupported": []
+     },
+     "outputs": {
+      "exit_code": 2,
+      "stdout": "Error: Unknown dialect 'faslkjh'\n",
+      "stderr": ""
+     }
+    }
+   ],
+   "untraced": [],
+   "processes": []
+  },
+  "test/cli/commands_test.py::test__cli__command_no_dialect[command0]": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "cli",
+     "inputs": {
+      "argv": [
+       "render",
+       "-"
+      ],
+      "stdin": "SELECT 1",
+      "cwd": "{sqlfluff}",
+      "unsupported": []
+     },
+     "outputs": {
+      "exit_code": 2,
+      "stdout": "",
+      "stderr": "\nUser Error: No dialect was specified. You must configure a dialect or specify one on the command line using --dialect after the command. Available dialects:\nansi, athena, bigquery, clickhouse, databricks, db2, doris, duckdb, exasol, flink, greenplum, hive, impala, mariadb, materialize, mysql, oracle, postgres, redshift, snowflake, soql, sparksql, sqlite, starrocks, teradata, trino, tsql, vertica\n"
+     }
+    }
+   ],
+   "untraced": [],
+   "processes": []
+  },
+  "test/cli/commands_test.py::test__cli__command_no_dialect[command1]": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "cli",
+     "inputs": {
+      "argv": [
+       "parse",
+       "-"
+      ],
+      "stdin": "SELECT 1",
+      "cwd": "{sqlfluff}",
+      "unsupported": []
+     },
+     "outputs": {
+      "exit_code": 2,
+      "stdout": "",
+      "stderr": "\nUser Error: No dialect was specified. You must configure a dialect or specify one on the command line using --dialect after the command. Available dialects:\nansi, athena, bigquery, clickhouse, databricks, db2, doris, duckdb, exasol, flink, greenplum, hive, impala, mariadb, materialize, mysql, oracle, postgres, redshift, snowflake, soql, sparksql, sqlite, starrocks, teradata, trino, tsql, vertica\n"
+     }
+    }
+   ],
+   "untraced": [],
+   "processes": []
+  },
+  "test/cli/commands_test.py::test__cli__command_no_dialect[command2]": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "cli",
+     "inputs": {
+      "argv": [
+       "lint",
+       "-"
+      ],
+      "stdin": "SELECT 1",
+      "cwd": "{sqlfluff}",
+      "unsupported": []
+     },
+     "outputs": {
+      "exit_code": 2,
+      "stdout": "",
+      "stderr": "\nUser Error: No dialect was specified. You must configure a dialect or specify one on the command line using --dialect after the command. Available dialects:\nansi, athena, bigquery, clickhouse, databricks, db2, doris, duckdb, exasol, flink, greenplum, hive, impala, mariadb, materialize, mysql, oracle, postgres, redshift, snowflake, soql, sparksql, sqlite, starrocks, teradata, trino, tsql, vertica\n"
+     }
+    }
+   ],
+   "untraced": [],
+   "processes": []
+  },
+  "test/cli/commands_test.py::test__cli__command_no_dialect[command3]": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "cli",
+     "inputs": {
+      "argv": [
+       "format",
+       "-"
+      ],
+      "stdin": "SELECT 1",
+      "cwd": "{sqlfluff}",
+      "unsupported": []
+     },
+     "outputs": {
+      "exit_code": 2,
+      "stdout": "",
+      "stderr": "\nUser Error: No dialect was specified. You must configure a dialect or specify one on the command line using --dialect after the command. Available dialects:\nansi, athena, bigquery, clickhouse, databricks, db2, doris, duckdb, exasol, flink, greenplum, hive, impala, mariadb, materialize, mysql, oracle, postgres, redshift, snowflake, soql, sparksql, sqlite, starrocks, teradata, trino, tsql, vertica\n"
+     }
+    }
+   ],
+   "untraced": [],
+   "processes": []
+  },
+  "test/cli/commands_test.py::test__cli__command_no_dialect[command4]": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "cli",
+     "inputs": {
+      "argv": [
+       "fix",
+       "-"
+      ],
+      "stdin": "SELECT 1",
+      "cwd": "{sqlfluff}",
+      "unsupported": []
+     },
+     "outputs": {
+      "exit_code": 2,
+      "stdout": "",
+      "stderr": "\nUser Error: No dialect was specified. You must configure a dialect or specify one on the command line using --dialect after the command. Available dialects:\nansi, athena, bigquery, clickhouse, databricks, db2, doris, duckdb, exasol, flink, greenplum, hive, impala, mariadb, materialize, mysql, oracle, postgres, redshift, snowflake, soql, sparksql, sqlite, starrocks, teradata, trino, tsql, vertica\n"
+     }
+    }
+   ],
+   "untraced": [],
+   "processes": []
+  },
+  "test/cli/commands_test.py::test__cli__command_version": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "cli",
+     "inputs": {
+      "argv": [
+       "version"
+      ],
+      "stdin": null,
+      "cwd": "{sqlfluff}",
+      "unsupported": []
+     },
+     "outputs": {
+      "exit_code": 0,
+      "stdout": "4.4.0\n",
+      "stderr": ""
+     }
+    },
+    {
+     "kind": "cli",
+     "inputs": {
+      "argv": [
+       "version",
+       "-v"
+      ],
+      "stdin": null,
+      "cwd": "{sqlfluff}",
+      "unsupported": []
+     },
+     "outputs": {
+      "exit_code": 0,
+      "stdout": "==== sqlfluff ====\nsqlfluff:                4.4.0 python:                3.13.18\nimplementation:        cpython verbosity:                   1\ntemplater:               jinja\nrules:                                all\n",
+      "stderr": ""
+     }
+    }
+   ],
+   "untraced": [],
+   "processes": []
+  },
+  "test/core/config/fluffconfig_test.py::test__config__glob_exclude_config_tests": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "linter",
+     "inputs": {
+      "method": "lint_path",
+      "paths": [
+       "test/fixtures/config/glob_exclude/test.sql"
+      ],
+      "options": {},
+      "linter": {
+       "config": {
+        "method": "from_path",
+        "args": {
+         "path": "test/fixtures/config/glob_exclude"
+        }
+       }
+      },
+      "cwd": "{sqlfluff}"
+     },
+     "outputs": {
+      "records": [
+       {
+        "filepath": "test/fixtures/config/glob_exclude/test.sql",
+        "violations": [
+         {
+          "start_line_no": 12,
+          "start_line_pos": 8,
+          "code": "AM04",
+          "description": "Query produces an unknown number of result columns.",
+          "name": "ambiguous.column_count",
+          "warning": false,
+          "fixes": [],
+          "start_file_pos": 263,
+          "end_line_no": 12,
+          "end_line_pos": 9,
+          "end_file_pos": 264
+         },
+         {
+          "start_line_no": 14,
+          "start_line_pos": 1,
+          "code": "AM08",
+          "description": "Implicit cross join detected.",
+          "name": "ambiguous.join_condition",
+          "warning": false,
+          "fixes": [],
+          "start_file_pos": 274,
+          "end_line_no": 14,
+          "end_line_pos": 9,
+          "end_file_pos": 282
+         }
+        ],
+        "statistics": {
+         "source_chars": 283,
+         "templated_chars": 283,
+         "segments": 54,
+         "raw_segments": 38
+        }
+       }
+      ],
+      "exit_code": 1
+     }
+    }
+   ],
+   "untraced": [],
+   "processes": []
+  },
+  "test/core/config/fluffconfig_test.py::test__config__glob_include_config_tests": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "linter",
+     "inputs": {
+      "method": "lint_path",
+      "paths": [
+       "test/fixtures/config/glob_include/test.sql"
+      ],
+      "options": {},
+      "linter": {
+       "config": {
+        "method": "from_path",
+        "args": {
+         "path": "test/fixtures/config/glob_include"
+        }
+       }
+      },
+      "cwd": "{sqlfluff}"
+     },
+     "outputs": {
+      "records": [
+       {
+        "filepath": "test/fixtures/config/glob_include/test.sql",
+        "violations": [
+         {
+          "start_line_no": 1,
+          "start_line_pos": 1,
+          "code": "LT13",
+          "description": "Files must not begin with newlines or whitespace.",
+          "name": "layout.start_of_file",
+          "warning": false,
+          "fixes": [
+           {
+            "type": "delete",
+            "edit": "",
+            "start_line_no": 1,
+            "start_line_pos": 1,
+            "start_file_pos": 0,
+            "end_line_no": 2,
+            "end_line_pos": 1,
+            "end_file_pos": 1
+           }
+          ],
+          "start_file_pos": 0,
+          "end_line_no": 15,
+          "end_line_pos": 1,
+          "end_file_pos": 288
+         },
+         {
+          "start_line_no": 12,
+          "start_line_pos": 8,
+          "code": "RF02",
+          "description": "Unqualified reference '*' found in select with more than one referenced table/view.",
+          "name": "references.qualification",
+          "warning": false,
+          "fixes": [],
+          "start_file_pos": 268,
+          "end_line_no": 12,
+          "end_line_pos": 9,
+          "end_file_pos": 269
+         },
+         {
+          "start_line_no": 14,
+          "start_line_pos": 1,
+          "code": "AM05",
+          "description": "Join clauses should be fully qualified.",
+          "name": "ambiguous.join",
+          "warning": false,
+          "fixes": [
+           {
+            "type": "create_before",
+            "edit": "INNER ",
+            "start_line_no": 14,
+            "start_line_pos": 1,
+            "start_file_pos": 279,
+            "end_line_no": 14,
+            "end_line_pos": 1,
+            "end_file_pos": 279
+           }
+          ],
+          "start_file_pos": 279,
+          "end_line_no": 14,
+          "end_line_pos": 5,
+          "end_file_pos": 283
+         },
+         {
+          "start_line_no": 14,
+          "start_line_pos": 9,
+          "code": "CV06",
+          "description": "Statements must end with a semi-colon.",
+          "name": "convention.terminator",
+          "warning": false,
+          "fixes": [
+           {
+            "type": "create_after",
+            "edit": ";",
+            "start_line_no": 14,
+            "start_line_pos": 9,
+            "start_file_pos": 287,
+            "end_line_no": 14,
+            "end_line_pos": 9,
+            "end_file_pos": 287
+           }
+          ],
+          "start_file_pos": 287,
+          "end_line_no": 15,
+          "end_line_pos": 1,
+          "end_file_pos": 288
+         }
+        ],
+        "statistics": {
+         "source_chars": 288,
+         "templated_chars": 288,
+         "segments": 54,
+         "raw_segments": 38
+        }
+       }
+      ],
+      "exit_code": 1
+     }
+    }
+   ],
+   "untraced": [],
+   "processes": []
+  },
+  "test/rules/std_AL04_test.py::test__rules__std_AL04_one_aliases_two_duplicate": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "api",
+     "inputs": {
+      "function": "lint",
+      "sql": "\n        SELECT\n            a.pk\n        FROM table_1 AS a\n        JOIN table_2 AS a ON a.pk = a.pk\n        JOIN table_3 AS a ON a.pk = a.pk\n    ",
+      "dialect": null,
+      "rules": null,
+      "exclude_rules": null,
+      "config": null,
+      "config_path": null,
+      "cwd": "{sqlfluff}"
+     },
+     "outputs": [
+      {
+       "start_line_no": 1,
+       "start_line_pos": 1,
+       "code": "LT13",
+       "description": "Files must not begin with newlines or whitespace.",
+       "name": "layout.start_of_file",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 1,
+         "start_line_pos": 1,
+         "start_file_pos": 0,
+         "end_line_no": 2,
+         "end_line_pos": 1,
+         "end_file_pos": 1
+        },
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 2,
+         "start_line_pos": 1,
+         "start_file_pos": 1,
+         "end_line_no": 2,
+         "end_line_pos": 9,
+         "end_file_pos": 9
+        }
+       ],
+       "start_file_pos": 0,
+       "end_line_no": 7,
+       "end_line_pos": 5,
+       "end_file_pos": 145
+      },
+      {
+       "start_line_no": 2,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Line should not be indented.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 2,
+         "start_line_pos": 1,
+         "start_file_pos": 1,
+         "end_line_no": 2,
+         "end_line_pos": 9,
+         "end_file_pos": 9
+        }
+       ],
+       "start_file_pos": 1,
+       "end_line_no": 2,
+       "end_line_pos": 9,
+       "end_file_pos": 9
+      },
+      {
+       "start_line_no": 2,
+       "start_line_pos": 9,
+       "code": "LT09",
+       "description": "Select targets should be on a new line unless there is only one select target.",
+       "name": "layout.select_targets",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "replace",
+         "edit": " a.pk",
+         "start_line_no": 2,
+         "start_line_pos": 15,
+         "start_file_pos": 15,
+         "end_line_no": 3,
+         "end_line_pos": 1,
+         "end_file_pos": 16
+        },
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 3,
+         "start_line_pos": 13,
+         "start_file_pos": 28,
+         "end_line_no": 3,
+         "end_line_pos": 17,
+         "end_file_pos": 32
+        },
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 3,
+         "start_line_pos": 1,
+         "start_file_pos": 16,
+         "end_line_no": 3,
+         "end_line_pos": 13,
+         "end_file_pos": 28
+        },
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 3,
+         "start_line_pos": 17,
+         "start_file_pos": 32,
+         "end_line_no": 4,
+         "end_line_pos": 1,
+         "end_file_pos": 33
+        },
+        {
+         "type": "create_after",
+         "edit": "\n",
+         "start_line_no": 3,
+         "start_line_pos": 17,
+         "start_file_pos": 32,
+         "end_line_no": 3,
+         "end_line_pos": 17,
+         "end_file_pos": 32
+        }
+       ],
+       "start_file_pos": 9,
+       "end_line_no": 3,
+       "end_line_pos": 17,
+       "end_file_pos": 32
+      },
+      {
+       "start_line_no": 3,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Expected indent of 4 spaces.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "replace",
+         "edit": "    ",
+         "start_line_no": 3,
+         "start_line_pos": 1,
+         "start_file_pos": 16,
+         "end_line_no": 3,
+         "end_line_pos": 13,
+         "end_file_pos": 28
+        }
+       ],
+       "start_file_pos": 16,
+       "end_line_no": 3,
+       "end_line_pos": 13,
+       "end_file_pos": 28
+      },
+      {
+       "start_line_no": 4,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Line should not be indented.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 4,
+         "start_line_pos": 1,
+         "start_file_pos": 33,
+         "end_line_no": 4,
+         "end_line_pos": 9,
+         "end_file_pos": 41
+        }
+       ],
+       "start_file_pos": 33,
+       "end_line_no": 4,
+       "end_line_pos": 9,
+       "end_file_pos": 41
+      },
+      {
+       "start_line_no": 5,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Line should not be indented.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 5,
+         "start_line_pos": 1,
+         "start_file_pos": 59,
+         "end_line_no": 5,
+         "end_line_pos": 9,
+         "end_file_pos": 67
+        }
+       ],
+       "start_file_pos": 59,
+       "end_line_no": 5,
+       "end_line_pos": 9,
+       "end_file_pos": 67
+      },
+      {
+       "start_line_no": 5,
+       "start_line_pos": 9,
+       "code": "AM05",
+       "description": "Join clauses should be fully qualified.",
+       "name": "ambiguous.join",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "create_before",
+         "edit": "INNER ",
+         "start_line_no": 5,
+         "start_line_pos": 9,
+         "start_file_pos": 67,
+         "end_line_no": 5,
+         "end_line_pos": 9,
+         "end_file_pos": 67
+        }
+       ],
+       "start_file_pos": 67,
+       "end_line_no": 5,
+       "end_line_pos": 13,
+       "end_file_pos": 71
+      },
+      {
+       "start_line_no": 5,
+       "start_line_pos": 25,
+       "code": "AL04",
+       "description": "Duplicate table alias 'a'. Table aliases should be unique.",
+       "name": "aliasing.unique.table",
+       "warning": false,
+       "fixes": [],
+       "start_file_pos": 83,
+       "end_line_no": 5,
+       "end_line_pos": 26,
+       "end_file_pos": 84
+      },
+      {
+       "start_line_no": 5,
+       "start_line_pos": 35,
+       "code": "ST10",
+       "description": "Redundant constant expression.",
+       "name": "structure.constant_expression",
+       "warning": false,
+       "fixes": [],
+       "start_file_pos": 93,
+       "end_line_no": 5,
+       "end_line_pos": 36,
+       "end_file_pos": 94
+      },
+      {
+       "start_line_no": 6,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Line should not be indented.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 6,
+         "start_line_pos": 1,
+         "start_file_pos": 100,
+         "end_line_no": 6,
+         "end_line_pos": 9,
+         "end_file_pos": 108
+        }
+       ],
+       "start_file_pos": 100,
+       "end_line_no": 6,
+       "end_line_pos": 9,
+       "end_file_pos": 108
+      },
+      {
+       "start_line_no": 6,
+       "start_line_pos": 9,
+       "code": "AM05",
+       "description": "Join clauses should be fully qualified.",
+       "name": "ambiguous.join",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "create_before",
+         "edit": "INNER ",
+         "start_line_no": 6,
+         "start_line_pos": 9,
+         "start_file_pos": 108,
+         "end_line_no": 6,
+         "end_line_pos": 9,
+         "end_file_pos": 108
+        }
+       ],
+       "start_file_pos": 108,
+       "end_line_no": 6,
+       "end_line_pos": 13,
+       "end_file_pos": 112
+      },
+      {
+       "start_line_no": 6,
+       "start_line_pos": 25,
+       "code": "AL04",
+       "description": "Duplicate table alias 'a'. Table aliases should be unique.",
+       "name": "aliasing.unique.table",
+       "warning": false,
+       "fixes": [],
+       "start_file_pos": 124,
+       "end_line_no": 6,
+       "end_line_pos": 26,
+       "end_file_pos": 125
+      },
+      {
+       "start_line_no": 6,
+       "start_line_pos": 35,
+       "code": "ST10",
+       "description": "Redundant constant expression.",
+       "name": "structure.constant_expression",
+       "warning": false,
+       "fixes": [],
+       "start_file_pos": 134,
+       "end_line_no": 6,
+       "end_line_pos": 36,
+       "end_file_pos": 135
+      },
+      {
+       "start_line_no": 7,
+       "start_line_pos": 1,
+       "code": "LT01",
+       "description": "Unnecessary trailing whitespace at end of file.",
+       "name": "layout.spacing",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 7,
+         "start_line_pos": 1,
+         "start_file_pos": 141,
+         "end_line_no": 7,
+         "end_line_pos": 5,
+         "end_file_pos": 145
+        }
+       ],
+       "start_file_pos": 141,
+       "end_line_no": 7,
+       "end_line_pos": 5,
+       "end_file_pos": 145
+      }
+     ]
+    }
+   ],
+   "untraced": [],
+   "processes": []
+  },
+  "test/rules/std_CV02_test.py::test__rules__std_CV02_raised": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "api",
+     "inputs": {
+      "function": "lint",
+      "sql": "SELECT\n\tIFNULL(NULL, 100),\n\tNVL(NULL,100);",
+      "dialect": null,
+      "rules": [
+       "CV02"
+      ],
+      "exclude_rules": null,
+      "config": null,
+      "config_path": null,
+      "cwd": "{sqlfluff}"
+     },
+     "outputs": [
+      {
+       "start_line_no": 2,
+       "start_line_pos": 2,
+       "code": "CV02",
+       "description": "Use 'COALESCE' instead of 'IFNULL'.",
+       "name": "convention.coalesce",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "replace",
+         "edit": "COALESCE",
+         "start_line_no": 2,
+         "start_line_pos": 2,
+         "start_file_pos": 8,
+         "end_line_no": 2,
+         "end_line_pos": 8,
+         "end_file_pos": 14
+        }
+       ],
+       "start_file_pos": 8,
+       "end_line_no": 2,
+       "end_line_pos": 8,
+       "end_file_pos": 14
+      },
+      {
+       "start_line_no": 3,
+       "start_line_pos": 2,
+       "code": "CV02",
+       "description": "Use 'COALESCE' instead of 'NVL'.",
+       "name": "convention.coalesce",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "replace",
+         "edit": "COALESCE",
+         "start_line_no": 3,
+         "start_line_pos": 2,
+         "start_file_pos": 28,
+         "end_line_no": 3,
+         "end_line_pos": 5,
+         "end_file_pos": 31
+        }
+       ],
+       "start_file_pos": 28,
+       "end_line_no": 3,
+       "end_line_pos": 5,
+       "end_file_pos": 31
+      }
+     ]
+    }
+   ],
+   "untraced": [],
+   "processes": []
+  },
+  "test/rules/std_LT04_test.py::test__rules__std_LT04_unparseable": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "api",
+     "inputs": {
+      "function": "lint",
+      "sql": "\n        SELECT\n          user_id,\n          campaign_id,\n          business_type,\n          SPLIT(intents, \",\") AS intent_list,\n          {% for feature in readability_features_numeric %}\n            CAST(JSON_EXTRACT(readability_scores,\n            '$.data.{{feature}}') AS float64) AS {{feature}} {% if not loop.last %} ,\n            {% endif %}\n          {% endfor %},\n          {% for feature in readability_features_count_list %}\n            CAST(JSON_EXTRACT(asset_structure,\n            '$.{{feature}}') AS float64) AS {{feature}}_count {% if not loop.last %} ,\n            {% endif %}\n          {% endfor %},\n            track_clicks_text,\n            track_clicks_html\n        FROM\n          t\n    ",
+      "dialect": null,
+      "rules": null,
+      "exclude_rules": null,
+      "config": null,
+      "config_path": null,
+      "cwd": "{sqlfluff}"
+     },
+     "outputs": [
+      {
+       "start_line_no": 1,
+       "start_line_pos": 1,
+       "code": "LT13",
+       "description": "Files must not begin with newlines or whitespace.",
+       "name": "layout.start_of_file",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 1,
+         "start_line_pos": 1,
+         "start_file_pos": 0,
+         "end_line_no": 2,
+         "end_line_pos": 1,
+         "end_file_pos": 1
+        },
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 2,
+         "start_line_pos": 1,
+         "start_file_pos": 1,
+         "end_line_no": 2,
+         "end_line_pos": 9,
+         "end_file_pos": 9
+        }
+       ]
+      },
+      {
+       "start_line_no": 2,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Line should not be indented.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 2,
+         "start_line_pos": 1,
+         "start_file_pos": 1,
+         "end_line_no": 2,
+         "end_line_pos": 9,
+         "end_file_pos": 9
+        }
+       ],
+       "start_file_pos": 1,
+       "end_line_no": 2,
+       "end_line_pos": 9,
+       "end_file_pos": 9
+      },
+      {
+       "start_line_no": 3,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Expected indent of 4 spaces.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "replace",
+         "edit": "    ",
+         "start_line_no": 3,
+         "start_line_pos": 1,
+         "start_file_pos": 16,
+         "end_line_no": 3,
+         "end_line_pos": 11,
+         "end_file_pos": 26
+        }
+       ],
+       "start_file_pos": 16,
+       "end_line_no": 3,
+       "end_line_pos": 11,
+       "end_file_pos": 26
+      },
+      {
+       "start_line_no": 4,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Expected indent of 4 spaces.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "replace",
+         "edit": "    ",
+         "start_line_no": 4,
+         "start_line_pos": 1,
+         "start_file_pos": 35,
+         "end_line_no": 4,
+         "end_line_pos": 11,
+         "end_file_pos": 45
+        }
+       ],
+       "start_file_pos": 35,
+       "end_line_no": 4,
+       "end_line_pos": 11,
+       "end_file_pos": 45
+      },
+      {
+       "start_line_no": 5,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Expected indent of 4 spaces.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "replace",
+         "edit": "    ",
+         "start_line_no": 5,
+         "start_line_pos": 1,
+         "start_file_pos": 58,
+         "end_line_no": 5,
+         "end_line_pos": 11,
+         "end_file_pos": 68
+        }
+       ],
+       "start_file_pos": 58,
+       "end_line_no": 5,
+       "end_line_pos": 11,
+       "end_file_pos": 68
+      },
+      {
+       "start_line_no": 6,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Expected indent of 4 spaces.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "replace",
+         "edit": "    ",
+         "start_line_no": 6,
+         "start_line_pos": 1,
+         "start_file_pos": 83,
+         "end_line_no": 6,
+         "end_line_pos": 11,
+         "end_file_pos": 93
+        }
+       ],
+       "start_file_pos": 83,
+       "end_line_no": 6,
+       "end_line_pos": 11,
+       "end_file_pos": 93
+      },
+      {
+       "start_line_no": 7,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Expected indent of 4 spaces.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "replace",
+         "edit": "    ",
+         "start_line_no": 7,
+         "start_line_pos": 1,
+         "start_file_pos": 129,
+         "end_line_no": 7,
+         "end_line_pos": 11,
+         "end_file_pos": 139
+        }
+       ],
+       "start_file_pos": 129,
+       "end_line_no": 7,
+       "end_line_pos": 11,
+       "end_file_pos": 139
+      },
+      {
+       "start_line_no": 7,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Line should not be indented.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 7,
+         "start_line_pos": 1,
+         "start_file_pos": 129,
+         "end_line_no": 7,
+         "end_line_pos": 11,
+         "end_file_pos": 139
+        }
+       ],
+       "start_file_pos": 129,
+       "end_line_no": 7,
+       "end_line_pos": 11,
+       "end_file_pos": 139
+      },
+      {
+       "start_line_no": 7,
+       "start_line_pos": 29,
+       "code": "TMP",
+       "description": "Undefined jinja template variable: 'readability_features_numeric'",
+       "name": "",
+       "warning": false
+      },
+      {
+       "start_line_no": 7,
+       "start_line_pos": 60,
+       "code": "JJ01",
+       "description": "Jinja tags should have a single whitespace on either side: {{feature}}",
+       "name": "jinja.padding",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "replace",
+         "edit": "{{ feature }}",
+         "start_line_no": 9,
+         "start_line_pos": 21,
+         "start_file_pos": 259,
+         "end_line_no": 9,
+         "end_line_pos": 32,
+         "end_file_pos": 270
+        }
+       ]
+      },
+      {
+       "start_line_no": 7,
+       "start_line_pos": 60,
+       "code": "JJ01",
+       "description": "Jinja tags should have a single whitespace on either side: {{feature}}",
+       "name": "jinja.padding",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "replace",
+         "edit": "{{ feature }}",
+         "start_line_no": 9,
+         "start_line_pos": 50,
+         "start_file_pos": 288,
+         "end_line_no": 9,
+         "end_line_pos": 61,
+         "end_file_pos": 299
+        }
+       ]
+      },
+      {
+       "start_line_no": 8,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Expected indent of 8 spaces.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "replace",
+         "edit": "        ",
+         "start_line_no": 8,
+         "start_line_pos": 1,
+         "start_file_pos": 189,
+         "end_line_no": 8,
+         "end_line_pos": 13,
+         "end_file_pos": 201
+        }
+       ],
+       "start_file_pos": 189,
+       "end_line_no": 8,
+       "end_line_pos": 13,
+       "end_file_pos": 201
+      },
+      {
+       "start_line_no": 8,
+       "start_line_pos": 31,
+       "code": "LT02",
+       "description": "Expected line break and indent of 12 spaces before 'readability_scores'.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "create_before",
+         "edit": "\n            ",
+         "start_line_no": 8,
+         "start_line_pos": 31,
+         "start_file_pos": 219,
+         "end_line_no": 8,
+         "end_line_pos": 31,
+         "end_file_pos": 219
+        }
+       ],
+       "start_file_pos": 219,
+       "end_line_no": 8,
+       "end_line_pos": 49,
+       "end_file_pos": 237
+      },
+      {
+       "start_line_no": 9,
+       "start_line_pos": 21,
+       "code": "JJ01",
+       "description": "Jinja tags should have a single whitespace on either side: {{feature}}",
+       "name": "jinja.padding",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "replace",
+         "edit": "{{ feature }}",
+         "start_line_no": 9,
+         "start_line_pos": 21,
+         "start_file_pos": 259,
+         "end_line_no": 9,
+         "end_line_pos": 32,
+         "end_file_pos": 270
+        }
+       ],
+       "start_file_pos": 259,
+       "end_line_no": 9,
+       "end_line_pos": 32,
+       "end_file_pos": 270
+      },
+      {
+       "start_line_no": 9,
+       "start_line_pos": 33,
+       "code": "LT02",
+       "description": "Expected line break and indent of 8 spaces before ')'.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "create_before",
+         "edit": "\n        ",
+         "start_line_no": 9,
+         "start_line_pos": 33,
+         "start_file_pos": 271,
+         "end_line_no": 9,
+         "end_line_pos": 33,
+         "end_file_pos": 271
+        }
+       ],
+       "start_file_pos": 271,
+       "end_line_no": 9,
+       "end_line_pos": 34,
+       "end_file_pos": 272
+      },
+      {
+       "start_line_no": 9,
+       "start_line_pos": 46,
+       "code": "LT02",
+       "description": "Expected line break and indent of 8 spaces before 'AS'.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "replace",
+         "edit": "\n        ",
+         "start_line_no": 9,
+         "start_line_pos": 46,
+         "start_file_pos": 284,
+         "end_line_no": 9,
+         "end_line_pos": 47,
+         "end_file_pos": 285
+        }
+       ],
+       "start_file_pos": 284,
+       "end_line_no": 9,
+       "end_line_pos": 47,
+       "end_file_pos": 285
+      },
+      {
+       "start_line_no": 9,
+       "start_line_pos": 47,
+       "code": "PRS",
+       "description": "Line 9, Position 36: Found unparsable section: 'AS  \\n          ,\\n          \\n            ...'",
+       "name": "",
+       "warning": false
+      },
+      {
+       "start_line_no": 12,
+       "start_line_pos": 29,
+       "code": "TMP",
+       "description": "Undefined jinja template variable: 'readability_features_count_list'",
+       "name": "",
+       "warning": false
+      },
+      {
+       "start_line_no": 19,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Line should not be indented.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 19,
+         "start_line_pos": 1,
+         "start_file_pos": 679,
+         "end_line_no": 19,
+         "end_line_pos": 9,
+         "end_file_pos": 687
+        }
+       ],
+       "start_file_pos": 679,
+       "end_line_no": 19,
+       "end_line_pos": 9,
+       "end_file_pos": 687
+      },
+      {
+       "start_line_no": 19,
+       "start_line_pos": 5,
+       "code": "LT02",
+       "description": "Expected indent of 4 spaces.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "replace",
+         "edit": "    ",
+         "start_line_no": 19,
+         "start_line_pos": 5,
+         "start_file_pos": 683,
+         "end_line_no": 20,
+         "end_line_pos": 2,
+         "end_file_pos": 693
+        }
+       ],
+       "start_file_pos": 683,
+       "end_line_no": 20,
+       "end_line_pos": 2,
+       "end_file_pos": 693
+      },
+      {
+       "start_line_no": 20,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Expected indent of 4 spaces.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "replace",
+         "edit": "    ",
+         "start_line_no": 20,
+         "start_line_pos": 1,
+         "start_file_pos": 692,
+         "end_line_no": 20,
+         "end_line_pos": 11,
+         "end_file_pos": 702
+        }
+       ],
+       "start_file_pos": 692,
+       "end_line_no": 20,
+       "end_line_pos": 11,
+       "end_file_pos": 702
+      },
+      {
+       "start_line_no": 20,
+       "start_line_pos": 4,
+       "code": "LT01",
+       "description": "Unnecessary trailing whitespace at end of file.",
+       "name": "layout.spacing",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 20,
+         "start_line_pos": 4,
+         "start_file_pos": 695,
+         "end_line_no": 20,
+         "end_line_pos": 8,
+         "end_file_pos": 699
+        }
+       ],
+       "start_file_pos": 695,
+       "end_line_no": 20,
+       "end_line_pos": 8,
+       "end_file_pos": 699
+      },
+      {
+       "start_line_no": 21,
+       "start_line_pos": 1,
+       "code": "LT01",
+       "description": "Unnecessary trailing whitespace at end of file.",
+       "name": "layout.spacing",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 21,
+         "start_line_pos": 1,
+         "start_file_pos": 704,
+         "end_line_no": 21,
+         "end_line_pos": 5,
+         "end_file_pos": 708
+        }
+       ],
+       "start_file_pos": 704,
+       "end_line_no": 21,
+       "end_line_pos": 5,
+       "end_file_pos": 708
+      }
+     ]
+    }
+   ],
+   "untraced": [],
+   "processes": []
+  },
+  "test/rules/std_LT05_LT09_combo_test.py::test__rules__std_LT05_LT09_long_line_fix": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "api",
+     "inputs": {
+      "function": "fix",
+      "sql": "SELECT 1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\n",
+      "dialect": null,
+      "rules": null,
+      "exclude_rules": null,
+      "config": null,
+      "config_path": null,
+      "fix_even_unparsable": null,
+      "cwd": "{sqlfluff}"
+     },
+     "outputs": "SELECT\n    1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\n"
+    }
+   ],
+   "untraced": [],
+   "processes": []
+  },
+  "test/rules/std_ST03_test.py::test__rules__std_ST03_multiple_unused_ctes": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "api",
+     "inputs": {
+      "function": "lint",
+      "sql": "\n    WITH\n    cte_1 AS (\n        SELECT 1\n    ),\n    cte_2 AS (\n        SELECT 2\n    ),\n    cte_3 AS (\n        SELECT 3\n    ),\n    cte_4 AS (\n        SELECT 4\n    )\n\n    SELECT var_bar\n    FROM cte_3\n    ",
+      "dialect": null,
+      "rules": [
+       "ST03"
+      ],
+      "exclude_rules": null,
+      "config": null,
+      "config_path": null,
+      "cwd": "{sqlfluff}"
+     },
+     "outputs": [
+      {
+       "start_line_no": 3,
+       "start_line_pos": 5,
+       "code": "ST03",
+       "description": "Query defines CTE \"cte_1\" but does not use it.",
+       "name": "structure.unused_cte",
+       "warning": false,
+       "fixes": [],
+       "start_file_pos": 14,
+       "end_line_no": 3,
+       "end_line_pos": 10,
+       "end_file_pos": 19
+      },
+      {
+       "start_line_no": 6,
+       "start_line_pos": 5,
+       "code": "ST03",
+       "description": "Query defines CTE \"cte_2\" but does not use it.",
+       "name": "structure.unused_cte",
+       "warning": false,
+       "fixes": [],
+       "start_file_pos": 53,
+       "end_line_no": 6,
+       "end_line_pos": 10,
+       "end_file_pos": 58
+      },
+      {
+       "start_line_no": 12,
+       "start_line_pos": 5,
+       "code": "ST03",
+       "description": "Query defines CTE \"cte_4\" but does not use it.",
+       "name": "structure.unused_cte",
+       "warning": false,
+       "fixes": [],
+       "start_file_pos": 131,
+       "end_line_no": 12,
+       "end_line_pos": 10,
+       "end_file_pos": 136
+      }
+     ]
+    }
+   ],
+   "untraced": [],
+   "processes": []
+  },
+  "test/cli/commands_test.py::test__get_filtered_parse_violations_caches_rulepack_per_config": {
+   "outcome": "passed",
+   "calls": [],
+   "untraced": [],
+   "processes": []
+  }
+ },
+ "outside": {
+  "nodes": [],
+  "calls": [],
+  "untraced": [],
+  "processes": []
+ }
+}

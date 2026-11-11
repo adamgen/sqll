@@ -1,0 +1,550 @@
+{
+ "kind": "sqll-s7-tests-oracle",
+ "format": 1,
+ "not_reproduced": {
+  "records": 0,
+  "pointer": false
+ },
+ "tools": {
+  "sqlfluff": {
+   "tool": "sqlfluff",
+   "sqlfluff": "4.4.0",
+   "sqlfluffrs": null,
+   "nodes": [
+    {
+     "id": "test/cli/commands_test.py::test__cli__command_directed",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "directed",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 4,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/cli/commands_test.py::test__cli__command_dialect",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "unknown_dialect",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/cli/commands_test.py::test__cli__command_no_dialect[command0]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "no_dialect_render",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 4,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/cli/commands_test.py::test__cli__command_no_dialect[command1]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "no_dialect_parse",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 4,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/cli/commands_test.py::test__cli__command_no_dialect[command2]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "no_dialect_lint",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 4,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/cli/commands_test.py::test__cli__command_no_dialect[command3]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "no_dialect_format",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 4,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/cli/commands_test.py::test__cli__command_no_dialect[command4]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "no_dialect_fix",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 4,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/cli/commands_test.py::test__cli__command_version",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "version",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "version_verbose",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 4,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/core/config/fluffconfig_test.py::test__config__glob_exclude_config_tests",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "glob_exclude",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 5,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/core/config/fluffconfig_test.py::test__config__glob_include_config_tests",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "glob_include",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 5,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_AL04_test.py::test__rules__std_AL04_one_aliases_two_duplicate",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "one_aliases_two_duplicate",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 4,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_CV02_test.py::test__rules__std_CV02_raised",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "raised",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 3,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_LT04_test.py::test__rules__std_LT04_unparseable",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "unparseable",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_LT05_LT09_combo_test.py::test__rules__std_LT05_LT09_long_line_fix",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "long_line_fix",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_ST03_test.py::test__rules__std_ST03_multiple_unused_ctes",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "multiple_unused_ctes",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    }
+   ],
+   "python_internal": [
+    {
+     "id": "test/cli/commands_test.py::test__get_filtered_parse_violations_caches_rulepack_per_config",
+     "pytest": "passed",
+     "calls": {},
+     "errors": []
+    }
+   ],
+   "counts": {
+    "nodes": 15,
+    "agree": 15,
+    "pass": 15,
+    "fail": 0,
+    "python_internal": 1,
+    "asserts": 49,
+    "not_reproduced": 0
+   },
+   "errors": []
+  },
+  "sqlfluff-rs": {
+   "tool": "sqlfluff-rs",
+   "sqlfluff": "4.4.0",
+   "sqlfluffrs": "4.4.0",
+   "nodes": [
+    {
+     "id": "test/cli/commands_test.py::test__cli__command_directed",
+     "pytest": "failed",
+     "trace": "fail",
+     "report": "fail",
+     "cases": [
+      {
+       "name": "directed",
+       "status": "fail",
+       "reason": "stdout.startswith: the text starts with '== [test/fixtures/linter/indentation_error_simple.sql] FAIL\\nL:   2 | P:   1..."
+      }
+     ],
+     "asserts": 4,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/cli/commands_test.py::test__cli__command_dialect",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "unknown_dialect",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/cli/commands_test.py::test__cli__command_no_dialect[command0]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "no_dialect_render",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 4,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/cli/commands_test.py::test__cli__command_no_dialect[command1]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "no_dialect_parse",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 4,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/cli/commands_test.py::test__cli__command_no_dialect[command2]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "no_dialect_lint",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 4,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/cli/commands_test.py::test__cli__command_no_dialect[command3]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "no_dialect_format",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 4,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/cli/commands_test.py::test__cli__command_no_dialect[command4]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "no_dialect_fix",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 4,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/cli/commands_test.py::test__cli__command_version",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "version",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "version_verbose",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 4,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/core/config/fluffconfig_test.py::test__config__glob_exclude_config_tests",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "glob_exclude",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 5,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/core/config/fluffconfig_test.py::test__config__glob_include_config_tests",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "glob_include",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 5,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_AL04_test.py::test__rules__std_AL04_one_aliases_two_duplicate",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "one_aliases_two_duplicate",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 4,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_CV02_test.py::test__rules__std_CV02_raised",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "raised",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 3,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_LT04_test.py::test__rules__std_LT04_unparseable",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "unparseable",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_LT05_LT09_combo_test.py::test__rules__std_LT05_LT09_long_line_fix",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "long_line_fix",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_ST03_test.py::test__rules__std_ST03_multiple_unused_ctes",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "multiple_unused_ctes",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    }
+   ],
+   "python_internal": [
+    {
+     "id": "test/cli/commands_test.py::test__get_filtered_parse_violations_caches_rulepack_per_config",
+     "pytest": "passed",
+     "calls": {},
+     "errors": []
+    }
+   ],
+   "counts": {
+    "nodes": 15,
+    "agree": 15,
+    "pass": 14,
+    "fail": 1,
+    "python_internal": 1,
+    "asserts": 49,
+    "not_reproduced": 0
+   },
+   "errors": []
+  }
+ }
+}
