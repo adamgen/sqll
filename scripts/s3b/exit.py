@@ -73,7 +73,10 @@ FROZEN = {
 # "Proof"). The sqll source of the C5 base (0c6b21a) is the same.
 S3_EXIT = "319b7d66967a226e0dc4b5388303b56b96cefb58"
 TOOL = "sqll"
-STATE = "S3b awaiting approval"
+# The state when each exit criterion is met. Before the approval (2026-11-11)
+# it was "S3b awaiting approval"; status/S3b.md, "Approval", records the
+# approval.
+STATE = "S3b exit met"
 OK_JOBS = ("success", "skipped")
 
 # The log lines that the CI record must have, for each job (exit 1 and the

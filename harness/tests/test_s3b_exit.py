@@ -6,7 +6,7 @@ results/S3b/exit.json is the output of scripts/s3b/exit.py. The tests run
 the check (it also runs the ownership probe again on the frozen and the
 live tracks.yml), show that a changed record or input fails, read each
 copied value again from its file and key, and check the exit record
-docs/decisions/s3b-exit.md and the state in STATUS.md and status/S3b.md."""
+docs/decisions/s3b-exit.md and the approval in STATUS.md and status/S3b.md."""
 
 import copy
 import hashlib
@@ -30,7 +30,13 @@ VALUES = OUT["values"]
 RECORD = (REPO_ROOT / "docs" / "decisions" / "s3b-exit.md").read_text("utf8")
 INDEX = (REPO_ROOT / "STATUS.md").read_text("utf8")
 STATUS = (REPO_ROOT / "status" / "S3b.md").read_text("utf8")
-STATE = "S3b awaiting approval"
+# The state of the exit check when each exit criterion is met. It was "S3b
+# awaiting approval" until the approval of S3b (2026-11-11).
+STATE = "S3b exit met"
+APPROVED = (
+    "Approved (orchestrator under the standing delegation of the human owner, "
+    "2026-11-11)"
+)
 CORE_TRACK = "(track core: the track that does S3b and owns the shared core)"
 # The sha256 of the frozen copies that the record cites (C17). A change of a
 # copy changes its sha256.
@@ -70,7 +76,9 @@ def sha256(path) -> str:
 
 def test_the_committed_output_is_the_output_of_the_committed_inputs(capsys):
     assert ex.main(["--check"]) == 0
-    assert capsys.readouterr().out.startswith("exit check: PASS: ")
+    out = capsys.readouterr().out
+    assert out.startswith("exit check: PASS: ")
+    assert out.rstrip().endswith(f"state: {STATE}")
 
 
 @pytest.mark.parametrize(
@@ -382,7 +390,12 @@ def test_each_number_of_the_record_is_a_value_of_the_data_file():
 
 def test_the_record_names_the_data_the_state_and_the_ci_run():
     assert "[`results/S3b/exit.json`](../../results/S3b/exit.json)" in RECORD
-    assert f"Status: {STATE}" in RECORD
+    assert words(RECORD).startswith(
+        "# S3b exit record Status: Approved (orchestrator under the standing"
+        " delegation of the human owner). The date and the proof of the"
+        ' approval: [status/S3b.md](../../status/S3b.md), "Approval".'
+    )
+    assert "awaiting" not in RECORD
     assert "`scripts/s3b/exit.py`" in RECORD
     text = words(RECORD)
     assert f"run {t('ci.run_id')}" in text
@@ -429,12 +442,94 @@ def test_the_record_is_short():
 # The state.
 
 
-def test_the_index_and_the_status_file_say_awaiting_approval():
+def test_the_index_and_the_status_file_say_approved():
     (row,) = [line for line in INDEX.splitlines() if line.startswith("| S3b |")]
     cells = [c.strip() for c in row.strip("|").split("|")]
     assert cells[1] == "core"
-    assert cells[2].startswith(f"{STATE} {CORE_TRACK}.")
+    assert cells[2].startswith(f"{APPROVED} {CORE_TRACK}.")
     assert "[docs/decisions/s3b-exit.md](docs/decisions/s3b-exit.md)" in cells[2]
     assert "[status/S3b.md](status/S3b.md)" in cells[2]
-    assert f"State: **{STATE}.**" in STATUS
+    assert "awaiting" not in row
+    assert f"- State: **{APPROVED}.**" in words(STATUS)
     assert "[docs/decisions/s3b-exit.md](../docs/decisions/s3b-exit.md)" in STATUS
+    assert "State: **S3b awaiting" not in STATUS
+
+
+# The proof of the approval: the 3-line summary in the index row and in the
+# state of status/S3b.md, and the section "Approval" of status/S3b.md. Each
+# number of the local harness run is a value of the data file.
+SUMMARY = [
+    "CI run 43071390211 on main `7f98014` (the merge of PR #79): 77 of 77 jobs"
+    " pass, with the exit check, 162 of 162 native base tests, and the tree"
+    " guard 84 of 84 inputs",
+    "a local harness run of sqll gives the numbers of the exit record"
+    " (dialects 2306 of 2306 exact, rules 38 of 2527, autofix 0 of 61,"
+    " templater 0 of 43), and 2942 harness tests pass",
+    "each of the 8 interface documents has a test, 60 of 60 Core changes of"
+    " the other tracks fail without the label `cross-track`, and 0 of 112"
+    " benchmarks are slower than the base",
+]
+
+
+def test_the_index_and_the_status_file_give_the_summary_of_the_proof():
+    (row,) = [line for line in INDEX.splitlines() if line.startswith("| S3b |")]
+    for n, line in enumerate(SUMMARY, 1):
+        assert f"({n}) {line}" in row, n
+    state = words(STATUS.split("\n- State: ", 1)[1].split("\n\n", 1)[0])
+    for n, line in enumerate(SUMMARY, 1):
+        assert f"{n}. {line[0].upper()}{line[1:]}." in state, n
+    assert (v("s1.dialects.exact"), v("s1.dialects.total")) == (2306, 2306)
+    assert (v("s1.rules.passed"), v("s1.rules.total")) == (38, 2527)
+    assert (v("s1.autofix.passed"), v("s1.autofix.total")) == (0, 61)
+    assert (v("s1.templater.passed"), v("s1.templater.total")) == (0, 43)
+    assert v("probe.fail_without_label") == 60
+    assert v("probe.control_pass") == 10
+
+
+def test_the_status_file_records_the_approval_and_its_data():
+    part = words(STATUS.split("\n## Approval\n", 1)[1].split("\n## ", 1)[0])
+    assert part.startswith(
+        "Approved (orchestrator under the standing delegation of the human"
+        " owner, 2026-11-11; CONSTITUTION.md, section 5). An independent agent"
+        " checked the stone on main `7f98014`"
+    )
+    assert "found no blocking gap" in part
+    for item in (
+        "run 43071390211 at `7f98014`: conclusion success, 77 of 77 jobs success",
+        "native base tests 162 of 162",
+        "`tree guard: 84 of 84 inputs`",
+        "`scripts/s3b/exit.py --check`: PASS, no change",
+        "with `SQLL_REQUIRE_TOOLS=1`: 2942 passed",
+        "dialects 2306 of 2306 exact and 2306 with no unparsable segment,"
+        " rules 38 of 2527, autofix 0 of 61, templater 0 of 43",
+        "60 of 60 failures without the label `cross-track`, 60 of 60 passes"
+        " with it, and 10 control runs that pass",
+        "112 benchmarks: 0 slower than the noise limit",
+        "The stone does not weaken a goal of CONSTITUTION.md or an exit rule.",
+        # AGENTS.md, "Names": each task name has its goal and the goal of
+        # its stone (S3b, the shared core: goal at the top of the status
+        # file).
+        'C17: S3b exit: proof, exit record, and STATUS "S3b awaiting'
+        ' approval"; a task of S3b, goal at the top of this file)',
+        "Each bullet of S3b (goal at the top of this file) in STONES.md. Each"
+        " task name below is a task of S3b (goal at the top of this file),"
+        " and its goal is in parentheses:",
+        "C6 (typed segment kinds from the frozen dialect tables)",
+        "C7 (lossless syntax tree and the conversion from the parser tree)",
+        "C9 (frozen parse interface: lexer to parser to tree, and `sqll parse`"
+        " output from the tree)",
+        "C10 (typed view of the tree)",
+        "C8 (source map: `TemplatedFile` as the frozen templater interface,"
+        " raw templater, source ranges of the tree)",
+        "C11 (config skeleton and its use in `sqll parse`)",
+        "C13 (CLI skeleton: lint, fix, rules, dialects, and the output formats)",
+        "C14 (harness adapters: `sqll lint` and `fix` in the test harness and"
+        " the benchmarks)",
+    ):
+        assert item in part, item
+    # Each task name of the section has its goal next to it: "C17: <goal>"
+    # or "C6 (<goal>)". A list of names with no goal, such as "(C6, C7",
+    # fails. A name in a path, such as `results/S3b/speed/C17.json`, is
+    # not a task name in the text.
+    for name in re.finditer(r"(?<![/\w])C\d+\b(?!\.json)", part):
+        assert part[name.end() :].startswith((" (", ": ")), name.group()
