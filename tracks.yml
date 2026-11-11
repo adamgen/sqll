@@ -169,6 +169,11 @@ tracks:
       - crates/sqll_parser/tests/**
       - crates/sqll_dialects/src/**
       - crates/sqll_dialects/tests/**
+      # The S4 design records, scripts, and harness tests (S4 T1: start
+      # the S4 track; docs/decisions/s4-parity.md).
+      - docs/decisions/s4-*.md
+      - scripts/s4/**
+      - harness/tests/test_s4_*.py
   S5:
     stones: [S5]
     branches: [claude/s5, claude/s5-*]
