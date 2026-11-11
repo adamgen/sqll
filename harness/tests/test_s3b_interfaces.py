@@ -9,6 +9,7 @@ import re
 from pathlib import Path
 
 import pytest
+from conftest import ci_module
 
 from sqll_harness.paths import REPO_ROOT
 
@@ -30,6 +31,19 @@ INTERFACES = {
     "Rules and fixes": ("rules.md", "rules.rs"),
     "Tree to schema": ("schema.md", "schema.rs"),
 }
+# The task and the packages of each interface. A package of a later track
+# names the track and its stone goal.
+TASKS_AND_PACKAGES = {
+    "Segment kinds": ("C6", "`sqll_tree`"),
+    "Syntax tree": ("C7", "`sqll_tree`, `sqll_syntax`"),
+    "Source map": ("C8", "`sqll_source`, `sqll_templater` (S6, templater parity)"),
+    "Parse": ("C9", "`sqll_syntax`"),
+    "Typed view": ("C10", "`sqll_tree`"),
+    "Config": ("C11", "`sqll_config`"),
+    "Rules and fixes": ("C12", "`sqll_lint`, `sqll_rules` (S5, rule parity)"),
+    "Tree to schema": ("C15", "`sqll_schema`, `sqll_codegen` (S8, code generation)"),
+}
+PACKAGE = re.compile(r"`(?P<name>\w+)`(?: \((?P<track>[\w-]+), [^)]+\))?")
 
 
 def rows(text: str) -> list[dict[str, str]]:
@@ -85,6 +99,38 @@ def test_the_index_has_the_8_interfaces():
         for e in entries
     }
     assert got == INTERFACES
+
+
+def test_the_task_and_the_packages_of_each_row_are_correct():
+    got = {e["name"]: (e["task"], e["packages"]) for e in rows(INDEX)}
+    assert got == TASKS_AND_PACKAGES
+
+
+def test_the_track_of_each_package_of_the_index_is_its_owner_in_tracks_yml():
+    ownership = ci_module("ownership")
+    tracks = ownership.load()
+    seen = 0
+    for _, packages in TASKS_AND_PACKAGES.values():
+        for match in PACKAGE.finditer(packages):
+            track = match["track"] or "core"
+            path = f"crates/{match['name']}/src/lib.rs"
+            assert ownership.owner(path, tracks) == track, path
+            seen += 1
+    assert seen == 12
+
+
+@pytest.mark.parametrize(
+    "old, new",
+    [
+        ("| Config | C11 |", "| Config | C99 |"),
+        ("`sqll_lint`, `sqll_rules` (S5, rule parity)", "`sqll_wrong`"),
+        ("(S8, code generation)", "(S4, parser parity)"),
+    ],
+)
+def test_a_changed_task_or_package_cell_fails(old, new):
+    assert INDEX.count(old) == 1
+    got = {e["name"]: (e["task"], e["packages"]) for e in rows(INDEX.replace(old, new))}
+    assert got != TASKS_AND_PACKAGES
 
 
 def test_each_document_and_test_of_the_index_exists():

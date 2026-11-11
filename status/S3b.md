@@ -16,8 +16,9 @@ the S6 package `sqll_templater`, not in `sqll_source` (Core owns
 `crates/**` until C16). The interface documents are in
 `docs/interfaces/` (a Core path since C6); the index is
 [docs/interfaces/README.md](../docs/interfaces/README.md) (C16). Since
-C16, `tracks.yml` gives `src/**` and `tests/**` of each later package to
-its track.
+C16 (the package ownership of the later tracks and the interface index),
+`tracks.yml` gives `src/**` and `tests/**` of each later package to its
+track; the port record `crates/ported.json` stays Core.
 
 ## Tasks
 
@@ -38,7 +39,7 @@ its track.
 | C13 | CLI skeleton (`sqll_cli`): lint, fix, rules, dialects, and the output formats; `EXIT_ERROR` is in `crates/sqll_cli/src/lib.rs` (`scripts/s3b/core_design.py` reads it there): [harness/sqll.md](../harness/sqll.md) | Merged (PR #72) |
 | C14 | Harness adapters: `sqll lint` and `fix` in the S1 harness and the S2 benchmarks; the jinja as raw record (`results/S3b/C14-jinja-raw.json`); the oracle check of each sqll pass (`--passes-of sqll`). The path for a base binary from before C11 in `harness/sqll_harness/bench/sqll.py` is removed: [harness/sqll.md](../harness/sqll.md), "Adapter" | Merged (PR #74) |
 | C15 | Code generation interface: tree to schema (`sqll_schema`: the description of a query, `Describe`, the JSON Schema writer) and the S8 stub `sqll_codegen::LiteralSelect`; the jsonschema package validates the output in CI (`scripts/s3b/schema_check.py`): [docs/interfaces/schema.md](../docs/interfaces/schema.md) | Merged (PR #75) |
-| C16 | Package ownership of the later tracks and the interface index; `docs/decisions/s3b-*.md` to the Core paths; the empty S10 package `sqll_plpgsql`: [docs/interfaces/README.md](../docs/interfaces/README.md) | In review |
+| C16 | Package ownership of the later tracks and the interface index; `docs/decisions/s3b-*.md` to the Core paths; the empty package `sqll_plpgsql` of S10 (PL/pgSQL bodies): [docs/interfaces/README.md](../docs/interfaces/README.md) | Merged (PR #76) |
 | C17 | S3b exit: proof, exit record, and STATUS "S3b awaiting human approval" | Not started |
 
 Rules for each task:
@@ -436,38 +437,62 @@ schema check: PASS: 4 schemas valid against the JSON Schema draft 2020-12 meta-s
 
 ## C16: package ownership proof
 
+C16 (the package ownership of the later tracks and the interface index).
 Index: [docs/interfaces/README.md](../docs/interfaces/README.md).
 `tracks.yml` gives `src/**` and `tests/**` of each later package to its
-track (the C4 table, Q5): S4 `sqll_parser` and `sqll_dialects`, S5
-`sqll_rules`, S6 `sqll_templater`, S7-sqll `sqll_cli`, S8
-`sqll_codegen`, S10 `sqll_plpgsql`. Core keeps each other file under
-`crates/` (each `Cargo.toml` and `build.rs`, the Core packages, and
-`crates/sqll_interfaces`) and `docs/decisions/s3b-*.md`.
+track (the C4 table, Q5): S4 (parser parity) `sqll_parser` and
+`sqll_dialects`, S5 (rule parity) `sqll_rules`, S6 (templater parity)
+`sqll_templater`, S7-sqll (CLI and config parity, the sqll part)
+`sqll_cli`, S8 (code generation) `sqll_codegen`, and S10 (PL/pgSQL
+bodies) `sqll_plpgsql`. The Core track keeps each other file under
+`crates/` (each `Cargo.toml` and `build.rs`, the table generator of
+`sqll_dialects`, the port record `crates/ported.json`, the Core packages,
+and `crates/sqll_interfaces`) and `docs/decisions/s3b-*.md`.
 
-- S10 gets `src/**` and `tests/**` of `sqll_plpgsql`, not
-  `crates/sqll_plpgsql/**`: with `**`, S10 would own its `Cargo.toml`,
-  and the C4 rule (Q5) gives each `Cargo.toml` to Core. The new empty
-  package has a `Cargo.toml` (Core) and `src/lib.rs` (S10 in the new
-  `tracks.yml`), so the pull request has the label `cross-track`.
+- S10 (PL/pgSQL bodies) gets `src/**` and `tests/**` of `sqll_plpgsql`,
+  not `crates/sqll_plpgsql/**` (the task text): with `**`, S10 would own
+  its `Cargo.toml`, and the C4 rule (Q5) gives each `Cargo.toml` to Core.
+  The new empty package has a `Cargo.toml` (Core) and `src/lib.rs` (S10
+  in the new `tracks.yml`), so the pull request has the label
+  `cross-track`.
+- Limit (review round 1, finding B1): the port record
+  `crates/ported.json` stays a Core path, because it keeps the license and
+  attribution of the ported code. `harness/tests/test_sqll_ported.py`
+  needs each file under `crates/` in the record. Thus a later track that
+  adds a file to its package, or that changes a ported file for the first
+  time, also changes the record, and that pull request needs the label
+  `cross-track` and a Core review of the record. The README
+  ("Ownership") tells this, and `test_ownership.py` tests it for each
+  later package.
 - `ci/ownership.py` on a local merge commit of the pull request (base
-  `f9c2a1f`): the base `tracks.yml` passes; the new `tracks.yml` fails
-  only for `crates/sqll_plpgsql/src/lib.rs` (owned by S10) with no label,
-  and passes with the label `cross-track`.
+  `f9c2a1f`): the base `tracks.yml` gives `Result: pass. Each changed file
+  is of this track or has no owner.`; the new `tracks.yml` gives
+  `crates/sqll_plpgsql/src/lib.rs: owned by S10 (another track)` and
+  `Result: fail.` with no label, and `Result: pass with the label
+  'cross-track'. These tracks must review the pull request: S10.` with
+  the label. Each other changed file is owned by core.
 - `harness/tests/test_ownership.py`: the owner of a file of each package
-  (S4 to S10 for `src/` and `tests/`; core for each `Cargo.toml`,
-  `build.rs`, and each file of the Core packages and of
-  `crates/sqll_interfaces`), each frozen interface document and test is a
-  Core path, and each tracked file under `crates/` has its owner.
-  `harness/tests/test_s3b_core.py` compares the C4 table with
-  `tracks.yml`.
-- `harness/tests/test_s3b_interfaces.py`: the index has the 8 interfaces;
-  each document and test exists, and each document names its test; each
-  file of `crates/sqll_interfaces/tests/` and of `docs/interfaces/` is in
-  the index. A missing or changed row fails.
+  (each later track for `src/` and `tests/`; core for each `Cargo.toml`,
+  `build.rs`, the other files of a later package, and each file of the
+  Core packages and of `crates/sqll_interfaces`), each frozen interface
+  document and test is a Core path, each tracked file under `crates/` has
+  its owner, and a new file of a later package with its record entry
+  needs the label. `harness/tests/test_s3b_core.py` compares the C4 table
+  with `tracks.yml`.
+- `harness/tests/test_s3b_interfaces.py`: the index has the 8
+  interfaces with their task, packages, document, and test; each document
+  and test exists, and each document names its test; each file of
+  `crates/sqll_interfaces/tests/` and of `docs/interfaces/` is in the
+  index; the track of each package in the index is its owner in
+  `tracks.yml`. A missing or changed row fails.
 - Local: `cargo test --workspace --locked --no-fail-fast` passes (358
-  passed, 0 failed, 4 ignored); harness tests 2323 passed, 222 skipped
-  (the tool tests; CI runs them); ruff passes.
-- G3: the sqll binary does not link `sqll_plpgsql`, and C16 changes no
-  code that it links: `cargo tree -p sqll -e normal,build` gives the same
-  output as on main (0 lines with `sqll_plpgsql`). Thus C16 has no speed
-  check.
+  passed, 0 failed, 4 ignored); the changed harness test files pass; ruff
+  passes.
+- CI run 42561966246 on head `1cf92f8` (before the review fixes, which
+  change only tests and documents): each check run is success or skipped
+  (bench-full, bench-merge, corpus-full, corpus-merge). The pull request
+  has the CI run of the last head.
+- G3 (speed): the sqll binary does not link `sqll_plpgsql`, and C16
+  changes no code that it links: `cargo tree -p sqll -e normal,build`
+  gives the same output as on main (129 lines, 0 lines with
+  `sqll_plpgsql`). Thus C16 has no speed check.

@@ -219,22 +219,46 @@ def test_each_later_track_owns_src_and_tests_of_its_packages(package, track):
         f"crates/{package}/tests/x.rs",
     ):
         assert ownership.owner(path, TRACKS) == track, path
-    for path in (
+    core_paths = (
         f"crates/{package}/Cargo.toml",
         f"crates/{package}/build.rs",
         f"crates/{package}/build/x.rs",
         f"crates/{package}/x.json",
         f"crates/{package}/benches/x.rs",
-    ):
+    )
+    for path in core_paths:
         assert ownership.owner(path, TRACKS) == "core", path
-    ok, text = ownership.check(f"claude/{track.lower()}-x", [], [path], TRACKS)
-    assert not ok, text
+        ok, text = ownership.check(f"claude/{track.lower()}-x", [], [path], TRACKS)
+        assert not ok, text
     ok, text = ownership.check(
         f"claude/{track.lower()}-x", [], [f"crates/{package}/src/lib.rs"], TRACKS
     )
     assert ok, text
     ok, text = ownership.check("claude/s3b", [], [f"crates/{package}/src/x.rs"], TRACKS)
     assert not ok, text
+
+
+@pytest.mark.parametrize("package, track", sorted(PACKAGE_OWNERS.items()))
+def test_a_new_file_of_a_later_track_also_changes_the_core_port_record(package, track):
+    # docs/interfaces/README.md, "Ownership": crates/ported.json stays Core
+    # (harness/tests/test_sqll_ported.py needs each file of crates/ in it).
+    # Thus a new file needs the label cross-track and a Core review.
+    branch = f"claude/{track.lower()}-x"
+    files = [f"crates/{package}/src/new.rs", "crates/ported.json"]
+    ok, text = ownership.check(branch, [], files, TRACKS)
+    assert not ok, text
+    assert "files of the tracks core" in "\n".join(text), text
+    ok, text = ownership.check(branch, [ownership.LABEL], files, TRACKS)
+    assert ok, text
+    ok, text = ownership.check(branch, [], files[:1], TRACKS)
+    assert ok, text
+
+
+def test_the_documents_give_the_limit_of_the_port_record():
+    for path in ("docs/interfaces/README.md", "status/S3b.md"):
+        text = " ".join((REPO_ROOT / path).read_text("utf8").split())
+        assert "`crates/ported.json`" in text, path
+        assert "`cross-track` and a Core review of the record" in text, path
 
 
 def test_one_file_of_each_package_has_its_owner():
