@@ -48,7 +48,7 @@ track; the port record `crates/ported.json` stays Core.
 | C14 | Harness adapters: `sqll lint` and `fix` in the S1 harness and the S2 benchmarks; the jinja as raw record (`results/S3b/C14-jinja-raw.json`); the oracle check of each sqll pass (`--passes-of sqll`). The path for a base binary from before C11 in `harness/sqll_harness/bench/sqll.py` is removed: [harness/sqll.md](../harness/sqll.md), "Adapter" | Merged (PR #74) |
 | C15 | Code generation interface: tree to schema (`sqll_schema`: the description of a query, `Describe`, the JSON Schema writer) and the S8 stub `sqll_codegen::LiteralSelect`; the jsonschema package validates the output in CI (`scripts/s3b/schema_check.py`): [docs/interfaces/schema.md](../docs/interfaces/schema.md) | Merged (PR #75) |
 | C16 | Package ownership of the later tracks and the interface index; `docs/decisions/s3b-*.md` to the Core paths; the empty package `sqll_plpgsql` of S10 (PL/pgSQL bodies): [docs/interfaces/README.md](../docs/interfaces/README.md) | Merged (PR #76) |
-| C17 | S3b exit: proof, exit record, and STATUS "S3b awaiting approval": [docs/decisions/s3b-exit.md](../docs/decisions/s3b-exit.md) | In review |
+| C17 | S3b exit: proof, exit record, and STATUS "S3b awaiting approval": [docs/decisions/s3b-exit.md](../docs/decisions/s3b-exit.md) | In review (PR #79) |
 
 Rules for each task:
 
@@ -542,3 +542,7 @@ exit check: PASS: results/S3b/exit.json: no change; state: S3b awaiting approval
   `sqll-base` gives it the settings as options again (`legacy_options`,
   only for `sqll-base`; tests in `harness/tests/test_sqll_bench.py`).
 - C17 changes no file under `crates/`, `Cargo.toml`, or `Cargo.lock`.
+- Local (with the machine lock): `cargo test --workspace --locked
+  --no-fail-fast` passes (358 passed, 0 failed, 4 ignored); `pytest
+  harness/tests`: 2507 passed, 130 skipped (tools that this machine does
+  not have; CI sets `SQLL_REQUIRE_TOOLS`).
