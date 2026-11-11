@@ -9,6 +9,12 @@ source:
 license: MIT
 nodes:
   - node: test/core/config/fluffconfig_test.py::test__config__glob_exclude_config_tests
+    asserts:
+      L121: ["glob_exclude:violations[0]"]
+      L122: ["glob_exclude:violations[1]"]
+      L123: ["glob_exclude:violations[2]"]
+      L124: ["glob_exclude:violations[3]"]
+      L125: ["glob_exclude:violations[4]"]
     cases:
       # The tool reads the config files of the fixture folder, as
       # FluffConfig.from_path does. test/fixtures/.sqlfluff sets the dialect.
@@ -29,6 +35,12 @@ nodes:
             - select: {code: CV06}
               count: 0
   - node: test/core/config/fluffconfig_test.py::test__config__glob_include_config_tests
+    asserts:
+      L138: ["glob_include:violations[0]"]
+      L139: ["glob_include:violations[1]"]
+      L140: ["glob_include:violations[2]"]
+      L141: ["glob_include:violations[3]"]
+      L142: ["glob_include:violations[4]"]
     cases:
       - name: glob_include
         run: cli

@@ -9,6 +9,11 @@ source:
 license: MIT
 nodes:
   - node: test/cli/commands_test.py::test__cli__command_directed
+    asserts:
+      L90:ret_code: ["directed:exit_code"]
+      L104: ["directed:stdout.contains[0]"]
+      L105: ["directed:stdout.contains[1]"]
+      L108: ["directed:stdout.startswith"]
     cases:
       - name: directed
         run: cli
@@ -23,6 +28,8 @@ nodes:
             contains: ["L:   2 | P:   1 | LT02", ndentation]
             startswith: "== [test/fixtures/linter/indentation_error_simple.sql] FAIL\nL:   2 | P:   1 | LT02 | Expected indent of 4 spaces. [layout.indent]\nL:   5 | P:  10 | CP01 | Keywords must be consistently upper case.\n                       | [capitalisation.keywords]\n"
   - node: test/cli/commands_test.py::test__cli__command_dialect
+    asserts:
+      L114:ret_code: ["unknown_dialect:exit_code"]
     cases:
       - name: unknown_dialect
         run: cli
@@ -40,6 +47,11 @@ nodes:
         checks:
           exit_code: 2
   - node: test/cli/commands_test.py::test__cli__command_no_dialect[command0]
+    asserts:
+      L141:ret_code: ["no_dialect_render:exit_code"]
+      L149: ["no_dialect_render:stderr.contains[0]"]
+      L150: ["no_dialect_render:stderr.contains[1]"]
+      L152: ["no_dialect_render:stderr.not_contains[0]"]
     cases:
       - name: no_dialect_render
         run: cli
@@ -51,6 +63,11 @@ nodes:
             contains: [User Error, No dialect was specified]
             not_contains: [Traceback (most recent call last)]
   - node: test/cli/commands_test.py::test__cli__command_no_dialect[command1]
+    asserts:
+      L141:ret_code: ["no_dialect_parse:exit_code"]
+      L149: ["no_dialect_parse:stderr.contains[0]"]
+      L150: ["no_dialect_parse:stderr.contains[1]"]
+      L152: ["no_dialect_parse:stderr.not_contains[0]"]
     cases:
       - name: no_dialect_parse
         run: cli
@@ -62,6 +79,11 @@ nodes:
             contains: [User Error, No dialect was specified]
             not_contains: [Traceback (most recent call last)]
   - node: test/cli/commands_test.py::test__cli__command_no_dialect[command2]
+    asserts:
+      L141:ret_code: ["no_dialect_lint:exit_code"]
+      L149: ["no_dialect_lint:stderr.contains[0]"]
+      L150: ["no_dialect_lint:stderr.contains[1]"]
+      L152: ["no_dialect_lint:stderr.not_contains[0]"]
     cases:
       - name: no_dialect_lint
         run: cli
@@ -73,6 +95,11 @@ nodes:
             contains: [User Error, No dialect was specified]
             not_contains: [Traceback (most recent call last)]
   - node: test/cli/commands_test.py::test__cli__command_no_dialect[command3]
+    asserts:
+      L141:ret_code: ["no_dialect_format:exit_code"]
+      L149: ["no_dialect_format:stderr.contains[0]"]
+      L150: ["no_dialect_format:stderr.contains[1]"]
+      L152: ["no_dialect_format:stderr.not_contains[0]"]
     cases:
       - name: no_dialect_format
         run: cli
@@ -84,6 +111,11 @@ nodes:
             contains: [User Error, No dialect was specified]
             not_contains: [Traceback (most recent call last)]
   - node: test/cli/commands_test.py::test__cli__command_no_dialect[command4]
+    asserts:
+      L141:ret_code: ["no_dialect_fix:exit_code"]
+      L149: ["no_dialect_fix:stderr.contains[0]"]
+      L150: ["no_dialect_fix:stderr.contains[1]"]
+      L152: ["no_dialect_fix:stderr.not_contains[0]"]
     cases:
       - name: no_dialect_fix
         run: cli
@@ -95,6 +127,11 @@ nodes:
             contains: [User Error, No dialect was specified]
             not_contains: [Traceback (most recent call last)]
   - node: test/cli/commands_test.py::test__cli__command_version
+    asserts:
+      L1330: ["version:exit_code"]
+      L1331: ["version:stdout.contains[0]"]
+      L1334: ["version_verbose:exit_code"]
+      L1335: ["version_verbose:stdout.contains[0]"]
     cases:
       - name: version
         run: cli

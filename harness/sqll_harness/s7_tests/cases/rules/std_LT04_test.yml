@@ -9,6 +9,8 @@ source:
 license: MIT
 nodes:
   - node: test/rules/std_LT04_test.py::test__rules__std_LT04_unparseable
+    asserts:
+      L38: ["unparseable:violations[0]"]
     cases:
       - name: unparseable
         run: api

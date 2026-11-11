@@ -1,0 +1,504 @@
+#!/usr/bin/env python3
+"""Run sqlfluff pytest nodes in place and trace their calls (the trace step
+of the S7 trace oracle, docs/decisions/s7-tests-design.md, "Trace oracle").
+
+Run it with the Python of a pinned oracle that scripts/setup installs. The
+oracle script (scripts/s7-tests/oracle) starts it; run it alone only to
+look at a trace:
+
+  .tools/sqlfluff-oracle/bin/python scripts/s7-tests/trace-nodes \\
+      --out out/s7-tests/trace.json NODE...
+  .tools/sqlfluff-rs-oracle/bin/python scripts/s7-tests/trace-nodes --rust \\
+      --out out/s7-tests/trace-rs.json NODE...
+
+It runs the nodes with pytest in the sqlfluff root (or --root, for the unit
+tests), as the sqlfluff tests run. With --rust, each FluffConfig gets the
+Rust parser and rules (scripts/sqlfluff_oracle.py, force_rust), as the S1
+oracles do. It records, for each node:
+
+- outcome: the pytest outcome (passed, failed, skipped, or error).
+- calls: each outermost call of the CLI (click.testing.CliRunner.invoke of
+  a sqlfluff command), of the simple API (sqlfluff.lint, fix, parse), and of
+  a Linter path method (Linter.lint_path, lint_paths), in order, with its
+  inputs and its outputs. A call inside a traced call is part of it.
+- untraced: each sqlfluff CLI command (click Command.main, get_config of
+  the CLI) and each simple-API config (get_simple_config) that runs outside
+  a traced call of its kind. Thus a call that the trace does not record is
+  seen.
+- processes: each program start, fork, and new Python process (the audit
+  events and trace/sitecustomize.py, as scripts/s7-tests/config-readers).
+  The trace does not record calls in another process.
+
+Calls, untraced runs, and processes outside a node are under "outside".
+The trace also records the sqlfluff config of the root folder (it must be
+empty) and, with --rust, the parse runs of each parser.
+"""
+
+import argparse
+import functools
+import inspect
+import json
+import os
+import shlex
+import sys
+import tempfile
+from collections import Counter
+from importlib.metadata import PackageNotFoundError, version
+from pathlib import Path
+
+sys.dont_write_bytecode = True
+
+import click  # noqa: E402
+import pytest  # noqa: E402
+from click.testing import CliRunner  # noqa: E402
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
+SQLFLUFF_ROOT = REPO_ROOT / "third_party" / "sqlfluff"
+TRACE = Path(__file__).resolve().parent / "trace"
+FORMAT = 1
+KIND = "sqll-s7-tests-trace"
+COLLECTION = "<collection>"
+ROOT_MARK = "{sqlfluff}"
+# The keys of a lint record that change on each run.
+VOLATILE_RECORD_KEYS = ("timings",)
+
+sys.path.insert(0, str(TRACE))
+sys.path.insert(0, str(REPO_ROOT / "scripts"))
+import s7trace  # noqa: E402
+
+
+def rust_version() -> str | None:
+    try:
+        return version("sqlfluffrs")
+    except PackageNotFoundError:
+        return None
+
+
+def first_line(exc: BaseException) -> str:
+    lines = str(exc).splitlines()
+    return f"{type(exc).__name__}: {lines[0] if lines else ''}"
+
+
+def plain(value):
+    """value as JSON data; a value that JSON cannot hold becomes its repr."""
+    return json.loads(json.dumps(value, default=lambda v: f"<{v!r}>"))
+
+
+class Tracer:
+    """The calls of each node. node is the current node id."""
+
+    def __init__(self, root: Path) -> None:
+        self.root = root
+        self.node = s7trace.OUTSIDE
+        self.active: list[str] = []
+        self.records: dict[str, dict] = {}
+
+    def bucket(self) -> dict:
+        return self.records.setdefault(
+            self.node, {"calls": [], "untraced": [], "forks": 0}
+        )
+
+    def path(self, value) -> str:
+        """A path or argument; the root folder of sqlfluff becomes
+        {sqlfluff}."""
+        text = os.fspath(value)
+        root = str(self.root)
+        if text == root or text.startswith(root + os.sep):
+            text = ROOT_MARK + text[len(root) :]
+        return text
+
+    def cwd(self) -> str:
+        return self.path(os.getcwd())
+
+    def traced(self, kind: str, inputs, outputs):
+        """Wrap fn: record each outermost call with its inputs and outputs."""
+
+        def wrap(fn):
+            @functools.wraps(fn)
+            def wrapper(*args, **kwargs):
+                if self.active:
+                    return fn(*args, **kwargs)
+                call = {"kind": kind}
+                try:
+                    call["inputs"] = inputs(*args, **kwargs)
+                except Exception as exc:
+                    call["inputs_error"] = first_line(exc)
+                self.active.append(kind)
+                try:
+                    result = fn(*args, **kwargs)
+                except BaseException as exc:
+                    call["raised"] = first_line(exc)
+                    raise
+                else:
+                    try:
+                        call["outputs"] = outputs(result)
+                    except Exception as exc:
+                        call["outputs_error"] = first_line(exc)
+                    return result
+                finally:
+                    self.active.pop()
+                    self.bucket()["calls"].append(plain(call))
+
+            return wrapper
+
+        return wrap
+
+    def sentinel(self, kind: str, what: str, applies=lambda *a, **k: True):
+        """Wrap fn: record a run outside a traced call of this kind."""
+
+        def wrap(fn):
+            @functools.wraps(fn)
+            def wrapper(*args, **kwargs):
+                if kind not in self.active and applies(*args, **kwargs):
+                    self.bucket()["untraced"].append(what)
+                return fn(*args, **kwargs)
+
+            return wrapper
+
+        return wrap
+
+
+def _is_sqlfluff(command) -> bool:
+    module = getattr(getattr(command, "callback", None), "__module__", "") or ""
+    return module == "sqlfluff" or module.startswith("sqlfluff.")
+
+
+def install(tracer: Tracer) -> None:
+    """Patch the CLI runner, the simple API, the Linter, and FluffConfig."""
+    import sqlfluff
+    import sqlfluff.api
+    import sqlfluff.api.simple as simple
+    import sqlfluff.cli.commands as commands
+    from sqlfluff.core.config import FluffConfig
+    from sqlfluff.core.linter import Linter
+
+    # CLI.
+    invoke_sig = inspect.signature(CliRunner.invoke)
+
+    def cli_inputs(runner, *args, **kwargs):
+        bound = invoke_sig.bind(runner, *args, **kwargs)
+        cli = bound.arguments["cli"]
+        argv = bound.arguments.get("args") or []
+        if isinstance(argv, str):
+            argv = shlex.split(argv)
+        unsupported = []
+        texts = []
+        for arg in argv:
+            if isinstance(arg, str | os.PathLike):
+                texts.append(tracer.path(arg))
+            else:
+                unsupported.append(f"argument {arg!r} is not a string")
+                texts.append(repr(arg))
+        is_group = isinstance(cli, click.Group) and cli is commands.cli
+        if not is_group:
+            texts = [cli.name or "", *texts]
+        stdin = bound.arguments.get("input")
+        if isinstance(stdin, bytes):
+            stdin = stdin.decode("utf8")
+        elif stdin is not None and not isinstance(stdin, str):
+            unsupported.append(f"stdin of type {type(stdin).__name__}")
+            stdin = None
+        for key in ("env", "extra"):
+            if bound.arguments.get(key):
+                unsupported.append(f"CliRunner.invoke {key}: {bound.arguments[key]!r}")
+        if runner.env:
+            unsupported.append(f"CliRunner env: {runner.env!r}")
+        if not _is_sqlfluff(cli):
+            unsupported.append(f"command {cli.name!r} is not a sqlfluff command")
+        return {
+            "argv": texts,
+            "stdin": stdin,
+            "cwd": tracer.cwd(),
+            "unsupported": unsupported,
+        }
+
+    def cli_outputs(result):
+        out = {
+            "exit_code": result.exit_code,
+            "stdout": result.stdout,
+            "stderr": result.stderr,
+        }
+        if result.exception is not None and not isinstance(
+            result.exception, SystemExit
+        ):
+            out["exception"] = first_line(result.exception)
+        return out
+
+    CliRunner.invoke = tracer.traced("cli", cli_inputs, cli_outputs)(CliRunner.invoke)
+    click.core.Command.main = tracer.sentinel(
+        "cli",
+        "a sqlfluff CLI command (Command.main)",
+        lambda command, *a, **k: _is_sqlfluff(command),
+    )(click.core.Command.main)
+    commands.get_config = tracer.sentinel("cli", "the CLI config (get_config)")(
+        commands.get_config
+    )
+
+    # The simple API.
+    def config_source(config) -> object:
+        if config is None:
+            return None
+        return getattr(config, "_s7_source", {"method": "<unknown>"})
+
+    def api(name: str):
+        original = getattr(simple, name)
+        sig = inspect.signature(original)
+
+        def inputs(*args, **kwargs):
+            bound = sig.bind(*args, **kwargs)
+            bound.apply_defaults()
+            data = dict(bound.arguments)
+            data["config"] = config_source(data.get("config"))
+            return {"function": name, **data, "cwd": tracer.cwd()}
+
+        return tracer.traced("api", inputs, plain)(original)
+
+    for name in ("lint", "fix", "parse"):
+        wrapped = api(name)
+        for module in (simple, sqlfluff.api, sqlfluff):
+            setattr(module, name, wrapped)
+    simple.get_simple_config = tracer.sentinel(
+        "api", "the simple-API config (get_simple_config)"
+    )(simple.get_simple_config)
+
+    # FluffConfig: remember how the test made each config.
+    init = FluffConfig.__init__
+    init_sig = inspect.signature(init)
+
+    @functools.wraps(init)
+    def config_init(self, *args, **kwargs):
+        bound = init_sig.bind(self, *args, **kwargs)
+        data = {k: v for k, v in bound.arguments.items() if k != "self"}
+        self._s7_source = plain({"method": "FluffConfig", "args": data})
+        init(self, *args, **kwargs)
+
+    FluffConfig.__init__ = config_init
+    for name in ("from_path", "from_root", "from_kwargs", "from_string"):
+        method = getattr(FluffConfig, name).__func__
+        sig = inspect.signature(method)
+
+        def tagged(cls, *args, _method=method, _sig=sig, _name=name, **kwargs):
+            bound = _sig.bind(cls, *args, **kwargs)
+            data = {k: v for k, v in bound.arguments.items() if k != "cls"}
+            if "path" in data:
+                data["path"] = tracer.path(data["path"])
+            config = _method(cls, *args, **kwargs)
+            config._s7_source = plain({"method": _name, "args": data})
+            return config
+
+        setattr(FluffConfig, name, classmethod(functools.wraps(method)(tagged)))
+
+    # The Linter path methods.
+    linter_init = Linter.__init__
+    linter_sig = inspect.signature(linter_init)
+
+    @functools.wraps(linter_init)
+    def new_linter_init(self, *args, **kwargs):
+        bound = linter_sig.bind(self, *args, **kwargs)
+        data = {k: v for k, v in bound.arguments.items() if k != "self"}
+        data["config"] = config_source(data.get("config"))
+        self._s7_init = plain(data)
+        linter_init(self, *args, **kwargs)
+
+    Linter.__init__ = new_linter_init
+
+    def path_method(name: str):
+        original = getattr(Linter, name)
+        sig = inspect.signature(original)
+
+        def inputs(self, *args, **kwargs):
+            bound = sig.bind(self, *args, **kwargs)
+            data = {k: v for k, v in bound.arguments.items() if k != "self"}
+            paths = data.pop("paths", None) or [data.pop("path", None)]
+            return {
+                "method": name,
+                "paths": [tracer.path(p) for p in paths],
+                "options": data,
+                "linter": getattr(self, "_s7_init", None),
+                "cwd": tracer.cwd(),
+            }
+
+        def outputs(result):
+            records = [
+                {k: v for k, v in r.items() if k not in VOLATILE_RECORD_KEYS}
+                for r in result.as_records()
+            ]
+            if name == "lint_path":
+                violations = result.stats()["violations"]
+            else:
+                violations = result.stats(1, 0)["violations"]
+            # The exit code of the lint command for this result
+            # (sqlfluff.cli.commands.lint: LintingResult.stats).
+            return {"records": records, "exit_code": 1 if violations > 0 else 0}
+
+        return tracer.traced("linter", inputs, outputs)(original)
+
+    Linter.lint_path = path_method("lint_path")
+    Linter.lint_paths = path_method("lint_paths")
+
+
+class Recorder:
+    """A pytest plugin: sets the node for the trace and records outcomes."""
+
+    def __init__(self, tracer: Tracer) -> None:
+        self.tracer = tracer
+        self.outcomes: dict[str, str] = {}
+        self.errors: dict[str, str] = {}
+
+    def _set(self, node: str) -> None:
+        self.tracer.node = node
+        os.environ["S7_TRACE_NODE"] = node
+
+    @pytest.hookimpl(wrapper=True)
+    def pytest_collection(self, session):
+        self._set(COLLECTION)
+        try:
+            return (yield)
+        finally:
+            self._set(s7trace.OUTSIDE)
+
+    @pytest.hookimpl(wrapper=True)
+    def pytest_runtest_protocol(self, item, nextitem):
+        self._set(item.nodeid)
+        self.tracer.bucket()
+        try:
+            return (yield)
+        finally:
+            self._set(s7trace.OUTSIDE)
+
+    def pytest_runtest_logreport(self, report) -> None:
+        if report.when == "call":
+            self.outcomes.setdefault(report.nodeid, report.outcome)
+        elif report.outcome == "failed":
+            self.outcomes.setdefault(report.nodeid, "error")
+        elif report.outcome == "skipped":
+            self.outcomes.setdefault(report.nodeid, "skipped")
+
+    def pytest_collectreport(self, report) -> None:
+        if report.failed:
+            lines = str(report.longrepr).strip().splitlines()
+            self.errors[report.nodeid or "<session>"] = lines[-1] if lines else ""
+
+
+def run(root: Path, nodes: list[str], rust: bool, log: Path) -> dict:
+    runs = None
+    if rust:
+        from sqlfluff_oracle import force_rust
+
+        runs = force_rust()
+    tracer = Tracer(root)
+    install(tracer)
+    forks: Counter = Counter()
+
+    def audit(event: str, args: tuple) -> None:
+        if event in ("os.fork", "os.forkpty"):
+            forks[tracer.node] += 1
+
+    paths = [str(TRACE), os.environ.get("PYTHONPATH", "")]
+    os.environ.update(
+        {
+            "PYTHONPATH": os.pathsep.join(p for p in paths if p),
+            "PYTHONDONTWRITEBYTECODE": "1",
+            "S7_TRACE_LOG": str(log),
+            "S7_TRACE_ROOT": str(root),
+            "S7_TRACE_MAIN": str(os.getpid()),
+            "S7_TRACE_NODE": s7trace.OUTSIDE,
+        }
+    )
+    s7trace.install()
+    sys.addaudithook(audit)
+    recorder = Recorder(tracer)
+    os.chdir(root)
+    args = ["-q", "--tb=line", "-p", "no:cacheprovider", "--rootdir", str(root)]
+    args += nodes
+    saved = os.dup(1)
+    os.dup2(2, 1)
+    try:
+        exit_code = pytest.main(args, plugins=[recorder])
+    finally:
+        sys.stdout.flush()
+        os.dup2(saved, 1)
+        os.close(saved)
+    os.chdir(REPO_ROOT)
+
+    from sqlfluff.core.config.loader import load_config_at_path
+
+    programs: dict[str, list[str]] = {}
+    for line in log.read_text("utf8").splitlines():
+        node, kind, *rest = json.loads(line)
+        if kind == "program":
+            programs.setdefault(node, []).append(f"program ({rest[0]})")
+        elif kind == "start":
+            programs.setdefault(node, []).append("new Python process")
+    for node, count in forks.items():
+        programs.setdefault(node, []).extend(["fork"] * count)
+
+    records = tracer.records
+    out_nodes = {}
+    for node in nodes:
+        data = records.pop(node, None)
+        if data is None and node not in recorder.outcomes:
+            continue
+        data = data or {"calls": [], "untraced": [], "forks": 0}
+        out_nodes[node] = {
+            "outcome": recorder.outcomes.get(node, "not run"),
+            "calls": data["calls"],
+            "untraced": data["untraced"],
+            "processes": programs.pop(node, []),
+        }
+    outside = {
+        "nodes": sorted(records),
+        "calls": [c for r in records.values() for c in r["calls"]],
+        "untraced": [u for r in records.values() for u in r["untraced"]],
+        "processes": sorted(p for v in programs.values() for p in v),
+    }
+    return {
+        "kind": KIND,
+        "format": FORMAT,
+        "sqlfluff": version("sqlfluff"),
+        "sqlfluffrs": rust_version(),
+        "rust": rust,
+        "pytest": pytest.__version__,
+        "pytest_exit_code": int(exit_code),
+        "root_config": plain(load_config_at_path(str(root))),
+        "parse_runs": (
+            {name: runs[name] for name in ("RustParser", "Parser")}
+            if runs is not None
+            else None
+        ),
+        "collection_errors": dict(sorted(recorder.errors.items())),
+        "nodes": out_nodes,
+        "outside": outside,
+    }
+
+
+def main(argv: list[str]) -> int:
+    parser = argparse.ArgumentParser(prog="trace-nodes")
+    parser.add_argument("nodes", nargs="+", help="pytest node ids")
+    parser.add_argument("--out", type=Path, required=True)
+    parser.add_argument("--rust", action="store_true")
+    parser.add_argument(
+        "--root",
+        type=Path,
+        default=SQLFLUFF_ROOT,
+        help="a sqlfluff checkout (default: the submodule; others for the tests)",
+    )
+    args = parser.parse_args(argv)
+    if args.rust and rust_version() is None:
+        parser.error("--rust needs the sqlfluff-rs oracle (sqlfluffrs)")
+    with tempfile.TemporaryDirectory(prefix="s7-trace-") as tmp:
+        log = Path(tmp) / "processes.jsonl"
+        log.write_text("")
+        data = run(args.root.resolve(), args.nodes, args.rust, log)
+    args.out.parent.mkdir(parents=True, exist_ok=True)
+    args.out.write_text(json.dumps(data, indent=1) + "\n", "utf8")
+    print(
+        f"trace: {len(data['nodes'])} nodes,"
+        f" outcomes {dict(Counter(n['outcome'] for n in data['nodes'].values()))}",
+        file=sys.stderr,
+    )
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))
