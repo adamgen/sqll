@@ -11,10 +11,11 @@ sqlfluff reference: tag `4.4.0`, commit `0348222a3bcdb0226563f7349c5a39beb064195
 | S1 | | Complete. The human owner approved it on 2026-10-19 | [status/S1.md](status/S1.md) |
 | S2 | | Complete. The human owner approved it on 2026-10-26 | [status/S2.md](status/S2.md) |
 | S3 | S3 | Approved (human owner, 2026-11-06). Exit record (T20): [docs/decisions/s3-exit.md](docs/decisions/s3-exit.md); the base is sqlfluffrs (human owner, 2026-10-29). License: MIT (the human owner delegated the choice, 2026-11-01). Decision record: [docs/decisions/s3-base.md](docs/decisions/s3-base.md) | [status/S3.md](status/S3.md) |
-| S3b | core | In work (track core). C1 to C3 merged. C4 (the core design record) in review. Plan: [status/S3b.md](status/S3b.md) | [status/S3b.md](status/S3b.md) |
+| S3b | core | In work (track core). C1 to C14 merged. C15 (code generation interface: tree to schema) in review. Plan: [status/S3b.md](status/S3b.md) | [status/S3b.md](status/S3b.md) |
 | S7 test conversion | S7-tests | In work (track S7-tests) | [status/S7-tests.md](status/S7-tests.md) |
 | S9 | S9 | Approved (human owner, 2026-11-01) for sqlfluff, `sqlfluff[rs]`, and sqruff. The sqll results come after S3b | [status/S9.md](status/S9.md) |
 | S4, S5, S6, S7 sqll part, S8, S10 | | Not started. See "Needs:" in STONES.md | |
+| S11 | | Not started. The Jinja templater is the last stone (human owner, 2026-11-07) | |
 
 Approvals: the orchestrator approves the stones and the human decisions by
 the standing delegation of the human owner (CONSTITUTION.md, section 5).

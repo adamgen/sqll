@@ -242,9 +242,14 @@ def test_each_file_of_the_source_crates_is_ported_or_excluded():
         "crates/sqll_parser/src/parser/table_driven/sequence.rs",
         "crates/sqll_parser/src/parser/types.rs",
         "crates/sqll_rules/Cargo.toml",
+        "crates/sqll_rules/src/capitalisation.rs",
+        "crates/sqll_rules/src/cp01.rs",
+        "crates/sqll_rules/src/cp03.rs",
+        "crates/sqll_rules/src/cp04.rs",
         "crates/sqll_rules/src/lib.rs",
         "crates/sqll_types/Cargo.toml",
         "crates/sqll_types/src/matcher.rs",
+        "crates/sqll_types/src/templater/templatefile.rs",
     ]
 
 

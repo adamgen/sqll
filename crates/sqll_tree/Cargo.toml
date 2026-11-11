@@ -1,0 +1,21 @@
+# The syntax tree of sqll (S3b, docs/decisions/s3b-core.md). This file is
+# new sqll code (crates/ported.json, "new").
+[package]
+name = "sqll_tree"
+version.workspace = true
+edition = "2021"
+rust-version.workspace = true
+license = "MIT"
+publish = false
+build = "build.rs"
+
+[dependencies]
+# The source map of a tree and the lines of a text (S3b C8).
+sqll_source = { path = "../sqll_source" }
+
+# build.rs makes the segment kinds from the dialect tables and the lexers
+# (build/kinds.rs). It reads the dialect names from generated.json.
+[build-dependencies]
+serde_json.workspace = true
+sqll_dialects = { path = "../sqll_dialects" }
+sqll_types = { path = "../sqll_types" }

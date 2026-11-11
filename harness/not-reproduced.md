@@ -112,8 +112,8 @@ The T3 reviews found these false passes with fixtures that are not in sqlfluff
 - The `_hash` field of the dialect YAML files. It only makes contributors use
   the generator script. The tree check is sufficient.
 - `test__dialect__base_broad_fix`. It has no expected result in data.
-- `sqlfluff parse` applies the in-file config lines (`-- sqlfluff:...`) of the
-  SQL file. They have priority over `--dialect` and `--ignore-local-config`.
+- `sqlfluff parse` applies the in-file config lines (`-- sqlfluff:...` or
+  `--sqlfluff:...`) of the SQL file. They have priority over `--dialect` and `--ignore-local-config`.
   The test (`parse_example_file`, `lex_and_parse`) does not apply them. A line
   that changes a setting can give a false pass or a false fail. The harness
   does not fail closed for it. In sqlfluff 4.4.0 only
@@ -149,10 +149,49 @@ can give a tree where the test stops with `Maximum parse depth exceeded`:
 in the 18 measured forms, for 2 to 65 more levels of nesting. An example
 is `select` and 35 nested brackets around `1` with the depth 600. Thus an
 invented dialect fixture with such a nesting and a YAML tree can give a
-false pass of sqll in the dialect suite. No check
-fails closed for it: CI runs no dialect oracle for sqll. No 4.4.0 dialect
-fixture has the pattern: sqlfluff passes 2306 of 2306 dialect cases and
-the dialect oracle agrees, and sqll gives the same tree in 2306 of 2306.
+false pass of sqll in the dialect suite. For the pinned fixtures a check
+fails closed for it (S3b C14): the CI dialect oracle (`--passes-of sqll`)
+fails if sqll passes a case that the sqlfluff test does not pass. No check
+runs sqll on an invented fixture. No 4.4.0 dialect fixture has the
+pattern: sqlfluff passes 2306 of 2306 dialect cases and the dialect oracle
+agrees, and sqll gives the same tree in 2306 of 2306.
+
+### sqll rules (S3b C12)
+
+The rule fixture test of sqll (`crates/sqll_rules/tests/fixtures.rs`)
+compares each CP01, CP03, and CP04 case that it runs with the pinned
+sqlfluff (`results/S3b/C12-rules.json`). These differences are known only
+from invented inputs ([docs/interfaces/rules.md](../docs/interfaces/rules.md),
+"Differences from sqlfluff"):
+
+- CP01, CP03, CP04 do not examine a node with one target leaf child of the
+  same text (the child is examined). If sqlfluff has such a node with
+  children and it needs a fix, sqlfluff gives an "Unexpected exception"
+  violation and sqll gives the fix. Each of the 38 CP cases that sqll runs
+  agrees with sqlfluff, so none of them has such a node with a fix.
+- sqll refuses a fix that changes a block tag or a comment slice of a
+  templated file; sqlfluff can apply it. The pinned cases with Jinja are not
+  run before S11.
+
+### sqll in the rule and autofix suites (S3b C14)
+
+The adapter runs `sqll lint` and `sqll fix` as the sqlfluff adapter runs
+sqlfluff ([sqll.md](sqll.md), "Adapter"). Thus the limits of the rule and
+autofix suites above (for example the fix mode lists and
+`is_fix_compatible`) also apply to sqll. For the pinned cases a check fails
+closed: the CI rule, autofix, and templater oracles (`--passes-of sqll`)
+fail if sqll passes a case that the sqlfluff test does not pass. No check
+runs sqll on an invented case. In 4.4.0, each of the 38 rule cases that
+sqll passes also passes in the sqlfluff test.
+
+The jinja templater: the adapter runs sqll only for a text of
+`results/S3b/C14-jinja-raw.json`, and only with no templater setting and no
+`core.library_path`. The record has the texts for which the pinned
+sqlfluff gives the file of the raw templater, with the config of each
+pinned input that has the text. The record does not prove a text with
+another config. JinjaTemplater.process of sqlfluff 4.4.0 reads only the
+templater settings and `library_path` before it gives the raw file for a
+text with no Jinja delimiter. No check runs sqll on an invented case.
 
 ## sqruff
 

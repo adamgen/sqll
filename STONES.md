@@ -79,14 +79,15 @@ Needs: S3b.
 
 Needs: S3b. For each dialect, also the S4 trees of that dialect before its rules.
 
-- Exit: sqll passes 100% of the rule fixtures, lint and fix.
+- Exit: sqll passes 100% of the rule fixtures, lint and fix. Cases that need
+  the Jinja templater move to S11.
 
 ## S6. Templater parity
 
 Needs: S3b.
 
-- Support the Jinja, placeholder, and Python format-string templaters.
-- Exit: sqll passes 100% of the templater fixtures that do not need a Python runtime.
+- Support the placeholder and Python format-string templaters. Jinja is S11.
+- Exit: sqll passes 100% of these templater fixtures that do not need a Python runtime.
 
 ## S7. CLI and config parity
 
@@ -95,9 +96,10 @@ Needs: the test conversion needs S1. The sqll part needs S3b.
 The expected results of these tests are in Python code. Write them as black-box cases.
 
 - Convert the tests in `test/cli/`, the config fixtures, and the Python rule tests in `test/rules/`.
-- Exit: sqll passes 100% of the converted cases.
+- Exit: sqll passes 100% of the converted cases. Cases that need the Jinja
+  templater move to S11.
 
-Full parity (G1) is S4, S5, S6, and S7 complete.
+Full parity (G1) is S4, S5, S6, S7, and S11 complete.
 
 ## S8. Code generation
 
@@ -106,7 +108,7 @@ Needs: S4, S6.
 - Read the schema from DDL files.
 - Find the types of query parameters and result columns.
 - Write them as JSON Schema. Existing tools make code in each language from it.
-- Support each parameter style and templater from S6.
+- Support each parameter style and templater from S6. Jinja is S11.
 - Lint and code generation in one command parse each file one time.
 - Exit: the JSON Schema output is valid and correct for each parameter style.
 - Exit: code made from the schema by one existing tool compiles.
@@ -127,3 +129,18 @@ sqlfluff does not parse the body of PostgreSQL functions. sqll will.
 
 - Parse and lint SQL in PL/pgSQL function bodies.
 - Exit: a test set of PL/pgSQL functions parses with no unparsable segments.
+
+## S11. Jinja templater
+
+Needs: all other stones. This is the last stone.
+
+Decision of the human owner (2026-11-07): do not write a Jinja engine in
+sqll. The orchestrator tests the options and decides with data.
+
+- Test each option on the Jinja fixtures: an existing Jinja library (for
+  example the minijinja crate), a Python subprocess only for Jinja files, or
+  an exclusion of Jinja as a feature that needs a Python runtime (G1.3).
+- Record the decision with its data: parity, speed, size, and license.
+- Exit: sqll passes 100% of the Jinja cases that the decision keeps
+  (templater, rule, and converted cases), and S8 supports Jinja if kept.
+- Exit: each other Jinja case is in a known-failure list with its reason.

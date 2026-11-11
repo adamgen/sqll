@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "numeric_dollar",
+  "type": "object",
+  "properties": {
+    "parameters": {
+      "$ref": "#/$defs/parameters"
+    },
+    "row": {
+      "$ref": "#/$defs/row"
+    }
+  },
+  "required": [
+    "parameters",
+    "row"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "parameters": {
+      "type": "array",
+      "prefixItems": [
+        {
+          "type": "string",
+          "format": "uuid",
+          "x-sqll-type": "uuid",
+          "x-sqll-nullability": "not_null",
+          "x-sqll-name": "1",
+          "x-sqll-position": 1,
+          "x-sqll-style": "numeric_dollar",
+          "x-sqll-sources": [
+            {
+              "start": 30,
+              "end": 31,
+              "line": 1,
+              "pos": 31
+            }
+          ]
+        },
+        {
+          "type": "string",
+          "format": "date",
+          "x-sqll-type": "date",
+          "x-sqll-nullability": "not_null",
+          "x-sqll-name": "2",
+          "x-sqll-position": 2,
+          "x-sqll-style": "numeric_dollar",
+          "x-sqll-sources": [
+            {
+              "start": 33,
+              "end": 34,
+              "line": 1,
+              "pos": 34
+            }
+          ]
+        }
+      ],
+      "items": false,
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "row": {
+      "type": "object",
+      "properties": {
+        "n": {
+          "type": "integer",
+          "x-sqll-type": "integer",
+          "x-sqll-nullability": "not_null",
+          "x-sqll-source": {
+            "start": 50,
+            "end": 54,
+            "line": 1,
+            "pos": 51
+          }
+        }
+      },
+      "required": [
+        "n"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "x-sqll-statement": "update",
+  "x-sqll-source": {
+    "start": 0,
+    "end": 60,
+    "line": 1,
+    "pos": 1
+  }
+}

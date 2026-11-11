@@ -4,6 +4,7 @@
 // commit 0348222a3bcdb0226563f7349c5a39beb0641955.
 // Copyright (c) 2018-2026 Alan Cruickshank. MIT License: see
 // crates/LICENSE-sqlfluffrs.md. See THIRD_PARTY.md and crates/ported.json.
+// sqll changed this file. crates/ported.json gives the reason.
 
 //! Shared detection logic for the capitalisation rule bundle (CP01/CP03/CP04
 //! today; CP02/CP05 have extra logic — ancestor-based policy applicability and
@@ -13,11 +14,18 @@
 //! `_handle_segment` state machine: refute capitalisation cases inconsistent
 //! with what's been seen so far, resolve a concrete policy under `consistent`,
 //! apply it, and compare. This module holds that state machine once; each
-//! rule's arena walk differs only in which segment types it targets/excludes.
+//! rule differs only in which segment types it targets/excludes.
+//!
+//! sqll: the rules run over the typed view of the `SyntaxTree` through the
+//! rule interface of `sqll_lint` (S3b C12), not over the parse arena. The
+//! crawl of the interface gives the target nodes; [`eval`] is the
+//! `Rule_CP01._eval` of one node, with the state machine in the memory of
+//! the crawl. A result has the sqlfluff description and a replace fix.
 
 use std::collections::HashSet;
 
-use sqlfluffrs_parser::{Arena, NodeId};
+use sqll_lint::{Fix, LintError, LintResult, RuleConfig, RuleContext};
+use sqll_tree::{NodeRef, SegmentType};
 
 /// `capitalisation_policy`/`extended_capitalisation_policy` options minus
 /// "consistent", in validation order. Only these three are ever inferred under
@@ -131,8 +139,9 @@ fn apply_policy(raw: &str, policy: &str) -> String {
 }
 
 /// Refute cases inconsistent with `raw`, resolve a concrete policy, and apply
-/// it. Returns `Some(fixed_raw)` when a fix is needed, `None` otherwise (mirrors
-/// `Rule_CP01._handle_segment`'s per-segment control flow).
+/// it. Returns `Some((fixed_raw, concrete_policy))` when a fix is needed,
+/// `None` otherwise (mirrors `Rule_CP01._handle_segment`'s per-segment
+/// control flow).
 ///
 /// `camel`/`pascal`/`snake` bypass the refutation check entirely — in Python
 /// they're always present in `refuted_cases` (added unconditionally), so
@@ -144,7 +153,7 @@ fn evaluate(
     policy: &str,
     refuted: &mut HashSet<&'static str>,
     latest_possible: &mut Option<&'static str>,
-) -> Option<String> {
+) -> Option<(String, String)> {
     let first_lower = raw
         .chars()
         .find(|c| is_capitalizable(*c))
@@ -189,7 +198,7 @@ fn evaluate(
 
     let fixed = apply_policy(raw, concrete);
     if fixed != raw {
-        Some(fixed)
+        Some((fixed, concrete.to_string()))
     } else {
         None
     }
@@ -199,122 +208,168 @@ fn evaluate(
 /// function-name check (used by CP03: multi-part function names are likely
 /// case-sensitive UDFs) — the latter is hardcoded in the Python `_eval`, not
 /// gated by `_exclude_parent_types`, so it applies unconditionally here too.
-fn is_excluded_parent(
-    arena: &Arena,
-    parent: Option<NodeId>,
-    exclude_parent_types: &[&str],
-) -> bool {
+fn is_excluded_parent(parent: Option<NodeRef<'_>>, exclude_parent_types: &[SegmentType]) -> bool {
     let Some(parent) = parent else {
         return false;
     };
-    if exclude_parent_types
-        .iter()
-        .any(|t| arena.is_type(parent, t))
-    {
+    if parent.is_any_type(exclude_parent_types) {
         return true;
     }
-    arena.get_type(parent) == "function_name" && arena.children(parent).len() != 1
+    parent.ty() == SegmentType::FUNCTION_NAME && parent.children().count() != 1
 }
 
-#[allow(clippy::too_many_arguments)]
-fn walk(
-    arena: &Arena,
-    id: NodeId,
-    parent: Option<NodeId>,
-    target_types: &[&str],
-    exclude_types: &[&str],
-    exclude_parent_types: &[&str],
-    policy: &str,
-    ignore_words: &HashSet<String>,
-    ignore_templated: bool,
-    leaf_idx: &mut usize,
-    refuted: &mut HashSet<&'static str>,
-    latest_possible: &mut Option<&'static str>,
-    out: &mut Vec<(usize, String)>,
-) {
-    // Containers (and unparsables): recurse into children. Targets are leaves.
-    let children = arena.children(id);
-    if !children.is_empty() {
-        for &child in children {
-            walk(
-                arena,
-                child,
-                Some(id),
-                target_types,
-                exclude_types,
-                exclude_parent_types,
-                policy,
-                ignore_words,
-                ignore_templated,
-                leaf_idx,
-                refuted,
-                latest_possible,
-                out,
-            );
+/// The settings of a capitalisation rule, read one time for each crawl
+/// (`Rule_CP01._init_capitalisation_policy`).
+pub struct Settings {
+    pub policy: String,
+    pub ignore_words: HashSet<String>,
+    pub ignore_templated: bool,
+}
+
+/// The settings of the rule config. `policy_key` is the config keyword of
+/// the policy (`capitalisation_policy` or `extended_capitalisation_policy`).
+/// A word regex (`ignore_words_regex`) fails closed: sqll does not have the
+/// Python `regex` module.
+pub fn settings(config: &RuleConfig, policy_key: &str) -> Result<Settings, LintError> {
+    if let Some(v) = config.get("ignore_words_regex") {
+        if v.is_truthy() {
+            return Err(LintError::Unsupported(format!(
+                "setting ignore_words_regex = {v}: sqll does not have the Python regex module (S5)"
+            )));
         }
-        return;
     }
-
-    // A childless node is one leaf in `raw_segments` order (raw/meta/empty).
-    // Take the index *before* any early return so it stays aligned regardless
-    // of whether this leaf is a target.
-    let this_leaf = *leaf_idx;
-    *leaf_idx += 1;
-
-    // Non-cloning `is_type` membership checks — `class_types(id)` would clone
-    // a Vec<String> per leaf, which dominates detection time on large files.
-    let is_target = target_types.iter().any(|t| arena.is_type(id, t))
-        && !exclude_types.iter().any(|t| arena.is_type(id, t));
-    if !is_target || is_excluded_parent(arena, parent, exclude_parent_types) {
-        return;
-    }
-
-    let raw = arena.raw(id);
-
-    // Skips that must NOT influence the consistent-policy inference.
-    if raw.is_empty()
-        || ignore_words.contains(&raw.to_lowercase())
-        || (ignore_templated && arena.is_templated(id))
-    {
-        return;
-    }
-
-    if let Some(fixed) = evaluate(&raw, policy, refuted, latest_possible) {
-        out.push((this_leaf, fixed));
-    }
-}
-
-/// Detect capitalisation violations on a parsed arena for a given target/
-/// exclude configuration. `leaf_index` is the position in the arena's
-/// depth-first leaf order, matching Python's `raw_segments`, so the caller
-/// anchors via `raw_segments[leaf_index]`.
-pub fn detect(
-    arena: &Arena,
-    target_types: &[&str],
-    exclude_types: &[&str],
-    exclude_parent_types: &[&str],
-    policy: &str,
-    ignore_words: &HashSet<String>,
-    ignore_templated: bool,
-) -> Vec<(usize, String)> {
-    let mut out = Vec::new();
-    let mut leaf_idx = 0usize;
-    let mut refuted: HashSet<&'static str> = HashSet::new();
-    let mut latest_possible: Option<&'static str> = None;
-    walk(
-        arena,
-        arena.root(),
-        None,
-        target_types,
-        exclude_types,
-        exclude_parent_types,
+    let policy = config.get_str(policy_key)?.unwrap_or_default();
+    // Use str() as CP04 uses bools which might otherwise be read as bool.
+    let ignore = config.get_str("ignore_words")?.unwrap_or_default();
+    let ignore_words = if !ignore.is_empty() && ignore != "None" {
+        sqll_lint::config::split_comma_separated(&ignore.to_lowercase())
+            .into_iter()
+            .collect()
+    } else {
+        HashSet::new()
+    };
+    let ignore_templated = config
+        .core("ignore_templated_areas")
+        .is_some_and(sqll_config::Value::is_truthy);
+    Ok(Settings {
         policy,
         ignore_words,
         ignore_templated,
-        &mut leaf_idx,
-        &mut refuted,
-        &mut latest_possible,
-        &mut out,
-    );
-    out
+    })
+}
+
+/// The memory of a crawl: the settings, the refuted cases, and the latest
+/// possible case.
+#[derive(Default)]
+struct Memory {
+    settings: Option<Settings>,
+    refuted: HashSet<&'static str>,
+    latest_possible: Option<&'static str>,
+}
+
+/// The target types and the exclusions of one capitalisation rule.
+pub struct Targets {
+    /// The code of the rule, for a message.
+    pub code: &'static str,
+    /// The types of the crawl.
+    pub target_types: &'static [SegmentType],
+    pub exclude_types: &'static [SegmentType],
+    pub exclude_parent_types: &'static [SegmentType],
+    /// The config keyword of the policy.
+    pub policy_key: &'static str,
+    /// The `_description_elem` of the rule, for example "Keywords".
+    pub description_elem: &'static str,
+}
+
+/// A target with one child that is a target leaf with the same text: the
+/// parser of sqll makes some sqlfluff raw segments as such a node (for
+/// example the sparksql `DivBinaryOperatorSegment` around a keyword). The
+/// crawl examines the child, so the node is not examined.
+fn wraps_target_leaf(node: NodeRef<'_>, target_types: &[SegmentType]) -> bool {
+    let mut children = node.children();
+    match (children.next(), children.next()) {
+        (Some(child), None) => {
+            child.children().next().is_none()
+                && child.range() == node.range()
+                && child.is_any_type(target_types)
+        }
+        _ => false,
+    }
+}
+
+/// `Rule_CP01._eval` and `_handle_segment` for one node of the crawl.
+///
+/// sqll: a target with children (for example the ansi `ConcatSegment`)
+/// changes the memory, as in sqlfluff. If it needs a fix, sqlfluff raises
+/// an exception (a node with children has no `edit`) and stops the rule;
+/// sqll fails closed (unsupported).
+pub fn eval(
+    context: &mut RuleContext<'_, '_>,
+    targets: &Targets,
+) -> Result<Vec<LintResult>, LintError> {
+    let node = context.segment;
+    let has_children = node.children().next().is_some();
+    if has_children && wraps_target_leaf(node, targets.target_types) {
+        return Ok(Vec::new());
+    }
+    if node.is_any_type(targets.exclude_types)
+        || is_excluded_parent(node.parent(), targets.exclude_parent_types)
+    {
+        return Ok(Vec::new());
+    }
+    let config = context.config;
+    let memory = context.memory.get_or_default::<Memory>();
+    if memory.settings.is_none() {
+        // RulePack checks the settings (check_config) before a lint.
+        memory.settings = settings(config, targets.policy_key).ok();
+    }
+    let Some(settings) = memory.settings.as_ref() else {
+        return Ok(Vec::new());
+    };
+    let raw = node.raw();
+
+    // Skips that must NOT influence the consistent-policy inference.
+    if raw.is_empty()
+        || settings.ignore_words.contains(&raw.to_lowercase())
+        || (settings.ignore_templated && sqll_lint::linter::is_templated(node.tree(), node.id()))
+    {
+        return Ok(Vec::new());
+    }
+
+    let policy = settings.policy.clone();
+    let Some((fixed, concrete)) = evaluate(
+        raw,
+        &policy,
+        &mut memory.refuted,
+        &mut memory.latest_possible,
+    ) else {
+        return Ok(Vec::new());
+    };
+    if has_children {
+        return Err(LintError::Unsupported(format!(
+            "{}: a fix of the {} node {raw:?}, which has children (sqlfluff stops the rule \
+             with an exception)",
+            targets.code,
+            node.ty().name()
+        )));
+    }
+    let consistency = if policy == "consistent" {
+        "consistently "
+    } else {
+        ""
+    };
+    let policy_text = if concrete == "capitalise" {
+        "capitalised.".to_string()
+    } else {
+        format!("{concrete} case.")
+    };
+    Ok(vec![LintResult::new(node.id())
+        .with_description(format!(
+            "{} must be {consistency}{policy_text}",
+            targets.description_elem
+        ))
+        .with_fix(Fix::Replace {
+            anchor: node.id(),
+            text: fixed,
+        })])
 }

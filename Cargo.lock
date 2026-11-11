@@ -549,13 +549,14 @@ checksum = "67b1b7a3b5fe4f1376887184045fcf45c69e92af734b7aaddc05fb777b6fbd03"
 name = "sqll"
 version = "0.1.0"
 dependencies = [
- "serde",
+ "libc",
  "serde_json",
  "serde_yaml_ng",
  "sha2",
+ "sqll_cli",
  "sqll_dialects",
  "sqll_lexer",
- "sqll_parser",
+ "sqll_lint",
  "sqll_types",
 ]
 
@@ -575,12 +576,66 @@ dependencies = [
 ]
 
 [[package]]
+name = "sqll_cli"
+version = "0.1.0"
+dependencies = [
+ "fancy-regex",
+ "libc",
+ "regex",
+ "serde",
+ "serde_json",
+ "serde_yaml_ng",
+ "sqll_config",
+ "sqll_lint",
+ "sqll_parser",
+ "sqll_rules",
+ "sqll_source",
+ "sqll_syntax",
+ "sqll_templater",
+ "sqll_tree",
+]
+
+[[package]]
+name = "sqll_codegen"
+version = "0.1.0"
+dependencies = [
+ "sqll_schema",
+ "sqll_syntax",
+ "sqll_tree",
+]
+
+[[package]]
+name = "sqll_config"
+version = "0.1.0"
+
+[[package]]
 name = "sqll_dialects"
 version = "0.1.0"
 dependencies = [
  "once_cell",
  "serde_json",
  "sha2",
+ "sqll_types",
+]
+
+[[package]]
+name = "sqll_interfaces"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+ "serde_yaml_ng",
+ "sqll_codegen",
+ "sqll_config",
+ "sqll_dialects",
+ "sqll_lexer",
+ "sqll_lint",
+ "sqll_parser",
+ "sqll_rules",
+ "sqll_schema",
+ "sqll_source",
+ "sqll_syntax",
+ "sqll_templater",
+ "sqll_tree",
  "sqll_types",
 ]
 
@@ -594,6 +649,16 @@ dependencies = [
  "sqll_dialects",
  "sqll_types",
  "uuid",
+]
+
+[[package]]
+name = "sqll_lint"
+version = "0.1.0"
+dependencies = [
+ "sqll_config",
+ "sqll_source",
+ "sqll_syntax",
+ "sqll_tree",
 ]
 
 [[package]]
@@ -615,10 +680,60 @@ dependencies = [
 name = "sqll_rules"
 version = "0.1.0"
 dependencies = [
+ "serde_json",
+ "serde_yaml_ng",
+ "sqll_config",
+ "sqll_lint",
+ "sqll_source",
+ "sqll_syntax",
+ "sqll_templater",
+ "sqll_tree",
+]
+
+[[package]]
+name = "sqll_schema"
+version = "0.1.0"
+dependencies = [
+ "sqll_source",
+ "sqll_syntax",
+ "sqll_tree",
+]
+
+[[package]]
+name = "sqll_source"
+version = "0.1.0"
+dependencies = [
+ "sqll_types",
+]
+
+[[package]]
+name = "sqll_syntax"
+version = "0.1.0"
+dependencies = [
  "hashbrown 0.16.1",
  "sqll_dialects",
  "sqll_lexer",
  "sqll_parser",
+ "sqll_source",
+ "sqll_tree",
+ "sqll_types",
+]
+
+[[package]]
+name = "sqll_templater"
+version = "0.1.0"
+dependencies = [
+ "sqll_source",
+]
+
+[[package]]
+name = "sqll_tree"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+ "sqll_dialects",
+ "sqll_source",
+ "sqll_types",
 ]
 
 [[package]]

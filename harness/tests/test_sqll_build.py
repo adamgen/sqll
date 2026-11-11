@@ -188,17 +188,52 @@ def test_tree_packages():
 
 # S3 T18: the rules crate and the native tests of the base root crate.
 T18_CRATES = ["sqll_rules", "sqll_base_tests"]
+# S3b C6: the syntax tree crate and the interface test crate.
+C6_CRATES = ["sqll_tree", "sqll_interfaces"]
+# S3b C7: the syntax crate (the conversion to the syntax tree).
+C7_CRATES = ["sqll_syntax"]
+# S3b C8: the source map crate and the templater crate (an S6 package).
+C8_CRATES = ["sqll_source", "sqll_templater"]
+# S3b C11: the config crate.
+C11_CRATES = ["sqll_config"]
+# S3b C12: the rule and fix interface crate.
+C12_CRATES = ["sqll_lint"]
+# S3b C13: the CLI crate (an S7-sqll package).
+C13_CRATES = ["sqll_cli"]
+# S3b C15: the code generation interface crate and the code generation crate
+# (an S8 package).
+C15_CRATES = ["sqll_schema", "sqll_codegen"]
 
 
 def test_the_workspace_has_the_ported_crates_the_binary_and_no_python():
     cargo = tomllib.loads((REPO_ROOT / "Cargo.toml").read_text("utf8"))
     members = [f"crates/{c}" for c in CRATES + T18_CRATES] + ["crates/sqll"]
+    members += [f"crates/{c}" for c in C6_CRATES + C7_CRATES + C8_CRATES]
+    members += [f"crates/{c}" for c in C11_CRATES + C12_CRATES + C13_CRATES]
+    members += [f"crates/{c}" for c in C15_CRATES]
     assert cargo["workspace"]["members"] == members
     lock = tomllib.loads((REPO_ROOT / "Cargo.lock").read_text("utf8"))
     names = {p["name"] for p in lock["package"]}
-    assert {*CRATES, *T18_CRATES, "sqll"} <= names
+    later = [*C11_CRATES, *C12_CRATES, *C13_CRATES, *C15_CRATES]
+    assert {
+        *CRATES,
+        *T18_CRATES,
+        *C6_CRATES,
+        *C7_CRATES,
+        *C8_CRATES,
+        *later,
+        "sqll",
+    } <= names
     assert not names & {"pyo3", "pyo3-ffi", "sqlfluffrs_python"}
-    for crate in [*CRATES, *T18_CRATES, "sqll"]:
+    for crate in [
+        *CRATES,
+        *T18_CRATES,
+        *C6_CRATES,
+        *C7_CRATES,
+        *C8_CRATES,
+        *later,
+        "sqll",
+    ]:
         text = (REPO_ROOT / "crates" / crate / "Cargo.toml").read_text("utf8")
         assert "pyo3" not in text and "python" not in text, crate
 

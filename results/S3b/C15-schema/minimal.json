@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "minimal",
+  "type": "object",
+  "properties": {
+    "parameters": {
+      "$ref": "#/$defs/parameters"
+    },
+    "row": {
+      "$ref": "#/$defs/row"
+    }
+  },
+  "required": [
+    "parameters",
+    "row"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "parameters": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    },
+    "row": {
+      "type": "object",
+      "properties": {
+        "ID": {
+          "type": "integer",
+          "x-sqll-type": "integer",
+          "x-sqll-nullability": "not_null",
+          "x-sqll-source": {
+            "start": 7,
+            "end": 14,
+            "line": 1,
+            "pos": 8
+          }
+        },
+        "Name": {
+          "type": "string",
+          "x-sqll-type": "text",
+          "x-sqll-nullability": "not_null",
+          "x-sqll-source": {
+            "start": 16,
+            "end": 29,
+            "line": 1,
+            "pos": 17
+          }
+        },
+        "OK": {
+          "type": "boolean",
+          "x-sqll-type": "boolean",
+          "x-sqll-nullability": "not_null",
+          "x-sqll-source": {
+            "start": 31,
+            "end": 41,
+            "line": 1,
+            "pos": 32
+          }
+        },
+        "NOTE": {
+          "x-sqll-type": "unknown",
+          "x-sqll-nullability": "nullable",
+          "x-sqll-source": {
+            "start": 43,
+            "end": 55,
+            "line": 1,
+            "pos": 44
+          }
+        }
+      },
+      "required": [
+        "ID",
+        "Name",
+        "OK",
+        "NOTE"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "x-sqll-statement": "select",
+  "x-sqll-source": {
+    "start": 0,
+    "end": 55,
+    "line": 1,
+    "pos": 1
+  }
+}

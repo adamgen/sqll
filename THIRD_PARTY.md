@@ -5,8 +5,8 @@
 sqll is under the MIT license: `LICENSE`, "Copyright (c) 2026 The sqll
 authors". Each crate in `crates/` has `license = "MIT"`. `sqll --license`
 prints the sqll license and the notices of the code in the binary: the
-sqlfluff MIT notice, the CPython license, the Rust MIT notice, and the
-dependency notice list ("Rust"). The decision and its reasons:
+sqlfluff MIT notice, the CPython license, the tomli and PyYAML MIT
+licenses, the Rust MIT notice, and the dependency notice list ("Rust"). The decision and its reasons:
 `status/S3.md`, "License decision (T19)".
 
 ## sqlfluff
@@ -49,6 +49,46 @@ from the submodule. The harness does not.
 names of the sqlfluff 4.4.0 dialects and segment classes.
 `scripts/s3/sqruff_rules.py` reads them from the installed sqlfluff package.
 No sqlfluff code is copied.
+
+`scripts/s3b/source_map_oracle.py` (S3b task C8) imports and runs the
+installed sqlfluff 4.4.0 package (MIT): its `TemplatedFile` and its
+templaters, on the fixtures of `test/fixtures/templater/`.
+`results/S3b/C8-source-map.json` has its output for `jinja_a/jinja.sql`
+and `jinja_b/jinja.sql`: the templated texts, the slices, the source
+ranges, lines, and positions, and the segment types. It has no source text
+of the fixtures; the tests read the submodule. The random files of its
+`check` are invented, not sqlfluff data. No sqlfluff code is copied.
+
+`scripts/s3b/config_oracle.py` (S3b task C11) imports and runs the
+installed sqlfluff 4.4.0 package (MIT): its config reader, its templaters,
+and its `parse` command. It reads the config fixtures of
+`test/fixtures/config/`, `tox.ini`, `pyproject.toml`, and
+`src/sqlfluff/core/default_config.cfg` of the submodule, and the dialect
+fixtures. `results/S3b/C11-config.json` has its output: the values of the
+default config, the dicts that sqlfluff reads from these files (the record
+names each file; it has no copy of a file), and the output of
+`sqlfluff parse` for invented files. The tests copy the cited fixture files
+of the submodule into a temporary folder. No sqlfluff code is copied.
+
+`scripts/s3b/cli_oracle.py` (S3b task C13) runs the `sqlfluff` command of
+the installed sqlfluff 4.4.0 package (MIT): `lint`, `fix`, `rules`, and
+`dialects`, on invented files and on the pinned fixtures
+`test/fixtures/dialects/sparksql/select_div.sql` and
+`test/fixtures/linter/parse_lex_error.sql`.
+`results/S3b/C13-cli.json` has, for each scenario, the input files (with
+the text of these fixtures), the arguments, and the stdout, stderr, exit
+code, and changed files of sqlfluff. The stdout of the scenario
+"rules default" is the rules table of sqlfluff (the code, name, and
+description of each rule). No sqlfluff code is copied.
+
+`scripts/s3b/jinja_raw_oracle.py` (S3b task C14) imports and runs the
+installed sqlfluff 4.4.0 package (MIT): `JinjaTemplater`, `RawTemplater`,
+`Linter._normalise_newlines`, and `FluffConfig`. It reads the rule
+fixtures of `test/fixtures/rules/std_rule_cases/` and the autofix fixtures
+of `test/fixtures/linter/autofix/` through the harness suites, and the
+root config of the submodule. `results/S3b/C14-jinja-raw.json` has only
+sha256 values of fixture texts and counts. It has no fixture text. No
+sqlfluff code is copied.
 
 `scripts/s3/sqlfluffrs_probe.py` (S3 research, task T5) copies the
 submodule into a scratch folder, runs `utils/rustify.py` there, and builds
@@ -120,10 +160,35 @@ Ported code (MIT, attribution in each file header):
 | `harness/sqll_harness/adapters/config_files.py` | `src/sqlfluff/core/config/` (`load_config_up_to_path`, `load_config_at_path`, `_resolve_paths_in_config`, `load_ini_string`), `src/sqlfluff/core/helpers/file.py` (`iter_intermediate_paths`) |
 | `scripts/sqlfluff_oracle.py` | `test/conftest.py` (`fail_on_parse_error_after_fix`) |
 | `scripts/sqlfluff-autofix-oracle` | `test/rules/std_fix_auto_test.py` (`test_cases`) |
-| `crates/sqll/src/parse.rs` | The lexer and parser calls and the limits of the T5 probe (row below): `sqlfluffrs/src/test_harness.rs` (`FixtureTest::run`), `sqlfluffrs/sqlfluffrs_parser/src/parser/python.rs` (`PyParser` limits), `src/sqlfluff/core/default_config.cfg` (the parse limits and indentation defaults) |
+| `crates/sqll_syntax/src/parse.rs` | The lexer and parser calls and the limits of the T5 probe (row below): `sqlfluffrs/src/test_harness.rs` (`FixtureTest::run`), `sqlfluffrs/sqlfluffrs_parser/src/parser/python.rs` (`PyParser` limits), `src/sqlfluff/core/default_config.cfg` (the parse limits and indentation defaults). The message of an unparsable section: `src/sqlfluff/core/linter/linter.py` (`Linter.parse_rendered`). S3b C9 moved the calls and limits from `crates/sqll/src/parse.rs` |
 | `scripts/s3/probe-sqlfluffrs/src/main.rs` | S3 research code, not sqll: `sqlfluffrs/src/test_harness.rs` (`FixtureTest::run`), `sqlfluffrs/sqlfluffrs_parser/src/parser/python.rs` (`PyParser` limits), `src/sqlfluff/core/default_config.cfg` (the parse limits and indentation defaults) |
 | `crates/sqll/tests/cli.rs` | `test/conftest.py` (`process_struct`) |
-| `scripts/s3b/tree-cost/src/main.rs` | S3b C4 measurement, not sqll: the lexer and parser calls and the limits of `crates/sqll/src/parse.rs` (row above) |
+| `scripts/s3b/tree-cost/src/main.rs` | S3b C4 measurement, not sqll: the lexer and parser calls and the limits of `crates/sqll/src/parse.rs` before S3b C9 (now `crates/sqll_syntax/src/parse.rs`, row above) |
+| `crates/sqll_tree/build/kinds.rs` | The node construction rules of `sqlfluffrs/sqlfluffrs_parser` as `crates/sqll_parser` has them: `src/parser/match_result.rs` (`MatchResult::apply`, `token_to_node`, `MatchedClass`), `src/parser/core.rs` (the terminal parser handlers, `aux_block_bounds`, `read_string_ids_from_aux`), `src/parser/table_driven/ref_grammar.rs` (`build_ref_wrap`) |
+| `scripts/s3b/convert-cost/src/main.rs` | S3b C7 measurement, not sqll: the lexer and parser calls and the limits of `crates/sqll/src/parse.rs` before S3b C9 (now `crates/sqll_syntax/src/parse.rs`, row above) |
+| `crates/sqll_source/src/map.rs` | `sqlfluffrs/sqlfluffrs_types/src/templater/templatefile.rs`: the slice search of `find_slice_indices_of_templated_pos` and the rule for an empty slice of `templated_slice_to_source_slice` (S3b C8) |
+| `crates/sqll_templater/src/raw.rs` | `src/sqlfluff/core/templaters/base.py` (`RawTemplater.process`) (S3b C8) |
+| `crates/sqll_config/src/value.rs` | `src/sqlfluff/core/config/ini.py` (`coerce_value`) (S3b C11) |
+| `crates/sqll_config/src/dict.rs` | `src/sqlfluff/core/helpers/dict.py` (`nested_combine`, `records_to_nested_dict`, `iter_records_from_nested_dict`) (S3b C11) |
+| `crates/sqll_config/src/ini.rs` | `src/sqlfluff/core/config/ini.py` (`load_ini_string`) (S3b C11; also CPython below) |
+| `crates/sqll_config/src/toml.rs` | `src/sqlfluff/core/config/toml.py` (`load_toml_file_config` and its helpers) (S3b C11; also tomllib below) |
+| `crates/sqll_config/src/defaults.rs` | The values of `src/sqlfluff/core/default_config.cfg` (S3b C11) |
+| `crates/sqll_config/src/validate.rs` | `src/sqlfluff/core/config/validate.py` and `removed.py` (S3b C11) |
+| `crates/sqll_config/src/loader.rs` | `src/sqlfluff/core/config/loader.py`, `file.py`, and `src/sqlfluff/core/helpers/file.py` (`iter_intermediate_paths`) (S3b C11) |
+| `crates/sqll_config/src/config.rs` | `src/sqlfluff/core/config/fluffconfig.py` (`FluffConfig`, parts) and `src/sqlfluff/core/helpers/string.py` (`split_comma_separated_string`) (S3b C11) |
+| `crates/sqll_lint/src/rule.rs` | `src/sqlfluff/core/rules/base.py` (`BaseRule`, `LintResult`) and `crawlers.py` (`RootOnlyCrawler`, `SegmentSeekerCrawler`, `passes_filter`) (S3b C12) |
+| `crates/sqll_lint/src/config.rs` | `src/sqlfluff/core/rules/base.py` (`RuleSet._validate_config_options`, the rule keyword arguments of `get_rulepack`) and `src/sqlfluff/core/helpers/string.py` (`split_comma_separated_string`) (S3b C12) |
+| `crates/sqll_lint/src/fix.rs` | `src/sqlfluff/core/rules/fix.py` (`LintFix`), `rules/base.py` (`discard_unsafe_fixes`), and `linter/fix.py` (`AnchorEditInfo`, `compute_anchor_edit_info`) (S3b C12) |
+| `crates/sqll_lint/src/registry.rs` | `src/sqlfluff/core/rules/base.py` (`rule_reference_map`, `_expand_rule_refs`, `get_rulepack`) (S3b C12) |
+| `crates/sqll_lint/src/linter.rs` | `src/sqlfluff/core/linter/linter.py` (`lint_fix_parsed`, `remove_templated_errors`), `linted_file.py` (`deduplicate_in_source_space`), and `rules/base.py` (`crawl`, `_process_lint_result`) (S3b C12) |
+| `crates/sqll_cli/src/color.rs` | `src/sqlfluff/core/types.py` (`Color`), `src/sqlfluff/cli/formatters.py` (`should_produce_plain_output`, `colorize_helper`), and the log line of `set_logging_level` in `src/sqlfluff/cli/commands.py` (S3b C13) |
+| `crates/sqll_cli/src/text.rs` | `src/sqlfluff/cli/helpers.py` (`wrap_field`, `pad_line`) and `src/sqlfluff/cli/formatters.py` (`cli_table_row`, `cli_table`, `split_string_on_spaces`) (S3b C13; also CPython below) |
+| `crates/sqll_cli/src/info.rs` | `src/sqlfluff/cli/commands.py` (`rules`, `dialects`), `src/sqlfluff/cli/formatters.py` (`format_rules`, `_format_rule_description`, `format_dialects`), and the dialect names of `dialect_readout` (S3b C13) |
+| `crates/sqll_cli/src/lint/mod.rs` | `src/sqlfluff/cli/commands.py` (`get_config`, `lint`, `fix`, `_paths_fix`, `_stdin_fix`, `_handle_unparsable`, `do_fixes`), `src/sqlfluff/cli/outputstream.py` (`OutputPolicy`), `src/sqlfluff/cli/formatters.py` (`print_out_residual_error_counts`, `completion_message`), `src/sqlfluff/core/linter/linter.py` (`lint_paths`), `linted_dir.py` and `linting_result.py` (the counts), `linted_file.py` (`persist_tree`, `_safe_create_replace_file`) (S3b C13) |
+| `crates/sqll_cli/src/lint/file.rs` | `src/sqlfluff/core/linter/linter.py` (`load_raw_file_and_config`, `render_string`, `parse_rendered`, `lint_parsed`), `runner.py` (`iter_rendered`, `iter_partials`), `linted_file.py` (`deduplicate_in_source_space`, `get_violations`), `src/sqlfluff/core/errors.py` (`ignore_if_in`, `warning_if_in`) (S3b C13) |
+| `crates/sqll_cli/src/lint/files.rs` | `src/sqlfluff/core/linter/discovery.py` (`paths_from_path`, `_iter_files_in_path`) (S3b C13) |
+| `crates/sqll_cli/src/lint/record.rs` | `src/sqlfluff/core/errors.py` (`to_dict`), `src/sqlfluff/core/rules/fix.py` (`LintFix.to_dict`), `src/sqlfluff/core/linter/linted_dir.py` (`LintedDir.add`), `src/sqlfluff/cli/commands.py` (`lint`: the github formats), `src/sqlfluff/cli/formatters.py` (`format_filename`, `format_violation`, `_format_file_violations`) (S3b C13) |
+| `crates/sqll_lint/src/sqlfluff.rs` | The rule manifest (code, name, description, groups, aliases, phase, config keywords) of `src/sqlfluff/rules/` and the validation lists of the rule config info, as data (S3b C12, `scripts/s3b/rules_oracle.py`) |
 
 ## sqlfluffrs in crates/
 
@@ -146,7 +211,8 @@ The sqll engine crates are a port of the sqlfluffrs crates of sqlfluff.
 | `crates/sqll_base_tests/tests` | `sqlfluffrs/tests` |
 
 `crates/sqll_rules` has the rules CP01, CP03, and CP04 as a library (S3
-T18); the sqll binary does not use it yet. `crates/sqll_base_tests` has the
+T18; since S3b C12 over the rule interface of `crates/sqll_lint`); the sqll
+binary does not use it yet. `crates/sqll_base_tests` has the
 native tests of the root crate `sqlfluffrs` (its library keeps that name).
 They read the sqlfluff fixtures in place in the submodule. Their
 dev-dependency `blake2` 0.10.6 (crates.io, MIT OR Apache-2.0) and its new
@@ -170,8 +236,21 @@ lines, and sha256 of each of the 85 files. The build copies them into
 `sqll_dialects`, so a sqll binary contains them.
 
 The new sqll files in `crates/` (listed in `crates/ported.json`, "new") and
-`rust-toolchain.toml` have no sqlfluff code, but `crates/sqll/src/parse.rs`
-has ported parts ("Ported code" above). The sqll binary (`crates/sqll`)
+`rust-toolchain.toml` have no sqlfluff code, but `crates/sqll_syntax/src/parse.rs`,
+`crates/sqll/tests/cli.rs`, `crates/sqll_tree/build/kinds.rs`,
+`crates/sqll_source/src/map.rs`, `crates/sqll_templater/src/raw.rs`,
+`crates/sqll_config/src/value.rs`, and the files of the lint crate but
+`lib.rs` (`crates/sqll_lint/src/rule.rs`, `crates/sqll_lint/src/config.rs`,
+`crates/sqll_lint/src/fix.rs`, `crates/sqll_lint/src/registry.rs`,
+`crates/sqll_lint/src/linter.rs`, `crates/sqll_lint/src/sqlfluff.rs`),
+and the CLI files `crates/sqll_cli/src/color.rs`,
+`crates/sqll_cli/src/text.rs`, `crates/sqll_cli/src/info.rs`,
+`crates/sqll_cli/src/lint/mod.rs`, `crates/sqll_cli/src/lint/file.rs`,
+`crates/sqll_cli/src/lint/files.rs`, and `crates/sqll_cli/src/lint/record.rs`
+(S3b C13) have ported parts ("Ported code" above),
+and the other files of `crates/sqll_config/src/` but `lib.rs` and
+`parse.rs` are ports of sqlfluff code ("Ported code" above) and of CPython
+code ("CPython", "tomllib" below). The sqll binary (`crates/sqll`)
 contains the ported crates and the tables. The tables are a substantial
 portion of sqlfluff, so each sqll binary carries the sqlfluff MIT copyright
 and permission notice: `sqll --license` prints `crates/LICENSE-sqlfluffrs.md`
@@ -260,10 +339,53 @@ invented packages with a copyleft license.
   "Copyright (c) 2001-2024 Python Software Foundation; All Rights
   Reserved". The license text is in `crates/LICENSE-cpython.txt`, a copy of
   `LICENSE` of that tag.
-- `normpath` in `crates/sqll/src/main.rs` is a port of this function. sqll
-  uses it to print the file path as sqlfluff does. Changes: Rust in place
+- `normpath` in `crates/sqll_cli/src/lib.rs` (in `crates/sqll/src/main.rs`
+  before S3b C13) is a port of this function. sqll uses it to print the
+  file path as sqlfluff does. Changes: Rust in place
   of Python; only `str` paths (no `bytes`); the root slashes are found in
   the function, not with `splitroot`.
+- `crates/sqll_config/src/ini.rs` (S3b C11) is a port of the reader of
+  `RawConfigParser` in `Lib/configparser.py` of the same tag (`_read_inner`
+  and the functions that it calls, `_join_multiline_values`, `items`). sqll
+  reads the sqlfluff INI config files with it. Changes: Rust in place of
+  Python; only the settings that sqlfluff uses (delimiter "=", full-line
+  comments, strict, empty lines in values, no interpolation); an error
+  stops the read.
+- `crates/sqll_cli/src/text.rs` (S3b C13) is a port of `wrap` of
+  `Lib/textwrap.py` of the same tag (`_munge_whitespace`, `wordsep_re`,
+  `_split`, `_wrap_chunks`, `_handle_long_word`). sqll wraps the tables of
+  `rules` and `dialects` with it, as sqlfluff does. Changes: Rust in place
+  of Python; only the default settings.
+
+## tomllib
+
+- Source: https://github.com/python/cpython, `Lib/tomllib/` (`_parser.py`,
+  `_re.py`), tag `v3.13.16`, commit
+  `cbc944f4bc59639a444dd971c737788ba2283a91`. The files have the notice
+  "SPDX-License-Identifier: MIT", "SPDX-FileCopyrightText: 2021 Taneli
+  Hukkinen", "Licensed to PSF under a Contributor Agreement" (the code of
+  tomli).
+- License: MIT. The license text is in `crates/LICENSE-tomli.txt`, a copy
+  of `LICENSE` of https://github.com/hukkin/tomli, tag `2.0.1`.
+- `crates/sqll_config/src/toml.rs` (S3b C11) is a port of the parser. sqll
+  reads `pyproject.toml` with it, as sqlfluff does with tomllib. Changes:
+  Rust in place of Python; the parser works on characters; a date or time
+  value is checked but not kept, and it fails closed in `[tool.sqlfluff]`;
+  an int over 64 bits fails closed.
+
+## PyYAML
+
+- Source: https://github.com/yaml/pyyaml, tag `6.0.3` (the version in the
+  tool venv of sqlfluff 4.4.0): `yaml/emitter.py`, `yaml/resolver.py`,
+  `yaml/representer.py`.
+- License: MIT. Notice: "Copyright (c) 2017-2021 Ingy döt Net",
+  "Copyright (c) 2006-2016 Kirill Simonov". The license text is in
+  `crates/LICENSE-pyyaml.txt`, a copy of `LICENSE` of the dist-info.
+- `crates/sqll_cli/src/lint/yaml.rs` (S3b C13) is a port of the parts of the
+  emitter that `yaml.dump` uses for a lint record (block and empty flow
+  collections, the scalar analysis and styles, the implicit resolvers, the
+  float form). `sqll lint -f yaml` writes the output of sqlfluff with it.
+  Changes: Rust in place of Python; only the values of a lint record.
 
 ## S9 corpus
 
@@ -295,3 +417,12 @@ The oracle scripts (`scripts/sqlfluff-*-oracle`) and
 `pytest`, MIT), pinned in `tools/sqlfluff-oracle/uv.lock`.
 With `--rust` they run the pinned `sqlfluff[rs]` and pytest of
 `tools/sqlfluff-rs-oracle/uv.lock`. The harness does not use them.
+
+The harness test dependency `jsonschema` 4.26.0 (PyPI, MIT) validates the
+JSON Schema output of sqll (S3b C15, `scripts/s3b/schema_check.py`). It
+reads the draft 2020-12 meta-schema of `jsonschema-specifications`
+2025.9.1 (MIT). Its other dependencies are `attrs` 26.1.0, `referencing`
+0.37.0, and `rpds-py` 2026.9.1 (each MIT). `rfc3339-validator` 0.1.4
+(MIT) and its dependency `six` 1.17.0 (MIT) let it check the formats
+`date-time` and `time`. The pins are in `harness/uv.lock`. sqll does not
+contain or distribute them.

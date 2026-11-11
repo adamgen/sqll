@@ -82,6 +82,29 @@ def test_each_file_with_sqlfluff_copyright_has_a_row():
     assert _files_with_copyright() <= _ported_rows() | _record_files()
 
 
+def test_the_new_files_with_ported_parts_are_named():
+    """THIRD_PARTY.md says that the new sqll files in crates/ have no
+    sqlfluff code, except the files it names. Those are the new files with
+    a "Parts of this file are a port" header."""
+    text = (REPO_ROOT / "THIRD_PARTY.md").read_text(encoding="utf-8")
+    start = text.index("The new sqll files in `crates/`")
+    sentence = text[start : text.index("have ported parts", start)]
+    named = set(re.findall(r"`(crates/[^`]+)`", sentence)) - {PORTED_RECORD}
+    headers = {
+        n["path"]
+        for n in _ported_record()["new"]
+        if (REPO_ROOT / n["path"]).is_file()
+        and "Parts of this file are a port" in _header(REPO_ROOT / n["path"])
+    }
+    # 5 since S3b C9: the ported parse calls moved from crates/sqll/src/parse.rs
+    # and crates/sqll_interfaces/src/parse.rs to crates/sqll_syntax/src/parse.rs.
+    # 6 since S3b C11: crates/sqll_config/src/value.rs (coerce_value).
+    # 12 since S3b C12: the 6 files of crates/sqll_lint/src/ but lib.rs.
+    # 19 since S3b C13: 7 files of crates/sqll_cli/src/.
+    assert len(headers) == 19
+    assert named == headers
+
+
 def test_third_party_names_the_ported_crates_and_the_generated_tables():
     text = (REPO_ROOT / "THIRD_PARTY.md").read_text(encoding="utf-8")
     section = text.split("\n## sqlfluffrs in crates/\n", 1)[1].split("\n## ", 1)[0]
@@ -138,7 +161,8 @@ def test_the_cpython_port_keeps_the_psf_license_and_notice():
     ):
         assert word in section, word
 
-    main = (REPO_ROOT / "crates/sqll/src/main.rs").read_text(encoding="utf-8")
+    # S3b C13 moved normpath from crates/sqll/src/main.rs to sqll_cli.
+    main = (REPO_ROOT / "crates/sqll_cli/src/lib.rs").read_text(encoding="utf-8")
     comment = " ".join(
         line.strip().removeprefix("///").strip()
         for line in main.split("fn normpath", 1)[0].splitlines()[-12:]
@@ -156,7 +180,7 @@ def test_the_cpython_port_keeps_the_psf_license_and_notice():
 
     new = {n["path"]: n["reason"] for n in _ported_record()["new"]}
     assert CPYTHON_LICENSE_SHA256 in new[CPYTHON_LICENSE]
-    assert CPYTHON_LICENSE in new["crates/sqll/src/main.rs"]
+    assert CPYTHON_LICENSE in new["crates/sqll_cli/src/lib.rs"]
 
 
 def test_only_the_cpython_records_name_the_psf():
@@ -173,7 +197,110 @@ def test_only_the_cpython_records_name_the_psf():
                 continue
             if "Python Software Foundation" in text:
                 found.add(str(path.relative_to(REPO_ROOT)))
-    assert found <= {CPYTHON_LICENSE, PORTED_RECORD, "crates/sqll/src/main.rs"}, found
+    ports = {
+        "crates/sqll_cli/src/lib.rs",
+        "crates/sqll_cli/src/text.rs",
+        "crates/sqll_config/src/ini.rs",
+    }
+    assert found <= {CPYTHON_LICENSE, PORTED_RECORD, *ports}, found
+
+
+def test_the_configparser_port_keeps_the_psf_license_and_notice():
+    """S3b C11: the INI reader of sqll_config is a port of configparser."""
+    head = (REPO_ROOT / "crates/sqll_config/src/ini.rs").read_text("utf-8")
+    head = " ".join(
+        line.removeprefix("//").strip() for line in head.split("\n\n")[0].splitlines()
+    )
+    for word in (
+        "Lib/configparser.py",
+        f"tag {CPYTHON_TAG}",
+        CPYTHON_COMMIT,
+        PSF_NOTICE,
+        CPYTHON_LICENSE,
+        "Changes:",
+    ):
+        assert word in head, word
+    section = " ".join(_cpython_section().split())
+    assert "`crates/sqll_config/src/ini.rs`" in section
+    new = {n["path"]: n["reason"] for n in _ported_record()["new"]}
+    assert CPYTHON_LICENSE in new["crates/sqll_config/src/ini.rs"]
+
+
+TOMLI_LICENSE = "crates/LICENSE-tomli.txt"
+TOMLI_LICENSE_SHA256 = (
+    "b80816b0d530b8accb4c2211783790984a6e3b61922c2b5ee92f3372ab2742fe"
+)
+
+
+def test_the_tomllib_port_keeps_the_mit_license_and_notice():
+    """S3b C11: the TOML reader of sqll_config is a port of tomllib (MIT)."""
+    data = (REPO_ROOT / TOMLI_LICENSE).read_bytes()
+    assert hashlib.sha256(data).hexdigest() == TOMLI_LICENSE_SHA256
+    assert data.startswith(b"MIT License\n\nCopyright (c) 2021 Taneli Hukkinen\n")
+    head = (REPO_ROOT / "crates/sqll_config/src/toml.rs").read_text("utf-8")
+    for word in (
+        "Lib/tomllib",
+        "SPDX-License-Identifier: MIT",
+        "Taneli",
+        TOMLI_LICENSE,
+    ):
+        assert word in head, word
+    section = _section("tomllib")
+    for word in (
+        f"`{TOMLI_LICENSE}`",
+        "Taneli Hukkinen",
+        "`crates/sqll_config/src/toml.rs`",
+    ):
+        assert word in section, word
+    new = {n["path"]: n["reason"] for n in _ported_record()["new"]}
+    assert TOMLI_LICENSE_SHA256 in new[TOMLI_LICENSE]
+
+
+def test_the_textwrap_port_keeps_the_psf_license_and_notice():
+    """S3b C13: the text wrap of the rules and dialects tables is a port of
+    textwrap.wrap."""
+    text = (REPO_ROOT / "crates/sqll_cli/src/text.rs").read_text("utf-8")
+    head = " ".join(
+        line.removeprefix("//!").strip()
+        for line in text.split("use std")[0].splitlines()
+    )
+    for word in (
+        "Lib/textwrap.py",
+        f"tag {CPYTHON_TAG}",
+        CPYTHON_COMMIT,
+        PSF_NOTICE,
+        CPYTHON_LICENSE,
+        "Changes:",
+    ):
+        assert word in head, word
+    section = " ".join(_cpython_section().split())
+    assert "`crates/sqll_cli/src/text.rs`" in section
+    new = {n["path"]: n["reason"] for n in _ported_record()["new"]}
+    assert CPYTHON_LICENSE in new["crates/sqll_cli/src/text.rs"]
+
+
+PYYAML_LICENSE = "crates/LICENSE-pyyaml.txt"
+PYYAML_LICENSE_SHA256 = (
+    "8d3928f9dc4490fd635707cb88eb26bd764102a7282954307d3e5167a577e8a4"
+)
+
+
+def test_the_pyyaml_port_keeps_the_mit_license_and_notice():
+    """S3b C13: the YAML output of sqll lint is a port of the PyYAML emitter."""
+    data = (REPO_ROOT / PYYAML_LICENSE).read_bytes()
+    assert hashlib.sha256(data).hexdigest() == PYYAML_LICENSE_SHA256
+    assert data.startswith("Copyright (c) 2017-2021 Ingy döt Net\n".encode())
+    head = (REPO_ROOT / "crates/sqll_cli/src/lint/yaml.rs").read_text("utf-8")
+    head = " ".join(line.removeprefix("//!").strip() for line in head.splitlines()[:20])
+    for word in ("PyYAML 6.0.3", "Kirill Simonov", PYYAML_LICENSE, "Changes:"):
+        assert word in head, word
+    section = _section("PyYAML")
+    for word in (f"`{PYYAML_LICENSE}`", "`crates/sqll_cli/src/lint/yaml.rs`", "6.0.3"):
+        assert word in section, word
+    new = {n["path"]: n["reason"] for n in _ported_record()["new"]}
+    assert PYYAML_LICENSE_SHA256 in new[PYYAML_LICENSE]
+    license_rs = (REPO_ROOT / "crates/sqll/src/license.rs").read_text("utf-8")
+    assert "LICENSE-pyyaml.txt" in license_rs
 
 
 # The license of sqll and the notices of the binary (S3 T19).
@@ -206,7 +333,7 @@ def test_sqll_is_under_the_mit_license():
 def test_each_crate_of_the_workspace_has_the_mit_license():
     workspace = tomllib.loads((REPO_ROOT / "Cargo.toml").read_text("utf-8"))
     members = workspace["workspace"]["members"]
-    assert len(members) == 7
+    assert len(members) == 17
     for member in members:
         manifest = tomllib.loads((REPO_ROOT / member / "Cargo.toml").read_text("utf-8"))
         assert manifest["package"]["license"] == "MIT", member
@@ -237,3 +364,25 @@ def test_third_party_gives_the_allow_list_of_the_build():
     assert f"The allow list, in the order of choice: {', '.join(allowed)}." in section
     for word in ("`cargo metadata`", NOTICES, "crates/sqll/tests/license.rs"):
         assert word in section, word
+
+
+CLI_ORACLE = "scripts/s3b/cli_oracle.py"
+
+
+def _paragraph(start: str) -> str:
+    text = (REPO_ROOT / "THIRD_PARTY.md").read_text(encoding="utf-8")
+    found = [p for p in text.split("\n\n") if p.startswith(start)]
+    assert len(found) == 1, start
+    return found[0]
+
+
+def test_third_party_names_each_sqlfluff_fixture_of_the_cli_oracle():
+    """G4.3: the record of the CLI oracle names each sqlfluff test file that
+    the script reads (its text goes into results/S3b/C13-cli.json)."""
+    source = (REPO_ROOT / CLI_ORACLE).read_text(encoding="utf-8")
+    paths = re.findall(r'SQLFLUFF_ROOT\s*/\s*"(test/[^"]+)"', source)
+    assert len(paths) >= 2
+    paragraph = _paragraph(f"`{CLI_ORACLE}`")
+    for path in paths:
+        assert (REPO_ROOT / "third_party/sqlfluff" / path).is_file(), path
+        assert f"`{path}`" in paragraph, path

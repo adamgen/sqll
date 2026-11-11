@@ -220,8 +220,8 @@
   },
   "unsupported_exit_code": {
    "kind": "copied",
-   "from": "crates/sqll/src/main.rs",
-   "key": "the line that matches ^const EXIT_ERROR: u8 = (\\d+);$",
+   "from": "crates/sqll_cli/src/lib.rs",
+   "key": "the line that matches ^pub const EXIT_ERROR: u8 = (\\d+);$",
    "value": 2,
    "text": "2"
   }

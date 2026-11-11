@@ -67,6 +67,33 @@ fn the_license_has_the_sqll_license_and_the_other_notices() {
         "CPython"
     );
     assert!(text.contains("tag v3.13.16, commit cbc944f4bc59639a444dd971c737788ba2283a91"));
+    // The tomllib port of sqll_config (S3b C11).
+    let tomli = read("crates/LICENSE-tomli.txt");
+    assert!(tomli.starts_with("MIT License\n\nCopyright (c) 2021 Taneli Hukkinen\n"));
+    assert!(text.contains(tomli.trim_end()), "the tomli MIT license");
+    let pyyaml = read("crates/LICENSE-pyyaml.txt");
+    assert!(pyyaml.starts_with("Copyright (c) 2017-2021 Ingy d\u{f6}t Net\n"));
+    assert!(text.contains(pyyaml.trim_end()), "the PyYAML MIT license");
+    // The changes of the port are those of THIRD_PARTY.md ("tomllib").
+    let words = |s: &str| {
+        s.replace('`', "")
+            .split_whitespace()
+            .collect::<Vec<_>>()
+            .join(" ")
+    };
+    let changes = "Changes: Rust in place of Python; the parser works on characters; a date or \
+                   time value is checked but not kept, and it fails closed in [tool.sqlfluff]; \
+                   an int over 64 bits fails closed.";
+    assert!(
+        text.contains(changes),
+        "the tomllib changes in sqll --license"
+    );
+    let third_party = words(&read("THIRD_PARTY.md"));
+    let tomllib = &third_party[third_party.find("## tomllib").expect("## tomllib")..];
+    assert!(
+        tomllib.contains(changes),
+        "the tomllib changes in THIRD_PARTY.md"
+    );
     let rust = read("crates/LICENSE-rust-MIT.txt");
     assert!(rust.starts_with("Copyright (c) The Rust Project Contributors\n"));
     assert!(text.contains(rust.trim_end()), "the Rust MIT notice");

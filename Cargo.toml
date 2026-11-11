@@ -16,6 +16,16 @@ members = [
     "crates/sqll_rules",
     "crates/sqll_base_tests",
     "crates/sqll",
+    "crates/sqll_tree",
+    "crates/sqll_interfaces",
+    "crates/sqll_syntax",
+    "crates/sqll_source",
+    "crates/sqll_templater",
+    "crates/sqll_config",
+    "crates/sqll_lint",
+    "crates/sqll_cli",
+    "crates/sqll_schema",
+    "crates/sqll_codegen",
 ]
 
 [workspace.package]
@@ -25,7 +35,7 @@ rust-version = "1.96"
 # The versions of sqlfluffrs 4.4.0. serde_json and sha2 are new: the build
 # script of sqll_dialects uses them. regex-syntax is new: the lexer reads the
 # match prefixes of a regex (sqll_types matcher.rs); it is the version that
-# regex uses.
+# regex uses. libc is new (S3b C13, sqll_cli): the version of Cargo.lock.
 [workspace.dependencies]
 env_logger = "0.11.9"
 regex = { version = "1.12.3", features = ["perf"] }
@@ -41,6 +51,7 @@ serde = { version = "1.0.228", features = ["derive"] }
 serde_yaml_ng = "0.10.0"
 serde_json = "1.0.149"
 sha2 = "0.10.9"
+libc = "0.2.183"
 
 [profile.release]
 debug = false

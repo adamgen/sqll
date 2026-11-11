@@ -4,6 +4,7 @@
 // commit 0348222a3bcdb0226563f7349c5a39beb0641955.
 // Copyright (c) 2018-2026 Alan Cruickshank. MIT License: see
 // crates/LICENSE-sqlfluffrs.md. See THIRD_PARTY.md and crates/ported.json.
+// sqll changed this file. crates/ported.json gives the reason.
 
 use hashbrown::HashMap;
 use std::cmp::{max, min};
@@ -168,7 +169,10 @@ impl TemplatedFile {
     pub fn raw_slices_spanning_source_slice(&self, source_slice: Slice) -> Vec<RawFileSlice> {
         // Special case: The source_slice is at the end of the file.
         let last_raw_slice = self.raw_sliced.last().unwrap();
-        if source_slice.start >= last_raw_slice.source_idx + last_raw_slice.raw.len() {
+        // sqll: the code point length (`chars().count()`), as the Python
+        // `len`, because `source_idx` is a code point offset (S3b C8). The
+        // base added the byte length.
+        if source_slice.start >= last_raw_slice.source_idx + last_raw_slice.raw.chars().count() {
             return vec![];
         }
         // First find the start index
@@ -260,7 +264,12 @@ impl TemplatedFile {
         }
 
         // Define start and stop slices
-        let start_slices = &self.sliced_file[ts_start_sf_start..ts_start_sf_stop];
+        // sqll: no slice when the insertion point moved the start after the
+        // stop, as the Python slice gives (S3b C8). The base panicked.
+        let start_slices = self
+            .sliced_file
+            .get(ts_start_sf_start..ts_start_sf_stop)
+            .unwrap_or(&[]);
         let stop_slices = if ts_stop_sf_start == ts_stop_sf_stop {
             vec![self.sliced_file[ts_stop_sf_start].clone()]
         } else {
@@ -466,9 +475,13 @@ impl std::fmt::Display for TemplatedFile {
     }
 }
 
+// sqll: code point offsets (`chars().enumerate()`), as the Python `str.find`
+// of sqlfluff. The base used byte offsets (`char_indices`), so the line
+// position was wrong after a multi-byte character (S3b C8).
 fn iter_codepoint_indices_of_newlines(raw_str: &str) -> impl Iterator<Item = usize> + '_ {
     raw_str
-        .char_indices()
+        .chars()
+        .enumerate()
         .filter(|(_i, c)| *c == '\n')
         .map(|(idx, _)| idx)
 }
@@ -724,6 +737,73 @@ mod tests {
                 positions
             );
         }
+    }
+
+    // sqll (S3b C8): the offsets are code points, as in sqlfluff.
+    #[test]
+    fn test_indices_of_newlines_count_code_points() {
+        // "é" has 2 bytes, "😀" has 4 bytes.
+        assert_eq!(
+            iter_codepoint_indices_of_newlines("é\n😀\nx").collect::<Vec<_>>(),
+            vec![1, 3]
+        );
+        let file = TemplatedFile::from("é😀\nab\n".to_string());
+        assert_eq!(file.get_line_pos_of_char_pos(2, true), (1, 3));
+        assert_eq!(file.get_line_pos_of_char_pos(3, true), (2, 1));
+        assert_eq!(file.get_line_pos_of_char_pos(5, false), (2, 3));
+        assert_eq!(file.get_line_pos_of_char_pos(6, false), (3, 1));
+    }
+
+    // sqll (S3b C8): the end of the file is a code point offset. The
+    // answers are those of the pinned sqlfluff TemplatedFile.
+    #[test]
+    fn test_raw_slices_spanning_source_slice_end_in_code_points() {
+        let file = TemplatedFile::from("é".to_string());
+        assert_eq!(
+            file.raw_slices_spanning_source_slice(Slice::from(1..1)),
+            vec![]
+        );
+        let file = TemplatedFile::from("éab".to_string());
+        assert_eq!(
+            file.raw_slices_spanning_source_slice(Slice::from(2..3)),
+            file.raw_sliced
+        );
+        assert_eq!(
+            file.raw_slices_spanning_source_slice(Slice::from(3..3)),
+            vec![]
+        );
+    }
+
+    // sqll (S3b C8): a start index after the stop index gives no start
+    // slice, as the Python slice. The answer is that of sqlfluff.
+    #[test]
+    fn test_templated_slice_to_source_slice_start_after_stop() {
+        let slice = |t: &str, o: std::ops::Range<usize>, p: std::ops::Range<usize>| {
+            TemplatedFileSlice::new(t.to_string(), Slice::from(o), Slice::from(p))
+        };
+        let raw = |r: &str, t: &str, i: usize| RawFileSlice::new(r.into(), t.into(), i, None, None);
+        let file = TemplatedFile::new(
+            "ab{x--cde".to_string(),
+            "f.sql".to_string(),
+            Some("abVcde".to_string()),
+            Some(vec![
+                slice("literal", 0..2, 0..2),
+                slice("templated", 2..4, 2..3),
+                slice("literal", 6..8, 3..5),
+                slice("literal", 8..9, 5..6),
+            ]),
+            Some(vec![
+                raw("ab", "literal", 0),
+                raw("{x", "templated", 2),
+                raw("--", "comment", 4),
+                raw("cd", "literal", 6),
+                raw("e", "literal", 8),
+            ]),
+        );
+        assert_eq!(
+            file.templated_slice_to_source_slice(Slice::from(3..5)),
+            Slice::from(4..8)
+        );
     }
 
     #[test]

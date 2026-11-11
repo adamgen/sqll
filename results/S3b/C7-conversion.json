@@ -1,0 +1,1099 @@
+{
+ "kind": "sqll-s3b-c7-conversion",
+ "about": "The cost of the conversion from the parser tree (Node) to the SyntaxTree (sqll_syntax::from_node) on the 28 large S2 parse inputs, relative to the parse. Tool scripts/s3b/convert-cost: the sqll allocator and the sqll release profile; times are the medians of the runs of each step (ns); memory: the heap blocks, the asked bytes, the peak of the live bytes, and the kept bytes of one run of each step. parse kept_bytes is the Node tree. convert includes the copy of the text.",
+ "command": "uv run --frozen --project harness python scripts/s3b/tree_check.py measure --runs 21",
+ "commit": "2f369969e351fa2872e800d332cf4f67ea60e27c",
+ "crates_clean": true,
+ "rustc": "rustc 1.97.0 (2d8144b78 2026-07-07)",
+ "machine": {
+  "cpu": "Intel(R) Xeon(R) Processor @ 2.10GHz",
+  "cpus": 4,
+  "lock": "/tmp/sqll-machine.lock"
+ },
+ "runs": 21,
+ "data": {
+  "inputs": 28,
+  "totals": {
+   "bytes": 458473,
+   "nodes": 215024,
+   "tree_heap_bytes": 4828433,
+   "median_ns": {
+    "lex": 100073249,
+    "parse": 635285559,
+    "convert": 26155051
+   },
+   "memory": {
+    "lex": {
+     "blocks": 980617,
+     "bytes": 430315739,
+     "peak_bytes": 138286453,
+     "kept_bytes": 117939384
+    },
+    "parse": {
+     "blocks": 10772890,
+     "bytes": 1290301201,
+     "peak_bytes": 325875537,
+     "kept_bytes": 119104631
+    },
+    "convert": {
+     "blocks": 12893,
+     "bytes": 9356904,
+     "peak_bytes": 8299904,
+     "kept_bytes": 4846997
+    }
+   }
+  },
+  "ratios": {
+   "convert_over_parse_time": 0.0412,
+   "convert_over_lex_and_parse_time": 0.0356,
+   "convert_over_parse_time_per_input": {
+    "min": 0.026,
+    "median": 0.0421,
+    "max": 0.0562
+   },
+   "convert_ns_per_node": 121.6,
+   "convert_over_parse_asked_bytes": 0.0073,
+   "convert_over_parse_peak_bytes": 0.0255,
+   "convert_over_parse_blocks": 0.0012,
+   "tree_over_node_tree_bytes": 0.0405
+  },
+  "items": [
+   {
+    "input": "ansi/large",
+    "sha256": "03755acd42b085ead1c2c6a22f69dcc305e51d78b480927fe26ea0933e521535",
+    "bytes": 16377,
+    "nodes": 9118,
+    "tree_heap_bytes": 201709,
+    "median_ns": {
+     "convert": 1050279,
+     "lex": 2979958,
+     "parse": 29060310
+    },
+    "min_ns": {
+     "convert": 944154,
+     "lex": 2643406,
+     "parse": 27277135
+    },
+    "memory": {
+     "convert": {
+      "blocks": 579,
+      "bytes": 492941,
+      "kept_bytes": 202372,
+      "peak_bytes": 427438
+     },
+     "lex": {
+      "blocks": 35767,
+      "bytes": 16523989,
+      "kept_bytes": 4372052,
+      "peak_bytes": 5110510
+     },
+     "parse": {
+      "blocks": 499216,
+      "bytes": 60054204,
+      "kept_bytes": 5182007,
+      "peak_bytes": 13630302
+     }
+    }
+   },
+   {
+    "input": "athena/large",
+    "sha256": "f39eadf15dabffd6b354b4424c0386e24209fc26d0a084a7d6a2078644a3b3cc",
+    "bytes": 16379,
+    "nodes": 8782,
+    "tree_heap_bytes": 194351,
+    "median_ns": {
+     "convert": 988649,
+     "lex": 2746506,
+     "parse": 24882270
+    },
+    "min_ns": {
+     "convert": 908981,
+     "lex": 2445195,
+     "parse": 23773294
+    },
+    "memory": {
+     "convert": {
+      "blocks": 506,
+      "bytes": 425672,
+      "kept_bytes": 195014,
+      "peak_bytes": 393081
+     },
+     "lex": {
+      "blocks": 33333,
+      "bytes": 15652003,
+      "kept_bytes": 4374164,
+      "peak_bytes": 5112672
+     },
+     "parse": {
+      "blocks": 431252,
+      "bytes": 51528689,
+      "kept_bytes": 5081558,
+      "peak_bytes": 13486446
+     }
+    }
+   },
+   {
+    "input": "bigquery/large",
+    "sha256": "5f9536be50db6b0bdf90e2e6660fa6e1a975f0e2b7e2a833fb1386c06d415f9e",
+    "bytes": 16373,
+    "nodes": 7569,
+    "tree_heap_bytes": 170353,
+    "median_ns": {
+     "convert": 924603,
+     "lex": 2898598,
+     "parse": 20035117
+    },
+    "min_ns": {
+     "convert": 861761,
+     "lex": 2677306,
+     "parse": 18898828
+    },
+    "memory": {
+     "convert": {
+      "blocks": 606,
+      "bytes": 330482,
+      "kept_bytes": 171016,
+      "peak_bytes": 291365
+     },
+     "lex": {
+      "blocks": 30913,
+      "bytes": 15046209,
+      "kept_bytes": 4366308,
+      "peak_bytes": 5104666
+     },
+     "parse": {
+      "blocks": 342665,
+      "bytes": 41474466,
+      "kept_bytes": 4147590,
+      "peak_bytes": 11113521
+     }
+    }
+   },
+   {
+    "input": "clickhouse/large",
+    "sha256": "dbaf710fe7be44d6c7ed3ce6364da9f63aa6fd3fa167494761345c7382ef6563",
+    "bytes": 16383,
+    "nodes": 6388,
+    "tree_heap_bytes": 145639,
+    "median_ns": {
+     "convert": 784611,
+     "lex": 2965533,
+     "parse": 18649621
+    },
+    "min_ns": {
+     "convert": 726091,
+     "lex": 2797064,
+     "parse": 17624021
+    },
+    "memory": {
+     "convert": {
+      "blocks": 398,
+      "bytes": 256972,
+      "kept_bytes": 146302,
+      "peak_bytes": 224381
+     },
+     "lex": {
+      "blocks": 37696,
+      "bytes": 14124107,
+      "kept_bytes": 4345016,
+      "peak_bytes": 5083624
+     },
+     "parse": {
+      "blocks": 322105,
+      "bytes": 38562586,
+      "kept_bytes": 3615179,
+      "peak_bytes": 10197645
+     }
+    }
+   },
+   {
+    "input": "databricks/large",
+    "sha256": "afa23b1484b0e2c1ab45fbb76a3d3b893755308be58029f0b9f012bb6032d030",
+    "bytes": 16350,
+    "nodes": 5850,
+    "tree_heap_bytes": 135686,
+    "median_ns": {
+     "convert": 785849,
+     "lex": 3391540,
+     "parse": 14623260
+    },
+    "min_ns": {
+     "convert": 691093,
+     "lex": 3158360,
+     "parse": 13110481
+    },
+    "memory": {
+     "convert": {
+      "blocks": 525,
+      "bytes": 262096,
+      "kept_bytes": 136349,
+      "peak_bytes": 229505
+     },
+     "lex": {
+      "blocks": 39057,
+      "bytes": 11926951,
+      "kept_bytes": 2296823,
+      "peak_bytes": 2870766
+     },
+     "parse": {
+      "blocks": 242253,
+      "bytes": 29960008,
+      "kept_bytes": 3398835,
+      "peak_bytes": 8918763
+     }
+    }
+   },
+   {
+    "input": "db2/large",
+    "sha256": "f21dce47ddd91382a79d4e9eb800aa48b786ca6671912dd3ced5dddca0f1bdf2",
+    "bytes": 16383,
+    "nodes": 8179,
+    "tree_heap_bytes": 183463,
+    "median_ns": {
+     "convert": 960094,
+     "lex": 3187533,
+     "parse": 27885190
+    },
+    "min_ns": {
+     "convert": 912777,
+     "lex": 2884909,
+     "parse": 27307456
+    },
+    "memory": {
+     "convert": {
+      "blocks": 430,
+      "bytes": 259703,
+      "kept_bytes": 184126,
+      "peak_bytes": 227112
+     },
+     "lex": {
+      "blocks": 33648,
+      "bytes": 15943322,
+      "kept_bytes": 4353503,
+      "peak_bytes": 5092111
+     },
+     "parse": {
+      "blocks": 493610,
+      "bytes": 58567087,
+      "kept_bytes": 4388375,
+      "peak_bytes": 13108654
+     }
+    }
+   },
+   {
+    "input": "doris/large",
+    "sha256": "94f9fbfa6389e0de5c8fc3fc2d03f02b82b8aaaa524f8fdf6c27816df2e69be2",
+    "bytes": 16380,
+    "nodes": 7281,
+    "tree_heap_bytes": 164852,
+    "median_ns": {
+     "convert": 824819,
+     "lex": 3301050,
+     "parse": 15319544
+    },
+    "min_ns": {
+     "convert": 783522,
+     "lex": 3138329,
+     "parse": 14672585
+    },
+    "memory": {
+     "convert": {
+      "blocks": 290,
+      "bytes": 256501,
+      "kept_bytes": 165515,
+      "peak_bytes": 223910
+     },
+     "lex": {
+      "blocks": 32819,
+      "bytes": 15510664,
+      "kept_bytes": 4377038,
+      "peak_bytes": 5115571
+     },
+     "parse": {
+      "blocks": 278361,
+      "bytes": 33165633,
+      "kept_bytes": 3806343,
+      "peak_bytes": 9935179
+     }
+    }
+   },
+   {
+    "input": "duckdb/large",
+    "sha256": "e3b974329d6a25b34b5f1cd7ed5385f894dd8621f2f18bc8df61e8de4f728a77",
+    "bytes": 16379,
+    "nodes": 8833,
+    "tree_heap_bytes": 195575,
+    "median_ns": {
+     "convert": 1038987,
+     "lex": 4490913,
+     "parse": 34319520
+    },
+    "min_ns": {
+     "convert": 963903,
+     "lex": 3925854,
+     "parse": 31542012
+    },
+    "memory": {
+     "convert": {
+      "blocks": 555,
+      "bytes": 492550,
+      "kept_bytes": 196238,
+      "peak_bytes": 427047
+     },
+     "lex": {
+      "blocks": 46492,
+      "bytes": 16499481,
+      "kept_bytes": 4363730,
+      "peak_bytes": 5102238
+     },
+     "parse": {
+      "blocks": 560258,
+      "bytes": 64964293,
+      "kept_bytes": 4960848,
+      "peak_bytes": 14465691
+     }
+    }
+   },
+   {
+    "input": "exasol/large",
+    "sha256": "51c7cf8f1beffb079e6cd48f856d4d1c115d67a57b348900faf134f9534cc9f4",
+    "bytes": 16369,
+    "nodes": 7656,
+    "tree_heap_bytes": 171661,
+    "median_ns": {
+     "convert": 1003705,
+     "lex": 3375008,
+     "parse": 18302790
+    },
+    "min_ns": {
+     "convert": 951634,
+     "lex": 3184912,
+     "parse": 17540479
+    },
+    "memory": {
+     "convert": {
+      "blocks": 816,
+      "bytes": 334210,
+      "kept_bytes": 172324,
+      "peak_bytes": 268707
+     },
+     "lex": {
+      "blocks": 33268,
+      "bytes": 15804337,
+      "kept_bytes": 4364800,
+      "peak_bytes": 5103058
+     },
+     "parse": {
+      "blocks": 315207,
+      "bytes": 37439088,
+      "kept_bytes": 4220866,
+      "peak_bytes": 10710563
+     }
+    }
+   },
+   {
+    "input": "flink/large",
+    "sha256": "752b536fa12f9669fd1999b843bf50441a2b4b7310251efdaa755627e14f19c0",
+    "bytes": 16382,
+    "nodes": 7242,
+    "tree_heap_bytes": 164234,
+    "median_ns": {
+     "convert": 845500,
+     "lex": 2667880,
+     "parse": 17392819
+    },
+    "min_ns": {
+     "convert": 788588,
+     "lex": 2378250,
+     "parse": 16079091
+    },
+    "memory": {
+     "convert": {
+      "blocks": 300,
+      "bytes": 256719,
+      "kept_bytes": 164897,
+      "peak_bytes": 224128
+     },
+     "lex": {
+      "blocks": 31382,
+      "bytes": 15052907,
+      "kept_bytes": 4371443,
+      "peak_bytes": 5110026
+     },
+     "parse": {
+      "blocks": 302165,
+      "bytes": 35816188,
+      "kept_bytes": 4078176,
+      "peak_bytes": 10593387
+     }
+    }
+   },
+   {
+    "input": "greenplum/large",
+    "sha256": "0354f3ff1c54727920038d89de2fd79ebecd8bdc86528d42f1cc6c6b1b5ff7ca",
+    "bytes": 16378,
+    "nodes": 7593,
+    "tree_heap_bytes": 171006,
+    "median_ns": {
+     "convert": 906054,
+     "lex": 5315483,
+     "parse": 17785231
+    },
+    "min_ns": {
+     "convert": 814563,
+     "lex": 5011377,
+     "parse": 16764891
+    },
+    "memory": {
+     "convert": {
+      "blocks": 370,
+      "bytes": 258109,
+      "kept_bytes": 171669,
+      "peak_bytes": 225518
+     },
+     "lex": {
+      "blocks": 46208,
+      "bytes": 17078377,
+      "kept_bytes": 4372213,
+      "peak_bytes": 5110696
+     },
+     "parse": {
+      "blocks": 302229,
+      "bytes": 35370503,
+      "kept_bytes": 4018416,
+      "peak_bytes": 10252848
+     }
+    }
+   },
+   {
+    "input": "hive/large",
+    "sha256": "c32bfce5018f142defdf34a7d56a4f608fab39d0f8825e88023e5ec3196001d4",
+    "bytes": 16378,
+    "nodes": 9343,
+    "tree_heap_bytes": 205854,
+    "median_ns": {
+     "convert": 1134075,
+     "lex": 3218173,
+     "parse": 27394257
+    },
+    "min_ns": {
+     "convert": 1081135,
+     "lex": 2940228,
+     "parse": 26565424
+    },
+    "memory": {
+     "convert": {
+      "blocks": 563,
+      "bytes": 492817,
+      "kept_bytes": 206517,
+      "peak_bytes": 427314
+     },
+     "lex": {
+      "blocks": 35988,
+      "bytes": 16581031,
+      "kept_bytes": 4383611,
+      "peak_bytes": 5122094
+     },
+     "parse": {
+      "blocks": 463446,
+      "bytes": 53733026,
+      "kept_bytes": 5191139,
+      "peak_bytes": 14055924
+     }
+    }
+   },
+   {
+    "input": "impala/large",
+    "sha256": "08cb52920ddab826a6f09b5d6bdf65b707147153dfb74f25c4dda82eecc4afd5",
+    "bytes": 16373,
+    "nodes": 10726,
+    "tree_heap_bytes": 232969,
+    "median_ns": {
+     "convert": 1151706,
+     "lex": 3891572,
+     "parse": 31228525
+    },
+    "min_ns": {
+     "convert": 1093751,
+     "lex": 3543705,
+     "parse": 30038756
+    },
+    "memory": {
+     "convert": {
+      "blocks": 219,
+      "bytes": 385796,
+      "kept_bytes": 233632,
+      "peak_bytes": 369669
+     },
+     "lex": {
+      "blocks": 42420,
+      "bytes": 18527583,
+      "kept_bytes": 4410098,
+      "peak_bytes": 5148456
+     },
+     "parse": {
+      "blocks": 572521,
+      "bytes": 63121446,
+      "kept_bytes": 5742962,
+      "peak_bytes": 15794001
+     }
+    }
+   },
+   {
+    "input": "mariadb/large",
+    "sha256": "17029201b12857e2394977ef9a7e260d659d00b205e784afd1ddfe00e2ec0209",
+    "bytes": 16381,
+    "nodes": 6916,
+    "tree_heap_bytes": 156981,
+    "median_ns": {
+     "convert": 889960,
+     "lex": 3217886,
+     "parse": 18276835
+    },
+    "min_ns": {
+     "convert": 806820,
+     "lex": 2928962,
+     "parse": 17510422
+    },
+    "memory": {
+     "convert": {
+      "blocks": 469,
+      "bytes": 260749,
+      "kept_bytes": 157644,
+      "peak_bytes": 228158
+     },
+     "lex": {
+      "blocks": 31242,
+      "bytes": 15065879,
+      "kept_bytes": 4369594,
+      "peak_bytes": 5108152
+     },
+     "parse": {
+      "blocks": 304143,
+      "bytes": 38320949,
+      "kept_bytes": 3854533,
+      "peak_bytes": 10191966
+     }
+    }
+   },
+   {
+    "input": "materialize/large",
+    "sha256": "e4d96a14fbba594736949fb3e4be9357eaae887ab9349765c47e17b5ebe6d8f0",
+    "bytes": 16381,
+    "nodes": 6984,
+    "tree_heap_bytes": 158525,
+    "median_ns": {
+     "convert": 919727,
+     "lex": 8202045,
+     "parse": 16358592
+    },
+    "min_ns": {
+     "convert": 850524,
+     "lex": 7219594,
+     "parse": 15366528
+    },
+    "memory": {
+     "convert": {
+      "blocks": 544,
+      "bytes": 328354,
+      "kept_bytes": 159188,
+      "peak_bytes": 262851
+     },
+     "lex": {
+      "blocks": 46372,
+      "bytes": 18961633,
+      "kept_bytes": 4366508,
+      "peak_bytes": 5105066
+     },
+     "parse": {
+      "blocks": 283521,
+      "bytes": 34077118,
+      "kept_bytes": 3749694,
+      "peak_bytes": 9373346
+     }
+    }
+   },
+   {
+    "input": "mysql/large",
+    "sha256": "d22b71d2984418da325cb03b1a1773fe3b19254a66b7e6d5fe1d454d2ddbf296",
+    "bytes": 16377,
+    "nodes": 7985,
+    "tree_heap_bytes": 178581,
+    "median_ns": {
+     "convert": 1043900,
+     "lex": 3647240,
+     "parse": 22603300
+    },
+    "min_ns": {
+     "convert": 896757,
+     "lex": 3127653,
+     "parse": 21469307
+    },
+    "memory": {
+     "convert": {
+      "blocks": 507,
+      "bytes": 327361,
+      "kept_bytes": 179244,
+      "peak_bytes": 290605
+     },
+     "lex": {
+      "blocks": 34091,
+      "bytes": 16069501,
+      "kept_bytes": 4374780,
+      "peak_bytes": 5113238
+     },
+     "parse": {
+      "blocks": 365447,
+      "bytes": 45885829,
+      "kept_bytes": 4424077,
+      "peak_bytes": 11397215
+     }
+    }
+   },
+   {
+    "input": "oracle/large",
+    "sha256": "4da895cf2a5ca55d5a4cbc33dda0c7a6d2998d434b146a6a5b03135bab0aef0a",
+    "bytes": 16367,
+    "nodes": 6679,
+    "tree_heap_bytes": 152495,
+    "median_ns": {
+     "convert": 906748,
+     "lex": 3187088,
+     "parse": 29934559
+    },
+    "min_ns": {
+     "convert": 854754,
+     "lex": 2900090,
+     "parse": 28133468
+    },
+    "memory": {
+     "convert": {
+      "blocks": 478,
+      "bytes": 326980,
+      "kept_bytes": 153158,
+      "peak_bytes": 290217
+     },
+     "lex": {
+      "blocks": 34633,
+      "bytes": 14564096,
+      "kept_bytes": 4333445,
+      "peak_bytes": 5071653
+     },
+     "parse": {
+      "blocks": 451897,
+      "bytes": 52301562,
+      "kept_bytes": 3563528,
+      "peak_bytes": 11422141
+     }
+    }
+   },
+   {
+    "input": "postgres/large",
+    "sha256": "3e9c07cbd67ffcf80068645e97353285d8941417ec787542fca3664e817a0d1e",
+    "bytes": 16379,
+    "nodes": 6881,
+    "tree_heap_bytes": 155507,
+    "median_ns": {
+     "convert": 906480,
+     "lex": 4398372,
+     "parse": 17798604
+    },
+    "min_ns": {
+     "convert": 835888,
+     "lex": 4249244,
+     "parse": 16863405
+    },
+    "memory": {
+     "convert": {
+      "blocks": 429,
+      "bytes": 257998,
+      "kept_bytes": 156170,
+      "peak_bytes": 225407
+     },
+     "lex": {
+      "blocks": 45705,
+      "bytes": 16191849,
+      "kept_bytes": 4333698,
+      "peak_bytes": 5072206
+     },
+     "parse": {
+      "blocks": 305348,
+      "bytes": 35782709,
+      "kept_bytes": 3754519,
+      "peak_bytes": 9766470
+     }
+    }
+   },
+   {
+    "input": "redshift/large",
+    "sha256": "0519f0be3e168842fce2694c3f196cbc8d9ef66eb72cc81b5d96ba80c363def8",
+    "bytes": 16383,
+    "nodes": 5624,
+    "tree_heap_bytes": 131107,
+    "median_ns": {
+     "convert": 764454,
+     "lex": 3649883,
+     "parse": 17261080
+    },
+    "min_ns": {
+     "convert": 702764,
+     "lex": 3455724,
+     "parse": 15922070
+    },
+    "memory": {
+     "convert": {
+      "blocks": 492,
+      "bytes": 327215,
+      "kept_bytes": 131770,
+      "peak_bytes": 290052
+     },
+     "lex": {
+      "blocks": 35477,
+      "bytes": 11475874,
+      "kept_bytes": 2286807,
+      "peak_bytes": 2861575
+     },
+     "parse": {
+      "blocks": 284800,
+      "bytes": 34048637,
+      "kept_bytes": 3152753,
+      "peak_bytes": 9204967
+     }
+    }
+   },
+   {
+    "input": "snowflake/large",
+    "sha256": "919e598c71eb836db64a491a736557ec84d944edc9266fd381771ed61a8d1c96",
+    "bytes": 16381,
+    "nodes": 5408,
+    "tree_heap_bytes": 126505,
+    "median_ns": {
+     "convert": 697381,
+     "lex": 2804446,
+     "parse": 13562423
+    },
+    "min_ns": {
+     "convert": 640634,
+     "lex": 2451786,
+     "parse": 12822955
+    },
+    "memory": {
+     "convert": {
+      "blocks": 356,
+      "bytes": 256174,
+      "kept_bytes": 127168,
+      "peak_bytes": 236623
+     },
+     "lex": {
+      "blocks": 26443,
+      "bytes": 13730190,
+      "kept_bytes": 4306137,
+      "peak_bytes": 5044695
+     },
+     "parse": {
+      "blocks": 283876,
+      "bytes": 32171111,
+      "kept_bytes": 2912774,
+      "peak_bytes": 7759936
+     }
+    }
+   },
+   {
+    "input": "soql/large",
+    "sha256": "b1adce989fbc7c9c2f9f041ae057fea40e64222df23233b1317b755f1152be06",
+    "bytes": 16362,
+    "nodes": 8931,
+    "tree_heap_bytes": 197738,
+    "median_ns": {
+     "convert": 932755,
+     "lex": 4389775,
+     "parse": 35902021
+    },
+    "min_ns": {
+     "convert": 873671,
+     "lex": 3989785,
+     "parse": 33382648
+    },
+    "memory": {
+     "convert": {
+      "blocks": 169,
+      "bytes": 384495,
+      "kept_bytes": 198401,
+      "peak_bytes": 368368
+     },
+     "lex": {
+      "blocks": 28046,
+      "bytes": 14221430,
+      "kept_bytes": 4323754,
+      "peak_bytes": 5061837
+     },
+     "parse": {
+      "blocks": 582179,
+      "bytes": 77194520,
+      "kept_bytes": 5177220,
+      "peak_bytes": 16087598
+     }
+    }
+   },
+   {
+    "input": "sparksql/large",
+    "sha256": "87e1e140ae4de68a493d8dd4a6d1d2629dde9c1f2ac65637167087ee82de1d82",
+    "bytes": 16378,
+    "nodes": 6262,
+    "tree_heap_bytes": 144002,
+    "median_ns": {
+     "convert": 774799,
+     "lex": 2628202,
+     "parse": 13831384
+    },
+    "min_ns": {
+     "convert": 696608,
+     "lex": 2387164,
+     "parse": 12634193
+    },
+    "memory": {
+     "convert": {
+      "blocks": 517,
+      "bytes": 261896,
+      "kept_bytes": 144665,
+      "peak_bytes": 229305
+     },
+     "lex": {
+      "blocks": 26337,
+      "bytes": 13473458,
+      "kept_bytes": 4338014,
+      "peak_bytes": 5076497
+     },
+     "parse": {
+      "blocks": 242762,
+      "bytes": 30166336,
+      "kept_bytes": 3590564,
+      "peak_bytes": 9259382
+     }
+    }
+   },
+   {
+    "input": "sqlite/large",
+    "sha256": "7d4d51955639ab9d42e6bea1692f52349776873e7bda2e7513cff8d853c74864",
+    "bytes": 16373,
+    "nodes": 9830,
+    "tree_heap_bytes": 215949,
+    "median_ns": {
+     "convert": 1171723,
+     "lex": 3882458,
+     "parse": 32366140
+    },
+    "min_ns": {
+     "convert": 1071366,
+     "lex": 3694737,
+     "parse": 30155617
+    },
+    "memory": {
+     "convert": {
+      "blocks": 513,
+      "bytes": 425890,
+      "kept_bytes": 216612,
+      "peak_bytes": 393299
+     },
+     "lex": {
+      "blocks": 38381,
+      "bytes": 17425757,
+      "kept_bytes": 4388120,
+      "peak_bytes": 5126478
+     },
+     "parse": {
+      "blocks": 552948,
+      "bytes": 66746389,
+      "kept_bytes": 5417405,
+      "peak_bytes": 14177773
+     }
+    }
+   },
+   {
+    "input": "starrocks/large",
+    "sha256": "a13ee70d3129126a2455f9fbc95dba80ffc9de5307990602c4383431a9ef763c",
+    "bytes": 16353,
+    "nodes": 7359,
+    "tree_heap_bytes": 166109,
+    "median_ns": {
+     "convert": 876733,
+     "lex": 3174755,
+     "parse": 22886107
+    },
+    "min_ns": {
+     "convert": 820095,
+     "lex": 2718899,
+     "parse": 21741531
+    },
+    "memory": {
+     "convert": {
+      "blocks": 339,
+      "bytes": 257648,
+      "kept_bytes": 166772,
+      "peak_bytes": 225057
+     },
+     "lex": {
+      "blocks": 29788,
+      "bytes": 14554344,
+      "kept_bytes": 4354823,
+      "peak_bytes": 5092681
+     },
+     "parse": {
+      "blocks": 374768,
+      "bytes": 45127952,
+      "kept_bytes": 4088323,
+      "peak_bytes": 12050447
+     }
+    }
+   },
+   {
+    "input": "teradata/large",
+    "sha256": "3660b95794987efe596ab964170b72212fd144dd26c98e2f8ce708c1fa2e8b8c",
+    "bytes": 16373,
+    "nodes": 8310,
+    "tree_heap_bytes": 185021,
+    "median_ns": {
+     "convert": 1001712,
+     "lex": 3062582,
+     "parse": 24635593
+    },
+    "min_ns": {
+     "convert": 938523,
+     "lex": 2681695,
+     "parse": 23500291
+    },
+    "memory": {
+     "convert": {
+      "blocks": 436,
+      "bytes": 423644,
+      "kept_bytes": 185684,
+      "peak_bytes": 391053
+     },
+     "lex": {
+      "blocks": 31331,
+      "bytes": 15174203,
+      "kept_bytes": 4350126,
+      "peak_bytes": 5088484
+     },
+     "parse": {
+      "blocks": 411890,
+      "bytes": 50167897,
+      "kept_bytes": 4565936,
+      "peak_bytes": 12461227
+     }
+    }
+   },
+   {
+    "input": "trino/large",
+    "sha256": "76dc3baf57f3332bc9e3514206b7299469324cd1ac5e5e51d59ffe501d74452a",
+    "bytes": 16365,
+    "nodes": 9204,
+    "tree_heap_bytes": 203041,
+    "median_ns": {
+     "convert": 1090935,
+     "lex": 3497295,
+     "parse": 25911028
+    },
+    "min_ns": {
+     "convert": 1041581,
+     "lex": 3144380,
+     "parse": 23061189
+    },
+    "memory": {
+     "convert": {
+      "blocks": 457,
+      "bytes": 424170,
+      "kept_bytes": 203704,
+      "peak_bytes": 391579
+     },
+     "lex": {
+      "blocks": 35683,
+      "bytes": 16484303,
+      "kept_bytes": 4380490,
+      "peak_bytes": 5118648
+     },
+     "parse": {
+      "blocks": 442978,
+      "bytes": 52374382,
+      "kept_bytes": 5247496,
+      "peak_bytes": 13232735
+     }
+    }
+   },
+   {
+    "input": "tsql/large",
+    "sha256": "cd6b111527bbae3c031f90d7e3cb4d8553417f7ad8c52b878ab9146b4ac677a2",
+    "bytes": 16380,
+    "nodes": 6392,
+    "tree_heap_bytes": 146568,
+    "median_ns": {
+     "convert": 825726,
+     "lex": 2996544,
+     "parse": 22243573
+    },
+    "min_ns": {
+     "convert": 797731,
+     "lex": 2899299,
+     "parse": 21421616
+    },
+    "memory": {
+     "convert": {
+      "blocks": 445,
+      "bytes": 260267,
+      "kept_bytes": 147231,
+      "peak_bytes": 227676
+     },
+     "lex": {
+      "blocks": 27853,
+      "bytes": 13985519,
+      "kept_bytes": 4337805,
+      "peak_bytes": 5076338
+     },
+     "parse": {
+      "blocks": 345940,
+      "bytes": 43860329,
+      "kept_bytes": 3369413,
+      "peak_bytes": 10694647
+     }
+    }
+   },
+   {
+    "input": "vertica/large",
+    "sha256": "71029670ea38c93c8e9e912f7a159c31d7c136e41b01b229f80d2b083fb9e19a",
+    "bytes": 16356,
+    "nodes": 7699,
+    "tree_heap_bytes": 172952,
+    "median_ns": {
+     "convert": 953087,
+     "lex": 2904931,
+     "parse": 24835866
+    },
+    "min_ns": {
+     "convert": 899276,
+     "lex": 2741604,
+     "parse": 23927938
+    },
+    "memory": {
+     "convert": {
+      "blocks": 585,
+      "bytes": 329495,
+      "kept_bytes": 173615,
+      "peak_bytes": 290479
+     },
+     "lex": {
+      "blocks": 30244,
+      "bytes": 14666742,
+      "kept_bytes": 4344484,
+      "peak_bytes": 5082417
+     },
+     "parse": {
+      "blocks": 415105,
+      "bytes": 48318264,
+      "kept_bytes": 4404102,
+      "peak_bytes": 12532763
+     }
+    }
+   }
+  ]
+ }
+}

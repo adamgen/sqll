@@ -1,0 +1,15 @@
+# The code generation interface of sqll (docs/interfaces/schema.md; S3b task
+# C15): the description of a query, the Describe trait, and the JSON Schema
+# writer. This file is new sqll code (crates/ported.json, "new").
+[package]
+name = "sqll_schema"
+version.workspace = true
+edition = "2021"
+rust-version.workspace = true
+license = "MIT"
+publish = false
+
+[dependencies]
+sqll_source = { path = "../sqll_source" }
+sqll_syntax = { path = "../sqll_syntax" }
+sqll_tree = { path = "../sqll_tree" }

@@ -1,4 +1,5 @@
-"""S3 T13: the benchmark adapter of sqll (harness/sqll_harness/bench/sqll.py).
+"""S3 T13 and S3b C14: the benchmark adapter of sqll
+(harness/sqll_harness/bench/sqll.py).
 
 The tests use a fake sqll binary (a Python script), so they need no build.
 The CI job bench-smoke runs the real binary of the build job, and
@@ -17,32 +18,65 @@ import pytest
 
 from sqll_harness import tools
 from sqll_harness.adapters import sqll as sqll_adapter
-from sqll_harness.adapters.base import Unsupported
 from sqll_harness.bench import definitions, registry
 from sqll_harness.bench import sqll as sqll_bench
 from sqll_harness.bench.adapter import INPUT_FILE, Context, settings
-from sqll_harness.bench.sqll import OPTIONS_NAME, SqllBench, options
+from sqll_harness.bench.sqll import SqllBench, selected_rules
 from sqll_harness.bench.timer import PROFILES, UNSUPPORTED, VALID
 from sqll_harness.paths import REPO_ROOT, TOOL_SPECS_DIR
 
 SMOKE = PROFILES["smoke"]
 VERSION = "0.1.0+tables." + "a" * 64
+# The fake has the rules HAVE of the sqlfluff rules EVERY.
+EVERY = ("AL01", "CP01", "CP03", "LT01")
 FAKE = """#!{python} -I
-import json, os, sys
+import json, os, sys, tomllib
 args = sys.argv[1:]
-with open({log!r}, "a", encoding="utf8") as f:
-    f.write(json.dumps([os.getcwd(), args]) + "\\n")
+have = {have!r}
+every = {every!r}
 if args == ["--version"]:
     print("sqll, version {version}")
     sys.exit(0)
 if args[:1] == ["version"]:
     print(json.dumps({{"version": "{version}", "source_sha256": "{source}"}}))
     sys.exit(0)
-if args[:3] != ["parse", "-f", "json"] or args[3] != "--dialect":
+if args[:1] == ["rules"]:
+    excluded = []
+    if os.path.exists(".sqlfluff"):
+        with open(".sqlfluff", encoding="utf8") as f:
+            excluded = f.read().split("=")[1].strip().split(",")
+    missing = [c for c in every if c not in have and c not in excluded]
+    if missing:
+        print("Error: unsupported: rules " + ", ".join(missing)
+              + ": sqll does not have them yet (S5).", file=sys.stderr)
+        sys.exit(2)
+    print("==== sqlfluff - rules ====")
+    for c in every:
+        if c not in excluded:
+            print(c + ": [name] A rule.")
+            print("      groups: all")
+    sys.exit(0)
+if args[:1] not in (["parse"], ["lint"], ["fix"]):
     sys.exit(2)
+if "--config" in args:
+    with open(args[args.index("--config") + 1], "rb") as f:
+        dialect = tomllib.load(f)["tool"]["sqlfluff"]["core"]["dialect"]
+elif "--dialect" in args:
+    dialect = args[args.index("--dialect") + 1]
+else:
+    sys.exit(2)
+with open({log!r}, "a", encoding="utf8") as f:
+    f.write(json.dumps([os.getcwd(), args, dialect]) + "\\n")
 path = args[-1]
 with open(path, encoding="utf8") as f:
     text = f.read()
+if args[0] == "lint":
+    print(json.dumps([{{"filepath": path, "violations": [{{"code": "CP01"}}]}}]))
+    sys.exit(1)
+if args[0] == "fix":
+    with open(path, "w", encoding="utf8") as f:
+        f.write(text.lower())
+    sys.exit(0)
 # A tree whose leaf text is the input, in the record shape of sqlfluff.
 lines = text.splitlines(keepends=True)
 print(json.dumps([{{"filepath": path, "segments": {{"file": [
@@ -50,13 +84,26 @@ print(json.dumps([{{"filepath": path, "segments": {{"file": [
 """
 
 
-def fake_sqll(tmp_path: Path, version: str = VERSION, source: str = "0" * 64):
-    """Return (binary, log). The log has one line for each run: [cwd, argv]."""
+def fake_sqll(
+    tmp_path: Path,
+    version: str = VERSION,
+    source: str = "0" * 64,
+    have: tuple[str, ...] = ("CP01", "CP03"),
+):
+    """Return (binary, log). The log has one line for each parse, lint, or
+    fix run: [cwd, argv, dialect]. have: the rules of the fake."""
     log = tmp_path / "sqll-calls.jsonl"
     binary = tmp_path / "bin" / "sqll"
     binary.parent.mkdir(parents=True, exist_ok=True)
     binary.write_text(
-        FAKE.format(python=sys.executable, log=str(log), version=version, source=source)
+        FAKE.format(
+            python=sys.executable,
+            log=str(log),
+            version=version,
+            source=source,
+            have=have,
+            every=EVERY,
+        )
     )
     binary.chmod(0o755)
     return binary, log
@@ -80,41 +127,34 @@ def test_sqll_is_in_the_registry(monkeypatch, tmp_path):
     assert adapter.s1.binary == binary
 
 
-def test_the_settings_are_those_of_all_tools():
-    adapter = SqllBench(Path("/x/sqll"))
+def test_the_settings_are_those_of_all_tools(tmp_path):
+    binary, _ = fake_sqll(tmp_path)
+    adapter = SqllBench(binary)
     assert adapter.config(None) == settings()
     assert adapter.config("tsql") == settings("tsql")
     assert adapter.unsupported(adapter.config("tsql")) is None
-    assert options(settings("tsql")) == ["--dialect", "tsql"]
+    # The settings go to sqll as a sqlfluff config file.
+    path = adapter.write_config(adapter.config("tsql"), tmp_path / "config")
+    assert path.name == "pyproject.toml"
+    assert path.read_text() == (
+        "[tool.sqlfluff.core]\n"
+        'dialect = "tsql"\n'
+        'templater = "raw"\n'
+        'rules = "all"\n'
+        "large_file_skip_byte_limit = 0\n"
+        "large_file_skip_char_limit = 0\n"
+    )
 
 
-def test_max_parse_depth_is_an_option():
-    config = settings("ansi")
-    config["core"]["max_parse_depth"] = 2000
-    assert options(config) == ["--dialect", "ansi", "--max-parse-depth", "2000"]
-
-
-@pytest.mark.parametrize(
-    "section, key, value, item",
-    [
-        ("core", "templater", "jinja", "setting core.templater = 'jinja'"),
-        ("core", "rules", "LT01", "setting core.rules = 'LT01'"),
-        ("core", "large_file_skip_byte_limit", 20000, None),
-        ("core", "large_file_skip_char_limit", False, None),
-        ("core", "max_parse_nodes", 0, "setting core.max_parse_nodes"),
-        ("core", "use_rust_parser", True, "setting core.use_rust_parser"),
-        ("core", "dialect", "", "setting core.dialect = ''"),
-        ("layout", "x", 1, "setting layout.x"),
-    ],
-)
-def test_each_other_setting_is_unsupported(section, key, value, item):
-    config = settings("ansi")
-    config.setdefault(section, {})[key] = value
-    item = item or f"setting {section}.{key} = {value!r}"
-    with pytest.raises(Unsupported) as exc:
-        options(config)
-    assert exc.value.item == item
-    assert SqllBench(Path("/x/sqll")).unsupported(config) == item
+def test_the_selected_rules():
+    every = frozenset(EVERY)
+    assert selected_rules(settings(), every) == sorted(EVERY)
+    assert selected_rules({"core": {"rules": "CP01, LT01"}}, every) == ["CP01", "LT01"]
+    assert selected_rules({"core": {"rules": ["CP01"]}}, every) == ["CP01"]
+    config = {"core": {"rules": "all", "exclude_rules": "AL01,LT01"}}
+    assert selected_rules(config, every) == ["CP01", "CP03"]
+    # A name or a group stays as it is: it is never a rule of sqll.
+    assert selected_rules({"core": {"rules": "core"}}, every) == ["core"]
 
 
 # The jobs.
@@ -138,38 +178,104 @@ def test_start_and_parse_run_sqll_parse_with_the_dialect(bench_inputs_dir, tmp_p
     adapter = SqllBench(binary)
     for command in ("start", "parse"):
         bj = adapter.job(bench(command), ctx)
-        argv = [str(binary), "parse", "-f", "json", "--dialect", "tsql", INPUT_FILE]
+        config = bj.folder / "config" / "pyproject.toml"
+        argv = [str(binary), "parse", "-f", "json", "--ignore-local-config"]
+        argv += ["--config", str(config), INPUT_FILE]
         assert bj.job.argv == argv
-        assert (bj.folder / "config" / OPTIONS_NAME).is_file()
+        assert config.is_file()
         m = bj.measure(SMOKE)
         assert (m.status, m.reason) == (VALID, None)
     # One warmup run and one timed run of each, in a fresh run folder.
-    runs = [c for c in calls(log) if c[1][0] == "parse"]
+    runs = calls(log)
     assert len(runs) == 4
-    assert {Path(cwd).name for cwd, _ in runs} == {"warmup", "1"}
+    assert {Path(cwd).name for cwd, _, _ in runs} == {"warmup", "1"}
+    assert {dialect for _, _, dialect in runs} == {"tsql"}
+
+
+ALL_REASON = (
+    "unsupported: rule AL01, LT01 ({command}: sqll does not have 2 of the 4 "
+    "rules of the settings)"
+)
 
 
 @pytest.mark.parametrize("command", ["lint", "fix"])
 def test_lint_and_fix_are_unsupported_with_no_run(command, bench_inputs_dir, tmp_path):
+    # The S2 settings select all rules, and sqll does not have them all.
     binary, log = fake_sqll(tmp_path)
     ctx = Context(definitions.load(), bench_inputs_dir, tmp_path / "work")
     adapter = SqllBench(binary)
     bj = adapter.job(bench(command), ctx)
+    reason = ALL_REASON.format(command=command)
     assert bj.job is None
-    assert (bj.status, bj.reason) == (UNSUPPORTED, f"unsupported: {command}")
+    assert (bj.status, bj.reason) == (UNSUPPORTED, reason)
     m = bj.measure(SMOKE)
-    assert (m.status, m.reason, m.samples, m.stats) == (
-        UNSUPPORTED,
-        f"unsupported: {command}",
-        [],
-        None,
-    )
+    assert (m.status, m.reason, m.samples, m.stats) == (UNSUPPORTED, reason, [], None)
     assert not bj.folder.exists()
     assert calls(log) == []
-    with pytest.raises(ValueError, match="no lint"):
-        adapter.read_violations(b"[]", INPUT_FILE)
-    with pytest.raises(ValueError, match=f"no {command}"):
-        adapter.argv(command, tmp_path / "x.json", INPUT_FILE)
+    # Also when sqll does not have one rule of the settings.
+    adapter.base_settings["core"]["rules"] = "CP01,LT01"
+    bj = adapter.job(bench(command), ctx)
+    assert (bj.status, bj.job) == (UNSUPPORTED, None)
+    assert bj.reason == (
+        f"unsupported: rule LT01 ({command}: sqll does not have 1 of the 2 rules "
+        "of the settings)"
+    )
+    assert calls(log) == []
+
+
+@pytest.mark.parametrize("command", ["lint", "fix"])
+def test_the_rule_check_uses_the_config_of_the_benchmark(
+    command, bench_inputs_dir, tmp_path
+):
+    # The config of a benchmark can select other rules than the record
+    # config (dialect None). The check must read the config of the job.
+    binary, log = fake_sqll(tmp_path)
+
+    class DialectRules(SqllBench):
+        def layer(self, config):
+            if config.get("core", {}).get("dialect") == "ansi":
+                config["core"]["rules"] = "CP01"
+            return config
+
+    ctx = Context(definitions.load(), bench_inputs_dir, tmp_path / "work")
+    adapter = DialectRules(binary)
+    assert selected_rules(adapter.config(None), frozenset(EVERY)) == sorted(EVERY)
+    bj = adapter.job(bench(command, dialect="ansi"), ctx)
+    assert bj.status != UNSUPPORTED
+    assert bj.job is not None
+    bj = adapter.job(bench(command), ctx)
+    assert (bj.status, bj.reason) == (UNSUPPORTED, ALL_REASON.format(command=command))
+    assert calls(log) == []
+
+
+def test_lint_and_fix_run_when_sqll_has_each_rule(bench_inputs_dir, tmp_path):
+    binary, log = fake_sqll(tmp_path, have=EVERY)
+    ctx = Context(definitions.load(), bench_inputs_dir, tmp_path / "work")
+    adapter = SqllBench(binary)
+    # With all rules in sqll, the S2 settings (rules = all) run.
+    for command in ("parse", "lint", "fix"):
+        bj = adapter.job(bench(command), ctx)
+        config = bj.folder / "config" / "pyproject.toml"
+        argv = [str(binary), *adapter.commands[command], "--ignore-local-config"]
+        assert bj.job.argv == [*argv, "--config", str(config), INPUT_FILE]
+        assert adapter.unsupported_command(command, adapter.config("tsql")) is None
+        m = bj.measure(SMOKE)
+        if command == "parse":
+            assert (m.status, m.reason) == (VALID, None)
+        else:
+            # The fake gives only CP01, so the run reaches the comparison
+            # with the sqlfluff reference, and it fails there.
+            assert m.status == "invalid"
+            assert m.reason.startswith("warmup run: ")
+            assert "the rule codes are not those of the sqlfluff reference" in m.reason
+    # parse: a warmup and a timed run; lint and fix stop after the warmup.
+    assert [args[0] for _, args, _ in calls(log)] == ["parse", "parse", "lint", "fix"]
+    assert adapter.read_violations(
+        b'[{"filepath": "input.sql", "violations": [{"code": "CP01"}]}]', INPUT_FILE
+    ) == [{"code": "CP01"}]
+    assert adapter.read_violations(b"[]", INPUT_FILE) is None
+    with pytest.raises(ValueError, match="no start"):
+        adapter.argv("start2", tmp_path / "x.toml", INPUT_FILE)
 
 
 def test_a_bad_tree_or_exit_code_is_invalid(bench_inputs_dir, tmp_path):
@@ -216,7 +322,7 @@ def test_through_the_registry_sqll_runs_each_benchmark_of_the_definitions(
         key = (b["command"], m.status)
         counts[key] = counts.get(key, 0) + 1
         if m.status == UNSUPPORTED:
-            assert m.reason == f"unsupported: {b['command']}"
+            assert m.reason == ALL_REASON.format(command=b["command"])
         else:
             assert m.reason is None, (b["id"], m.reason)
     assert counts == {
@@ -226,9 +332,9 @@ def test_through_the_registry_sqll_runs_each_benchmark_of_the_definitions(
         ("fix", UNSUPPORTED): 84,
     }
     # Only parse runs, each with the dialect of its benchmark.
-    runs = [args for _, args in calls(log) if args != ["--version"]]
+    runs = calls(log)
     assert len(runs) == 2 * 112
-    dialects = {args[4] for args in runs}
+    dialects = {dialect for _, _, dialect in runs}
     assert dialects == set(by_dialect)
     assert definitions.DEFINITIONS.read_bytes() == before
 

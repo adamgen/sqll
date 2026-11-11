@@ -222,13 +222,15 @@ are the same for each tool. Proof: through the registry, a test-double tool
 runs all 280 benchmarks, valid, and the definitions do not change.
 
 sqll (S3 T13, `bench/sqll.py`) joined with no change to the definitions.
-It has only `parse` until S5: `start` and `parse` run `sqll parse -f json
---dialect D`; `lint` and `fix` are `unsupported: lint` and `unsupported:
-fix`, with no run (`unsupported_command`). Thus G3.4 and G3.5 for lint and
-fix, and the G3.5 total, are for later stones. sqll has the settings of
-all tools: the raw templater, no size limit, and no rule in a parse. A
-fake sqll binary runs all 280 benchmarks through the registry
-(`tests/test_sqll_bench.py`).
+It has the commands of the sqlfluff adapter (S3b C14). `lint` and `fix`
+run only if sqll has each rule that the settings of the benchmark select
+(`sqll rules`).
+The settings select all rules (`rules = all`) and sqll has 3 until S5, so
+`lint` and `fix` are `unsupported: rule ...` with no run
+(`unsupported_command`); the baseline statuses do not change. Thus G3.4
+and G3.5 for lint and fix, and the G3.5 total, are for later stones. sqll
+has the settings of all tools. A fake sqll binary runs all 280 benchmarks
+through the registry (`tests/test_sqll_bench.py`).
 
 ## CI and slowdowns
 
@@ -296,3 +298,46 @@ gives the benchmarks that it leaves out, and why. On
 `results/s2/baseline.json`, the table has 112 rows (sqll has only `start`
 and `parse`), and the total ratio `sqlfluff/sqll` is the `wall_ratio` of
 `tool_totals`.
+
+## Speed check of a change
+
+`scripts/speed-check` (Core track; G3.6) measures a change against its
+base with the S2 method. Run it with the harness Python:
+
+```sh
+uv run --frozen --project harness python scripts/speed-check run --task C6 --scratch DIR
+uv run --frozen --project harness python scripts/speed-check report --task C6 --check
+```
+
+`run` takes the machine lock (`flock /tmp/sqll-machine.lock`, or the lock
+of a parent `flock`). HEAD is `--head` (default `HEAD`); BASE is `--base`
+(default: the merge base of HEAD and `origin/main`). For each, it makes a
+git worktree of the commit in the empty scratch folder `DIR` and builds sqll
+with the `scripts/build-sqll` of that commit (on the host). Then one
+container of the CI image (no network, serial, an idle machine) runs the
+`start` and `parse` benchmarks of the full profile for `sqll` (HEAD),
+`sqll-base` (BASE), sqlfluff, and sqruff. The tools run in turn for each
+repeat. `sqll-base` is a registry entry with the adapter and settings of
+sqll ([sqll.md](sqll.md), "Tool check"). The record and its summary go to
+`results/S3b/speed/<task>.json`:
+
+- HEAD / BASE for each benchmark, with the noise limit of "Slowdowns", and
+  the list of slower benchmarks. The pull request gives the reason for
+  each (PROCESS.md, rule 8).
+- G3.4 and G3.5: HEAD / sqlfluff and HEAD / sqruff for each pair of the
+  run. sqlfluff runs in the check, so the pairs are of one machine and one
+  session.
+
+`report` makes the summary again from the committed record only;
+`--check` fails if the file is not the new text
+(`harness/tests/test_speed_check.py`). Exit codes: 0 if no benchmark is
+slower and HEAD meets G3.4 and G3.5; 1 if not; 2 if there is no result
+(a step fails, a binary is missing or stale, a tool is missing, or the
+inputs, settings, versions, or sqlfluff and sqruff statuses are not those
+of the definitions and `results/s2/baseline.json`).
+
+Run time of one check (C5, `results/S3b/speed/C5.json`; BASE = HEAD =
+main, a null change; 4 CPUs): 17 min. The 2 builds take 3 min each, and
+the session takes 9 min. The result: 0 of 112 benchmarks slower, HEAD
+faster than sqruff on 108 of 108 pairs and than sqlfluff on 112 of 112
+pairs. sqruff has no `soql` dialect, so 4 benchmarks have no sqruff pair.

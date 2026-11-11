@@ -16,7 +16,7 @@ default --tool is sqlfluff-rs. The exit code is 1 if the Python parser runs.
 
   .tools/sqlfluff-oracle/bin/python scripts/sqlfluff-autofix-oracle \\
       [--root DIR] [--report out/report.json] [--out out/autofix-oracle.jsonl]
-      [--check-prefixes] [--rust] [--tool TOOL]
+      [--check-prefixes] [--rust] [--tool TOOL] [--passes-of TOOL]
 
 The current folder of the test is the sqlfluff root, because the test and
 some case configs use paths relative to it. --root is the folder of the
@@ -33,6 +33,10 @@ With --check-prefixes, a case folder name that starts with "expect_pass_" or
 "expect_fail_" must have that status. The harness test fixtures use these
 prefixes. The exit code is 1 if a status is different or no case has a
 prefix.
+
+With --passes-of TOOL (and --report), each case that TOOL passes in the
+report must pass in the oracle; the exit code is 1 if one does not. The CI
+report job uses it for sqll (S3b C14).
 """
 
 import argparse
@@ -54,6 +58,7 @@ from sqlfluff_oracle import (
     CapLog,
     Results,
     check_prefixes,
+    check_passes,
     compare_with_report,
     fail_on_parse_error_after_fix,
     failure_reason,
@@ -151,7 +156,9 @@ def main() -> int:
         status = check_prefixes(oracle) or status
     if report is None:
         return status
-    return compare_with_report(oracle, report, "autofix", args.tool) or status
+    compared = compare_with_report(oracle, report, "autofix", args.tool)
+    passes = check_passes(oracle, report, "autofix", args.passes_of)
+    return compared or passes or status
 
 
 if __name__ == "__main__":

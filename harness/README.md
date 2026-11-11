@@ -441,18 +441,16 @@ the input. The input must have the sha256 of the definitions.
 |---|---|
 | `sqlfluff`, `sqlfluff-rs` | `sqlfluff parse -f json`, `lint -f json`, or `fix`, then `--ignore-local-config --config config/pyproject.toml input.sql` |
 | `sqruff` | `sqruff parse -f json`, `lint -f json --parsing-errors`, or `fix -f human`, then `--config config/.sqruff input.sql` |
-| `sqll` | `sqll parse -f json --dialect D input.sql`; `lint` and `fix`: `unsupported: lint` and `unsupported: fix`, no run |
+| `sqll` | `sqll parse -f json`, `lint -f json`, or `fix`, then `--ignore-local-config --config config/pyproject.toml input.sql`. `lint` and `fix` run only if sqll has each rule of the settings; else `unsupported: rule ...`, no run |
 
 The env is that of S1 (`isolated_env`, empty `HOME`; sqruff:
 `sqruff_env`). A config file that sqlfluff or sqruff can read in the work
 folder or above it stops the run (`ConfigAbove`). A command, dialect, or
 setting that the tool does not support gives `unsupported: <item>` and no
-run (sqruff: `dialect soql`). sqll (`bench/sqll.py`) reads no config file:
-`config/sqll-options.json` has its command-line options (the dialect, and
-`--max-parse-depth` for `max_parse_depth`). The other settings of the
-benchmarks are what sqll does with no option (`templater = raw`, `rules =
-all`, no size limit); another value or setting gives `unsupported: setting
-<section>.<key>`.
+run (sqruff: `dialect soql`). Since S3b C11 sqll (`bench/sqll.py`) reads
+the settings from the sqlfluff config file, as sqlfluff does; a setting
+that it cannot do stops the run with exit code 2 (`unsupported: setting
+...`).
 
 `sqll-harness bench reference [--write] [--jobs N]` builds the inputs and
 runs sqlfluff `fix` (and thus `lint` and `parse`) on each input with the

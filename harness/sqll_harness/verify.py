@@ -370,7 +370,7 @@ ORACLES = (
 # sqll later.
 INSTALLED_TOOLS = "--tool sqlfluff --tool sqlfluff-rs --tool sqruff"
 # The Python files that the lint job checks with ruff, after harness and ci.
-LINTED = f"{ORACLES} scripts/build-sqll scripts/s3 scripts/s3b"
+LINTED = f"{ORACLES} scripts/build-sqll scripts/speed-check scripts/s3 scripts/s3b"
 ORACLE_PY = '"$SQLL_TOOLS_DIR/sqlfluff-oracle/bin/python"'
 RS_PY = '"$SQLL_TOOLS_DIR/sqlfluff-rs-oracle/bin/python"'
 LINT_SUBMODULE = "lint: Check that the sqlfluff submodule is clean"
@@ -525,6 +525,86 @@ def checks(jobs: int | None = None) -> list[Check]:
             ("build: Check the sqll trees of the S2 parse inputs",),
             needs=(SETUP,),
         ),
+        Check(
+            "syntax-tree",
+            f"{UV} python scripts/s3b/tree_check.py check",
+            ("build: Check the syntax trees of the S2 parse inputs",),
+            needs=(SETUP,),
+        ),
+        Check(
+            "source-map",
+            f"{UV} python scripts/s3b/source_map_oracle.py check",
+            ("build: Check the source map with sqlfluff",),
+            needs=(SETUP,),
+        ),
+        Check(
+            "submodule-after-source-map",
+            'scripts/check-submodule "after the source map check"',
+            (
+                "build: Check that the sqlfluff submodule is clean after the source"
+                " map check",
+            ),
+        ),
+        Check(
+            "crawl",
+            f"{UV} python scripts/s3b/crawl_oracle.py check",
+            ("build: Check the crawl of the typed view with sqlfluff",),
+            needs=(SETUP,),
+        ),
+        Check(
+            "submodule-after-crawl",
+            'scripts/check-submodule "after the crawl check"',
+            (
+                "build: Check that the sqlfluff submodule is clean after the crawl"
+                " check",
+            ),
+        ),
+        Check(
+            "config",
+            f"{UV} python scripts/s3b/config_oracle.py check",
+            ("build: Check the config with sqlfluff",),
+            needs=(SETUP,),
+        ),
+        Check(
+            "submodule-after-config",
+            'scripts/check-submodule "after the config check"',
+            (
+                "build: Check that the sqlfluff submodule is clean after the config"
+                " check",
+            ),
+        ),
+        Check(
+            "rules",
+            f"{UV} python scripts/s3b/rules_oracle.py check",
+            ("build: Check the rule data with sqlfluff",),
+            needs=(SETUP,),
+        ),
+        Check(
+            "submodule-after-rules",
+            'scripts/check-submodule "after the rule check"',
+            ("build: Check that the sqlfluff submodule is clean after the rule check",),
+        ),
+        # S3b C13: the script checks the submodule after its sqlfluff runs.
+        Check(
+            "cli",
+            f"{UV} python scripts/s3b/cli_oracle.py check",
+            ("build: Check the CLI data with sqlfluff",),
+            needs=(SETUP,),
+        ),
+        # S3b C14: the script checks the submodule after its sqlfluff runs.
+        Check(
+            "jinja-raw",
+            f"{UV} python scripts/s3b/jinja_raw_oracle.py check",
+            ("build: Check the jinja as raw proof with sqlfluff",),
+            needs=(SETUP,),
+        ),
+        # S3b C15: the JSON Schema output and the meta-schema (no sqlfluff).
+        Check(
+            "schema",
+            f"{UV} python scripts/s3b/schema_check.py check",
+            ("build: Check the JSON Schema output with the meta-schema",),
+            needs=(SETUP,),
+        ),
         # One unsharded run of all suites and tools, as all shards of CI.
         Check(
             "run",
@@ -566,7 +646,7 @@ def checks(jobs: int | None = None) -> list[Check]:
             "oracle-rules",
             _oracle(
                 "sqlfluff-rule-oracle",
-                "--report out/report.json --out out/oracle.jsonl",
+                "--report out/report.json --out out/oracle.jsonl --passes-of sqll",
             ),
             ("report: Compare the rule results with the sqlfluff test",),
             needs=rep,
@@ -575,7 +655,8 @@ def checks(jobs: int | None = None) -> list[Check]:
             "oracle-autofix",
             _oracle(
                 "sqlfluff-autofix-oracle",
-                "--report out/report.json --out out/autofix-oracle.jsonl",
+                "--report out/report.json --out out/autofix-oracle.jsonl"
+                " --passes-of sqll",
             ),
             ("report: Compare the autofix results with the sqlfluff test",),
             needs=rep,
@@ -584,7 +665,8 @@ def checks(jobs: int | None = None) -> list[Check]:
             "oracle-templater",
             _oracle(
                 "sqlfluff-templater-oracle",
-                "--report out/report.json --out out/templater-oracle.jsonl",
+                "--report out/report.json --out out/templater-oracle.jsonl"
+                " --passes-of sqll",
             ),
             ("report: Compare the templater results with the sqlfluff test",),
             needs=rep,
@@ -606,7 +688,8 @@ def checks(jobs: int | None = None) -> list[Check]:
             "dialect-oracle-sqlfluff",
             _oracle(
                 "sqlfluff-dialect-oracle",
-                "--report out/report.json --out out/dialect-oracle-sqlfluff.jsonl",
+                "--passes-of sqll --report out/report.json"
+                " --out out/dialect-oracle-sqlfluff.jsonl",
             ),
             ("dialect-oracle: Compare the dialect results with the sqlfluff tests",),
             needs=rep,

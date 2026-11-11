@@ -62,8 +62,9 @@ placeholders. Risk: the conversion adds work; C7 measures it (C5).
 
 Decision: the ported `TemplatedFile` (`sqll_types`) is the frozen
 interface from the templater to the source map. The Core crate
-`sqll_source` has a `Templater` trait that gives a `TemplatedFile`, the
-source map (templated to source byte ranges), and the raw templater.
+`sqll_source` has a `Templater` trait that gives a `TemplatedFile`, and
+the source map. Change (C8 task text, 2026-11-07): the raw templater is
+in `sqll_templater`.
 
 Reason: the lexer already takes `TemplatedFile`, a port of the sqlfluff
 type; S6 needs no new type.
@@ -72,9 +73,10 @@ type; S6 needs no new type.
 
 Decision: one function in the Core crate `sqll_syntax`:
 `parse(&TemplatedFile, Dialect, &ParseOptions) -> Parsed { tree, errors }`.
-It lexes, parses, and makes the `SyntaxTree`. C9 moves
-`crates/sqll/src/parse.rs` into it. `sqll parse` prints the sqlfluff tree
-format from the `SyntaxTree`; its output does not change (tree guard).
+It lexes, parses, and makes the `SyntaxTree`. `sqll parse` prints the
+sqlfluff tree format from it with no output change. Change (C9):
+`Result<Parsed, ParseError>`; `tree` is an `Option`
+([parse.md](../interfaces/parse.md)).
 
 Reason: the rules, the code generation, and the CLI call one function;
 S4 can change the parser with no change to them.
@@ -124,7 +126,7 @@ interface, a dependency, or a build step (S3b exit).
 | `sqll_parser` | S4 | parser, `Node`, `Arena` |
 | `sqll_dialects` | S4 | generated tables |
 | `sqll_rules` | S5 | rules |
-| `sqll_templater` | S6 | other templaters |
+| `sqll_templater` | S6 | templaters (raw: C8) |
 | `sqll_cli` | S7-sqll | commands (C13) |
 | `sqll_codegen` | S8 | code generation |
 | `sqll_plpgsql` | S10 | PL/pgSQL bodies |

@@ -1,0 +1,30 @@
+# The interface tests of sqll (docs/decisions/s3b-core.md, Q5). Each frozen
+# interface has one test in tests/. The library has their shared parts. This
+# file is new sqll code (crates/ported.json, "new").
+[package]
+name = "sqll_interfaces"
+version.workspace = true
+edition = "2021"
+rust-version.workspace = true
+license = "MIT"
+publish = false
+
+[dependencies]
+serde_json.workspace = true
+sqll_codegen = { path = "../sqll_codegen" }
+sqll_config = { path = "../sqll_config" }
+sqll_dialects = { path = "../sqll_dialects" }
+sqll_lint = { path = "../sqll_lint" }
+sqll_lexer = { path = "../sqll_lexer" }
+sqll_parser = { path = "../sqll_parser" }
+sqll_rules = { path = "../sqll_rules" }
+sqll_schema = { path = "../sqll_schema" }
+sqll_source = { path = "../sqll_source" }
+sqll_syntax = { path = "../sqll_syntax" }
+sqll_templater = { path = "../sqll_templater" }
+sqll_tree = { path = "../sqll_tree" }
+sqll_types = { path = "../sqll_types" }
+
+# The fixture YAML of the typed view test (tests/typed_view.rs, S3b C10).
+[dev-dependencies]
+serde_yaml_ng.workspace = true

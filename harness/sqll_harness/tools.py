@@ -10,12 +10,15 @@ the tools in tools_dir() (SQLL_TOOLS_DIR):
 
 sqll is not in tools_dir(): scripts/build-sqll builds it from the worktree
 to out/sqll/bin/sqll (SQLL_BIN sets another path). Its check also refuses a
-stale binary and a binary that needs libpython.
+stale binary and a binary that needs libpython. "sqll-base" (EXTRA_CHECKS)
+is the base binary of a speed check (scripts/speed-check); a check of all
+tools does not include it.
 
 The checks start each tool as a subprocess. The harness never imports a tool.
 """
 
 import json
+import os
 import subprocess
 import tempfile
 import tomllib
@@ -295,7 +298,7 @@ def check_sqll(
     does not parse "select 1". root and specs are not used: sqll is built
     from the worktree, not installed.
     """
-    worktree = worktree or sqll.REPO_ROOT
+    worktree = worktree or sqll.source_root()
     binary = binary or sqll.binary_path()
     info = ToolInfo("sqll", str(binary), sqll.expected_version(worktree))
     if not binary.exists():
@@ -336,12 +339,37 @@ def check_sqll(
     return info
 
 
+def check_sqll_base(root: Path, specs: Path) -> ToolInfo:
+    """Check the base binary of a speed check: SQLL_BASE_BIN, a build of the
+    source folder SQLL_BASE_SOURCE_DIR. The checks are those of sqll."""
+    binary = sqll.base_binary_path()
+    source = os.environ.get(sqll.BASE_SOURCE_ENV)
+    if not source or not (Path(source) / "Cargo.toml").is_file():
+        info = ToolInfo("sqll-base", str(binary), "unknown")
+        info.errors.append(
+            f"{sqll.BASE_SOURCE_ENV} must be the source folder of the base "
+            f"binary: {source!r}"
+        )
+        return info
+    info = check_sqll(root, specs, binary, Path(source))
+    info.name = "sqll-base"
+    return info
+
+
 CHECKS = {
     "sqlfluff": check_sqlfluff,
     "sqlfluff-rs": check_sqlfluff_rs,
     "sqruff": check_sqruff,
     "sqll": check_sqll,
 }
+# The checks that run only when a caller names the tool.
+EXTRA_CHECKS = {
+    "sqll-base": check_sqll_base,
+}
+
+
+def known(name: str) -> bool:
+    return name in CHECKS or name in EXTRA_CHECKS
 
 
 def check(
@@ -349,6 +377,9 @@ def check(
     root: Path | None = None,
     specs: Path = TOOL_SPECS_DIR,
 ) -> list[ToolInfo]:
-    """Check the installed tools. Default: all tools."""
+    """Check the installed tools. Default: all tools of CHECKS."""
     root = root or tools_dir()
-    return [CHECKS[name](root, specs) for name in names or CHECKS]
+    return [
+        (CHECKS.get(name) or EXTRA_CHECKS[name])(root, specs)
+        for name in names or CHECKS
+    ]

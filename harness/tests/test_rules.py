@@ -403,13 +403,16 @@ class FakeAdapter:
     """An adapter that gives fixed results and records its calls."""
 
     name = "fake"
-    lints = True
 
     def __init__(self, lint=None, fixed=None):
         self.lint_violations = lint or {}
         self.fixed = fixed
         self.calls = []
         self.configs = []
+        self.rule_checks = []
+
+    def check_case_rules(self, codes):
+        self.rule_checks.append(codes)
 
     def lint(self, sql_paths, rules_, dialect, config, workdir):
         self.calls.append(("lint", [p.name for p in sql_paths], rules_, dialect))
@@ -437,14 +440,19 @@ def test_skip_runs_no_tool():
     assert adapter.calls == []
 
 
-def test_an_adapter_with_no_lint_command_runs_no_tool():
-    class NoLintAdapter(FakeAdapter):
-        lints = False
+@pytest.mark.parametrize("pass_str", ["x", ""])
+def test_a_rule_that_the_tool_does_not_have_runs_no_tool(pass_str):
+    class NoRuleAdapter(FakeAdapter):
+        def check_case_rules(self, codes):
+            super().check_case_rules(codes)
+            raise Unsupported("rule " + ", ".join(codes))
 
-    case = rules.RuleCase(id="rules/x/y", rule="LT01", pass_str="x")
-    adapter = NoLintAdapter()
-    with pytest.raises(Unsupported, match="^lint$"):
+    # An empty pass_str runs no lint, but the rule check still comes first.
+    case = rules.RuleCase(id="rules/x/y", rule="AL02, LT01", pass_str=pass_str)
+    adapter = NoRuleAdapter()
+    with pytest.raises(Unsupported, match="^rule AL02, LT01$"):
         rules.run(adapter, case, SQLFLUFF_ROOT)
+    assert adapter.rule_checks == [["AL02", "LT01"]]
     assert adapter.calls == []
 
 

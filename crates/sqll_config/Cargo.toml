@@ -1,0 +1,12 @@
+# The config crate of sqll (docs/interfaces/config.md; S3b task C11): the
+# config model, the sqlfluff defaults, and the reader of the sqlfluff config
+# files. It has no dependencies. The files of src/ port sqlfluff and CPython
+# code (THIRD_PARTY.md, crates/ported.json "new"). This file is new sqll
+# code.
+[package]
+name = "sqll_config"
+version.workspace = true
+edition = "2021"
+rust-version.workspace = true
+license = "MIT"
+publish = false

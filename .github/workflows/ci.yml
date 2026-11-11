@@ -127,8 +127,8 @@ jobs:
             scripts/sqlfluff-autofix-oracle scripts/sqlfluff-templater-oracle
             scripts/sqlfluff-dialect-oracle scripts/sqlfluff-case-ids
         run: |
-          uv run --frozen --project harness ruff check harness ci $ORACLES scripts/build-sqll scripts/s3 scripts/s3b
-          uv run --frozen --project harness ruff format --check harness ci $ORACLES scripts/build-sqll scripts/s3 scripts/s3b
+          uv run --frozen --project harness ruff check harness ci $ORACLES scripts/build-sqll scripts/speed-check scripts/s3 scripts/s3b
+          uv run --frozen --project harness ruff format --check harness ci $ORACLES scripts/build-sqll scripts/speed-check scripts/s3 scripts/s3b
 
       - name: Unit tests
         env:
@@ -183,9 +183,11 @@ jobs:
   # Build sqll (scripts/build-sqll): generate the dialect tables with the
   # pinned generator, compare them with crates/sqll_dialects/generated.json,
   # build the workspace (release, --locked) with no Python, run the Rust
-  # tests with the list check of the base native tests, and the S2 tree
-  # guard. The artifact has out/sqll/build.json and the
-  # binaries.
+  # tests with the list check of the base native tests, the S2 tree guard,
+  # the syntax tree check of the S2 parse inputs, the source map check of
+  # the templater fixtures, the crawl check of the typed view, and the
+  # check of the JSON Schema output. The artifact has
+  # out/sqll/build.json and the binaries.
   build:
     needs: [changes, image]
     if: needs.changes.outputs.full != 'false'
@@ -230,6 +232,85 @@ jobs:
       # before any speed change. A speed change must not change a tree.
       - name: Check the sqll trees of the S2 parse inputs
         run: uv run --frozen --project harness python scripts/s3/tree_guard.py check
+
+      # S3b C7: the conversion of the parser tree of each S2 parse input to
+      # the SyntaxTree is lossless and equal to the parser tree, node for
+      # node (the ignored test of crates/sqll_interfaces/tests/tree.rs).
+      - name: Check the syntax trees of the S2 parse inputs
+        run: uv run --frozen --project harness python scripts/s3b/tree_check.py check
+
+      # S3b C8: the source map gives the answers of the pinned sqlfluff for
+      # each templater fixture (each templated range, each source offset,
+      # and each segment of the parse tree) and for 20000 random invented
+      # files (each templated range and source offset), and the record
+      # results/S3b/C8-source-map.json is the sqlfluff data (the ignored
+      # test of crates/sqll_interfaces/tests/source_map.rs).
+      - name: Check the source map with sqlfluff
+        run: uv run --frozen --project harness python scripts/s3b/source_map_oracle.py check
+
+      - name: Check that the sqlfluff submodule is clean after the source map check
+        run: scripts/check-submodule "after the source map check"
+
+      # S3b C10: the record results/S3b/C10-crawl.json is the sqlfluff
+      # recursive_crawl data of the cited dialect fixtures, and the crawl of
+      # the fixture YAML agrees for each YAML case. The interface test
+      # crates/sqll_interfaces/tests/typed_view.rs (Rust tests above) checks
+      # the sqll crawl against the record and the YAML.
+      - name: Check the crawl of the typed view with sqlfluff
+        run: uv run --frozen --project harness python scripts/s3b/crawl_oracle.py check
+
+      - name: Check that the sqlfluff submodule is clean after the crawl check
+        run: scripts/check-submodule "after the crawl check"
+
+      # S3b C11: the record results/S3b/C11-config.json is the config data of
+      # the pinned sqlfluff (the defaults, the INI and TOML readers, the load
+      # and "sqlfluff parse" scenarios, and the Jinja templated files that
+      # are those of the raw templater). The tests
+      # crates/sqll_interfaces/tests/config.rs and crates/sqll/tests/cli_config.rs
+      # (Rust tests above) check sqll against the record.
+      - name: Check the config with sqlfluff
+        run: uv run --frozen --project harness python scripts/s3b/config_oracle.py check
+
+      - name: Check that the sqlfluff submodule is clean after the config check
+        run: scripts/check-submodule "after the config check"
+
+      # S3b C12: the record results/S3b/C12-rules.json is the rule manifest,
+      # the rule config validation, and the rule test helper answers for the
+      # CP01, CP03, and CP04 rule fixtures of the pinned sqlfluff, and
+      # crates/sqll_lint/src/sqlfluff.rs is its table. The tests
+      # crates/sqll_interfaces/tests/rules.rs and
+      # crates/sqll_rules/tests/fixtures.rs (Rust tests above) check sqll
+      # against the record.
+      - name: Check the rule data with sqlfluff
+        run: uv run --frozen --project harness python scripts/s3b/rules_oracle.py check
+
+      - name: Check that the sqlfluff submodule is clean after the rule check
+        run: scripts/check-submodule "after the rule check"
+
+      # S3b C13: the record results/S3b/C13-cli.json is the output of the
+      # pinned sqlfluff for each lint, fix, rules, and dialects scenario.
+      # The test crates/sqll/tests/cli.rs (Rust tests above) checks sqll
+      # against the record. The script checks the submodule itself.
+      - name: Check the CLI data with sqlfluff
+        run: uv run --frozen --project harness python scripts/s3b/cli_oracle.py check
+
+      # S3b C14: the record results/S3b/C14-jinja-raw.json has each SQL input
+      # of the rule and autofix suites for which the Jinja templater of the
+      # pinned sqlfluff gives the file of the raw templater. The sqll
+      # adapter runs a jinja case only for these texts. The script checks
+      # the submodule itself.
+      - name: Check the jinja as raw proof with sqlfluff
+        run: uv run --frozen --project harness python scripts/s3b/jinja_raw_oracle.py check
+
+      # S3b C15: the JSON Schema writer of the code generation interface
+      # (crates/sqll_schema) writes the schema of each case of
+      # crates/sqll_interfaces/tests/schema.rs again; it must be the record
+      # results/S3b/C15-schema.json and results/S3b/C15-schema/. The
+      # jsonschema package validates each schema against the JSON Schema
+      # draft 2020-12 meta-schema, and the examples of each case against
+      # the schema.
+      - name: Check the JSON Schema output with the meta-schema
+        run: uv run --frozen --project harness python scripts/s3b/schema_check.py check
 
       - uses: actions/upload-artifact@v7
         with:
@@ -338,28 +419,31 @@ jobs:
             out/report.json --out out/summary.json
           cat out/summary.json
 
-      # The sqlfluff test of each rule case must give the same status.
+      # The sqlfluff test of each rule case must give the same status, and
+      # must pass each case that sqll passes (S3b C14).
       - name: Compare the rule results with the sqlfluff test
         run: |
           "$SQLL_TOOLS_DIR/sqlfluff-oracle/bin/python" \
             scripts/sqlfluff-rule-oracle --report out/report.json \
-            --out out/oracle.jsonl
+            --out out/oracle.jsonl --passes-of sqll
           scripts/check-submodule "after the comparison"
 
-      # The sqlfluff test of each autofix case must give the same status.
+      # The sqlfluff test of each autofix case must give the same status, and
+      # must pass each case that sqll passes (S3b C14).
       - name: Compare the autofix results with the sqlfluff test
         run: |
           "$SQLL_TOOLS_DIR/sqlfluff-oracle/bin/python" \
             scripts/sqlfluff-autofix-oracle --report out/report.json \
-            --out out/autofix-oracle.jsonl
+            --out out/autofix-oracle.jsonl --passes-of sqll
           scripts/check-submodule "after the comparison"
 
-      # The sqlfluff test of each templater case must give the same status.
+      # The sqlfluff test of each templater case must give the same status,
+      # and must pass each case that sqll passes (S3b C14).
       - name: Compare the templater results with the sqlfluff test
         run: |
           "$SQLL_TOOLS_DIR/sqlfluff-oracle/bin/python" \
             scripts/sqlfluff-templater-oracle --report out/report.json \
-            --out out/templater-oracle.jsonl
+            --out out/templater-oracle.jsonl --passes-of sqll
           scripts/check-submodule "after the comparison"
 
       # The sqlfluff tests with the Rust parser and rules (--rust) must give
@@ -418,9 +502,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          # The sqlfluff tests must also pass each case that sqll passes.
           - tool: sqlfluff
             venv: sqlfluff-oracle
-            args: ""
+            args: --passes-of sqll
           - tool: sqlfluff-rs
             venv: sqlfluff-rs-oracle
             args: --rust

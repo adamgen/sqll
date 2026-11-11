@@ -136,8 +136,9 @@ def _parser() -> argparse.ArgumentParser:
     tls.add_argument(
         "--tool",
         action="append",
-        choices=sorted(tools.CHECKS),
-        help="Tool to check. Repeat for more tools. Default: all tools.",
+        choices=sorted([*tools.CHECKS, *tools.EXTRA_CHECKS]),
+        help="Tool to check. Repeat for more tools. Default: all tools except "
+        "sqll-base.",
     )
     bench = sub.add_parser("bench", help="S2 benchmarks. See harness/bench.md.")
     bench_sub = bench.add_subparsers(dest="bench_command", required=True)
