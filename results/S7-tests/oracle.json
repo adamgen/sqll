@@ -3,7 +3,7 @@
  "format": 1,
  "not_reproduced": {
   "records": 0,
-  "pointer": false
+  "pointer": true
  },
  "tools": {
   "sqlfluff": {

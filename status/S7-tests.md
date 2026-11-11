@@ -23,7 +23,7 @@ one lost day, T9 converts all config tests (before: 2 tasks).
 | T1 | Design record, scope inventory, and status files | The scope (643 nodes), the design, and the 4 decisions are recorded and tested | Done (PR #60) |
 | T2 | Case format, case runner, and pilot cases | One case format and one runner run pilot cases through a tool binary | Done (PR #78) |
 | T3 | Trace oracle with fail-closed checks | Each case agrees with a trace of its original pytest node | Done (PR #80) |
-| T4 | Cross-track (Core): harness hooks for the S7 suites | The harness core runs the 3 S7 suites | Not started |
+| T4 | Cross-track (Core): harness hooks for the S7 suites | The harness core runs the 3 S7 suites | Done (PR #82; the Core track reviews it) |
 | T5 | Cross-track (Core): CI jobs, oracle step, and local verify for the S7 suites; the ruff lint of `scripts/s7-tests/` in CI; first recorded results | CI and `scripts/verify` run the S7 suites and record the results | Not started |
 | T6 | Convert the rule tests, part 1: lint-only tests through the simple API | The lint-only rule nodes are black-box cases | Not started |
 | T7 | Convert the rule tests, part 2: fix, combination, file, and template tests | The other rule nodes (not Rust dispatch) are black-box cases | Not started |
@@ -97,16 +97,18 @@ output of `scripts/s7-tests/inventory` on sqlfluff 4.4.0 (pytest nodes):
 
 T2 (case format, case runner, and pilot cases; S7: CLI and config parity,
 the sqlfluff CLI, config, and Python rule tests as black-box cases) gives
-the case format, `scripts/s7-tests/run-cases`, and pilot cases of each
-group. The recorded report is
+the case format, the case runner (`scripts/s7-tests/run-cases`; T4 (harness
+hooks for the S7 suites: the harness core runs the 3 S7 suites; S7: CLI and
+config parity, the sqlfluff CLI, config, and Python rule tests as black-box
+cases) moved it to `sqll-harness s7 run`), and pilot cases of each group.
+The recorded report is
 [results/S7-tests/report.json](../results/S7-tests/report.json): in scope
 643, converted 15, excluded 3, not yet converted 625. The converted nodes:
 `cli` 8, `rules` 5, `config` 2. 1 converted node needs Jinja
 (`std_LT04_test.py::test__rules__std_LT04_unparseable`) and moves to S11
 (Jinja templater: the last stone; decide with data how sqll supports
-Jinja).
-The excluded nodes: 1 `python-internal`, 1 `needs-python-runtime`, 1
-`engine-comparison`.
+Jinja). The excluded nodes: 1 `python-internal`, 1 `needs-python-runtime`,
+1 `engine-comparison`.
 
 Parity of the 14 converted nodes that S7 (CLI and config parity: the
 sqlfluff CLI, config, and Python rule tests as black-box cases) keeps
@@ -152,13 +154,55 @@ traces `oracle-trace-sqlfluff.json` and `oracle-trace-sqlfluff-rs.json`.
   `test__cli__command_directed`: the pytest node fails too.
 - Each of the 49 asserts of the pilot source tests has a check that cites
   it. No case uses a row of
-  [s7-tests-not-reproduced.md](../docs/decisions/s7-tests-not-reproduced.md):
-  the pointer section in `harness/not-reproduced.md` comes with T4 (harness
-  hooks for the S7 suites) or T5 (CI jobs, oracle step, and first results
-  of the S7 suites) (decision 4).
+  [s7-tests-not-reproduced.md](../docs/decisions/s7-tests-not-reproduced.md).
+  T4 (harness hooks for the S7 suites: the harness core runs the 3 S7
+  suites; S7: CLI and config parity, the sqlfluff CLI, config, and Python
+  rule tests as black-box cases) added the pointer section in
+  `harness/not-reproduced.md` (decision 4); the recorded result now has
+  `"pointer": true`.
 - The `python-internal` node has no traced CLI or simple-API call.
 - The case files now have an `asserts` map for each node.
 - The oracle exits with code 1 if a case input is not the traced input, a
   check fails on the traced output, the report status is not the pytest
   outcome, or an assert has no citation and no record. A harness test
   proves each of these 4 failure paths.
+
+## Harness hooks (T4)
+
+T4 (cross-track, Core reviews: harness hooks for the S7 suites; the harness
+core runs the 3 S7 suites `s7_rules`, `s7_config`, `s7_cli`; S7: CLI and
+config parity, the sqlfluff CLI, config, and Python rule tests as
+black-box cases) adds `sqll-harness s7 run [--suite S] [--tool T]`. It
+replaces `scripts/s7-tests/run-cases`. The design is in the design record,
+"Case runner" and "Report".
+
+- The report has the key `suites` (format 2). The scope of a report is the
+  nodes of its suites: `s7_rules` 208, `s7_config` 140, `s7_cli` 295.
+- Before a tool runs, the command fails closed (exit code 2) if an assert
+  of a converted source test has no citing check and no row of the
+  not-reproduced record.
+- `harness/not-reproduced.md` has the pointer section "S7 test conversion"
+  (decision 4). THIRD_PARTY.md has the entry of S7 (CLI and config parity:
+  the sqlfluff CLI, config, and Python rule tests as black-box cases).
+- The command of S1 (binary test harness: run the sqlfluff test fixtures
+  through a binary, not through function calls; sqlfluff passes 100% of the
+  cases through the harness, and the results of the other tools are
+  recorded), `sqll-harness run`, and its suites do not change.
+
+Results of each suite with each tool, for the pilot cases of T2 (case
+format, case runner, and pilot cases: one case format and one runner run
+pilot cases through a tool binary; S7: CLI and config parity, the sqlfluff
+CLI, config, and Python rule tests as black-box cases). They are equal to
+[results/S7-tests/report.json](../results/S7-tests/report.json):
+
+| Suite | In scope | Converted | Excluded | sqlfluff | sqlfluff-rs | sqruff |
+|---|---|---|---|---|---|---|
+| `s7_rules` | 208 | 5 | 1 | 4/4 | 4/4 | 1/4 |
+| `s7_config` | 140 | 2 | 0 | 2/2 | 2/2 | 0/2 |
+| `s7_cli` | 295 | 8 | 2 | 8/8 | 7/8 | 0/8 |
+
+The parity columns count the converted nodes that S7 (CLI and config
+parity: the sqlfluff CLI, config, and Python rule tests as black-box cases)
+keeps (passed/nodes); 1 converted `s7_rules` node needs Jinja and moves to
+S11 (Jinja templater: the last stone; decide with data how sqll supports
+Jinja).

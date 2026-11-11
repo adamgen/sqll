@@ -3,7 +3,8 @@
 These checks of the sqlfluff tests exist only as Python internals, or the CLI
 cannot give the same input. See [README.md](README.md), [rules.md](rules.md),
 [autofix.md](autofix.md), [templater.md](templater.md), and
-[sqlfluff-rs.md](sqlfluff-rs.md).
+[sqlfluff-rs.md](sqlfluff-rs.md). The S7 suites have their own record (see
+"S7 test conversion").
 
 ## Rule cases
 
@@ -240,3 +241,21 @@ the data of the fixture. See [sqruff.md](sqruff.md). Limits:
 - sqruff has no dialect oracle. Thus no check shows a difference that an
   in-file config line causes in a dialect case. In 4.4.0 only
   `clickhouse/create_user.sql` has one, and it has no effect.
+
+## S7 test conversion
+
+S7 (CLI and config parity: the sqlfluff CLI, config, and Python rule tests
+as black-box cases), track S7-tests. The asserts of the converted sqlfluff
+tests that no S7 case reproduces are in
+[s7-tests-not-reproduced.md](../docs/decisions/s7-tests-not-reproduced.md).
+That record is a part of this record (PROCESS.md, rule 7; decision 4 of
+[s7-tests-design.md](../docs/decisions/s7-tests-design.md)).
+
+- Each assert of the source test of a converted node has a check of a case
+  that cites it, or a row in that record. `sqll-harness s7 run` (exit code
+  2) and the S7 trace oracle (`scripts/s7-tests/oracle`) fail closed if an
+  assert has neither, if a row is of a node that is not converted, or if a
+  row is also cited.
+- The limits of the S7 cases and of the trace oracle are in
+  [s7-tests-design.md](../docs/decisions/s7-tests-design.md), "Limits of the
+  oracle".

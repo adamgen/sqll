@@ -90,6 +90,26 @@ root config of the submodule. `results/S3b/C14-jinja-raw.json` has only
 sha256 values of fixture texts and counts. It has no fixture text. No
 sqlfluff code is copied.
 
+`harness/sqll_harness/s7_tests/cases/` (S7: CLI and config parity, the
+sqlfluff CLI, config, and Python rule tests as black-box cases; track
+S7-tests) has the black-box cases of the sqlfluff 4.4.0 tests (MIT). They
+are a derived work of the test files of `test/cli/`, `test/rules/`,
+`test/core/config/`, `test/core/helpers/`, and `test/core/linter/`: the
+inline SQL, the CLI arguments, the config, and the expected values. The
+header of each case file names its source test file, the sqlfluff version
+and commit, the copyright, and the MIT license.
+`harness/sqll_harness/s7_tests/exclusions.yml` names the excluded test
+nodes, and `results/S7-tests/scope.json` names each test node in scope.
+`sqll-harness s7 run` runs the cases on the fixture files of
+`test/fixtures/` in place (for example `test/fixtures/linter/` and
+`test/fixtures/config/`); it does not copy them. It reads the source of
+each converted test file with `ast` to find its asserts. The S7 scripts
+`scripts/s7-tests/inventory` and `scripts/s7-tests/config-readers` collect
+and run the sqlfluff tests, and `scripts/s7-tests/trace-nodes` runs the
+converted test nodes, from the submodule. `results/S7-tests/` has their
+output: node ids, counts, and the inputs and outputs of the traced CLI and
+simple-API calls (`oracle-trace-*.json`). No sqlfluff code is copied.
+
 `scripts/s3/sqlfluffrs_probe.py` (S3 research, task T5) copies the
 submodule into a scratch folder, runs `utils/rustify.py` there, and builds
 the sqlfluffrs crates and the probe there. The generated Rust files stay in
