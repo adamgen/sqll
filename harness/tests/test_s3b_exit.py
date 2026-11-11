@@ -506,5 +506,30 @@ def test_the_status_file_records_the_approval_and_its_data():
         " with it, and 10 control runs that pass",
         "112 benchmarks: 0 slower than the noise limit",
         "The stone does not weaken a goal of CONSTITUTION.md or an exit rule.",
+        # AGENTS.md, "Names": each task name has its goal and the goal of
+        # its stone (S3b, the shared core: goal at the top of the status
+        # file).
+        'C17: S3b exit: proof, exit record, and STATUS "S3b awaiting'
+        ' approval"; a task of S3b, goal at the top of this file)',
+        "Each bullet of S3b (goal at the top of this file) in STONES.md. Each"
+        " task name below is a task of S3b (goal at the top of this file),"
+        " and its goal is in parentheses:",
+        "C6 (typed segment kinds from the frozen dialect tables)",
+        "C7 (lossless syntax tree and the conversion from the parser tree)",
+        "C9 (frozen parse interface: lexer to parser to tree, and `sqll parse`"
+        " output from the tree)",
+        "C10 (typed view of the tree)",
+        "C8 (source map: `TemplatedFile` as the frozen templater interface,"
+        " raw templater, source ranges of the tree)",
+        "C11 (config skeleton and its use in `sqll parse`)",
+        "C13 (CLI skeleton: lint, fix, rules, dialects, and the output formats)",
+        "C14 (harness adapters: `sqll lint` and `fix` in the test harness and"
+        " the benchmarks)",
     ):
         assert item in part, item
+    # Each task name of the section has its goal next to it: "C17: <goal>"
+    # or "C6 (<goal>)". A list of names with no goal, such as "(C6, C7",
+    # fails. A name in a path, such as `results/S3b/speed/C17.json`, is
+    # not a task name in the text.
+    for name in re.finditer(r"(?<![/\w])C\d+\b(?!\.json)", part):
+        assert part[name.end() :].startswith((" (", ": ")), name.group()

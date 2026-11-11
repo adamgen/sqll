@@ -634,21 +634,22 @@ Since the approval (section "Approval"), the state text of the check is
 Approved (orchestrator under the standing delegation of the human owner,
 2026-11-11; CONSTITUTION.md, section 5). An independent agent checked the
 stone on main `7f98014` (the merge of PR #79, the exit task C17: S3b exit:
-proof, exit record, and STATUS "S3b awaiting approval") in a temporary
-worktree, and found no blocking gap.
+proof, exit record, and STATUS "S3b awaiting approval"; a task of S3b,
+goal at the top of this file) in a temporary worktree, and found no
+blocking gap.
 
 - CI on main: run 43071390211 at `7f98014`: conclusion success, 77 of 77
   jobs success. The job build gives `exit check: PASS: results/S3b/exit.json:
   no change; state: S3b awaiting approval` (the state text of the exit
-  check before this approval; now "S3b exit met"), native base tests 162 of 162, sqll 358
-  passed, 0 failed, 4 ignored, `tree guard: 84 of 84 inputs`, and the PASS
-  line of the tree, source map, crawl, config, rules, cli, jinja as raw,
-  and schema checks. The CI run at the exit head, 42986804942 at
-  `a77e821`, is success with 77 of 77 jobs, and its report job has the
-  recorded lines. On the last head of PR #79 (run 43062734890), each of
-  the 67 check runs is success or skipped, and the Ownership check is
-  success. Review round 4 of PR #79 approved the work (4 rounds; the
-  reviewer and the fixer were different agents).
+  check before this approval; now "S3b exit met"), native base tests 162
+  of 162, sqll 358 passed, 0 failed, 4 ignored, `tree guard: 84 of 84
+  inputs`, and the PASS line of the tree, source map, crawl, config,
+  rules, cli, jinja as raw, and schema checks. The CI run at the exit
+  head, 42986804942 at `a77e821`, is success with 77 of 77 jobs, and its
+  report job has the recorded lines. On the last head of PR #79 (run
+  43062734890), each of the 67 check runs is success or skipped, and the
+  Ownership check is success. Review round 4 of PR #79 approved the work
+  (4 rounds; the reviewer and the fixer were different agents).
 - Local, with the machine lock, the sqlfluff submodule at `0348222`:
   `scripts/setup` and `scripts/build-sqll`: OK (no Python: 0 calls during
   cargo, no pyo3). `scripts/s3b/exit.py --check`: PASS, no change (it runs
@@ -660,16 +661,27 @@ worktree, and found no blocking gap.
   2306 with no unparsable segment, rules 38 of 2527, autofix 0 of 61,
   templater 0 of 43; each number agrees with the exit record and
   `results/S3b/exit.json`.
-- Each bullet of STONES.md, S3b: the lossless tree with the sqlfluff tree
-  format (C6, C7, C9, C10, the tree guard, the tree check); the source map
-  (C8: 20000 of 20000 random files and 54 of 54 templater fixtures as
-  sqlfluff); the frozen interfaces (the 4 STONES interfaces map to the 8
-  rows of [docs/interfaces/README.md](../docs/interfaces/README.md), each
-  with a document and a test in `crates/sqll_interfaces/tests/`;
-  `test_s3b_interfaces.py` checks the index); the binary skeleton (C11,
-  C13, C14; [harness/sqll.md](../harness/sqll.md)); one package for each
-  part ([docs/decisions/s3b-core.md](../docs/decisions/s3b-core.md), Q5).
-  The goal of each task is in the table "Tasks".
+- Each bullet of S3b (goal at the top of this file) in STONES.md. Each
+  task name below is a task of S3b (goal at the top of this file), and
+  its goal is in parentheses:
+  - The lossless tree with the sqlfluff tree format: C6 (typed segment
+    kinds from the frozen dialect tables), C7 (lossless syntax tree and
+    the conversion from the parser tree), C9 (frozen parse interface:
+    lexer to parser to tree, and `sqll parse` output from the tree), C10
+    (typed view of the tree), the tree guard, and the tree check.
+  - The source map: C8 (source map: `TemplatedFile` as the frozen
+    templater interface, raw templater, source ranges of the tree): 20000
+    of 20000 random files and 54 of 54 templater fixtures as sqlfluff.
+  - The frozen interfaces: the 4 STONES interfaces map to the 8 rows of
+    [docs/interfaces/README.md](../docs/interfaces/README.md), each with a
+    document and a test in `crates/sqll_interfaces/tests/`;
+    `test_s3b_interfaces.py` checks the index.
+  - The binary skeleton: C11 (config skeleton and its use in `sqll
+    parse`), C13 (CLI skeleton: lint, fix, rules, dialects, and the
+    output formats), C14 (harness adapters: `sqll lint` and `fix` in the
+    test harness and the benchmarks); [harness/sqll.md](../harness/sqll.md).
+  - One package for each part:
+    [docs/decisions/s3b-core.md](../docs/decisions/s3b-core.md), Q5.
 - Exit 1 (the test harness and the benchmarks run sqll through its
   adapters): the CI jobs report and bench-merge run sqll. The benchmark
   adapter fails closed on lint and fix with "unsupported"
@@ -692,6 +704,8 @@ worktree, and found no blocking gap.
   command runs all tests and benchmarks with machine-readable output, and
   each known failure is in a list): CI and the local runs show 0 new
   failures.
-- The stone does not weaken a goal of CONSTITUTION.md or an exit rule. The one
-  gap that the check found (not blocking): this file and STATUS.md showed
-  C17 "in review". This approval changes them.
+- The stone does not weaken a goal of CONSTITUTION.md or an exit rule.
+  The one gap that the check found (not blocking): this file and STATUS.md
+  showed C17 (S3b exit: proof, exit record, and STATUS "S3b awaiting
+  approval"; a task of S3b, goal at the top of this file) "in review".
+  This approval changes them.
