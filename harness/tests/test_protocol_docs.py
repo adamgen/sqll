@@ -84,3 +84,40 @@ def test_the_status_index_names_the_delegation():
 def test_each_canonical_document_is_a_5_minute_read(name):
     # CONSTITUTION.md 2.4.
     assert len(read(name).split()) <= 1250, name
+
+
+def names_table() -> dict[str, str]:
+    part = read("AGENTS.md").split("\n## Names: write the goal with each name\n", 1)[1]
+    rows = re.findall(r"(?m)^\| (.+?) \| (.+?) \|$", part)
+    return {name: goal for name, goal in rows if name not in ("Name", "---")}
+
+
+def test_the_names_table_has_each_stone_goal_and_track():
+    table = names_table()
+    stones = dict(re.findall(r"(?m)^## (S\d+b?)\. (.+)$", read("STONES.md")))
+    goals = dict(re.findall(r"(?m)^### (G\d)\. (.+)$", read("CONSTITUTION.md")))
+    assert len(stones) == 12 and len(goals) == 4
+    for name, title in {**stones, **goals}.items():
+        assert table[name].startswith(title), name
+    tracks = re.findall(r"(?m)^  ([A-Za-z0-9-]+):$", read("tracks.yml"))
+    for track in tracks:
+        assert track in stones or f"{track} (track)" in table, track
+
+
+def test_the_names_table_states_each_exit_number_and_the_full_speed_goal():
+    # The table must not weaken a goal or an exit rule (CONSTITUTION.md 5).
+    table = names_table()
+    stones = re.split(r"(?m)^## (S\d+b?)\. ", read("STONES.md"))[1:]
+    for name, body in zip(stones[::2], stones[1::2], strict=True):
+        if "100%" in body:
+            assert "100%" in table[name], name
+        if "move to S11" in body:
+            assert "move to S11" in table[name], name
+    for part in (
+        "faster than sqlfluff on each benchmark",
+        "not slower than sqruff on any benchmark",
+        "faster than sqruff on the total of all benchmarks",
+    ):
+        assert part in table["G3"], part
+    for part in ("automated test", "source, version, and license", "does not change"):
+        assert part in table["G4"], part
