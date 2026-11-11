@@ -539,11 +539,20 @@ exit check: PASS: results/S3b/exit.json: no change; state: S3b awaiting approval
   `harness/tests/test_s7_tests_*.py`, `scripts/s7-tests/`,
   `results/S7-tests/`, `docs/decisions/s7-tests-*.md`,
   `status/S7-tests.md`) and PR #81 (the Names table and its test:
-  `AGENTS.md`, `harness/tests/test_protocol_docs.py`). They change no
-  file under `crates/`, `Cargo.toml`, or `Cargo.lock`; of the Core paths
-  under `harness/`, they change only the test
-  `harness/tests/test_protocol_docs.py` (`git diff --name-only a77e821
-  7bc4cb6`).
+  `AGENTS.md`, `harness/tests/test_protocol_docs.py`) and PR #82 (the
+  harness hooks of the converted CLI and config tests: the paths of the
+  conversion above, `harness/sqll_harness/cli.py`, `harness/README.md`,
+  `harness/not-reproduced.md`, `THIRD_PARTY.md`). These 4 pull requests
+  change no file under `crates/`, `Cargo.toml`, or `Cargo.lock`; of the
+  Core paths under `harness/`, they change the test
+  `harness/tests/test_protocol_docs.py` and `harness/sqll_harness/cli.py`
+  (`git diff --name-only a77e821 98cb57e`). CI run 43052814194 on the
+  merge commit `1819a89` (head `b88898b` merged into main `98cb57e`):
+  conclusion success; the job build gives native base tests 162 of 162,
+  tree guard 84 of 84, the PASS line of each oracle check, and `exit
+  check: PASS`; the job report gives rules 38 of 2527, autofix 0 of 61,
+  templater 0 of 43, `different status: 0`, and `results/s1/summary.json
+  is equal to the summary.`
 - Exit 2 (the interfaces are documented): the 4 STONES interfaces map to
   the 8 rows of the interface index, each with its document and test.
 - Exit 3 (after this stone, each change to the core goes through the
@@ -595,3 +604,13 @@ exit check: PASS: results/S3b/exit.json: no change; state: S3b awaiting approval
   `bullets[].tasks` of `results/S3b/exit.json` and to the table "Tasks"
   (a test checks that each such task is a row of the table); the code
   comments of this task give the goal with each name.
+- Review round 4 of PR #79: main `98cb57e` (PR #82) merged into the
+  branch; the exit record and this section give the 4 pull requests
+  after `a77e821`, the paths of PR #82, and CI run 43052814194 on the
+  merge with main `98cb57e` as the proof. Local (with the machine lock;
+  no change under `crates/`): `pytest harness/tests` on the merged
+  tree: 2805 passed, 136 skipped, 1 failed (the record had
+  the pull request numbers and the CI run id outside code; now they are
+  in code, as the commit ids, and `harness/tests/test_s3b_exit.py`
+  passes); `scripts/s3b/exit.py --check`: PASS; `ruff check` and `ruff
+  format --check`: no problem.

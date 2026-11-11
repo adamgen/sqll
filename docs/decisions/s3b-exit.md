@@ -24,12 +24,18 @@ and the ownership probe again, on the frozen and the live `tracks.yml`
 
 The exit head is main `a77e821`: the merge of the pull request that gives
 the package ownership of the later tracks and the interface index. After
-it, main merged 3 pull requests. They change `AGENTS.md`, its test
-`harness/tests/test_protocol_docs.py` (a Core path), and the paths of the
-conversion of the CLI and config tests (`docs/decisions/s7-tests-*.md`,
-`status/S7-tests.md`, `harness/sqll_harness/s7_tests/`,
-`harness/tests/test_s7_tests_*.py`, `scripts/s7-tests/`,
-`results/S7-tests/`). This pull request changes 2 files of the harness
+it, main merged 4 pull requests (`#78`, `#80`, `#81`, and `#82`). They change
+`AGENTS.md`, its test `harness/tests/test_protocol_docs.py` (a Core
+path), the paths of the conversion of the CLI and config tests
+(`docs/decisions/s7-tests-*.md`, `status/S7-tests.md`,
+`harness/sqll_harness/s7_tests/`, `harness/tests/test_s7_tests_*.py`,
+`scripts/s7-tests/`, `results/S7-tests/`), and, in `#82`,
+`harness/sqll_harness/cli.py` (a Core path of the harness code),
+`harness/README.md`, `harness/not-reproduced.md`, and `THIRD_PARTY.md`
+(`git diff --name-only a77e821 98cb57e`). CI run `43052814194` on the
+merge of this pull request with main `98cb57e` (merge commit `1819a89`):
+conclusion success, and the jobs build and report give the same lines
+as in "Exit 1". This pull request changes 2 files of the harness
 code, both Core paths: `harness/sqll_harness/bench/sqll.py`
 (`legacy_options`, only for `sqll-base`) and
 `harness/sqll_harness/verify.py` (the check `s3b-exit`); it also changes
