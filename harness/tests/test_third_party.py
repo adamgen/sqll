@@ -333,7 +333,7 @@ def test_sqll_is_under_the_mit_license():
 def test_each_crate_of_the_workspace_has_the_mit_license():
     workspace = tomllib.loads((REPO_ROOT / "Cargo.toml").read_text("utf-8"))
     members = workspace["workspace"]["members"]
-    assert len(members) == 17
+    assert len(members) == 18
     for member in members:
         manifest = tomllib.loads((REPO_ROOT / member / "Cargo.toml").read_text("utf-8"))
         assert manifest["package"]["license"] == "MIT", member

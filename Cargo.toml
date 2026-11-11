@@ -26,6 +26,7 @@ members = [
     "crates/sqll_cli",
     "crates/sqll_schema",
     "crates/sqll_codegen",
+    "crates/sqll_plpgsql",
 ]
 
 [workspace.package]

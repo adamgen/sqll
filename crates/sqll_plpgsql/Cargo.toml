@@ -1,0 +1,12 @@
+# The PL/pgSQL bodies of sqll (docs/decisions/s3b-core.md, Q5: the S10
+# package). S3b task C16 adds this empty package; S10 adds the code. This
+# file is new sqll code (crates/ported.json, "new").
+[package]
+name = "sqll_plpgsql"
+version.workspace = true
+edition = "2021"
+rust-version.workspace = true
+license = "MIT"
+publish = false
+
+[dependencies]
