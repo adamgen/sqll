@@ -1,9 +1,10 @@
 """The S7 report (docs/decisions/s7-tests-design.md, "Report").
 
 The report gives the status of each converted node for each tool, the
-excluded nodes apart from parity, and the counts. check() fails closed: it
-computes each count again from the lists and refuses a report where a count,
-a class, a reason, or a status does not agree.
+excluded nodes apart from parity, and the counts, for the nodes of its
+suites. check() fails closed: it computes each count again from the lists
+and refuses a report where a count, a class, a reason, or a status does not
+agree.
 """
 
 import json
@@ -19,10 +20,12 @@ from .caseformat import (
     SQLFLUFF_VERSION,
     CaseSet,
 )
-from .runner import TOOLS, NodeOutcome
+from .runner import NodeOutcome
+from .suites import SUITES, TOOLS, groups
 
 KIND = "sqll-s7-tests-report"
-FORMAT = 1
+FORMAT = 2
+ALL_SUITES = sorted(SUITES)
 GROUPS = ("cli", "rules", "config", "config_fixtures")
 NODE_STATUSES = (PASS, FAIL, ERROR)
 
@@ -61,7 +64,7 @@ def counts(
     in_scope = Counter(n["group"] for n in scope["nodes"])
     converted = Counter(n["group"] for n in nodes)
     out = Counter(e["group"] for e in excluded)
-    groups = {
+    by_group = {
         g: {
             "in_scope": in_scope[g],
             "converted": converted[g],
@@ -77,9 +80,15 @@ def counts(
         "excluded": len(excluded),
         "not_yet_converted": len(scope["nodes"]) - len(nodes) - len(excluded),
         "needs_jinja": sum(n["needs_jinja"] for n in nodes),
-        "groups": groups,
+        "groups": by_group,
         "excluded_by_class": {c: classes[c] for c in CLASSES},
     }
+
+
+def suite_scope(scope: dict[str, Any], suites: list[str]) -> dict[str, Any]:
+    """scope.json with only the nodes of the groups of the suites."""
+    keep = groups(suites)
+    return dict(scope, nodes=[n for n in scope["nodes"] if n["group"] in keep])
 
 
 def summaries(
@@ -99,10 +108,16 @@ def build(
     cases: CaseSet,
     results: dict[str, list[NodeOutcome]],
     versions: dict[str, str],
+    suites: list[str] | None = None,
 ) -> dict[str, Any]:
+    """The report of the suites (default: all). results has, for each tool,
+    the outcome of each node of the suites, in the order of cases.nodes."""
+    suites = sorted(suites or ALL_SUITES)
+    keep = groups(suites)
+    scope = suite_scope(cases.scope, suites)
     tools = list(results)
     nodes = []
-    for i, node in enumerate(cases.nodes):
+    for i, node in enumerate(n for n in cases.nodes if n.group in keep):
         entry = {
             "id": node.id,
             "group": node.group,
@@ -112,6 +127,8 @@ def build(
             "results": {},
         }
         for tool in tools:
+            if i >= len(results[tool]):
+                raise ReportError([f"{tool}: no result {i} ({node.id})"])
             outcome = results[tool][i]
             if outcome.id != node.id:
                 raise ReportError(
@@ -126,18 +143,25 @@ def build(
                 ],
             }
         nodes.append(entry)
+    for tool in tools:
+        if len(results[tool]) != len(nodes):
+            raise ReportError(
+                [f"{tool}: {len(results[tool])} results, not {len(nodes)}"]
+            )
     excluded = [
         {"id": e.id, "group": e.group, "class": e.cls, "reason": e.reason}
         for e in cases.exclusions
+        if e.group in keep
     ]
-    in_scope = len(cases.scope["nodes"])
+    in_scope = len(scope["nodes"])
     s7, s11 = summaries(tools, nodes, in_scope)
     report = {
         "kind": KIND,
         "format": FORMAT,
+        "suites": suites,
         "sqlfluff": {"version": SQLFLUFF_VERSION, "commit": SQLFLUFF_COMMIT},
         "tools": {t: {"version": versions[t]} for t in tools},
-        "counts": counts(cases.scope, nodes, excluded),
+        "counts": counts(scope, nodes, excluded),
         "parity": s7,
         "s11_jinja": s11,
         "nodes": nodes,
@@ -175,11 +199,13 @@ def _check_node(errors: list[str], node: dict[str, Any], tools: list[str]) -> No
 
 
 def check(report: dict[str, Any], scope: dict[str, Any]) -> None:
-    """Fail closed if the report does not agree with itself and with scope."""
+    """Fail closed if the report does not agree with itself and with scope
+    (all of scope.json; check() keeps the nodes of the report suites)."""
     errors: list[str] = []
     want_keys = {
         "kind",
         "format",
+        "suites",
         "sqlfluff",
         "tools",
         "counts",
@@ -196,17 +222,31 @@ def check(report: dict[str, Any], scope: dict[str, Any]) -> None:
         errors.append("the sqlfluff version or commit is not the pin")
     if len(scope["nodes"]) != scope["counts"]["total"]:
         errors.append("scope.json: the node list is not the total count")
+    suites = report["suites"]
+    if (
+        not isinstance(suites, list)
+        or not suites
+        or suites != sorted(set(suites))
+        or set(suites) - set(SUITES)
+    ):
+        raise ReportError(
+            errors + [f"the suites {suites!r} are not a sorted list of {ALL_SUITES}"]
+        )
+    keep = groups(suites)
+    all_groups = {n["id"]: n["group"] for n in scope["nodes"]}
+    scope = suite_scope(scope, suites)
     tools = list(report["tools"])
     if not tools or set(tools) - set(TOOLS):
         errors.append(f"the tools {tools} are not a part of {list(TOOLS)}")
-    groups = {n["id"]: n["group"] for n in scope["nodes"]}
     seen: set[str] = set()
     for entry in report["nodes"] + report["excluded"]:
         node_id = entry.get("id")
-        if node_id not in groups:
+        if node_id not in all_groups:
             errors.append(f"{node_id}: not in scope.json")
-        elif entry.get("group") != groups[node_id]:
-            errors.append(f"{node_id}: the group is not {groups[node_id]}")
+        elif entry.get("group") != all_groups[node_id]:
+            errors.append(f"{node_id}: the group is not {all_groups[node_id]}")
+        elif all_groups[node_id] not in keep:
+            errors.append(f"{node_id}: the group is not of the suites {suites}")
         if node_id in seen:
             errors.append(f"{node_id}: in the report 2 times")
         seen.add(node_id)
@@ -246,6 +286,30 @@ def check(report: dict[str, Any], scope: dict[str, Any]) -> None:
         errors.append(f"the s11_jinja result is not that of the nodes: {s11}")
     if errors:
         raise ReportError(errors)
+
+
+def select_suites(
+    report: dict[str, Any], suites: list[str], scope: dict[str, Any]
+) -> dict[str, Any]:
+    """The report with only the nodes of these suites (a part of the report
+    suites), with the counts and parity of these nodes."""
+    suites = sorted(suites)
+    if set(suites) - set(report["suites"]):
+        raise ReportError([f"the report has no suites {suites}"])
+    keep = groups(suites)
+    part = suite_scope(scope, suites)
+    nodes = [n for n in report["nodes"] if n["group"] in keep]
+    excluded = [e for e in report["excluded"] if e["group"] in keep]
+    s7, s11 = summaries(list(report["tools"]), nodes, len(part["nodes"]))
+    return {
+        **report,
+        "suites": suites,
+        "counts": counts(part, nodes, excluded),
+        "parity": s7,
+        "s11_jinja": s11,
+        "nodes": nodes,
+        "excluded": excluded,
+    }
 
 
 def select_tools(report: dict[str, Any], tools: list[str]) -> dict[str, Any]:

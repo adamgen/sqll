@@ -234,6 +234,32 @@ cases, and the comparison with the sqlfluff test
 reads the config files as for a user, with the sqlfluff root as the current
 folder.
 
+## S7 suites
+
+`sqll-harness s7 run [--suite S] [--tool T] [--jobs N] [--out FILE]
+[--require-pass T] [--check FILE]` runs the S7 suites (S7: CLI and config
+parity, the sqlfluff CLI, config, and Python rule tests as black-box
+cases): `s7_rules`, `s7_config`, and `s7_cli`, for `sqlfluff`,
+`sqlfluff-rs`, and `sqruff`. A case is one pytest node of the sqlfluff
+tests, written as black-box CLI or simple-API cases in
+`sqll_harness/s7_tests/cases/`. The command writes the S7 report (default
+`out/s7-tests/report.json`): the result of each converted node for each
+tool, each excluded node with its class and reason apart from parity, and
+the in-scope, converted, and excluded counts of its suites. It fails closed
+(exit code 2) on a case format error, and on an assert of a converted test
+with no citing check and no row of the S7 not-reproduced record
+([not-reproduced.md](not-reproduced.md), "S7 test conversion"). `--jobs N`
+sets the number of nodes that run at the same time (default 4).
+`--require-pass T` gives exit code 1 if tool T does not pass each converted
+node; the run must include tool T. `--check FILE` gives exit code 1 if the
+report is not FILE for the suites and the tools of the run.
+`sqll-harness run` does not run the S7 suites, so the report and summary
+of S1 (binary test harness: run the sqlfluff test fixtures through a
+binary, not through function calls; sqlfluff passes 100% of the cases
+through the harness, and the results of the other tools are recorded) do
+not change. The design, the case format, and the report:
+[s7-tests-design.md](../docs/decisions/s7-tests-design.md).
+
 ## Report: `out/report.json`
 
 ```json

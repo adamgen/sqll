@@ -1,6 +1,11 @@
 {
  "kind": "sqll-s7-tests-report",
- "format": 1,
+ "format": 2,
+ "suites": [
+  "s7_cli",
+  "s7_config",
+  "s7_rules"
+ ],
  "sqlfluff": {
   "version": "4.4.0",
   "commit": "0348222a3bcdb0226563f7349c5a39beb0641955"
