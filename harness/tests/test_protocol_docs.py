@@ -121,3 +121,110 @@ def test_the_names_table_states_each_exit_number_and_the_full_speed_goal():
         assert part in table["G3"], part
     for part in ("automated test", "source, version, and license", "does not change"):
         assert part in table["G4"], part
+
+
+# Key phrases of each "- Exit:" line of STONES.md. Each phrase is in the
+# exit text of the stone and in its row of the Names table.
+EXITS = {
+    "S1": (
+        "sqlfluff passes 100% of the cases through the harness",
+        "the results of the other tools are recorded",
+    ),
+    "S2": ("one command gives a machine-readable report", "baseline is recorded"),
+    "S3": (
+        "sqll passes all cases that the base passes",
+        "not slower than sqruff on any benchmark",
+    ),
+    "S3b": (
+        "the S1 harness and the S2 benchmarks run sqll through its adapters",
+        "the interfaces are documented",
+        "after S3b, each change to the core goes through the Core track",
+    ),
+    "S4": ("100% of the dialect parse fixtures with an exact tree match",),
+    "S5": ("100% of the rule fixtures, lint and fix", "move to S11"),
+    "S6": ("templater fixtures that do not need a Python runtime",),
+    "S7": ("100% of the converted cases", "move to S11"),
+    "S8": (
+        "the JSON Schema output is valid and correct for each parameter style",
+        "code made from the schema by one existing tool compiles",
+        "the harness shows one parse for each file when one command lints and"
+        " generates code",
+    ),
+    "S9": ("the report shows parse success and speed for each file, for each tool",),
+    "S10": ("a test set of PL/pgSQL functions parses with no unparsable segments",),
+    "S11": (
+        "100% of the Jinja cases that the decision keeps",
+        "S8 supports Jinja if kept",
+        "each other Jinja case is in a known-failure list with its reason",
+    ),
+}
+# Other parts of a stone that its row must keep.
+STONE_PARTS = {
+    "S1": ("not through function calls",),
+    "S3b": ("sqll adapters of the S1 harness and the S2 benchmarks",),
+    "S9": ("source and license",),
+    "S11": ("Decision of the human owner (2026-11-07)", "Jinja engine in sqll"),
+}
+# Parts of each goal of CONSTITUTION.md section 1 that its row must keep.
+GOAL_PARTS = {
+    "G1": (
+        "pinned sqlfluff version",
+        "except Python plugins and features that need a Python runtime",
+        "Only the human owner approves each version change",
+        "percentage of sqlfluff test cases",
+        "through a binary",
+        "same harness runs sqlfluff, sqruff, and sqll",
+    ),
+    "G3": (
+        "start time",
+        "as fast as reasonably possible and has a benchmark",
+        "on the same input",
+        "faster than sqlfluff on each benchmark",
+        "not slower than sqruff on any benchmark",
+        "faster than sqruff on the total of all benchmarks",
+        "makes a benchmark slower gives the reason",
+        "Correctness is more important than speed",
+    ),
+    "G4": (
+        "automated test",
+        "external sources",
+        "source, version, and license",
+        "does not change",
+        "one command runs all tests and benchmarks",
+        "machine-readable",
+        "known failure",
+    ),
+}
+
+
+def exit_lines(body: str) -> list[str]:
+    found = re.findall(r"(?ms)^- Exit: (.*?)(?=^- |^\S|\Z)", body)
+    return [words(line).lower() for line in found]
+
+
+def test_the_names_table_states_each_exit_of_each_stone():
+    table = {name: goal.lower() for name, goal in names_table().items()}
+    stones = re.split(r"(?m)^## (S\d+b?)\. ", read("STONES.md"))[1:]
+    bodies = dict(zip(stones[::2], stones[1::2], strict=True))
+    assert set(EXITS) == set(bodies)
+    for name, body in bodies.items():
+        lines = exit_lines(body)
+        assert lines, name
+        phrases = [phrase.lower() for phrase in EXITS[name]]
+        for phrase in phrases:
+            assert any(phrase in line for line in lines), (name, phrase)
+            assert phrase in table[name], (name, phrase)
+        # A new exit line in STONES.md needs a key phrase here.
+        for line in lines:
+            assert any(phrase in line for phrase in phrases), (name, line)
+    for name, parts in STONE_PARTS.items():
+        for part in parts:
+            assert part.lower() in words(bodies[name]).lower(), (name, part)
+            assert part.lower() in table[name], (name, part)
+
+
+def test_the_names_table_states_each_part_of_each_goal():
+    table = names_table()
+    for name, parts in GOAL_PARTS.items():
+        for part in parts:
+            assert part in table[name], (name, part)
