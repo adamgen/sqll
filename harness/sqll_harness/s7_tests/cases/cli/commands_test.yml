@@ -1,0 +1,112 @@
+# S7 black-box cases (docs/decisions/s7-tests-design.md, "Case format").
+# A derived work of the sqlfluff tests: copyright (c) 2018-2026 Alan
+# Cruickshank, MIT License.
+source:
+  project: sqlfluff
+  version: 4.4.0
+  commit: 0348222a3bcdb0226563f7349c5a39beb0641955
+  file: test/cli/commands_test.py
+license: MIT
+nodes:
+  - node: test/cli/commands_test.py::test__cli__command_directed
+    cases:
+      - name: directed
+        run: cli
+        argv:
+          - lint
+          - --disable-progress-bar
+          - test/fixtures/linter/indentation_error_simple.sql
+        sqruff: [lint, test/fixtures/linter/indentation_error_simple.sql]
+        checks:
+          exit_code: 1
+          stdout:
+            contains: ["L:   2 | P:   1 | LT02", ndentation]
+            startswith: "== [test/fixtures/linter/indentation_error_simple.sql] FAIL\nL:   2 | P:   1 | LT02 | Expected indent of 4 spaces. [layout.indent]\nL:   5 | P:  10 | CP01 | Keywords must be consistently upper case.\n                       | [capitalisation.keywords]\n"
+  - node: test/cli/commands_test.py::test__cli__command_dialect
+    cases:
+      - name: unknown_dialect
+        run: cli
+        argv:
+          - lint
+          - -n
+          - --dialect
+          - faslkjh
+          - test/fixtures/linter/indentation_error_simple.sql
+        sqruff:
+          - lint
+          - --dialect
+          - faslkjh
+          - test/fixtures/linter/indentation_error_simple.sql
+        checks:
+          exit_code: 2
+  - node: test/cli/commands_test.py::test__cli__command_no_dialect[command0]
+    cases:
+      - name: no_dialect_render
+        run: cli
+        argv: [render, "-"]
+        stdin: SELECT 1
+        checks:
+          exit_code: 2
+          stderr:
+            contains: [User Error, No dialect was specified]
+            not_contains: [Traceback (most recent call last)]
+  - node: test/cli/commands_test.py::test__cli__command_no_dialect[command1]
+    cases:
+      - name: no_dialect_parse
+        run: cli
+        argv: [parse, "-"]
+        stdin: SELECT 1
+        checks:
+          exit_code: 2
+          stderr:
+            contains: [User Error, No dialect was specified]
+            not_contains: [Traceback (most recent call last)]
+  - node: test/cli/commands_test.py::test__cli__command_no_dialect[command2]
+    cases:
+      - name: no_dialect_lint
+        run: cli
+        argv: [lint, "-"]
+        stdin: SELECT 1
+        checks:
+          exit_code: 2
+          stderr:
+            contains: [User Error, No dialect was specified]
+            not_contains: [Traceback (most recent call last)]
+  - node: test/cli/commands_test.py::test__cli__command_no_dialect[command3]
+    cases:
+      - name: no_dialect_format
+        run: cli
+        argv: [format, "-"]
+        stdin: SELECT 1
+        checks:
+          exit_code: 2
+          stderr:
+            contains: [User Error, No dialect was specified]
+            not_contains: [Traceback (most recent call last)]
+  - node: test/cli/commands_test.py::test__cli__command_no_dialect[command4]
+    cases:
+      - name: no_dialect_fix
+        run: cli
+        argv: [fix, "-"]
+        stdin: SELECT 1
+        checks:
+          exit_code: 2
+          stderr:
+            contains: [User Error, No dialect was specified]
+            not_contains: [Traceback (most recent call last)]
+  - node: test/cli/commands_test.py::test__cli__command_version
+    cases:
+      - name: version
+        run: cli
+        argv: [version]
+        checks:
+          exit_code: 0
+          stdout:
+            contains: [4.4.0]
+      - name: version_verbose
+        run: cli
+        argv: [version, -v]
+        checks:
+          exit_code: 0
+          stdout:
+            contains: [4.4.0]

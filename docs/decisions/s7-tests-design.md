@@ -114,8 +114,117 @@ new inventory.
   Python tests are a derived work of sqlfluff. THIRD_PARTY.md gets an entry
   in T4 (harness hooks for the S7 suites, cross-track). The cases read
   fixture files in place. They do not copy or change them (G4.5).
-- T2 (case format, case runner, and pilot cases) sets the exact case format
-  and the case runner.
+- T2 (case format, case runner, and pilot cases) set the format, the
+  runner, and the report below.
+
+## Case format
+
+One YAML file holds the cases of one sqlfluff test file:
+`harness/sqll_harness/s7_tests/cases/<path>.yml`. `<path>` is the path of
+the test file without `test/` (`test/cli/commands_test.py` gives
+`cli/commands_test.yml`). The pilot files are examples.
+
+```yaml
+source:                     # required: the source of the cases
+  project: sqlfluff
+  version: 4.4.0
+  commit: 0348222a3bcdb0226563f7349c5a39beb0641955
+  file: test/cli/commands_test.py
+license: MIT                # required: the license of sqlfluff
+nodes:
+  - node: test/cli/commands_test.py::test__cli__command_dialect  # pytest node id
+    cases:                  # one or more; the node passes if all pass
+      - name: unknown_dialect
+        run: cli            # cli or api
+        needs_jinja: false  # true: the node needs Jinja and moves to S11
+        argv: [lint, -n, --dialect, faslkjh, test/fixtures/linter/indentation_error_simple.sql]
+        cwd: sqlfluff       # sqlfluff (default) or tmp
+        stdin: "SELECT 1"
+        files: {}           # only with cwd tmp: {path: text}
+        sqruff: [lint, --dialect, faslkjh, test/fixtures/linter/indentation_error_simple.sql]
+        checks:
+          exit_code: 2      # required for each cli case
+          stdout: {contains: [Unknown dialect]}
+```
+
+- Inputs of a `cli` case: `argv` (without the program name), `stdin`,
+  `cwd`, and `files`. `cwd: sqlfluff` runs in the submodule root, as the
+  sqlfluff tests do, and reads the fixtures in place. `cwd: tmp` runs in a
+  new temporary folder with `files`. In `argv`, `{tmp}` is the temporary
+  folder and `{sqlfluff}` the submodule root. Config files are `files` (for
+  example `.sqlfluff`). `sqruff` is the sqruff translation of `argv`.
+- Inputs of an `api` case: `function` (`lint` or `fix`), `sql`, `dialect`
+  (default `ansi`), `rules` (default all rules), `exclude_rules`, and
+  `config` (the sqlfluff config structure). These are the arguments of the
+  simple API (`sqlfluff.lint`, `sqlfluff.fix`).
+- Checks: `exit_code`; `stdout` and `stderr` with `equals`, `startswith`,
+  `contains`, `not_contains`, or `json`; `files` (cli, `cwd: tmp`): the
+  content of each changed or new file; `violations` (cli `lint -f json`
+  output, or api `lint`); `fixed` (api `fix`).
+- A `violations` check: `select` (key: value, or key: `{contains: text}`),
+  then `count`, `min_count`, or `records` (one partial violation for each
+  selected violation, in order). `exact: true` makes each record give all
+  keys. `file` selects a file of the cli output.
+- The loader fails closed (exit code 2) on: no `source` or `license`, a
+  source that is not sqlfluff 4.4.0 at the pinned commit, a case file at a
+  path that is not that of its source file, a node id that is not in
+  `scope.json` or not of the source file, a node in 2 places (also in the
+  exclusion list), an unknown key, a repeated YAML key, a case with no
+  checks, a cli case with no `exit_code`, and `files` without `cwd: tmp`.
+
+## Exclusion list
+
+`harness/sqll_harness/s7_tests/exclusions.yml` gives each excluded node:
+`node` (the pytest node id), `class` (one of the 4 classes), and `reason`.
+Each `needs-python-runtime` and `environment` node needs a reason of one
+line. The loader fails closed on an unknown class, a missing or empty
+reason, a reason of more lines, and a node that is not in `scope.json`.
+
+## Case runner
+
+`uv run --frozen --project harness scripts/s7-tests/run-cases [--tool T]
+[--require-pass T] [--check FILE]` loads the cases, checks the tools
+(`sqll-harness tools`), runs each case for each tool, writes the report
+(default `out/s7-tests/report.json`), and runs `scripts/check-submodule`.
+
+- `cli`: the CLI of the tool, with the environment of its adapter (an
+  empty home). `sqlfluff-rs` gets the layer of its adapter
+  (`harness/sqlfluff-rs.md`) as `--config <file>` after the command, for
+  `lint`, `fix`, `format`, `parse`, and `render`. A case that gives
+  `--config`, or an input with a layer key, is an `error`. sqruff runs the
+  `sqruff` argv; with no translation the case fails with `unsupported:
+  sqlfluff CLI command '<command>'`.
+- `api`: `lint()` or `fix()` of the adapter of the tool, which runs the
+  CLI with `--ignore-local-config`, as the simple API. All rules are
+  `--rules all`. sqruff fails such a case with `unsupported: rule all`, and
+  a check of a field that sqruff does not give with `unsupported: output
+  field <key>`.
+- A case status is `pass`, `fail`, or `error` (the tool or the harness did
+  not complete). A node is `pass` only if each case passes, `error` if a
+  case has an error, else `fail`.
+- Exit code 1 if the submodule changed (G4.5), if a `--require-pass` tool
+  did not pass a node, or if the report is not the `--check` file.
+
+## Report
+
+`results/S7-tests/report.json` is the recorded report of all tools.
+
+- `nodes`: each converted node with its group, case file, number of cases,
+  `needs_jinja`, and for each tool its status and each case that did not
+  pass, with its reason.
+- `excluded`: each excluded node with its group, class, and reason, apart
+  from parity.
+- `counts`: `in_scope` (643, from `scope.json`), `converted`, `excluded`,
+  `not_yet_converted`, `needs_jinja`, the same counts for each group, and
+  the count of each class.
+- `parity` (for each tool, the converted nodes that S7 keeps) and
+  `s11_jinja` (the nodes that need Jinja): `nodes`, `passed`, `failed`,
+  `error`, `percent_of_converted`, and `percent_of_in_scope`. The second
+  percentage counts each excluded node and each node that is not converted
+  yet as not passed. Thus an exclusion cannot hide (G1.4).
+- `report.check()` computes each count and status again and fails closed if
+  one does not agree, if a class is unknown, or if a `needs-python-runtime`
+  or `environment` node has no reason.
 
 ## Suites and tools
 

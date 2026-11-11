@@ -1,0 +1,542 @@
+{
+ "kind": "sqll-s7-tests-report",
+ "format": 1,
+ "sqlfluff": {
+  "version": "4.4.0",
+  "commit": "0348222a3bcdb0226563f7349c5a39beb0641955"
+ },
+ "tools": {
+  "sqlfluff": {
+   "version": "4.4.0"
+  },
+  "sqlfluff-rs": {
+   "version": "4.4.0"
+  },
+  "sqruff": {
+   "version": "0.41.0"
+  }
+ },
+ "counts": {
+  "in_scope": 643,
+  "converted": 15,
+  "excluded": 3,
+  "not_yet_converted": 625,
+  "needs_jinja": 1,
+  "groups": {
+   "cli": {
+    "in_scope": 295,
+    "converted": 8,
+    "excluded": 2,
+    "not_yet_converted": 285
+   },
+   "rules": {
+    "in_scope": 208,
+    "converted": 5,
+    "excluded": 1,
+    "not_yet_converted": 202
+   },
+   "config": {
+    "in_scope": 137,
+    "converted": 2,
+    "excluded": 0,
+    "not_yet_converted": 135
+   },
+   "config_fixtures": {
+    "in_scope": 3,
+    "converted": 0,
+    "excluded": 0,
+    "not_yet_converted": 3
+   }
+  },
+  "excluded_by_class": {
+   "python-internal": 1,
+   "needs-python-runtime": 1,
+   "engine-comparison": 1,
+   "environment": 0
+  }
+ },
+ "parity": {
+  "sqlfluff": {
+   "nodes": 14,
+   "passed": 14,
+   "failed": 0,
+   "error": 0,
+   "percent_of_converted": 100.0,
+   "percent_of_in_scope": 2.18
+  },
+  "sqlfluff-rs": {
+   "nodes": 14,
+   "passed": 13,
+   "failed": 1,
+   "error": 0,
+   "percent_of_converted": 92.86,
+   "percent_of_in_scope": 2.02
+  },
+  "sqruff": {
+   "nodes": 14,
+   "passed": 1,
+   "failed": 13,
+   "error": 0,
+   "percent_of_converted": 7.14,
+   "percent_of_in_scope": 0.16
+  }
+ },
+ "s11_jinja": {
+  "sqlfluff": {
+   "nodes": 1,
+   "passed": 1,
+   "failed": 0,
+   "error": 0,
+   "percent_of_converted": 100.0,
+   "percent_of_in_scope": 0.16
+  },
+  "sqlfluff-rs": {
+   "nodes": 1,
+   "passed": 1,
+   "failed": 0,
+   "error": 0,
+   "percent_of_converted": 100.0,
+   "percent_of_in_scope": 0.16
+  },
+  "sqruff": {
+   "nodes": 1,
+   "passed": 0,
+   "failed": 1,
+   "error": 0,
+   "percent_of_converted": 0.0,
+   "percent_of_in_scope": 0.0
+  }
+ },
+ "nodes": [
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_directed",
+   "group": "cli",
+   "case_file": "cli/commands_test.yml",
+   "cases": 1,
+   "needs_jinja": false,
+   "results": {
+    "sqlfluff": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqlfluff-rs": {
+     "status": "fail",
+     "failed_cases": [
+      {
+       "name": "directed",
+       "status": "fail",
+       "reason": "stdout.startswith: the text starts with '== [test/fixtures/linter/indentation_error_simple.sql] FAIL\\nL: 2 | P: 1..."
+      }
+     ]
+    },
+    "sqruff": {
+     "status": "fail",
+     "failed_cases": [
+      {
+       "name": "directed",
+       "status": "fail",
+       "reason": "stdout.startswith: the text starts with ''; stdout.contains[0]: 'L: 2 | P: 1 | LT02' is not in the text; stdout.contains[1]: 'ndentation' is not in the text"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_dialect",
+   "group": "cli",
+   "case_file": "cli/commands_test.yml",
+   "cases": 1,
+   "needs_jinja": false,
+   "results": {
+    "sqlfluff": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqlfluff-rs": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqruff": {
+     "status": "fail",
+     "failed_cases": [
+      {
+       "name": "unknown_dialect",
+       "status": "fail",
+       "reason": "exit_code: 1, not 2"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_no_dialect[command0]",
+   "group": "cli",
+   "case_file": "cli/commands_test.yml",
+   "cases": 1,
+   "needs_jinja": false,
+   "results": {
+    "sqlfluff": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqlfluff-rs": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqruff": {
+     "status": "fail",
+     "failed_cases": [
+      {
+       "name": "no_dialect_render",
+       "status": "fail",
+       "reason": "unsupported: sqlfluff CLI command 'render' (the case has no sqruff translation)"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_no_dialect[command1]",
+   "group": "cli",
+   "case_file": "cli/commands_test.yml",
+   "cases": 1,
+   "needs_jinja": false,
+   "results": {
+    "sqlfluff": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqlfluff-rs": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqruff": {
+     "status": "fail",
+     "failed_cases": [
+      {
+       "name": "no_dialect_parse",
+       "status": "fail",
+       "reason": "unsupported: sqlfluff CLI command 'parse' (the case has no sqruff translation)"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_no_dialect[command2]",
+   "group": "cli",
+   "case_file": "cli/commands_test.yml",
+   "cases": 1,
+   "needs_jinja": false,
+   "results": {
+    "sqlfluff": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqlfluff-rs": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqruff": {
+     "status": "fail",
+     "failed_cases": [
+      {
+       "name": "no_dialect_lint",
+       "status": "fail",
+       "reason": "unsupported: sqlfluff CLI command 'lint' (the case has no sqruff translation)"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_no_dialect[command3]",
+   "group": "cli",
+   "case_file": "cli/commands_test.yml",
+   "cases": 1,
+   "needs_jinja": false,
+   "results": {
+    "sqlfluff": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqlfluff-rs": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqruff": {
+     "status": "fail",
+     "failed_cases": [
+      {
+       "name": "no_dialect_format",
+       "status": "fail",
+       "reason": "unsupported: sqlfluff CLI command 'format' (the case has no sqruff translation)"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_no_dialect[command4]",
+   "group": "cli",
+   "case_file": "cli/commands_test.yml",
+   "cases": 1,
+   "needs_jinja": false,
+   "results": {
+    "sqlfluff": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqlfluff-rs": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqruff": {
+     "status": "fail",
+     "failed_cases": [
+      {
+       "name": "no_dialect_fix",
+       "status": "fail",
+       "reason": "unsupported: sqlfluff CLI command 'fix' (the case has no sqruff translation)"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "test/cli/commands_test.py::test__cli__command_version",
+   "group": "cli",
+   "case_file": "cli/commands_test.yml",
+   "cases": 2,
+   "needs_jinja": false,
+   "results": {
+    "sqlfluff": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqlfluff-rs": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqruff": {
+     "status": "fail",
+     "failed_cases": [
+      {
+       "name": "version",
+       "status": "fail",
+       "reason": "unsupported: sqlfluff CLI command 'version' (the case has no sqruff translation)"
+      },
+      {
+       "name": "version_verbose",
+       "status": "fail",
+       "reason": "unsupported: sqlfluff CLI command 'version' (the case has no sqruff translation)"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "test/core/config/fluffconfig_test.py::test__config__glob_exclude_config_tests",
+   "group": "config",
+   "case_file": "core/config/fluffconfig_test.yml",
+   "cases": 1,
+   "needs_jinja": false,
+   "results": {
+    "sqlfluff": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqlfluff-rs": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqruff": {
+     "status": "fail",
+     "failed_cases": [
+      {
+       "name": "glob_exclude",
+       "status": "fail",
+       "reason": "unsupported: sqlfluff CLI command 'lint' (the case has no sqruff translation)"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "test/core/config/fluffconfig_test.py::test__config__glob_include_config_tests",
+   "group": "config",
+   "case_file": "core/config/fluffconfig_test.yml",
+   "cases": 1,
+   "needs_jinja": false,
+   "results": {
+    "sqlfluff": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqlfluff-rs": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqruff": {
+     "status": "fail",
+     "failed_cases": [
+      {
+       "name": "glob_include",
+       "status": "fail",
+       "reason": "unsupported: sqlfluff CLI command 'lint' (the case has no sqruff translation)"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "test/rules/std_AL04_test.py::test__rules__std_AL04_one_aliases_two_duplicate",
+   "group": "rules",
+   "case_file": "rules/std_AL04_test.yml",
+   "cases": 1,
+   "needs_jinja": false,
+   "results": {
+    "sqlfluff": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqlfluff-rs": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqruff": {
+     "status": "fail",
+     "failed_cases": [
+      {
+       "name": "one_aliases_two_duplicate",
+       "status": "fail",
+       "reason": "unsupported: rule all"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "test/rules/std_CV02_test.py::test__rules__std_CV02_raised",
+   "group": "rules",
+   "case_file": "rules/std_CV02_test.yml",
+   "cases": 1,
+   "needs_jinja": false,
+   "results": {
+    "sqlfluff": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqlfluff-rs": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqruff": {
+     "status": "pass",
+     "failed_cases": []
+    }
+   }
+  },
+  {
+   "id": "test/rules/std_LT04_test.py::test__rules__std_LT04_unparseable",
+   "group": "rules",
+   "case_file": "rules/std_LT04_test.yml",
+   "cases": 1,
+   "needs_jinja": true,
+   "results": {
+    "sqlfluff": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqlfluff-rs": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqruff": {
+     "status": "fail",
+     "failed_cases": [
+      {
+       "name": "unparseable",
+       "status": "fail",
+       "reason": "unsupported: rule all"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "test/rules/std_LT05_LT09_combo_test.py::test__rules__std_LT05_LT09_long_line_fix",
+   "group": "rules",
+   "case_file": "rules/std_LT05_LT09_combo_test.yml",
+   "cases": 1,
+   "needs_jinja": false,
+   "results": {
+    "sqlfluff": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqlfluff-rs": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqruff": {
+     "status": "fail",
+     "failed_cases": [
+      {
+       "name": "long_line_fix",
+       "status": "fail",
+       "reason": "unsupported: rule all"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "test/rules/std_ST03_test.py::test__rules__std_ST03_multiple_unused_ctes",
+   "group": "rules",
+   "case_file": "rules/std_ST03_test.yml",
+   "cases": 1,
+   "needs_jinja": false,
+   "results": {
+    "sqlfluff": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqlfluff-rs": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqruff": {
+     "status": "fail",
+     "failed_cases": [
+      {
+       "name": "multiple_unused_ctes",
+       "status": "fail",
+       "reason": "unsupported: output field end_file_pos, end_line_no, end_line_pos, fixes, name, start_file_pos, warning"
+      }
+     ]
+    }
+   }
+  }
+ ],
+ "excluded": [
+  {
+   "id": "test/cli/commands_test.py::test__get_filtered_parse_violations_caches_rulepack_per_config",
+   "group": "cli",
+   "class": "python-internal",
+   "reason": "A spy counts the calls of Linter.get_rulepack in an internal function."
+  },
+  {
+   "id": "test/cli/commands_test.py::test___main___help",
+   "group": "cli",
+   "class": "needs-python-runtime",
+   "reason": "It runs \"python -m sqlfluff --help\", the entry point of the Python module."
+  },
+  {
+   "id": "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__ignore_words_parity",
+   "group": "rules",
+   "class": "engine-comparison",
+   "reason": "It compares use_rust_rules True and False and has no expected value (decision 3)."
+  }
+ ]
+}

@@ -1,0 +1,22 @@
+# S7 black-box cases (docs/decisions/s7-tests-design.md, "Case format").
+# A derived work of the sqlfluff tests: copyright (c) 2018-2026 Alan
+# Cruickshank, MIT License.
+source:
+  project: sqlfluff
+  version: 4.4.0
+  commit: 0348222a3bcdb0226563f7349c5a39beb0641955
+  file: test/rules/std_CV02_test.py
+license: MIT
+nodes:
+  - node: test/rules/std_CV02_test.py::test__rules__std_CV02_raised
+    cases:
+      - name: raised
+        run: api
+        function: lint
+        sql: "SELECT\n\tIFNULL(NULL, 100),\n\tNVL(NULL,100);"
+        rules: [CV02]
+        checks:
+          violations:
+            - records:
+                - description: Use 'COALESCE' instead of 'IFNULL'.
+                - description: Use 'COALESCE' instead of 'NVL'.

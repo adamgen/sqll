@@ -1,0 +1,48 @@
+# S7 black-box cases (docs/decisions/s7-tests-design.md, "Case format").
+# A derived work of the sqlfluff tests: copyright (c) 2018-2026 Alan
+# Cruickshank, MIT License.
+source:
+  project: sqlfluff
+  version: 4.4.0
+  commit: 0348222a3bcdb0226563f7349c5a39beb0641955
+  file: test/core/config/fluffconfig_test.py
+license: MIT
+nodes:
+  - node: test/core/config/fluffconfig_test.py::test__config__glob_exclude_config_tests
+    cases:
+      # The tool reads the config files of the fixture folder, as
+      # FluffConfig.from_path does. test/fixtures/.sqlfluff sets the dialect.
+      - name: glob_exclude
+        run: cli
+        argv: [lint, -f, json, test/fixtures/config/glob_exclude/test.sql]
+        checks:
+          exit_code: 1
+          violations:
+            - select: {code: AM04, start_line_no: 12, start_line_pos: 8}
+              min_count: 1
+            - select: {code: RF02}
+              count: 0
+            - select: {code: LT13}
+              count: 0
+            - select: {code: AM05}
+              count: 0
+            - select: {code: CV06}
+              count: 0
+  - node: test/core/config/fluffconfig_test.py::test__config__glob_include_config_tests
+    cases:
+      - name: glob_include
+        run: cli
+        argv: [lint, -f, json, test/fixtures/config/glob_include/test.sql]
+        checks:
+          exit_code: 1
+          violations:
+            - select: {code: LT13, start_line_no: 1, start_line_pos: 1}
+              min_count: 1
+            - select: {code: AM05, start_line_no: 14, start_line_pos: 1}
+              min_count: 1
+            - select: {code: CV06, start_line_no: 14, start_line_pos: 9}
+              min_count: 1
+            - select: {code: RF02, start_line_no: 12, start_line_pos: 8}
+              min_count: 1
+            - select: {code: AM04}
+              count: 0

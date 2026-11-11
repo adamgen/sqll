@@ -1,0 +1,22 @@
+# S7 black-box cases (docs/decisions/s7-tests-design.md, "Case format").
+# A derived work of the sqlfluff tests: copyright (c) 2018-2026 Alan
+# Cruickshank, MIT License.
+source:
+  project: sqlfluff
+  version: 4.4.0
+  commit: 0348222a3bcdb0226563f7349c5a39beb0641955
+  file: test/rules/std_LT04_test.py
+license: MIT
+nodes:
+  - node: test/rules/std_LT04_test.py::test__rules__std_LT04_unparseable
+    cases:
+      - name: unparseable
+        run: api
+        function: lint
+        # The SQL has Jinja tags: the node moves to S11.
+        needs_jinja: true
+        sql: "\n        SELECT\n          user_id,\n          campaign_id,\n          business_type,\n          SPLIT(intents, \",\") AS intent_list,\n          {% for feature in readability_features_numeric %}\n            CAST(JSON_EXTRACT(readability_scores,\n            '$.data.{{feature}}') AS float64) AS {{feature}} {% if not loop.last %} ,\n            {% endif %}\n          {% endfor %},\n          {% for feature in readability_features_count_list %}\n            CAST(JSON_EXTRACT(asset_structure,\n            '$.{{feature}}') AS float64) AS {{feature}}_count {% if not loop.last %} ,\n            {% endif %}\n          {% endfor %},\n            track_clicks_text,\n            track_clicks_html\n        FROM\n          t\n    "
+        checks:
+          violations:
+            - select: {code: LT04}
+              count: 0
