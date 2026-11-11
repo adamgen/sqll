@@ -133,6 +133,8 @@ source:                     # required: the source of the cases
 license: MIT                # required: the license of sqlfluff
 nodes:
   - node: test/cli/commands_test.py::test__cli__command_dialect  # pytest node id
+    asserts:                # required: the checks that cite each assert
+      L114:ret_code: ["unknown_dialect:exit_code"]
     cases:                  # one or more; the node passes if all pass
       - name: unknown_dialect
         run: cli            # cli or api
@@ -157,6 +159,10 @@ nodes:
   (default `ansi`), `rules` (default all rules), `exclude_rules`, and
   `config` (the sqlfluff config structure). These are the arguments of the
   simple API (`sqlfluff.lint`, `sqlfluff.fix`).
+- `asserts` (T3): each assert of the source test (see "Trace oracle") and
+  one or more checks that cite it, as `<case name>:<path>`, for example
+  `directed:stdout.contains[0]` or `raised:violations[0].records[1]`.
+  `[n]` is an index of a list; `.key` and `[key]` are keys.
 - Checks: `exit_code`; `stdout` and `stderr` with `equals`, `startswith`,
   `contains`, `not_contains`, or `json`; `files` (cli, `cwd: tmp`): the
   content of each changed or new file; `violations` (cli `lint -f json`
@@ -168,7 +174,9 @@ nodes:
 - The loader fails closed (exit code 2) on: no `source` or `license`, a
   source that is not sqlfluff 4.4.0 at the pinned commit, a case file at a
   path that is not that of its source file, a node id that is not in
-  `scope.json` or not of the source file, a node in 2 places (also in the
+  `scope.json` or not of the source file, a node with no `asserts`, an
+  assert id that is not `L<line>` or `L<line>:<name>`, a reference to a
+  case or a check that does not exist, a node in 2 places (also in the
   exclusion list), an unknown key, a repeated YAML key, a case with no
   checks, a cli case with no `exit_code`, and `files` without `cwd: tmp`.
 
@@ -257,16 +265,104 @@ nodes apart, each with its reason class.
 
 ## Trace oracle (T3: each case agrees with a trace of its node)
 
-The oracle runs the original pytest nodes in place with the pinned
-sqlfluff, and with `--rust` for `sqlfluff[rs]`. It records each CLI call and
-each simple-API call. It checks:
+`uv run --frozen --project harness scripts/s7-tests/oracle` proves the cases
+with the original sqlfluff tests. T3 made it.
 
-1. The inputs of each case are the traced inputs.
-2. The checks of each case pass on the traced outputs.
-3. The status of each node agrees with the harness report.
-4. A check of a case cites each assert of the source test, or
-   `docs/decisions/s7-tests-not-reproduced.md` records it as not
-   reproduced.
+- Trace (`scripts/s7-tests/trace-nodes`): it runs with the Python of the
+  pinned oracle tools, as the S1 oracles do: `sqlfluff-oracle`, and
+  `sqlfluff-rs-oracle` with `--rust` (`force_rust` of
+  `scripts/sqlfluff_oracle.py`). It runs the original pytest nodes in place
+  in the submodule, with an empty home folder. It records each outermost
+  call of the CLI (`CliRunner.invoke` of a sqlfluff command), of the simple
+  API (`sqlfluff.lint`, `fix`, `parse`), and of a Linter path method
+  (`Linter.lint_path`, `lint_paths`), with its inputs and outputs.
+- Nodes: each converted node and each `python-internal` node of the runner
+  report (`results/S7-tests/report.json`).
+- Checks for each tool (`sqll_harness/s7_tests/oracle.py`):
+  1. Case i of a node has the inputs of traced call i of the node.
+  2. The checks of the cases on the traced outputs give the pytest outcome
+     of the node: pass if it passed, fail if it failed. A failed node can
+     stop before its last calls; then a traced case must fail.
+  3. The pytest outcome is the status of the node for the tool in the
+     report.
+  4. A check cites each assert of the source test (`asserts`), or a row of
+     [s7-tests-not-reproduced.md](s7-tests-not-reproduced.md) has it. A
+     citation must name an assert of the test.
+  - A `python-internal` node passes and has no traced CLI or simple-API
+    call.
+- Fail-closed checks (each is an error and exit code 1): a program start, a
+  fork, or a new Python process in a node or outside the nodes; a sqlfluff
+  CLI command (`Command.main`, `get_config`) or a simple-API config
+  (`get_simple_config`) that runs outside a traced call of its kind (an
+  untraced call); a traced call outside the nodes; a node of the report
+  that the trace does not have; a node that the oracle did not ask for; a
+  report that is not of the case files; a collection error; a pytest
+  outcome that is not passed or failed (a failed setup or teardown is the
+  outcome error, also after a call that passed); a call input that the
+  oracle cannot map; a check that has no traced output; a sqlfluff config in the
+  submodule root; with `--rust`, a run of the Python parser or no run of
+  the Rust parser; a row of the not-reproduced record before the pointer
+  section in `harness/not-reproduced.md` (decision 4).
+- Asserts (`sqll_harness/s7_tests/asserts.py`): the finder reads the test
+  source with `ast`. An `assert` statement has the id `L<line>`. A known
+  helper gives one id for each check that it makes: `invoke_assert_code`
+  gives `L<line>:ret_code`, and `L<line>:assert_stdout_contains` and
+  `L<line>:assert_stderr_contains` if the call gives them. `pytest.raises`,
+  `pytest.warns`, and `pytest.fail` give `L<line>:raises`, `:warns`, and
+  `:fail`. The finder also reads each function of the same module that the
+  test calls. It fails closed on an unknown function with "assert" in its
+  name, and on a function that the module imports from
+  `sqlfluff.utils.testing` or from the test package and that it does not
+  know.
+- Results: `results/S7-tests/oracle.json` (the result of the checks) and the
+  traces `oracle-trace-sqlfluff.json` and `oracle-trace-sqlfluff-rs.json`.
+  `harness/tests/test_s7_tests_oracle.py` runs the oracle again and compares
+  the result (CI unit tests), and has the mutation tests. It also runs the
+  oracle script on the recorded traces: exit code 0, and exit code 1 for
+  each of the 4 checks (a changed case input, a failed check, a changed
+  report status, an assert with no citation).
+
+### Limits of the oracle
+
+1. Inputs. The oracle maps only these calls. Each other call is an error:
+   - CLI: a sqlfluff command in the submodule root, with string arguments
+     and an optional stdin; no `env` and no other argument of `invoke`.
+     Thus no `cwd: tmp` case and no `files` check yet.
+   - Simple API: `lint` and `fix` with `sql`, `dialect`, `rules`, and
+     `exclude_rules`, in the submodule root; no `config`, `config_path`, or
+     `fix_even_unparsable`. A `dialect` of None is `ansi`, as in the simple
+     API. This is true only because the submodule root has no sqlfluff
+     config and the home folder is empty; the oracle checks the root.
+   - Linter: `Linter(config=FluffConfig.from_path(D))`, then
+     `lint_path(P)` or `lint_paths([P])` with no option, where D is the
+     folder of P. The oracle maps it to the CLI case `lint -f json P`. The
+     exit code is 1 if the result has a violation, else 0, as the lint
+     command computes it. That the CLI loads the same config for P as
+     `from_path(D)` is a model of sqlfluff, not a trace.
+   - A call that raises, or a CLI command that ends with an exception other
+     than `SystemExit`, is a failed check. Thus a node that expects such an
+     exception is an error now.
+2. Order. Case i is call i. A node with more calls than cases is an error.
+3. Meaning. The oracle checks that each assert has a citation to a check
+   that exists. It does not check that the check means the same as the
+   assert; the reviewer checks this. Checks 2 and 3 find a check that is
+   weaker or stronger than its assert only if the node outcome changes.
+4. Asserts. The finder does not read fixtures (for example the autouse
+   fixture `fail_on_parse_error_after_fix` of `test/conftest.py`), functions
+   of other modules that are not test helper modules, or code in strings.
+   It lists each assert of the function, also an assert in a branch that
+   does not run for one parameter.
+5. Processes. The trace does not record calls in another process. A node
+   that starts a process is an error, so the oracle cannot prove it yet.
+6. In process. The trace runs the CLI in the pytest process
+   (`CliRunner`), not as a binary. Check 3 compares the binary run of the
+   runner with it only by the node status.
+7. Tools and classes. The oracle checks sqlfluff and `sqlfluff[rs]`. It
+   does not check sqruff, the `sqruff` translations, or the classes
+   `needs-python-runtime`, `engine-comparison`, and `environment`. The
+   review of the exclusion list checks them.
+8. `--rust` gives the Rust settings to each FluffConfig, as the S1 oracles
+   do. The runner gives them with `--config` (`harness/sqlfluff-rs.md`).
 
 ## Results and ownership
 

@@ -9,6 +9,10 @@ source:
 license: MIT
 nodes:
   - node: test/rules/std_CV02_test.py::test__rules__std_CV02_raised
+    asserts:
+      L11: ["raised:violations[0]"]
+      L12: ["raised:violations[0].records[0]"]
+      L13: ["raised:violations[0].records[1]"]
     cases:
       - name: raised
         run: api

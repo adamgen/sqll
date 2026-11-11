@@ -1,0 +1,174 @@
+#!/usr/bin/env python3
+"""The S7 trace oracle: prove each converted case with a trace of its
+original pytest node (docs/decisions/s7-tests-design.md, "Trace oracle").
+
+Run it with the harness environment:
+
+  uv run --frozen --project harness scripts/s7-tests/oracle
+  uv run --frozen --project harness scripts/s7-tests/oracle \\
+      --check results/S7-tests/oracle.json
+
+It checks the commit of the submodule and loads the case files (exit code 2
+if the commit is not the pin or on a format error), and the runner
+report (default results/S7-tests/report.json). For each tool (sqlfluff, and
+sqlfluff-rs with --rust) it runs scripts/s7-tests/trace-nodes with the
+Python of the pinned oracle on each converted node and each python-internal
+node of the report, in the sqlfluff submodule. Then it checks the trace
+(sqll_harness/s7_tests/oracle.py), writes the result (default
+out/s7-tests/oracle.json) and each trace (out/s7-tests/oracle-trace-<tool>.json),
+and runs scripts/check-submodule.
+
+With --trace TOOL=FILE, it checks a saved trace and does not run the tool.
+With --write, it also writes the result and the traces to results/S7-tests/.
+
+Exit code 1 if the oracle does not agree (each error is on stderr), if the
+submodule changed, or if the result is not the --check file.
+"""
+
+import argparse
+import json
+import os
+import subprocess
+import sys
+import tempfile
+from pathlib import Path
+
+from sqll_harness.paths import REPO_ROOT, SQLFLUFF_ROOT, sqlfluff_ref, tools_dir
+from sqll_harness.s7_tests import caseformat, oracle
+
+RESULTS = REPO_ROOT / "results" / "S7-tests"
+DEFAULT_REPORT = RESULTS / "report.json"
+DEFAULT_OUT = REPO_ROOT / "out" / "s7-tests" / "oracle.json"
+TRACE_NODES = REPO_ROOT / "scripts" / "s7-tests" / "trace-nodes"
+ORACLE_PYTHON = {
+    "sqlfluff": ("sqlfluff-oracle", []),
+    "sqlfluff-rs": ("sqlfluff-rs-oracle", ["--rust"]),
+}
+
+
+def trace_file(folder: Path, tool: str) -> Path:
+    return folder / f"oracle-trace-{tool}.json"
+
+
+def run_trace(tool: str, nodes: list[str], out: Path, root: Path) -> None:
+    """Run trace-nodes with the oracle Python of the tool. HOME is an empty
+    folder, as for the harness adapters."""
+    venv, flags = ORACLE_PYTHON[tool]
+    python = tools_dir() / venv / "bin" / "python"
+    if not python.exists():
+        raise SystemExit(f"error: {python} does not exist; run scripts/setup")
+    with tempfile.TemporaryDirectory(prefix="s7-oracle-home-") as home:
+        env = {
+            k: v
+            for k, v in os.environ.items()
+            if k not in {"PYTHONPATH", "PYTHONHOME", "VIRTUAL_ENV", "PYTHONSTARTUP"}
+        }
+        env.update(
+            {"HOME": home, "XDG_CONFIG_HOME": home, "PYTHONDONTWRITEBYTECODE": "1"}
+        )
+        cmd = [str(python), str(TRACE_NODES), *flags, "--out", str(out)]
+        cmd += ["--root", str(root), *nodes]
+        proc = subprocess.run(cmd, env=env, check=False)
+    if proc.returncode != 0:
+        raise SystemExit(f"error: trace-nodes for {tool}: exit code {proc.returncode}")
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument(
+        "--tool",
+        action="append",
+        choices=oracle.TOOLS,
+        help="a tool to check (repeat it; default: each tool)",
+    )
+    parser.add_argument("--report", type=Path, default=DEFAULT_REPORT)
+    parser.add_argument(
+        "--trace",
+        action="append",
+        default=[],
+        metavar="TOOL=FILE",
+        help="check this saved trace of TOOL; do not run the tool",
+    )
+    parser.add_argument("--out", type=Path, default=DEFAULT_OUT)
+    parser.add_argument("--write", action="store_true", help=f"also write {RESULTS}")
+    parser.add_argument(
+        "--check", type=Path, help="exit code 1 if the result is not this file"
+    )
+    args = parser.parse_args(argv)
+    tools = args.tool or list(oracle.TOOLS)
+    saved = {}
+    for item in args.trace:
+        tool, _, path = item.partition("=")
+        if tool not in tools or not path:
+            parser.error(f"--trace {item}: not TOOL=FILE of a checked tool")
+        saved[tool] = Path(path)
+
+    commit = sqlfluff_ref(SQLFLUFF_ROOT)
+    if commit != caseformat.SQLFLUFF_COMMIT:
+        print(
+            f"error: the submodule is at {commit}, not {caseformat.SQLFLUFF_COMMIT}",
+            file=sys.stderr,
+        )
+        return 2
+    try:
+        cases = caseformat.load()
+    except caseformat.CaseFormatError as exc:
+        for line in exc.errors:
+            print(f"error: {line}", file=sys.stderr)
+        return 2
+    report = json.loads(args.report.read_text(encoding="utf8"))
+    converted, internal = oracle.requested_nodes(report)
+    not_reproduced = oracle.load_not_reproduced()
+
+    out_dir = args.out.parent
+    out_dir.mkdir(parents=True, exist_ok=True)
+    by_tool = {}
+    traces = {}
+    for tool in tools:
+        path = saved.get(tool)
+        if path is None:
+            path = trace_file(out_dir, tool)
+            run_trace(tool, converted + internal, path, SQLFLUFF_ROOT)
+        traces[tool] = json.loads(path.read_text(encoding="utf8"))
+        by_tool[tool] = oracle.check_tool(
+            tool, traces[tool], cases.nodes, report, SQLFLUFF_ROOT, not_reproduced
+        )
+    data = oracle.build(by_tool, not_reproduced)
+    text = json.dumps(data, indent=1) + "\n"
+    args.out.write_text(text, encoding="utf8")
+
+    status = 0
+    for tool, result in by_tool.items():
+        for error in result["errors"]:
+            print(f"error: {tool}: {error}", file=sys.stderr)
+        if result["errors"]:
+            status = 1
+        print(f"{tool}: {json.dumps(result['counts'])}")
+    print(f"not reproduced: {json.dumps(data['not_reproduced'])}")
+    if args.write:
+        (RESULTS / "oracle.json").write_text(text, encoding="utf8")
+        for tool, trace in traces.items():
+            trace_file(RESULTS, tool).write_text(
+                json.dumps(trace, indent=1) + "\n", encoding="utf8"
+            )
+        print(f"wrote {RESULTS.relative_to(REPO_ROOT)}/oracle*.json")
+    check = subprocess.run(
+        [str(REPO_ROOT / "scripts" / "check-submodule"), "after the S7 oracle"],
+        check=False,
+    )
+    if check.returncode != 0:
+        status = 1
+    if args.check is not None:
+        recorded = json.loads(args.check.read_text(encoding="utf8"))
+        recorded["tools"] = {t: recorded["tools"].get(t) for t in tools}
+        if recorded != data:
+            print(
+                f"error: the result is not {args.check}; compare it with {args.out}",
+                file=sys.stderr,
+            )
+            status = 1
+    return status
+
+
+if __name__ == "__main__":
+    sys.exit(main())

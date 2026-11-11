@@ -21,8 +21,8 @@ one lost day, T9 converts all config tests (before: 2 tasks).
 | Task | Description | Goal | State |
 |---|---|---|---|
 | T1 | Design record, scope inventory, and status files | The scope (643 nodes), the design, and the 4 decisions are recorded and tested | Done (PR #60) |
-| T2 | Case format, case runner, and pilot cases | One case format and one runner run pilot cases through a tool binary | In review |
-| T3 | Trace oracle with fail-closed checks | Each case agrees with a trace of its original pytest node | Not started |
+| T2 | Case format, case runner, and pilot cases | One case format and one runner run pilot cases through a tool binary | Done (PR #78) |
+| T3 | Trace oracle with fail-closed checks | Each case agrees with a trace of its original pytest node | Done (PR #80) |
 | T4 | Cross-track (Core): harness hooks for the S7 suites | The harness core runs the 3 S7 suites | Not started |
 | T5 | Cross-track (Core): CI jobs, oracle step, and local verify for the S7 suites; the ruff lint of `scripts/s7-tests/` in CI; first recorded results | CI and `scripts/verify` run the S7 suites and record the results | Not started |
 | T6 | Convert the rule tests, part 1: lint-only tests through the simple API | The lint-only rule nodes are black-box cases | Not started |
@@ -131,3 +131,34 @@ tests as black-box cases) CI jobs and the known-failure lists come with T5
 (CI and `scripts/verify` run the S7 suites and record the results; S7: CLI
 and config parity, the sqlfluff CLI, config, and Python rule tests as
 black-box cases).
+
+## Trace oracle (T3)
+
+T3 (trace oracle with fail-closed checks: each case agrees with a trace of
+its original pytest node; S7: CLI and config parity, the sqlfluff CLI,
+config, and Python rule tests as black-box cases) gives
+`scripts/s7-tests/oracle`. The design and its limits are in the design
+record, "Trace oracle". The recorded result is
+[results/S7-tests/oracle.json](../results/S7-tests/oracle.json), with the
+traces `oracle-trace-sqlfluff.json` and `oracle-trace-sqlfluff-rs.json`.
+
+| Tool | Nodes | Agree | Pass | Fail | Asserts | Not reproduced | `python-internal` |
+|---|---|---|---|---|---|---|---|
+| sqlfluff | 15 | 15 | 15 | 0 | 49 | 0 | 1 |
+| sqlfluff-rs | 15 | 15 | 14 | 1 | 49 | 0 | 1 |
+
+- Each of the 15 converted pilot nodes agrees with its trace, with
+  sqlfluff and with `sqlfluff[rs]`. The 1 sqlfluff-rs failure is
+  `test__cli__command_directed`: the pytest node fails too.
+- Each of the 49 asserts of the pilot source tests has a check that cites
+  it. No case uses a row of
+  [s7-tests-not-reproduced.md](../docs/decisions/s7-tests-not-reproduced.md):
+  the pointer section in `harness/not-reproduced.md` comes with T4 (harness
+  hooks for the S7 suites) or T5 (CI jobs, oracle step, and first results
+  of the S7 suites) (decision 4).
+- The `python-internal` node has no traced CLI or simple-API call.
+- The case files now have an `asserts` map for each node.
+- The oracle exits with code 1 if a case input is not the traced input, a
+  check fails on the traced output, the report status is not the pytest
+  outcome, or an assert has no citation and no record. A harness test
+  proves each of these 4 failure paths.
