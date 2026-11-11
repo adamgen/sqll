@@ -71,8 +71,14 @@ def expand(entries: list[dict], s7: bool = False) -> dict:
 
 
 def main(argv: list[str]) -> int:
-    s7 = argv[:1] == ["--s7"]
-    rest = argv[1:] if s7 else argv
+    # --s7 can be before or after the path. Another option, a second --s7,
+    # or more than 1 path is an error (exit code 2): a wrong command must not
+    # print a matrix.
+    s7 = "--s7" in argv
+    rest = [a for a in argv if a != "--s7"]
+    if argv.count("--s7") > 1 or len(rest) > 1 or any(a.startswith("-") for a in rest):
+        print("usage: ci/matrix.py [--s7] [MATRIX_DIR_OR_JSON]", file=sys.stderr)
+        return 2
     path = Path(rest[0]) if rest else DEFAULT
     print(json.dumps(expand(load(path), s7), separators=(",", ":")))
     return 0

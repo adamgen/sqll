@@ -106,9 +106,12 @@ The recorded report is
 643, converted 15, excluded 3, not yet converted 625. The converted nodes:
 `cli` 8, `rules` 5, `config` 2. 1 converted node needs Jinja
 (`std_LT04_test.py::test__rules__std_LT04_unparseable`) and moves to S11
-(Jinja templater: the last stone; decide with data how sqll supports
-Jinja). The excluded nodes: 1 `python-internal`, 1 `needs-python-runtime`,
-1 `engine-comparison`.
+(Jinja templater: the last stone; decision of the human owner (2026-11-07):
+do not write a Jinja engine in sqll; decide with data how sqll supports
+Jinja; sqll passes 100% of the Jinja cases that the decision keeps, and S8
+supports Jinja if kept; each other Jinja case is in a known-failure list
+with its reason). The excluded nodes: 1 `python-internal`, 1
+`needs-python-runtime`, 1 `engine-comparison`.
 
 Parity of the 14 converted nodes that S7 (CLI and config parity: the
 sqlfluff CLI, config, and Python rule tests as black-box cases) keeps
@@ -204,8 +207,11 @@ CLI, config, and Python rule tests as black-box cases). They are equal to
 The parity columns count the converted nodes that S7 (CLI and config
 parity: the sqlfluff CLI, config, and Python rule tests as black-box cases)
 keeps (passed/nodes); 1 converted `s7_rules` node needs Jinja and moves to
-S11 (Jinja templater: the last stone; decide with data how sqll supports
-Jinja).
+S11 (Jinja templater: the last stone; decision of the human owner
+(2026-11-07): do not write a Jinja engine in sqll; decide with data how sqll
+supports Jinja; sqll passes 100% of the Jinja cases that the decision keeps,
+and S8 supports Jinja if kept; each other Jinja case is in a known-failure
+list with its reason).
 
 ## CI and recorded results (T5)
 
@@ -236,4 +242,4 @@ Known failures (nodes) of the recorded results:
 |---|---|---|
 | sqlfluff | 0 | sqlfluff passes each converted node |
 | sqlfluff-rs | 1 | `test__cli__command_directed`: with `use_rust_rules`, the CP01 description is different; the pytest node fails with `--rust` too |
-| sqruff | 14 | 12 `unsupported: <item>`: 8 CLI commands with no sqruff translation, 3 `rule all`, 1 output fields. 2 translated CLI nodes fail on the output: `test__cli__command_directed` (the lint output is on stderr) and `test__cli__command_dialect` (exit code 1, not 2). 1 of the 14 (`test__rules__std_LT04_unparseable`) needs Jinja and moves to S11 (Jinja templater: the last stone) |
+| sqruff | 14 | 12 `unsupported: <item>`: 8 CLI commands with no sqruff translation, 3 `rule all`, 1 output fields. 2 translated CLI nodes fail on the output: `test__cli__command_directed` (the lint output is on stderr) and `test__cli__command_dialect` (exit code 1, not 2). 1 of the 14 (`test__rules__std_LT04_unparseable`) needs Jinja and moves to S11 (Jinja templater: the last stone; decision of the human owner (2026-11-07): do not write a Jinja engine in sqll; decide with data how sqll supports Jinja; sqll passes 100% of the Jinja cases that the decision keeps, and S8 supports Jinja if kept; each other Jinja case is in a known-failure list with its reason) |

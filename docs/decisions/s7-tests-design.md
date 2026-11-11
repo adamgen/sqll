@@ -261,7 +261,11 @@ tools (format 2).
 
 `results/S7-tests/known_failures/<tool>.txt` (T5: CI jobs, oracle step, and
 local verify for the S7 suites; CI and `scripts/verify` run the S7 suites and
-record the results). The format is that of the S1 lists: one pytest node id
+record the results; S7: CLI and config parity, the sqlfluff CLI, config, and
+Python rule tests as black-box cases). The format is that of the lists of S1
+(binary test harness: run the sqlfluff test fixtures through a binary, not
+through function calls; sqlfluff passes 100% of the cases through the
+harness, and the results of the other tools are recorded): one pytest node id
 on each line, sorted, no duplicates, the reason after `#`. The loader
 (`sqll_harness/s7_tests/known.py`) fails closed (exit code 2) on a format
 error, an id that is not a node of `scope.json`, and an id with no reason.

@@ -241,6 +241,10 @@ def test_the_s7_matrix_is_apart_from_the_test_matrix(tmp_path, capsys):
     assert matrix.main(["--s7", str(folder)]) == 0
     names = [e["name"] for e in json.loads(capsys.readouterr().out)["include"]]
     assert names == ["s7_cli-a-1-of-1"]
+    # --s7 after the path gives the same S7 matrix.
+    assert matrix.main([str(folder), "--s7"]) == 0
+    names = [e["name"] for e in json.loads(capsys.readouterr().out)["include"]]
+    assert names == ["s7_cli-a-1-of-1"]
     assert merge.load_expected(folder) == [("s", "a", 2)]
     assert merge.load_expected(folder, s7=True) == [("s7_cli", "a", 1)]
     # An entry in 2 fragments is an error, also between S1 and S7 entries.
@@ -249,6 +253,17 @@ def test_the_s7_matrix_is_apart_from_the_test_matrix(tmp_path, capsys):
         matrix.expand(matrix.load(folder))
     with pytest.raises(merge.MergeError, match="in two entries"):
         merge.load_expected(folder)
+
+
+@pytest.mark.parametrize(
+    "argv", [["--s8"], ["--s7", "--s7"], ["a", "b"], ["--s7", "a", "b"], ["a", "-x"]]
+)
+def test_the_matrix_refuses_bad_arguments(argv, capsys):
+    # A wrong command must not print a matrix.
+    assert matrix.main(argv) == 2
+    captured = capsys.readouterr()
+    assert captured.out == ""
+    assert "usage: ci/matrix.py" in captured.err
 
 
 def test_an_s7_entry_has_1_shard():

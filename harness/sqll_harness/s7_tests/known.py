@@ -10,9 +10,11 @@ of a report compares, for each tool of the report, the nodes that do not
 pass with the list of the tool:
 - new failure: a node does not pass and is not in the list;
 - unexpected pass: a listed node passes;
-- not found: a listed node of a suite of the report is not a converted node
-  of the report (for example an excluded node, or a node that is not
-  converted yet).
+- unexpected pass (not a converted node of the report): a listed node of a
+  suite of the report is not a converted node of the report (for example an
+  excluded node, or a node that is not converted yet). The label is
+  "unexpected pass", as for a listed case that is not found in the lists of
+  sqll_harness.known_failures ("no such case").
 A listed node of a suite that is not in the report is not checked.
 """
 
