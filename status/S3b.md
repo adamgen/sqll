@@ -551,7 +551,10 @@ exit check: PASS: results/S3b/exit.json: no change; state: S3b awaiting approval
   only for `sqll-base`; tests in `harness/tests/test_sqll_bench.py`).
 - This task changes no file under `crates/`, `Cargo.toml`, or
   `Cargo.lock`.
-- Local (with the machine lock): `cargo test --workspace --locked
-  --no-fail-fast` passes (358 passed, 0 failed, 4 ignored); `pytest
-  harness/tests`: 2507 passed, 130 skipped (tools that this machine does
-  not have; CI sets `SQLL_REQUIRE_TOOLS`).
+- Local, on `108b452` (main `7bc4cb6` merged; with the machine lock):
+  `cargo test --workspace --locked --no-fail-fast` passes (358 passed, 0
+  failed, 4 ignored); `pytest harness/tests`: 2779 passed, 133 skipped
+  (tools that this machine does not have; CI sets `SQLL_REQUIRE_TOOLS`);
+  `speed-check report --task C17 --check`: up to date.
+- Review round 1 of PR #79: each name in the exit record and in this
+  section has its goal (AGENTS.md, "Names").
