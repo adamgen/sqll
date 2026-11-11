@@ -1,4 +1,6 @@
-"""S3b C3 and C4: the S3b plan in status/S3b.md and the S3b row of STATUS.md."""
+"""S3b (Core: the shared syntax tree, source map, frozen interfaces, and
+the sqll binary skeleton) C3, C4, and C17: the S3b plan in status/S3b.md
+and the S3b row of STATUS.md."""
 
 import re
 
@@ -29,13 +31,15 @@ def test_each_task_has_a_known_state():
     assert found["C3"][1] == "Merged (PR #59)"
     for task in TASKS[3:]:
         state = found[task][1]
-        assert state in STATES or re.fullmatch(r"Merged \(PR #\d+\)", state), task
+        merged_or_review = r"(Merged|In review) \(PR #\d+\)"
+        assert state in STATES or re.fullmatch(merged_or_review, state), task
 
 
 def test_the_index_row_names_the_core_track_and_the_plan():
     (row,) = [line for line in INDEX.splitlines() if line.startswith("| S3b |")]
     cells = [c.strip() for c in row.strip("|").split("|")]
     assert cells[1] == "core"
-    assert cells[2].startswith("In work (track core).")
+    # C17 (S3b exit: proof, exit record, and the request for approval).
+    assert cells[2].startswith("S3b awaiting approval (track core).")
     assert "[status/S3b.md](status/S3b.md)" in cells[2]
     assert cells[3] == "[status/S3b.md](status/S3b.md)"
