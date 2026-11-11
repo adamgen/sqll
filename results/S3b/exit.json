@@ -58,7 +58,7 @@
  ],
  "result": {
   "met": true,
-  "state": "S3b awaiting approval"
+  "state": "S3b exit met"
  },
  "interfaces": [
   {

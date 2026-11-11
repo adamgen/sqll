@@ -1,14 +1,16 @@
 # S3b exit record
 
-Status: S3b awaiting approval. The goal of S3b: the shared syntax tree,
-source map, frozen interfaces, and the sqll binary skeleton (CLI, config,
-output) with the sqll adapters of the test harness and the benchmarks.
-The exits: the test harness and the benchmarks run sqll through its
-adapters, the interfaces are documented, and after this stone, each
-change to the core goes through the Core track (the track that does S3b
-and owns the shared core). The orchestrator approves the stone by the
-standing delegation (CONSTITUTION.md, section 5) after an independent
-check.
+Status: Approved (orchestrator under the standing delegation of the
+human owner). The date and the proof of the approval:
+[status/S3b.md](../../status/S3b.md), "Approval". The goal of S3b: the
+shared syntax tree, source map, frozen interfaces, and the sqll binary
+skeleton (CLI, config, output) with the sqll adapters of the test
+harness and the benchmarks. The exits: the test harness and the
+benchmarks run sqll through its adapters, the interfaces are documented,
+and after this stone, each change to the core goes through the Core
+track (the track that does S3b and owns the shared core). The
+orchestrator approved the stone by the standing delegation
+(CONSTITUTION.md, section 5) after an independent check.
 
 ## Data
 

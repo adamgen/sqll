@@ -1,6 +1,6 @@
 """S3b (Core: the shared syntax tree, source map, frozen interfaces, and
-the sqll binary skeleton) C3, C4, and C17: the S3b plan in status/S3b.md
-and the S3b row of STATUS.md."""
+the sqll binary skeleton) C3, C4, C17, and the approval: the S3b plan in
+status/S3b.md and the S3b row of STATUS.md."""
 
 import re
 
@@ -37,16 +37,23 @@ def test_each_task_has_a_known_state():
         state = found[task][1]
         merged_or_review = r"(Merged|In review) \(PR #\d+\)"
         assert state in STATES or re.fullmatch(merged_or_review, state), task
+    # The approval of S3b: each task of the plan is merged; C17 (S3b exit:
+    # proof, exit record, and the request for approval) is PR #79.
+    assert all(found[task][1].startswith("Merged (PR #") for task in TASKS), found
+    assert found["C17"][1] == "Merged (PR #79)"
 
 
 def test_the_index_row_names_the_core_track_and_the_plan():
     (row,) = [line for line in INDEX.splitlines() if line.startswith("| S3b |")]
     cells = [c.strip() for c in row.strip("|").split("|")]
     assert cells[1] == "core"
-    # C17 (S3b exit: proof, exit record, and the request for approval).
+    # The approval of S3b by the orchestrator (standing delegation of the
+    # human owner, CONSTITUTION.md section 5) after the exit task C17.
     assert cells[2].startswith(
-        "S3b awaiting approval (track core: the track that does S3b and owns "
+        "Approved (orchestrator under the standing delegation of the human "
+        "owner, 2026-11-11) (track core: the track that does S3b and owns "
         "the shared core)."
     )
+    assert "awaiting" not in row
     assert "[status/S3b.md](status/S3b.md)" in cells[2]
     assert cells[3] == "[status/S3b.md](status/S3b.md)"
