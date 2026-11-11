@@ -120,13 +120,13 @@ def test_each_trace_is_of_its_tool():
     assert TRACES["sqlfluff-rs"]["parse_runs"]["RustParser"] > 0
 
 
-def test_no_case_uses_a_not_reproduced_record_yet():
-    # Decision 4: the pointer section comes in T4 or T5. Until it merges, the
-    # record has no row, and the oracle refuses one.
+def test_the_pointer_section_makes_the_record_a_part_of_rule_7():
+    # Decision 4: T4 adds the pointer section in harness/not-reproduced.md.
+    # No case uses a row yet.
     records = oracle.load_not_reproduced()
     assert records.records == [] and records.errors == []
-    assert not records.pointer
-    assert RECORDED["not_reproduced"] == {"records": 0, "pointer": False}
+    assert records.pointer
+    assert RECORDED["not_reproduced"] == {"records": 0, "pointer": True}
     for tool in oracle.TOOLS:
         assert RECORDED["tools"][tool]["counts"]["not_reproduced"] == 0
         assert all(n["not_reproduced"] == 0 for n in RECORDED["tools"][tool]["nodes"])
@@ -635,7 +635,14 @@ def test_load_not_reproduced(tmp_path):
     out = oracle.load_not_reproduced(path, harness)
     assert out.records == [oracle.Record(DIRECTED, "L108", "The text.")]
     assert out.errors == [] and not out.pointer
-    harness.write_text("See [x](../docs/decisions/s7-tests-not-reproduced.md).\n")
+    # A mention of the file name is not a pointer section.
+    harness.write_text("# Checks\n\ns7-tests-not-reproduced.md\n")
+    assert not oracle.load_not_reproduced(path, harness).pointer
+    # A link in another section is not a pointer section.
+    link = "See [x](../docs/decisions/s7-tests-not-reproduced.md).\n"
+    harness.write_text("# Checks\n\n## Other\n\n" + link)
+    assert not oracle.load_not_reproduced(path, harness).pointer
+    harness.write_text(f"# Checks\n\n{oracle.POINTER_SECTION}\n\n{link}\n## Next\n")
     path.write_text(head + "| a | b | c |\n")
     out = oracle.load_not_reproduced(path, harness)
     assert out.pointer

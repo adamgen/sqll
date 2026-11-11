@@ -190,10 +190,24 @@ reason, a reason of more lines, and a node that is not in `scope.json`.
 
 ## Case runner
 
-`uv run --frozen --project harness scripts/s7-tests/run-cases [--tool T]
-[--require-pass T] [--check FILE]` loads the cases, checks the tools
-(`sqll-harness tools`), runs each case for each tool, writes the report
-(default `out/s7-tests/report.json`), and runs `scripts/check-submodule`.
+The harness core runs the 3 S7 suites (T4: harness hooks for the S7
+suites):
+
+```sh
+uv run --frozen --project harness sqll-harness s7 run [--suite S] [--tool T]
+    [--jobs N] [--out FILE] [--require-pass T] [--check FILE]
+```
+
+It loads the case files and the exclusion list, and checks that each
+assert of each converted source test has a citing check or a row of the
+not-reproduced record (check 4 of the oracle, with no trace; see "Trace
+oracle"). An error gives exit code 2 before a tool runs. Then it checks the
+tools (`sqll-harness tools`), runs each case of each node of the suites
+(default: all) for each tool (default: all), writes the report of the
+suites (default `out/s7-tests/report.json`), and runs
+`scripts/check-submodule`. The code is `sqll_harness/s7_tests/command.py`;
+`sqll_harness/cli.py` only adds the command. The S1 command
+`sqll-harness run` does not run the S7 suites.
 
 - `cli`: the CLI of the tool, with the environment of its adapter (an
   empty home). `sqlfluff-rs` gets the layer of its adapter
@@ -211,18 +225,23 @@ reason, a reason of more lines, and a node that is not in `scope.json`.
   not complete). A node is `pass` only if each case passes, `error` if a
   case has an error, else `fail`.
 - Exit code 1 if the submodule changed (G4.5), if a `--require-pass` tool
-  did not pass a node, or if the report is not the `--check` file.
+  did not pass a node, or if the report is not the `--check` file for the
+  suites and the tools of the run (`report.select_suites`,
+  `report.select_tools`).
 
 ## Report
 
-`results/S7-tests/report.json` is the recorded report of all tools.
+`results/S7-tests/report.json` is the recorded report of all suites and
+tools (format 2).
 
+- `suites`: the suites of the report. The scope of the report is the nodes
+  of `scope.json` in the groups of these suites.
 - `nodes`: each converted node with its group, case file, number of cases,
   `needs_jinja`, and for each tool its status and each case that did not
   pass, with its reason.
 - `excluded`: each excluded node with its group, class, and reason, apart
   from parity.
-- `counts`: `in_scope` (643, from `scope.json`), `converted`, `excluded`,
+- `counts`: `in_scope` (643 for all suites, from `scope.json`), `converted`, `excluded`,
   `not_yet_converted`, `needs_jinja`, the same counts for each group, and
   the count of each class.
 - `parity` (for each tool, the converted nodes that S7 keeps) and
@@ -231,8 +250,8 @@ reason, a reason of more lines, and a node that is not in `scope.json`.
   percentage counts each excluded node and each node that is not converted
   yet as not passed. Thus an exclusion cannot hide (G1.4).
 - `report.check()` computes each count and status again and fails closed if
-  one does not agree, if a class is unknown, or if a `needs-python-runtime`
-  or `environment` node has no reason.
+  one does not agree, if a class is unknown, if a `needs-python-runtime`
+  or `environment` node has no reason, or if a node is not of the suites.
 
 ## Suites and tools
 
@@ -371,11 +390,11 @@ with the original sqlfluff tests. T3 made it.
   `docs/decisions/s7-tests-not-reproduced.md`.
 - Cross-track pull requests that the Core track reviews, T4 (harness hooks
   for the S7 suites) and T5 (CI jobs and first results of the S7 suites):
-  the
-  harness core hooks, the CI workflow, `scripts/verify`, THIRD_PARTY.md, and
-  a pointer section in `harness/not-reproduced.md`. The pointer section
-  makes `s7-tests-not-reproduced.md` part of the not-reproduced record of
-  PROCESS.md rule 7 (decision 4).
+  the harness core hooks, the CI workflow, `scripts/verify`, THIRD_PARTY.md,
+  and a pointer section in `harness/not-reproduced.md`. T4 added the hook
+  (`sqll-harness s7 run`), the THIRD_PARTY.md entry, and the pointer
+  section "S7 test conversion". It makes `s7-tests-not-reproduced.md` part
+  of the not-reproduced record of PROCESS.md rule 7 (decision 4).
 - STATUS.md is an orchestrator file. Only T1 and T15 change the S7 test
   conversion row, with the `cross-track` label, because the orchestrator
   task asks for it. At T15 (the exit task: proof and "awaiting human

@@ -2,7 +2,7 @@
 report results/S7-tests/report.json.
 
 The recorded report must agree with the case files and the exclusion list,
-and with a new run of scripts/s7-tests/run-cases. Each fail-closed check of
+and with a new run of "sqll-harness s7 run". Each fail-closed check of
 report.check() has a mutation test.
 """
 
@@ -24,7 +24,6 @@ RECORDED_FILE = REPO_ROOT / "results" / "S7-tests" / "report.json"
 RECORDED = json.loads(RECORDED_FILE.read_text("utf8"))
 SCOPE = caseformat.load_scope()
 CASES = caseformat.load()
-RUN_CASES = REPO_ROOT / "scripts" / "s7-tests" / "run-cases"
 STATUS = (REPO_ROOT / "status" / "S7-tests.md").read_text("utf8")
 
 
@@ -128,7 +127,9 @@ def test_recorded_report_is_the_runner_output(tmp_path):
             "--frozen",
             "--project",
             str(REPO_ROOT / "harness"),
-            str(RUN_CASES),
+            "sqll-harness",
+            "s7",
+            "run",
             "--out",
             str(out),
             "--require-pass",

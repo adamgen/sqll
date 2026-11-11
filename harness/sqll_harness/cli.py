@@ -1,5 +1,5 @@
 """Command line: sqll-harness run | merge | tools | known-failures | summarize |
-bench (inputs | reference | run | merge | check | compare).
+bench (inputs | reference | run | merge | check | compare) | s7 run.
 
 See harness/README.md.
 """
@@ -37,6 +37,7 @@ from .paths import (
     SQLFLUFF_ROOT,
     sqlfluff_ref,
 )
+from .s7_tests import command as s7_command
 from .suites import SUITES, runs_for
 
 
@@ -280,6 +281,7 @@ def _parser() -> argparse.ArgumentParser:
         help="Tool to compare. Repeat for more tools. Default: all tools.",
     )
     bcmp.add_argument("--out", type=Path, default=bench_compare.DEFAULT_OUT)
+    s7_command.add_parser(sub)
     return p
 
 
@@ -733,6 +735,8 @@ def main(argv: list[str] | None = None) -> int:
         return bench_check_command(args)
     if args.command == "bench" and args.bench_command == "compare":
         return bench_compare_command(args)
+    if args.command == "s7" and args.s7_command == "run":
+        return s7_command.run(args)
     return 2
 
 

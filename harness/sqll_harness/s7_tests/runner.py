@@ -33,8 +33,8 @@ from ..adapters.sqruff import sqruff_env
 from ..cases import ERROR, FAIL, PASS, UNSUPPORTED
 from ..paths import SQLFLUFF_ROOT
 from .caseformat import SQLFLUFF_MARK, TMP_MARK, Case, Node
+from .suites import TOOLS
 
-TOOLS = ("sqlfluff", "sqlfluff-rs", "sqruff")
 TIMEOUT_S = 600
 # The simple API uses the ansi dialect if the call gives no dialect.
 API_DIALECT = "ansi"

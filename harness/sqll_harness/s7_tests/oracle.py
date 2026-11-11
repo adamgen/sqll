@@ -53,6 +53,9 @@ ROOT_MARK = "{sqlfluff}"
 OUTCOMES = {"passed": PASS, "failed": FAIL}
 NOT_REPRODUCED = REPO_ROOT / "docs" / "decisions" / "s7-tests-not-reproduced.md"
 HARNESS_NOT_REPRODUCED = REPO_ROOT / "harness" / "not-reproduced.md"
+# The section of harness/not-reproduced.md that makes the S7 record a part
+# of the record of PROCESS.md rule 7 (decision 4).
+POINTER_SECTION = "## S7 test conversion"
 _ROW = re.compile(r"^\|\s*`([^`]+)`\s*\|\s*`([^`]+)`\s*\|(.+)\|\s*$")
 
 
@@ -104,8 +107,23 @@ def load_not_reproduced(
             errors.append(f"{path.name}: not a record row: {line}")
             continue
         records.append(Record(match[1], match[2], match[3].strip()))
-    pointer = path.name in harness_file.read_text(encoding="utf8")
+    pointer = has_pointer(harness_file.read_text(encoding="utf8"), path.name)
     return NotReproduced(records, pointer, errors)
+
+
+def has_pointer(text: str, name: str) -> bool:
+    """True if the text has the section POINTER_SECTION with a Markdown link
+    to the record file name (decision 4)."""
+    lines = text.splitlines()
+    if POINTER_SECTION not in lines:
+        return False
+    body = []
+    for line in lines[lines.index(POINTER_SECTION) + 1 :]:
+        if line.startswith("## "):
+            break
+        body.append(line)
+    link = re.compile(r"\]\(([^)\s]*/)?" + re.escape(name) + r"\)")
+    return link.search(" ".join(body)) is not None
 
 
 # Inputs.
@@ -321,6 +339,41 @@ def check_asserts(
     return len(found), len(recorded & found), errors
 
 
+def record_errors(converted: set[str], not_reproduced: NotReproduced) -> list[str]:
+    """The errors of the not-reproduced record as a whole: a row that the
+    loader cannot read, a row before the pointer section of
+    harness/not-reproduced.md (decision 4), a row of a node that is not
+    converted."""
+    errors = list(not_reproduced.errors)
+    if not_reproduced.records and not not_reproduced.pointer:
+        errors.append(
+            f"{len(not_reproduced.records)} not-reproduced records, but"
+            f" {HARNESS_NOT_REPRODUCED.name} has no pointer section to"
+            f" {NOT_REPRODUCED.name} (decision 4); no case may use"
+            " a record before it"
+        )
+    for record in not_reproduced.records:
+        if record.node not in converted:
+            errors.append(
+                f"a not-reproduced record of {record.node}, not a converted node"
+            )
+    return errors
+
+
+def coverage_errors(
+    nodes: list[Node], source_root: Path, not_reproduced: NotReproduced
+) -> list[str]:
+    """Check 4 with no trace: a check cites each assert of the source test of
+    each converted node, or a row of the not-reproduced record has it. Also
+    the errors of the record as a whole. The harness runs it before the S7
+    cases."""
+    errors = record_errors({n.id for n in nodes}, not_reproduced)
+    for node in nodes:
+        _, _, node_errors = check_asserts(node, source_root, not_reproduced.records)
+        errors += [f"{node.id}: {e}" for e in node_errors]
+    return errors
+
+
 def check_node(
     node: Node,
     data: dict[str, Any] | None,
@@ -485,19 +538,7 @@ def check_tool(
         if i in by_id
     ]
     internals = [check_internal(i, traced.get(i)) for i in internal]
-    errors += not_reproduced.errors
-    if not_reproduced.records and not not_reproduced.pointer:
-        errors.append(
-            f"{len(not_reproduced.records)} not-reproduced records, but"
-            f" {HARNESS_NOT_REPRODUCED.name} has no pointer section to"
-            f" {NOT_REPRODUCED.name} (decision 4: T4 adds it); no case may use"
-            " a record before it"
-        )
-    for record in not_reproduced.records:
-        if record.node not in by_id:
-            errors.append(
-                f"a not-reproduced record of {record.node}, not a converted node"
-            )
+    errors += record_errors(set(by_id), not_reproduced)
     for item in [*results, *internals]:
         node_errors = item.errors if isinstance(item, NodeResult) else item["errors"]
         node_id = item.id if isinstance(item, NodeResult) else item["id"]
