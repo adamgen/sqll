@@ -540,8 +540,10 @@ exit check: PASS: results/S3b/exit.json: no change; state: S3b awaiting approval
   `results/S7-tests/`, `docs/decisions/s7-tests-*.md`,
   `status/S7-tests.md`) and PR #81 (the Names table and its test:
   `AGENTS.md`, `harness/tests/test_protocol_docs.py`). They change no
-  file under `crates/`, `Cargo.toml`, or `Cargo.lock` and no harness core
-  file (`git diff --name-only a77e821 7bc4cb6`).
+  file under `crates/`, `Cargo.toml`, or `Cargo.lock`; of the Core paths
+  under `harness/`, they change only the test
+  `harness/tests/test_protocol_docs.py` (`git diff --name-only a77e821
+  7bc4cb6`).
 - Exit 2 (the interfaces are documented): the 4 STONES interfaces map to
   the 8 rows of the interface index, each with its document and test.
 - Exit 3 (after this stone, each change to the core goes through the
@@ -561,7 +563,11 @@ exit check: PASS: results/S3b/exit.json: no change; state: S3b awaiting approval
   settings as options again (`legacy_options`, only for `sqll-base`;
   tests in `harness/tests/test_sqll_bench.py`).
 - This task changes no file under `crates/`, `Cargo.toml`, or
-  `Cargo.lock`.
+  `Cargo.lock`. It changes 2 files of the harness code (Core paths):
+  `harness/sqll_harness/bench/sqll.py` (`legacy_options`, only for
+  `sqll-base`) and `harness/sqll_harness/verify.py` (the check
+  `s3b-exit`). Thus the sqll binary of the head is that of the exit
+  head.
 - Local, on `1649f34` (main `7bc4cb6` merged; the tree of `108b452`;
   with the machine lock):
   `cargo test --workspace --locked --no-fail-fast` passes (358 passed, 0
@@ -572,6 +578,10 @@ exit check: PASS: results/S3b/exit.json: no change; state: S3b awaiting approval
   `crates/`): `pytest harness/tests`: 2779 passed, 133 skipped;
   `scripts/s3b/exit.py --check`: PASS; `ruff check` and `ruff format
   --check`: no problem.
+- Local, review round 3 (with the machine lock; no change under
+  `crates/`): `pytest harness/tests`: 2780 passed, 133 skipped (1 new
+  test); `scripts/s3b/exit.py --check`: PASS; `ruff check` and `ruff
+  format --check`: no problem.
 - Review round 1 of PR #79: each name in the exit record and in this
   section has its goal (AGENTS.md, "Names").
 - Review round 2 of PR #79: the exit record has fewer names, and each
@@ -579,3 +589,9 @@ exit check: PASS: results/S3b/exit.json: no change; state: S3b awaiting approval
   #76 (not the merge of the last task); the table "Tasks" has the row of
   PR #81; the probe has each track other than core; `exit.py` says that
   the version check compares only the hash of the dialect tables.
+- Review round 3 of PR #79: the exit record names the 2 harness code
+  files of this task and each path that main changed after `a77e821`;
+  the section "Each S3b bullet" of the exit record points to
+  `bullets[].tasks` of `results/S3b/exit.json` and to the table "Tasks"
+  (a test checks that each such task is a row of the table); the code
+  comments of this task give the goal with each name.

@@ -605,7 +605,10 @@ def checks(jobs: int | None = None) -> list[Check]:
             ("build: Check the JSON Schema output with the meta-schema",),
             needs=(SETUP,),
         ),
-        # S3b C17: the exit record and the ownership probe (no sqlfluff).
+        # Task C17 (S3b exit: proof, exit record, and STATUS "S3b awaiting
+        # approval") of S3b (core: the shared syntax tree, source map,
+        # frozen interfaces, and the sqll binary skeleton): the exit record
+        # and the ownership probe (no sqlfluff).
         Check(
             "s3b-exit",
             f"{UV} python scripts/s3b/exit.py --check",

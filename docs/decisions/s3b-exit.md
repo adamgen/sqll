@@ -24,13 +24,18 @@ and the ownership probe again, on the frozen and the live `tracks.yml`
 
 The exit head is main `a77e821`: the merge of the pull request that gives
 the package ownership of the later tracks and the interface index. After
-it, main merged 3 pull requests. They change only `AGENTS.md`,
-`harness/tests/test_protocol_docs.py`, and the paths of the conversion of
-the CLI and config tests (`harness/sqll_harness/s7_tests/`,
-`scripts/s7-tests/`, `results/S7-tests/`). They and this pull request
-change no file under `crates/`, `Cargo.toml`, or `Cargo.lock`, and no
-file of the harness core, so the sqll of the head is that of the exit
-head.
+it, main merged 3 pull requests. They change `AGENTS.md`, its test
+`harness/tests/test_protocol_docs.py` (a Core path), and the paths of the
+conversion of the CLI and config tests (`docs/decisions/s7-tests-*.md`,
+`status/S7-tests.md`, `harness/sqll_harness/s7_tests/`,
+`harness/tests/test_s7_tests_*.py`, `scripts/s7-tests/`,
+`results/S7-tests/`). This pull request changes 2 files of the harness
+code, both Core paths: `harness/sqll_harness/bench/sqll.py`
+(`legacy_options`, only for `sqll-base`) and
+`harness/sqll_harness/verify.py` (the check `s3b-exit`); it also changes
+harness tests and `harness/bench.md`. No file under `crates/`, `Cargo.toml`, or `Cargo.lock`
+changes after the exit head, so the sqll binary of the head is that of
+the exit head (`git diff --name-only a77e821 HEAD`).
 
 ## Exit 1: the test harness and the benchmarks run sqll
 
@@ -131,6 +136,10 @@ file, so it gets the settings as options (`legacy_options` of
 `harness/sqll_harness/bench/sqll.py`, only for `sqll-base`).
 
 ## Each S3b bullet
+
+The tasks of each bullet are in the list `bullets[].tasks` of
+`results/S3b/exit.json`. The table "Tasks" of
+[status/S3b.md](../../status/S3b.md) gives the goal of each task.
 
 | Bullet of STONES.md | Documents | Tests |
 |---|---|---|

@@ -1,6 +1,14 @@
 """S3 T13, S3b C14, and S3b C17: the benchmark adapter of sqll
 (harness/sqll_harness/bench/sqll.py).
 
+The goals: S3 (choose the base and make the sqll binary from it); S3b
+(core: the shared syntax tree, source map, frozen interfaces, and the sqll
+binary skeleton); T13 (S2 benchmark adapter for sqll, and the new S2
+baseline); C11 (config skeleton: the config model, the sqlfluff
+defaults, and the config file reader in sqll parse); C14 (harness
+adapters: sqll lint and fix in the test harness and the benchmarks); C17
+(S3b exit: proof, exit record, and STATUS "S3b awaiting approval").
+
 The tests use a fake sqll binary (a Python script), so they need no build.
 The CI job bench-smoke runs the real binary of the build job, and
 test_bench_baseline.py checks the recorded results of the real binary.
@@ -160,7 +168,8 @@ def test_the_settings_are_those_of_all_tools(tmp_path):
 
 
 # A base binary of a speed check from before S3b C11 (C17: the speed check
-# of the S3b exit has the S3 exit as its base).
+# of the S3b exit has the S3 exit as its base). The goals are in the module
+# docstring.
 
 
 def test_the_legacy_options():

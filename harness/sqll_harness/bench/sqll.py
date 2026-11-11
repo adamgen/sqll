@@ -14,10 +14,15 @@ all"), and sqll does not have them all, so lint and fix are unsupported
 with no run.
 
 The base binary of a speed check (sqll-base) can be a build from before
-S3b C11, which reads no config file: the speed check of the S3b exit (C17)
-has the S3 exit as its base. For such a binary (its parse help has no
---config) the adapter gives the settings as options (legacy_options), as
-the adapter did before C11. Only sqll-base does this.
+task C11 (config skeleton: the config model, the sqlfluff defaults, and the
+config file reader in sqll parse) of S3b (core: the shared syntax tree,
+source map, frozen interfaces, and the sqll binary skeleton). Such a binary
+reads no config file. The speed check of task C17 (S3b exit: proof, exit
+record, and STATUS "S3b awaiting approval") has as its base the exit head
+of S3 (choose the base and make the sqll binary from it). For such a binary
+(its parse help has no --config) the adapter gives the settings as options
+(legacy_options), as the adapter did before C11. Only sqll-base does
+this.
 """
 
 import json
@@ -34,7 +39,8 @@ from .inputs import START
 from .tools import SqlfluffBench, parse_record
 
 LEGACY_OPTIONS_NAME = "sqll-options.json"
-# A binary from before S3b C11: the settings that it does with no option,
+# A binary from before task C11 (config skeleton; S3b goal in the module
+# docstring): the settings that it does with no option,
 # and the only value of each (raw templater, no file size limit, no rule).
 LEGACY_FIXED: dict[tuple[str, str], Any] = {
     ("core", "templater"): "raw",
@@ -46,7 +52,8 @@ _NO_VALUE = object()
 
 
 def legacy_options(config: dict[str, Any]) -> list[str]:
-    """The parse options of config for a sqll binary from before S3b C11:
+    """The parse options of config for a sqll binary from before task C11
+    (config skeleton; S3b goal in the module docstring):
     core.dialect gives --dialect, core.max_parse_depth --max-parse-depth,
     a LEGACY_FIXED setting must have its value, and each other setting
     raises Unsupported."""
@@ -177,8 +184,9 @@ class SqllBaseBench(SqllBench):
         self._reads_config: bool | None = None
 
     def reads_config(self) -> bool:
-        """True if the binary reads the sqlfluff config (S3b C11): its parse
-        help has --config."""
+        """True if the binary reads the sqlfluff config (task C11, config
+        skeleton; S3b goal in the module docstring): its parse help has
+        --config."""
         if self._reads_config is None:
             try:
                 out = subprocess.run(

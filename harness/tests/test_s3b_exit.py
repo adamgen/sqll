@@ -301,6 +301,24 @@ def test_each_stones_bullet_has_its_tasks_documents_and_tests():
         assert b["tasks"] and b["docs"] and b["tests"], b["bullet"]
 
 
+def test_the_record_points_to_the_tasks_of_each_bullet_and_their_goals():
+    """The exit record points to bullets[].tasks of the data file and to the
+    table "Tasks" of status/S3b.md, and that table has a row (with the goal
+    of the task) for each task of each bullet."""
+    part = words(section("Each S3b bullet"))
+    assert "`bullets[].tasks` of `results/S3b/exit.json`" in part
+    assert 'The table "Tasks" of [status/S3b.md](../../status/S3b.md)' in part
+    table = STATUS.split("\n## Tasks\n", 1)[1].split("\n## ", 1)[0]
+    rows = {}
+    for line in table.splitlines():
+        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        if len(cells) == 3 and re.fullmatch(r"C\d+[a-z]?", cells[0]):
+            rows[cells[0]] = cells[1]
+    for b in OUT["bullets"]:
+        for task in b["tasks"]:
+            assert rows.get(task), (b["bullet"], task)
+
+
 def test_each_core_change_of_each_other_track_needs_the_label():
     """Each track of tracks.yml other than core: the closed track S3, the
     active tracks S7-tests and S9, and the later tracks."""
