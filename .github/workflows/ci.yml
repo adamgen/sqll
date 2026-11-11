@@ -312,6 +312,16 @@ jobs:
       - name: Check the JSON Schema output with the meta-schema
         run: uv run --frozen --project harness python scripts/s3b/schema_check.py check
 
+      # Task C17 (S3b exit: proof, exit record, and STATUS "S3b awaiting
+      # approval") of S3b (core: the shared syntax tree, source map, frozen
+      # interfaces, and the sqll binary skeleton): the exit record
+      # results/S3b/exit.json must be the output
+      # of its committed inputs. The check also runs the ownership probe
+      # again: a change of a Core path from each later track fails
+      # ci/ownership.py without the label cross-track.
+      - name: Check the S3b exit record
+        run: uv run --frozen --project harness python scripts/s3b/exit.py --check
+
       - uses: actions/upload-artifact@v7
         with:
           name: sqll-build
