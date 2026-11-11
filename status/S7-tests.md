@@ -97,16 +97,18 @@ output of `scripts/s7-tests/inventory` on sqlfluff 4.4.0 (pytest nodes):
 
 T2 (case format, case runner, and pilot cases; S7: CLI and config parity,
 the sqlfluff CLI, config, and Python rule tests as black-box cases) gives
-the case format, the case runner (`scripts/s7-tests/run-cases`; T4
-moved it to `sqll-harness s7 run`), and pilot cases of each group. The recorded report is
+the case format, the case runner (`scripts/s7-tests/run-cases`; T4 (harness
+hooks for the S7 suites: the harness core runs the 3 S7 suites; S7: CLI and
+config parity, the sqlfluff CLI, config, and Python rule tests as black-box
+cases) moved it to `sqll-harness s7 run`), and pilot cases of each group.
+The recorded report is
 [results/S7-tests/report.json](../results/S7-tests/report.json): in scope
 643, converted 15, excluded 3, not yet converted 625. The converted nodes:
 `cli` 8, `rules` 5, `config` 2. 1 converted node needs Jinja
 (`std_LT04_test.py::test__rules__std_LT04_unparseable`) and moves to S11
 (Jinja templater: the last stone; decide with data how sqll supports
-Jinja).
-The excluded nodes: 1 `python-internal`, 1 `needs-python-runtime`, 1
-`engine-comparison`.
+Jinja). The excluded nodes: 1 `python-internal`, 1 `needs-python-runtime`,
+1 `engine-comparison`.
 
 Parity of the 14 converted nodes that S7 (CLI and config parity: the
 sqlfluff CLI, config, and Python rule tests as black-box cases) keeps
@@ -153,7 +155,9 @@ traces `oracle-trace-sqlfluff.json` and `oracle-trace-sqlfluff-rs.json`.
 - Each of the 49 asserts of the pilot source tests has a check that cites
   it. No case uses a row of
   [s7-tests-not-reproduced.md](../docs/decisions/s7-tests-not-reproduced.md).
-  T4 (harness hooks for the S7 suites) added the pointer section in
+  T4 (harness hooks for the S7 suites: the harness core runs the 3 S7
+  suites; S7: CLI and config parity, the sqlfluff CLI, config, and Python
+  rule tests as black-box cases) added the pointer section in
   `harness/not-reproduced.md` (decision 4); the recorded result now has
   `"pointer": true`.
 - The `python-internal` node has no traced CLI or simple-API call.
@@ -178,11 +182,18 @@ replaces `scripts/s7-tests/run-cases`. The design is in the design record,
   of a converted source test has no citing check and no row of the
   not-reproduced record.
 - `harness/not-reproduced.md` has the pointer section "S7 test conversion"
-  (decision 4). THIRD_PARTY.md has the S7 entry.
-- The S1 command `sqll-harness run` and its suites do not change.
+  (decision 4). THIRD_PARTY.md has the entry of S7 (CLI and config parity:
+  the sqlfluff CLI, config, and Python rule tests as black-box cases).
+- The command of S1 (binary test harness: run the sqlfluff test fixtures
+  through a binary, not through function calls; sqlfluff passes 100% of the
+  cases through the harness, and the results of the other tools are
+  recorded), `sqll-harness run`, and its suites do not change.
 
-Results of each suite with each tool (the T2 pilot cases; equal to
-[results/S7-tests/report.json](../results/S7-tests/report.json)):
+Results of each suite with each tool, for the pilot cases of T2 (case
+format, case runner, and pilot cases: one case format and one runner run
+pilot cases through a tool binary; S7: CLI and config parity, the sqlfluff
+CLI, config, and Python rule tests as black-box cases). They are equal to
+[results/S7-tests/report.json](../results/S7-tests/report.json):
 
 | Suite | In scope | Converted | Excluded | sqlfluff | sqlfluff-rs | sqruff |
 |---|---|---|---|---|---|---|
@@ -190,6 +201,8 @@ Results of each suite with each tool (the T2 pilot cases; equal to
 | `s7_config` | 140 | 2 | 0 | 2/2 | 2/2 | 0/2 |
 | `s7_cli` | 295 | 8 | 2 | 8/8 | 7/8 | 0/8 |
 
-The parity columns count the converted nodes that S7 keeps (passed/nodes);
-1 converted `s7_rules` node needs Jinja and moves to S11 (Jinja templater:
-the last stone; decide with data how sqll supports Jinja).
+The parity columns count the converted nodes that S7 (CLI and config
+parity: the sqlfluff CLI, config, and Python rule tests as black-box cases)
+keeps (passed/nodes); 1 converted `s7_rules` node needs Jinja and moves to
+S11 (Jinja templater: the last stone; decide with data how sqll supports
+Jinja).
