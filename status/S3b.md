@@ -440,7 +440,7 @@ schema check: PASS: 4 schemas valid against the JSON Schema draft 2020-12 meta-s
 C16 (the package ownership of the later tracks and the interface index).
 Index: [docs/interfaces/README.md](../docs/interfaces/README.md).
 `tracks.yml` gives `src/**` and `tests/**` of each later package to its
-track (the C4 table, Q5): S4 (parser parity) `sqll_parser` and
+track (the table of C4, the S3b core design record, Q5): S4 (parser parity) `sqll_parser` and
 `sqll_dialects`, S5 (rule parity) `sqll_rules`, S6 (templater parity)
 `sqll_templater`, S7-sqll (CLI and config parity, the sqll part)
 `sqll_cli`, S8 (code generation) `sqll_codegen`, and S10 (PL/pgSQL
@@ -451,7 +451,7 @@ and `crates/sqll_interfaces`) and `docs/decisions/s3b-*.md`.
 
 - S10 (PL/pgSQL bodies) gets `src/**` and `tests/**` of `sqll_plpgsql`,
   not `crates/sqll_plpgsql/**` (the task text): with `**`, S10 would own
-  its `Cargo.toml`, and the C4 rule (Q5) gives each `Cargo.toml` to Core.
+  its `Cargo.toml`, and the rule of C4 (the S3b core design record, Q5) gives each `Cargo.toml` to Core.
   The new empty package has a `Cargo.toml` (Core) and `src/lib.rs` (S10
   in the new `tracks.yml`), so the pull request has the label
   `cross-track`.
@@ -477,7 +477,7 @@ and `crates/sqll_interfaces`) and `docs/decisions/s3b-*.md`.
   Core packages and of `crates/sqll_interfaces`), each frozen interface
   document and test is a Core path, each tracked file under `crates/` has
   its owner, and a new file of a later package with its record entry
-  needs the label. `harness/tests/test_s3b_core.py` compares the C4 table
+  needs the label. `harness/tests/test_s3b_core.py` compares the table of C4 (the S3b core design record)
   with `tracks.yml`.
 - `harness/tests/test_s3b_interfaces.py`: the index has the 8
   interfaces with their task, packages, document, and test; each document

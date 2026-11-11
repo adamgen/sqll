@@ -155,8 +155,9 @@ tracks:
   # is approved (STONES.md). The tracks S4 (parser parity), S5 (rule
   # parity), S6 (templater parity), S7-sqll (CLI and config parity, the
   # sqll part), S8 (code generation), and S10 (PL/pgSQL bodies) also own
-  # src/** and tests/** of their sqll packages (S3b C16;
-  # docs/decisions/s3b-core.md, Q5).
+  # src/** and tests/** of their sqll packages (S3b, the shared core;
+  # C16, the package ownership of the later tracks and the interface
+  # index; docs/decisions/s3b-core.md, Q5).
   S4:
     stones: [S4]
     branches: [claude/s4, claude/s4-*]
