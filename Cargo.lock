@@ -677,6 +677,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "sqll_plpgsql"
+version = "0.1.0"
+
+[[package]]
 name = "sqll_rules"
 version = "0.1.0"
 dependencies = [
