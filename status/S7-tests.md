@@ -102,11 +102,15 @@ group. The recorded report is
 [results/S7-tests/report.json](../results/S7-tests/report.json): in scope
 643, converted 15, excluded 3, not yet converted 625. The converted nodes:
 `cli` 8, `rules` 5, `config` 2. 1 converted node needs Jinja
-(`std_LT04_test.py::test__rules__std_LT04_unparseable`) and moves to S11.
+(`std_LT04_test.py::test__rules__std_LT04_unparseable`) and moves to S11
+(Jinja templater: the last stone; decide with data how sqll supports
+Jinja).
 The excluded nodes: 1 `python-internal`, 1 `needs-python-runtime`, 1
 `engine-comparison`.
 
-Parity of the 14 converted nodes that S7 keeps (nodes):
+Parity of the 14 converted nodes that S7 (CLI and config parity: the
+sqlfluff CLI, config, and Python rule tests as black-box cases) keeps
+(nodes):
 
 | Tool | Nodes | Passed | Failed | Error |
 |---|---|---|---|---|
@@ -122,5 +126,8 @@ Parity of the 14 converted nodes that S7 keeps (nodes):
   fail on the output: `test__cli__command_directed` (sqruff writes the
   lint output to stderr, not to stdout) and `test__cli__command_dialect` (exit code 1, not 2).
 
-The S7 CI jobs and the known-failure lists come with T5 (CI jobs and first
-recorded results of the S7 suites).
+The S7 (CLI and config parity: the sqlfluff CLI, config, and Python rule
+tests as black-box cases) CI jobs and the known-failure lists come with T5
+(CI and `scripts/verify` run the S7 suites and record the results; S7: CLI
+and config parity, the sqlfluff CLI, config, and Python rule tests as
+black-box cases).
