@@ -1,0 +1,54 @@
+# S7 black-box cases (docs/decisions/s7-tests-design.md, "Case format").
+# A derived work of the sqlfluff tests: copyright (c) 2018-2026 Alan
+# Cruickshank, MIT License.
+source:
+  project: sqlfluff
+  version: 4.4.0
+  commit: 0348222a3bcdb0226563f7349c5a39beb0641955
+  file: test/rules/std_ST03_test.py
+license: MIT
+nodes:
+  - node: test/rules/std_ST03_test.py::test__rules__std_ST03_multiple_unused_ctes
+    cases:
+      - name: multiple_unused_ctes
+        run: api
+        function: lint
+        sql: "\n    WITH\n    cte_1 AS (\n        SELECT 1\n    ),\n    cte_2 AS (\n        SELECT 2\n    ),\n    cte_3 AS (\n        SELECT 3\n    ),\n    cte_4 AS (\n        SELECT 4\n    )\n\n    SELECT var_bar\n    FROM cte_3\n    "
+        rules: [ST03]
+        checks:
+          violations:
+            - exact: true
+              records:
+                - code: ST03
+                  description: Query defines CTE "cte_1" but does not use it.
+                  name: structure.unused_cte
+                  warning: false
+                  fixes: []
+                  start_line_no: 3
+                  start_line_pos: 5
+                  start_file_pos: 14
+                  end_line_no: 3
+                  end_line_pos: 10
+                  end_file_pos: 19
+                - code: ST03
+                  description: Query defines CTE "cte_2" but does not use it.
+                  name: structure.unused_cte
+                  warning: false
+                  fixes: []
+                  start_line_no: 6
+                  start_line_pos: 5
+                  start_file_pos: 53
+                  end_line_no: 6
+                  end_line_pos: 10
+                  end_file_pos: 58
+                - code: ST03
+                  description: Query defines CTE "cte_4" but does not use it.
+                  name: structure.unused_cte
+                  warning: false
+                  fixes: []
+                  start_line_no: 12
+                  start_line_pos: 5
+                  start_file_pos: 131
+                  end_line_no: 12
+                  end_line_pos: 10
+                  end_file_pos: 136

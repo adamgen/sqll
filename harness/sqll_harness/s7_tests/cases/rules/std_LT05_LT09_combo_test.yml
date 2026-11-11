@@ -1,0 +1,18 @@
+# S7 black-box cases (docs/decisions/s7-tests-design.md, "Case format").
+# A derived work of the sqlfluff tests: copyright (c) 2018-2026 Alan
+# Cruickshank, MIT License.
+source:
+  project: sqlfluff
+  version: 4.4.0
+  commit: 0348222a3bcdb0226563f7349c5a39beb0641955
+  file: test/rules/std_LT05_LT09_combo_test.py
+license: MIT
+nodes:
+  - node: test/rules/std_LT05_LT09_combo_test.py::test__rules__std_LT05_LT09_long_line_fix
+    cases:
+      - name: long_line_fix
+        run: api
+        function: fix
+        sql: "SELECT 1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\n"
+        checks:
+          fixed: "SELECT\n    1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\n"

@@ -1,0 +1,14 @@
+# The S7 nodes that the harness cannot run through a binary, each with its
+# class (docs/decisions/s7-tests-design.md, "Exclusions"). They are apart
+# from parity. A node of class needs-python-runtime or environment needs a
+# reason of one line.
+excluded:
+  - node: test/cli/commands_test.py::test__get_filtered_parse_violations_caches_rulepack_per_config
+    class: python-internal
+    reason: A spy counts the calls of Linter.get_rulepack in an internal function.
+  - node: test/cli/commands_test.py::test___main___help
+    class: needs-python-runtime
+    reason: It runs "python -m sqlfluff --help", the entry point of the Python module.
+  - node: test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__ignore_words_parity
+    class: engine-comparison
+    reason: It compares use_rust_rules True and False and has no expected value (decision 3).

@@ -20,8 +20,8 @@ one lost day, T9 converts all config tests (before: 2 tasks).
 
 | Task | Description | Goal | State |
 |---|---|---|---|
-| T1 | Design record, scope inventory, and status files | The scope (643 nodes), the design, and the 4 decisions are recorded and tested | In review |
-| T2 | Case format, case runner, and pilot cases | One case format and one runner run pilot cases through a tool binary | Not started |
+| T1 | Design record, scope inventory, and status files | The scope (643 nodes), the design, and the 4 decisions are recorded and tested | Done (PR #60) |
+| T2 | Case format, case runner, and pilot cases | One case format and one runner run pilot cases through a tool binary | In review |
 | T3 | Trace oracle with fail-closed checks | Each case agrees with a trace of its original pytest node | Not started |
 | T4 | Cross-track (Core): harness hooks for the S7 suites | The harness core runs the 3 S7 suites | Not started |
 | T5 | Cross-track (Core): CI jobs, oracle step, and local verify for the S7 suites; the ruff lint of `scripts/s7-tests/` in CI; first recorded results | CI and `scripts/verify` run the S7 suites and record the results | Not started |
@@ -93,5 +93,41 @@ output of `scripts/s7-tests/inventory` on sqlfluff 4.4.0 (pytest nodes):
   `sqlfluff[rs]` 13.5 minutes) found 1 more node that reads it:
   `test/core/linter/discovery_test.py::test__linter__path_from_paths__dot`.
 
-No case is converted yet. Parity numbers and known failures come with T5
-(CI jobs and first recorded results of the S7 suites).
+## Pilot (T2)
+
+T2 (case format, case runner, and pilot cases; S7: CLI and config parity,
+the sqlfluff CLI, config, and Python rule tests as black-box cases) gives
+the case format, `scripts/s7-tests/run-cases`, and pilot cases of each
+group. The recorded report is
+[results/S7-tests/report.json](../results/S7-tests/report.json): in scope
+643, converted 15, excluded 3, not yet converted 625. The converted nodes:
+`cli` 8, `rules` 5, `config` 2. 1 converted node needs Jinja
+(`std_LT04_test.py::test__rules__std_LT04_unparseable`) and moves to S11
+(Jinja templater: the last stone; decide with data how sqll supports
+Jinja).
+The excluded nodes: 1 `python-internal`, 1 `needs-python-runtime`, 1
+`engine-comparison`.
+
+Parity of the 14 converted nodes that S7 (CLI and config parity: the
+sqlfluff CLI, config, and Python rule tests as black-box cases) keeps
+(nodes):
+
+| Tool | Nodes | Passed | Failed | Error |
+|---|---|---|---|---|
+| sqlfluff | 14 | 14 | 0 | 0 |
+| sqlfluff-rs | 14 | 13 | 1 | 0 |
+| sqruff | 14 | 1 | 13 | 0 |
+
+- sqlfluff-rs: `test__cli__command_directed` fails. With
+  `use_rust_rules`, the CP01 description is "Keywords must be consistent."
+  and not "Keywords must be consistently upper case.".
+- sqruff: 11 nodes fail with `unsupported: <item>` (no sqruff translation
+  of the CLI command, `rule all`, or output fields). 2 translated CLI nodes
+  fail on the output: `test__cli__command_directed` (sqruff writes the
+  lint output to stderr, not to stdout) and `test__cli__command_dialect` (exit code 1, not 2).
+
+The S7 (CLI and config parity: the sqlfluff CLI, config, and Python rule
+tests as black-box cases) CI jobs and the known-failure lists come with T5
+(CI and `scripts/verify` run the S7 suites and record the results; S7: CLI
+and config parity, the sqlfluff CLI, config, and Python rule tests as
+black-box cases).

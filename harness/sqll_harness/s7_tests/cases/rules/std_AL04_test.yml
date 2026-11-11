@@ -1,0 +1,27 @@
+# S7 black-box cases (docs/decisions/s7-tests-design.md, "Case format").
+# A derived work of the sqlfluff tests: copyright (c) 2018-2026 Alan
+# Cruickshank, MIT License.
+source:
+  project: sqlfluff
+  version: 4.4.0
+  commit: 0348222a3bcdb0226563f7349c5a39beb0641955
+  file: test/rules/std_AL04_test.py
+license: MIT
+nodes:
+  - node: test/rules/std_AL04_test.py::test__rules__std_AL04_one_aliases_two_duplicate
+    cases:
+      - name: one_aliases_two_duplicate
+        run: api
+        function: lint
+        sql: "\n        SELECT\n            a.pk\n        FROM table_1 AS a\n        JOIN table_2 AS a ON a.pk = a.pk\n        JOIN table_3 AS a ON a.pk = a.pk\n    "
+        checks:
+          violations:
+            # The source filters the AL04 violations, then checks them.
+            - select: {code: AL04}
+              records:
+                - start_line_no: 5
+                - start_line_no: 6
+            - select:
+                code: AL04
+                description: {contains: Duplicate table alias 'a'}
+              count: 2
