@@ -1,5 +1,6 @@
 """Command line: sqll-harness run | merge | tools | known-failures | summarize |
-bench (inputs | reference | run | merge | check | compare) | s7 run.
+bench (inputs | reference | run | merge | check | compare) |
+s7 (run | merge | summarize | known-failures).
 
 See harness/README.md.
 """
@@ -735,8 +736,8 @@ def main(argv: list[str] | None = None) -> int:
         return bench_check_command(args)
     if args.command == "bench" and args.bench_command == "compare":
         return bench_compare_command(args)
-    if args.command == "s7" and args.s7_command == "run":
-        return s7_command.run(args)
+    if args.command == "s7":
+        return s7_command.main(args)
     return 2
 
 

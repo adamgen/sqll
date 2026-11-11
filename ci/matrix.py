@@ -9,7 +9,13 @@ The report job gives the same folder to "sqll-harness merge --expect"
 (merge.load_expected reads it the same way), so a missing shard report
 makes CI fail.
 
-Usage: ci/matrix.py [MATRIX_DIR_OR_JSON]
+The entries of the S7 suites (S7_SUITES) are not in the matrix of the test
+jobs: with --s7, the output is only these entries, for the s7 jobs ("sqll-
+harness s7 run"). The s7-report job gives the folder to "sqll-harness s7
+merge --expect". The S7 runner has no shards, so an S7 entry must have 1
+shard.
+
+Usage: ci/matrix.py [--s7] [MATRIX_DIR_OR_JSON]
 """
 
 import json
@@ -17,6 +23,10 @@ import sys
 from pathlib import Path
 
 DEFAULT = Path(__file__).resolve().parent / "matrix.d"
+# The S7 suites (harness/sqll_harness/s7_tests/suites.py; a unit test
+# compares them). This script runs before the harness is installed, so it
+# does not import it.
+S7_SUITES = ("s7_rules", "s7_config", "s7_cli")
 
 
 def load(path: Path) -> list[dict]:
@@ -32,16 +42,22 @@ def load(path: Path) -> list[dict]:
     return [e for f in files for e in load(f)]
 
 
-def expand(entries: list[dict]) -> dict:
+def expand(entries: list[dict], s7: bool = False) -> dict:
+    """The matrix of the S1 entries, or with s7 of the S7 entries. Each entry
+    is checked."""
     include = []
     seen = set()
     for e in entries:
         suite, tool, shards = e["suite"], e["tool"], int(e["shards"])
         if shards < 1:
             raise ValueError(f"{suite}/{tool}: shards must be 1 or more")
+        if suite in S7_SUITES and shards != 1:
+            raise ValueError(f"{suite}/{tool}: an S7 suite must have 1 shard")
         if (suite, tool) in seen:
             raise ValueError(f"{suite}/{tool}: two entries")
         seen.add((suite, tool))
+        if (suite in S7_SUITES) != s7:
+            continue
         for k in range(1, shards + 1):
             include.append(
                 {
@@ -55,8 +71,10 @@ def expand(entries: list[dict]) -> dict:
 
 
 def main(argv: list[str]) -> int:
-    path = Path(argv[0]) if argv else DEFAULT
-    print(json.dumps(expand(load(path)), separators=(",", ":")))
+    s7 = argv[:1] == ["--s7"]
+    rest = argv[1:] if s7 else argv
+    path = Path(rest[0]) if rest else DEFAULT
+    print(json.dumps(expand(load(path), s7), separators=(",", ":")))
     return 0
 
 

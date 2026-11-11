@@ -20,7 +20,8 @@ env:
 
 jobs:
   # If a pull request changes only documents (ci/changes.py), the test,
-  # report, dialect-oracle, bench-smoke, and corpus-smoke jobs do not run.
+  # report, dialect-oracle, s7, s7-report, bench-smoke, and corpus-smoke jobs
+  # do not run.
   # The image and lint jobs always run. A push always runs all jobs. The heavy jobs run
   # unless full is 'false', so an empty output gives a full run.
   changes:
@@ -50,6 +51,7 @@ jobs:
     outputs:
       image: ${{ steps.tag.outputs.image }}
       matrix: ${{ steps.tag.outputs.matrix }}
+      s7_matrix: ${{ steps.tag.outputs.s7_matrix }}
       bench_matrix: ${{ steps.tag.outputs.bench_matrix }}
       corpus_matrix: ${{ steps.tag.outputs.corpus_matrix }}
     steps:
@@ -59,6 +61,7 @@ jobs:
         run: |
           echo "image=$IMAGE_REPO:$(python3 ci/image_tag.py)" >> "$GITHUB_OUTPUT"
           echo "matrix=$(python3 ci/matrix.py)" >> "$GITHUB_OUTPUT"
+          echo "s7_matrix=$(python3 ci/matrix.py --s7)" >> "$GITHUB_OUTPUT"
           echo "bench_matrix=$(python3 ci/bench_matrix.py)" >> "$GITHUB_OUTPUT"
           echo "corpus_matrix=$(python3 ci/corpus_matrix.py)" >> "$GITHUB_OUTPUT"
 
@@ -126,9 +129,15 @@ jobs:
             scripts/sqlfluff_oracle.py scripts/sqlfluff-rule-oracle
             scripts/sqlfluff-autofix-oracle scripts/sqlfluff-templater-oracle
             scripts/sqlfluff-dialect-oracle scripts/sqlfluff-case-ids
+          # The folder gives each .py file; the other S7 scripts have no
+          # extension (harness/tests/test_ci.py checks that each is here).
+          S7_SCRIPTS: >-
+            scripts/s7-tests scripts/s7-tests/config-readers
+            scripts/s7-tests/inventory scripts/s7-tests/oracle
+            scripts/s7-tests/trace-nodes
         run: |
-          uv run --frozen --project harness ruff check harness ci $ORACLES scripts/build-sqll scripts/speed-check scripts/s3 scripts/s3b
-          uv run --frozen --project harness ruff format --check harness ci $ORACLES scripts/build-sqll scripts/speed-check scripts/s3 scripts/s3b
+          uv run --frozen --project harness ruff check harness ci $ORACLES scripts/build-sqll scripts/speed-check scripts/s3 scripts/s3b $S7_SCRIPTS
+          uv run --frozen --project harness ruff format --check harness ci $ORACLES scripts/build-sqll scripts/speed-check scripts/s3 scripts/s3b $S7_SCRIPTS
 
       - name: Unit tests
         env:
@@ -541,6 +550,124 @@ jobs:
           name: dialect-oracle-${{ matrix.tool }}
           path: out/dialect-oracle-${{ matrix.tool }}.jsonl
           if-no-files-found: error
+
+  # The S7 suites (docs/decisions/s7-tests-design.md, "CI"): one job for each
+  # suite and tool of ci/matrix.d (ci/matrix.py --s7). Each job checks its
+  # results against the known failures and the recorded report. sqll joins
+  # with track S7-sqll (it will need the build job then).
+  s7:
+    needs: [changes, image]
+    if: needs.changes.outputs.full != 'false'
+    name: s7 (${{ matrix.name }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: read
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.image.outputs.s7_matrix) }}
+    container:
+      image: ${{ needs.image.outputs.image }}
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: true
+
+      # The runner user owns the workspace, not the container user.
+      - run: git config --global --add safe.directory '*'
+
+      # The command also runs scripts/check-submodule after the cases.
+      - name: Run the S7 suite
+        run: >-
+          uv run --frozen --project harness sqll-harness s7 run
+          --suite ${{ matrix.suite }} --tool ${{ matrix.tool }}
+          --known-failures results/S7-tests/known_failures
+          --check results/S7-tests/report.json
+          --out out/s7-shards/${{ matrix.name }}.json
+
+      - if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: s7-shard-${{ matrix.name }}
+          path: out/s7-shards/${{ matrix.name }}.json
+          if-no-files-found: error
+
+  # Merge the reports of the s7 jobs, check the known failures and the
+  # recorded summary again, and prove the converted cases with the trace of
+  # each original sqlfluff test (scripts/s7-tests/oracle, T3).
+  s7-report:
+    needs: [changes, image, s7]
+    if: >-
+      always() && needs.changes.outputs.full != 'false' &&
+      needs.image.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      packages: read
+    container:
+      image: ${{ needs.image.outputs.image }}
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: true
+
+      # The runner user owns the workspace, not the container user.
+      - run: git config --global --add safe.directory '*'
+
+      - uses: actions/download-artifact@v7
+        with:
+          pattern: s7-shard-*
+          path: out/s7-shards
+          merge-multiple: true
+
+      - name: Merge the S7 reports
+        run: >-
+          uv run --frozen --project harness sqll-harness s7 merge
+          --expect ci/matrix.d --known-failures results/S7-tests/known_failures
+          out/s7-shards/*.json --out out/s7-tests/report.json
+
+      # The recorded summary must be the summary of this run. To record a new
+      # one, copy out/s7-tests/summary.json of the s7-report artifact.
+      - name: Check the recorded S7 summary
+        run: >-
+          uv run --frozen --project harness sqll-harness s7 summarize
+          out/s7-tests/report.json --out out/s7-tests/summary.json
+          --check results/S7-tests/summary.json
+
+      # Each converted case must agree with the trace of its original pytest
+      # node, with sqlfluff and with sqlfluff-rs. The script also runs
+      # scripts/check-submodule.
+      - name: Compare the S7 cases with the sqlfluff tests
+        run: >-
+          uv run --frozen --project harness scripts/s7-tests/oracle
+          --report out/s7-tests/report.json --out out/s7-tests/oracle.json
+          --check results/S7-tests/oracle.json
+
+      - if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: s7-report
+          path: |
+            out/s7-tests/report.json
+            out/s7-tests/summary.json
+            out/s7-tests/oracle.json
+            out/s7-tests/oracle-trace-sqlfluff.json
+            out/s7-tests/oracle-trace-sqlfluff-rs.json
+          if-no-files-found: error
+
+      - name: Check the S7 jobs
+        if: needs.s7.result != 'success'
+        run: |
+          echo "An S7 job did not succeed: ${{ needs.s7.result }}"
+          exit 1
 
   # The S2 smoke benchmark (harness/bench.md): start and small, all tools,
   # 1 timed run. sqll is the binary of the build job. Locally: scripts/verify.

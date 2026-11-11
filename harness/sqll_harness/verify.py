@@ -13,15 +13,24 @@ workflow, job, or step key is not known.
 
 Output: one line for each check, a log for each check in out/verify/, and
 out/verify.json. With --quick: out/verify-quick/ and out/verify-quick.json,
-so a quick run does not delete the result of a full run. With --full-bench
+so a quick run does not delete the result of a full run. With --s7: only the
+checks of the S7 suites (the setup, the tools, the ruff checks, the run of
+all S7 suites and tools, its summary check, and the S7 oracle);
+out/verify-s7/ and out/verify-s7.json. With --full-bench
 (G4.4: all tests and all benchmarks in one command): also the full benchmark
 and the full corpus run, and their baseline checks, as the CI jobs
 bench-full, bench-merge, corpus-full, and corpus-merge;
 out/verify-full-bench/ and out/verify-full-bench.json. The result names the
 reports of the checks ("reports").
+
+Each mode but --quick and --list takes the machine lock (MACHINE_LOCK;
+PROCESS.md, "Tracks", rule 7): it waits while another long run on this
+machine has it. If a parent process has it (for example "flock
+/tmp/sqll-machine.lock scripts/verify"), the run uses that lock.
 """
 
 import argparse
+import contextlib
 import fcntl
 import json
 import os
@@ -41,20 +50,29 @@ CI_FILE = REPO_ROOT / ".github" / "workflows" / "ci.yml"
 OUT_DIR = REPO_ROOT / "out"
 REPORT = OUT_DIR / "report.json"
 LOCK = OUT_DIR / "verify.lock"
+# The lock of the long local runs of all checkouts of this machine (PROCESS.md,
+# "Tracks", rule 7).
+MACHINE_LOCK = Path("/tmp/sqll-machine.lock")
+S7_REPORT = OUT_DIR / "s7-tests" / "report.json"
 
 
-def mode_name(quick: bool, full_bench: bool = False) -> str:
+def mode_name(quick: bool, full_bench: bool = False, s7: bool = False) -> str:
+    if s7:
+        return "s7"
     return "quick" if quick else "full-bench" if full_bench else "full"
 
 
-def result_paths(quick: bool, full_bench: bool = False) -> tuple[Path, Path]:
+def result_paths(
+    quick: bool, full_bench: bool = False, s7: bool = False
+) -> tuple[Path, Path]:
     """Return the result file and the log folder of a mode."""
     name = {
         "quick": "verify-quick",
         "full": "verify",
         "full-bench": "verify-full-bench",
+        "s7": "verify-s7",
     }
-    stem = name[mode_name(quick, full_bench)]
+    stem = name[mode_name(quick, full_bench, s7)]
     return OUT_DIR / f"{stem}.json", OUT_DIR / stem
 
 
@@ -94,6 +112,16 @@ CI_ONLY = {
     "dialect-oracle: git config --global --add safe.directory '*'": "container user",
     "dialect-oracle: actions/download-artifact": "artifact download",
     "dialect-oracle: actions/upload-artifact": "artifact upload",
+    "s7: actions/checkout": "checkout",
+    "s7: git config --global --add safe.directory '*'": "container user",
+    "s7: actions/upload-artifact": "artifact upload",
+    "s7-report: actions/checkout": "checkout",
+    "s7-report: git config --global --add safe.directory '*'": "container user",
+    "s7-report: actions/download-artifact": "artifact download",
+    "s7-report: Merge the S7 reports": "merge of the S7 jobs; the run of all S7"
+    " suites and tools does the known-failure check on all nodes",
+    "s7-report: actions/upload-artifact": "artifact upload",
+    "s7-report: Check the S7 jobs": "result of the S7 jobs; locally the s7-run check",
     "bench-smoke: actions/checkout": "checkout",
     "bench-smoke: git config --global --add safe.directory '*'": "container user",
     "bench-smoke: actions/download-artifact": "artifact download; locally the"
@@ -139,6 +167,7 @@ CI_ONLY_RUN = {
     "image: tag": (
         'echo "image=$IMAGE_REPO:$(python3 ci/image_tag.py)" >> "$GITHUB_OUTPUT"\n'
         'echo "matrix=$(python3 ci/matrix.py)" >> "$GITHUB_OUTPUT"\n'
+        'echo "s7_matrix=$(python3 ci/matrix.py --s7)" >> "$GITHUB_OUTPUT"\n'
         'echo "bench_matrix=$(python3 ci/bench_matrix.py)" >> "$GITHUB_OUTPUT"\n'
         'echo "corpus_matrix=$(python3 ci/corpus_matrix.py)" >> "$GITHUB_OUTPUT"'
     ),
@@ -159,6 +188,8 @@ CI_ONLY_RUN = {
             "test",
             "report",
             "dialect-oracle",
+            "s7",
+            "s7-report",
             "bench-smoke",
             "bench-full",
             "corpus-smoke",
@@ -176,6 +207,14 @@ CI_ONLY_RUN = {
     ),
     "report: Check test jobs": (
         'echo "A test job did not succeed: ${{ needs.test.result }}"\nexit 1'
+    ),
+    "s7-report: Merge the S7 reports": (
+        f"{UV} sqll-harness s7 merge --expect ci/matrix.d"
+        " --known-failures results/S7-tests/known_failures"
+        " out/s7-shards/*.json --out out/s7-tests/report.json"
+    ),
+    "s7-report: Check the S7 jobs": (
+        'echo "An S7 job did not succeed: ${{ needs.s7.result }}"\nexit 1'
     ),
     "bench-merge: Merge": (
         f"{UV} sqll-harness bench merge --expect ci/bench-matrix.json"
@@ -202,6 +241,8 @@ JOB_IF = {
     "build": _FULL,
     "test": _FULL,
     "report": f"always() && {_FULL} && needs.image.result == 'success'",
+    "s7": _FULL,
+    "s7-report": f"always() && {_FULL} && needs.image.result == 'success'",
     "bench-smoke": _FULL,
     "bench-full": _NOT_PR,
     "bench-merge": _NOT_PR,
@@ -218,6 +259,8 @@ JOB_NEEDS = {
     "test": ["changes", "image", "build"],
     "report": ["changes", "image", "test"],
     "dialect-oracle": ["image", "report"],
+    "s7": ["changes", "image"],
+    "s7-report": ["changes", "image", "s7"],
     "bench-smoke": ["changes", "image", "build"],
     "bench-full": ["image", "build"],
     "bench-merge": ["image", "bench-full"],
@@ -234,6 +277,7 @@ JOB_OUTPUTS = {
     "image": {
         "image": "${{ steps.tag.outputs.image }}",
         "matrix": "${{ steps.tag.outputs.matrix }}",
+        "s7_matrix": "${{ steps.tag.outputs.s7_matrix }}",
         "bench_matrix": "${{ steps.tag.outputs.bench_matrix }}",
         "corpus_matrix": "${{ steps.tag.outputs.corpus_matrix }}",
     },
@@ -256,6 +300,9 @@ STEP_IF = {
     "report: actions/upload-artifact": "always()",
     "report: Check test jobs": "needs.test.result != 'success'",
     "dialect-oracle: actions/upload-artifact": "always()",
+    "s7: actions/upload-artifact": "always()",
+    "s7-report: actions/upload-artifact": "always()",
+    "s7-report: Check the S7 jobs": "needs.s7.result != 'success'",
     "bench-smoke: actions/upload-artifact": "always()",
     "bench-full: actions/upload-artifact": "always()",
     "bench-merge: actions/upload-artifact": "always()",
@@ -333,6 +380,9 @@ BENCH_SHARD_ARGS = (
 
 SETUP = "setup"
 REPORT_FILE = "report"
+S7_REPORT_FILE = "s7-report"
+S7_OUT = "out/s7-tests"
+S7_RESULTS = "results/S7-tests"
 BENCH_FULL = "out/bench-full.json"
 CORPUS_SMOKE = "out/corpus.json"
 CORPUS_FULL = "out/corpus-full.json"
@@ -348,7 +398,8 @@ class Check:
     ci: tuple[str, ...] = ()
     quick: bool = False
     # SETUP: skip if the setup check failed. REPORT_FILE: skip if the run did
-    # not write out/report.json.
+    # not write out/report.json. S7_REPORT_FILE: skip if the S7 run did not
+    # write out/s7-tests/report.json.
     needs: tuple[str, ...] = ()
     # Files to delete before the command runs.
     removes: tuple[str, ...] = ()
@@ -356,6 +407,8 @@ class Check:
     report: str | None = None
     # Only with --full-bench.
     full_bench: bool = False
+    # Also in the --s7 mode.
+    s7: bool = False
     # (CI text, local text) replacements in the CI command before the drift
     # test compares it with the local command. Each CI text must occur.
     ci_diff: tuple[tuple[str, str], ...] = field(default=(), compare=False)
@@ -369,8 +422,17 @@ ORACLES = (
 # The tools of scripts/setup. The lint job checks them; the build job makes
 # sqll later.
 INSTALLED_TOOLS = "--tool sqlfluff --tool sqlfluff-rs --tool sqruff"
+# The S7 scripts: the folder gives each .py file; the other scripts have no
+# extension.
+S7_SCRIPTS = (
+    "scripts/s7-tests scripts/s7-tests/config-readers scripts/s7-tests/inventory"
+    " scripts/s7-tests/oracle scripts/s7-tests/trace-nodes"
+)
 # The Python files that the lint job checks with ruff, after harness and ci.
-LINTED = f"{ORACLES} scripts/build-sqll scripts/speed-check scripts/s3 scripts/s3b"
+LINTED = (
+    f"{ORACLES} scripts/build-sqll scripts/speed-check scripts/s3 scripts/s3b"
+    f" {S7_SCRIPTS}"
+)
 ORACLE_PY = '"$SQLL_TOOLS_DIR/sqlfluff-oracle/bin/python"'
 RS_PY = '"$SQLL_TOOLS_DIR/sqlfluff-rs-oracle/bin/python"'
 LINT_SUBMODULE = "lint: Check that the sqlfluff submodule is clean"
@@ -410,11 +472,12 @@ def checks(jobs: int | None = None) -> list[Check]:
     )
     rep = (SETUP, REPORT_FILE)
     return [
-        Check("setup", "scripts/setup", quick=True),
+        Check("setup", "scripts/setup", quick=True, s7=True),
         Check(
             "submodule-before",
             'scripts/check-submodule "before the tests"',
             quick=True,
+            s7=True,
         ),
         Check(
             "tools",
@@ -423,18 +486,21 @@ def checks(jobs: int | None = None) -> list[Check]:
             ("lint: Tools",),
             quick=True,
             needs=(SETUP,),
+            s7=True,
         ),
         Check(
             "ruff-check",
             f"{UV} ruff check harness ci {LINTED}",
             ("lint: Lint",),
             quick=True,
+            s7=True,
         ),
         Check(
             "ruff-format",
             f"{UV} ruff format --check harness ci {LINTED}",
             ("lint: Lint",),
             quick=True,
+            s7=True,
         ),
         Check(
             "unit-tests",
@@ -704,6 +770,44 @@ def checks(jobs: int | None = None) -> list[Check]:
             ),
             ("dialect-oracle: Compare the dialect results with the sqlfluff tests",),
             needs=rep,
+        ),
+        # The S7 suites: one run of all suites and tools, as all s7 jobs. The
+        # command also checks the submodule after the cases.
+        Check(
+            "s7-run",
+            f"{UV} sqll-harness s7 run{jobs_arg}"
+            f" --known-failures {S7_RESULTS}/known_failures"
+            f" --check {S7_RESULTS}/report.json --out {S7_OUT}/report.json",
+            ("s7: Run the S7 suite",),
+            needs=(SETUP,),
+            removes=(f"{S7_OUT}/report.json",),
+            report=f"{S7_OUT}/report.json",
+            s7=True,
+            ci_diff=(
+                (" --suite {} --tool {}", ""),
+                (" --out out/s7-shards/{}.json", f" --out {S7_OUT}/report.json"),
+            ),
+        ),
+        Check(
+            "s7-summary",
+            f"{UV} sqll-harness s7 summarize {S7_OUT}/report.json"
+            f" --out {S7_OUT}/summary.json --check {S7_RESULTS}/summary.json",
+            ("s7-report: Check the recorded S7 summary",),
+            needs=(SETUP, S7_REPORT_FILE),
+            removes=(f"{S7_OUT}/summary.json",),
+            report=f"{S7_OUT}/summary.json",
+            s7=True,
+        ),
+        # The script also checks the submodule after the traces.
+        Check(
+            "s7-oracle",
+            f"{UV} scripts/s7-tests/oracle --report {S7_OUT}/report.json"
+            f" --out {S7_OUT}/oracle.json --check {S7_RESULTS}/oracle.json",
+            ("s7-report: Compare the S7 cases with the sqlfluff tests",),
+            needs=(SETUP, S7_REPORT_FILE),
+            removes=(f"{S7_OUT}/oracle.json",),
+            report=f"{S7_OUT}/oracle.json",
+            s7=True,
         ),
         # The smoke benchmark.
         Check(
@@ -1175,8 +1279,10 @@ def _run(command: str, log) -> int:
             proc.wait()
 
 
-def run_checks(selected: list[Check], quick: bool, full_bench: bool = False) -> dict:
-    _, log_dir = result_paths(quick, full_bench)
+def run_checks(
+    selected: list[Check], quick: bool, full_bench: bool = False, s7: bool = False
+) -> dict:
+    _, log_dir = result_paths(quick, full_bench, s7)
     log_dir.mkdir(parents=True, exist_ok=True)
     for old in log_dir.glob("*.log"):
         old.unlink()
@@ -1205,6 +1311,8 @@ def run_checks(selected: list[Check], quick: bool, full_bench: bool = False) -> 
             reason = "the setup check failed"
         elif REPORT_FILE in check.needs and not REPORT.exists():
             reason = "the run check wrote no out/report.json"
+        elif S7_REPORT_FILE in check.needs and not S7_REPORT.exists():
+            reason = "the s7-run check wrote no out/s7-tests/report.json"
         if reason:
             entry.update(status="skip", reason=reason)
             print(f"{head} SKIP  ({reason})", flush=True)
@@ -1246,8 +1354,8 @@ def run_checks(selected: list[Check], quick: bool, full_bench: bool = False) -> 
         clean = clean and end_clean
     ok = all(r["status"] == "pass" for r in results)
     return {
-        "mode": mode_name(quick, full_bench),
-        "full_verification": not quick,
+        "mode": mode_name(quick, full_bench, s7),
+        "full_verification": not quick and not s7,
         "full_benchmark": full_bench,
         "result": "pass" if ok else "fail",
         "commit": commit,
@@ -1259,6 +1367,64 @@ def run_checks(selected: list[Check], quick: bool, full_bench: bool = False) -> 
         "reports": reports,
         "checks": results,
     }
+
+
+def _lock_holders(path: Path) -> set[int]:
+    """Return the pids that hold a flock lock on the file (Linux /proc/locks).
+    An empty set if it is not known."""
+    try:
+        st = path.stat()
+        text = Path("/proc/locks").read_text(encoding="utf8")
+    except OSError:
+        return set()
+    file_id = f"{os.major(st.st_dev):02x}:{os.minor(st.st_dev):02x}:{st.st_ino}"
+    pids = set()
+    for line in text.splitlines():
+        # "1: FLOCK  ADVISORY  WRITE 1234 00:2f:5678 0 EOF". A process that
+        # waits for the lock has "->" after the number.
+        words = line.split()
+        if len(words) >= 6 and words[1] == "FLOCK" and words[5] == file_id:
+            with contextlib.suppress(ValueError):
+                pids.add(int(words[4]))
+    return pids
+
+
+def _ancestors(pid: int | None = None) -> set[int]:
+    """Return the pids of the parent processes of a process (default: this one)."""
+    out = set()
+    pid = os.getppid() if pid is None else pid
+    while pid > 1 and pid not in out:
+        out.add(pid)
+        try:
+            stat = Path(f"/proc/{pid}/stat").read_text(encoding="utf8")
+            pid = int(stat.rsplit(")", 1)[1].split()[1])
+        except (OSError, ValueError, IndexError):
+            break
+    return out
+
+
+@contextlib.contextmanager
+def machine_lock(path: Path):
+    """Hold the machine lock of the long local runs (PROCESS.md, "Tracks",
+    rule 7). Wait while another process has it. If a parent process has it
+    (for example "flock /tmp/sqll-machine.lock scripts/verify"), do not wait."""
+    fd = os.open(path, os.O_RDONLY | os.O_CREAT, 0o666)
+    try:
+        try:
+            fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            if _lock_holders(path) & _ancestors():
+                print(f"The machine lock {path} is held by a parent process.")
+            else:
+                print(
+                    f"Waiting for the machine lock {path}: another long run is on"
+                    " this machine (PROCESS.md, Tracks, rule 7).",
+                    flush=True,
+                )
+                fcntl.flock(fd, fcntl.LOCK_EX)
+        yield
+    finally:
+        os.close(fd)
 
 
 def _positive(text: str) -> int:
@@ -1290,15 +1456,24 @@ def main(argv: list[str] | None = None) -> int:
         " jobs bench-full, bench-merge, corpus-full, and corpus-merge. With the"
         " other checks, this runs all tests and benchmarks (G4.4).",
     )
+    p.add_argument(
+        "--s7",
+        action="store_true",
+        help="Run only the checks of the S7 suites: the setup, the tools, the"
+        " ruff checks, the run of all S7 suites and tools, its summary check, and"
+        " the S7 oracle.",
+    )
     p.add_argument("--list", action="store_true", help="Print the checks and stop.")
     args = p.parse_args(argv)
-    if args.quick and args.full_bench:
-        p.error("--quick and --full-bench cannot be used together")
+    if sum((args.quick, args.full_bench, args.s7)) > 1:
+        p.error("--quick, --full-bench, and --s7 cannot be used together")
 
     selected = [
         c
         for c in checks(args.jobs)
-        if (c.quick or not args.quick) and (args.full_bench or not c.full_bench)
+        if (c.s7 if args.s7 else True)
+        and (c.quick or not args.quick)
+        and (args.full_bench or not c.full_bench)
     ]
     if args.list:
         for c in selected:
@@ -1319,15 +1494,24 @@ def main(argv: list[str] | None = None) -> int:
                 file=sys.stderr,
             )
             return 2
-        return _main(selected, args.quick, args.full_bench)
+        if args.quick:
+            return _main(selected, args.quick, args.full_bench, args.s7)
+        with machine_lock(MACHINE_LOCK):
+            return _main(selected, args.quick, args.full_bench, args.s7)
 
 
-def _main(selected: list[Check], quick: bool, full_bench: bool = False) -> int:
+def _main(
+    selected: list[Check], quick: bool, full_bench: bool = False, s7: bool = False
+) -> int:
     quick_note = "QUICK: only the fast checks. This is NOT the full verification."
     if quick:
         print(quick_note)
-    result = run_checks(selected, quick, full_bench)
-    path, _ = result_paths(quick, full_bench)
+    if s7:
+        print(
+            "S7: only the checks of the S7 suites. This is NOT the full verification."
+        )
+    result = run_checks(selected, quick, full_bench, s7)
+    path, _ = result_paths(quick, full_bench, s7)
     path.write_text(json.dumps(result, indent=1) + "\n", encoding="utf8")
     print(
         f"{result['result'].upper()}: {result['passed']} passed,"

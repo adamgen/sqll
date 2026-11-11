@@ -257,6 +257,48 @@ tools (format 2).
   one does not agree, if a class is unknown, if a `needs-python-runtime`
   or `environment` node has no reason, or if a node is not of the suites.
 
+## Known failures
+
+`results/S7-tests/known_failures/<tool>.txt` (T5: CI jobs, oracle step, and
+local verify for the S7 suites; CI and `scripts/verify` run the S7 suites and
+record the results). The format is that of the S1 lists: one pytest node id
+on each line, sorted, no duplicates, the reason after `#`. The loader
+(`sqll_harness/s7_tests/known.py`) fails closed (exit code 2) on a format
+error, an id that is not a node of `scope.json`, and an id with no reason.
+A node fails for a tool if its status is not `pass`. With `--known-failures
+DIR`, `s7 run` and `s7 merge` give exit code 1 on a new failure (a node that
+fails and is not listed) and on an unexpected pass (a listed node that
+passes, or a listed node of a suite of the report that is not a converted
+node of it). A listed node of another suite is not checked. The sqlfluff
+list has no node: sqlfluff must pass each converted node.
+
+## Summary
+
+`results/S7-tests/summary.json` (`sqll-harness s7 summarize`): the counts,
+the parity, and the `s11_jinja` result of the report; for each suite its
+counts and the parity of each tool; and for each tool the number of nodes
+that do not pass (its known failures). Only a report of all suites and all
+tools gives a summary.
+
+## CI
+
+- `ci/matrix.d/S7-tests.json`: one entry for each suite and tool, each with
+  1 shard. `ci/matrix.py` keeps the entries of the S7 suites out of the
+  `test` matrix; `ci/matrix.py --s7` gives them to the `s7` jobs.
+- Each `s7` job: `sqll-harness s7 run --suite S --tool T --known-failures
+  results/S7-tests/known_failures --check results/S7-tests/report.json`.
+- The `s7-report` job: `sqll-harness s7 merge --expect ci/matrix.d
+  --known-failures ...` (each S7 suite and tool of the matrix once, no other;
+  the parts of a suite have the same nodes; one version for each tool), then
+  `s7 summarize --check results/S7-tests/summary.json`, then the trace
+  oracle on the merged report with `--check results/S7-tests/oracle.json`.
+- The lint job runs `ruff check` and `ruff format --check` on
+  `scripts/s7-tests` and on each S7 script with no `.py` extension.
+- `scripts/verify` runs the same checks on one run of all suites and tools
+  (`s7-run`, `s7-summary`, `s7-oracle`); `scripts/verify --s7` runs only
+  these, the setup, the tools, and ruff. Each mode but `--quick` takes the
+  machine lock (PROCESS.md, "Tracks", rule 7).
+
 ## Suites and tools
 
 - 3 suites: `s7_rules` (group `rules`), `s7_config` (groups `config` and
@@ -391,7 +433,13 @@ with the original sqlfluff tests. T3 made it.
 
 - Track paths: the suites, `results/S7-tests/known_failures/<tool>.txt`,
   `results/S7-tests/summary.json`, `ci/matrix.d/S7-tests.json`, and
-  `docs/decisions/s7-tests-not-reproduced.md`.
+  `docs/decisions/s7-tests-not-reproduced.md`. T5 (CI jobs, oracle step,
+  and local verify for the S7 suites; CI and `scripts/verify` run the S7
+  suites and record the results) added the known-failure lists, the
+  summary, and the matrix fragment, and the Core changes of "CI" above
+  (`.github/workflows/ci.yml`, `ci/matrix.py`, `ci/changes.py`,
+  `sqll_harness/merge.py`, `sqll_harness/verify.py`, `sqll_harness/cli.py`,
+  `scripts/verify`, `harness/README.md`).
 - Cross-track pull requests that the Core track reviews, T4 (harness hooks
   for the S7 suites) and T5 (CI jobs and first results of the S7 suites):
   the harness core hooks, the CI workflow, `scripts/verify`,

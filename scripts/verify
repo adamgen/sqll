@@ -1,9 +1,15 @@
 #!/bin/sh
 # Run locally each check that CI runs (.github/workflows/ci.yml), also the
 # full run of all tools and suites. The exit code is 0 only if all checks pass.
-# Usage: scripts/verify [--jobs N] [--quick | --full-bench] [--list]
+# Usage: scripts/verify [--jobs N] [--quick | --full-bench | --s7] [--list]
 # Output: one line for each check, out/verify.json and out/verify/*.log
 # (--quick: out/verify-quick.json and out/verify-quick/*.log).
+# --s7 runs only the checks of the S7 suites (the run of all S7 suites and
+# tools, its known-failure and summary checks, and the S7 oracle). Output:
+# out/verify-s7.json and out/verify-s7/*.log.
+# Each mode but --quick takes the machine lock /tmp/sqll-machine.lock
+# (PROCESS.md, "Tracks", rule 7): it waits while another long run on this
+# machine has it, and uses it if a parent process (flock) has it.
 # --full-bench also runs the full benchmark and its baseline check: all
 # tests and benchmarks in one command (G4.4). Output:
 # out/verify-full-bench.json (its "reports" names each report) and

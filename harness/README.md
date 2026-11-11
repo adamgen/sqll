@@ -30,18 +30,26 @@ exit code is not 0 if a result is different from `known_failures/<tool>.txt`.
 untracked or ignored file. `scripts/test` runs it before the tests and after
 the run. CI runs it after the tests and after each shard.
 
-`scripts/verify [--jobs N] [--quick | --full-bench]` runs each CI check
-locally: the lint job, the sqll build (`scripts/build-sqll` and
+`scripts/verify [--jobs N] [--quick | --full-bench | --s7]` runs each CI
+check locally: the lint job, the sqll build (`scripts/build-sqll` and
 `cargo test --locked` with the list check of the base native tests
 (`scripts/s3/base_native_tests.py check`), as the `build` job; it needs the Rust toolchain of
 `rust-toolchain.toml`), one unsharded run of all tools and suites, the
-report and dialect-oracle checks, the smoke benchmark
+report and dialect-oracle checks, one run of all S7 suites and tools with
+the checks of the `s7-report` job (see [S7 suites](#s7-suites)), the smoke
+benchmark
 (`out/bench.json`), the corpus smoke run (`out/corpus.json`), and their
 baseline checks. Exit code 0 only if all pass;
 details in `out/verify.json` and `out/verify/*.log`. `--quick` (fast
 checks only) is not the full verification; it writes
-`out/verify-quick.json` and `out/verify-quick/*.log`. Only one run at a
-time can use a checkout. A warning line shows a worktree with changes.
+`out/verify-quick.json` and `out/verify-quick/*.log`. `--s7` runs only the
+setup, the tools, the ruff checks, and the S7 checks; it is not the full
+verification; it writes `out/verify-s7.json` and `out/verify-s7/*.log`.
+Only one run at a time can use a checkout. Each mode but `--quick` also
+takes the machine lock `/tmp/sqll-machine.lock` (PROCESS.md, "Tracks",
+rule 7): it waits while another long run on the machine has it, and it uses
+the lock of a parent process (`flock /tmp/sqll-machine.lock
+scripts/verify`). A warning line shows a worktree with changes.
 `scripts/verify --full-bench` is the one command of G4.4 (all tests and
 benchmarks): the full verification, then the full benchmark
 (`out/bench-full.json`, as the `bench-full` job) and the full corpus run
@@ -136,7 +144,11 @@ CI (`.github/workflows/ci.yml`):
 5. `dialect-oracle`: `scripts/sqlfluff-dialect-oracle` on the merged report,
    one job for `sqlfluff` and one for `sqlfluff-rs` (`--rust`). It takes some
    minutes.
-6. The S9 corpus (`../corpus/README.md`; `python -m sqll_harness.corpus`):
+6. `s7` and `s7-report`: the S7 suites (see [S7 suites](#s7-suites)). The
+   S7 entries of `ci/matrix.d` (suites `s7_rules`, `s7_config`, `s7_cli`)
+   are not in the `test` matrix: `ci/matrix.py --s7` gives them to the `s7`
+   jobs, one for each suite and tool.
+7. The S9 corpus (`../corpus/README.md`; `python -m sqll_harness.corpus`):
    `corpus-smoke` (each full run) does `fetch --smoke`, `notices`, `run
    --profile smoke`, and `check --baseline results/S9/baseline.json`.
    `corpus-full` (push to main, `workflow_dispatch`) runs one job for each
@@ -153,7 +165,8 @@ To add a suite or a tool to CI, add an entry to the fragment of your track,
 The `changes` job runs `ci/changes.py` first. If each file that a pull
 request changes is a document in its `DOCS` list (`*.md`, `harness/*.md`,
 and `status/*.md`; a `*` does not match `/`), CI does not run `test`,
-`report`, `dialect-oracle`, `bench-smoke`, and `corpus-smoke`. The `image`
+`report`, `dialect-oracle`, `s7`, `s7-report`, `bench-smoke`, and
+`corpus-smoke`. The `image`
 job (a registry lookup, because no document is an image input) and `lint`
 always run: the unit tests read some documents, for example STATUS.md. Each other change, a change that is not known, and
 each push to main run all jobs. The full jobs run unless the `changes` job
@@ -253,6 +266,28 @@ sets the number of nodes that run at the same time (default 4).
 `--require-pass T` gives exit code 1 if tool T does not pass each converted
 node; the run must include tool T. `--check FILE` gives exit code 1 if the
 report is not FILE for the suites and the tools of the run.
+`--known-failures DIR` gives exit code 1 if a node fails and is not in
+`DIR/<tool>.txt`, or if a listed node of a suite of the run passes or is
+not a converted node of the run. The lists of the S7 suites are
+`results/S7-tests/known_failures/<tool>.txt`: one pytest node id on each
+line, sorted, each with its reason after `#`; each id must be a node of
+`scope.json`. `sqll-harness s7 known-failures REPORT --tool T` prints the
+list of a tool from a report.
+
+CI: each `s7` job runs `s7 run --suite S --tool T --known-failures
+results/S7-tests/known_failures --check results/S7-tests/report.json`.
+The `s7-report` job runs `sqll-harness s7 merge --expect ci/matrix.d
+--known-failures results/S7-tests/known_failures` on the reports of the
+jobs (each S7 suite and tool of `ci/matrix.d` once, the same nodes for each
+tool of a suite, one version for each tool), then `sqll-harness s7
+summarize out/s7-tests/report.json --check results/S7-tests/summary.json`
+(the recorded summary: the counts and the parity of each suite and tool,
+and the number of known failures of each tool), then the trace oracle
+`scripts/s7-tests/oracle --report out/s7-tests/report.json --check
+results/S7-tests/oracle.json`. `scripts/verify` (and `scripts/verify
+--s7`) runs the same checks on one run of all S7 suites and tools. To
+record new results, copy `out/s7-tests/report.json`, `summary.json`, and
+`oracle.json` of the `s7-report` artifact or of `scripts/verify --s7`.
 `sqll-harness run` does not run the S7 suites, so the report and summary
 of S1 (binary test harness: run the sqlfluff test fixtures through a
 binary, not through function calls; sqlfluff passes 100% of the cases

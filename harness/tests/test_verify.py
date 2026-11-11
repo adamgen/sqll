@@ -11,6 +11,8 @@ import fcntl
 import json
 import os
 import subprocess
+import sys
+import time
 
 import pytest
 
@@ -649,9 +651,11 @@ def test_each_upload_fails_if_a_file_is_missing():
         for key, step, _ in verify.ci_steps(CI)
         if str(step.get("uses", "")).startswith(verify.UPLOAD)
     ]
-    assert len(uploads) == 10
+    assert len(uploads) == 12
     for job in (
         "build",
+        "s7",
+        "s7-report",
         "bench-smoke",
         "bench-full",
         "bench-merge",
@@ -745,6 +749,7 @@ def test_check_names_are_unique_and_local_only_checks_are_few():
 def test_only_the_unsharded_runs_have_a_ci_diff():
     assert [c.name for c in CHECKS if c.ci_diff] == [
         "run",
+        "s7-run",
         "bench-full",
         "bench-full-baseline",
         "corpus-full",
@@ -781,18 +786,14 @@ def test_full_bench_adds_the_full_benchmark_to_the_full_verification(capsys):
     assert _listed(capsys, "--quick") == [c.name for c in CHECKS if c.quick]
 
 
-def test_quick_and_full_bench_cannot_be_used_together(capsys):
-    with pytest.raises(SystemExit) as exc:
-        verify.main(["--quick", "--full-bench"])
-    assert exc.value.code == 2
-    assert "cannot be used together" in capsys.readouterr().err
-
-
 def test_the_reports_of_the_checks():
     reports = {c.name: c.report for c in CHECKS if c.report}
     assert reports == {
         "build-sqll": "out/sqll/build.json",
         "run": "out/report.json",
+        "s7-run": "out/s7-tests/report.json",
+        "s7-summary": "out/s7-tests/summary.json",
+        "s7-oracle": "out/s7-tests/oracle.json",
         "bench-smoke": "out/bench.json",
         "bench-full": "out/bench-full.json",
         "corpus-smoke": "out/corpus.json",
@@ -813,10 +814,54 @@ def test_quick_has_no_run_or_report_check():
             assert check.name != "run"
 
 
-def test_jobs_goes_to_the_run_only():
+def test_jobs_goes_to_the_runs_only():
     changed = [c for a, c in zip(CHECKS, verify.checks(3), strict=True) if a != c]
-    assert [c.name for c in changed] == ["run"]
+    assert [c.name for c in changed] == ["run", "s7-run"]
     assert " --jobs 3 " in changed[0].command
+    assert "sqll-harness s7 run --jobs 3 " in changed[1].command
+
+
+S7_CHECKS = [
+    "setup",
+    "submodule-before",
+    "tools",
+    "ruff-check",
+    "ruff-format",
+    "s7-run",
+    "s7-summary",
+    "s7-oracle",
+]
+
+
+def test_s7_runs_only_the_checks_of_the_s7_suites(capsys):
+    assert _listed(capsys, "--s7") == S7_CHECKS
+    assert [c.name for c in CHECKS if c.s7] == S7_CHECKS
+    names = _listed(capsys)
+    for name in ("s7-run", "s7-summary", "s7-oracle"):
+        assert name in names
+        assert name not in _listed(capsys, "--quick")
+
+
+@pytest.mark.parametrize(
+    "args", [["--s7", "--quick"], ["--s7", "--full-bench"], ["--quick", "--full-bench"]]
+)
+def test_the_modes_cannot_be_used_together(args, capsys):
+    with pytest.raises(SystemExit) as exc:
+        verify.main(args)
+    assert exc.value.code == 2
+    assert "cannot be used together" in capsys.readouterr().err
+
+
+def test_the_s7_checks_check_the_recorded_results():
+    by_name = {c.name: c for c in CHECKS}
+    run = by_name["s7-run"].command
+    assert "--known-failures results/S7-tests/known_failures" in run
+    assert "--check results/S7-tests/report.json" in run
+    assert "--check results/S7-tests/summary.json" in by_name["s7-summary"].command
+    assert "--check results/S7-tests/oracle.json" in by_name["s7-oracle"].command
+    for name in ("s7-summary", "s7-oracle"):
+        assert by_name[name].needs == (verify.SETUP, verify.S7_REPORT_FILE)
+    assert verify.S7_REPORT == verify.OUT_DIR / "s7-tests" / "report.json"
 
 
 # --- Runner ------------------------------------------------------------------
@@ -829,6 +874,10 @@ def root(tmp_path, monkeypatch):
     monkeypatch.setattr(verify, "OUT_DIR", tmp_path / "out")
     monkeypatch.setattr(verify, "REPORT", tmp_path / "out" / "report.json")
     monkeypatch.setattr(verify, "LOCK", tmp_path / "out" / "verify.lock")
+    monkeypatch.setattr(
+        verify, "S7_REPORT", tmp_path / "out" / "s7-tests" / "report.json"
+    )
+    monkeypatch.setattr(verify, "MACHINE_LOCK", tmp_path / "machine.lock")
     monkeypatch.setattr(verify.preflight, "check", lambda: 0)
     # verify.main() sets SQLL_TOOLS_DIR if it is not set. The test must not
     # give that value (a tmp_path folder) to the tests that run after it.
@@ -989,3 +1038,105 @@ def test_the_corpus_smoke_checks_are_in_the_full_verification(capsys):
     ):
         assert name in names
     assert not [c.name for c in CHECKS if c.quick and "corpus" in c.name]
+
+
+def test_an_s7_check_needs_the_s7_report(root, capsys):
+    selected = [
+        verify.Check("s7-run", "false", removes=("out/s7-tests/report.json",)),
+        verify.Check("s7-summary", "true", needs=(verify.S7_REPORT_FILE,)),
+    ]
+    (root / "out" / "s7-tests").mkdir(parents=True)
+    (root / "out" / "s7-tests" / "report.json").write_text("{}")
+    result = verify.run_checks(selected, quick=False, s7=True)
+    assert [c["status"] for c in result["checks"]] == ["fail", "skip"]
+    assert "wrote no out/s7-tests/report.json" in result["checks"][1]["reason"]
+    assert result["mode"] == "s7"
+    assert result["full_verification"] is False
+
+
+def test_s7_writes_its_own_result(root, capsys):
+    assert verify._main([verify.Check("ok", "true")], quick=False, s7=True) == 0
+    result = json.loads((root / "out" / "verify-s7.json").read_text())
+    assert (result["mode"], result["result"]) == ("s7", "pass")
+    assert (root / "out" / "verify-s7" / "ok.log").exists()
+    assert not (root / "out" / "verify.json").exists()
+    assert "NOT the full verification" in capsys.readouterr().out
+
+
+# The machine lock (PROCESS.md, "Tracks", rule 7).
+
+
+# A parent process that holds the lock and runs a command, as "flock FILE
+# COMMAND" does.
+_FLOCK = (
+    "import fcntl, os, subprocess, sys\n"
+    "fd = os.open(sys.argv[1], os.O_RDONLY | os.O_CREAT, 0o666)\n"
+    "fcntl.flock(fd, fcntl.LOCK_EX)\n"
+    "sys.exit(subprocess.call(sys.argv[2:]))\n"
+)
+
+
+def _flock(lock, *command) -> list[str]:
+    return [sys.executable, "-c", _FLOCK, str(lock), *command]
+
+
+def _one_check(monkeypatch, command="true"):
+    monkeypatch.setattr(
+        verify,
+        "checks",
+        lambda jobs=None: [verify.Check("ok", command, quick=True, s7=True)],
+    )
+
+
+def test_a_long_run_waits_for_the_machine_lock(root, monkeypatch, capsys):
+    _one_check(monkeypatch)
+    # Another process has the lock: the run waits until it ends.
+    holder = subprocess.Popen(_flock(root / "machine.lock", "sleep", "1.5"))
+    try:
+        for _ in range(100):
+            if verify._lock_holders(root / "machine.lock"):
+                break
+            time.sleep(0.02)
+        assert verify._lock_holders(root / "machine.lock") == {holder.pid}
+        start = time.monotonic()
+        assert verify.main(["--s7"]) == 0
+        assert time.monotonic() - start > 0.5
+    finally:
+        holder.wait()
+    assert "Waiting for the machine lock" in capsys.readouterr().out
+
+
+def test_a_run_holds_the_machine_lock(root, monkeypatch):
+    lock = root / "machine.lock"
+    try_lock = (
+        f"{sys.executable} -c 'import fcntl, os;"
+        f' fcntl.flock(os.open("{lock}", os.O_RDONLY | os.O_CREAT),'
+        " fcntl.LOCK_EX | fcntl.LOCK_NB)'"
+    )
+    _one_check(monkeypatch, try_lock)
+    assert verify.main(["--s7"]) == 1
+    assert verify.main(["--quick"]) == 0
+
+
+def test_a_run_uses_the_machine_lock_of_its_parent(root, tmp_path):
+    lock = root / "machine.lock"
+    script = (
+        "from sqll_harness import verify\n"
+        "from pathlib import Path\n"
+        f"with verify.machine_lock(Path({str(lock)!r})):\n"
+        "    print('in the lock')\n"
+    )
+    out = subprocess.run(
+        _flock(lock, sys.executable, "-c", script),
+        capture_output=True,
+        text=True,
+        timeout=60,
+        check=True,
+    ).stdout
+    assert "held by a parent process" in out
+    assert "in the lock" in out
+
+
+def test_ancestors_and_lock_holders():
+    assert os.getppid() in verify._ancestors()
+    assert os.getpid() not in verify._ancestors()
