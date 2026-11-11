@@ -334,7 +334,8 @@ the version of `results/s2/baseline.json`. `python -m sqll_harness.corpus
 fetch`: 164 files and 19 license files, sha256 checked. The sqlfluff and
 sqruff results here are those of `results/S9/baseline.json` (2026-10-28,
 CI image). The pull request of this task has each script below
-(`iter.py`, `layer_run.py`, `parity.py`, `pairs.py`, `shards.py`) and its
+(`iter.py`, `layer_run.py`, `parity.py`, `pairs.py`, `maxratio.py`,
+`shards.py`) and its
 full output. Here, the output shows only the lines of the files that a
 decision uses. `...` replaces the long sqll version and the end of a
 repeated message, and the column spaces are shorter.
@@ -572,9 +573,13 @@ sqll vs sqruff: 31 files, 5130517 bytes; wall sqll 12.561 s, sqruff 24.791 s, ra
   files where sqll is slower than sqruff (wall or CPU): 0
 ```
 
-The largest wall time ratio of one file: 0.626 to sqruff
-(`Chinook_MySql_AutoIncrementPKs.sql`) and 0.036 to sqlfluff
-(`DatabaseIntegrityCheck.sql`).
+The largest wall time ratio of one file:
+
+```
+$ python3 -I maxratio.py results/S9/baseline.json sqll-layer.json
+sqruff: 0.626 chinook-database/ChinookDatabase/DataSources/Chinook_MySql_AutoIncrementPKs.sql
+sqlfluff: 0.036 sql-server-maintenance-solution/DatabaseIntegrityCheck.sql
+```
 
 ### 5. CI
 
