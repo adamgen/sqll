@@ -1,7 +1,8 @@
 # S9 decision: the external corpus
 
 Status: design (T1); run and report (T3); untemplated content (T4);
-templated content (T5); recorded results (T6); CI (T7); exit (T8). Scope: STONES.md S9;
+templated content (T5); recorded results (T6); CI (T7); exit (T8); the
+plan of the sqll results ("sqll results"). Scope: STONES.md S9;
 CONSTITUTION.md G1.3, G3, G4.2, G4.3, G4.5. "Measured": `parse` runs of
 the `scripts/setup` tools on 2026-10-28 (4 CPUs, 16 GiB, machine lock),
 in a new folder with no config file above it. PR #29 (T1) and the T3 pull
@@ -312,3 +313,325 @@ in the baseline: sqlfluff and `sqlfluff[rs]` on `DatabaseBackup.sql` and
   registry has sqll from S3 (T13), so the corpus run leaves it out by
   default until then (`LATER` in `corpus/run.py`). The sqll task of S9
   removes it from `LATER` and records a new baseline.
+
+## sqll results
+
+This section is the plan and design record of T9 (plan and design record
+of the sqll results: the sqll settings layer, the Jinja files, the
+baseline rule for sqll, the speed tables, and the CI wiring), a task of S9
+(External corpus: large, complex SQL files from public sources, with their
+source and license; the report shows parse success and speed for each
+file, for each tool). It has 6 decisions. "Tasks" at the end gives the
+task of each decision.
+
+**Measured** on 2026-11-11, on main `0fb9cdb`, on the host (not the CI
+image): Intel(R) Xeon(R) Processor @ 2.10GHz, 4 CPUs, 15.7 GiB. Runs A
+and B, and the first `iter.py` run, had the machine lock. `flock /tmp/sqll-machine.lock sh -c 'scripts/setup &&
+scripts/build-sqll'`: exit code 0, "build-sqll: wrote out/sqll/build.json".
+The sqll version is
+`0.1.0+tables.5371ded8ae219be1a62cd34b1b793d36c41bc9fa432f344de5d84f48d2d059e8`,
+the version of `results/s2/baseline.json`. `python -m sqll_harness.corpus
+fetch`: 164 files and 19 license files, sha256 checked. The sqlfluff and
+sqruff results here are those of `results/S9/baseline.json` (2026-10-28,
+CI image). The pull request of this task has each script below
+(`iter.py`, `layer_run.py`, `parity.py`, `pairs.py`, `shards.py`) and its
+full output. Here, the output shows only the lines of the files that a
+decision uses. `...` replaces the long sqll version and the end of a
+repeated message, and the column spaces are shorter.
+
+Run A, the harness of main (no corpus layer for sqll):
+
+```
+$ time flock /tmp/sqll-machine.lock uv run --frozen --project harness \
+    python -m sqll_harness.corpus run --profile full --tool sqll --out sqll-full.json
+tool  version  ok  unparsable  no_reference  invalid  unsupported  error
+sqll  ...      34  104         0             26       0            0
+real 1m36.139s
+```
+
+Run B, the same command through `layer_run.py`. That script changes no
+file. It only adds a corpus layer for a tool and then calls the corpus
+command (`from sqll_harness.corpus import run as cr` and
+`from sqll_harness.corpus.__main__ import main`):
+
+```
+cr.TOOL_LAYERS[sys.argv[1]] = json.loads(sys.argv[2])
+sys.exit(main(sys.argv[3:]))
+```
+
+```
+$ time flock /tmp/sqll-machine.lock uv run --frozen --project harness python -I layer_run.py \
+    sqll '{"core": {"rust_parser_max_iterations": 1000000000000, "max_parse_depth": 600}}' \
+    run --profile full --tool sqll --out sqll-layer.json
+tool  version  ok  unparsable  no_reference  invalid  unsupported  error
+sqll  ...      39  104         0             21       0            0
+real 2m25.419s
+```
+
+### 1. Settings
+
+Decision: sqll gets a corpus layer in `TOOL_LAYERS`, as `sqlfluff-rs`:
+`rust_parser_max_iterations = 1000000000000`. It gets no other layer. sqll
+gets the benchmark settings (`harness/bench.md`, "Settings") and the
+corpus settings ("Settings" above: `max_parse_nodes = 0`, and the render
+settings for a templated file) through its bench adapter
+(`harness/sqll_harness/bench/sqll.py`, `SqllBench`; its `layer` adds
+nothing). `max_parse_depth` stays the default, 600, as for the other 3
+tools ("Profiles").
+
+Data:
+
+- sqll has the iteration limit of its base. `crates/ported.json`: "Above
+  the iteration limit (rust_parser_max_iterations), the parser returns a
+  ParseError, not a panic. Each sub-parse (the main parse and each probe)
+  has its own count of iterations." The default is 3000000
+  (`crates/sqll_config/src/defaults.rs`).
+- Run A: 5 Chinook files are `invalid` ("warmup run: no parse tree (exit
+  code 1)"), and sqlfluff gives `ok` on each. `iter.py` parses each file
+  one time with the config of the harness (`run.tool_config`, then
+  `SqllBench.write_config`, `argv`, and `env`). With no layer, and then
+  with the layer of run B:
+
+```
+$ uv run --frozen --project harness python -I iter.py Chinook_ '{}'
+Chinook_MySql.sql (600574 B): exit 1, 0.767 s, -; stderr: PRS: Parser exceeded maximum iteration limit (3000000). This may be caused by runaway parser logic or a very complex SQL query.
+Chinook_MySql_AutoIncrementPKs.sql (563074 B): exit 1, 0.736 s, -; stderr: PRS: Parser exceeded maximum iteration limit (3000000). ...
+Chinook_PostgreSql.sql (600200 B): exit 1, 0.754 s, -; stderr: PRS: Parser exceeded maximum iteration limit (3000000). ...
+Chinook_PostgreSql_AutoIncrementPKs.sql (562854 B): exit 1, 0.698 s, -; stderr: PRS: Parser exceeded maximum iteration limit (3000000). ...
+Chinook_PostgreSql_SerialPKs.sql (562563 B): exit 1, 0.715 s, -; stderr: PRS: Parser exceeded maximum iteration limit (3000000). ...
+$ uv run --frozen --project harness python -I iter.py Chinook_ '{"core": {"rust_parser_max_iterations": 1000000000000}}'
+Chinook_MySql.sql (600574 B): exit 0, 1.255 s, tree 599801 chars, unparsable 0 (0 B); stderr:
+Chinook_MySql_AutoIncrementPKs.sql (563074 B): exit 0, 1.194 s, tree 562301 chars, unparsable 0 (0 B); stderr:
+Chinook_PostgreSql.sql (600200 B): exit 0, 2.218 s, tree 599427 chars, unparsable 0 (0 B); stderr:
+Chinook_PostgreSql_AutoIncrementPKs.sql (562854 B): exit 0, 2.111 s, tree 562081 chars, unparsable 0 (0 B); stderr:
+Chinook_PostgreSql_SerialPKs.sql (562563 B): exit 0, 2.007 s, tree 561790 chars, unparsable 0 (0 B); stderr:
+```
+
+- With the layer, the sqll result (status, unparsable count and bytes) is
+  the sqlfluff result on each of the 145 untemplated files. `parity.py`
+  counts the files by templater:
+
+```
+$ python3 -I parity.py results/S9/baseline.json sqll-full.json
+[(('jinja', 'other'), 18), (('jinja', 'same'), 1), (('raw', 'other'), 5), (('raw', 'same'), 140)]
+$ python3 -I parity.py results/S9/baseline.json sqll-layer.json
+[(('jinja', 'other'), 18), (('jinja', 'same'), 1), (('raw', 'same'), 145)]
+```
+
+- sqll accepts `max_parse_nodes = 0` (no limit) and `max_parse_depth =
+  600`: runs A and B have no `unsupported` and no `error` result. sqll
+  stops on the 2 files where sqlfluff stops, with the same limit:
+
+```
+$ uv run --frozen --project harness python -I iter.py sql-server-maintenance-solution/ '{"core": {"rust_parser_max_iterations": 1000000000000}}'
+DatabaseBackup.sql (267445 B): exit 1, 0.205 s, -; stderr: PRS: Maximum parse depth exceeded (limit 600). This may indicate deeply nested SQL or a malicious input.
+MaintenanceSolution.sql (595994 B): exit 1, 0.305 s, -; stderr: PRS: Maximum parse depth exceeded (limit 600). This may indicate deeply nested SQL or a malicious input.
+```
+
+Reasons: the reason of the `sqlfluff-rs` layer ("Settings"). The default
+iteration limit stops the parse of a large file because of its size, and
+the result then measures the limit, not the parser. The timeout (1200 s)
+stops a runaway parse. The layer of run B has `max_parse_depth = 600` only
+to show that sqll accepts it. The corpus layer does not set it, so each
+tool uses the default.
+
+Also: the harness reason of the 5 results of run A has no tool message.
+The code task adds the "PRS: " line of sqll to the problem messages, so
+that the reason names the limit.
+
+### 2. The 19 Jinja files
+
+Decision: the expected status of sqll on each of the 19 templated files is
+`unsupported`, until S11 (Jinja templater: the last stone; decision of the
+human owner (2026-11-07): do not write a Jinja engine in sqll; decide with
+data how sqll supports Jinja; sqll passes 100% of the Jinja cases that the
+decision keeps, and the code generation stone supports Jinja if kept; each
+other Jinja case is in a known-failure list with its reason). This result
+is expected. It is not a known failure to hide: the report counts the 19
+results, and status/S9.md lists them with their reason.
+
+Data: in runs A and B, sqll gives exit code 2 on each of the 19 files,
+with this stderr: "Error: unsupported: templater jinja for an empty file or
+a file with a Jinja tag ("{{", "{%", or "{#"). sqll has no Jinja templater
+yet (S11). Use the raw templater (--templater raw)." The harness of main
+gives `invalid`, because exit code 2 is not a parse exit code (0 or 1).
+sqlfluff gives `ok` on 18 of these files, and `invalid`
+(`max_parse_depth`) on `stg_crawlers_data__ipinfo.sql`.
+
+Change (code task): when sqll fails closed (exit code 2 and a line
+"Error: unsupported: "), the harness gives `unsupported`, not `invalid`.
+The reason is the sqll message. As the schema says, an `unsupported`
+result has no samples and no stats. Reason: sqll does not ignore a setting
+that it cannot do; `invalid` is for a crash, a timeout, no tree, or a
+wrong tree. An `unsupported` result of sqll on an untemplated file is a
+gap of sqll: status/S9.md lists it with an issue to the owning track.
+Runs A and B have no such result.
+
+### 3. The baseline rule for sqll
+
+S4 (parser parity: sqll passes 100% of the dialect parse fixtures with an
+exact tree match) and changes to the core paths can change the sqll parser
+after the new baseline. Thus a sqll result can change on main. The rule of
+`check --baseline` for the sqll results:
+
+1. The check of sqlfluff, `sqlfluff[rs]`, and sqruff does not change. Each
+   change of their stable data fails ("Report").
+2. The check of sqll compares the same stable data: the tool version and
+   settings, and the status and the unparsable count and bytes of each
+   result. Each change fails, in each direction: a worse result fails, and
+   a better result fails until the baseline has it. This applies to the
+   smoke check of each pull request that is not documents only and to the
+   full check on main.
+3. The check message gives the direction ("worse" or "better") and says
+   if the new sqll result is the sqlfluff result of the file. The order of
+   the statuses, from better to worse: `ok`, `unparsable`, `no_reference`,
+   `unsupported`, `invalid`, `error`. Of 2 `unparsable` results, the one
+   with fewer bytes is better; with the same bytes, fewer segments.
+
+Reasons: the check fails closed. The target of a sqll result is the
+sqlfluff result of the same file (parser parity), so a sqll result that is
+better than that of sqlfluff is also a difference that a reviewer must
+see. If a better result passed, a later return to the old result would
+also pass. The benchmark baseline has the same rule for sqll
+(`harness/bench.md`, "Baseline").
+
+Who updates `results/S9/baseline.json` (a path of the S9 track, the track
+of S9: External corpus: large, complex SQL files from public sources, with
+their source and license; the report shows parse success and speed for
+each file, for each tool):
+
+- That track records each complete baseline: one controlled full run of
+  the 4 tools, with the method of the recorded baseline ("Profiles").
+- A pull request of another track that changes a sqll result or the sqll
+  version updates the sqll results in the same pull request. Examples: a
+  pull request of S4 (parser parity: sqll passes 100% of the dialect parse
+  fixtures with an exact tree match), of S10 (PL/pgSQL bodies: parse and
+  lint SQL in PostgreSQL function bodies; a test set of PL/pgSQL functions
+  parses with no unparsable segments), or a change to the core paths. The
+  pull request has the label `cross-track`, and the owner of the corpus
+  paths reviews it (PROCESS.md, "Tracks", rule 3). It uses the command of
+  the code task, `python -m sqll_harness.corpus rebase --tool sqll`, on
+  the full report of a `workflow_dispatch` CI run on its head. The command
+  replaces only the sqll tool record and the sqll results. It fails on a
+  change to another tool or to an input, and it calculates `totals`,
+  `compared`, and `pairs` again. The pull request body lists each changed
+  result: the file, the old and the new status and unparsable data, the
+  direction, and the reason.
+- A worse result that moves away from the sqlfluff result is a
+  regression. The pull request fixes it, or it gives the reason and an
+  issue to the owning track. The reviewer of the corpus paths accepts or
+  refuses the reason.
+- After such an update, the sqll times in the baseline come from another
+  run than the times of the other 3 tools. The speed tables (decision 4)
+  use only one controlled run of the 4 tools. Until the next complete
+  baseline, status/S9.md says that the sqll times are from another run.
+- If the full check on main fails after a merge (for example on a file
+  that the smoke profile does not have), the track that merged the change
+  updates the baseline under this rule, or reverts the change.
+
+### 4. The speed tables
+
+The goal is G3 (Speed: each command, start time included, is as fast as
+reasonably possible and has a benchmark that measures sqlfluff, sqruff,
+and sqll on the same input. sqll is faster than sqlfluff on each
+benchmark, not slower than sqruff on any benchmark, and faster than sqruff
+on the total of all benchmarks. A change that makes a benchmark slower
+gives the reason. Correctness is more important than speed: do not make a
+result wrong to make it fast).
+
+Decision:
+
+- `compared` stays: the files where each of sqlfluff, `sqlfluff[rs]`, and
+  sqruff is `ok`, and only these 3 tools. Thus its numbers stay comparable
+  with the recorded baseline (48 files, 5337294 bytes).
+- New `pairs` in the report, and a new table: sqll to sqlfluff, and sqll
+  to sqruff. For each pair, on the files where both tools are `ok`: the
+  file count, the bytes, the sums of the median wall and CPU times of
+  each tool, and the ratios sqll / other tool (wall and CPU). The schema
+  check calculates each number again. The ratio of the sqll to sqruff
+  pair shows the total part of the goal (less than 1 is faster).
+- New list: each file where both tools of a pair are `ok`, and the median
+  wall or CPU time of sqll is more than that of sqruff, or not less than
+  that of sqlfluff. There is no noise margin: the list is a report, not a
+  gate, and a margin can hide a file. Each file in the list has a reason
+  or an issue to the owning track.
+- On a file where the statuses are not the same, the speed is not
+  compared (as for `compared`).
+- The numbers come from one controlled run of the 4 tools (the new
+  baseline).
+
+Data. These numbers are not the speed result, because the sqll times
+(run B, host, 2026-11-11) and the times of the recorded baseline (CI
+image, 2026-10-28) come from 2 runs:
+
+```
+$ python3 -I pairs.py results/S9/baseline.json sqll-layer.json
+sqll vs sqlfluff: 39 files, 7934578 bytes; wall sqll 15.176 s, sqlfluff 722.179 s, ratio 0.021; cpu ratio 0.021
+  files where sqll is not faster than sqlfluff (wall or CPU): 0
+sqll vs sqruff: 31 files, 5130517 bytes; wall sqll 12.561 s, sqruff 24.791 s, ratio 0.507; cpu ratio 0.524
+  files where sqll is slower than sqruff (wall or CPU): 0
+```
+
+The largest wall time ratio of one file: 0.626 to sqruff
+(`Chinook_MySql_AutoIncrementPKs.sql`) and 0.036 to sqlfluff
+(`DatabaseIntegrityCheck.sql`).
+
+### 5. CI
+
+Decision: the corpus jobs that run the tools get the sqll binary of the
+build job, as `bench-smoke` and `bench-full` do:
+
+- `corpus-smoke`: `needs: [changes, image, build]`, and 2 new steps: the
+  download of the artifact `sqll-build` to `out/sqll`, and `chmod +x
+  out/sqll/bin/sqll`.
+- `corpus-full`: `needs: [image, build]`, and the same 2 steps.
+- `corpus-merge`: no change. It runs no tool.
+- `harness/sqll_harness/verify.py`: the CI model gets the new needs of
+  the 2 jobs and the 2 steps (artifact steps that the local `build-sqll`
+  check replaces). Locally, `scripts/verify` runs `build-sqll` before the
+  corpus checks, so the order does not change.
+
+`.github/workflows/ci.yml` and `verify.py` are core paths (`tracks.yml`).
+Thus this is a cross-track task: label `cross-track`, and the owner of the
+core paths reviews it. It comes first, and it changes no result: sqll
+stays in `LATER` until the task of the new baseline. Reason: the run
+checks each tool before it starts (`bench_run.check_tools`), so with no
+binary a run with sqll cannot start. Each task in "Tasks" keeps CI green.
+
+### 6. The shard plan
+
+Data. `shards.py` adds the wall time of all samples (warmup included) of
+each shard. The 3 tools are those of the recorded baseline, and sqll is
+run B:
+
+```
+$ uv run --frozen --project harness python -I shards.py results/S9/baseline.json sqll-layer.json
+total: 3 tools 4225.4 s, sqll 130.8 s
+4 shards: max 3 tools 1177.0 s; max sqll 36.4 s; max both 1213.4 s
+6 shards: max 3 tools 849.3 s; max sqll 30.0 s; max both 879.3 s
+8 shards: max 3 tools 625.7 s; max sqll 22.9 s; max both 648.6 s
+```
+
+Decision: `corpus/ci-shards.json` stays at 6 shards. sqll adds 30.0 s
+(3.5%) to the longest shard: 879.3 s of tool runs. In CI run 40870016071
+on main, the 6 shard jobs took 6 min 10 s to 15 min 2 s (849.3 s of tool
+runs in the longest shard). With sqll, the estimate is less than 16 min,
+under the job timeout of 60 min. The sqll times are from the host, not
+from a CI runner. The task of the new baseline records the shard times of
+its CI run.
+
+### Tasks
+
+Each task is one pull request, in this order. Each task is part of S9
+(External corpus: large, complex SQL files from public sources, with their
+source and license; the report shows parse success and speed for each
+file, for each tool).
+
+| Task | Goal of the task | Decisions |
+|---|---|---|
+| T9 | Plan and design record of the sqll results: the sqll settings layer, the Jinja files, the baseline rule for sqll, the speed tables, and the CI wiring | 1 to 6 (this section) |
+| T10 | Cross-track: the corpus-smoke and corpus-full CI jobs and the local verify get the sqll binary of the build job; no result changes | 5 |
+| T11 | The sqll corpus layer (`rust_parser_max_iterations = 1000000000000`), the status `unsupported` when sqll fails closed, and the "PRS: " message in the reason, with tests; sqll stays in `LATER` | 1, 2 |
+| T12 | The report and the check for sqll: `pairs`, the list of slower files, `compared` for the 3 tools, the direction in each sqll check message, and the `rebase --tool sqll` command, with tests; the recorded baseline stays valid | 3, 4 |
+| T13 | The sqll results: remove sqll from `LATER`, one controlled full run of the 4 tools, the new `results/S9/baseline.json`, and the tables of status/S9.md (statuses, pairs, and the list of slower files with a reason or an issue for each) | 2, 3, 4, 6 |
+| T14 | The exit of the stone for sqll: the proof of each exit criterion for the 4 tools, and the request for the approval | all |
