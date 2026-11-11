@@ -16,6 +16,7 @@ from collections import Counter
 from pathlib import Path
 
 import pytest
+import yaml
 from conftest import needs
 
 from sqll_harness.paths import REPO_ROOT, SQLFLUFF_ROOT, tools_dir
@@ -280,9 +281,90 @@ def test_documents_give_the_counts(name):
     assert f"{ENGINE_COMPARISON} of them" in words
 
 
+def _section(text: str, title: str) -> str:
+    start = text.index(f"\n## {title}\n")
+    end = text.find("\n## ", start + 1)
+    return text[start:end]
+
+
+def _words(text: str) -> str:
+    return " ".join(text.split())
+
+
 def test_status_has_each_task():
-    for n in range(1, 17):
-        assert re.search(rf"^\| T{n} \| ", STATUS, re.M), f"T{n}"
+    # The plan of 2026-11-11: T1 to T15, and T15 is the exit task. Each row
+    # has a goal (AGENTS.md, "Names").
+    table = _section(STATUS, "S7-tests tasks").splitlines()
+    rows = [r for r in table if r.startswith("|")]
+    assert rows[0] == "| Task | Description | Goal | State |"
+    cells = [[c.strip() for c in r.strip("|").split(" | ")] for r in rows[2:]]
+    assert [c[0] for c in cells] == [f"T{n}" for n in range(1, 16)]
+    assert all(len(c) == 4 and all(c) for c in cells), cells
+    assert cells[-1][1].startswith("S7 test conversion exit")
+    words = _words(DESIGN)
+    assert "Only T1 and T15 change the S7 test conversion row" in words
+    assert "At T15 (the exit task" in words
+    assert "T16" not in DESIGN + STATUS
+
+
+def _outcomes(record: dict) -> str:
+    o = record["outcomes"]
+    return f"{o['passed']} passed, {o['failed']} failed, {o['skipped']} skipped"
+
+
+def _rule_cases(rule: str) -> tuple[int, int]:
+    """The S1 data cases of a rule, and the cases with a fix_str."""
+    path = SQLFLUFF_ROOT / "test" / "fixtures" / "rules" / "std_rule_cases"
+    data = yaml.safe_load((path / f"{rule}.yml").read_text("utf8"))
+    cases = [v for k, v in data.items() if k != "rule"]
+    return len(cases), sum("fix_str" in case for case in cases)
+
+
+@pytest.mark.parametrize("name", ["design", "status"])
+def test_documents_record_the_decisions(name):
+    # The 4 decisions of the orchestrator (2026-11-11) and their data.
+    text = {"design": DESIGN, "status": STATUS}[name]
+    decisions = _words(_section(text, "Decisions"))
+    assert "on 2026-11-11 for the human owner" in decisions
+    assert "(standing delegation, CONSTITUTION.md section 5)" in decisions
+    counts = SCOPE["counts"]
+    assert ", ".join(f"`{g}` {counts[g]}" for g in COUNTS) in decisions
+    assert f"total {counts['total']}" in decisions
+    assert f"sqlfluff {_outcomes(READERS)};" in decisions
+    assert f"`sqlfluff[rs]` {_outcomes(READERS_RS)}." in decisions
+    parity = Counter(
+        n["file"].split("/")[-1][:4]
+        for n in SCOPE["nodes"]
+        if "_dispatch__fix_parity[" in n["id"]
+    )
+    assert sum(parity.values()) == ENGINE_COMPARISON
+    per_file = ", ".join(f"{f} {parity[f]}" for f in ("cp01", "cp03", "cp04"))
+    assert f"The {ENGINE_COMPARISON} `fix_parity` nodes ({per_file})" in decisions
+    n, fixes = _rule_cases("CP01")
+    assert f"`CP01.yml` {n} cases ({fixes} with `fix_str`)" in decisions
+    for rule in ("CP03", "CP04"):
+        n, fixes = _rule_cases(rule)
+        assert f"`{rule}.yml` {n} ({fixes})" in decisions, rule
+    for item in (
+        "1. Scope rule: ACCEPT. Do not make `config_fixtures` wider.",
+        "2. The 4 exclusion classes: ACCEPT, with these conditions",
+        "its node id and its class, apart from parity",
+        "`needs-python-runtime` and `environment` node has a reason of one line",
+        "the in-scope total, the converted count, and the excluded count",
+        "3. Rust dispatch: Option A.",
+        "compares `use_rust_rules` True and False and has no expected value",
+        "on 4937 cases",
+        "the 3 `ignore_words_parity` nodes",
+        "A mock or spy node is `python-internal`.",
+        "A node with an expected value that the CLI shows is converted.",
+        "4. Pointer section in `harness/not-reproduced.md`: ACCEPT.",
+        "merges before an S7 case uses a not-reproduced record",
+    ):
+        assert item in decisions, item
+    assert "open decision" not in _words(text).lower()
+    assert _words(DESIGN).startswith(
+        "# S7 decision: the test conversion design Status: decided (2026-11-11)."
+    )
 
 
 def test_status_index_row():

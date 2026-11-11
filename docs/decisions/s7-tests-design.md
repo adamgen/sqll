@@ -1,10 +1,45 @@
 # S7 decision: the test conversion design
 
-Status: design (T1). Scope: STONES.md S7, the test conversion part (track
-S7-tests). The sqll part is track S7-sqll. Goals: CONSTITUTION.md G1.4,
-G1.5, G3, G4. Plan and tasks: [status/S7-tests.md](../../status/S7-tests.md).
-The orchestrator records the approval of each decision below (standing
-delegation, CONSTITUTION.md section 5).
+Status: decided (2026-11-11). The orchestrator decided the 4 open items
+for the human owner (standing delegation, CONSTITUTION.md section 5); see
+"Decisions". Written in T1 (design record, scope inventory, and status
+files). Scope: STONES.md S7 (CLI and config parity: the sqlfluff CLI,
+config, and Python rule tests as black-box cases), the test conversion part
+(track S7-tests). The sqll part is track S7-sqll. Goals: CONSTITUTION.md
+G1.4 and G1.5 (lint parity with sqlfluff: a percentage of test cases, run
+through a binary), G3 (speed), G4 (verification first). Plan and tasks:
+[status/S7-tests.md](../../status/S7-tests.md).
+
+## Decisions
+
+The orchestrator decided these 4 items on 2026-11-11 for the human owner
+(standing delegation, CONSTITUTION.md section 5). The status file has the
+same decisions.
+
+1. Scope rule: ACCEPT. Do not make `config_fixtures` wider. Data:
+   `scope.json` gives `cli` 295, `rules` 208, `config` 137,
+   `config_fixtures` 3, total 643. The source rule finds 2 nodes. The run
+   rule finds 1 node in both runs: sqlfluff 8268 passed, 3 failed, 2529
+   skipped; `sqlfluff[rs]` 10792 passed, 3 failed, 5 skipped. The 3 failed
+   `test/core/plugin_test.py` nodes do not read `test/fixtures/config`.
+2. The 4 exclusion classes: ACCEPT, with these conditions. A
+   machine-readable list gives each excluded node with its node id and its
+   class, apart from parity. Each `needs-python-runtime` and `environment`
+   node has a reason of one line. The report gives the in-scope total, the
+   converted count, and the excluded count.
+3. Rust dispatch: Option A. The 87 `fix_parity` nodes (cp01 32, cp03 35,
+   cp04 20) are `engine-comparison`. Their source assert compares
+   `use_rust_rules` True and False and has no expected value. The S1 data
+   cases cover the same rules: `CP01.yml` 29 cases (16 with `fix_str`),
+   `CP03.yml` 17 (8), `CP04.yml` 5 (4). S1 compares sqlfluff and
+   `sqlfluff[rs]` on 4937 cases. The same rule applies to the other
+   compare-only nodes, for example the 3 `ignore_words_parity` nodes. A
+   mock or spy node is `python-internal`. A node with an expected value
+   that the CLI shows is converted. T8 (Rust dispatch tests:
+   classification and conversion) applies this rule.
+4. Pointer section in `harness/not-reproduced.md`: ACCEPT. It comes in the
+   cross-track T4 or T5 pull request. That pull request merges before an S7
+   case uses a not-reproduced record.
 
 ## Scope
 
@@ -26,8 +61,9 @@ in scope if it is in one of these groups:
   (`python_files`), so the inventory gives
   `test/cli/test_parse_with_positions.py` (10 nodes) by path.
 - `rules`: all nodes of `test/rules/`, but not `test__rule_test_case` (2527
-  nodes) and `test__std_fix_auto` (61 nodes). The S1 suites `rules` and
-  `autofix` convert them.
+  nodes) and `test__std_fix_auto` (61 nodes). The suites `rules` and
+  `autofix` of S1 (binary test harness: run the sqlfluff test fixtures
+  through a binary) convert them.
 - `config`: all nodes of `test/core/config/`.
 - `config_fixtures`: each other node that names a path in
   `test/fixtures/config` in its test function (2 nodes, "by source"), or
@@ -76,9 +112,10 @@ new inventory.
 - A case file has a header with the source (sqlfluff 4.4.0, file, and node)
   and the license (MIT). Inline SQL, argv, and expected values from the
   Python tests are a derived work of sqlfluff. THIRD_PARTY.md gets an entry
-  (T4, cross-track). The cases read fixture files in place. They do not copy
-  or change them (G4.5).
-- T2 sets the exact case format and the case runner.
+  in T4 (harness hooks for the S7 suites, cross-track). The cases read
+  fixture files in place. They do not copy or change them (G4.5).
+- T2 (case format, case runner, and pilot cases) sets the exact case format
+  and the case runner.
 
 ## Suites and tools
 
@@ -102,14 +139,14 @@ reason class:
 - `engine-comparison`: the node compares 2 engines and has no expected
   value. This includes the 87 `fix_parity` nodes, as the S1 owner decision
   on `test/fixtures/parity/` does (status/S1.md). Each other Rust dispatch
-  node with an expected value that the CLI shows is converted. The
-  orchestrator records this decision before T8 merges.
+  node with an expected value that the CLI shows is converted (decision
+  3).
 - `environment`: the node needs a condition that the harness cannot make.
 
 Parity counts the converted cases and nodes. The report gives the excluded
 nodes apart, each with its reason class.
 
-## Trace oracle (T3)
+## Trace oracle (T3: each case agrees with a trace of its node)
 
 The oracle runs the original pytest nodes in place with the pinned
 sqlfluff, and with `--rust` for `sqlfluff[rs]`. It records each CLI call and
@@ -127,23 +164,28 @@ each simple-API call. It checks:
 - Track paths: the suites, `results/S7-tests/known_failures/<tool>.txt`,
   `results/S7-tests/summary.json`, `ci/matrix.d/S7-tests.json`, and
   `docs/decisions/s7-tests-not-reproduced.md`.
-- Cross-track pull requests (T4, T5) that the Core track reviews: the
+- Cross-track pull requests that the Core track reviews, T4 (harness hooks
+  for the S7 suites) and T5 (CI jobs and first results of the S7 suites):
+  the
   harness core hooks, the CI workflow, `scripts/verify`, THIRD_PARTY.md, and
-  a pointer section in `harness/not-reproduced.md`. The orchestrator
-  records that the pointer section makes `s7-tests-not-reproduced.md` part
-  of the not-reproduced record of PROCESS.md rule 7.
-- STATUS.md is an orchestrator file. Only T1 and T16 change the S7 test
+  a pointer section in `harness/not-reproduced.md`. The pointer section
+  makes `s7-tests-not-reproduced.md` part of the not-reproduced record of
+  PROCESS.md rule 7 (decision 4).
+- STATUS.md is an orchestrator file. Only T1 and T15 change the S7 test
   conversion row, with the `cross-track` label, because the orchestrator
-  task asks for it. At T16 the row says "S7 test conversion (track
-  S7-tests): awaiting human approval". The S7 exit (sqll passes 100%)
+  task asks for it. At T15 (the exit task: proof and "awaiting human
+  approval") the row says "S7 test conversion (track S7-tests): awaiting
+  human approval". The S7 exit (sqll passes 100%)
   belongs to track S7-sqll.
 
 ## G3 and G4 for each task
 
 - G3: this track changes no tool code, so no benchmark changes. Each pull
   request gives the added CI time of the S7 jobs and the `bench compare`
-  result. T11 opens a Core issue for each command that S7 cases use and
-  that has no S2 benchmark.
+  result. T10 (CLI tests, part 1: commands, arguments, and exit codes)
+  opens a Core issue for each command that S7 cases use and that has no
+  benchmark of S2 (benchmarks: start, parse, lint, and fix for each tool
+  and dialect).
 - G4: the scope comes from the pinned test code, not from a hand list. Each
   task proves its claims with harness output. `scripts/check-submodule`
   shows no change after each run.
