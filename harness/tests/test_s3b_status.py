@@ -40,6 +40,9 @@ def test_the_index_row_names_the_core_track_and_the_plan():
     cells = [c.strip() for c in row.strip("|").split("|")]
     assert cells[1] == "core"
     # C17 (S3b exit: proof, exit record, and the request for approval).
-    assert cells[2].startswith("S3b awaiting approval (track core).")
+    assert cells[2].startswith(
+        "S3b awaiting approval (track core: the track that does S3b and owns "
+        "the shared core)."
+    )
     assert "[status/S3b.md](status/S3b.md)" in cells[2]
     assert cells[3] == "[status/S3b.md](status/S3b.md)"

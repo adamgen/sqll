@@ -318,10 +318,13 @@ container of the CI image (no network, serial, an idle machine) runs the
 `start` and `parse` benchmarks of the full profile for `sqll` (HEAD),
 `sqll-base` (BASE), sqlfluff, and sqruff. The tools run in turn for each
 repeat. `sqll-base` is a registry entry with the adapter and settings of
-sqll ([sqll.md](sqll.md), "Tool check"). A base binary from before S3b C11
-(config) reads no config file (its `parse --help` has no `--config`):
-`sqll-base` gives it the settings as options (`legacy_options`). The S3b
-exit (C17) uses this: its base is the S3 exit. The record and its summary go to
+sqll ([sqll.md](sqll.md), "Tool check"). A base binary from before C11 (config
+skeleton) of S3b (core: the shared syntax tree, source map, frozen
+interfaces, and the sqll binary skeleton) reads no config file (its
+`parse --help` has no `--config`): `sqll-base` gives it the settings as
+options (`legacy_options`). C17 (S3b exit: proof, exit record, and the
+request for approval) uses this: its base is the exit of S3 (choose the
+base and make the sqll binary from it). The record and its summary go to
 `results/S3b/speed/<task>.json`:
 
 - HEAD / BASE for each benchmark, with the noise limit of "Slowdowns", and

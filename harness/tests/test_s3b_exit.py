@@ -30,6 +30,7 @@ RECORD = (REPO_ROOT / "docs" / "decisions" / "s3b-exit.md").read_text("utf8")
 INDEX = (REPO_ROOT / "STATUS.md").read_text("utf8")
 STATUS = (REPO_ROOT / "status" / "S3b.md").read_text("utf8")
 STATE = "S3b awaiting approval"
+CORE_TRACK = "(track core: the track that does S3b and owns the shared core)"
 # The sha256 of the frozen copies that the record cites (C17). A change of a
 # copy changes its sha256.
 CITED = {
@@ -358,10 +359,10 @@ def test_the_record_names_the_data_the_state_and_the_ci_run():
 
 def test_the_record_gives_each_exit_rule_and_each_bullet():
     for title in (
-        "Exit 1: the S1 harness and the S2 benchmarks run sqll",
+        "Exit 1: the test harness and the benchmarks run sqll",
         "Exit 2: the interfaces are documented",
         "Exit 3: each change to the core goes through the Core track",
-        "G3: keep the S3 speed",
+        "Speed: keep the speed of the base",
         "Each S3b bullet",
     ):
         assert f"\n## {title}\n" in RECORD, title
@@ -378,7 +379,7 @@ def test_the_record_gives_each_exit_rule_and_each_bullet():
 
 
 def test_the_record_gives_a_reason_for_each_slower_benchmark():
-    part = words(section("G3: keep the S3 speed"))
+    part = words(section("Speed: keep the speed of the base"))
     for bid, reason in OUT["reasons"].items():
         assert bid in part and reason in part, bid
     assert "C9" in part
@@ -396,7 +397,7 @@ def test_the_index_and_the_status_file_say_awaiting_approval():
     (row,) = [line for line in INDEX.splitlines() if line.startswith("| S3b |")]
     cells = [c.strip() for c in row.strip("|").split("|")]
     assert cells[1] == "core"
-    assert cells[2].startswith(f"{STATE} (track core).")
+    assert cells[2].startswith(f"{STATE} {CORE_TRACK}.")
     assert "[docs/decisions/s3b-exit.md](docs/decisions/s3b-exit.md)" in cells[2]
     assert "[status/S3b.md](status/S3b.md)" in cells[2]
     assert f"State: **{STATE}.**" in STATUS

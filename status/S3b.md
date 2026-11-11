@@ -1,15 +1,17 @@
 # S3b status (Core track)
 
 S3b (Core: the shared syntax tree, source map, frozen interfaces, and
-the sqll binary skeleton; STONES.md) is in the Core track. S3 is approved
-(human owner, 2026-11-06).
+the sqll binary skeleton; STONES.md) is in the Core track. S3 (choose the
+base and make the sqll binary from it) is approved (human owner,
+2026-11-06).
 
 - State: **S3b awaiting approval.** The exit record of C17 (S3b exit:
   proof, exit record, and the request for approval):
   [docs/decisions/s3b-exit.md](../docs/decisions/s3b-exit.md). The
   orchestrator approves S3b by the standing delegation (CONSTITUTION.md,
   section 5) after an independent check.
- The plan: one pull request for each task, C3 to C17.
+
+The plan: one pull request for each task of the table "Tasks".
 The S3 code paths are Core paths since C3 (`tracks.yml`).
 The design of C6 to C16 is in the C4 record
 [docs/decisions/s3b-core.md](../docs/decisions/s3b-core.md). It adds
@@ -516,13 +518,17 @@ record: [docs/decisions/s3b-exit.md](../docs/decisions/s3b-exit.md); data
 exit check: PASS: results/S3b/exit.json: no change; state: S3b awaiting approval
 ```
 
-- Exit 1 (the S1 harness and the S2 benchmarks run sqll): CI run
-  42986804942 (push on main `a77e821`, C16 merged; 77 jobs, conclusion
-  success). The report job gives `results/s1/summary.json is equal to the
-  summary.` and the `--passes-of sqll` lines (rules 38 of 2527, autofix 0
-  of 61, templater 0 of 43, each pass also in the oracle); the job
-  dialect-oracle (sqlfluff) gives `sqll dialects: 2306 cases, 2306 pass,
-  2306 of them pass in the oracle`; the job bench-merge checks the full S2
+- Exit 1 (the test harness and the benchmarks run sqll): the harness of
+  S1 (binary test harness: run the sqlfluff test fixtures through a
+  binary) and the benchmarks of S2 (benchmarks: a benchmark for each
+  command and each dialect) run sqll. CI run 42986804942 (push on
+  main `a77e821`, the merge of C16: package ownership of the later
+  tracks and the interface index; 77 jobs, conclusion success). The
+  report job gives `results/s1/summary.json is equal to the summary.` and
+  the `--passes-of sqll` lines (rules 38 of 2527, autofix 0 of 61,
+  templater 0 of 43, each pass also in the oracle); the job dialect-oracle
+  (sqlfluff) gives `sqll dialects: 2306 cases, 2306 pass, 2306 of them
+  pass in the oracle`; the job bench-merge checks the full benchmark
   report (1120 results) against the baseline; the job build gives native
   base tests 162 of 162, tree guard 84 of 84, and the PASS line of each
   S3b oracle check. The CI record is `results/S3b/exit-ci.json`.
@@ -534,14 +540,17 @@ exit check: PASS: results/S3b/exit.json: no change; state: S3b awaiting approval
   Core package, a `Cargo.toml`, a `build.rs`, `Cargo.lock`): 42 of 42 fail
   without the label `cross-track` and pass with it; the 7 control runs
   pass.
-- G3 (speed): `results/S3b/speed/C17.json`, base `319b7d6` (the S3 exit),
-  head `a77e821`: 112 benchmarks, 0 slower, 0 failures; total wall time
-  head / base 1.048 (start 1.096, parse/small 1.068, parse/medium 1.031,
-  parse/large 1.043); head faster than sqruff on 108 of 108 pairs and
+- G3 (speed: sqll is faster than sqlfluff and not slower than sqruff):
+  `results/S3b/speed/C17.json`, base `319b7d6` (the exit of S3: choose
+  the base and make the sqll binary from it), head `a77e821`: 112
+  benchmarks, 0 slower, 0 failures; total wall time head / base 1.048
+  (start 1.096, parse/small 1.068, parse/medium 1.031, parse/large
+  1.043); head faster than sqruff on 108 of 108 pairs and
   faster than sqlfluff on 112 of 112. The base binary reads no config, so
   `sqll-base` gives it the settings as options again (`legacy_options`,
   only for `sqll-base`; tests in `harness/tests/test_sqll_bench.py`).
-- C17 changes no file under `crates/`, `Cargo.toml`, or `Cargo.lock`.
+- This task changes no file under `crates/`, `Cargo.toml`, or
+  `Cargo.lock`.
 - Local (with the machine lock): `cargo test --workspace --locked
   --no-fail-fast` passes (358 passed, 0 failed, 4 ignored); `pytest
   harness/tests`: 2507 passed, 130 skipped (tools that this machine does
