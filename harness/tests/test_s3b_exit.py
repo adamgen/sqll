@@ -15,6 +15,7 @@ import json
 import re
 
 import pytest
+import yaml
 
 from sqll_harness.paths import REPO_ROOT
 
@@ -300,12 +301,28 @@ def test_each_stones_bullet_has_its_tasks_documents_and_tests():
         assert b["tasks"] and b["docs"] and b["tests"], b["bullet"]
 
 
-def test_each_core_change_of_a_later_track_needs_the_label():
-    assert v("probe.core_runs") == 7 * 6 == v("probe.fail_without_label")
+def test_each_core_change_of_each_other_track_needs_the_label():
+    """Each track of tracks.yml other than core: the closed track S3, the
+    active tracks S7-tests and S9, and the later tracks."""
+    frozen = yaml.safe_load(ex.read_path("tracks").read_text("utf8"))["tracks"]
+    assert set(ex.TRACKS) == set(frozen) - {"core"}
+    assert v("probe.tracks") == 10
+    assert v("probe.core_runs") == 10 * 6 == v("probe.fail_without_label")
     assert v("probe.pass_with_label") == v("probe.core_runs")
-    assert v("probe.control_pass") == 7
+    assert v("probe.control_pass") == 10
     tracks = {r["track"] for r in OUT["probe"]}
-    assert tracks == {"S4", "S5", "S6", "S7-sqll", "S8", "S10", "S11"}
+    assert tracks == {
+        "S3",
+        "S7-tests",
+        "S9",
+        "S4",
+        "S5",
+        "S6",
+        "S7-sqll",
+        "S8",
+        "S10",
+        "S11",
+    }
     for path in ("Cargo.lock", "crates/sqll_dialects/build.rs"):
         assert path in ex.PROBE_PATHS
 
@@ -361,7 +378,8 @@ def test_the_record_gives_each_exit_rule_and_each_bullet():
     for title in (
         "Exit 1: the test harness and the benchmarks run sqll",
         "Exit 2: the interfaces are documented",
-        "Exit 3: each change to the core goes through the Core track",
+        "Exit 3: each change to the core goes through the Core track (the track "
+        "that does S3b and owns the shared core)",
         "Speed: keep the speed of the base",
         "Each S3b bullet",
     ):

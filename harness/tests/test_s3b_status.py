@@ -29,6 +29,10 @@ def test_each_task_has_a_known_state():
     assert found["C1"][1] == "Merged (PR #57)"
     assert found["C2"][1] == "Merged (PR #58)"
     assert found["C3"][1] == "Merged (PR #59)"
+    # C16b (review and merge the Names rule) is not in TASKS: its row is
+    # between C16 and C17.
+    (c16b,) = re.findall(r"(?m)^\| C16b \| .+ \| (.+) \|$", STATUS)
+    assert c16b == "Merged (PR #81)"
     for task in TASKS[3:]:
         state = found[task][1]
         merged_or_review = r"(Merged|In review) \(PR #\d+\)"

@@ -16,8 +16,8 @@ copies (FROZEN, results/S3b/exit-inputs/), because later stones change the
 live files. Without --check, each copy must be equal to its live file.
 
 It also runs the ownership probe: in a new git repository with the
-tracks.yml of the copy, a pull request of each later track changes one
-Core path (an interface, a Cargo.toml, a build.rs, Cargo.lock), and
+tracks.yml of the copy, a pull request of each track other than core
+(TRACKS) changes one Core path (an interface, a Cargo.toml, a build.rs, Cargo.lock), and
 ci/ownership.py runs on the merge commit, without and with the label
 "cross-track". A change of a status file of the track is the control.
 --check runs the probe again on the copy and on the live tracks.yml: both
@@ -196,9 +196,9 @@ BULLETS = [
     },
 ]
 
-# The ownership probe: the later tracks (each branch from tracks.yml) and the
-# Core paths that each changes.
-LATER = ["S4", "S5", "S6", "S7-sqll", "S8", "S10", "S11"]
+# The ownership probe: each track of tracks.yml other than core (each
+# branch from tracks.yml) and the Core paths that each changes.
+TRACKS = ["S3", "S7-tests", "S9", "S4", "S5", "S6", "S7-sqll", "S8", "S10", "S11"]
 PROBE_PATHS = [
     "docs/interfaces/parse.md",
     "crates/sqll_interfaces/tests/parse.rs",
@@ -539,7 +539,7 @@ def _branch(tracks: dict, track: str) -> str:
 
 
 def probe(tracks_text: str) -> list[dict]:
-    """Run ci/ownership.py on a pull request of each later track that
+    """Run ci/ownership.py on a pull request of each track of TRACKS that
     changes one Core path, without and with the label; and on a change of
     the status file of the track (the control). The runs of one tracks.yml
     text are made one time in a process."""
@@ -555,11 +555,11 @@ def _probe(tracks_text: str) -> list[dict]:
     tracks = yaml.safe_load(tracks_text)["tracks"]
     runs = []
     with tempfile.TemporaryDirectory(prefix="s3b-probe-") as tmp:
-        for path in [*PROBE_PATHS, *(f"status/{t}.md" for t in LATER)]:
+        for path in [*PROBE_PATHS, *(f"status/{t}.md" for t in TRACKS)]:
             repo = Path(tmp) / f"r{len(list(Path(tmp).iterdir()))}"
             _pull_request(repo, tracks_text, path)
             control = path.startswith("status/")
-            for track in LATER:
+            for track in TRACKS:
                 if control and path != f"status/{track}.md":
                     continue
                 branch = _branch(tracks, track)
@@ -601,7 +601,7 @@ def probe_values(vs: Values, runs: list[dict]) -> None:
         in r["lines"]
     ]
     control = [r for r in runs if r["control"] and r["exit_code"] == 0]
-    vs.derive("probe.tracks", len(LATER), "count of the later tracks")
+    vs.derive("probe.tracks", len(TRACKS), "count of the tracks other than core")
     vs.derive("probe.paths", len(PROBE_PATHS), "count of the Core paths")
     vs.derive("probe.core_runs", len(core) // 2, "probe.tracks * probe.paths")
     vs.derive(
@@ -622,8 +622,8 @@ def probe_values(vs: Values, runs: list[dict]) -> None:
     )
     vs.derive(
         "exit.core_track",
-        len(fail) == len(passed) == len(core) // 2 == len(LATER) * len(PROBE_PATHS)
-        and len(control) == len(LATER),
+        len(fail) == len(passed) == len(core) // 2 == len(TRACKS) * len(PROBE_PATHS)
+        and len(control) == len(TRACKS),
         "probe.fail_without_label == probe.pass_with_label == probe.core_runs, "
         "and each control run passes",
     )
@@ -705,10 +705,18 @@ def speed_values(vs: Values) -> None:
 def check_agreement(vs: Values) -> None:
     if not vs.v("speed.base").startswith(S3_EXIT):
         raise DataError(f"the speed check base is not the S3 exit {S3_EXIT}")
+    # The guard of the sqll source: the speed check and the CI run have the
+    # same head commit.
     if vs.v("speed.head") != vs.v("ci.head"):
         raise DataError("the speed check head is not the head of the CI run")
+    # The version is the package version and the hash of the dialect tables.
+    # It does not change with other sqll code, so it only shows that the
+    # speed check and the S1 summary use the same dialect tables.
     if vs.v("speed.head.version") != vs.v("s1.sqll.version"):
-        raise DataError("the sqll of the speed check head is not that of the S1 run")
+        raise DataError(
+            "the sqll version (with the hash of the dialect tables) of the speed "
+            "check head is not that of the S1 summary"
+        )
 
 
 def criteria(vs: Values) -> list[dict]:

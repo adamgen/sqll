@@ -1,15 +1,18 @@
 # S3b status (Core track)
 
-S3b (Core: the shared syntax tree, source map, frozen interfaces, and
-the sqll binary skeleton; STONES.md) is in the Core track. S3 (choose the
-base and make the sqll binary from it) is approved (human owner,
-2026-11-06).
+S3b (STONES.md) is the stone of the Core track (the track that does S3b
+and owns the shared core). The goal of S3b: the shared syntax tree,
+source map, frozen interfaces, and the sqll binary skeleton (CLI, config,
+output) with the sqll adapters of the test harness and the benchmarks;
+exits: the test harness and the benchmarks run sqll through its adapters,
+the interfaces are documented, and after this stone, each change to the
+core goes through that track. The stone that chose the base and made the
+sqll binary from it is approved (human owner, 2026-11-06).
 
-- State: **S3b awaiting approval.** The exit record of C17 (S3b exit:
-  proof, exit record, and the request for approval):
+- State: **S3b awaiting approval.** The exit record:
   [docs/decisions/s3b-exit.md](../docs/decisions/s3b-exit.md). The
-  orchestrator approves S3b by the standing delegation (CONSTITUTION.md,
-  section 5) after an independent check.
+  orchestrator approves the stone by the standing delegation
+  (CONSTITUTION.md, section 5) after an independent check.
 
 The plan: one pull request for each task of the table "Tasks".
 The S3 code paths are Core paths since C3 (`tracks.yml`).
@@ -50,6 +53,7 @@ track; the port record `crates/ported.json` stays Core.
 | C14 | Harness adapters: `sqll lint` and `fix` in the S1 harness and the S2 benchmarks; the jinja as raw record (`results/S3b/C14-jinja-raw.json`); the oracle check of each sqll pass (`--passes-of sqll`). The path for a base binary from before C11 in `harness/sqll_harness/bench/sqll.py` is removed: [harness/sqll.md](../harness/sqll.md), "Adapter" | Merged (PR #74) |
 | C15 | Code generation interface: tree to schema (`sqll_schema`: the description of a query, `Describe`, the JSON Schema writer) and the S8 stub `sqll_codegen::LiteralSelect`; the jsonschema package validates the output in CI (`scripts/s3b/schema_check.py`): [docs/interfaces/schema.md](../docs/interfaces/schema.md) | Merged (PR #75) |
 | C16 | Package ownership of the later tracks and the interface index; `docs/decisions/s3b-*.md` to the Core paths; the empty package `sqll_plpgsql` of S10 (PL/pgSQL bodies): [docs/interfaces/README.md](../docs/interfaces/README.md) | Merged (PR #76) |
+| C16b | Review and merge the Names rule (write the goal with each stone, goal, track, and task name in AGENTS.md); each row of the Names table gives each exit and each part of the goal | Merged (PR #81) |
 | C17 | S3b exit: proof, exit record, and STATUS "S3b awaiting approval": [docs/decisions/s3b-exit.md](../docs/decisions/s3b-exit.md) | In review (PR #79) |
 
 Rules for each task:
@@ -509,8 +513,9 @@ and `crates/sqll_interfaces`) and `docs/decisions/s3b-*.md`.
 
 ## C17: exit proof
 
-C17 (S3b exit: proof, exit record, and the request for approval). Exit
-record: [docs/decisions/s3b-exit.md](../docs/decisions/s3b-exit.md); data
+C17 (S3b exit: proof, exit record, and STATUS "S3b awaiting approval";
+a task of S3b, goal at the top of this file). Exit record:
+[docs/decisions/s3b-exit.md](../docs/decisions/s3b-exit.md); data
 [results/S3b/exit.json](../results/S3b/exit.json) (`scripts/s3b/exit.py
 --check` in the CI job build and in `harness/tests/test_s3b_exit.py`):
 
@@ -518,43 +523,59 @@ record: [docs/decisions/s3b-exit.md](../docs/decisions/s3b-exit.md); data
 exit check: PASS: results/S3b/exit.json: no change; state: S3b awaiting approval
 ```
 
-- Exit 1 (the test harness and the benchmarks run sqll): the harness of
-  S1 (binary test harness: run the sqlfluff test fixtures through a
-  binary) and the benchmarks of S2 (benchmarks: a benchmark for each
-  command and each dialect) run sqll. CI run 42986804942 (push on
-  main `a77e821`, the merge of C16: package ownership of the later
-  tracks and the interface index; 77 jobs, conclusion success). The
-  report job gives `results/s1/summary.json is equal to the summary.` and
-  the `--passes-of sqll` lines (rules 38 of 2527, autofix 0 of 61,
-  templater 0 of 43, each pass also in the oracle); the job dialect-oracle
+- Exit 1 (the test harness and the benchmarks run sqll through its
+  adapters): CI run 42986804942 (push on main `a77e821`, the merge of PR
+  #76; 77 jobs, conclusion success). The report job gives
+  `results/s1/summary.json is equal to the summary.` and the
+  `--passes-of sqll` lines (rules 38 of 2527, autofix 0 of 61, templater
+  0 of 43, each pass also in the oracle); the job dialect-oracle
   (sqlfluff) gives `sqll dialects: 2306 cases, 2306 pass, 2306 of them
   pass in the oracle`; the job bench-merge checks the full benchmark
   report (1120 results) against the baseline; the job build gives native
   base tests 162 of 162, tree guard 84 of 84, and the PASS line of each
-  S3b oracle check. The CI record is `results/S3b/exit-ci.json`.
+  oracle check. The CI record is `results/S3b/exit-ci.json`.
+- Main after `a77e821`: PR #78 and PR #80 (the conversion of the CLI
+  and config tests: `harness/sqll_harness/s7_tests/`,
+  `harness/tests/test_s7_tests_*.py`, `scripts/s7-tests/`,
+  `results/S7-tests/`, `docs/decisions/s7-tests-*.md`,
+  `status/S7-tests.md`) and PR #81 (the Names table and its test:
+  `AGENTS.md`, `harness/tests/test_protocol_docs.py`). They change no
+  file under `crates/`, `Cargo.toml`, or `Cargo.lock` and no harness core
+  file (`git diff --name-only a77e821 7bc4cb6`).
 - Exit 2 (the interfaces are documented): the 4 STONES interfaces map to
   the 8 rows of the interface index, each with its document and test.
-- Exit 3 (each change to the core goes through the Core track): the probe
-  runs `ci/ownership.py` on a pull request of each of the 7 later tracks
-  for each of 6 Core paths (an interface document, an interface test, a
-  Core package, a `Cargo.toml`, a `build.rs`, `Cargo.lock`): 42 of 42 fail
-  without the label `cross-track` and pass with it; the 7 control runs
-  pass.
-- G3 (speed: sqll is faster than sqlfluff and not slower than sqruff):
-  `results/S3b/speed/C17.json`, base `319b7d6` (the exit of S3: choose
-  the base and make the sqll binary from it), head `a77e821`: 112
-  benchmarks, 0 slower, 0 failures; total wall time head / base 1.048
-  (start 1.096, parse/small 1.068, parse/medium 1.031, parse/large
-  1.043); head faster than sqruff on 108 of 108 pairs and
-  faster than sqlfluff on 112 of 112. The base binary reads no config, so
-  `sqll-base` gives it the settings as options again (`legacy_options`,
-  only for `sqll-base`; tests in `harness/tests/test_sqll_bench.py`).
+- Exit 3 (after this stone, each change to the core goes through the
+  Core track: the track that does S3b and owns the shared core): the probe runs `ci/ownership.py` on a pull request of
+  each of the 10 tracks of `tracks.yml` that do not own the core, for
+  each of 6 Core paths (an interface document, an interface test, a Core
+  package, a `Cargo.toml`, a `build.rs`, `Cargo.lock`): 60 of 60 fail
+  without the label `cross-track` and pass with it; the 10 control runs
+  pass. Review round 2 added the closed track and the 2 active tracks to
+  the 7 later tracks.
+- Speed: `results/S3b/speed/C17.json`, base `319b7d6` (the exit head of
+  the stone that chose the base), head `a77e821`: 112 benchmarks, 0
+  slower, 0 failures; total wall time head / base 1.048 (start 1.096,
+  parse/small 1.068, parse/medium 1.031, parse/large 1.043); head faster
+  than sqruff on 108 of 108 pairs and faster than sqlfluff on 112 of
+  112. The base binary reads no config, so `sqll-base` gives it the
+  settings as options again (`legacy_options`, only for `sqll-base`;
+  tests in `harness/tests/test_sqll_bench.py`).
 - This task changes no file under `crates/`, `Cargo.toml`, or
   `Cargo.lock`.
-- Local, on `108b452` (main `7bc4cb6` merged; with the machine lock):
+- Local, on `1649f34` (main `7bc4cb6` merged; the tree of `108b452`;
+  with the machine lock):
   `cargo test --workspace --locked --no-fail-fast` passes (358 passed, 0
   failed, 4 ignored); `pytest harness/tests`: 2779 passed, 133 skipped
   (tools that this machine does not have; CI sets `SQLL_REQUIRE_TOOLS`);
   `speed-check report --task C17 --check`: up to date.
+- Local, review round 2 (with the machine lock; no change under
+  `crates/`): `pytest harness/tests`: 2779 passed, 133 skipped;
+  `scripts/s3b/exit.py --check`: PASS; `ruff check` and `ruff format
+  --check`: no problem.
 - Review round 1 of PR #79: each name in the exit record and in this
   section has its goal (AGENTS.md, "Names").
+- Review round 2 of PR #79: the exit record has fewer names, and each
+  name that stays has its full goal; the exit head is the merge of PR
+  #76 (not the merge of the last task); the table "Tasks" has the row of
+  PR #81; the probe has each track other than core; `exit.py` says that
+  the version check compares only the hash of the dialect tables.

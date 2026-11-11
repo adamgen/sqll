@@ -236,6 +236,90 @@
  "reasons": {},
  "probe": [
   {
+   "track": "S3",
+   "branch": "claude/s3",
+   "path": "docs/interfaces/parse.md",
+   "control": false,
+   "label": false,
+   "exit_code": 1,
+   "lines": [
+    "Branch claude/s3: track S3.",
+    "- docs/interfaces/parse.md: owned by core (another track)",
+    "Result: fail. The pull request changes files of the tracks core. Ask the owning track for the change (an issue), or add the label 'cross-track' and get a review from the owning track.",
+    "Result: fail."
+   ]
+  },
+  {
+   "track": "S3",
+   "branch": "claude/s3",
+   "path": "docs/interfaces/parse.md",
+   "control": false,
+   "label": true,
+   "exit_code": 0,
+   "lines": [
+    "Branch claude/s3: track S3.",
+    "- docs/interfaces/parse.md: owned by core (another track)",
+    "Result: pass with the label 'cross-track'. These tracks must review the pull request: core.",
+    "Result: pass."
+   ]
+  },
+  {
+   "track": "S7-tests",
+   "branch": "claude/s7-tests",
+   "path": "docs/interfaces/parse.md",
+   "control": false,
+   "label": false,
+   "exit_code": 1,
+   "lines": [
+    "Branch claude/s7-tests: track S7-tests.",
+    "- docs/interfaces/parse.md: owned by core (another track)",
+    "Result: fail. The pull request changes files of the tracks core. Ask the owning track for the change (an issue), or add the label 'cross-track' and get a review from the owning track.",
+    "Result: fail."
+   ]
+  },
+  {
+   "track": "S7-tests",
+   "branch": "claude/s7-tests",
+   "path": "docs/interfaces/parse.md",
+   "control": false,
+   "label": true,
+   "exit_code": 0,
+   "lines": [
+    "Branch claude/s7-tests: track S7-tests.",
+    "- docs/interfaces/parse.md: owned by core (another track)",
+    "Result: pass with the label 'cross-track'. These tracks must review the pull request: core.",
+    "Result: pass."
+   ]
+  },
+  {
+   "track": "S9",
+   "branch": "claude/s9",
+   "path": "docs/interfaces/parse.md",
+   "control": false,
+   "label": false,
+   "exit_code": 1,
+   "lines": [
+    "Branch claude/s9: track S9.",
+    "- docs/interfaces/parse.md: owned by core (another track)",
+    "Result: fail. The pull request changes files of the tracks core. Ask the owning track for the change (an issue), or add the label 'cross-track' and get a review from the owning track.",
+    "Result: fail."
+   ]
+  },
+  {
+   "track": "S9",
+   "branch": "claude/s9",
+   "path": "docs/interfaces/parse.md",
+   "control": false,
+   "label": true,
+   "exit_code": 0,
+   "lines": [
+    "Branch claude/s9: track S9.",
+    "- docs/interfaces/parse.md: owned by core (another track)",
+    "Result: pass with the label 'cross-track'. These tracks must review the pull request: core.",
+    "Result: pass."
+   ]
+  },
+  {
    "track": "S4",
    "branch": "claude/s4",
    "path": "docs/interfaces/parse.md",
@@ -432,6 +516,90 @@
    ]
   },
   {
+   "track": "S3",
+   "branch": "claude/s3",
+   "path": "crates/sqll_interfaces/tests/parse.rs",
+   "control": false,
+   "label": false,
+   "exit_code": 1,
+   "lines": [
+    "Branch claude/s3: track S3.",
+    "- crates/sqll_interfaces/tests/parse.rs: owned by core (another track)",
+    "Result: fail. The pull request changes files of the tracks core. Ask the owning track for the change (an issue), or add the label 'cross-track' and get a review from the owning track.",
+    "Result: fail."
+   ]
+  },
+  {
+   "track": "S3",
+   "branch": "claude/s3",
+   "path": "crates/sqll_interfaces/tests/parse.rs",
+   "control": false,
+   "label": true,
+   "exit_code": 0,
+   "lines": [
+    "Branch claude/s3: track S3.",
+    "- crates/sqll_interfaces/tests/parse.rs: owned by core (another track)",
+    "Result: pass with the label 'cross-track'. These tracks must review the pull request: core.",
+    "Result: pass."
+   ]
+  },
+  {
+   "track": "S7-tests",
+   "branch": "claude/s7-tests",
+   "path": "crates/sqll_interfaces/tests/parse.rs",
+   "control": false,
+   "label": false,
+   "exit_code": 1,
+   "lines": [
+    "Branch claude/s7-tests: track S7-tests.",
+    "- crates/sqll_interfaces/tests/parse.rs: owned by core (another track)",
+    "Result: fail. The pull request changes files of the tracks core. Ask the owning track for the change (an issue), or add the label 'cross-track' and get a review from the owning track.",
+    "Result: fail."
+   ]
+  },
+  {
+   "track": "S7-tests",
+   "branch": "claude/s7-tests",
+   "path": "crates/sqll_interfaces/tests/parse.rs",
+   "control": false,
+   "label": true,
+   "exit_code": 0,
+   "lines": [
+    "Branch claude/s7-tests: track S7-tests.",
+    "- crates/sqll_interfaces/tests/parse.rs: owned by core (another track)",
+    "Result: pass with the label 'cross-track'. These tracks must review the pull request: core.",
+    "Result: pass."
+   ]
+  },
+  {
+   "track": "S9",
+   "branch": "claude/s9",
+   "path": "crates/sqll_interfaces/tests/parse.rs",
+   "control": false,
+   "label": false,
+   "exit_code": 1,
+   "lines": [
+    "Branch claude/s9: track S9.",
+    "- crates/sqll_interfaces/tests/parse.rs: owned by core (another track)",
+    "Result: fail. The pull request changes files of the tracks core. Ask the owning track for the change (an issue), or add the label 'cross-track' and get a review from the owning track.",
+    "Result: fail."
+   ]
+  },
+  {
+   "track": "S9",
+   "branch": "claude/s9",
+   "path": "crates/sqll_interfaces/tests/parse.rs",
+   "control": false,
+   "label": true,
+   "exit_code": 0,
+   "lines": [
+    "Branch claude/s9: track S9.",
+    "- crates/sqll_interfaces/tests/parse.rs: owned by core (another track)",
+    "Result: pass with the label 'cross-track'. These tracks must review the pull request: core.",
+    "Result: pass."
+   ]
+  },
+  {
    "track": "S4",
    "branch": "claude/s4",
    "path": "crates/sqll_interfaces/tests/parse.rs",
@@ -628,6 +796,90 @@
    ]
   },
   {
+   "track": "S3",
+   "branch": "claude/s3",
+   "path": "crates/sqll_syntax/src/lib.rs",
+   "control": false,
+   "label": false,
+   "exit_code": 1,
+   "lines": [
+    "Branch claude/s3: track S3.",
+    "- crates/sqll_syntax/src/lib.rs: owned by core (another track)",
+    "Result: fail. The pull request changes files of the tracks core. Ask the owning track for the change (an issue), or add the label 'cross-track' and get a review from the owning track.",
+    "Result: fail."
+   ]
+  },
+  {
+   "track": "S3",
+   "branch": "claude/s3",
+   "path": "crates/sqll_syntax/src/lib.rs",
+   "control": false,
+   "label": true,
+   "exit_code": 0,
+   "lines": [
+    "Branch claude/s3: track S3.",
+    "- crates/sqll_syntax/src/lib.rs: owned by core (another track)",
+    "Result: pass with the label 'cross-track'. These tracks must review the pull request: core.",
+    "Result: pass."
+   ]
+  },
+  {
+   "track": "S7-tests",
+   "branch": "claude/s7-tests",
+   "path": "crates/sqll_syntax/src/lib.rs",
+   "control": false,
+   "label": false,
+   "exit_code": 1,
+   "lines": [
+    "Branch claude/s7-tests: track S7-tests.",
+    "- crates/sqll_syntax/src/lib.rs: owned by core (another track)",
+    "Result: fail. The pull request changes files of the tracks core. Ask the owning track for the change (an issue), or add the label 'cross-track' and get a review from the owning track.",
+    "Result: fail."
+   ]
+  },
+  {
+   "track": "S7-tests",
+   "branch": "claude/s7-tests",
+   "path": "crates/sqll_syntax/src/lib.rs",
+   "control": false,
+   "label": true,
+   "exit_code": 0,
+   "lines": [
+    "Branch claude/s7-tests: track S7-tests.",
+    "- crates/sqll_syntax/src/lib.rs: owned by core (another track)",
+    "Result: pass with the label 'cross-track'. These tracks must review the pull request: core.",
+    "Result: pass."
+   ]
+  },
+  {
+   "track": "S9",
+   "branch": "claude/s9",
+   "path": "crates/sqll_syntax/src/lib.rs",
+   "control": false,
+   "label": false,
+   "exit_code": 1,
+   "lines": [
+    "Branch claude/s9: track S9.",
+    "- crates/sqll_syntax/src/lib.rs: owned by core (another track)",
+    "Result: fail. The pull request changes files of the tracks core. Ask the owning track for the change (an issue), or add the label 'cross-track' and get a review from the owning track.",
+    "Result: fail."
+   ]
+  },
+  {
+   "track": "S9",
+   "branch": "claude/s9",
+   "path": "crates/sqll_syntax/src/lib.rs",
+   "control": false,
+   "label": true,
+   "exit_code": 0,
+   "lines": [
+    "Branch claude/s9: track S9.",
+    "- crates/sqll_syntax/src/lib.rs: owned by core (another track)",
+    "Result: pass with the label 'cross-track'. These tracks must review the pull request: core.",
+    "Result: pass."
+   ]
+  },
+  {
    "track": "S4",
    "branch": "claude/s4",
    "path": "crates/sqll_syntax/src/lib.rs",
@@ -824,6 +1076,90 @@
    ]
   },
   {
+   "track": "S3",
+   "branch": "claude/s3",
+   "path": "crates/sqll_parser/Cargo.toml",
+   "control": false,
+   "label": false,
+   "exit_code": 1,
+   "lines": [
+    "Branch claude/s3: track S3.",
+    "- crates/sqll_parser/Cargo.toml: owned by core (another track)",
+    "Result: fail. The pull request changes files of the tracks core. Ask the owning track for the change (an issue), or add the label 'cross-track' and get a review from the owning track.",
+    "Result: fail."
+   ]
+  },
+  {
+   "track": "S3",
+   "branch": "claude/s3",
+   "path": "crates/sqll_parser/Cargo.toml",
+   "control": false,
+   "label": true,
+   "exit_code": 0,
+   "lines": [
+    "Branch claude/s3: track S3.",
+    "- crates/sqll_parser/Cargo.toml: owned by core (another track)",
+    "Result: pass with the label 'cross-track'. These tracks must review the pull request: core.",
+    "Result: pass."
+   ]
+  },
+  {
+   "track": "S7-tests",
+   "branch": "claude/s7-tests",
+   "path": "crates/sqll_parser/Cargo.toml",
+   "control": false,
+   "label": false,
+   "exit_code": 1,
+   "lines": [
+    "Branch claude/s7-tests: track S7-tests.",
+    "- crates/sqll_parser/Cargo.toml: owned by core (another track)",
+    "Result: fail. The pull request changes files of the tracks core. Ask the owning track for the change (an issue), or add the label 'cross-track' and get a review from the owning track.",
+    "Result: fail."
+   ]
+  },
+  {
+   "track": "S7-tests",
+   "branch": "claude/s7-tests",
+   "path": "crates/sqll_parser/Cargo.toml",
+   "control": false,
+   "label": true,
+   "exit_code": 0,
+   "lines": [
+    "Branch claude/s7-tests: track S7-tests.",
+    "- crates/sqll_parser/Cargo.toml: owned by core (another track)",
+    "Result: pass with the label 'cross-track'. These tracks must review the pull request: core.",
+    "Result: pass."
+   ]
+  },
+  {
+   "track": "S9",
+   "branch": "claude/s9",
+   "path": "crates/sqll_parser/Cargo.toml",
+   "control": false,
+   "label": false,
+   "exit_code": 1,
+   "lines": [
+    "Branch claude/s9: track S9.",
+    "- crates/sqll_parser/Cargo.toml: owned by core (another track)",
+    "Result: fail. The pull request changes files of the tracks core. Ask the owning track for the change (an issue), or add the label 'cross-track' and get a review from the owning track.",
+    "Result: fail."
+   ]
+  },
+  {
+   "track": "S9",
+   "branch": "claude/s9",
+   "path": "crates/sqll_parser/Cargo.toml",
+   "control": false,
+   "label": true,
+   "exit_code": 0,
+   "lines": [
+    "Branch claude/s9: track S9.",
+    "- crates/sqll_parser/Cargo.toml: owned by core (another track)",
+    "Result: pass with the label 'cross-track'. These tracks must review the pull request: core.",
+    "Result: pass."
+   ]
+  },
+  {
    "track": "S4",
    "branch": "claude/s4",
    "path": "crates/sqll_parser/Cargo.toml",
@@ -1020,6 +1356,90 @@
    ]
   },
   {
+   "track": "S3",
+   "branch": "claude/s3",
+   "path": "crates/sqll_dialects/build.rs",
+   "control": false,
+   "label": false,
+   "exit_code": 1,
+   "lines": [
+    "Branch claude/s3: track S3.",
+    "- crates/sqll_dialects/build.rs: owned by core (another track)",
+    "Result: fail. The pull request changes files of the tracks core. Ask the owning track for the change (an issue), or add the label 'cross-track' and get a review from the owning track.",
+    "Result: fail."
+   ]
+  },
+  {
+   "track": "S3",
+   "branch": "claude/s3",
+   "path": "crates/sqll_dialects/build.rs",
+   "control": false,
+   "label": true,
+   "exit_code": 0,
+   "lines": [
+    "Branch claude/s3: track S3.",
+    "- crates/sqll_dialects/build.rs: owned by core (another track)",
+    "Result: pass with the label 'cross-track'. These tracks must review the pull request: core.",
+    "Result: pass."
+   ]
+  },
+  {
+   "track": "S7-tests",
+   "branch": "claude/s7-tests",
+   "path": "crates/sqll_dialects/build.rs",
+   "control": false,
+   "label": false,
+   "exit_code": 1,
+   "lines": [
+    "Branch claude/s7-tests: track S7-tests.",
+    "- crates/sqll_dialects/build.rs: owned by core (another track)",
+    "Result: fail. The pull request changes files of the tracks core. Ask the owning track for the change (an issue), or add the label 'cross-track' and get a review from the owning track.",
+    "Result: fail."
+   ]
+  },
+  {
+   "track": "S7-tests",
+   "branch": "claude/s7-tests",
+   "path": "crates/sqll_dialects/build.rs",
+   "control": false,
+   "label": true,
+   "exit_code": 0,
+   "lines": [
+    "Branch claude/s7-tests: track S7-tests.",
+    "- crates/sqll_dialects/build.rs: owned by core (another track)",
+    "Result: pass with the label 'cross-track'. These tracks must review the pull request: core.",
+    "Result: pass."
+   ]
+  },
+  {
+   "track": "S9",
+   "branch": "claude/s9",
+   "path": "crates/sqll_dialects/build.rs",
+   "control": false,
+   "label": false,
+   "exit_code": 1,
+   "lines": [
+    "Branch claude/s9: track S9.",
+    "- crates/sqll_dialects/build.rs: owned by core (another track)",
+    "Result: fail. The pull request changes files of the tracks core. Ask the owning track for the change (an issue), or add the label 'cross-track' and get a review from the owning track.",
+    "Result: fail."
+   ]
+  },
+  {
+   "track": "S9",
+   "branch": "claude/s9",
+   "path": "crates/sqll_dialects/build.rs",
+   "control": false,
+   "label": true,
+   "exit_code": 0,
+   "lines": [
+    "Branch claude/s9: track S9.",
+    "- crates/sqll_dialects/build.rs: owned by core (another track)",
+    "Result: pass with the label 'cross-track'. These tracks must review the pull request: core.",
+    "Result: pass."
+   ]
+  },
+  {
    "track": "S4",
    "branch": "claude/s4",
    "path": "crates/sqll_dialects/build.rs",
@@ -1216,6 +1636,90 @@
    ]
   },
   {
+   "track": "S3",
+   "branch": "claude/s3",
+   "path": "Cargo.lock",
+   "control": false,
+   "label": false,
+   "exit_code": 1,
+   "lines": [
+    "Branch claude/s3: track S3.",
+    "- Cargo.lock: owned by core (another track)",
+    "Result: fail. The pull request changes files of the tracks core. Ask the owning track for the change (an issue), or add the label 'cross-track' and get a review from the owning track.",
+    "Result: fail."
+   ]
+  },
+  {
+   "track": "S3",
+   "branch": "claude/s3",
+   "path": "Cargo.lock",
+   "control": false,
+   "label": true,
+   "exit_code": 0,
+   "lines": [
+    "Branch claude/s3: track S3.",
+    "- Cargo.lock: owned by core (another track)",
+    "Result: pass with the label 'cross-track'. These tracks must review the pull request: core.",
+    "Result: pass."
+   ]
+  },
+  {
+   "track": "S7-tests",
+   "branch": "claude/s7-tests",
+   "path": "Cargo.lock",
+   "control": false,
+   "label": false,
+   "exit_code": 1,
+   "lines": [
+    "Branch claude/s7-tests: track S7-tests.",
+    "- Cargo.lock: owned by core (another track)",
+    "Result: fail. The pull request changes files of the tracks core. Ask the owning track for the change (an issue), or add the label 'cross-track' and get a review from the owning track.",
+    "Result: fail."
+   ]
+  },
+  {
+   "track": "S7-tests",
+   "branch": "claude/s7-tests",
+   "path": "Cargo.lock",
+   "control": false,
+   "label": true,
+   "exit_code": 0,
+   "lines": [
+    "Branch claude/s7-tests: track S7-tests.",
+    "- Cargo.lock: owned by core (another track)",
+    "Result: pass with the label 'cross-track'. These tracks must review the pull request: core.",
+    "Result: pass."
+   ]
+  },
+  {
+   "track": "S9",
+   "branch": "claude/s9",
+   "path": "Cargo.lock",
+   "control": false,
+   "label": false,
+   "exit_code": 1,
+   "lines": [
+    "Branch claude/s9: track S9.",
+    "- Cargo.lock: owned by core (another track)",
+    "Result: fail. The pull request changes files of the tracks core. Ask the owning track for the change (an issue), or add the label 'cross-track' and get a review from the owning track.",
+    "Result: fail."
+   ]
+  },
+  {
+   "track": "S9",
+   "branch": "claude/s9",
+   "path": "Cargo.lock",
+   "control": false,
+   "label": true,
+   "exit_code": 0,
+   "lines": [
+    "Branch claude/s9: track S9.",
+    "- Cargo.lock: owned by core (another track)",
+    "Result: pass with the label 'cross-track'. These tracks must review the pull request: core.",
+    "Result: pass."
+   ]
+  },
+  {
    "track": "S4",
    "branch": "claude/s4",
    "path": "Cargo.lock",
@@ -1408,6 +1912,48 @@
     "Branch claude/s11: track S11.",
     "- Cargo.lock: owned by core (another track)",
     "Result: pass with the label 'cross-track'. These tracks must review the pull request: core.",
+    "Result: pass."
+   ]
+  },
+  {
+   "track": "S3",
+   "branch": "claude/s3",
+   "path": "status/S3.md",
+   "control": true,
+   "label": false,
+   "exit_code": 0,
+   "lines": [
+    "Branch claude/s3: track S3.",
+    "- status/S3.md: owned by S3",
+    "Result: pass. Each changed file is of this track or has no owner.",
+    "Result: pass."
+   ]
+  },
+  {
+   "track": "S7-tests",
+   "branch": "claude/s7-tests",
+   "path": "status/S7-tests.md",
+   "control": true,
+   "label": false,
+   "exit_code": 0,
+   "lines": [
+    "Branch claude/s7-tests: track S7-tests.",
+    "- status/S7-tests.md: owned by S7-tests",
+    "Result: pass. Each changed file is of this track or has no owner.",
+    "Result: pass."
+   ]
+  },
+  {
+   "track": "S9",
+   "branch": "claude/s9",
+   "path": "status/S9.md",
+   "control": true,
+   "label": false,
+   "exit_code": 0,
+   "lines": [
+    "Branch claude/s9: track S9.",
+    "- status/S9.md: owned by S9",
+    "Result: pass. Each changed file is of this track or has no owner.",
     "Result: pass."
    ]
   },
@@ -1821,9 +2367,9 @@
   },
   "probe.tracks": {
    "kind": "derived",
-   "value": 7,
-   "formula": "count of the later tracks",
-   "text": "7"
+   "value": 10,
+   "formula": "count of the tracks other than core",
+   "text": "10"
   },
   "probe.paths": {
    "kind": "derived",
@@ -1833,27 +2379,27 @@
   },
   "probe.core_runs": {
    "kind": "derived",
-   "value": 42,
+   "value": 60,
    "formula": "probe.tracks * probe.paths",
-   "text": "42"
+   "text": "60"
   },
   "probe.fail_without_label": {
    "kind": "derived",
-   "value": 42,
+   "value": 60,
    "formula": "count of the runs without the label that fail (exit code 1) and name the path as owned by core",
-   "text": "42"
+   "text": "60"
   },
   "probe.pass_with_label": {
    "kind": "derived",
-   "value": 42,
+   "value": 60,
    "formula": "count of the runs with the label that pass and ask for a core review",
-   "text": "42"
+   "text": "60"
   },
   "probe.control_pass": {
    "kind": "derived",
-   "value": 7,
+   "value": 10,
    "formula": "count of the control runs (the status file of the track) that pass",
-   "text": "7"
+   "text": "10"
   },
   "exit.core_track": {
    "kind": "derived",
