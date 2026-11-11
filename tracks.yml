@@ -187,6 +187,14 @@ tracks:
       - results/S6/**
       - crates/sqll_templater/src/**
       - crates/sqll_templater/tests/**
+      # The S6 design records, scripts, harness code, and harness tests
+      # (S6 task T1: the S6 scope and design are recorded and tested;
+      # docs/decisions/s6-templaters.md).
+      - docs/decisions/s6-*.md
+      - scripts/s6/**
+      - harness/sqll_harness/s6/**
+      - harness/tests/test_s6_*.py
+      - harness/tests/fixtures/s6/**
   S7-sqll:
     stones: [S7]
     branches: [claude/s7-sqll, claude/s7-sqll-*]

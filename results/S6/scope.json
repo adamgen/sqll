@@ -1,0 +1,2486 @@
+{
+ "about": "S6 (templater parity): the fixture set from the data of the pinned sqlfluff. Output of scripts/s6/inventory.py; see docs/decisions/s6-templaters.md, 'Set'.",
+ "format": 1,
+ "sqlfluff": "4.4.0",
+ "commit": "0348222a3bcdb0226563f7349c5a39beb0641955",
+ "counts": {
+  "templater_suite": {
+   "total": 43,
+   "jinja": 43,
+   "placeholder": 0,
+   "python": 0,
+   "needs_python": 3
+  },
+  "placeholder_nodes": {
+   "total": 26,
+   "black_box": 26,
+   "internal": 0,
+   "needs_python_runtime": 0
+  },
+  "python_nodes": {
+   "total": 53,
+   "black_box": 28,
+   "internal": 25,
+   "needs_python_runtime": 0
+  },
+  "rule_cases": {
+   "total": 13,
+   "placeholder": 12,
+   "python": 1
+  },
+  "fixtures_not_in_set": 1,
+  "fixture_configs": 9,
+  "other_tests": 7,
+  "s6_black_box": 54,
+  "s6_internal": 25
+ },
+ "functions": {
+  "test/core/templaters/placeholder_test.py::test__templater_raw": {
+   "templater": "placeholder",
+   "kind": "black_box",
+   "calls": [
+    "process"
+   ],
+   "nodes": 1
+  },
+  "test/core/templaters/placeholder_test.py::test__templater_param_style": {
+   "templater": "placeholder",
+   "kind": "black_box",
+   "calls": [
+    "process"
+   ],
+   "nodes": 22
+  },
+  "test/core/templaters/placeholder_test.py::test__templater_custom_regex": {
+   "templater": "placeholder",
+   "kind": "black_box",
+   "calls": [
+    "process"
+   ],
+   "nodes": 1
+  },
+  "test/core/templaters/placeholder_test.py::test__templater_setup": {
+   "templater": "placeholder",
+   "kind": "black_box",
+   "calls": [
+    "process"
+   ],
+   "nodes": 1
+  },
+  "test/core/templaters/placeholder_test.py::test__templater_styles": {
+   "templater": "placeholder",
+   "kind": "black_box",
+   "calls": [
+    "process"
+   ],
+   "nodes": 1
+  },
+  "test/core/templaters/python_test.py::test__templater_python": {
+   "templater": "python",
+   "kind": "black_box",
+   "calls": [
+    "process"
+   ],
+   "nodes": 1
+  },
+  "test/core/templaters/python_test.py::test__templater_python_error": {
+   "templater": "python",
+   "kind": "black_box",
+   "calls": [
+    "process"
+   ],
+   "nodes": 1
+  },
+  "test/core/templaters/python_test.py::test__templater_python_intermediate__trim": {
+   "templater": "python",
+   "kind": "internal",
+   "calls": [
+    "trim_ends"
+   ],
+   "nodes": 4
+  },
+  "test/core/templaters/python_test.py::test__templater_python_substring_occurrences": {
+   "templater": "python",
+   "kind": "internal",
+   "calls": [
+    "_substring_occurrences"
+   ],
+   "nodes": 4
+  },
+  "test/core/templaters/python_test.py::test__templater_python_sorted_occurrence_tuples": {
+   "templater": "python",
+   "kind": "internal",
+   "calls": [
+    "_sorted_occurrence_tuples"
+   ],
+   "nodes": 3
+  },
+  "test/core/templaters/python_test.py::test__templater_python_slice_template": {
+   "templater": "python",
+   "kind": "internal",
+   "calls": [
+    "_slice_template"
+   ],
+   "nodes": 3
+  },
+  "test/core/templaters/python_test.py::test__templater_python_split_invariants": {
+   "templater": "python",
+   "kind": "internal",
+   "calls": [
+    "_split_invariants"
+   ],
+   "nodes": 2
+  },
+  "test/core/templaters/python_test.py::test__templater_python_split_uniques_coalesce_rest": {
+   "templater": "python",
+   "kind": "internal",
+   "calls": [
+    "_split_uniques_coalesce_rest"
+   ],
+   "nodes": 4
+  },
+  "test/core/templaters/python_test.py::test__templater_python_slice_file": {
+   "templater": "python",
+   "kind": "internal",
+   "calls": [
+    "slice_file"
+   ],
+   "nodes": 5
+  },
+  "test/core/templaters/python_test.py::test__templater_python_large_file_check": {
+   "templater": "python",
+   "kind": "black_box",
+   "calls": [
+    "process"
+   ],
+   "nodes": 1
+  },
+  "test/core/templaters/python_test.py::test__templater_python_dot_notation_variables": {
+   "templater": "python",
+   "kind": "black_box",
+   "calls": [
+    "process"
+   ],
+   "nodes": 12
+  },
+  "test/core/templaters/python_test.py::test__templater_python_dot_notation_fail": {
+   "templater": "python",
+   "kind": "black_box",
+   "calls": [
+    "process"
+   ],
+   "nodes": 2
+  },
+  "test/core/templaters/python_test.py::test__templater_python_ignore_templating": {
+   "templater": "python",
+   "kind": "black_box",
+   "calls": [
+    "process"
+   ],
+   "nodes": 11
+  }
+ },
+ "templater_suite": [
+  {
+   "id": "templater/jinja_a/jinja",
+   "templater": "jinja",
+   "needs_python": [],
+   "known_failure": "jinja: S11"
+  },
+  {
+   "id": "templater/jinja_b/jinja",
+   "templater": "jinja",
+   "needs_python": [],
+   "known_failure": "jinja: S11"
+  },
+  {
+   "id": "templater/jinja_c_dbt/dbt_builtins_cross_ref",
+   "templater": "jinja",
+   "needs_python": [],
+   "known_failure": "jinja: S11"
+  },
+  {
+   "id": "templater/jinja_c_dbt/dbt_builtins_config",
+   "templater": "jinja",
+   "needs_python": [],
+   "known_failure": "jinja: S11"
+  },
+  {
+   "id": "templater/jinja_c_dbt/dbt_builtins_is_incremental",
+   "templater": "jinja",
+   "needs_python": [],
+   "known_failure": "jinja: S11"
+  },
+  {
+   "id": "templater/jinja_c_dbt/dbt_builtins_ref",
+   "templater": "jinja",
+   "needs_python": [],
+   "known_failure": "jinja: S11"
+  },
+  {
+   "id": "templater/jinja_c_dbt/dbt_builtins_source",
+   "templater": "jinja",
+   "needs_python": [],
+   "known_failure": "jinja: S11"
+  },
+  {
+   "id": "templater/jinja_c_dbt/dbt_builtins_this",
+   "templater": "jinja",
+   "needs_python": [],
+   "known_failure": "jinja: S11"
+  },
+  {
+   "id": "templater/jinja_c_dbt/dbt_builtins_this_callable",
+   "templater": "jinja",
+   "needs_python": [],
+   "known_failure": "jinja: S11"
+  },
+  {
+   "id": "templater/jinja_c_dbt/dbt_builtins_var_default",
+   "templater": "jinja",
+   "needs_python": [],
+   "known_failure": "jinja: S11"
+  },
+  {
+   "id": "templater/jinja_c_dbt/dbt_builtins_test",
+   "templater": "jinja",
+   "needs_python": [],
+   "known_failure": "jinja: S11"
+  },
+  {
+   "id": "templater/jinja_c_dbt/dbt_builtins_zip",
+   "templater": "jinja",
+   "needs_python": [],
+   "known_failure": "jinja: S11"
+  },
+  {
+   "id": "templater/jinja_c_dbt/dbt_builtins_zip_strict",
+   "templater": "jinja",
+   "needs_python": [],
+   "known_failure": "jinja: S11"
+  },
+  {
+   "id": "templater/jinja_c_dbt/dbt_builtins_return",
+   "templater": "jinja",
+   "needs_python": [],
+   "known_failure": "jinja: S11"
+  },
+  {
+   "id": "templater/jinja_e/jinja",
+   "templater": "jinja",
+   "needs_python": [],
+   "known_failure": "jinja: S11"
+  },
+  {
+   "id": "templater/jinja_f/jinja",
+   "templater": "jinja",
+   "needs_python": [],
+   "known_failure": "jinja: S11"
+  },
+  {
+   "id": "templater/jinja_g_macros/jinja",
+   "templater": "jinja",
+   "needs_python": [],
+   "known_failure": "jinja: S11"
+  },
+  {
+   "id": "templater/jinja_exclude_macro_path/jinja",
+   "templater": "jinja",
+   "needs_python": [],
+   "known_failure": "jinja: S11"
+  },
+  {
+   "id": "templater/jinja_exclude_macro_path/model_directory/jinja_sub_directory",
+   "templater": "jinja",
+   "needs_python": [],
+   "known_failure": "jinja: S11"
+  },
+  {
+   "id": "templater/jinja_h_macros/jinja",
+   "templater": "jinja",
+   "needs_python": [],
+   "known_failure": "jinja: S11"
+  },
+  {
+   "id": "templater/jinja_i_raw/raw_tag",
+   "templater": "jinja",
+   "needs_python": [],
+   "known_failure": "jinja: S11"
+  },
+  {
+   "id": "templater/jinja_i_raw/raw_tag_2",
+   "templater": "jinja",
+   "needs_python": [],
+   "known_failure": "jinja: S11"
+  },
+  {
+   "id": "templater/jinja_j_libraries/jinja",
+   "templater": "jinja",
+   "needs_python": [
+    "library_path"
+   ],
+   "known_failure": "jinja: S11"
+  },
+  {
+   "id": "templater/jinja_k_config_override_path_macros/jinja",
+   "templater": "jinja",
+   "needs_python": [],
+   "known_failure": "jinja: S11"
+  },
+  {
+   "id": "templater/jinja_l_metas/001",
+   "templater": "jinja",
+   "needs_python": [],
+   "known_failure": "jinja: S11"
+  },
+  {
+   "id": "templater/jinja_l_metas/002",
+   "templater": "jinja",
+   "needs_python": [],
+   "known_failure": "jinja: S11"
+  },
+  {
+   "id": "templater/jinja_l_metas/003",
+   "templater": "jinja",
+   "needs_python": [],
+   "known_failure": "jinja: S11"
+  },
+  {
+   "id": "templater/jinja_l_metas/004",
+   "templater": "jinja",
+   "needs_python": [],
+   "known_failure": "jinja: S11"
+  },
+  {
+   "id": "templater/jinja_l_metas/005",
+   "templater": "jinja",
+   "needs_python": [],
+   "known_failure": "jinja: S11"
+  },
+  {
+   "id": "templater/jinja_l_metas/006",
+   "templater": "jinja",
+   "needs_python": [],
+   "known_failure": "jinja: S11"
+  },
+  {
+   "id": "templater/jinja_l_metas/007",
+   "templater": "jinja",
+   "needs_python": [],
+   "known_failure": "jinja: S11"
+  },
+  {
+   "id": "templater/jinja_l_metas/008",
+   "templater": "jinja",
+   "needs_python": [],
+   "known_failure": "jinja: S11"
+  },
+  {
+   "id": "templater/jinja_l_metas/009",
+   "templater": "jinja",
+   "needs_python": [],
+   "known_failure": "jinja: S11"
+  },
+  {
+   "id": "templater/jinja_l_metas/010",
+   "templater": "jinja",
+   "needs_python": [],
+   "known_failure": "jinja: S11"
+  },
+  {
+   "id": "templater/jinja_l_metas/011",
+   "templater": "jinja",
+   "needs_python": [],
+   "known_failure": "jinja: S11"
+  },
+  {
+   "id": "templater/jinja_m_libraries_module/jinja",
+   "templater": "jinja",
+   "needs_python": [
+    "library_path"
+   ],
+   "known_failure": "jinja: S11"
+  },
+  {
+   "id": "templater/jinja_n_nested_macros/explicit_import",
+   "templater": "jinja",
+   "needs_python": [],
+   "known_failure": "jinja: S11"
+  },
+  {
+   "id": "templater/jinja_n_nested_macros/implicit_import",
+   "templater": "jinja",
+   "needs_python": [],
+   "known_failure": "jinja: S11"
+  },
+  {
+   "id": "templater/jinja_o_config_override_dbt_builtins/override_dbt_builtins",
+   "templater": "jinja",
+   "needs_python": [],
+   "known_failure": "jinja: S11"
+  },
+  {
+   "id": "templater/jinja_p_disable_dbt_builtins/disable_dbt_builtins",
+   "templater": "jinja",
+   "needs_python": [],
+   "known_failure": "jinja: S11"
+  },
+  {
+   "id": "templater/jinja_q_multiple_path_macros/jinja",
+   "templater": "jinja",
+   "needs_python": [],
+   "known_failure": "jinja: S11"
+  },
+  {
+   "id": "templater/jinja_s_filters_in_library/jinja",
+   "templater": "jinja",
+   "needs_python": [
+    "library_path"
+   ],
+   "known_failure": "jinja: S11"
+  },
+  {
+   "id": "templater/jinja_t_loader_search_path/jinja",
+   "templater": "jinja",
+   "needs_python": [],
+   "known_failure": "jinja: S11"
+  }
+ ],
+ "nodes": [
+  {
+   "id": "test/core/templaters/placeholder_test.py::test__templater_raw",
+   "file": "test/core/templaters/placeholder_test.py",
+   "function": "test__templater_raw",
+   "templater": "placeholder",
+   "kind": "black_box",
+   "calls": [
+    "process"
+   ],
+   "context": [
+    {
+     "param_style": "colon"
+    }
+   ],
+   "config": [],
+   "raises": [],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/placeholder_test.py::test__templater_param_style[no_changes]",
+   "file": "test/core/templaters/placeholder_test.py",
+   "function": "test__templater_param_style",
+   "templater": "placeholder",
+   "kind": "black_box",
+   "calls": [
+    "process"
+   ],
+   "context": [
+    {
+     "unused": 7777,
+     "param_style": "colon"
+    }
+   ],
+   "config": [
+    {
+     "overrides": {
+      "dialect": "ansi"
+     }
+    }
+   ],
+   "raises": [],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/placeholder_test.py::test__templater_param_style[colon_simple_substitution]",
+   "file": "test/core/templaters/placeholder_test.py",
+   "function": "test__templater_param_style",
+   "templater": "placeholder",
+   "kind": "black_box",
+   "calls": [
+    "process"
+   ],
+   "context": [
+    {
+     "user_id": "42",
+     "start_date": "'2021-10-01'",
+     "city_ids": "(1, 2, 3, 45)",
+     "param_style": "colon"
+    }
+   ],
+   "config": [
+    {
+     "overrides": {
+      "dialect": "ansi"
+     }
+    }
+   ],
+   "raises": [],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/placeholder_test.py::test__templater_param_style[colon_accept_block_at_end]",
+   "file": "test/core/templaters/placeholder_test.py",
+   "function": "test__templater_param_style",
+   "templater": "placeholder",
+   "kind": "black_box",
+   "calls": [
+    "process"
+   ],
+   "context": [
+    {
+     "user_id": "42",
+     "start_date": "'2021-10-01'",
+     "city_ids": "(1, 2, 3, 45)",
+     "param_style": "colon"
+    }
+   ],
+   "config": [
+    {
+     "overrides": {
+      "dialect": "ansi"
+     }
+    }
+   ],
+   "raises": [],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/placeholder_test.py::test__templater_param_style[colon_tuple_substitution]",
+   "file": "test/core/templaters/placeholder_test.py",
+   "function": "test__templater_param_style",
+   "templater": "placeholder",
+   "kind": "black_box",
+   "calls": [
+    "process"
+   ],
+   "context": [
+    {
+     "user_id": "42",
+     "start_date": "'2021-10-01'",
+     "city_ids": "(1, 2, 3, 45)",
+     "param_style": "colon"
+    }
+   ],
+   "config": [
+    {
+     "overrides": {
+      "dialect": "ansi"
+     }
+    }
+   ],
+   "raises": [],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/placeholder_test.py::test__templater_param_style[colon_quoted]",
+   "file": "test/core/templaters/placeholder_test.py",
+   "function": "test__templater_param_style",
+   "templater": "placeholder",
+   "kind": "black_box",
+   "calls": [
+    "process"
+   ],
+   "context": [
+    {
+     "user_id": "42",
+     "custom_column": "PascalCaseColumn",
+     "start_date": "2021-10-01",
+     "param_style": "colon_optional_quotes"
+    }
+   ],
+   "config": [
+    {
+     "overrides": {
+      "dialect": "ansi"
+     }
+    }
+   ],
+   "raises": [],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/placeholder_test.py::test__templater_param_style[colon_quoted_embedded_colons_ignored]",
+   "file": "test/core/templaters/placeholder_test.py",
+   "function": "test__templater_param_style",
+   "templater": "placeholder",
+   "kind": "black_box",
+   "calls": [
+    "process"
+   ],
+   "context": [
+    {
+     "user_id": "42",
+     "param_style": "colon_optional_quotes"
+    }
+   ],
+   "config": [
+    {
+     "overrides": {
+      "dialect": "ansi"
+     }
+    }
+   ],
+   "raises": [],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/placeholder_test.py::test__templater_param_style[colon_nospaces]",
+   "file": "test/core/templaters/placeholder_test.py",
+   "function": "test__templater_param_style",
+   "templater": "placeholder",
+   "kind": "black_box",
+   "calls": [
+    "process"
+   ],
+   "context": [
+    {
+     "table_suffix": "42",
+     "param_style": "colon_nospaces"
+    }
+   ],
+   "config": [
+    {
+     "overrides": {
+      "dialect": "ansi"
+     }
+    }
+   ],
+   "raises": [],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/placeholder_test.py::test__templater_param_style[colon_nospaces_double_colon_ignored]",
+   "file": "test/core/templaters/placeholder_test.py",
+   "function": "test__templater_param_style",
+   "templater": "placeholder",
+   "kind": "black_box",
+   "calls": [
+    "process"
+   ],
+   "context": [
+    {
+     "table_suffix": "42",
+     "param_style": "colon_nospaces"
+    }
+   ],
+   "config": [
+    {
+     "overrides": {
+      "dialect": "ansi"
+     }
+    }
+   ],
+   "raises": [],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/placeholder_test.py::test__templater_param_style[colon_double_colon_cast]",
+   "file": "test/core/templaters/placeholder_test.py",
+   "function": "test__templater_param_style",
+   "templater": "placeholder",
+   "kind": "black_box",
+   "calls": [
+    "process"
+   ],
+   "context": [
+    {
+     "user_id": "42",
+     "city_name": "'London'",
+     "param_style": "colon"
+    }
+   ],
+   "config": [
+    {
+     "overrides": {
+      "dialect": "ansi"
+     }
+    }
+   ],
+   "raises": [],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/placeholder_test.py::test__templater_param_style[question_mark]",
+   "file": "test/core/templaters/placeholder_test.py",
+   "function": "test__templater_param_style",
+   "templater": "placeholder",
+   "kind": "black_box",
+   "calls": [
+    "process"
+   ],
+   "context": [
+    {
+     "1": "(1, 2, 3, 45)",
+     "2": "'2020-10-01'",
+     "param_style": "question_mark"
+    }
+   ],
+   "config": [
+    {
+     "overrides": {
+      "dialect": "ansi"
+     }
+    }
+   ],
+   "raises": [],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/placeholder_test.py::test__templater_param_style[numeric_colon]",
+   "file": "test/core/templaters/placeholder_test.py",
+   "function": "test__templater_param_style",
+   "templater": "placeholder",
+   "kind": "black_box",
+   "calls": [
+    "process"
+   ],
+   "context": [
+    {
+     "1": "(1, 2, 3, 45)",
+     "45": "'2020-10-01'",
+     "param_style": "numeric_colon"
+    }
+   ],
+   "config": [
+    {
+     "overrides": {
+      "dialect": "ansi"
+     }
+    }
+   ],
+   "raises": [],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/placeholder_test.py::test__templater_param_style[pyformat]",
+   "file": "test/core/templaters/placeholder_test.py",
+   "function": "test__templater_param_style",
+   "templater": "placeholder",
+   "kind": "black_box",
+   "calls": [
+    "process"
+   ],
+   "context": [
+    {
+     "city_id": "(1, 2, 3, 45)",
+     "date": "'2020-10-01'",
+     "limit": 15,
+     "someflag": false,
+     "param_style": "pyformat"
+    }
+   ],
+   "config": [
+    {
+     "overrides": {
+      "dialect": "ansi"
+     }
+    }
+   ],
+   "raises": [],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/placeholder_test.py::test__templater_param_style[dollar]",
+   "file": "test/core/templaters/placeholder_test.py",
+   "function": "test__templater_param_style",
+   "templater": "placeholder",
+   "kind": "black_box",
+   "calls": [
+    "process"
+   ],
+   "context": [
+    {
+     "city_id": "(1, 2, 3, 45)",
+     "date": "'2020-10-01'",
+     "param_style": "dollar"
+    }
+   ],
+   "config": [
+    {
+     "overrides": {
+      "dialect": "ansi"
+     }
+    }
+   ],
+   "raises": [],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/placeholder_test.py::test__templater_param_style[numeric_dollar]",
+   "file": "test/core/templaters/placeholder_test.py",
+   "function": "test__templater_param_style",
+   "templater": "placeholder",
+   "kind": "black_box",
+   "calls": [
+    "process"
+   ],
+   "context": [
+    {
+     "12": "(1, 2, 3, 45)",
+     "90": "'2020-10-01'",
+     "param_style": "numeric_dollar"
+    }
+   ],
+   "config": [
+    {
+     "overrides": {
+      "dialect": "ansi"
+     }
+    }
+   ],
+   "raises": [],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/placeholder_test.py::test__templater_param_style[numeric_dollar_with_braces]",
+   "file": "test/core/templaters/placeholder_test.py",
+   "function": "test__templater_param_style",
+   "templater": "placeholder",
+   "kind": "black_box",
+   "calls": [
+    "process"
+   ],
+   "context": [
+    {
+     "12": "(1, 2, 3, 45)",
+     "90": "'2020-10-01'",
+     "param_style": "numeric_dollar"
+    }
+   ],
+   "config": [
+    {
+     "overrides": {
+      "dialect": "ansi"
+     }
+    }
+   ],
+   "raises": [],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/placeholder_test.py::test__templater_param_style[numeric_dollar_with_braces_and_string]",
+   "file": "test/core/templaters/placeholder_test.py",
+   "function": "test__templater_param_style",
+   "templater": "placeholder",
+   "kind": "black_box",
+   "calls": [
+    "process"
+   ],
+   "context": [
+    {
+     "12": "test@example.com",
+     "90": "'2020-10-01'",
+     "param_style": "numeric_dollar"
+    }
+   ],
+   "config": [
+    {
+     "overrides": {
+      "dialect": "ansi"
+     }
+    }
+   ],
+   "raises": [],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/placeholder_test.py::test__templater_param_style[dollar_surround]",
+   "file": "test/core/templaters/placeholder_test.py",
+   "function": "test__templater_param_style",
+   "templater": "placeholder",
+   "kind": "black_box",
+   "calls": [
+    "process"
+   ],
+   "context": [
+    {
+     "12": "test@example.com",
+     "90": "'2020-10-01'",
+     "param_style": "dollar_surround"
+    }
+   ],
+   "config": [
+    {
+     "overrides": {
+      "dialect": "ansi"
+     }
+    }
+   ],
+   "raises": [],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/placeholder_test.py::test__templater_param_style[percent]",
+   "file": "test/core/templaters/placeholder_test.py",
+   "function": "test__templater_param_style",
+   "templater": "placeholder",
+   "kind": "black_box",
+   "calls": [
+    "process"
+   ],
+   "context": [
+    {
+     "1": "(1, 2, 3, 45)",
+     "2": "'2020-10-01'",
+     "param_style": "percent"
+    }
+   ],
+   "config": [
+    {
+     "overrides": {
+      "dialect": "ansi"
+     }
+    }
+   ],
+   "raises": [],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/placeholder_test.py::test__templater_param_style[ampersand]",
+   "file": "test/core/templaters/placeholder_test.py",
+   "function": "test__templater_param_style",
+   "templater": "placeholder",
+   "kind": "black_box",
+   "calls": [
+    "process"
+   ],
+   "context": [
+    {
+     "env": "PRD",
+     "user_id": "42",
+     "start_date": "'2021-10-01'",
+     "param_style": "ampersand"
+    }
+   ],
+   "config": [
+    {
+     "overrides": {
+      "dialect": "ansi"
+     }
+    }
+   ],
+   "raises": [],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/placeholder_test.py::test__templater_param_style[flyway_var0]",
+   "file": "test/core/templaters/placeholder_test.py",
+   "function": "test__templater_param_style",
+   "templater": "placeholder",
+   "kind": "black_box",
+   "calls": [
+    "process"
+   ],
+   "context": [
+    {
+     "flyway:database": "test_db",
+     "param_style": "flyway_var"
+    }
+   ],
+   "config": [
+    {
+     "overrides": {
+      "dialect": "ansi"
+     }
+    }
+   ],
+   "raises": [],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/placeholder_test.py::test__templater_param_style[flyway_var1]",
+   "file": "test/core/templaters/placeholder_test.py",
+   "function": "test__templater_param_style",
+   "templater": "placeholder",
+   "kind": "black_box",
+   "calls": [
+    "process"
+   ],
+   "context": [
+    {
+     "env_name": "staging",
+     "param_style": "flyway_var"
+    }
+   ],
+   "config": [
+    {
+     "overrides": {
+      "dialect": "ansi"
+     }
+    }
+   ],
+   "raises": [],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/placeholder_test.py::test__templater_param_style[params_not_specified]",
+   "file": "test/core/templaters/placeholder_test.py",
+   "function": "test__templater_param_style",
+   "templater": "placeholder",
+   "kind": "black_box",
+   "calls": [
+    "process"
+   ],
+   "context": [
+    {
+     "param_style": "flyway_var"
+    }
+   ],
+   "config": [
+    {
+     "overrides": {
+      "dialect": "ansi"
+     }
+    }
+   ],
+   "raises": [],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/placeholder_test.py::test__templater_custom_regex",
+   "file": "test/core/templaters/placeholder_test.py",
+   "function": "test__templater_custom_regex",
+   "templater": "placeholder",
+   "kind": "black_box",
+   "calls": [
+    "process"
+   ],
+   "context": [
+    {
+     "param_regex": "__(?P<param_name>[\\w_]+)__",
+     "my_name": "john"
+    }
+   ],
+   "config": [
+    {
+     "overrides": {
+      "dialect": "ansi"
+     }
+    }
+   ],
+   "raises": [],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/placeholder_test.py::test__templater_setup",
+   "file": "test/core/templaters/placeholder_test.py",
+   "function": "test__templater_setup",
+   "templater": "placeholder",
+   "kind": "black_box",
+   "calls": [
+    "process"
+   ],
+   "context": [
+    {
+     "name": "'john'"
+    },
+    {
+     "param_style": "bla",
+     "param_regex": "bli"
+    }
+   ],
+   "config": [],
+   "raises": [
+    "ValueError"
+   ],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/placeholder_test.py::test__templater_styles",
+   "file": "test/core/templaters/placeholder_test.py",
+   "function": "test__templater_styles",
+   "templater": "placeholder",
+   "kind": "black_box",
+   "calls": [
+    "process"
+   ],
+   "context": [
+    {
+     "param_style": "pperccent"
+    }
+   ],
+   "config": [],
+   "raises": [
+    "ValueError"
+   ],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/python_test.py::test__templater_python",
+   "file": "test/core/templaters/python_test.py",
+   "function": "test__templater_python",
+   "templater": "python",
+   "kind": "black_box",
+   "calls": [
+    "process"
+   ],
+   "context": [
+    {
+     "blah": "foo"
+    }
+   ],
+   "config": [],
+   "raises": [],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/python_test.py::test__templater_python_error",
+   "file": "test/core/templaters/python_test.py",
+   "function": "test__templater_python_error",
+   "templater": "python",
+   "kind": "black_box",
+   "calls": [
+    "process"
+   ],
+   "context": [
+    {
+     "noblah": "foo"
+    }
+   ],
+   "config": [],
+   "raises": [
+    "SQLTemplaterError"
+   ],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/python_test.py::test__templater_python_intermediate__trim[int_slice0-foo-head_test0-tail_test0-int_test0]",
+   "file": "test/core/templaters/python_test.py",
+   "function": "test__templater_python_intermediate__trim",
+   "templater": "python",
+   "kind": "internal",
+   "calls": [
+    "trim_ends"
+   ],
+   "context": [],
+   "config": [],
+   "raises": [],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/python_test.py::test__templater_python_intermediate__trim[int_slice1-foo-head_test1-tail_test1-int_test1]",
+   "file": "test/core/templaters/python_test.py",
+   "function": "test__templater_python_intermediate__trim",
+   "templater": "python",
+   "kind": "internal",
+   "calls": [
+    "trim_ends"
+   ],
+   "context": [],
+   "config": [],
+   "raises": [],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/python_test.py::test__templater_python_intermediate__trim[int_slice2-foo1bar-head_test2-tail_test2-int_test2]",
+   "file": "test/core/templaters/python_test.py",
+   "function": "test__templater_python_intermediate__trim",
+   "templater": "python",
+   "kind": "internal",
+   "calls": [
+    "trim_ends"
+   ],
+   "context": [],
+   "config": [],
+   "raises": [],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/python_test.py::test__templater_python_intermediate__trim[int_slice3-foofoofoobarfoofoobarbar-head_test3-tail_test3-int_test3]",
+   "file": "test/core/templaters/python_test.py",
+   "function": "test__templater_python_intermediate__trim",
+   "templater": "python",
+   "kind": "internal",
+   "calls": [
+    "trim_ends"
+   ],
+   "context": [],
+   "config": [],
+   "raises": [],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/python_test.py::test__templater_python_substring_occurrences[-substrings0-positions0]",
+   "file": "test/core/templaters/python_test.py",
+   "function": "test__templater_python_substring_occurrences",
+   "templater": "python",
+   "kind": "internal",
+   "calls": [
+    "_substring_occurrences"
+   ],
+   "context": [],
+   "config": [],
+   "raises": [],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/python_test.py::test__templater_python_substring_occurrences[a-substrings1-positions1]",
+   "file": "test/core/templaters/python_test.py",
+   "function": "test__templater_python_substring_occurrences",
+   "templater": "python",
+   "kind": "internal",
+   "calls": [
+    "_substring_occurrences"
+   ],
+   "context": [],
+   "config": [],
+   "raises": [],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/python_test.py::test__templater_python_substring_occurrences[foobar-substrings2-positions2]",
+   "file": "test/core/templaters/python_test.py",
+   "function": "test__templater_python_substring_occurrences",
+   "templater": "python",
+   "kind": "internal",
+   "calls": [
+    "_substring_occurrences"
+   ],
+   "context": [],
+   "config": [],
+   "raises": [],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/python_test.py::test__templater_python_substring_occurrences[bar foo bar foo-substrings3-positions3]",
+   "file": "test/core/templaters/python_test.py",
+   "function": "test__templater_python_substring_occurrences",
+   "templater": "python",
+   "kind": "internal",
+   "calls": [
+    "_substring_occurrences"
+   ],
+   "context": [],
+   "config": [],
+   "raises": [],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/python_test.py::test__templater_python_sorted_occurrence_tuples[test0-result0]",
+   "file": "test/core/templaters/python_test.py",
+   "function": "test__templater_python_sorted_occurrence_tuples",
+   "templater": "python",
+   "kind": "internal",
+   "calls": [
+    "_sorted_occurrence_tuples"
+   ],
+   "context": [],
+   "config": [],
+   "raises": [],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/python_test.py::test__templater_python_sorted_occurrence_tuples[test1-result1]",
+   "file": "test/core/templaters/python_test.py",
+   "function": "test__templater_python_sorted_occurrence_tuples",
+   "templater": "python",
+   "kind": "internal",
+   "calls": [
+    "_sorted_occurrence_tuples"
+   ],
+   "context": [],
+   "config": [],
+   "raises": [],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/python_test.py::test__templater_python_sorted_occurrence_tuples[test2-result2]",
+   "file": "test/core/templaters/python_test.py",
+   "function": "test__templater_python_sorted_occurrence_tuples",
+   "templater": "python",
+   "kind": "internal",
+   "calls": [
+    "_sorted_occurrence_tuples"
+   ],
+   "context": [],
+   "config": [],
+   "raises": [],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/python_test.py::test__templater_python_slice_template[-result0]",
+   "file": "test/core/templaters/python_test.py",
+   "function": "test__templater_python_slice_template",
+   "templater": "python",
+   "kind": "internal",
+   "calls": [
+    "_slice_template"
+   ],
+   "context": [],
+   "config": [],
+   "raises": [],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/python_test.py::test__templater_python_slice_template[foo-result1]",
+   "file": "test/core/templaters/python_test.py",
+   "function": "test__templater_python_slice_template",
+   "templater": "python",
+   "kind": "internal",
+   "calls": [
+    "_slice_template"
+   ],
+   "context": [],
+   "config": [],
+   "raises": [],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/python_test.py::test__templater_python_slice_template[foo {bar} z {{ y-result2]",
+   "file": "test/core/templaters/python_test.py",
+   "function": "test__templater_python_slice_template",
+   "templater": "python",
+   "kind": "internal",
+   "calls": [
+    "_slice_template"
+   ],
+   "context": [],
+   "config": [],
+   "raises": [],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/python_test.py::test__templater_python_split_invariants[raw_sliced0-literals0-raw_occurrences0-templated_occurrences0-0-result0]",
+   "file": "test/core/templaters/python_test.py",
+   "function": "test__templater_python_split_invariants",
+   "templater": "python",
+   "kind": "internal",
+   "calls": [
+    "_split_invariants"
+   ],
+   "context": [],
+   "config": [],
+   "raises": [],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/python_test.py::test__templater_python_split_invariants[raw_sliced1-literals1-raw_occurrences1-templated_occurrences1-3-result1]",
+   "file": "test/core/templaters/python_test.py",
+   "function": "test__templater_python_split_invariants",
+   "templater": "python",
+   "kind": "internal",
+   "calls": [
+    "_split_invariants"
+   ],
+   "context": [],
+   "config": [],
+   "raises": [],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/python_test.py::test__templater_python_split_uniques_coalesce_rest[split_file0-raw_occurrences0-templated_occurrences0--result0]",
+   "file": "test/core/templaters/python_test.py",
+   "function": "test__templater_python_split_uniques_coalesce_rest",
+   "templater": "python",
+   "kind": "internal",
+   "calls": [
+    "_split_uniques_coalesce_rest"
+   ],
+   "context": [],
+   "config": [],
+   "raises": [],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/python_test.py::test__templater_python_split_uniques_coalesce_rest[split_file1-raw_occurrences1-templated_occurrences1-foo-result1]",
+   "file": "test/core/templaters/python_test.py",
+   "function": "test__templater_python_split_uniques_coalesce_rest",
+   "templater": "python",
+   "kind": "internal",
+   "calls": [
+    "_split_uniques_coalesce_rest"
+   ],
+   "context": [],
+   "config": [],
+   "raises": [],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/python_test.py::test__templater_python_split_uniques_coalesce_rest[split_file2-raw_occurrences2-templated_occurrences2-SELECT nothing, 435.24 as foo, spam, '{}' as convertible from something-result2]",
+   "file": "test/core/templaters/python_test.py",
+   "function": "test__templater_python_split_uniques_coalesce_rest",
+   "templater": "python",
+   "kind": "internal",
+   "calls": [
+    "_split_uniques_coalesce_rest"
+   ],
+   "context": [],
+   "config": [],
+   "raises": [],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/python_test.py::test__templater_python_split_uniques_coalesce_rest[split_file3-raw_occurrences3-templated_occurrences3-foo , bar-result3]",
+   "file": "test/core/templaters/python_test.py",
+   "function": "test__templater_python_split_uniques_coalesce_rest",
+   "templater": "python",
+   "kind": "internal",
+   "calls": [
+    "_split_uniques_coalesce_rest"
+   ],
+   "context": [],
+   "config": [],
+   "raises": [],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/python_test.py::test__templater_python_slice_file[--True-result0]",
+   "file": "test/core/templaters/python_test.py",
+   "function": "test__templater_python_slice_file",
+   "templater": "python",
+   "kind": "internal",
+   "calls": [
+    "slice_file"
+   ],
+   "context": [
+    null
+   ],
+   "config": [
+    {
+     "configs": {
+      "templater": {
+       "unwrap_wrapped_queries": true
+      }
+     },
+     "overrides": {
+      "dialect": "ansi"
+     }
+    }
+   ],
+   "raises": [],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/python_test.py::test__templater_python_slice_file[foo-foo-True-result1]",
+   "file": "test/core/templaters/python_test.py",
+   "function": "test__templater_python_slice_file",
+   "templater": "python",
+   "kind": "internal",
+   "calls": [
+    "slice_file"
+   ],
+   "context": [
+    null
+   ],
+   "config": [
+    {
+     "configs": {
+      "templater": {
+       "unwrap_wrapped_queries": true
+      }
+     },
+     "overrides": {
+      "dialect": "ansi"
+     }
+    }
+   ],
+   "raises": [],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/python_test.py::test__templater_python_slice_file[SELECT {blah}, {foo:.2f} as foo, {bar}, '{{}}' as convertible from something-SELECT nothing, 435.24 as foo, spam, '{}' as convertible from something-True-result2]",
+   "file": "test/core/templaters/python_test.py",
+   "function": "test__templater_python_slice_file",
+   "templater": "python",
+   "kind": "internal",
+   "calls": [
+    "slice_file"
+   ],
+   "context": [
+    null
+   ],
+   "config": [
+    {
+     "configs": {
+      "templater": {
+       "unwrap_wrapped_queries": true
+      }
+     },
+     "overrides": {
+      "dialect": "ansi"
+     }
+    }
+   ],
+   "raises": [],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/python_test.py::test__templater_python_slice_file[SELECT {blah} FROM something-WITH wrap AS (SELECT nothing FROM something) SELECT * FROM wrap-True-result3]",
+   "file": "test/core/templaters/python_test.py",
+   "function": "test__templater_python_slice_file",
+   "templater": "python",
+   "kind": "internal",
+   "calls": [
+    "slice_file"
+   ],
+   "context": [
+    null
+   ],
+   "config": [
+    {
+     "configs": {
+      "templater": {
+       "unwrap_wrapped_queries": true
+      }
+     },
+     "overrides": {
+      "dialect": "ansi"
+     }
+    }
+   ],
+   "raises": [],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/python_test.py::test__templater_python_slice_file[SELECT {blah} FROM something-WITH wrap AS (SELECT nothing FROM something) SELECT * FROM wrap-False-result4]",
+   "file": "test/core/templaters/python_test.py",
+   "function": "test__templater_python_slice_file",
+   "templater": "python",
+   "kind": "internal",
+   "calls": [
+    "slice_file"
+   ],
+   "context": [
+    null
+   ],
+   "config": [
+    {
+     "configs": {
+      "templater": {
+       "unwrap_wrapped_queries": false
+      }
+     },
+     "overrides": {
+      "dialect": "ansi"
+     }
+    }
+   ],
+   "raises": [],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/python_test.py::test__templater_python_large_file_check",
+   "file": "test/core/templaters/python_test.py",
+   "function": "test__templater_python_large_file_check",
+   "templater": "python",
+   "kind": "black_box",
+   "calls": [
+    "process"
+   ],
+   "context": [
+    null,
+    null
+   ],
+   "config": [
+    {
+     "overrides": {
+      "dialect": "ansi",
+      "large_file_skip_char_limit": 2
+     }
+    }
+   ],
+   "raises": [
+    "SQLFluffSkipFile"
+   ],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/python_test.py::test__templater_python_dot_notation_variables[-]",
+   "file": "test/core/templaters/python_test.py",
+   "function": "test__templater_python_dot_notation_variables",
+   "templater": "python",
+   "kind": "black_box",
+   "calls": [
+    "process"
+   ],
+   "context": [
+    {
+     "foo": "bar",
+     "num": 123,
+     "sqlfluff": {
+      "foo.bar": "foobar",
+      "foo.label": "café",
+      "self.number": 42,
+      "obj.schema": "my_schema",
+      "obj.table": "my_table"
+     }
+    }
+   ],
+   "config": [],
+   "raises": [],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/python_test.py::test__templater_python_dot_notation_variables[SELECT * FROM {foo.bar}-SELECT * FROM foobar]",
+   "file": "test/core/templaters/python_test.py",
+   "function": "test__templater_python_dot_notation_variables",
+   "templater": "python",
+   "kind": "black_box",
+   "calls": [
+    "process"
+   ],
+   "context": [
+    {
+     "foo": "bar",
+     "num": 123,
+     "sqlfluff": {
+      "foo.bar": "foobar",
+      "foo.label": "café",
+      "self.number": 42,
+      "obj.schema": "my_schema",
+      "obj.table": "my_table"
+     }
+    }
+   ],
+   "config": [],
+   "raises": [],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/python_test.py::test__templater_python_dot_notation_variables[SELECT {foo} FROM {foo.bar}-SELECT bar FROM foobar]",
+   "file": "test/core/templaters/python_test.py",
+   "function": "test__templater_python_dot_notation_variables",
+   "templater": "python",
+   "kind": "black_box",
+   "calls": [
+    "process"
+   ],
+   "context": [
+    {
+     "foo": "bar",
+     "num": 123,
+     "sqlfluff": {
+      "foo.bar": "foobar",
+      "foo.label": "café",
+      "self.number": 42,
+      "obj.schema": "my_schema",
+      "obj.table": "my_table"
+     }
+    }
+   ],
+   "config": [],
+   "raises": [],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/python_test.py::test__templater_python_dot_notation_variables[SELECT {num:.2f} FROM blah-SELECT 123.00 FROM blah]",
+   "file": "test/core/templaters/python_test.py",
+   "function": "test__templater_python_dot_notation_variables",
+   "templater": "python",
+   "kind": "black_box",
+   "calls": [
+    "process"
+   ],
+   "context": [
+    {
+     "foo": "bar",
+     "num": 123,
+     "sqlfluff": {
+      "foo.bar": "foobar",
+      "foo.label": "café",
+      "self.number": 42,
+      "obj.schema": "my_schema",
+      "obj.table": "my_table"
+     }
+    }
+   ],
+   "config": [],
+   "raises": [],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/python_test.py::test__templater_python_dot_notation_variables[SELECT {self.number:.1f} FROM blah-SELECT 42.0 FROM blah]",
+   "file": "test/core/templaters/python_test.py",
+   "function": "test__templater_python_dot_notation_variables",
+   "templater": "python",
+   "kind": "black_box",
+   "calls": [
+    "process"
+   ],
+   "context": [
+    {
+     "foo": "bar",
+     "num": 123,
+     "sqlfluff": {
+      "foo.bar": "foobar",
+      "foo.label": "café",
+      "self.number": 42,
+      "obj.schema": "my_schema",
+      "obj.table": "my_table"
+     }
+    }
+   ],
+   "config": [],
+   "raises": [],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/python_test.py::test__templater_python_dot_notation_variables[SELECT * FROM {obj.schema}.{obj.table}-SELECT * FROM my_schema.my_table]",
+   "file": "test/core/templaters/python_test.py",
+   "function": "test__templater_python_dot_notation_variables",
+   "templater": "python",
+   "kind": "black_box",
+   "calls": [
+    "process"
+   ],
+   "context": [
+    {
+     "foo": "bar",
+     "num": 123,
+     "sqlfluff": {
+      "foo.bar": "foobar",
+      "foo.label": "café",
+      "self.number": 42,
+      "obj.schema": "my_schema",
+      "obj.table": "my_table"
+     }
+    }
+   ],
+   "config": [],
+   "raises": [],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/python_test.py::test__templater_python_dot_notation_variables[SELECT {foo!r}-SELECT 'bar']",
+   "file": "test/core/templaters/python_test.py",
+   "function": "test__templater_python_dot_notation_variables",
+   "templater": "python",
+   "kind": "black_box",
+   "calls": [
+    "process"
+   ],
+   "context": [
+    {
+     "foo": "bar",
+     "num": 123,
+     "sqlfluff": {
+      "foo.bar": "foobar",
+      "foo.label": "café",
+      "self.number": 42,
+      "obj.schema": "my_schema",
+      "obj.table": "my_table"
+     }
+    }
+   ],
+   "config": [],
+   "raises": [],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/python_test.py::test__templater_python_dot_notation_variables[SELECT {foo.bar!s}-SELECT foobar]",
+   "file": "test/core/templaters/python_test.py",
+   "function": "test__templater_python_dot_notation_variables",
+   "templater": "python",
+   "kind": "black_box",
+   "calls": [
+    "process"
+   ],
+   "context": [
+    {
+     "foo": "bar",
+     "num": 123,
+     "sqlfluff": {
+      "foo.bar": "foobar",
+      "foo.label": "café",
+      "self.number": 42,
+      "obj.schema": "my_schema",
+      "obj.table": "my_table"
+     }
+    }
+   ],
+   "config": [],
+   "raises": [],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/python_test.py::test__templater_python_dot_notation_variables[SELECT {foo.bar!r}-SELECT 'foobar']",
+   "file": "test/core/templaters/python_test.py",
+   "function": "test__templater_python_dot_notation_variables",
+   "templater": "python",
+   "kind": "black_box",
+   "calls": [
+    "process"
+   ],
+   "context": [
+    {
+     "foo": "bar",
+     "num": 123,
+     "sqlfluff": {
+      "foo.bar": "foobar",
+      "foo.label": "café",
+      "self.number": 42,
+      "obj.schema": "my_schema",
+      "obj.table": "my_table"
+     }
+    }
+   ],
+   "config": [],
+   "raises": [],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/python_test.py::test__templater_python_dot_notation_variables[SELECT {foo.label!a}-SELECT 'caf\\\\xe9']",
+   "file": "test/core/templaters/python_test.py",
+   "function": "test__templater_python_dot_notation_variables",
+   "templater": "python",
+   "kind": "black_box",
+   "calls": [
+    "process"
+   ],
+   "context": [
+    {
+     "foo": "bar",
+     "num": 123,
+     "sqlfluff": {
+      "foo.bar": "foobar",
+      "foo.label": "café",
+      "self.number": 42,
+      "obj.schema": "my_schema",
+      "obj.table": "my_table"
+     }
+    }
+   ],
+   "config": [],
+   "raises": [],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/python_test.py::test__templater_python_dot_notation_variables[SELECT {foo.bar!r:>10}-SELECT   'foobar']",
+   "file": "test/core/templaters/python_test.py",
+   "function": "test__templater_python_dot_notation_variables",
+   "templater": "python",
+   "kind": "black_box",
+   "calls": [
+    "process"
+   ],
+   "context": [
+    {
+     "foo": "bar",
+     "num": 123,
+     "sqlfluff": {
+      "foo.bar": "foobar",
+      "foo.label": "café",
+      "self.number": 42,
+      "obj.schema": "my_schema",
+      "obj.table": "my_table"
+     }
+    }
+   ],
+   "config": [],
+   "raises": [],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/python_test.py::test__templater_python_dot_notation_variables[SELECT {self.number!s:0>4}-SELECT 0042]",
+   "file": "test/core/templaters/python_test.py",
+   "function": "test__templater_python_dot_notation_variables",
+   "templater": "python",
+   "kind": "black_box",
+   "calls": [
+    "process"
+   ],
+   "context": [
+    {
+     "foo": "bar",
+     "num": 123,
+     "sqlfluff": {
+      "foo.bar": "foobar",
+      "foo.label": "café",
+      "self.number": 42,
+      "obj.schema": "my_schema",
+      "obj.table": "my_table"
+     }
+    }
+   ],
+   "config": [],
+   "raises": [],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/python_test.py::test__templater_python_dot_notation_fail[context0-magic key 'sqlfluff' missing from context.  This key is required for template variables containing '.'.]",
+   "file": "test/core/templaters/python_test.py",
+   "function": "test__templater_python_dot_notation_fail",
+   "templater": "python",
+   "kind": "black_box",
+   "calls": [
+    "process"
+   ],
+   "context": [
+    {}
+   ],
+   "config": [],
+   "raises": [
+    "SQLTemplaterError"
+   ],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/python_test.py::test__templater_python_dot_notation_fail[context1-'foo.bar' key missing from 'sqlfluff' dict in context. Template variables containing '.' are required to use the 'sqlfluff' magic fixed context key.]",
+   "file": "test/core/templaters/python_test.py",
+   "function": "test__templater_python_dot_notation_fail",
+   "templater": "python",
+   "kind": "black_box",
+   "calls": [
+    "process"
+   ],
+   "context": [
+    {
+     "sqlfluff": {
+      "a": "b"
+     }
+    }
+   ],
+   "config": [],
+   "raises": [
+    "SQLTemplaterError"
+   ],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/python_test.py::test__templater_python_ignore_templating[SELECT * FROM {start_date}--None-None-expected_violation0]",
+   "file": "test/core/templaters/python_test.py",
+   "function": "test__templater_python_ignore_templating",
+   "templater": "python",
+   "kind": "black_box",
+   "calls": [
+    "process"
+   ],
+   "context": [
+    null
+   ],
+   "config": [
+    {
+     "overrides": {
+      "dialect": "ansi",
+      "ignore": ""
+     }
+    }
+   ],
+   "raises": [
+    "SQLTemplaterError"
+   ],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/python_test.py::test__templater_python_ignore_templating[SELECT * FROM {start_date}-templating-None-SELECT * FROM start_date-None]",
+   "file": "test/core/templaters/python_test.py",
+   "function": "test__templater_python_ignore_templating",
+   "templater": "python",
+   "kind": "black_box",
+   "calls": [
+    "process"
+   ],
+   "context": [
+    null
+   ],
+   "config": [
+    {
+     "overrides": {
+      "dialect": "ansi",
+      "ignore": "templating"
+     }
+    }
+   ],
+   "raises": [
+    "SQLTemplaterError"
+   ],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/python_test.py::test__templater_python_ignore_templating[SELECT * FROM {foo.bar}-templating-None-SELECT * FROM foo_bar-None]",
+   "file": "test/core/templaters/python_test.py",
+   "function": "test__templater_python_ignore_templating",
+   "templater": "python",
+   "kind": "black_box",
+   "calls": [
+    "process"
+   ],
+   "context": [
+    null
+   ],
+   "config": [
+    {
+     "overrides": {
+      "dialect": "ansi",
+      "ignore": "templating"
+     }
+    }
+   ],
+   "raises": [
+    "SQLTemplaterError"
+   ],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/python_test.py::test__templater_python_ignore_templating[SELECT * FROM {foo.bar!s}-templating-None-SELECT * FROM foo_bar-None]",
+   "file": "test/core/templaters/python_test.py",
+   "function": "test__templater_python_ignore_templating",
+   "templater": "python",
+   "kind": "black_box",
+   "calls": [
+    "process"
+   ],
+   "context": [
+    null
+   ],
+   "config": [
+    {
+     "overrides": {
+      "dialect": "ansi",
+      "ignore": "templating"
+     }
+    }
+   ],
+   "raises": [
+    "SQLTemplaterError"
+   ],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/python_test.py::test__templater_python_ignore_templating[SELECT * FROM {foo.bar!r}-templating-None-SELECT * FROM foo_bar-None]",
+   "file": "test/core/templaters/python_test.py",
+   "function": "test__templater_python_ignore_templating",
+   "templater": "python",
+   "kind": "black_box",
+   "calls": [
+    "process"
+   ],
+   "context": [
+    null
+   ],
+   "config": [
+    {
+     "overrides": {
+      "dialect": "ansi",
+      "ignore": "templating"
+     }
+    }
+   ],
+   "raises": [
+    "SQLTemplaterError"
+   ],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/python_test.py::test__templater_python_ignore_templating[SELECT * FROM {foo.bar!a}-templating-None-SELECT * FROM foo_bar-None]",
+   "file": "test/core/templaters/python_test.py",
+   "function": "test__templater_python_ignore_templating",
+   "templater": "python",
+   "kind": "black_box",
+   "calls": [
+    "process"
+   ],
+   "context": [
+    null
+   ],
+   "config": [
+    {
+     "overrides": {
+      "dialect": "ansi",
+      "ignore": "templating"
+     }
+    }
+   ],
+   "raises": [
+    "SQLTemplaterError"
+   ],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/python_test.py::test__templater_python_ignore_templating[SELECT * FROM {foo.bar}-templating-context6-SELECT * FROM foo_bar-None]",
+   "file": "test/core/templaters/python_test.py",
+   "function": "test__templater_python_ignore_templating",
+   "templater": "python",
+   "kind": "black_box",
+   "calls": [
+    "process"
+   ],
+   "context": [
+    {
+     "sqlfluff": {
+      "existing.key": "val"
+     }
+    }
+   ],
+   "config": [
+    {
+     "overrides": {
+      "dialect": "ansi",
+      "ignore": "templating"
+     }
+    }
+   ],
+   "raises": [
+    "SQLTemplaterError"
+   ],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/python_test.py::test__templater_python_ignore_templating[SELECT * FROM {foo.bar!r}-templating-context7-SELECT * FROM foo_bar-None]",
+   "file": "test/core/templaters/python_test.py",
+   "function": "test__templater_python_ignore_templating",
+   "templater": "python",
+   "kind": "black_box",
+   "calls": [
+    "process"
+   ],
+   "context": [
+    {
+     "sqlfluff": {
+      "existing.key": "val"
+     }
+    }
+   ],
+   "config": [
+    {
+     "overrides": {
+      "dialect": "ansi",
+      "ignore": "templating"
+     }
+    }
+   ],
+   "raises": [
+    "SQLTemplaterError"
+   ],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/python_test.py::test__templater_python_ignore_templating[SELECT * FROM {foo.bar!a}-templating-context8-SELECT * FROM foo_bar-None]",
+   "file": "test/core/templaters/python_test.py",
+   "function": "test__templater_python_ignore_templating",
+   "templater": "python",
+   "kind": "black_box",
+   "calls": [
+    "process"
+   ],
+   "context": [
+    {
+     "sqlfluff": {
+      "existing.key": "val"
+     }
+    }
+   ],
+   "config": [
+    {
+     "overrides": {
+      "dialect": "ansi",
+      "ignore": "templating"
+     }
+    }
+   ],
+   "raises": [
+    "SQLTemplaterError"
+   ],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/python_test.py::test__templater_python_ignore_templating[SELECT * FROM {foo.bar!r:>10}-templating-context9-SELECT * FROM    foo_bar-None]",
+   "file": "test/core/templaters/python_test.py",
+   "function": "test__templater_python_ignore_templating",
+   "templater": "python",
+   "kind": "black_box",
+   "calls": [
+    "process"
+   ],
+   "context": [
+    {
+     "sqlfluff": {
+      "existing.key": "val"
+     }
+    }
+   ],
+   "config": [
+    {
+     "overrides": {
+      "dialect": "ansi",
+      "ignore": "templating"
+     }
+    }
+   ],
+   "raises": [
+    "SQLTemplaterError"
+   ],
+   "needs_python_runtime": []
+  },
+  {
+   "id": "test/core/templaters/python_test.py::test__templater_python_ignore_templating[SELECT * FROM {foo.bar!a:>10}-templating-context10-SELECT * FROM    foo_bar-None]",
+   "file": "test/core/templaters/python_test.py",
+   "function": "test__templater_python_ignore_templating",
+   "templater": "python",
+   "kind": "black_box",
+   "calls": [
+    "process"
+   ],
+   "context": [
+    {
+     "sqlfluff": {
+      "existing.key": "val"
+     }
+    }
+   ],
+   "config": [
+    {
+     "overrides": {
+      "dialect": "ansi",
+      "ignore": "templating"
+     }
+    }
+   ],
+   "raises": [
+    "SQLTemplaterError"
+   ],
+   "needs_python_runtime": []
+  }
+ ],
+ "rule_cases": [
+  {
+   "id": "rules/AM04/test_fail_placeholder_templater_qualified_wildcard",
+   "rule": "AM04",
+   "templater": "placeholder",
+   "fix": false,
+   "needs_python_runtime": [],
+   "owner": "S5"
+  },
+  {
+   "id": "rules/AM04/test_fail_placeholder_templater_unqualified_wildcard",
+   "rule": "AM04",
+   "templater": "placeholder",
+   "fix": false,
+   "needs_python_runtime": [],
+   "owner": "S5"
+  },
+  {
+   "id": "rules/AM04/test_pass_placeholder_templater_explicit_columns",
+   "rule": "AM04",
+   "templater": "placeholder",
+   "fix": false,
+   "needs_python_runtime": [],
+   "owner": "S5"
+  },
+  {
+   "id": "rules/AM07/test_fail_placeholder_templater_set_columns",
+   "rule": "AM07",
+   "templater": "placeholder",
+   "fix": false,
+   "needs_python_runtime": [],
+   "owner": "S5"
+  },
+  {
+   "id": "rules/CP02/test_pass_placeholder_templater_colon_parameters",
+   "rule": "CP02",
+   "templater": "placeholder",
+   "fix": false,
+   "needs_python_runtime": [],
+   "owner": "S5"
+  },
+  {
+   "id": "rules/CP02/test_fail_placeholder_templater_colon_parameters",
+   "rule": "CP02",
+   "templater": "placeholder",
+   "fix": true,
+   "needs_python_runtime": [],
+   "owner": "S5"
+  },
+  {
+   "id": "rules/CP02/test_pass_placeholder_templater_dollar_parameters",
+   "rule": "CP02",
+   "templater": "placeholder",
+   "fix": false,
+   "needs_python_runtime": [],
+   "owner": "S5"
+  },
+  {
+   "id": "rules/CP02/test_pass_placeholder_templater_percent_parameters",
+   "rule": "CP02",
+   "templater": "placeholder",
+   "fix": false,
+   "needs_python_runtime": [],
+   "owner": "S5"
+  },
+  {
+   "id": "rules/CP02_LT01/test_fail_fix_cp02_lt01_with_templating_6678",
+   "rule": "CP02,LT01",
+   "templater": "placeholder",
+   "fix": true,
+   "needs_python_runtime": [],
+   "owner": "S5"
+  },
+  {
+   "id": "rules/JJ01/test_pass_python_templater",
+   "rule": "JJ01",
+   "templater": "python",
+   "fix": false,
+   "needs_python_runtime": [],
+   "owner": "S5"
+  },
+  {
+   "id": "rules/RF03/test_pass_placeholder_colon_double_colon_cast",
+   "rule": "RF03",
+   "templater": "placeholder",
+   "fix": false,
+   "needs_python_runtime": [],
+   "owner": "S5"
+  },
+  {
+   "id": "rules/ST10/test_pass_templated_queries",
+   "rule": "ST10",
+   "templater": "placeholder",
+   "fix": false,
+   "needs_python_runtime": [],
+   "owner": "S5"
+  },
+  {
+   "id": "rules/ST11/test_fail_placeholder_templater_unused_join",
+   "rule": "ST11",
+   "templater": "placeholder",
+   "fix": false,
+   "needs_python_runtime": [],
+   "owner": "S5"
+  }
+ ],
+ "fixtures": [
+  {
+   "path": "test/fixtures/templater/placeholder_flyway_var/placeholder_flyway_var_a.sql",
+   "in_suite": false,
+   "expected_output": false,
+   "users": [],
+   "reason": "no test of sqlfluff 4.4.0 uses it, and it has no expected output"
+  }
+ ],
+ "fixture_configs": [
+  {
+   "path": "test/fixtures/config/placeholder/.sqlfluff-placeholder",
+   "templaters": [
+    "placeholder"
+   ],
+   "owner": "S7 test conversion",
+   "reason": "test__config__load_placeholder_cfg of test/core/config/loader_test.py reads it"
+  },
+  {
+   "path": "test/fixtures/rules/std_rule_cases/AM04.yml",
+   "templaters": [
+    "placeholder"
+   ],
+   "owner": "S5",
+   "reason": "rule fixture cases (rule_cases): their exit is S5; S6 checks their templated text and source slices"
+  },
+  {
+   "path": "test/fixtures/rules/std_rule_cases/AM07.yml",
+   "templaters": [
+    "placeholder"
+   ],
+   "owner": "S5",
+   "reason": "rule fixture cases (rule_cases): their exit is S5; S6 checks their templated text and source slices"
+  },
+  {
+   "path": "test/fixtures/rules/std_rule_cases/CP02.yml",
+   "templaters": [
+    "placeholder"
+   ],
+   "owner": "S5",
+   "reason": "rule fixture cases (rule_cases): their exit is S5; S6 checks their templated text and source slices"
+  },
+  {
+   "path": "test/fixtures/rules/std_rule_cases/CP02_LT01.yml",
+   "templaters": [
+    "placeholder"
+   ],
+   "owner": "S5",
+   "reason": "rule fixture cases (rule_cases): their exit is S5; S6 checks their templated text and source slices"
+  },
+  {
+   "path": "test/fixtures/rules/std_rule_cases/JJ01.yml",
+   "templaters": [
+    "python"
+   ],
+   "owner": "S5",
+   "reason": "rule fixture cases (rule_cases): their exit is S5; S6 checks their templated text and source slices"
+  },
+  {
+   "path": "test/fixtures/rules/std_rule_cases/RF03.yml",
+   "templaters": [
+    "placeholder"
+   ],
+   "owner": "S5",
+   "reason": "rule fixture cases (rule_cases): their exit is S5; S6 checks their templated text and source slices"
+  },
+  {
+   "path": "test/fixtures/rules/std_rule_cases/ST10.yml",
+   "templaters": [
+    "placeholder"
+   ],
+   "owner": "S5",
+   "reason": "rule fixture cases (rule_cases): their exit is S5; S6 checks their templated text and source slices"
+  },
+  {
+   "path": "test/fixtures/rules/std_rule_cases/ST11.yml",
+   "templaters": [
+    "placeholder"
+   ],
+   "owner": "S5",
+   "reason": "rule fixture cases (rule_cases): their exit is S5; S6 checks their templated text and source slices"
+  }
+ ],
+ "other_tests": [
+  {
+   "file": "test/core/config/fluffconfig_test.py",
+   "patterns": [
+    "class"
+   ],
+   "owner": "S7 test conversion",
+   "reason": "test/core/config/ is the S7 group config (results/S7-tests/scope.json); it checks the templater selection by name"
+  },
+  {
+   "file": "test/core/config/loader_test.py",
+   "patterns": [
+    "class",
+    "config section",
+    "module"
+   ],
+   "owner": "S7 test conversion",
+   "reason": "test/core/config/ is the S7 group config (results/S7-tests/scope.json); it checks the config loader and the context values of each templater"
+  },
+  {
+   "file": "test/core/linter/linter_test.py",
+   "patterns": [
+    "templater value"
+   ],
+   "owner": "out of scope",
+   "reason": "python-internal: Linter.render_string with FluffConfig objects and a log capture; python is only the name of the other templater in the warning"
+  },
+  {
+   "file": "test/core/parser/lexer_test.py",
+   "patterns": [
+    "class",
+    "config section",
+    "templater value"
+   ],
+   "owner": "out of scope",
+   "reason": "python-internal: the PyRsLexer of sqlfluff[rs] lexes a TemplatedFile object; the placeholder templater only makes its input"
+  },
+  {
+   "file": "test/core/parser/parity/cases_test.py",
+   "patterns": [
+    "templater option"
+   ],
+   "owner": "out of scope",
+   "reason": "engine-comparison of the Python and Rust engines of sqlfluff (the owner decision of S1, the binary test harness, on test/fixtures/parity/); the case option templater is only jinja"
+  },
+  {
+   "file": "test/core/parser/parity/compare.py",
+   "patterns": [
+    "templater option"
+   ],
+   "owner": "out of scope",
+   "reason": "the helper of the parity tests: engine-comparison; it sets only the jinja templater"
+  },
+  {
+   "file": "test/utils/reflow/respace_test.py",
+   "patterns": [
+    "config section"
+   ],
+   "owner": "out of scope",
+   "reason": "the key placeholder is the layout type of the Jinja placeholder segment, not the placeholder templater; Jinja is S11"
+  }
+ ]
+}
