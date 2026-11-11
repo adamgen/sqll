@@ -22,7 +22,7 @@ one lost day, T9 converts all config tests (before: 2 tasks).
 |---|---|---|---|
 | T1 | Design record, scope inventory, and status files | The scope (643 nodes), the design, and the 4 decisions are recorded and tested | Done (PR #60) |
 | T2 | Case format, case runner, and pilot cases | One case format and one runner run pilot cases through a tool binary | Done (PR #78) |
-| T3 | Trace oracle with fail-closed checks | Each case agrees with a trace of its original pytest node | In review (PR #80) |
+| T3 | Trace oracle with fail-closed checks | Each case agrees with a trace of its original pytest node | Done (PR #80) |
 | T4 | Cross-track (Core): harness hooks for the S7 suites | The harness core runs the 3 S7 suites | Not started |
 | T5 | Cross-track (Core): CI jobs, oracle step, and local verify for the S7 suites; the ruff lint of `scripts/s7-tests/` in CI; first recorded results | CI and `scripts/verify` run the S7 suites and record the results | Not started |
 | T6 | Convert the rule tests, part 1: lint-only tests through the simple API | The lint-only rule nodes are black-box cases | Not started |
@@ -158,3 +158,7 @@ traces `oracle-trace-sqlfluff.json` and `oracle-trace-sqlfluff-rs.json`.
   of the S7 suites) (decision 4).
 - The `python-internal` node has no traced CLI or simple-API call.
 - The case files now have an `asserts` map for each node.
+- The oracle exits with code 1 if a case input is not the traced input, a
+  check fails on the traced output, the report status is not the pytest
+  outcome, or an assert has no citation and no record. A harness test
+  proves each of these 4 failure paths.

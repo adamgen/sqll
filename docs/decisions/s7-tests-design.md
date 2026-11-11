@@ -297,8 +297,9 @@ with the original sqlfluff tests. T3 made it.
   untraced call); a traced call outside the nodes; a node of the report
   that the trace does not have; a node that the oracle did not ask for; a
   report that is not of the case files; a collection error; a pytest
-  outcome that is not passed or failed; a call input that the oracle cannot
-  map; a check that has no traced output; a sqlfluff config in the
+  outcome that is not passed or failed (a failed setup or teardown is the
+  outcome error, also after a call that passed); a call input that the
+  oracle cannot map; a check that has no traced output; a sqlfluff config in the
   submodule root; with `--rust`, a run of the Python parser or no run of
   the Rust parser; a row of the not-reproduced record before the pointer
   section in `harness/not-reproduced.md` (decision 4).
@@ -316,7 +317,10 @@ with the original sqlfluff tests. T3 made it.
 - Results: `results/S7-tests/oracle.json` (the result of the checks) and the
   traces `oracle-trace-sqlfluff.json` and `oracle-trace-sqlfluff-rs.json`.
   `harness/tests/test_s7_tests_oracle.py` runs the oracle again and compares
-  the result (CI unit tests), and has the mutation tests.
+  the result (CI unit tests), and has the mutation tests. It also runs the
+  oracle script on the recorded traces: exit code 0, and exit code 1 for
+  each of the 4 checks (a changed case input, a failed check, a changed
+  report status, an assert with no citation).
 
 ### Limits of the oracle
 

@@ -16,7 +16,8 @@ tests), as the sqlfluff tests run. With --rust, each FluffConfig gets the
 Rust parser and rules (scripts/sqlfluff_oracle.py, force_rust), as the S1
 oracles do. It records, for each node:
 
-- outcome: the pytest outcome (passed, failed, skipped, or error).
+- outcome: the pytest outcome (passed, failed, skipped, or error). A failed
+  setup or teardown is an error, also if the call passed.
 - calls: each outermost call of the CLI (click.testing.CliRunner.invoke of
   a sqlfluff command), of the simple API (sqlfluff.lint, fix, parse), and of
   a Linter path method (Linter.lint_path, lint_paths), in order, with its
@@ -370,7 +371,9 @@ class Recorder:
         if report.when == "call":
             self.outcomes.setdefault(report.nodeid, report.outcome)
         elif report.outcome == "failed":
-            self.outcomes.setdefault(report.nodeid, "error")
+            # A failed setup or teardown is an error, also after a call that
+            # passed: the oracle refuses the outcome "error".
+            self.outcomes[report.nodeid] = "error"
         elif report.outcome == "skipped":
             self.outcomes.setdefault(report.nodeid, "skipped")
 

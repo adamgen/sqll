@@ -8,6 +8,9 @@ step run trace-nodes on a small test tree with the oracle tools.
 """
 
 import copy
+import dataclasses
+import importlib.machinery
+import importlib.util
 import json
 import os
 import subprocess
@@ -516,6 +519,83 @@ def test_report_mutation_makes_the_oracle_fail(change, error):
     assert errors_with(result, error), result["errors"]
 
 
+# The exit code of scripts/s7-tests/oracle on the 4 checks. The script checks
+# the recorded traces (--trace) and does not run the tools.
+
+
+def _oracle_script():
+    loader = importlib.machinery.SourceFileLoader(
+        "s7_tests_oracle_script", str(SCRIPTS / "oracle")
+    )
+    spec = importlib.util.spec_from_loader(loader.name, loader)
+    module = importlib.util.module_from_spec(spec)
+    loader.exec_module(module)
+    return module
+
+
+def _run_oracle(tmp_path, monkeypatch, nodes=None, report=None):
+    script = _oracle_script()
+    if nodes is not None:
+        cases = dataclasses.replace(CASES, nodes=nodes)
+        monkeypatch.setattr(script.caseformat, "load", lambda: cases)
+    argv = ["--out", str(tmp_path / "oracle.json")]
+    for tool in oracle.TOOLS:
+        argv += ["--trace", f"{tool}={RESULTS / f'oracle-trace-{tool}.json'}"]
+    if report is not None:
+        path = tmp_path / "report.json"
+        path.write_text(json.dumps(report), encoding="utf8")
+        argv += ["--report", str(path)]
+    return script.main(argv)
+
+
+EXIT_MUTATIONS = [
+    ("a case input that differs from the trace", DIRECTED, _argv, None, "input argv"),
+    (
+        "a check that fails on the traced output",
+        DIALECT,
+        _checks(["exit_code"], 1),
+        None,
+        "check 2",
+    ),
+    (
+        "a status that differs from the report",
+        None,
+        None,
+        _status(CV02, "fail"),
+        "check 3: the report gives fail",
+    ),
+    (
+        "a source assert with no citing check and no record",
+        DIRECTED,
+        _uncite("L108"),
+        None,
+        "assert L108: no check cites it and no record has it",
+    ),
+]
+
+
+def test_the_oracle_exits_0_on_the_recorded_traces(tmp_path, monkeypatch, capsys):
+    assert _run_oracle(tmp_path, monkeypatch) == 0
+    assert "error:" not in capsys.readouterr().err
+    assert json.loads((tmp_path / "oracle.json").read_text("utf8")) == RECORDED
+
+
+@pytest.mark.parametrize(
+    ("node_id", "change", "report_change", "error"),
+    [m[1:] for m in EXIT_MUTATIONS],
+    ids=[m[0] for m in EXIT_MUTATIONS],
+)
+def test_a_failed_check_makes_the_oracle_exit_1(
+    tmp_path, monkeypatch, capsys, node_id, change, report_change, error
+):
+    nodes = None if change is None else _set(node_id, change)
+    report = None if report_change is None else _report(report_change)
+    assert _run_oracle(tmp_path, monkeypatch, nodes, report) == 1
+    errors = [e for e in capsys.readouterr().err.splitlines() if error in e]
+    assert errors, error
+    assert all(e.startswith("error: ") for e in errors)
+
+
 # The not-reproduced record.
 
 
@@ -748,6 +828,19 @@ def test_untraced_api():
     from sqlfluff.api.simple import get_simple_config
 
     get_simple_config(dialect="ansi")
+
+
+import pytest
+
+
+@pytest.fixture
+def broken_teardown():
+    yield
+    raise RuntimeError("teardown")
+
+
+def test_teardown_error(broken_teardown):
+    assert sqlfluff.lint("SELECT 2\\n", rules=["CV02"]) == []
 """
 TREE_MODULE_CALL = """
 import sqlfluff
@@ -760,12 +853,12 @@ def test_x():
 """
 
 
-def _lint_node(node_id: str, line: int) -> caseformat.Node:
+def _lint_node(node_id: str, line: int, sql: str = "SELECT 1\n") -> caseformat.Node:
     case = caseformat.Case(
         name="lint",
         run="api",
         function="lint",
-        sql="SELECT 1\n",
+        sql=sql,
         rules=["CV02"],
         checks={"violations": [{"count": 0}]},
     )
@@ -793,6 +886,7 @@ def test_trace_step_fails_closed(tmp_path):
             "test_untraced_api",
         )
     ] + ["test/module_test.py::test_x"]
+    teardown = name + "test_teardown_error"
     out = tmp_path / "trace.json"
     python = tools_dir() / "sqlfluff-oracle" / "bin" / "python"
     proc = subprocess.run(
@@ -804,7 +898,8 @@ def test_trace_step_fails_closed(tmp_path):
             "--root",
             str(root),
         ]
-        + nodes,
+        + nodes
+        + [teardown],
         capture_output=True,
         text=True,
         env=_env(tmp_path),
@@ -814,6 +909,18 @@ def test_trace_step_fails_closed(tmp_path):
     trace = json.loads(out.read_text())
     traced = trace["nodes"]
     assert {n: traced[n]["outcome"] for n in nodes} == dict.fromkeys(nodes, "passed")
+
+    # The call passes and the teardown fails: pytest gives an error, and the
+    # oracle refuses the node.
+    assert traced[teardown]["outcome"] == "error"
+    line = next(
+        i for i, text in enumerate(TREE_TEST.splitlines(), 1) if "SELECT 2" in text
+    )
+    bad = oracle.check_node(
+        _lint_node(teardown, line, "SELECT 2\n"), traced[teardown], "pass", root, []
+    )
+    assert bad.errors == ["the pytest outcome is error"]
+    assert oracle.check_internal(teardown, traced[teardown])["errors"]
 
     # The node with only a simple-API call agrees with its case.
     good = oracle.check_node(
