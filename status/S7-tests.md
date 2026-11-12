@@ -23,8 +23,8 @@ one lost day, T9 converts all config tests (before: 2 tasks).
 | T1 | Design record, scope inventory, and status files | The scope (643 nodes), the design, and the 4 decisions are recorded and tested | Done (PR #60) |
 | T2 | Case format, case runner, and pilot cases | One case format and one runner run pilot cases through a tool binary | Done (PR #78) |
 | T3 | Trace oracle with fail-closed checks | Each case agrees with a trace of its original pytest node | Done (PR #80) |
-| T4 | Cross-track (Core): harness hooks for the S7 suites | The harness core runs the 3 S7 suites | Done (PR #82; the Core track reviews it) |
-| T5 | Cross-track (Core): CI jobs, oracle step, and local verify for the S7 suites; the ruff lint of `scripts/s7-tests/` in CI; first recorded results | CI and `scripts/verify` run the S7 suites and record the results | Not started |
+| T4 | Cross-track (Core): harness hooks for the S7 suites | The harness core runs the 3 S7 suites | Done (PR #82; the Core track approved it) |
+| T5 | Cross-track (Core): CI jobs, oracle step, and local verify for the S7 suites; the ruff lint of `scripts/s7-tests/` in CI; first recorded results | CI and `scripts/verify` run the S7 suites and record the results | In review (PR #83; the Core track reviews it) |
 | T6 | Convert the rule tests, part 1: lint-only tests through the simple API | The lint-only rule nodes are black-box cases | Not started |
 | T7 | Convert the rule tests, part 2: fix, combination, file, and template tests | The other rule nodes (not Rust dispatch) are black-box cases | Not started |
 | T8 | Rust dispatch tests (cp01, cp03, cp04): classification and conversion | Each Rust dispatch node is converted or excluded by decision 3 | Not started |
@@ -106,9 +106,12 @@ The recorded report is
 643, converted 15, excluded 3, not yet converted 625. The converted nodes:
 `cli` 8, `rules` 5, `config` 2. 1 converted node needs Jinja
 (`std_LT04_test.py::test__rules__std_LT04_unparseable`) and moves to S11
-(Jinja templater: the last stone; decide with data how sqll supports
-Jinja). The excluded nodes: 1 `python-internal`, 1 `needs-python-runtime`,
-1 `engine-comparison`.
+(Jinja templater: the last stone; decision of the human owner (2026-11-07):
+do not write a Jinja engine in sqll; decide with data how sqll supports
+Jinja; sqll passes 100% of the Jinja cases that the decision keeps, and S8
+supports Jinja if kept; each other Jinja case is in a known-failure list
+with its reason). The excluded nodes: 1 `python-internal`, 1
+`needs-python-runtime`, 1 `engine-comparison`.
 
 Parity of the 14 converted nodes that S7 (CLI and config parity: the
 sqlfluff CLI, config, and Python rule tests as black-box cases) keeps
@@ -128,11 +131,11 @@ sqlfluff CLI, config, and Python rule tests as black-box cases) keeps
   fail on the output: `test__cli__command_directed` (sqruff writes the
   lint output to stderr, not to stdout) and `test__cli__command_dialect` (exit code 1, not 2).
 
-The S7 (CLI and config parity: the sqlfluff CLI, config, and Python rule
-tests as black-box cases) CI jobs and the known-failure lists come with T5
-(CI and `scripts/verify` run the S7 suites and record the results; S7: CLI
-and config parity, the sqlfluff CLI, config, and Python rule tests as
-black-box cases).
+T5 (CI jobs, oracle step, and local verify for the S7 suites: CI and
+`scripts/verify` run the S7 suites and record the results; S7: CLI and
+config parity, the sqlfluff CLI, config, and Python rule tests as black-box
+cases) adds the S7 CI jobs and the known-failure lists; see "CI and
+recorded results (T5)".
 
 ## Trace oracle (T3)
 
@@ -204,5 +207,39 @@ CLI, config, and Python rule tests as black-box cases). They are equal to
 The parity columns count the converted nodes that S7 (CLI and config
 parity: the sqlfluff CLI, config, and Python rule tests as black-box cases)
 keeps (passed/nodes); 1 converted `s7_rules` node needs Jinja and moves to
-S11 (Jinja templater: the last stone; decide with data how sqll supports
-Jinja).
+S11 (Jinja templater: the last stone; decision of the human owner
+(2026-11-07): do not write a Jinja engine in sqll; decide with data how sqll
+supports Jinja; sqll passes 100% of the Jinja cases that the decision keeps,
+and S8 supports Jinja if kept; each other Jinja case is in a known-failure
+list with its reason).
+
+## CI and recorded results (T5)
+
+T5 (cross-track, Core reviews: CI jobs, oracle step, and local verify for
+the S7 suites; CI and `scripts/verify` run the S7 suites and record the
+results; S7: CLI and config parity, the sqlfluff CLI, config, and Python
+rule tests as black-box cases). The design is in the design record,
+"Known failures", "Summary", and "CI".
+
+- CI: 9 `s7` jobs (`ci/matrix.d/S7-tests.json`: `s7_rules`, `s7_config`,
+  and `s7_cli`, each with sqlfluff, sqlfluff-rs, and sqruff), and the
+  `s7-report` job: the merge of the 9 reports, the known-failure check, the
+  check of the recorded summary, and the trace oracle on the merged report.
+- A new failure that is not in a known-failure list, and a listed node that
+  passes, give exit code 1 in its `s7` job and in `s7-report`.
+- The lint job runs ruff on `scripts/s7-tests/` and on each S7 script with
+  no extension.
+- `scripts/verify` runs the same checks on one run of all suites and tools;
+  `scripts/verify --s7` runs only the S7 checks. Each mode but `--quick`
+  takes the machine lock (PROCESS.md, "Tracks", rule 7).
+- Recorded results: [summary.json](../results/S7-tests/summary.json) and
+  the known-failure lists in
+  [known_failures/](../results/S7-tests/known_failures/).
+
+Known failures (nodes) of the recorded results:
+
+| Tool | Known failures | Reason |
+|---|---|---|
+| sqlfluff | 0 | sqlfluff passes each converted node |
+| sqlfluff-rs | 1 | `test__cli__command_directed`: with `use_rust_rules`, the CP01 description is different; the pytest node fails with `--rust` too |
+| sqruff | 14 | 12 `unsupported: <item>`: 8 CLI commands with no sqruff translation, 3 `rule all`, 1 output fields. 2 translated CLI nodes fail on the output: `test__cli__command_directed` (the lint output is on stderr) and `test__cli__command_dialect` (exit code 1, not 2). 1 of the 14 (`test__rules__std_LT04_unparseable`) needs Jinja and moves to S11 (Jinja templater: the last stone; decision of the human owner (2026-11-07): do not write a Jinja engine in sqll; decide with data how sqll supports Jinja; sqll passes 100% of the Jinja cases that the decision keeps, and S8 supports Jinja if kept; each other Jinja case is in a known-failure list with its reason) |

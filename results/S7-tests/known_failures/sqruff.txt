@@ -1,0 +1,18 @@
+# The known failures of sqruff in the S7 suites (S7: CLI and config parity,
+# the sqlfluff CLI, config, and Python rule tests as black-box cases).
+# Format: harness/sqll_harness/s7_tests/known.py. Make the list again with
+# "sqll-harness s7 known-failures REPORT --tool sqruff".
+test/cli/commands_test.py::test__cli__command_dialect  # unknown_dialect: exit_code: 1, not 2 (sqruff gives exit code 1 for an unknown dialect)
+test/cli/commands_test.py::test__cli__command_directed  # directed: sqruff writes the lint output to stderr, not to stdout: stdout.startswith: the text starts with ''; stdout.contains[0]: 'L: 2 | P: 1 | LT02' is not in the text; stdout.contains[1]: 'ndentation' is not in the text
+test/cli/commands_test.py::test__cli__command_no_dialect[command0]  # no_dialect_render: unsupported: sqlfluff CLI command 'render' (the case has no sqruff translation)
+test/cli/commands_test.py::test__cli__command_no_dialect[command1]  # no_dialect_parse: unsupported: sqlfluff CLI command 'parse' (the case has no sqruff translation)
+test/cli/commands_test.py::test__cli__command_no_dialect[command2]  # no_dialect_lint: unsupported: sqlfluff CLI command 'lint' (the case has no sqruff translation)
+test/cli/commands_test.py::test__cli__command_no_dialect[command3]  # no_dialect_format: unsupported: sqlfluff CLI command 'format' (the case has no sqruff translation)
+test/cli/commands_test.py::test__cli__command_no_dialect[command4]  # no_dialect_fix: unsupported: sqlfluff CLI command 'fix' (the case has no sqruff translation)
+test/cli/commands_test.py::test__cli__command_version  # version: unsupported: sqlfluff CLI command 'version' (the case has no sqruff translation); version_verbose: unsupported: sqlfluff CLI command 'version' (the case has no sqruff translation)
+test/core/config/fluffconfig_test.py::test__config__glob_exclude_config_tests  # glob_exclude: unsupported: sqlfluff CLI command 'lint' (the case has no sqruff translation)
+test/core/config/fluffconfig_test.py::test__config__glob_include_config_tests  # glob_include: unsupported: sqlfluff CLI command 'lint' (the case has no sqruff translation)
+test/rules/std_AL04_test.py::test__rules__std_AL04_one_aliases_two_duplicate  # one_aliases_two_duplicate: unsupported: rule all
+test/rules/std_LT04_test.py::test__rules__std_LT04_unparseable  # unparseable: unsupported: rule all
+test/rules/std_LT05_LT09_combo_test.py::test__rules__std_LT05_LT09_long_line_fix  # long_line_fix: unsupported: rule all
+test/rules/std_ST03_test.py::test__rules__std_ST03_multiple_unused_ctes  # multiple_unused_ctes: unsupported: output field end_file_pos, end_line_no, end_line_pos, fixes, name, start_file_pos, warning

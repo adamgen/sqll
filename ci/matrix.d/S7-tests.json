@@ -1,0 +1,11 @@
+[
+ {"suite": "s7_rules", "tool": "sqlfluff", "shards": 1},
+ {"suite": "s7_rules", "tool": "sqlfluff-rs", "shards": 1},
+ {"suite": "s7_rules", "tool": "sqruff", "shards": 1},
+ {"suite": "s7_config", "tool": "sqlfluff", "shards": 1},
+ {"suite": "s7_config", "tool": "sqlfluff-rs", "shards": 1},
+ {"suite": "s7_config", "tool": "sqruff", "shards": 1},
+ {"suite": "s7_cli", "tool": "sqlfluff", "shards": 1},
+ {"suite": "s7_cli", "tool": "sqlfluff-rs", "shards": 1},
+ {"suite": "s7_cli", "tool": "sqruff", "shards": 1}
+]

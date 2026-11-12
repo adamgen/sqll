@@ -114,7 +114,6 @@ def build(
     the outcome of each node of the suites, in the order of cases.nodes."""
     suites = sorted(suites or ALL_SUITES)
     keep = groups(suites)
-    scope = suite_scope(cases.scope, suites)
     tools = list(results)
     nodes = []
     for i, node in enumerate(n for n in cases.nodes if n.group in keep):
@@ -153,7 +152,23 @@ def build(
         for e in cases.exclusions
         if e.group in keep
     ]
-    in_scope = len(scope["nodes"])
+    return assemble(
+        suites, {t: versions[t] for t in tools}, nodes, excluded, cases.scope
+    )
+
+
+def assemble(
+    suites: list[str],
+    versions: dict[str, str],
+    nodes: list[dict[str, Any]],
+    excluded: list[dict[str, Any]],
+    scope: dict[str, Any],
+) -> dict[str, Any]:
+    """The checked report of the suites, from its node and excluded lists.
+    versions gives the tools in their order. scope is all of scope.json."""
+    suites = sorted(suites)
+    tools = list(versions)
+    in_scope = len(suite_scope(scope, suites)["nodes"])
     s7, s11 = summaries(tools, nodes, in_scope)
     report = {
         "kind": KIND,
@@ -161,14 +176,107 @@ def build(
         "suites": suites,
         "sqlfluff": {"version": SQLFLUFF_VERSION, "commit": SQLFLUFF_COMMIT},
         "tools": {t: {"version": versions[t]} for t in tools},
-        "counts": counts(scope, nodes, excluded),
+        "counts": counts(suite_scope(scope, suites), nodes, excluded),
         "parity": s7,
         "s11_jinja": s11,
         "nodes": nodes,
         "excluded": excluded,
     }
-    check(report, cases.scope)
+    check(report, scope)
     return report
+
+
+def merge(parts: list[tuple[str, dict[str, Any]]], cases: CaseSet) -> dict[str, Any]:
+    """Merge the (name, report) parts of a CI run (one suite and one tool or
+    more in each part) into the report of all their suites and tools.
+
+    Fail closed (ReportError) if a part is not a correct report of the case
+    files, if a suite and tool is in 2 parts, if a suite does not have each
+    tool of the merge (each node must have a result for each tool), if 2
+    parts give a tool 2 versions, or if 2 parts of a suite do not have the
+    same nodes and excluded nodes. The order of the nodes and of the tools is
+    that of a run of all suites and tools.
+    """
+    if not parts:
+        raise ReportError(["no reports to merge"])
+    errors: list[str] = []
+    versions: dict[str, str] = {}
+    pairs: dict[tuple[str, str], str] = {}
+    by_suite: dict[str, list[tuple[str, dict[str, Any]]]] = {}
+    for name, part in parts:
+        try:
+            check(part, cases.scope)
+        except ReportError as exc:
+            errors += [f"{name}: {e}" for e in exc.errors]
+            continue
+        for tool, info in part["tools"].items():
+            first = versions.setdefault(tool, info["version"])
+            if first != info["version"]:
+                errors.append(
+                    f"{name}: {tool} has the version {info['version']}, not the"
+                    f" version {first} of an earlier report"
+                )
+        for suite in part["suites"]:
+            for tool in part["tools"]:
+                if (suite, tool) in pairs:
+                    errors.append(
+                        f"{name}: {suite}/{tool} is also in {pairs[(suite, tool)]}"
+                    )
+                pairs[(suite, tool)] = name
+            by_suite.setdefault(suite, []).append(
+                (name, select_suites(part, [suite], cases.scope))
+            )
+    if errors:
+        raise ReportError(errors)
+    tools = [t for t in TOOLS if t in versions]
+    for suite in sorted(by_suite):
+        missing = [t for t in tools if (suite, t) not in pairs]
+        if missing:
+            errors.append(f"{suite}: no report of the tools {missing}")
+    if errors:
+        raise ReportError(errors)
+
+    node_order = {n.id: i for i, n in enumerate(cases.nodes)}
+    excluded_order = {e.id: i for i, e in enumerate(cases.exclusions)}
+    nodes: list[dict[str, Any]] = []
+    excluded: list[dict[str, Any]] = []
+    for suite, suite_parts in sorted(by_suite.items()):
+        first_name, first = suite_parts[0]
+        shape = [{k: v for k, v in n.items() if k != "results"} for n in first["nodes"]]
+        merged = {n["id"]: dict(n, results={}) for n in first["nodes"]}
+        for name, part in suite_parts:
+            if [
+                {k: v for k, v in n.items() if k != "results"} for n in part["nodes"]
+            ] != shape or part["excluded"] != first["excluded"]:
+                errors.append(
+                    f"{name}: the nodes of {suite} are not those of {first_name}"
+                )
+                continue
+            for node in part["nodes"]:
+                merged[node["id"]]["results"].update(node["results"])
+        nodes += merged.values()
+        excluded += first["excluded"]
+    if errors:
+        raise ReportError(errors)
+    for node in nodes:
+        node["results"] = {t: node["results"][t] for t in tools}
+    errors += [
+        f"{n['id']}: not a converted node of the case files"
+        for n in nodes
+        if n["id"] not in node_order
+    ]
+    errors += [
+        f"{e['id']}: not a node of the exclusion list"
+        for e in excluded
+        if e["id"] not in excluded_order
+    ]
+    if errors:
+        raise ReportError(errors)
+    nodes.sort(key=lambda n: node_order[n["id"]])
+    excluded.sort(key=lambda e: excluded_order[e["id"]])
+    return assemble(
+        sorted(by_suite), {t: versions[t] for t in tools}, nodes, excluded, cases.scope
+    )
 
 
 def _check_node(errors: list[str], node: dict[str, Any], tools: list[str]) -> None:
