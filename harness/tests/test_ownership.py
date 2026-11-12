@@ -282,6 +282,34 @@ def test_one_file_of_each_package_has_its_owner():
         assert ownership.owner(path, TRACKS) == track, path
 
 
+def test_s4_owns_its_records_scripts_and_tests():
+    # The parser parity track owns its design records, scripts, and harness
+    # tests. The records, scripts, and tests of the other tracks do not
+    # change owner.
+    for path in (
+        "docs/decisions/s4-parity.md",
+        "scripts/s4/parity",
+        "scripts/s4/a/b.py",
+        "harness/tests/test_s4_parity.py",
+    ):
+        assert ownership.owner(path, TRACKS) == "S4", path
+        ok, text = ownership.check("claude/s4", [], [path], TRACKS)
+        assert ok, text
+        ok, text = ownership.check("claude/s5", [], [path], TRACKS)
+        assert not ok, text
+    for path, owner in (
+        ("docs/decisions/s3b-core.md", "core"),
+        ("docs/decisions/s9-corpus.md", "S9"),
+        ("scripts/s3b/exit.py", "core"),
+        ("scripts/speed-check", "core"),
+        ("scripts/sqlfluff-dialect-oracle", "core"),
+        ("harness/tests/test_s4.py", "core"),
+        ("harness/tests/test_s3b_exit.py", "core"),
+        ("harness/tests/test_s9_run.py", "S9"),
+    ):
+        assert ownership.owner(path, TRACKS) == owner, path
+
+
 def test_core_owns_each_cargo_toml_and_build_rs():
     tracked = _tracked_files()
     for package in _packages():
