@@ -169,8 +169,8 @@ tracks:
       - crates/sqll_parser/tests/**
       - crates/sqll_dialects/src/**
       - crates/sqll_dialects/tests/**
-      # The S4 design records, scripts, and harness tests (S4 T1: start
-      # the S4 track; docs/decisions/s4-parity.md).
+      # The design records, scripts, and harness tests of the parser
+      # parity track (docs/decisions/s4-parity.md).
       - docs/decisions/s4-*.md
       - scripts/s4/**
       - harness/tests/test_s4_*.py

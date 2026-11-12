@@ -283,9 +283,9 @@ def test_one_file_of_each_package_has_its_owner():
 
 
 def test_s4_owns_its_records_scripts_and_tests():
-    # S4 T1 (start the S4 track): S4 owns its design records, scripts, and
-    # harness tests. The records, scripts, and tests of the other tracks
-    # do not change owner.
+    # The parser parity track owns its design records, scripts, and harness
+    # tests. The records, scripts, and tests of the other tracks do not
+    # change owner.
     for path in (
         "docs/decisions/s4-parity.md",
         "scripts/s4/parity",
