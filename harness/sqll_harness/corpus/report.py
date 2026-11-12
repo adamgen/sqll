@@ -2,8 +2,16 @@
 
 build() makes a report, check() returns each schema error, and write()
 writes only a report with no error. check() computes the stats, the
-derived fields of each result, the totals, and the compared totals again
-from the samples and the inputs, so a report cannot have other numbers.
+derived fields of each result, the totals, the compared totals, and the
+pairs again from the samples and the inputs, so a report cannot have other
+numbers.
+
+pairs (docs/decisions/s9-corpus.md, "sqll results", decision 4: the speed
+tables of G3): sqll to sqlfluff and sqll to sqruff, on the files where both
+tools of the pair are ok. A report has the field only if it has sqll and
+one of the other 2 tools, so a report of the other tools (for example the
+recorded baseline) has no pairs field.
+
 The machine, timer, harness, and parts records are those of the S2 report
 (bench/report.py), and the checks of these records are its checks.
 """
@@ -97,6 +105,28 @@ UNPARSABLE_FIELDS = ("count", "bytes")
 COMPARED = ("tools", "files", "bytes", "results")
 COMPARED_TOOL = ("wall_s", "cpu_s", "bytes_per_s", "wall_ratio", "cpu_ratio")
 RUNS = (WARMUP, TIMED)
+TIMES = ("wall_s", "cpu_s")
+# The pairs and the goal of G3 for each: sqll is faster than sqlfluff, and
+# sqll is not slower than sqruff. The slow files of a pair are the files
+# where the median wall or CPU time of sqll does not meet the goal. There is
+# no noise margin: the list is a report, not a gate.
+PAIR_TOOL = "sqll"
+FASTER = "faster"
+NOT_SLOWER = "not_slower"
+PAIR_GOALS = (("sqlfluff", FASTER), ("sqruff", NOT_SLOWER))
+PAIRS = "pairs"
+PAIR = (
+    "tool",
+    "other",
+    "goal",
+    "files",
+    "bytes",
+    "wall_s",
+    "cpu_s",
+    "wall_ratio",
+    "cpu_ratio",
+    "slow_files",
+)
 
 
 class ReportError(Exception):
@@ -207,6 +237,63 @@ def compared(results: list[dict], tools: Iterable[str], inputs: Mapping) -> dict
     return {"tools": tools, "files": len(files), "bytes": size, "results": out}
 
 
+def is_slow(goal: str, mine: float, other: float) -> bool:
+    """True if the time of PAIR_TOOL (mine) does not meet the goal of the
+    pair: not less than the other time (FASTER), or more (NOT_SLOWER)."""
+    return mine >= other if goal == FASTER else mine > other
+
+
+def pairs(results: list[dict], tools: Iterable[str], inputs: Mapping) -> list[dict]:
+    """Return a record for each pair of PAIR_GOALS whose 2 tools are in
+    tools: on the files where both tools are ok, the file count, the input
+    bytes, the sums of the median wall and CPU times of each tool, the
+    ratios PAIR_TOOL / other tool, and the slow files (is_slow on the wall
+    or the CPU time) with their median times."""
+    tools = set(tools)
+    if PAIR_TOOL not in tools:
+        return []
+    ok = {(r["file"], r["tool"]): r for r in results if r["status"] == OK}
+    out = []
+    for other, goal in PAIR_GOALS:
+        if other not in tools:
+            continue
+        names = (PAIR_TOOL, other)
+        files = sorted(f for f in inputs if all((f, t) in ok for t in names))
+        times = {
+            f: {
+                key: {t: ok[(f, t)]["stats"][key]["median"] for t in names}
+                for key in TIMES
+            }
+            for f in files
+        }
+        sums = {
+            key: {t: round(sum(times[f][key][t] for f in files), DIGITS) for t in names}
+            for key in TIMES
+        }
+        slow = [
+            {"file": f, "bytes": inputs[f]["bytes"], **times[f]}
+            for f in files
+            if any(
+                is_slow(goal, times[f][key][PAIR_TOOL], times[f][key][other])
+                for key in TIMES
+            )
+        ]
+        out.append(
+            {
+                "tool": PAIR_TOOL,
+                "other": other,
+                "goal": goal,
+                "files": len(files),
+                "bytes": sum(inputs[f]["bytes"] for f in files),
+                **sums,
+                "wall_ratio": _ratio(sums["wall_s"][PAIR_TOOL], sums["wall_s"][other]),
+                "cpu_ratio": _ratio(sums["cpu_s"][PAIR_TOOL], sums["cpu_s"][other]),
+                "slow_files": slow,
+            }
+        )
+    return out
+
+
 def build(
     *,
     sqlfluff_ref: str,
@@ -225,7 +312,7 @@ def build(
     """Return the report. parts: only for a merged report, the {shard,
     machine, timer} of each shard report."""
     ordered = sorted(results, key=lambda r: (r["file"], r["tool"]))
-    return {
+    rep = {
         "kind": KIND,
         "format": FORMAT,
         "sqlfluff_ref": sqlfluff_ref,
@@ -241,8 +328,12 @@ def build(
         "results": ordered,
         "totals": totals(ordered, tools),
         "compared": compared(ordered, tools, inputs),
-        "parts": parts,
     }
+    found = pairs(ordered, tools, inputs)
+    if found:
+        rep[PAIRS] = found
+    rep["parts"] = parts
+    return rep
 
 
 def write(report: dict, path: Path = DEFAULT_REPORT) -> None:
@@ -279,7 +370,8 @@ def check(report, profiles: Mapping[str, dict] | None = None) -> list[str]:
 
 
 def _check(c: _Checker, report, profiles: Mapping[str, dict]) -> None:
-    if not c.fields("report", report, TOP):
+    top = TOP + (PAIRS,) if isinstance(report, dict) and PAIRS in report else TOP
+    if not c.fields("report", report, top):
         return
     c.want("kind", report["kind"] == KIND, f"not {KIND!r}")
     c.want("format", _same(report["format"], FORMAT), f"not {FORMAT}")
@@ -359,6 +451,30 @@ def _check(c: _Checker, report, profiles: Mapping[str, dict]) -> None:
     c.want("totals", _same(report["totals"], want_totals), f"not {want_totals}")
     want = compared(results, tools, inputs)
     c.want("compared", _same(report["compared"], want), f"not {want}")
+    _check_pairs(c, report, pairs(results, tools, inputs))
+
+
+def _check_pairs(c: _Checker, report: dict, want: list[dict]) -> None:
+    """The pairs field must be there only if want has a pair, and each
+    record and each number must be that of want."""
+    if not want:
+        c.want(PAIRS, PAIRS not in report, "a report with no pair has no pairs field")
+        return
+    if PAIRS not in report:
+        c.error("report", f"missing field {PAIRS!r}")
+        return
+    got = report[PAIRS]
+    if not isinstance(got, list) or len(got) != len(want):
+        c.error(PAIRS, f"not a list of {len(want)} pairs")
+        return
+    for have, record in zip(got, want, strict=True):
+        where = f"pair {record['tool']} to {record['other']}"
+        if not c.fields(where, have, PAIR):
+            continue
+        for key in PAIR:
+            c.want(
+                where, _same(have[key], record[key]), f"{key} is not {record[key]!r}"
+            )
 
 
 def _check_input(c: _Checker, name: str, i) -> None:
