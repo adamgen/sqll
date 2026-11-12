@@ -1,0 +1,5 @@
+# The known failures of sqlfluff-rs in the S7 suites (S7: CLI and config
+# parity, the sqlfluff CLI, config, and Python rule tests as black-box cases).
+# Format: harness/sqll_harness/s7_tests/known.py. Make the list again with
+# "sqll-harness s7 known-failures REPORT --tool sqlfluff-rs".
+test/cli/commands_test.py::test__cli__command_directed  # directed: with use_rust_rules the CP01 description is "Keywords must be consistent.", not "Keywords must be consistently upper case."; the pytest node fails with --rust too (results/S7-tests/oracle.json)

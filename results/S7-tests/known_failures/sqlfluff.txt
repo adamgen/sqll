@@ -1,0 +1,4 @@
+# The known failures of sqlfluff in the S7 suites (S7: CLI and config parity,
+# the sqlfluff CLI, config, and Python rule tests as black-box cases). Format:
+# harness/sqll_harness/s7_tests/known.py. sqlfluff must pass each converted
+# node, so this list has no node.

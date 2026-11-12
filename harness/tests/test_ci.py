@@ -6,11 +6,13 @@ import shlex
 import subprocess
 
 import pytest
+import yaml
 from conftest import ci_module
 
 from sqll_harness import merge
 from sqll_harness.adapters import ADAPTERS
 from sqll_harness.paths import REPO_ROOT
+from sqll_harness.s7_tests import suites as s7_suites
 from sqll_harness.suites import SUITES, runs_for
 
 _load = ci_module
@@ -197,15 +199,82 @@ def test_ci_matrix_fragments_are_of_tracks():
     assert not (REPO_ROOT / "ci" / "matrix.json").exists()
 
 
+def _s1_entries():
+    return [e for e in matrix.load(MATRIX_DIR) if e["suite"] not in matrix.S7_SUITES]
+
+
+def _s7_entries():
+    return [e for e in matrix.load(MATRIX_DIR) if e["suite"] in matrix.S7_SUITES]
+
+
 def test_the_report_job_expects_the_matrix_of_the_test_jobs():
-    entries = matrix.load(MATRIX_DIR)
-    want = [(e["suite"], e["tool"], int(e["shards"])) for e in entries]
+    want = [(e["suite"], e["tool"], int(e["shards"])) for e in _s1_entries()]
     assert merge.load_expected(MATRIX_DIR) == want
     assert matrix.DEFAULT == MATRIX_DIR
+    names = [
+        (i["suite"], i["tool"])
+        for i in matrix.expand(matrix.load(MATRIX_DIR))["include"]
+    ]
+    assert set(names) == {(s, t) for s, t, _ in want}
+
+
+def test_the_s7_report_job_expects_the_matrix_of_the_s7_jobs():
+    want = [(e["suite"], e["tool"], int(e["shards"])) for e in _s7_entries()]
+    assert merge.load_expected(MATRIX_DIR, s7=True) == want
+    include = matrix.expand(matrix.load(MATRIX_DIR), s7=True)["include"]
+    assert [(i["suite"], i["tool"], 1) for i in include] == want
+
+
+def test_the_ci_matrix_knows_the_s7_suites():
+    # ci/matrix.py runs before the harness is installed, so it has its own copy.
+    assert matrix.S7_SUITES == tuple(s7_suites.SUITES)
+    assert not set(matrix.S7_SUITES) & set(SUITES)
+
+
+def test_the_s7_matrix_is_apart_from_the_test_matrix(tmp_path, capsys):
+    folder = tmp_path / "matrix.d"
+    _fragment(folder, "a.json", [{"suite": "s", "tool": "a", "shards": 2}])
+    _fragment(folder, "b.json", [{"suite": "s7_cli", "tool": "a", "shards": 1}])
+    assert matrix.main([str(folder)]) == 0
+    names = [e["name"] for e in json.loads(capsys.readouterr().out)["include"]]
+    assert names == ["s-a-1-of-2", "s-a-2-of-2"]
+    assert matrix.main(["--s7", str(folder)]) == 0
+    names = [e["name"] for e in json.loads(capsys.readouterr().out)["include"]]
+    assert names == ["s7_cli-a-1-of-1"]
+    # --s7 after the path gives the same S7 matrix.
+    assert matrix.main([str(folder), "--s7"]) == 0
+    names = [e["name"] for e in json.loads(capsys.readouterr().out)["include"]]
+    assert names == ["s7_cli-a-1-of-1"]
+    assert merge.load_expected(folder) == [("s", "a", 2)]
+    assert merge.load_expected(folder, s7=True) == [("s7_cli", "a", 1)]
+    # An entry in 2 fragments is an error, also between S1 and S7 entries.
+    _fragment(folder, "c.json", [{"suite": "s7_cli", "tool": "a", "shards": 1}])
+    with pytest.raises(ValueError, match="two entries"):
+        matrix.expand(matrix.load(folder))
+    with pytest.raises(merge.MergeError, match="in two entries"):
+        merge.load_expected(folder)
+
+
+@pytest.mark.parametrize(
+    "argv", [["--s8"], ["--s7", "--s7"], ["a", "b"], ["--s7", "a", "b"], ["a", "-x"]]
+)
+def test_the_matrix_refuses_bad_arguments(argv, capsys):
+    # A wrong command must not print a matrix.
+    assert matrix.main(argv) == 2
+    captured = capsys.readouterr()
+    assert captured.out == ""
+    assert "usage: ci/matrix.py" in captured.err
+
+
+def test_an_s7_entry_has_1_shard():
+    with pytest.raises(ValueError, match="1 shard"):
+        matrix.expand([{"suite": "s7_rules", "tool": "sqlfluff", "shards": 2}])
+    with pytest.raises(ValueError, match="1 shard"):
+        matrix.expand([{"suite": "s7_rules", "tool": "sqlfluff", "shards": 2}], s7=True)
 
 
 def test_ci_matrix_names_real_suites_and_tools():
-    entries = matrix.load(MATRIX_DIR)
+    entries = _s1_entries()
     assert entries
     for e in entries:
         assert e["suite"] in SUITES
@@ -213,8 +282,20 @@ def test_ci_matrix_names_real_suites_and_tools():
     assert matrix.expand(entries)["include"]
 
 
+def test_ci_s7_matrix_runs_each_s7_suite_for_each_s7_tool():
+    entries = _s7_entries()
+    assert {(e["suite"], e["tool"]) for e in entries} == {
+        (s, t) for s in s7_suites.SUITES for t in s7_suites.TOOLS
+    }
+    assert len(entries) == len(s7_suites.SUITES) * len(s7_suites.TOOLS)
+    assert {e["shards"] for e in entries} == {1}
+    # The S7 fragment of the S7-tests track has the S7 entries.
+    fragment = json.loads((MATRIX_DIR / "S7-tests.json").read_text())
+    assert fragment == entries
+
+
 def test_ci_matrix_runs_each_suite_for_each_tool():
-    entries = matrix.load(MATRIX_DIR)
+    entries = _s1_entries()
     shards = {(e["suite"], e["tool"]): e["shards"] for e in entries}
     want = {
         (name, tool)
@@ -462,7 +543,10 @@ def test_main_writes_the_output(tmp_path, monkeypatch, capsys):
     assert "Event push: not a pull request" in text
     assert "not known (git failed)" in text
     assert "Result: full run" in text
-    assert "the dialect oracles, the smoke benchmark, and the corpus smoke run." in text
+    assert (
+        "the dialect oracles, the S7 jobs, the smoke benchmark, and the corpus"
+        " smoke run." in text
+    )
 
 
 def test_a_non_ascii_path_is_not_quoted(repo):
@@ -471,3 +555,37 @@ def test_a_non_ascii_path_is_not_quoted(repo):
     _merge(repo, "pr")
     files = changes.changed_files("pull_request", cwd=str(repo))
     assert files == ["corpus/é a.sql"]
+
+
+# The lint job checks each Python file of scripts/s7-tests with ruff.
+
+
+def _lint_paths() -> list[str]:
+    lint = next(
+        s
+        for s in yaml.safe_load((REPO_ROOT / ".github/workflows/ci.yml").read_text())[
+            "jobs"
+        ]["lint"]["steps"]
+        if s.get("name") == "Lint"
+    )
+    return lint["env"]["S7_SCRIPTS"].split()
+
+
+def test_the_lint_job_checks_each_s7_script():
+    files = subprocess.run(
+        ["git", "-C", str(REPO_ROOT), "ls-files", "scripts/s7-tests"],
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout.splitlines()
+    assert files
+    paths = _lint_paths()
+    assert "scripts/s7-tests" in paths
+    for path in files:
+        text = (REPO_ROOT / path).read_text(encoding="utf8", errors="replace")
+        if path.endswith(".py"):
+            continue
+        if text.startswith("#!") and "python" in text.splitlines()[0]:
+            assert path in paths, f"{path}: add it to S7_SCRIPTS of the lint job"
+    for path in paths:
+        assert (REPO_ROOT / path).exists(), path

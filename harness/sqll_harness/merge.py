@@ -11,6 +11,7 @@ from pathlib import Path
 from . import known_failures, report
 from .cases import CaseResult
 from .known_failures import Outcome
+from .s7_tests.suites import SUITES as S7_SUITES
 from .suites import SUITES, runs_for
 
 
@@ -34,23 +35,31 @@ def load(path: Path) -> dict:
         raise MergeError(f"{path}: cannot read the report: {exc}") from None
 
 
-def load_expected(path: Path) -> list[tuple[str, str, int]]:
+def load_expected(path: Path, s7: bool = False) -> list[tuple[str, str, int]]:
     """Read a JSON list of {"suite", "tool", "shards"} objects.
 
     If path is a folder (ci/matrix.d), read each *.json file in it, in the
     order of the file names, as ci/matrix.py does. A suite and tool in two
-    entries is an error."""
+    entries is an error. Return the entries of the S1 suites, or with s7 the
+    entries of the S7 suites (sqll_harness.s7_tests.suites): the CI jobs of
+    the S7 suites run "sqll-harness s7 run", and "sqll-harness s7 merge"
+    merges their reports (ci/matrix.py --s7)."""
     if path.is_dir():
         files = sorted(path.glob("*.json"))
         if not files:
             raise MergeError(f"{path}: no *.json file")
-        out = [e for f in files for e in load_expected(f)]
+        out = [e for f in files for e in _read_expected(f)]
         seen: set[tuple[str, str]] = set()
         for suite, tool, _ in out:
             if (suite, tool) in seen:
                 raise MergeError(f"{path}: {suite}/{tool} is in two entries")
             seen.add((suite, tool))
-        return out
+    else:
+        out = _read_expected(path)
+    return [e for e in out if (e[0] in S7_SUITES) == s7]
+
+
+def _read_expected(path: Path) -> list[tuple[str, str, int]]:
     try:
         entries = json.loads(path.read_text(encoding="utf8"))
         return [(e["suite"], e["tool"], int(e["shards"])) for e in entries]
