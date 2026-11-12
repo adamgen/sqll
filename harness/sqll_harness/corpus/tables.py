@@ -4,7 +4,9 @@ markdown() gives 4 tables: the status counts of each tool; the totals over
 the files where each tool is ok, with the ratios to sqlfluff; one row for
 each file with a cell for each tool; and the reason of each result that is
 not ok or unparsable (the cell of an unparsable result has its count and
-bytes). "python -m sqll_harness.corpus tables REPORT" prints them.
+bytes). A report with pairs (report.py) also gives 2 tables: the totals of
+each pair, and the slow files of each pair. "python -m sqll_harness.corpus
+tables REPORT" prints them.
 """
 
 from collections.abc import Mapping
@@ -20,6 +22,22 @@ COMPARED_HEADER = (
     f"| CPU time ratio to {report.RATIO_BASE} |"
 )
 REASONS_HEADER = "| Tool | File | Status | Reason |"
+_T = report.PAIR_TOOL
+PAIRS_HEADER = (
+    "| Pair | Goal | Files | Bytes "
+    f"| Wall time of {_T} (s) | Wall time of the other tool (s) | Wall time ratio "
+    f"| CPU time of {_T} (s) | CPU time of the other tool (s) | CPU time ratio "
+    "| Slow files |"
+)
+SLOW_HEADER = (
+    "| Pair | File | Bytes "
+    f"| Wall time of {_T} (s) | Wall time of the other tool (s) "
+    f"| CPU time of {_T} (s) | CPU time of the other tool (s) |"
+)
+GOAL_TEXT = {
+    report.FASTER: f"{_T} is faster",
+    report.NOT_SLOWER: f"{_T} is not slower",
+}
 
 
 def files_header(tools: list[str]) -> str:
@@ -62,7 +80,7 @@ def reason_text(reason: str) -> str:
 
 
 def markdown(rep: Mapping[str, Any]) -> str:
-    """Return the 4 tables of a report with no schema error."""
+    """Return the tables of a report with no schema error."""
     tools = list(rep["tools"])
     totals = [
         [tool, rep["tools"][tool]["version"]]
@@ -100,4 +118,43 @@ def markdown(rep: Mapping[str, Any]) -> str:
         _table(files_header(tools), files),
         _table(REASONS_HEADER, reasons),
     ]
+    if report.PAIRS in rep:
+        blocks += pair_tables(rep[report.PAIRS])
     return "\n\n".join("\n".join(b) for b in blocks) + "\n"
+
+
+def pair_tables(pairs: list[Mapping[str, Any]]) -> list[list[str]]:
+    """Return the table of the pair totals and the table of the slow files."""
+    totals, slow = [], []
+    for p in pairs:
+        me, other = p["tool"], p["other"]
+        name = f"{me} to {other}"
+        wall, cpu = p["wall_s"], p["cpu_s"]
+        totals.append(
+            [
+                name,
+                GOAL_TEXT[p["goal"]],
+                str(p["files"]),
+                str(p["bytes"]),
+                f"{wall[me]:.3f}",
+                f"{wall[other]:.3f}",
+                _num(p["wall_ratio"], 3),
+                f"{cpu[me]:.3f}",
+                f"{cpu[other]:.3f}",
+                _num(p["cpu_ratio"], 3),
+                str(len(p["slow_files"])),
+            ]
+        )
+        slow += [
+            [
+                name,
+                f"`{s['file']}`",
+                str(s["bytes"]),
+                f"{s['wall_s'][me]:.3f}",
+                f"{s['wall_s'][other]:.3f}",
+                f"{s['cpu_s'][me]:.3f}",
+                f"{s['cpu_s'][other]:.3f}",
+            ]
+            for s in p["slow_files"]
+        ]
+    return [_table(PAIRS_HEADER, totals), _table(SLOW_HEADER, slow)]
