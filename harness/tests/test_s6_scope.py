@@ -237,13 +237,13 @@ def prose(counts: dict, scope: dict) -> dict[str, list[tuple[str, str]]]:
             ("Internal nodes", f"exclude the {py['internal']} nodes"),
         ],
         "status": [
-            ("S6 tasks", f"Convert the {ph['black_box']} placeholder nodes"),
-            ("S6 tasks", f"Convert the {py['black_box']} black-box python nodes"),
-            ("S6 tasks", f"sqll passes the {ph['black_box']} placeholder cases"),
-            ("S6 tasks", f"Rust unit tests of the {py['internal']} internal nodes"),
-            ("S6 tasks", f"The {py['internal']} internal nodes pass"),
-            ("S6 tasks", f"sqll passes the {py['black_box']} black-box python cases"),
-            ("S6 tasks", f"of the {rc['total']} rule fixture cases"),
+            ("Tasks", f"Convert the {ph['black_box']} placeholder nodes"),
+            ("Tasks", f"Convert the {py['black_box']} black-box python nodes"),
+            ("Tasks", f"sqll passes the {ph['black_box']} placeholder cases"),
+            ("Tasks", f"Rust unit tests of the {py['internal']} internal nodes"),
+            ("Tasks", f"The {py['internal']} internal nodes pass"),
+            ("Tasks", f"sqll passes the {py['black_box']} black-box python cases"),
+            ("Tasks", f"of the {rc['total']} rule fixture cases"),
             ("Parity now", f"All {suite['jinja']} are Jinja cases"),
             ("Known failures", f"Each of the {suite['total']} templater suite cases"),
             ("Known failures", f"{suite['needs_python']} of them also have the tag"),
@@ -528,6 +528,94 @@ def test_s6_owns_its_paths():
     design = DESIGN_FILE.read_text("utf8")
     for pattern in tracks["S6"]["paths"]:
         assert f"`{pattern}`" in section(design, "Paths"), pattern
+
+
+# Paths that a task changes (the design record, "Port" and "Black-box
+# form"). The file names in crates/sqll_templater are examples.
+TASK_PATHS = {
+    "T1": [
+        "THIRD_PARTY.md",
+        "tracks.yml",
+        "docs/decisions/s6-templaters.md",
+        "harness/tests/test_s6_scope.py",
+        "results/S6/scope.json",
+        "scripts/s6/inventory.py",
+        "status/S6.md",
+    ],
+    "T6": [
+        "crates/sqll_templater/src/placeholder.rs",
+        "crates/sqll_templater/Cargo.toml",
+        "crates/ported.json",
+        "THIRD_PARTY.md",
+    ],
+    "T7": [
+        "crates/sqll_templater/src/python.rs",
+        "crates/sqll_templater/tests/python_slicer.rs",
+        "crates/ported.json",
+        "THIRD_PARTY.md",
+    ],
+    "T8": [
+        "crates/sqll_templater/src/python_format.rs",
+        "crates/ported.json",
+        "THIRD_PARTY.md",
+    ],
+    "T9": ["crates/sqll_cli/src/main.rs"],
+}
+
+
+def other_tracks(text: str) -> dict[str, list[tuple[str, list[str]]]]:
+    """{task: [(track, [path, ...]), ...]} from the column "Other tracks"."""
+    out = {}
+    for line in section(text, "Tasks").splitlines():
+        if not re.match(r"\| T\d+ \|", line):
+            continue
+        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        assert len(cells) == 5, line
+        entries = []
+        for part in filter(None, cells[3].split("; ")):
+            name = re.match(r"([\w-]+) \(", part)
+            assert name, part
+            paths = part.split("): ", 1)[1] if "): " in part else ""
+            entries.append((name.group(1), re.findall(r"`([^`]+)`", paths)))
+        out[cells[0]] = entries
+    return out
+
+
+def cross_track_gaps(text: str) -> list[str]:
+    ownership = ci_module("ownership")
+    tracks = ownership.load()
+    found = []
+    table = other_tracks(text)
+    for task, paths in TASK_PATHS.items():
+        owners = {ownership.owner(p, tracks) for p in paths} - {"S6"}
+        named = {name for name, _ in table[task]}
+        if owners != named:
+            found.append(f"{task}: owners {sorted(owners)}, named {sorted(named)}")
+    for task, entries in table.items():
+        for name, paths in entries:
+            for path in paths:
+                if ownership.owner(path, tracks) != name:
+                    found.append(f"{task}: {path} is not a path of {name}")
+    return found
+
+
+def test_status_gives_the_other_tracks_of_each_task():
+    assert cross_track_gaps(STATUS_FILE.read_text("utf8")) == []
+
+
+def test_a_missing_other_track_is_found():
+    text = STATUS_FILE.read_text("utf8")
+    row = next(r for r in text.splitlines() if r.startswith("| T6 |"))
+    cells = row.split(" | ")
+    cells[3] = ""
+    changed = text.replace(row, " | ".join(cells))
+    assert changed != text
+    assert cross_track_gaps(changed) == ["T6: owners ['core'], named []"]
+    wrong = text.replace(
+        "`crates/ported.json` and `THIRD_PARTY.md` |", "`status/S6.md` |"
+    )
+    assert wrong != text
+    assert cross_track_gaps(wrong) == ["T7: status/S6.md is not a path of core"]
 
 
 # The rule "needs a Python runtime".

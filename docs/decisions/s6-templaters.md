@@ -4,9 +4,10 @@ Status: proposed (2026-11-11). The orchestrator decides the 6 items for
 the human owner (standing delegation, CONSTITUTION.md section 5). No item
 is for the human owner. Written in T1 (design record, fixture set from the
 data, status file, and track paths: the S6 scope and design are recorded
-and tested) of S6. Scope: STONES.md S6 (templater parity: sqll passes 100%
-of the placeholder and Python format-string templater fixtures that do not
-need a Python runtime). Plan and tasks: [status/S6.md](../../status/S6.md).
+and tested) of S6 (templater parity: sqll passes 100% of the placeholder
+and Python format-string templater fixtures that do not need a Python
+runtime). The scope is that stone in STONES.md. Plan and tasks:
+[status/S6.md](../../status/S6.md).
 
 Goals of CONSTITUTION.md:
 
@@ -272,11 +273,15 @@ The 25 internal nodes call internal functions of the Python templater
   the raw leaves of `parse -f json`. Data (sqlfluff 4.4.0): the `colon` text
   of `test__templater_raw` has `{{blah}}`, `%(gnepr)s`, and `e~':'`. For
   this text, `parse` gives exit code 1 (unparsable), and the leaves give the
-  full templated text. For a `colon` file with 2 values, the leaves equal
-  the `render` output.
+  full templated text. The node
+  `test__templater_param_style[colon_simple_substitution]` of
+  `placeholder_test.py` has the `colon` style and uses the values `user_id`
+  and `start_date`. For its input text, with no change, the leaves equal the
+  `render` output without its last newline.
 - Source slices: `parse -f json -m` gives the source position of each leaf.
-  Data: in the file above, the leaf `'2021-10-01'` has 12 code points. Its
-  source range is 68 to 79 (`:start_date`, 11 code points). sqll `parse -m`
+  Data: in the input text of that node, the leaf `'2021-10-01'` has 12
+  code points. Its source range (`start_file_pos` to `end_file_pos`) is 114
+  to 125 (`:start_date`, 11 code points). sqll `parse -m`
   gives no position keys now (`harness/sqll.md`). The sqll option is in
   `crates/sqll_cli`. That path is a path of the track S7-sqll (the track
   that makes sqll pass the converted S7 cases (the sqll part of S7)). Thus
@@ -300,8 +305,10 @@ The 25 internal nodes call internal functions of the Python templater
 - Source: sqlfluff 4.4.0 `src/sqlfluff/core/templaters/placeholder.py` and
   `python.py` (MIT, Copyright (c) 2018-2026 Alan Cruickshank) to
   `crates/sqll_templater`, with a record in `crates/ported.json` and
-  THIRD_PARTY.md. These two files are paths of the track core (the track
-  that does S3b and owns the shared core): cross-track.
+  THIRD_PARTY.md. `crates/ported.json` and THIRD_PARTY.md are paths of the
+  track core (the track that does S3b and owns the shared core). Thus each
+  task that ports code to `crates/sqll_templater` is cross-track (the
+  status file, column "Other tracks").
 - Regex: the 12 `KNOWN_STYLES` patterns use the Python `regex` module
   (`regex.UNICODE`), a lookbehind, and a backreference
   (`colon_optional_quotes`: `\1`). `fancy-regex` is a workspace dependency
@@ -387,4 +394,7 @@ Python runtime) these paths: `status/S6.md`, `ci/matrix.d/S6.json`,
 of the inventory, if a count in this record or in the status file is not
 the count of `scope.json`, or if a number in the prose of "Decisions",
 "Set", "Internal nodes", or the tasks table of the status file is not the
-number of `scope.json`.
+number of `scope.json`. It also fails if the column "Other tracks" of the
+tasks table does not give the owner (`ci/ownership.py`, `owner`) of each
+path that a task changes (`TASK_PATHS`), or if a path in that column is not
+a path of the track that the cell names.
