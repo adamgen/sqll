@@ -11,6 +11,7 @@ import copy
 import hashlib
 import json
 import sys
+import tomllib
 from pathlib import Path
 
 import pytest
@@ -20,6 +21,7 @@ from sqll_harness import tools as s1_tools
 from sqll_harness.adapters.base import EmptyHome, isolated_env
 from sqll_harness.bench import registry
 from sqll_harness.bench.adapter import BenchAdapter
+from sqll_harness.bench.sqll import SqllBench
 from sqll_harness.bench.timer import Policy, Sample, sample_stats
 from sqll_harness.bench.tools import SqlfluffBench, SqlfluffRsBench, SqruffBench
 from sqll_harness.corpus import __main__ as corpus_main
@@ -332,9 +334,73 @@ def test_each_tool_gets_the_corpus_settings_and_its_layers():
     assert sq["core"] == {**core, "templater": "raw"}
     assert "rust_parser_max_iterations" not in sq["core"]
     assert "rust_parser_max_iterations" not in fluff["core"]
+    # sqll: the corpus layer of docs/decisions/s9-corpus.md, "sqll results",
+    # decision 1, and no other layer.
+    sqll = corpus_run.tool_config(SqllBench(Path("/nonexistent/sqll")), "raw", "tsql")
+    assert sqll == {
+        "core": {"dialect": "tsql", **core, "rust_parser_max_iterations": 10**12}
+    }
+    assert corpus_run.TOOL_LAYERS == {
+        "sqlfluff-rs": {"core": {"rust_parser_max_iterations": 10**12}},
+        "sqll": {"core": {"rust_parser_max_iterations": 10**12}},
+    }
     # The layers do not change the S2 settings of the bench adapters.
     assert SqlfluffRsBench().config("ansi")["core"]["templater"] == "raw"
     assert "max_parse_nodes" not in SqlfluffBench().config("ansi")["core"]
+
+
+def _entry(templater: str = "raw") -> m.CorpusFile:
+    data = FILES["sql/ok.sql"]
+    return m.CorpusFile(
+        id="demo/sql/ok.sql",
+        source="demo",
+        path="sql/ok.sql",
+        dialect="postgres",
+        templater=templater,
+        bytes=len(data),
+        lines=data.count(b"\n"),
+        sha256=sha(data),
+        smoke=True,
+        selection="test",
+    )
+
+
+@pytest.mark.parametrize("templater", ["raw", "jinja"])
+def test_the_sqll_layer_gets_to_the_config_file_of_sqll(tmp_path, templater):
+    """The corpus job of sqll writes its config file (pyproject.toml, the
+    file that sqll reads with --config) with the layer. The binary does not
+    run here."""
+    adapter = SqllBench(tmp_path / "bin" / "sqll")
+    data = FILES["sql/ok.sql"]
+    fj = corpus_run.file_job(adapter, _entry(templater), data, None, tmp_path / "f")
+    assert fj.status is None and fj.reason is None and fj.job is not None
+    config_file = tmp_path / "f" / corpus_run.CONFIG_DIR / "pyproject.toml"
+    assert fj.job.argv[-3:] == ["--config", str(config_file), corpus_run.INPUT_FILE]
+    core = tomllib.loads(config_file.read_text(encoding="utf8"))["tool"]["sqlfluff"][
+        "core"
+    ]
+    assert core["rust_parser_max_iterations"] == 1_000_000_000_000
+    assert core["max_parse_nodes"] == 0
+    assert core["dialect"] == "postgres" and core["templater"] == templater
+    assert "max_parse_depth" not in core
+
+
+def test_the_sqll_layer_gets_to_the_config_file_of_the_test_double(tmp_path):
+    adapter = type("S", (StubSqll,), {"script": tmp_path / "stub.py"})()
+    data = FILES["sql/ok.sql"]
+    fj = corpus_run.file_job(adapter, _entry(), data, None, tmp_path / "f")
+    config = json.loads(
+        (tmp_path / "f" / corpus_run.CONFIG_DIR / "stub.json").read_text()
+    )
+    assert config["core"]["rust_parser_max_iterations"] == 10**12
+    assert fj.job.argv[-2] == str(tmp_path / "f" / corpus_run.CONFIG_DIR / "stub.json")
+    # The layer is only that of sqll.
+    other = type("F", (StubSqlfluff,), {"script": tmp_path / "stub.py"})()
+    corpus_run.file_job(other, _entry(), data, None, tmp_path / "g")
+    config = json.loads(
+        (tmp_path / "g" / corpus_run.CONFIG_DIR / "stub.json").read_text()
+    )
+    assert "rust_parser_max_iterations" not in config["core"]
 
 
 # The parse check.
@@ -519,6 +585,49 @@ def test_a_new_tool_runs_each_file_through_the_registry_alone(smoke):
     assert rep["tools"]["sqll"]["version"] == "1.0"
     assert all(r["runs"]["warmup"] == 1 for r in rep["results"] if r["tool"] == "sqll")
     assert "sqll" not in smoke["manifest"].text.decode()
+    for templater in ("raw", "jinja"):
+        core = rep["tools"]["sqll"]["settings"][templater]["core"]
+        assert core["rust_parser_max_iterations"] == 10**12
+
+
+def test_the_smoke_run_of_the_test_double_has_the_pairs(smoke):
+    """The pairs of sqll use only the files where both tools are ok, and
+    their numbers are those of the results."""
+    rep = smoke["rep"]
+    rows = by_key(rep)
+    assert [(p["other"], p["goal"]) for p in rep["pairs"]] == [
+        ("sqlfluff", "faster"),
+        ("sqruff", "not_slower"),
+    ]
+    for p in rep["pairs"]:
+        other = p["other"]
+        files = [
+            path
+            for path, statuses in EXPECTED.items()
+            if all(statuses.get(t, statuses["*"]) == "ok" for t in ("sqll", other))
+        ]
+        assert p["files"] == len(files) and p["bytes"] == sum(
+            len(FILES[f]) for f in files
+        )
+        for key in ("wall_s", "cpu_s"):
+            for tool in ("sqll", other):
+                want = sum(rows[(f, tool)]["stats"][key]["median"] for f in files)
+                assert p[key][tool] == round(want, 6)
+        slow = [
+            f
+            for f in files
+            if any(
+                report.is_slow(
+                    p["goal"],
+                    rows[(f, "sqll")]["stats"][key]["median"],
+                    rows[(f, other)]["stats"][key]["median"],
+                )
+                for key in ("wall_s", "cpu_s")
+            )
+        ]
+        assert [s["file"] for s in p["slow_files"]] == [f"demo/{f}" for f in slow]
+    # sqlfluff has a timeout and sqruff a panic and an unsupported dialect.
+    assert rep["pairs"][0]["files"] == 5 and rep["pairs"][1]["files"] == 4
 
 
 def test_a_tool_that_joins_later_runs_only_when_asked(tmp_path, monkeypatch):

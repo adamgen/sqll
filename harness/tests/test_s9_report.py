@@ -6,7 +6,7 @@ import copy
 import pytest
 
 from sqll_harness.bench.timer import Measurement, Sample, sample_stats
-from sqll_harness.corpus import report
+from sqll_harness.corpus import report, tables
 from sqll_harness.corpus import run as corpus_run
 
 SHA = "a" * 64
@@ -332,3 +332,264 @@ def test_check_does_not_stop_on_a_value_of_another_type():
     rep["inputs"] = []
     assert report.check(rep) == ["inputs: not an object"]
     assert report.check(None)
+
+
+# The pairs of sqll (docs/decisions/s9-corpus.md, "sqll results", decision
+# 4: the speed tables of G3). A test-double sqll has results with known
+# median times.
+
+
+def times(wall: float, cpu: float, code: int = 0) -> list[Sample]:
+    """A warmup and 2 timed runs: the medians are wall and cpu."""
+    return [
+        Sample(kind, wall, cpu, 0.0, 7000, code, False)
+        for kind in ("warmup", "timed", "timed")
+    ]
+
+
+SQLL_SETTINGS = {
+    "raw": {"core": {"rust_parser_max_iterations": 10**12}},
+    "jinja": {"core": {"rust_parser_max_iterations": 10**12}},
+}
+TOOLS3 = {
+    "sqlfluff": {"version": "4.4.0", "settings": SETTINGS},
+    "sqll": {"version": "0.1.0", "settings": SQLL_SETTINGS},
+    "sqruff": {"version": "0.41.0", "settings": SETTINGS},
+}
+
+
+def sqll_results() -> list[dict]:
+    """The other tools have the medians (wall, CPU): sqlfluff a (2.05,
+    1.01), b (3.05, 1.51), m (1.05, 0.51); sqruff a (0.55, 0.26). sqruff
+    is not ok on b and m, and sqlfluff is not ok on n."""
+    return [
+        # Faster than sqlfluff; slower than sqruff on CPU only.
+        entry("s/a.sql", "sqll", "ok", s=times(0.35, 0.3), unparsable=OK0),
+        # Slower than sqlfluff on wall time only.
+        entry("s/b.sql", "sqll", "ok", s=times(3.55, 1.0), unparsable=OK0),
+        # The same times as sqlfluff: not faster.
+        entry("s/m.sql", "sqll", "ok", s=times(1.05, 0.51), unparsable=OK0),
+        entry("s/n.sql", "sqll", "unsupported", "unsupported: templater jinja"),
+    ]
+
+
+def build3(tools=TOOLS3, rows=None) -> dict:
+    if rows is None:
+        rows = [r for r in results() + sqll_results() if r["tool"] in tools]
+    return build(
+        results=rows,
+        scope={"tools": sorted(tools), "shard": None},
+        tools=dict(tools),
+    )
+
+
+PAIR_FLUFF = {
+    "tool": "sqll",
+    "other": "sqlfluff",
+    "goal": "faster",
+    "files": 3,
+    "bytes": 59000,
+    "wall_s": {"sqll": 4.95, "sqlfluff": 6.15},
+    "cpu_s": {"sqll": 1.81, "sqlfluff": 3.03},
+    "wall_ratio": round(4.95 / 6.15, 6),
+    "cpu_ratio": round(1.81 / 3.03, 6),
+    "slow_files": [
+        {
+            "file": "s/b.sql",
+            "bytes": 30000,
+            "wall_s": {"sqll": 3.55, "sqlfluff": 3.05},
+            "cpu_s": {"sqll": 1.0, "sqlfluff": 1.51},
+        },
+        {
+            "file": "s/m.sql",
+            "bytes": 9000,
+            "wall_s": {"sqll": 1.05, "sqlfluff": 1.05},
+            "cpu_s": {"sqll": 0.51, "sqlfluff": 0.51},
+        },
+    ],
+}
+PAIR_SQRUFF = {
+    "tool": "sqll",
+    "other": "sqruff",
+    "goal": "not_slower",
+    "files": 1,
+    "bytes": 20000,
+    "wall_s": {"sqll": 0.35, "sqruff": 0.55},
+    "cpu_s": {"sqll": 0.3, "sqruff": 0.26},
+    "wall_ratio": round(0.35 / 0.55, 6),
+    "cpu_ratio": round(0.3 / 0.26, 6),
+    "slow_files": [
+        {
+            "file": "s/a.sql",
+            "bytes": 20000,
+            "wall_s": {"sqll": 0.35, "sqruff": 0.55},
+            "cpu_s": {"sqll": 0.3, "sqruff": 0.26},
+        }
+    ],
+}
+
+
+def test_the_test_double_has_the_medians_of_the_pair_data():
+    rows = {(r["file"], r["tool"]): r["stats"] for r in build3()["results"]}
+    medians = {
+        k: (v["wall_s"]["median"], v["cpu_s"]["median"])
+        for k, v in rows.items()
+        if v is not None
+    }
+    assert medians[("s/a.sql", "sqlfluff")] == (2.05, 1.01)
+    assert medians[("s/b.sql", "sqlfluff")] == (3.05, 1.51)
+    assert medians[("s/m.sql", "sqlfluff")] == (1.05, 0.51)
+    assert medians[("s/a.sql", "sqruff")] == (0.55, 0.26)
+    assert medians[("s/a.sql", "sqll")] == (0.35, 0.3)
+
+
+def test_a_report_with_sqll_has_a_pair_with_sqlfluff_and_with_sqruff():
+    rep = build3()
+    assert report.check(rep) == []
+    assert rep["pairs"] == [PAIR_FLUFF, PAIR_SQRUFF]
+    assert list(rep).index("pairs") == list(rep).index("compared") + 1
+
+
+def test_a_pair_needs_both_of_its_tools():
+    two = {k: TOOLS3[k] for k in ("sqll", "sqruff")}
+    rep = build3(two)
+    assert report.check(rep) == []
+    assert rep["pairs"] == [PAIR_SQRUFF]
+    rep = build3({"sqll": TOOLS3["sqll"]})
+    assert report.check(rep) == [] and "pairs" not in rep
+
+
+def test_a_report_with_no_sqll_has_no_pairs_field():
+    rep = build()
+    assert "pairs" not in rep and report.pairs(rep["results"], rep["tools"], {}) == []
+    rep["pairs"] = []
+    _one(rep, "pairs: a report with no pair has no pairs field")
+
+
+def test_the_goal_of_each_pair_lists_each_slow_file():
+    assert report.PAIR_GOALS == (("sqlfluff", "faster"), ("sqruff", "not_slower"))
+    assert report.is_slow("faster", 1.0, 1.0) and report.is_slow("faster", 1.1, 1.0)
+    assert not report.is_slow("faster", 0.9, 1.0)
+    assert not report.is_slow("not_slower", 1.0, 1.0)
+    assert report.is_slow("not_slower", 1.000001, 1.0)
+
+
+def test_a_pair_with_no_file_has_no_ratio():
+    rows = [r for r in results() + sqll_results() if r["tool"] != "sqll"]
+    rows.append(entry("s/a.sql", "sqll", "invalid", "warmup run: no parse tree"))
+    rows += [r for r in sqll_results() if r["file"] != "s/a.sql"]
+    rep = build3(rows=rows)
+    assert report.check(rep) == []
+    sq = rep["pairs"][1]
+    assert sq["files"] == 0 and sq["bytes"] == 0 and sq["slow_files"] == []
+    assert sq["wall_ratio"] is None and sq["cpu_ratio"] is None
+
+
+def _pair(rep: dict, other: str) -> dict:
+    return next(p for p in rep["pairs"] if p["other"] == other)
+
+
+@pytest.mark.parametrize(
+    "edit, text",
+    [
+        (lambda r: r.pop("pairs"), "report: missing field 'pairs'"),
+        (lambda r: r["pairs"].pop(), "pairs: not a list of 2 pairs"),
+        (lambda r: r["pairs"].reverse(), "pair sqll to sqlfluff: other is not"),
+        (lambda r: _pair(r, "sqruff").update(files=2), "sqruff: files is not 1"),
+        (lambda r: _pair(r, "sqruff").update(bytes=1), "sqruff: bytes is not 20000"),
+        (lambda r: _pair(r, "sqruff").update(goal="faster"), "goal is not"),
+        (lambda r: _pair(r, "sqruff").pop("goal"), "missing field 'goal'"),
+        (lambda r: _pair(r, "sqruff").update(x=1), "unknown field 'x'"),
+        (
+            lambda r: _pair(r, "sqlfluff")["wall_s"].update(sqll=4.9),
+            "pair sqll to sqlfluff: wall_s is not",
+        ),
+        (
+            lambda r: _pair(r, "sqlfluff")["cpu_s"].update(sqlfluff=3.0),
+            "pair sqll to sqlfluff: cpu_s is not",
+        ),
+        (
+            lambda r: _pair(r, "sqlfluff").update(wall_ratio=0.5),
+            "pair sqll to sqlfluff: wall_ratio is not",
+        ),
+        (
+            lambda r: _pair(r, "sqruff").update(cpu_ratio=1.0),
+            "pair sqll to sqruff: cpu_ratio is not",
+        ),
+        (
+            lambda r: _pair(r, "sqlfluff")["slow_files"].pop(),
+            "pair sqll to sqlfluff: slow_files is not",
+        ),
+        (
+            lambda r: _pair(r, "sqruff").update(slow_files=[]),
+            "pair sqll to sqruff: slow_files is not",
+        ),
+        (
+            lambda r: _pair(r, "sqruff")["slow_files"][0]["cpu_s"].update(sqll=0.2),
+            "pair sqll to sqruff: slow_files is not",
+        ),
+    ],
+)
+def test_a_changed_pair_number_is_found(edit, text):
+    rep = copy.deepcopy(build3())
+    edit(rep)
+    _one(rep, text)
+
+
+def test_a_changed_median_changes_the_pairs():
+    """The pairs come from the samples: a report with other samples and the
+    old pairs has an error."""
+    old = build3()
+    rows = [r for r in results() + sqll_results() if r["file"] != "s/a.sql"]
+    rows += [r for r in results() if r["file"] == "s/a.sql"]
+    rows.append(entry("s/a.sql", "sqll", "ok", s=times(0.35, 0.2), unparsable=OK0))
+    rep = build3(rows=rows)
+    assert report.check(rep) == []
+    assert _pair(rep, "sqruff")["slow_files"] == []
+    assert _pair(rep, "sqruff")["cpu_s"] == {"sqll": 0.2, "sqruff": 0.26}
+    rep["pairs"] = old["pairs"]
+    _one(rep, "pair sqll to sqruff: cpu_s is not")
+
+
+def test_the_tables_of_a_report_with_pairs():
+    blocks = tables.markdown(build3()).strip("\n").split("\n\n")
+    assert len(blocks) == 6
+    assert blocks[:4] == tables.markdown(
+        {k: v for k, v in build3().items() if k != "pairs"}
+    ).strip("\n").split("\n\n")
+    assert blocks[4].splitlines() == [
+        tables.PAIRS_HEADER,
+        "|" + "---|" * 11,
+        "| sqll to sqlfluff | sqll is faster | 3 | 59000 | 4.950 | 6.150 | "
+        f"{4.95 / 6.15:.3f} | 1.810 | 3.030 | {1.81 / 3.03:.3f} | 2 |",
+        "| sqll to sqruff | sqll is not slower | 1 | 20000 | 0.350 | 0.550 | "
+        f"{0.35 / 0.55:.3f} | 0.300 | 0.260 | {0.3 / 0.26:.3f} | 1 |",
+    ]
+    assert blocks[5].splitlines() == [
+        tables.SLOW_HEADER,
+        "|" + "---|" * 7,
+        "| sqll to sqlfluff | `s/b.sql` | 30000 | 3.550 | 3.050 | 1.000 | 1.510 |",
+        "| sqll to sqlfluff | `s/m.sql` | 9000 | 1.050 | 1.050 | 0.510 | 0.510 |",
+        "| sqll to sqruff | `s/a.sql` | 20000 | 0.350 | 0.550 | 0.300 | 0.260 |",
+    ]
+
+
+def test_a_report_with_no_pairs_has_the_4_tables():
+    assert len(tables.markdown(build()).strip("\n").split("\n\n")) == 4
+
+
+def test_the_summary_gives_each_pair_and_its_slow_files():
+    lines = corpus_run.summary_lines(build3())
+    start = next(i for i, x in enumerate(lines) if x.startswith("pair "))
+    assert lines[start : start + 5] == [
+        "pair sqll to sqlfluff (goal: faster): 3 files where both are ok, "
+        f"59000 bytes, wall ratio {4.95 / 6.15:.3f}, cpu ratio {1.81 / 3.03:.3f}, "
+        "2 slow files",
+        "  slow: s/b.sql: wall 3.550 s to 3.050 s, cpu 1.000 s to 1.510 s",
+        "  slow: s/m.sql: wall 1.050 s to 1.050 s, cpu 0.510 s to 0.510 s",
+        "pair sqll to sqruff (goal: not_slower): 1 files where both are ok, "
+        f"20000 bytes, wall ratio {0.35 / 0.55:.3f}, cpu ratio {0.3 / 0.26:.3f}, "
+        "1 slow files",
+        "  slow: s/a.sql: wall 0.350 s to 0.550 s, cpu 0.300 s to 0.260 s",
+    ]
+    assert not any(x.startswith("pair ") for x in corpus_run.summary_lines(build()))

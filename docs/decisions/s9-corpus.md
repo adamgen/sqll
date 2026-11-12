@@ -236,7 +236,13 @@ panic, timeout, no tree, other leaf text, or another exit code.
 `totals`: the count of each status for each tool. `compared`: for the
 files where each tool is `ok`, the count, the bytes, and for each tool the
 sums of the median times, the bytes per second, and the ratios to
-sqlfluff. The schema check calculates each derived number again.
+sqlfluff. `pairs` (T11): only in a report with sqll and sqlfluff or
+sqruff ("sqll results", decision 4). For each pair (sqll to sqlfluff,
+goal `faster`; sqll to sqruff, goal `not_slower`), on the files where both
+tools are `ok`: the count, the bytes, the sums of the median wall and CPU
+times of each tool, the ratios sqll / other tool, and `slow_files` (each
+file where the median wall or CPU time of sqll does not meet the goal,
+with its times). The schema check calculates each derived number again.
 
 `merge` fails on a missing or repeated shard, or another run record.
 `check --baseline FILE [--full]` compares the stable data, fail closed:
@@ -650,7 +656,12 @@ file, for each tool).
 |---|---|---|
 | T9 | Plan and design record of the sqll results: the sqll settings layer, the Jinja files, the baseline rule for sqll, the speed tables, and the CI wiring | 1 to 6 (this section) |
 | T10 | Cross-track: the corpus-smoke and corpus-full CI jobs and the local verify get the sqll binary of the build job; no result changes | 5 |
-| T11 | The sqll corpus layer (`rust_parser_max_iterations = 1000000000000`), the status `unsupported` when sqll fails closed, and the "PRS: " message in the reason, with tests; sqll stays in `LATER`. Paths: only `harness/sqll_harness/corpus/**` and `harness/tests/test_s9_*.py` (paths of the S9 track); no change to the bench adapters | 1, 2 |
-| T12 | The report and the check for sqll: `pairs`, the list of slower files, `compared` for the 3 tools, the direction in each sqll check message, and the `rebase --tool sqll` command, with tests; the recorded baseline stays valid | 3, 4 |
+| T11 | The sqll corpus layer (`rust_parser_max_iterations = 1000000000000`) and the G3 pair speed tables: `pairs` in the report, the list of slow files of each pair, their tables, and the schema check of each derived number, with tests; sqll stays in `LATER`. Paths: only `harness/sqll_harness/corpus/**`, `harness/tests/test_s9_*.py`, and the S9 documents (paths of the S9 track); no change to the bench adapters | 1, 4 |
+| T12 | The report and the check for sqll: the status `unsupported` when sqll fails closed, the "PRS: " message in the reason, `compared` for the 3 tools, the direction in each sqll check message, and the `rebase --tool sqll` command, with tests; the recorded baseline stays valid | 1, 2, 3, 4 |
 | T13 | The sqll results: remove sqll from `LATER`, one controlled full run of the 4 tools, the new `results/S9/baseline.json`, and the tables of status/S9.md (statuses, pairs, and the list of slower files with a reason or an issue for each) | 2, 3, 4, 6 |
 | T14 | The exit of the stone for sqll: the proof of each exit criterion for the 4 tools, and the request for the approval | all |
+
+Change of this table (orchestrator, 2026-11-12): the pair tables of
+decision 4 moved to the row of T11, and the status `unsupported` and the
+"PRS: " message of decisions 1 and 2 moved to the row of T12. The table
+gives the goal of each task. The decisions do not change.

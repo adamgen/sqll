@@ -60,12 +60,14 @@ CONFIG_DIR = "config"
 RUNS_DIR = "runs"
 REFERENCE_DIR = "_reference"
 REASON_TEXT = 300
-# docs/decisions/s9-corpus.md, "Settings": the corpus layer of a tool, on
-# top of its S2 layer. Only the sqlfluff-rs layer has the Rust iteration
-# limit.
+# docs/decisions/s9-corpus.md, "Settings" and "sqll results" (decision 1):
+# the corpus layer of a tool, on top of its S2 layer. Only the sqlfluff-rs
+# and sqll layers have the Rust iteration limit: the parser of each has the
+# limit, and its default stops the parse of a large file.
 RUST_ITERATIONS = 1_000_000_000_000
 TOOL_LAYERS: dict[str, dict[str, Any]] = {
     "sqlfluff-rs": {"core": {"rust_parser_max_iterations": RUST_ITERATIONS}},
+    "sqll": {"core": {"rust_parser_max_iterations": RUST_ITERATIONS}},
 }
 # The tools of the bench registry that the corpus does not run by default
 # yet. sqll is in the registry from S3 (T13); its corpus results come after
@@ -637,6 +639,20 @@ def summary_lines(rep: Mapping[str, Any]) -> list[str]:
             f"  {tool:<{width}} wall {t['wall_s']:.3f} s, cpu {t['cpu_s']:.3f} s, "
             f"{rate}, wall ratio to {report.RATIO_BASE} {ratio}"
         )
+    for p in rep.get(report.PAIRS, []):
+        lines.append(
+            f"pair {p['tool']} to {p['other']} (goal: {p['goal']}): {p['files']} "
+            f"files where both are ok, {p['bytes']} bytes, wall ratio "
+            f"{_ratio_text(p['wall_ratio'])}, cpu ratio {_ratio_text(p['cpu_ratio'])}, "
+            f"{len(p['slow_files'])} slow files"
+        )
+        for s in p["slow_files"]:
+            wall, cpu = s["wall_s"], s["cpu_s"]
+            lines.append(
+                f"  slow: {s['file']}: wall {wall[p['tool']]:.3f} s to "
+                f"{wall[p['other']]:.3f} s, cpu {cpu[p['tool']]:.3f} s to "
+                f"{cpu[p['other']]:.3f} s"
+            )
     bad = [r for r in rep["results"] if r["status"] != report.OK]
     if bad:
         lines.append(f"not ok: {len(bad)}")
@@ -646,6 +662,10 @@ def summary_lines(rep: Mapping[str, Any]) -> list[str]:
                 reason = reason[:157] + "..."
             lines.append(f"  {r['tool']} {r['file']}: {r['status']}: {reason}")
     return lines
+
+
+def _ratio_text(value: float | None) -> str:
+    return "-" if value is None else f"{value:.3f}"
 
 
 def progress_to_stderr(line: str) -> None:
