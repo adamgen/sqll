@@ -184,138 +184,161 @@
   {
    "id": "templater/jinja_a/jinja",
    "templater": "jinja",
+   "config_templater": null,
    "needs_python": [],
    "known_failure": "jinja: S11"
   },
   {
    "id": "templater/jinja_b/jinja",
    "templater": "jinja",
+   "config_templater": null,
    "needs_python": [],
    "known_failure": "jinja: S11"
   },
   {
    "id": "templater/jinja_c_dbt/dbt_builtins_cross_ref",
    "templater": "jinja",
+   "config_templater": null,
    "needs_python": [],
    "known_failure": "jinja: S11"
   },
   {
    "id": "templater/jinja_c_dbt/dbt_builtins_config",
    "templater": "jinja",
+   "config_templater": null,
    "needs_python": [],
    "known_failure": "jinja: S11"
   },
   {
    "id": "templater/jinja_c_dbt/dbt_builtins_is_incremental",
    "templater": "jinja",
+   "config_templater": null,
    "needs_python": [],
    "known_failure": "jinja: S11"
   },
   {
    "id": "templater/jinja_c_dbt/dbt_builtins_ref",
    "templater": "jinja",
+   "config_templater": null,
    "needs_python": [],
    "known_failure": "jinja: S11"
   },
   {
    "id": "templater/jinja_c_dbt/dbt_builtins_source",
    "templater": "jinja",
+   "config_templater": null,
    "needs_python": [],
    "known_failure": "jinja: S11"
   },
   {
    "id": "templater/jinja_c_dbt/dbt_builtins_this",
    "templater": "jinja",
+   "config_templater": null,
    "needs_python": [],
    "known_failure": "jinja: S11"
   },
   {
    "id": "templater/jinja_c_dbt/dbt_builtins_this_callable",
    "templater": "jinja",
+   "config_templater": null,
    "needs_python": [],
    "known_failure": "jinja: S11"
   },
   {
    "id": "templater/jinja_c_dbt/dbt_builtins_var_default",
    "templater": "jinja",
+   "config_templater": null,
    "needs_python": [],
    "known_failure": "jinja: S11"
   },
   {
    "id": "templater/jinja_c_dbt/dbt_builtins_test",
    "templater": "jinja",
+   "config_templater": null,
    "needs_python": [],
    "known_failure": "jinja: S11"
   },
   {
    "id": "templater/jinja_c_dbt/dbt_builtins_zip",
    "templater": "jinja",
+   "config_templater": null,
    "needs_python": [],
    "known_failure": "jinja: S11"
   },
   {
    "id": "templater/jinja_c_dbt/dbt_builtins_zip_strict",
    "templater": "jinja",
+   "config_templater": null,
    "needs_python": [],
    "known_failure": "jinja: S11"
   },
   {
    "id": "templater/jinja_c_dbt/dbt_builtins_return",
    "templater": "jinja",
+   "config_templater": null,
    "needs_python": [],
    "known_failure": "jinja: S11"
   },
   {
    "id": "templater/jinja_e/jinja",
    "templater": "jinja",
+   "config_templater": null,
    "needs_python": [],
    "known_failure": "jinja: S11"
   },
   {
    "id": "templater/jinja_f/jinja",
    "templater": "jinja",
+   "config_templater": null,
    "needs_python": [],
    "known_failure": "jinja: S11"
   },
   {
    "id": "templater/jinja_g_macros/jinja",
    "templater": "jinja",
+   "config_templater": null,
    "needs_python": [],
    "known_failure": "jinja: S11"
   },
   {
    "id": "templater/jinja_exclude_macro_path/jinja",
    "templater": "jinja",
+   "config_templater": null,
    "needs_python": [],
    "known_failure": "jinja: S11"
   },
   {
    "id": "templater/jinja_exclude_macro_path/model_directory/jinja_sub_directory",
    "templater": "jinja",
+   "config_templater": null,
    "needs_python": [],
    "known_failure": "jinja: S11"
   },
   {
    "id": "templater/jinja_h_macros/jinja",
    "templater": "jinja",
+   "config_templater": null,
    "needs_python": [],
    "known_failure": "jinja: S11"
   },
   {
    "id": "templater/jinja_i_raw/raw_tag",
    "templater": "jinja",
+   "config_templater": null,
    "needs_python": [],
    "known_failure": "jinja: S11"
   },
   {
    "id": "templater/jinja_i_raw/raw_tag_2",
    "templater": "jinja",
+   "config_templater": null,
    "needs_python": [],
    "known_failure": "jinja: S11"
   },
   {
    "id": "templater/jinja_j_libraries/jinja",
    "templater": "jinja",
+   "config_templater": null,
    "needs_python": [
     "library_path"
    ],
@@ -324,78 +347,91 @@
   {
    "id": "templater/jinja_k_config_override_path_macros/jinja",
    "templater": "jinja",
+   "config_templater": null,
    "needs_python": [],
    "known_failure": "jinja: S11"
   },
   {
    "id": "templater/jinja_l_metas/001",
    "templater": "jinja",
+   "config_templater": null,
    "needs_python": [],
    "known_failure": "jinja: S11"
   },
   {
    "id": "templater/jinja_l_metas/002",
    "templater": "jinja",
+   "config_templater": null,
    "needs_python": [],
    "known_failure": "jinja: S11"
   },
   {
    "id": "templater/jinja_l_metas/003",
    "templater": "jinja",
+   "config_templater": null,
    "needs_python": [],
    "known_failure": "jinja: S11"
   },
   {
    "id": "templater/jinja_l_metas/004",
    "templater": "jinja",
+   "config_templater": null,
    "needs_python": [],
    "known_failure": "jinja: S11"
   },
   {
    "id": "templater/jinja_l_metas/005",
    "templater": "jinja",
+   "config_templater": null,
    "needs_python": [],
    "known_failure": "jinja: S11"
   },
   {
    "id": "templater/jinja_l_metas/006",
    "templater": "jinja",
+   "config_templater": null,
    "needs_python": [],
    "known_failure": "jinja: S11"
   },
   {
    "id": "templater/jinja_l_metas/007",
    "templater": "jinja",
+   "config_templater": null,
    "needs_python": [],
    "known_failure": "jinja: S11"
   },
   {
    "id": "templater/jinja_l_metas/008",
    "templater": "jinja",
+   "config_templater": null,
    "needs_python": [],
    "known_failure": "jinja: S11"
   },
   {
    "id": "templater/jinja_l_metas/009",
    "templater": "jinja",
+   "config_templater": null,
    "needs_python": [],
    "known_failure": "jinja: S11"
   },
   {
    "id": "templater/jinja_l_metas/010",
    "templater": "jinja",
+   "config_templater": null,
    "needs_python": [],
    "known_failure": "jinja: S11"
   },
   {
    "id": "templater/jinja_l_metas/011",
    "templater": "jinja",
+   "config_templater": null,
    "needs_python": [],
    "known_failure": "jinja: S11"
   },
   {
    "id": "templater/jinja_m_libraries_module/jinja",
    "templater": "jinja",
+   "config_templater": null,
    "needs_python": [
     "library_path"
    ],
@@ -404,36 +440,42 @@
   {
    "id": "templater/jinja_n_nested_macros/explicit_import",
    "templater": "jinja",
+   "config_templater": null,
    "needs_python": [],
    "known_failure": "jinja: S11"
   },
   {
    "id": "templater/jinja_n_nested_macros/implicit_import",
    "templater": "jinja",
+   "config_templater": null,
    "needs_python": [],
    "known_failure": "jinja: S11"
   },
   {
    "id": "templater/jinja_o_config_override_dbt_builtins/override_dbt_builtins",
    "templater": "jinja",
+   "config_templater": null,
    "needs_python": [],
    "known_failure": "jinja: S11"
   },
   {
    "id": "templater/jinja_p_disable_dbt_builtins/disable_dbt_builtins",
    "templater": "jinja",
+   "config_templater": null,
    "needs_python": [],
    "known_failure": "jinja: S11"
   },
   {
    "id": "templater/jinja_q_multiple_path_macros/jinja",
    "templater": "jinja",
+   "config_templater": null,
    "needs_python": [],
    "known_failure": "jinja: S11"
   },
   {
    "id": "templater/jinja_s_filters_in_library/jinja",
    "templater": "jinja",
+   "config_templater": null,
    "needs_python": [
     "library_path"
    ],
@@ -442,6 +484,7 @@
   {
    "id": "templater/jinja_t_loader_search_path/jinja",
    "templater": "jinja",
+   "config_templater": null,
    "needs_python": [],
    "known_failure": "jinja: S11"
   }

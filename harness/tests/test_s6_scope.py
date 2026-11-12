@@ -192,6 +192,98 @@ def test_a_changed_count_in_a_document_is_found():
     assert doc_counts(dropped) != flat(SCOPE["counts"])
 
 
+def prose(counts: dict, scope: dict) -> dict[str, list[tuple[str, str]]]:
+    """The numbers in the prose of the documents, as (section, phrase)."""
+    suite = counts["templater_suite"]
+    ph, py, rc = (
+        counts["placeholder_nodes"],
+        counts["python_nodes"],
+        counts["rule_cases"],
+    )
+    nodes = ph["total"] + py["total"]
+    needs = ph["needs_python_runtime"] + py["needs_python_runtime"]
+    yaml_files = sum(1 for f in scope["fixture_configs"] if f["owner"] == "S5")
+    return {
+        "design": [
+            ("Decisions", f"is the {counts['s6_black_box']} black-box nodes of the"),
+            ("Decisions", f"The {counts['s6_internal']} internal nodes are a separate"),
+            ("Decisions", f"The {rc['total']} rule fixture cases have their exit"),
+            ("Decisions", f"The {suite['total']} cases of the templater suite"),
+            ("Decisions", f"count only the {counts['s6_black_box']} black-box nodes"),
+            ("Decisions", f"classifies {needs} of {nodes} nodes"),
+            ("Decisions", f"3. The {counts['s6_internal']} internal nodes."),
+            (
+                "Set",
+                f"{suite['placeholder'] + suite['python']} of {suite['total']} cases"
+                " use the placeholder or python templater",
+            ),
+            ("Set", f"{suite['needs_python']} cases also have the tag"),
+            (
+                "Set",
+                f"The {counts['fixture_configs']} `fixture_configs` are their"
+                f" {yaml_files} YAML files",
+            ),
+            (
+                "Needs a Python runtime",
+                f"give the same {suite['needs_python']} templater suite cases",
+            ),
+            ("Internal nodes", f"The {py['internal']} internal nodes call"),
+            ("Internal nodes", f"exclude the {py['internal']} nodes"),
+        ],
+        "status": [
+            ("S6 tasks", f"Convert the {ph['black_box']} placeholder nodes"),
+            ("S6 tasks", f"Convert the {py['black_box']} black-box python nodes"),
+            ("S6 tasks", f"sqll passes the {ph['black_box']} placeholder cases"),
+            ("S6 tasks", f"Rust unit tests of the {py['internal']} internal nodes"),
+            ("S6 tasks", f"The {py['internal']} internal nodes pass"),
+            ("S6 tasks", f"sqll passes the {py['black_box']} black-box python cases"),
+            ("S6 tasks", f"of the {rc['total']} rule fixture cases"),
+            ("Parity now", f"All {suite['jinja']} are Jinja cases"),
+            ("Known failures", f"Each of the {suite['total']} templater suite cases"),
+            ("Known failures", f"{suite['needs_python']} of them also have the tag"),
+        ],
+    }
+
+
+def missing_prose(text: str, phrases: list[tuple[str, str]]) -> list[str]:
+    return [
+        phrase
+        for title, phrase in phrases
+        if phrase not in " ".join(section(text, title).split())
+    ]
+
+
+@pytest.mark.parametrize("path", [DESIGN_FILE, STATUS_FILE], ids=["design", "status"])
+def test_documents_give_the_numbers_in_the_prose(path):
+    key = "design" if path == DESIGN_FILE else "status"
+    phrases = prose(SCOPE["counts"], SCOPE)[key]
+    assert missing_prose(path.read_text("utf8"), phrases) == []
+
+
+def test_a_changed_number_in_the_prose_is_found():
+    phrases = prose(SCOPE["counts"], SCOPE)
+    design = DESIGN_FILE.read_text("utf8")
+    changed = design.replace(
+        "The 25 internal nodes are a separate", "The 26 internal nodes are a separate"
+    )
+    assert changed != design
+    assert missing_prose(changed, phrases["design"]) == [
+        "The 25 internal nodes are a separate"
+    ]
+    status = STATUS_FILE.read_text("utf8")
+    changed = status.replace("Convert the 28 black-box", "Convert the 27 black-box")
+    assert changed != status
+    assert missing_prose(changed, phrases["status"]) == [
+        "Convert the 28 black-box python nodes"
+    ]
+    counts = json.loads(json.dumps(SCOPE["counts"]))
+    counts["s6_internal"] = 26
+    assert missing_prose(design, prose(counts, SCOPE)["design"]) == [
+        "The 26 internal nodes are a separate",
+        "3. The 26 internal nodes.",
+    ]
+
+
 # The parts of the set.
 
 
@@ -200,6 +292,7 @@ def test_templater_suite_is_jinja_and_s11():
     summary = SUMMARY["results"]["sqll"]["suites"]["templater"]
     assert len(suite) == summary["total"] == 43
     assert {c["templater"] for c in suite} == {"jinja"}
+    assert {c["config_templater"] for c in suite} == {None}
     assert {c["known_failure"] for c in suite} == {inventory.JINJA_REASON}
     needs_python = sorted(c["id"] for c in suite if c["needs_python"])
     assert {tuple(c["needs_python"]) for c in suite if c["needs_python"]} == {
@@ -539,3 +632,45 @@ def test_inventory_fails_closed_on_a_used_fixture(tmp_path):
         "test/fixtures/templater/placeholder_x/a.sql: a fixture with a user;"
         " give it an owner"
     ]
+
+
+def write_case(root: Path, folder_config: str, sql: str) -> Path:
+    folder = root / "test" / "fixtures" / "templater" / "x"
+    folder.mkdir(parents=True)
+    (folder / ".sqlfluff").write_text(folder_config, "utf8")
+    (folder / "a.sql").write_text(sql, "utf8")
+    return Path("test") / "fixtures" / "templater" / "x" / "a.sql"
+
+
+def test_case_templater_reads_the_folder_and_the_inline_config(tmp_path):
+    sql = write_case(tmp_path, "[sqlfluff]\ndialect = ansi\n", "SELECT 1\n")
+    assert inventory.case_templater(tmp_path, sql) is None
+    (tmp_path / sql.parent / ".sqlfluff").write_text(
+        "[sqlfluff]\ntemplater = placeholder\n", "utf8"
+    )
+    assert inventory.case_templater(tmp_path, sql) == "placeholder"
+    (tmp_path / sql).write_text("-- sqlfluff:templater:python\nSELECT 1\n", "utf8")
+    assert inventory.case_templater(tmp_path, sql) == "python"
+
+
+def test_inventory_fails_closed_on_a_case_that_sets_the_templater(
+    tmp_path, monkeypatch
+):
+    sql = write_case(tmp_path, "[sqlfluff]\ntemplater = placeholder\n", "SELECT 1\n")
+    case = inventory.templater.TemplaterCase(
+        id="templater/x/a", subpath="x/a", code_only=True, include_meta=False
+    )
+    assert case.sql == sql
+    monkeypatch.setattr(inventory, "test_templater", lambda root: ("jinja", []))
+    monkeypatch.setattr(inventory.templater, "discover", lambda root: [case])
+    found, problems = inventory.suite_cases(tmp_path)
+    assert found[0]["config_templater"] == "placeholder"
+    assert problems == [
+        "templater/x/a: its config sets core.templater = placeholder;"
+        " Linter() of the test uses jinja"
+    ]
+    (tmp_path / sql.parent / ".sqlfluff").write_text(
+        "[sqlfluff]\ntemplater = jinja\n", "utf8"
+    )
+    found, problems = inventory.suite_cases(tmp_path)
+    assert (found[0]["config_templater"], problems) == ("jinja", [])

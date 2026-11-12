@@ -14,12 +14,14 @@ scripts/s6/unit_nodes.py with the Python of the sqlfluff oracle tools
 nodes of the placeholder and Python templater tests. Each other part comes
 from the files:
 
-  templater_suite  the S1 templater suite (sqll_harness.suites.templater):
-                   each case, its templater, and its needs_python reasons
+  templater_suite  the templater suite of the harness
+                   (sqll_harness.suites.templater): each case, its templater,
+                   the core.templater value of its config, and its
+                   needs_python reasons
   nodes            each pytest node of the placeholder and Python templater
                    tests (scripts/s6/unit_nodes.py)
-  rule_cases       each S1 rule fixture case that sets the placeholder or
-                   python templater (sqll_harness.suites.rules)
+  rule_cases       each rule fixture case of the harness that sets the
+                   placeholder or python templater (sqll_harness.suites.rules)
   fixtures         each file in test/fixtures/templater/ that is not in a
                    Jinja folder, with its users
   fixture_configs  each other fixture file that sets these templaters
@@ -42,6 +44,7 @@ import sys
 from collections import Counter
 from pathlib import Path
 
+from sqll_harness.adapters.base import EmptyHome
 from sqll_harness.paths import REPO_ROOT, SQLFLUFF_ROOT, sqlfluff_ref, tools_dir
 from sqll_harness.suites import rules, templater
 
@@ -170,14 +173,44 @@ def test_templater(root: Path) -> tuple[str | None, list[str]]:
     return cfg.get("sqlfluff", "templater", fallback=None), []
 
 
+def case_templater(root: Path, sql: Path) -> str | None:
+    """The value of core.templater in the config of a templater suite case,
+    or None. The config is the config of templater.python_needs: the config
+    files of the root folders and of each folder to the file, then the
+    inline config of the file.
+
+    parse_path reads this config, but the Linter keeps its templater: a
+    config file of a subfolder or an inline config line cannot change it
+    (Linter.render_string logs a warning). A value that is not the templater
+    of Linter() is thus a problem for a human (see suite_cases).
+    """
+    folders = templater.root_config_folders(root, EmptyHome.path())
+    folder = root.resolve()
+    for part in sql.parent.parts:
+        folder = folder / part
+        folders.append(folder)
+    config = templater._read_folders(folders)
+    if (root / sql).is_file():
+        config.update(templater._inline_config((root / sql).read_text("utf8")))
+    value = config.get(("core", "templater"))
+    return None if value is None else str(value).strip()
+
+
 def suite_cases(root: Path) -> tuple[list[dict], list[str]]:
     name, problems = test_templater(root)
     out = []
     for case in templater.discover(root):
+        config_templater = case_templater(root, case.sql)
+        if config_templater is not None and config_templater.lower() != name:
+            problems.append(
+                f"{case.id}: its config sets core.templater = {config_templater};"
+                f" Linter() of the test uses {name}"
+            )
         out.append(
             {
                 "id": case.id,
                 "templater": name,
+                "config_templater": config_templater,
                 "needs_python": templater.python_needs(root, case.sql),
                 "known_failure": JINJA_REASON if name == "jinja" else None,
             }
