@@ -326,19 +326,26 @@ task of each decision.
 
 **Measured** on 2026-11-11, on main `0fb9cdb`, on the host (not the CI
 image): Intel(R) Xeon(R) Processor @ 2.10GHz, 4 CPUs, 15.7 GiB. Runs A
-and B, and the first `iter.py` run, had the machine lock. `flock /tmp/sqll-machine.lock sh -c 'scripts/setup &&
+and B had the machine lock. The `iter.py` output below is from
+2026-11-12, on the same host, sqll binary, and harness code (the head of
+this pull request changes only documents). Each of the 3 `iter.py`
+commands had the machine lock. `flock /tmp/sqll-machine.lock sh -c 'scripts/setup &&
 scripts/build-sqll'`: exit code 0, "build-sqll: wrote out/sqll/build.json".
 The sqll version is
 `0.1.0+tables.5371ded8ae219be1a62cd34b1b793d36c41bc9fa432f344de5d84f48d2d059e8`,
 the version of `results/s2/baseline.json`. `python -m sqll_harness.corpus
 fetch`: 164 files and 19 license files, sha256 checked. The sqlfluff and
 sqruff results here are those of `results/S9/baseline.json` (2026-10-28,
-CI image). The pull request of this task has each script below
-(`iter.py`, `layer_run.py`, `parity.py`, `pairs.py`, `maxratio.py`,
-`shards.py`) and its
-full output. Here, the output shows only the lines of the files that a
-decision uses. `...` replaces the long sqll version and the end of a
-repeated message, and the column spaces are shorter.
+CI image). The body of the pull request of this task has each script
+below (`iter.py`, `layer_run.py`, `parity.py`, `pairs.py`, `maxratio.py`,
+`shards.py`). It has the full output of `iter.py`, `parity.py`,
+`pairs.py`, `maxratio.py`, and `shards.py`. Of runs A and B, it has only a
+summary: the tool table, `compared`, the `invalid` lines (with 1 of the
+19 Jinja lines), and the times. It does not have the uv warning line,
+the progress line of each file, the 104 `unparsable` reasons, and 18 of
+the 19 Jinja lines. Here, the output shows only the lines of the files
+that a decision uses. `...` replaces the long sqll version and the end
+of a repeated message, and the column spaces are shorter.
 
 Run A, the harness of main (no corpus layer for sqll):
 
@@ -394,18 +401,18 @@ Data:
   with the layer of run B:
 
 ```
-$ uv run --frozen --project harness python -I iter.py Chinook_ '{}'
-Chinook_MySql.sql (600574 B): exit 1, 0.767 s, -; stderr: PRS: Parser exceeded maximum iteration limit (3000000). This may be caused by runaway parser logic or a very complex SQL query.
-Chinook_MySql_AutoIncrementPKs.sql (563074 B): exit 1, 0.736 s, -; stderr: PRS: Parser exceeded maximum iteration limit (3000000). ...
-Chinook_PostgreSql.sql (600200 B): exit 1, 0.754 s, -; stderr: PRS: Parser exceeded maximum iteration limit (3000000). ...
-Chinook_PostgreSql_AutoIncrementPKs.sql (562854 B): exit 1, 0.698 s, -; stderr: PRS: Parser exceeded maximum iteration limit (3000000). ...
-Chinook_PostgreSql_SerialPKs.sql (562563 B): exit 1, 0.715 s, -; stderr: PRS: Parser exceeded maximum iteration limit (3000000). ...
-$ uv run --frozen --project harness python -I iter.py Chinook_ '{"core": {"rust_parser_max_iterations": 1000000000000}}'
-Chinook_MySql.sql (600574 B): exit 0, 1.255 s, tree 599801 chars, unparsable 0 (0 B); stderr:
-Chinook_MySql_AutoIncrementPKs.sql (563074 B): exit 0, 1.194 s, tree 562301 chars, unparsable 0 (0 B); stderr:
-Chinook_PostgreSql.sql (600200 B): exit 0, 2.218 s, tree 599427 chars, unparsable 0 (0 B); stderr:
-Chinook_PostgreSql_AutoIncrementPKs.sql (562854 B): exit 0, 2.111 s, tree 562081 chars, unparsable 0 (0 B); stderr:
-Chinook_PostgreSql_SerialPKs.sql (562563 B): exit 0, 2.007 s, tree 561790 chars, unparsable 0 (0 B); stderr:
+$ flock /tmp/sqll-machine.lock uv run --frozen --project harness python -I iter.py Chinook_ '{}'
+Chinook_MySql.sql (600574 B): exit 1, 0.768 s, -; stderr: PRS: Parser exceeded maximum iteration limit (3000000). This may be caused by runaway parser logic or a very complex SQL query.
+Chinook_MySql_AutoIncrementPKs.sql (563074 B): exit 1, 0.734 s, -; stderr: PRS: Parser exceeded maximum iteration limit (3000000). ...
+Chinook_PostgreSql.sql (600200 B): exit 1, 0.702 s, -; stderr: PRS: Parser exceeded maximum iteration limit (3000000). ...
+Chinook_PostgreSql_AutoIncrementPKs.sql (562854 B): exit 1, 0.739 s, -; stderr: PRS: Parser exceeded maximum iteration limit (3000000). ...
+Chinook_PostgreSql_SerialPKs.sql (562563 B): exit 1, 0.722 s, -; stderr: PRS: Parser exceeded maximum iteration limit (3000000). ...
+$ flock /tmp/sqll-machine.lock uv run --frozen --project harness python -I iter.py Chinook_ '{"core": {"rust_parser_max_iterations": 1000000000000}}'
+Chinook_MySql.sql (600574 B): exit 0, 1.233 s, tree 599801 chars, unparsable 0 (0 B); stderr:
+Chinook_MySql_AutoIncrementPKs.sql (563074 B): exit 0, 1.228 s, tree 562301 chars, unparsable 0 (0 B); stderr:
+Chinook_PostgreSql.sql (600200 B): exit 0, 2.325 s, tree 599427 chars, unparsable 0 (0 B); stderr:
+Chinook_PostgreSql_AutoIncrementPKs.sql (562854 B): exit 0, 2.196 s, tree 562081 chars, unparsable 0 (0 B); stderr:
+Chinook_PostgreSql_SerialPKs.sql (562563 B): exit 0, 2.153 s, tree 561790 chars, unparsable 0 (0 B); stderr:
 ```
 
 - With the layer, the sqll result (status, unparsable count and bytes) is
@@ -424,9 +431,9 @@ $ python3 -I parity.py results/S9/baseline.json sqll-layer.json
   stops on the 2 files where sqlfluff stops, with the same limit:
 
 ```
-$ uv run --frozen --project harness python -I iter.py sql-server-maintenance-solution/ '{"core": {"rust_parser_max_iterations": 1000000000000}}'
-DatabaseBackup.sql (267445 B): exit 1, 0.205 s, -; stderr: PRS: Maximum parse depth exceeded (limit 600). This may indicate deeply nested SQL or a malicious input.
-MaintenanceSolution.sql (595994 B): exit 1, 0.305 s, -; stderr: PRS: Maximum parse depth exceeded (limit 600). This may indicate deeply nested SQL or a malicious input.
+$ flock /tmp/sqll-machine.lock uv run --frozen --project harness python -I iter.py sql-server-maintenance-solution/ '{"core": {"rust_parser_max_iterations": 1000000000000}}'
+DatabaseBackup.sql (267445 B): exit 1, 0.180 s, -; stderr: PRS: Maximum parse depth exceeded (limit 600). This may indicate deeply nested SQL or a malicious input.
+MaintenanceSolution.sql (595994 B): exit 1, 0.328 s, -; stderr: PRS: Maximum parse depth exceeded (limit 600). This may indicate deeply nested SQL or a malicious input.
 ```
 
 Reasons: the reason of the `sqlfluff-rs` layer ("Settings"). The default
@@ -437,8 +444,12 @@ to show that sqll accepts it. The corpus layer does not set it, so each
 tool uses the default.
 
 Also: the harness reason of the 5 results of run A has no tool message.
-The code task adds the "PRS: " line of sqll to the problem messages, so
-that the reason names the limit.
+The code task (T11) adds the "PRS: " line of sqll to the reason, so that
+the reason names the limit. It adds the line in the corpus code
+(`harness/sqll_harness/corpus/run.py`, where the reason of an `invalid`
+result reads the warmup stderr). It does not change the problem messages
+of the bench adapters (`harness/sqll_harness/bench/sqll.py` and
+`bench/adapter.py`, core paths).
 
 ### 2. The 19 Jinja files
 
@@ -619,8 +630,10 @@ total: 3 tools 4225.4 s, sqll 130.8 s
 
 Decision: `corpus/ci-shards.json` stays at 6 shards. sqll adds 30.0 s
 (3.5%) to the longest shard: 879.3 s of tool runs. In CI run 40870016071
-on main, the 6 shard jobs took 6 min 10 s to 15 min 2 s (849.3 s of tool
-runs in the longest shard). With sqll, the estimate is less than 16 min,
+on main, the 6 shard jobs took 6 min 10 s to 15 min 2 s. The 849.3 s of
+tool runs in the longest shard is not from that CI run: `shards.py`
+calculates it from the samples of `results/S9/baseline.json`
+(2026-10-28). With sqll, the estimate is less than 16 min,
 under the job timeout of 60 min. The sqll times are from the host, not
 from a CI runner. The task of the new baseline records the shard times of
 its CI run.
@@ -636,7 +649,7 @@ file, for each tool).
 |---|---|---|
 | T9 | Plan and design record of the sqll results: the sqll settings layer, the Jinja files, the baseline rule for sqll, the speed tables, and the CI wiring | 1 to 6 (this section) |
 | T10 | Cross-track: the corpus-smoke and corpus-full CI jobs and the local verify get the sqll binary of the build job; no result changes | 5 |
-| T11 | The sqll corpus layer (`rust_parser_max_iterations = 1000000000000`), the status `unsupported` when sqll fails closed, and the "PRS: " message in the reason, with tests; sqll stays in `LATER` | 1, 2 |
+| T11 | The sqll corpus layer (`rust_parser_max_iterations = 1000000000000`), the status `unsupported` when sqll fails closed, and the "PRS: " message in the reason, with tests; sqll stays in `LATER`. Paths: only `harness/sqll_harness/corpus/**` and `harness/tests/test_s9_*.py` (paths of the S9 track); no change to the bench adapters | 1, 2 |
 | T12 | The report and the check for sqll: `pairs`, the list of slower files, `compared` for the 3 tools, the direction in each sqll check message, and the `rebase --tool sqll` command, with tests; the recorded baseline stays valid | 3, 4 |
 | T13 | The sqll results: remove sqll from `LATER`, one controlled full run of the 4 tools, the new `results/S9/baseline.json`, and the tables of status/S9.md (statuses, pairs, and the list of slower files with a reason or an issue for each) | 2, 3, 4, 6 |
 | T14 | The exit of the stone for sqll: the proof of each exit criterion for the 4 tools, and the request for the approval | all |
