@@ -2,13 +2,35 @@
 
 The S7-tests track writes this file (PROCESS.md, "Tracks").
 
-- Track S7-tests: the test conversion part of S7 (CLI and config parity:
-  the sqlfluff CLI, config, and Python rule tests as black-box cases).
-- State: in work. S7 test conversion needs only S1 (binary test harness:
-  run the sqlfluff test fixtures through a binary), and S1 is approved.
-  The sqll part of S7 is track S7-sqll. It needs S3b (core: the shared
-  syntax tree, source map, frozen interfaces, and the sqll binary
-  skeleton).
+- Track S7-tests (the track that converts the S7 tests to black-box cases:
+  the test conversion of S7): the test conversion part of S7 (CLI and
+  config parity: the sqlfluff CLI, config, and Python rule tests as
+  black-box cases; sqll passes 100% of the converted cases; cases that need
+  the Jinja templater move to S11 (Jinja templater: the last stone;
+  decision of the human owner (2026-11-07): do not write a Jinja engine in
+  sqll; decide with data how sqll supports Jinja; sqll passes 100% of the
+  Jinja cases that the decision keeps, and S8 (code generation: types of
+  query parameters and result columns as JSON Schema; the JSON Schema
+  output is valid and correct for each parameter style, code made from the
+  schema by one existing tool compiles, and the harness shows one parse
+  for each file when one command lints and generates code) supports Jinja
+  if kept; each other Jinja case is in a known-failure list with its
+  reason)).
+- State: in work. 5 of the 15 tasks are done. The last of them merged on
+  2026-11-12 (PR #83). The other 10 tasks are not started. The table
+  "S7-tests tasks" gives each task with its goal.
+- The S7 test conversion needs only S1 (binary test harness: run the
+  sqlfluff test fixtures through a binary, not through function calls;
+  sqlfluff passes 100% of the cases through the harness, and the results
+  of the other tools are recorded), and S1 is approved.
+- The sqll part of S7 is track S7-sqll (the track that makes sqll pass the
+  converted S7 cases: the sqll part of S7). It needs S3b (core: the shared
+  syntax tree, source map, frozen interfaces, and the sqll binary skeleton
+  (CLI, config, output) with the sqll adapters of the test harness and the
+  benchmarks; the test harness and the benchmarks run sqll through its
+  adapters, the interfaces are documented, and after S3b, each change to
+  the core goes through the Core track). S3b is approved (2026-11-11). The
+  track S7-sqll is not started (STATUS.md).
 - Design record:
   [docs/decisions/s7-tests-design.md](../docs/decisions/s7-tests-design.md).
 
@@ -24,7 +46,7 @@ one lost day, T9 converts all config tests (before: 2 tasks).
 | T2 | Case format, case runner, and pilot cases | One case format and one runner run pilot cases through a tool binary | Done (PR #78) |
 | T3 | Trace oracle with fail-closed checks | Each case agrees with a trace of its original pytest node | Done (PR #80) |
 | T4 | Cross-track (Core): harness hooks for the S7 suites | The harness core runs the 3 S7 suites | Done (PR #82; the Core track approved it) |
-| T5 | Cross-track (Core): CI jobs, oracle step, and local verify for the S7 suites; the ruff lint of `scripts/s7-tests/` in CI; first recorded results | CI and `scripts/verify` run the S7 suites and record the results | In review (PR #83; the Core track reviews it) |
+| T5 | Cross-track (Core): CI jobs, oracle step, and local verify for the S7 suites; the ruff lint of `scripts/s7-tests/` in CI; first recorded results | CI and `scripts/verify` run the S7 suites and record the results | Done (PR #83; the Core track approved it) |
 | T6 | Convert the rule tests, part 1: lint-only tests through the simple API | The lint-only rule nodes are black-box cases | Not started |
 | T7 | Convert the rule tests, part 2: fix, combination, file, and template tests | The other rule nodes (not Rust dispatch) are black-box cases | Not started |
 | T8 | Rust dispatch tests (cp01, cp03, cp04): classification and conversion | Each Rust dispatch node is converted or excluded by decision 3 | Not started |
@@ -109,8 +131,12 @@ The recorded report is
 (Jinja templater: the last stone; decision of the human owner (2026-11-07):
 do not write a Jinja engine in sqll; decide with data how sqll supports
 Jinja; sqll passes 100% of the Jinja cases that the decision keeps, and S8
-supports Jinja if kept; each other Jinja case is in a known-failure list
-with its reason). The excluded nodes: 1 `python-internal`, 1
+(code generation: types of query parameters and result columns as JSON
+Schema; the JSON Schema output is valid and correct for each parameter
+style, code made from the schema by one existing tool compiles, and the
+harness shows one parse for each file when one command lints and generates
+code) supports Jinja if kept; each other Jinja case is in a known-failure
+list with its reason). The excluded nodes: 1 `python-internal`, 1
 `needs-python-runtime`, 1 `engine-comparison`.
 
 Parity of the 14 converted nodes that S7 (CLI and config parity: the
@@ -134,7 +160,7 @@ sqlfluff CLI, config, and Python rule tests as black-box cases) keeps
 T5 (CI jobs, oracle step, and local verify for the S7 suites: CI and
 `scripts/verify` run the S7 suites and record the results; S7: CLI and
 config parity, the sqlfluff CLI, config, and Python rule tests as black-box
-cases) adds the S7 CI jobs and the known-failure lists; see "CI and
+cases) added the S7 CI jobs and the known-failure lists; see "CI and
 recorded results (T5)".
 
 ## Trace oracle (T3)
@@ -172,12 +198,24 @@ traces `oracle-trace-sqlfluff.json` and `oracle-trace-sqlfluff-rs.json`.
 
 ## Harness hooks (T4)
 
-T4 (cross-track, Core reviews: harness hooks for the S7 suites; the harness
-core runs the 3 S7 suites `s7_rules`, `s7_config`, `s7_cli`; S7: CLI and
-config parity, the sqlfluff CLI, config, and Python rule tests as
-black-box cases) adds `sqll-harness s7 run [--suite S] [--tool T]`. It
-replaces `scripts/s7-tests/run-cases`. The design is in the design record,
-"Case runner" and "Report".
+T4 (cross-track task: harness hooks for the S7 suites; the harness core
+runs the 3 S7 suites `s7_rules`, `s7_config`, `s7_cli`) is merged (PR #82,
+2026-11-11). Its stone is S7 (CLI and config parity: the sqlfluff CLI,
+config, and Python rule tests as black-box cases; sqll passes 100% of the
+converted cases; cases that need the Jinja templater move to S11 (Jinja
+templater: the last stone; decision of the human owner (2026-11-07): do not
+write a Jinja engine in sqll; decide with data how sqll supports Jinja;
+sqll passes 100% of the Jinja cases that the decision keeps, and S8 (code
+generation: types of query parameters and result columns as JSON Schema;
+the JSON Schema output is valid and correct for each parameter style, code
+made from the schema by one existing tool compiles, and the harness shows
+one parse for each file when one command lints and generates code)
+supports Jinja if kept; each other Jinja case is in a known-failure list
+with its reason)). The Core track (the track that does S3b and owns the
+shared core) approved it. It added
+`sqll-harness s7 run [--suite S] [--tool T]`. This command replaces
+`scripts/s7-tests/run-cases`. The design is in the design record, "Case
+runner" and "Report".
 
 - The report has the key `suites` (format 2). The scope of a report is the
   nodes of its suites: `s7_rules` 208, `s7_config` 140, `s7_cli` 295.
@@ -210,16 +248,32 @@ keeps (passed/nodes); 1 converted `s7_rules` node needs Jinja and moves to
 S11 (Jinja templater: the last stone; decision of the human owner
 (2026-11-07): do not write a Jinja engine in sqll; decide with data how sqll
 supports Jinja; sqll passes 100% of the Jinja cases that the decision keeps,
-and S8 supports Jinja if kept; each other Jinja case is in a known-failure
+and S8 (code generation: types of query parameters and result columns as
+JSON Schema; the JSON Schema output is valid and correct for each parameter
+style, code made from the schema by one existing tool compiles, and the
+harness shows one parse for each file when one command lints and generates
+code) supports Jinja if kept; each other Jinja case is in a known-failure
 list with its reason).
 
 ## CI and recorded results (T5)
 
-T5 (cross-track, Core reviews: CI jobs, oracle step, and local verify for
-the S7 suites; CI and `scripts/verify` run the S7 suites and record the
-results; S7: CLI and config parity, the sqlfluff CLI, config, and Python
-rule tests as black-box cases). The design is in the design record,
-"Known failures", "Summary", and "CI".
+T5 (cross-track task: CI jobs, oracle step, and local verify for the S7
+suites; CI and `scripts/verify` run the S7 suites and record the results)
+is merged (PR #83, 2026-11-12). Its stone is S7 (CLI and config parity:
+the sqlfluff CLI, config, and Python rule tests as black-box cases; sqll
+passes 100% of the converted cases; cases that need the Jinja templater
+move to S11 (Jinja templater: the last stone; decision of the human owner
+(2026-11-07): do not write a Jinja engine in sqll; decide with data how
+sqll supports Jinja; sqll passes 100% of the Jinja cases that the decision
+keeps, and S8 (code generation: types of query parameters and result
+columns as JSON Schema; the JSON Schema output is valid and correct for
+each parameter style, code made from the schema by one existing tool
+compiles, and the harness shows one parse for each file when one command
+lints and generates code) supports Jinja if kept; each other Jinja case is
+in a known-failure list with its reason)). The Core track (the track that
+does S3b and owns the shared core) approved it in review round W1 (PR
+comment 6829565360). The design is in the design record, "Known failures",
+"Summary", and "CI".
 
 - CI: 9 `s7` jobs (`ci/matrix.d/S7-tests.json`: `s7_rules`, `s7_config`,
   and `s7_cli`, each with sqlfluff, sqlfluff-rs, and sqruff), and the
@@ -242,4 +296,4 @@ Known failures (nodes) of the recorded results:
 |---|---|---|
 | sqlfluff | 0 | sqlfluff passes each converted node |
 | sqlfluff-rs | 1 | `test__cli__command_directed`: with `use_rust_rules`, the CP01 description is different; the pytest node fails with `--rust` too |
-| sqruff | 14 | 12 `unsupported: <item>`: 8 CLI commands with no sqruff translation, 3 `rule all`, 1 output fields. 2 translated CLI nodes fail on the output: `test__cli__command_directed` (the lint output is on stderr) and `test__cli__command_dialect` (exit code 1, not 2). 1 of the 14 (`test__rules__std_LT04_unparseable`) needs Jinja and moves to S11 (Jinja templater: the last stone; decision of the human owner (2026-11-07): do not write a Jinja engine in sqll; decide with data how sqll supports Jinja; sqll passes 100% of the Jinja cases that the decision keeps, and S8 supports Jinja if kept; each other Jinja case is in a known-failure list with its reason) |
+| sqruff | 14 | 12 `unsupported: <item>`: 8 CLI commands with no sqruff translation, 3 `rule all`, 1 output fields. 2 translated CLI nodes fail on the output: `test__cli__command_directed` (the lint output is on stderr) and `test__cli__command_dialect` (exit code 1, not 2). 1 of the 14 (`test__rules__std_LT04_unparseable`) needs Jinja and moves to S11 (Jinja templater: the last stone; decision of the human owner (2026-11-07): do not write a Jinja engine in sqll; decide with data how sqll supports Jinja; sqll passes 100% of the Jinja cases that the decision keeps, and S8 (code generation: types of query parameters and result columns as JSON Schema; the JSON Schema output is valid and correct for each parameter style, code made from the schema by one existing tool compiles, and the harness shows one parse for each file when one command lints and generates code) supports Jinja if kept; each other Jinja case is in a known-failure list with its reason) |
