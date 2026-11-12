@@ -115,10 +115,18 @@ CI_ONLY = {
     "bench-merge: actions/upload-artifact": "artifact upload",
     "corpus-smoke: actions/checkout": "checkout",
     "corpus-smoke: git config --global --add safe.directory '*'": "container user",
+    "corpus-smoke: actions/download-artifact": "artifact download; locally the"
+    " build-sqll check writes out/sqll",
+    "corpus-smoke: Make the sqll binary executable": "an artifact does not keep"
+    " the file modes; locally the build-sqll check copies the binary",
     "corpus-smoke: actions/cache": "download cache; locally out/corpus/cache",
     "corpus-smoke: actions/upload-artifact": "artifact upload",
     "corpus-full: actions/checkout": "checkout",
     "corpus-full: git config --global --add safe.directory '*'": "container user",
+    "corpus-full: actions/download-artifact": "artifact download; locally the"
+    " build-sqll check writes out/sqll",
+    "corpus-full: Make the sqll binary executable": "an artifact does not keep"
+    " the file modes; locally the build-sqll check copies the binary",
     "corpus-full: actions/cache": "download cache; locally out/corpus/cache",
     "corpus-full: actions/upload-artifact": "artifact upload",
     "corpus-merge: actions/checkout": "checkout",
@@ -130,6 +138,10 @@ CI_ONLY = {
 }
 
 _SAFE_DIRECTORY = "git config --global --add safe.directory '*'"
+
+# The CI jobs that get the sqll binary of the build job (the artifact
+# sqll-build). Locally, the build-sqll check comes before their checks.
+SQLL_BINARY_JOBS = ("test", "bench-smoke", "bench-full", "corpus-smoke", "corpus-full")
 
 # The run text (and step env) of each CI_ONLY step that has "run". drift()
 # fails if CI changes it, because these commands can also check something
@@ -168,7 +180,7 @@ CI_ONLY_RUN = {
     },
     **{
         f"{job}: Make the sqll binary executable": "chmod +x out/sqll/bin/sqll"
-        for job in ("test", "bench-smoke", "bench-full")
+        for job in SQLL_BINARY_JOBS
     },
     "report: Merge": (
         "uv run --frozen --project harness sqll-harness merge"
@@ -221,8 +233,8 @@ JOB_NEEDS = {
     "bench-smoke": ["changes", "image", "build"],
     "bench-full": ["image", "build"],
     "bench-merge": ["image", "bench-full"],
-    "corpus-smoke": ["changes", "image"],
-    "corpus-full": ["image"],
+    "corpus-smoke": ["changes", "image", "build"],
+    "corpus-full": ["image", "build"],
     "corpus-merge": ["image", "corpus-full"],
 }
 
