@@ -1,13 +1,14 @@
 # Decision record: the templater design
 
-Status: proposed (2026-11-11). The orchestrator decides the 6 items for
-the human owner (standing delegation, CONSTITUTION.md section 5). No item
-is for the human owner. Written in T1 (design record, fixture set from the
-data, status file, and track paths: the S6 scope and design are recorded
-and tested) of S6 (templater parity: sqll passes 100% of the placeholder
-and Python format-string templater fixtures that do not need a Python
-runtime). The scope is that stone in STONES.md. Plan and tasks:
-[status/S6.md](../../status/S6.md).
+Status: decided on 2026-11-12 by the orchestrator under the standing
+delegation (CONSTITUTION.md section 5). The orchestrator decided the 6
+items for the human owner and accepted the recommendation of each item.
+No item is for the human owner. Proposed on 2026-11-11. Written in T1
+(design record, fixture set from the data, status file, and track paths:
+the S6 scope and design are recorded and tested) of S6 (templater
+parity: sqll passes 100% of the placeholder and Python format-string
+templater fixtures that do not need a Python runtime). The scope is that
+stone in STONES.md. Plan and tasks: [status/S6.md](../../status/S6.md).
 
 Goals of CONSTITUTION.md:
 
@@ -35,6 +36,7 @@ Goals of CONSTITUTION.md:
 
 Each item has a recommendation, the other options, and the data. The
 orchestrator writes its decision and the date here and in the status file.
+The decision of each item is under that item.
 
 1. The set (see "Set"). Recommendation: the parity number of this stone is
    the 54 black-box nodes of the placeholder and Python templater tests.
@@ -49,19 +51,68 @@ orchestrator writes its decision and the date here and in the status file.
    decision keeps, and S8 supports Jinja if kept; each other Jinja case is
    in a known-failure list with its reason). Other option: count only the
    54 black-box nodes and drop the internal nodes. Data: "Set".
+
+   Decision (orchestrator, standing delegation, 2026-11-12): accepted. The
+   binary parity number of this stone is the 54 black-box nodes. The 25
+   internal nodes give a separate number (item 3). The exit of the 13 rule
+   fixture cases is in S5 (rule parity: 100% of the rule fixtures, lint
+   and fix; cases that need the Jinja templater move to S11); this stone
+   checks their templated text and source slices. The 43 templater suite
+   cases are Jinja cases and go to S11 (Jinja templater: the
+   last stone; decision of the human owner (2026-11-07): do not write a
+   Jinja engine in sqll; decide with data how sqll supports Jinja; sqll
+   passes 100% of the Jinja cases that the decision keeps, and S8 supports
+   Jinja if kept; each other Jinja case is in a known-failure list with its
+   reason) with the reason `jinja: S11`.
 2. The rule "needs a Python runtime" (see that section). Recommendation:
    accept the rule. It classifies 0 of 79 nodes as "needs a Python
    runtime".
+
+   Decision (orchestrator, standing delegation, 2026-11-12): accepted. The
+   rule is as written in "Needs a Python runtime".
 3. The 25 internal nodes. Recommendation: option A (see "Internal nodes").
+
+   Decision (orchestrator, standing delegation, 2026-11-12): option A.
+   Rust unit tests of the ported slicer with the same literal data and the
+   source of each node, and a record that gives each node and its Rust
+   test. Reason: option A keeps a test for each behavior, as G4
+   (verification first: each behavior has an automated test; tests come
+   from external sources (sqlfluff first, then large, complex public SQL
+   files); external test data has its source, version, and license, and
+   does not change to make a test pass; one command runs all tests and
+   benchmarks, and the output is machine-readable; each known failure is
+   in a list) requires. Option B would hide a port error. The exit of this
+   stone needs all of the 54 black-box nodes through the binary and all of
+   the 25 internal nodes as Rust unit tests. This does not weaken the exit
+   rule of this stone in STONES.md.
 4. The black-box form. Recommendation: the case format, the runner, and
    the trace oracle of the test conversion of S7 (CLI and config parity:
    the sqlfluff CLI, config, and Python rule tests as black-box cases;
    sqll passes 100% of the converted cases; cases that need the Jinja
    templater move to S11), with a scope file of this stone (see
    "Black-box form").
+
+   Decision (orchestrator, standing delegation, 2026-11-12): accepted. Use
+   the case format, the runner, and the trace oracle of the test
+   conversion of S7 (CLI and config parity: the sqlfluff CLI, config, and
+   Python rule tests as black-box cases; sqll passes 100% of the converted
+   cases; cases that need the Jinja templater move to S11) with a scope
+   file of this stone. Do not add a second runner.
 5. The port source and license. Recommendation: port sqlfluff
    `placeholder.py` and `python.py` (MIT) to Rust (see "Port").
+
+   Decision (orchestrator, standing delegation, 2026-11-12): accepted. Port
+   `placeholder.py` and `python.py` of the pinned sqlfluff version (MIT)
+   to Rust, with the records in `crates/ported.json` and THIRD_PARTY.md,
+   and the CPython entry (PSF license) in THIRD_PARTY.md for the format
+   mini-language. Do not port from sqruff. This is the license pattern
+   that the project already uses. It is not new legal advice.
 6. Speed. Recommendation: new templater benchmarks (see "Speed").
+
+   Decision (orchestrator, standing delegation, 2026-11-12): accepted. New
+   templater benchmarks, as "Speed" gives them. The task that adds them is
+   cross-track with the track core (the track that does S3b and owns the
+   shared core).
 
 ## Set
 
