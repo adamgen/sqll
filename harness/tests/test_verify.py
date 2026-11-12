@@ -404,6 +404,21 @@ CI_CHANGES = {
     "corpus-full notices removed": lambda d: _without_step(
         d, "corpus-full", "Copy the manifest and the license files"
     ),
+    "corpus-smoke does not need build": lambda d: d["jobs"]["corpus-smoke"].update(
+        needs=["changes", "image"]
+    ),
+    "corpus-full needs only image": lambda d: d["jobs"]["corpus-full"].update(
+        needs="image"
+    ),
+    "corpus-smoke without the sqll download": lambda d: _without_step(
+        d, "corpus-smoke", "Make the sqll binary executable"
+    ),
+    "corpus-full chmod of another file": lambda d: _step(
+        d, "corpus-full", "Make the sqll binary executable"
+    ).update(run="chmod +x out/sqll/bin/x"),
+    "corpus-smoke sqll download only for one tool": lambda d: _step(
+        d, "corpus-smoke", "Make the sqll binary executable"
+    ).update({"if": "matrix.tool == 'sqll'"}),
     "corpus-merge does not need corpus-full": lambda d: d["jobs"][
         "corpus-merge"
     ].update(needs=["image"]),
@@ -989,3 +1004,115 @@ def test_the_corpus_smoke_checks_are_in_the_full_verification(capsys):
     ):
         assert name in names
     assert not [c.name for c in CHECKS if c.quick and "corpus" in c.name]
+
+
+SQLL_BUILD = {"name": "sqll-build", "path": "out/sqll"}
+CHMOD = "Make the sqll binary executable"
+
+
+def _sqll_binary_problems(data: dict) -> list[str]:
+    """Return each job of SQLL_BINARY_JOBS that does not get the sqll binary.
+
+    The job needs build, downloads the artifact sqll-build to out/sqll, and
+    then makes the binary executable, before each step that a local check
+    does. No other job downloads sqll-build.
+    """
+    problems = []
+    for job_id, job in data["jobs"].items():
+        steps = job["steps"]
+        downloads = [
+            i
+            for i, s in enumerate(steps)
+            if str(s.get("uses", "")).startswith("actions/download-artifact@")
+            and (s.get("with") or {}).get("name") == "sqll-build"
+        ]
+        if job_id not in verify.SQLL_BINARY_JOBS:
+            if downloads:
+                problems.append(f"{job_id}: downloads sqll-build")
+            continue
+        needs = job.get("needs")
+        if "build" not in ([needs] if isinstance(needs, str) else needs or []):
+            problems.append(f"{job_id}: does not need build")
+        names = [verify.step_label(s) for s in steps]
+        if len(downloads) != 1 or steps[downloads[0]]["with"] != SQLL_BUILD:
+            problems.append(f"{job_id}: no download of sqll-build to out/sqll")
+            continue
+        if CHMOD not in names or names.index(CHMOD) != downloads[0] + 1:
+            problems.append(f"{job_id}: no chmod after the download")
+            continue
+        checked = [
+            i
+            for i, name in enumerate(names)
+            if f"{job_id}: {name}" not in verify.CI_ONLY
+        ]
+        if checked and min(checked) < names.index(CHMOD):
+            problems.append(f"{job_id}: a check step comes before the sqll binary")
+    return problems
+
+
+def test_each_job_that_runs_sqll_gets_the_binary_of_the_build_job():
+    assert verify.SQLL_BINARY_JOBS == (
+        "test",
+        "bench-smoke",
+        "bench-full",
+        "corpus-smoke",
+        "corpus-full",
+    )
+    assert _sqll_binary_problems(CI) == []
+    for job in verify.SQLL_BINARY_JOBS:
+        assert "build" in verify.JOB_NEEDS[job], job
+        for step in ("actions/download-artifact", CHMOD):
+            assert f"{job}: {step}" in verify.CI_ONLY, (job, step)
+        assert verify.CI_ONLY_RUN[f"{job}: {CHMOD}"] == "chmod +x out/sqll/bin/sqll", (
+            job
+        )
+
+
+def _download(data: dict, job: str) -> dict:
+    return next(
+        s
+        for s in data["jobs"][job]["steps"]
+        if str(s.get("uses", "")).startswith("actions/download-artifact@")
+    )
+
+
+SQLL_BINARY_CHANGES = {
+    "corpus-smoke downloads another artifact": lambda d: _download(d, "corpus-smoke")[
+        "with"
+    ].update(name="corpus-smoke"),
+    "corpus-full downloads to another folder": lambda d: _download(d, "corpus-full")[
+        "with"
+    ].update(path="out/x"),
+    "corpus-full does not need build": lambda d: d["jobs"]["corpus-full"].update(
+        needs="image"
+    ),
+    "corpus-smoke download after the run": lambda d: d["jobs"]["corpus-smoke"][
+        "steps"
+    ].append(d["jobs"]["corpus-smoke"]["steps"].pop(2)),
+    "corpus-smoke fetch before the sqll binary": lambda d: d["jobs"]["corpus-smoke"][
+        "steps"
+    ].insert(2, _step(d, "corpus-smoke", "Fetch the smoke files of the corpus")),
+    "corpus-merge downloads sqll-build": lambda d: d["jobs"]["corpus-merge"][
+        "steps"
+    ].insert(2, copy.deepcopy(_download(d, "corpus-smoke"))),
+}
+
+
+@pytest.mark.parametrize("name", SQLL_BINARY_CHANGES)
+def test_a_job_without_the_sqll_binary_is_found(name):
+    data = copy.deepcopy(CI)
+    SQLL_BINARY_CHANGES[name](data)
+    assert _sqll_binary_problems(data)
+
+
+def test_the_local_checks_of_the_jobs_that_run_sqll_come_after_build_sqll():
+    names = [c.name for c in CHECKS]
+    build = names.index("build-sqll")
+    after = [
+        c.name
+        for c in CHECKS
+        if any(k.split(":")[0] in verify.SQLL_BINARY_JOBS for k in c.ci)
+    ]
+    assert {"corpus-smoke", "corpus-baseline", "corpus-full"} <= set(after)
+    for name in after:
+        assert names.index(name) > build, name
