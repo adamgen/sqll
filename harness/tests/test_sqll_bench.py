@@ -1,5 +1,13 @@
-"""S3 T13 and S3b C14: the benchmark adapter of sqll
+"""S3 T13, S3b C14, and S3b C17: the benchmark adapter of sqll
 (harness/sqll_harness/bench/sqll.py).
+
+The goals: S3 (choose the base and make the sqll binary from it); S3b
+(core: the shared syntax tree, source map, frozen interfaces, and the sqll
+binary skeleton); T13 (S2 benchmark adapter for sqll, and the new S2
+baseline); C11 (config skeleton: the config model, the sqlfluff
+defaults, and the config file reader in sqll parse); C14 (harness
+adapters: sqll lint and fix in the test harness and the benchmarks); C17
+(S3b exit: proof, exit record, and STATUS "S3b awaiting approval").
 
 The tests use a fake sqll binary (a Python script), so they need no build.
 The CI job bench-smoke runs the real binary of the build job, and
@@ -18,10 +26,17 @@ import pytest
 
 from sqll_harness import tools
 from sqll_harness.adapters import sqll as sqll_adapter
+from sqll_harness.adapters.base import Unsupported
 from sqll_harness.bench import definitions, registry
 from sqll_harness.bench import sqll as sqll_bench
 from sqll_harness.bench.adapter import INPUT_FILE, Context, settings
-from sqll_harness.bench.sqll import SqllBench, selected_rules
+from sqll_harness.bench.sqll import (
+    LEGACY_OPTIONS_NAME,
+    SqllBaseBench,
+    SqllBench,
+    legacy_options,
+    selected_rules,
+)
 from sqll_harness.bench.timer import PROFILES, UNSUPPORTED, VALID
 from sqll_harness.paths import REPO_ROOT, TOOL_SPECS_DIR
 
@@ -56,9 +71,12 @@ if args[:1] == ["rules"]:
             print(c + ": [name] A rule.")
             print("      groups: all")
     sys.exit(0)
+if args == ["parse", "--help"]:
+    print("Options: --dialect" + ("" if {legacy} else " --config"))
+    sys.exit(0)
 if args[:1] not in (["parse"], ["lint"], ["fix"]):
     sys.exit(2)
-if "--config" in args:
+if "--config" in args and not {legacy}:
     with open(args[args.index("--config") + 1], "rb") as f:
         dialect = tomllib.load(f)["tool"]["sqlfluff"]["core"]["dialect"]
 elif "--dialect" in args:
@@ -89,9 +107,11 @@ def fake_sqll(
     version: str = VERSION,
     source: str = "0" * 64,
     have: tuple[str, ...] = ("CP01", "CP03"),
+    legacy: bool = False,
 ):
     """Return (binary, log). The log has one line for each parse, lint, or
-    fix run: [cwd, argv, dialect]. have: the rules of the fake."""
+    fix run: [cwd, argv, dialect]. have: the rules of the fake. legacy: a
+    binary from before S3b C11 (no --config)."""
     log = tmp_path / "sqll-calls.jsonl"
     binary = tmp_path / "bin" / "sqll"
     binary.parent.mkdir(parents=True, exist_ok=True)
@@ -103,6 +123,7 @@ def fake_sqll(
             source=source,
             have=have,
             every=EVERY,
+            legacy=legacy,
         )
     )
     binary.chmod(0o755)
@@ -144,6 +165,86 @@ def test_the_settings_are_those_of_all_tools(tmp_path):
         "large_file_skip_byte_limit = 0\n"
         "large_file_skip_char_limit = 0\n"
     )
+
+
+# A base binary of a speed check from before S3b C11 (C17: the speed check
+# of the S3b exit has the S3 exit as its base). The goals are in the module
+# docstring.
+
+
+def test_the_legacy_options():
+    assert legacy_options(settings("tsql")) == ["--dialect", "tsql"]
+    config = settings("ansi")
+    config["core"]["max_parse_depth"] = 2000
+    assert legacy_options(config) == ["--dialect", "ansi", "--max-parse-depth", "2000"]
+
+
+@pytest.mark.parametrize(
+    "section, key, value, item",
+    [
+        ("core", "templater", "jinja", "setting core.templater = 'jinja'"),
+        ("core", "rules", "LT01", "setting core.rules = 'LT01'"),
+        ("core", "large_file_skip_byte_limit", 20000, None),
+        ("core", "large_file_skip_char_limit", False, None),
+        ("core", "max_parse_nodes", 0, "setting core.max_parse_nodes"),
+        ("core", "use_rust_parser", True, "setting core.use_rust_parser"),
+        ("core", "dialect", "", "setting core.dialect = ''"),
+        ("layout", "x", 1, "setting layout.x"),
+    ],
+)
+def test_a_legacy_base_binary_gets_only_its_settings(
+    section, key, value, item, tmp_path
+):
+    # It reads no config file: each other setting is unsupported with no run.
+    config = settings("ansi")
+    config.setdefault(section, {})[key] = value
+    item = item or f"setting {section}.{key} = {value!r}"
+    with pytest.raises(Unsupported) as exc:
+        legacy_options(config)
+    assert exc.value.item == item
+    binary, _ = fake_sqll(tmp_path, legacy=True)
+    assert SqllBaseBench(binary).unsupported(config) == item
+    # A base binary since C11 reads the setting, and fails closed if it
+    # cannot do it.
+    binary, _ = fake_sqll(tmp_path / "new")
+    assert SqllBaseBench(binary).unsupported(config) is None
+
+
+def test_a_legacy_base_binary_gets_the_settings_as_options(bench_inputs_dir, tmp_path):
+    binary, log = fake_sqll(tmp_path, legacy=True)
+    ctx = Context(definitions.load(), bench_inputs_dir, tmp_path / "work")
+    adapter = SqllBaseBench(binary)
+    assert adapter.reads_config() is False
+    for command in ("start", "parse"):
+        bj = adapter.job(bench(command), ctx)
+        argv = [str(binary), "parse", "-f", "json", "--dialect", "tsql", INPUT_FILE]
+        assert bj.job.argv == argv
+        assert (bj.folder / "config" / LEGACY_OPTIONS_NAME).is_file()
+        m = bj.measure(SMOKE)
+        assert (m.status, m.reason) == (VALID, None)
+    assert {dialect for _, _, dialect in calls(log)} == {"tsql"}
+    with pytest.raises(ValueError, match="no lint command"):
+        adapter.argv("lint", bj.folder / "config" / LEGACY_OPTIONS_NAME, INPUT_FILE)
+    bad = tmp_path / LEGACY_OPTIONS_NAME
+    bad.write_text('{"x": 1}')
+    with pytest.raises(ValueError, match="not a list of options"):
+        adapter.argv("parse", bad, INPUT_FILE)
+
+
+def test_only_a_legacy_base_binary_gets_the_options(bench_inputs_dir, tmp_path):
+    """sqll (the head) always gets the config file; a base binary since C11
+    also gets it. A legacy binary as sqll fails: it has no --config."""
+    ctx = Context(definitions.load(), bench_inputs_dir, tmp_path / "work")
+    new, _ = fake_sqll(tmp_path / "new")
+    legacy, _ = fake_sqll(tmp_path / "legacy", legacy=True)
+    assert SqllBaseBench(new).reads_config() is True
+    for adapter in (SqllBaseBench(new), SqllBench(legacy), SqllBench(new)):
+        bj = adapter.job(bench("parse"), ctx)
+        assert "--config" in bj.job.argv
+        assert (bj.folder / "config" / "pyproject.toml").is_file()
+    m = SqllBench(legacy).job(bench("parse"), ctx).measure(SMOKE)
+    assert m.status == "invalid"
+    assert m.reason == "warmup run: exit code 2, expected 0"
 
 
 def test_the_selected_rules():

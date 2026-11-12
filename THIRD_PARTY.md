@@ -110,6 +110,26 @@ converted test nodes, from the submodule. `results/S7-tests/` has their
 output: node ids, counts, and the inputs and outputs of the traced CLI and
 simple-API calls (`oracle-trace-*.json`). No sqlfluff code is copied.
 
+`scripts/s6/inventory.py` and `scripts/s6/unit_nodes.py` (track S6; task
+T1 (the S6 scope and design are recorded and tested) of S6 (templater
+parity: sqll passes 100% of the placeholder and Python format-string
+templater fixtures that do not need a Python runtime)) read the sqlfluff
+4.4.0 tests (MIT) of the submodule in place. `unit_nodes.py` runs
+`pytest --collect-only` on `test/core/templaters/placeholder_test.py` and
+`test/core/templaters/python_test.py` with the Python of the sqlfluff
+oracle tools. The collection imports these test modules, but it runs no
+test. It reads the source of these test files with `ast` to find the
+templater inputs of each node. It imports the templater classes of the
+installed sqlfluff 4.4.0 package (MIT) only for their method names. `inventory.py` also
+reads the templater suite, the rule fixtures, the config fixtures, and the
+other test files that name these templaters. `results/S6/scope.json` has
+their output: the pytest node ids (some ids have the inline SQL of the
+tests), the literal context and config values of each node, the case ids
+of the templater suite and of the rule cases, and the paths of fixture and
+test files. Its key `license` gives the license and the copyright line of
+`third_party/sqlfluff/LICENSE.md`. It has no copy of a fixture file. No
+sqlfluff code is copied.
+
 `scripts/s3/sqlfluffrs_probe.py` (S3 research, task T5) copies the
 submodule into a scratch folder, runs `utils/rustify.py` there, and builds
 the sqlfluffrs crates and the probe there. The generated Rust files stay in

@@ -1,0 +1,74 @@
+{
+ "kind": "sqll-s3b-exit-ci",
+ "about": "S3b C17 (S3b exit: proof, exit record, and the request for approval): the CI run on the S3b exit head (main after the merge of C16, PR #76). run_id, event, head_sha, conclusion, and jobs_total are from the GitHub Actions API (get_workflow_run, list_workflow_jobs). For each job: its id and conclusion from the API, and lines: full lines of its job log (the timestamp of each log line removed), copied without change.",
+ "run_id": 42986804942,
+ "url": "https://github.com/adamgen/sqll/actions/runs/42986804942",
+ "event": "push",
+ "branch": "main",
+ "head_sha": "a77e8215c39b2bcaa174830528dfd6edd20ee2f9",
+ "conclusion": "success",
+ "jobs_total": 77,
+ "jobs": [
+  {
+   "name": "image",
+   "id": 130409805785,
+   "conclusion": "success",
+   "lines": []
+  },
+  {
+   "name": "changes",
+   "id": 130409805946,
+   "conclusion": "success",
+   "lines": []
+  },
+  {
+   "name": "build",
+   "id": 130409896391,
+   "conclusion": "success",
+   "lines": [
+    "base native tests: PASS: 162 base tests pass in the base; sqll: 362 tests, 358 passed, 0 failed, 4 ignored; 0 problems",
+    "tree guard: 84 of 84 inputs, 2 runs each: same output as the record",
+    "tree: 84 of 84 S2 parse inputs: lossless and node for node equal (280339 nodes: 183383 raw, 71856 segment, 25100 meta, 0 unparsable; 280339 with a position, 0 with another source range; 601133 bytes, 22766 lines)",
+    "tree check: PASS: tree: 84 of 84 S2 parse inputs: lossless and node for node equal",
+    "source map: 20000 of 20000 random files: as sqlfluff (211080 ranges, 17415 of them ValueError; 193773 source offsets)",
+    "source map: 54 of 54 templater fixtures: as sqlfluff (776608 ranges, 1345 of them ValueError; 6711 source offsets; 3121 segments, 4 of them with a wider templated slice)",
+    "source map check: PASS: source map: 54 of 54 templater fixtures: as sqlfluff; source map: 20000 of 20000 random files: as sqlfluff",
+    "crawl check: PASS: 6 fixtures, 135 cases (111 YAML cases), 1182 segments",
+    "config check: PASS: 208 defaults, 40 coerce, 26 INI, 21 TOML, 34 load and 66 CLI scenarios; jinja as raw: 2303 of 2303 dialect fixtures that are not empty and have no Jinja delimiter",
+    "rules check: PASS: 79 rules, 37 validated config keywords, 51 rule fixture cases",
+    "cli check: PASS: 144 scenarios ({'None': 120, 'unsupported': 22, 'usage': 2})",
+    "jinja as raw check: PASS: 3422 inputs (3361 rule, 61 autofix), 3178 equal (2522 texts), 244 with a Jinja delimiter, 0 notes",
+    "schema check: PASS: 4 schemas valid against the JSON Schema draft 2020-12 meta-schema; 8 valid examples pass and 29 invalid examples fail"
+   ]
+  },
+  {
+   "name": "report",
+   "id": 130419854216,
+   "conclusion": "success",
+   "lines": [
+    "sqll rules: 2527 cases, 38 pass, 38 of them pass in the oracle",
+    "sqll autofix: 61 cases, 0 pass, 0 of them pass in the oracle",
+    "sqll templater: 43 cases, 0 pass, 0 of them pass in the oracle",
+    "results/s1/summary.json is equal to the summary."
+   ]
+  },
+  {
+   "name": "dialect-oracle (sqlfluff)",
+   "id": 130421423513,
+   "conclusion": "success",
+   "lines": [
+    "sqll dialects: 2306 cases, 2306 pass, 2306 of them pass in the oracle"
+   ]
+  },
+  {
+   "name": "bench-merge",
+   "id": 130424906902,
+   "conclusion": "success",
+   "lines": [
+    "out/bench.json: no schema error; complete for its scope.",
+    "The stable data of 1120 results is that of the baseline results/s2/baseline.json.",
+    "The report has the profile and each result of the baseline."
+   ]
+  }
+ ]
+}

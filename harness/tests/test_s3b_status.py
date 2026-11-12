@@ -1,4 +1,6 @@
-"""S3b C3 and C4: the S3b plan in status/S3b.md and the S3b row of STATUS.md."""
+"""S3b (Core: the shared syntax tree, source map, frozen interfaces, and
+the sqll binary skeleton) C3, C4, C17, and the approval: the S3b plan in
+status/S3b.md and the S3b row of STATUS.md."""
 
 import re
 
@@ -27,15 +29,31 @@ def test_each_task_has_a_known_state():
     assert found["C1"][1] == "Merged (PR #57)"
     assert found["C2"][1] == "Merged (PR #58)"
     assert found["C3"][1] == "Merged (PR #59)"
+    # C16b (review and merge the Names rule) is not in TASKS: its row is
+    # between C16 and C17.
+    (c16b,) = re.findall(r"(?m)^\| C16b \| .+ \| (.+) \|$", STATUS)
+    assert c16b == "Merged (PR #81)"
     for task in TASKS[3:]:
         state = found[task][1]
-        assert state in STATES or re.fullmatch(r"Merged \(PR #\d+\)", state), task
+        merged_or_review = r"(Merged|In review) \(PR #\d+\)"
+        assert state in STATES or re.fullmatch(merged_or_review, state), task
+    # The approval of S3b: each task of the plan is merged; C17 (S3b exit:
+    # proof, exit record, and the request for approval) is PR #79.
+    assert all(found[task][1].startswith("Merged (PR #") for task in TASKS), found
+    assert found["C17"][1] == "Merged (PR #79)"
 
 
 def test_the_index_row_names_the_core_track_and_the_plan():
     (row,) = [line for line in INDEX.splitlines() if line.startswith("| S3b |")]
     cells = [c.strip() for c in row.strip("|").split("|")]
     assert cells[1] == "core"
-    assert cells[2].startswith("In work (track core).")
+    # The approval of S3b by the orchestrator (standing delegation of the
+    # human owner, CONSTITUTION.md section 5) after the exit task C17.
+    assert cells[2].startswith(
+        "Approved (orchestrator under the standing delegation of the human "
+        "owner, 2026-11-11) (track core: the track that does S3b and owns "
+        "the shared core)."
+    )
+    assert "awaiting" not in row
     assert "[status/S3b.md](status/S3b.md)" in cells[2]
     assert cells[3] == "[status/S3b.md](status/S3b.md)"

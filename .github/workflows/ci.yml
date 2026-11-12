@@ -321,6 +321,16 @@ jobs:
       - name: Check the JSON Schema output with the meta-schema
         run: uv run --frozen --project harness python scripts/s3b/schema_check.py check
 
+      # Task C17 (S3b exit: proof, exit record, and STATUS "S3b awaiting
+      # approval") of S3b (core: the shared syntax tree, source map, frozen
+      # interfaces, and the sqll binary skeleton): the exit record
+      # results/S3b/exit.json must be the output
+      # of its committed inputs. The check also runs the ownership probe
+      # again: a change of a Core path from each later track fails
+      # ci/ownership.py without the label cross-track.
+      - name: Check the S3b exit record
+        run: uv run --frozen --project harness python scripts/s3b/exit.py --check
+
       - uses: actions/upload-artifact@v7
         with:
           name: sqll-build
@@ -824,11 +834,12 @@ jobs:
           if-no-files-found: error
 
   # The S9 corpus smoke run (docs/decisions/s9-corpus.md, "Profiles"): the
-  # files of 32 KiB or less, all tools, 1 timed run. Locally: scripts/verify.
+  # files of 32 KiB or less, all tools, 1 timed run. sqll is the binary of
+  # the build job. Locally: scripts/verify.
   # The cache has the downloaded files; the fetch checks the sha256 of each.
   # Each artifact with a report also has the manifest and the license files.
   corpus-smoke:
-    needs: [changes, image]
+    needs: [changes, image, build]
     if: needs.changes.outputs.full != 'false'
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -847,6 +858,15 @@ jobs:
 
       # The runner user owns the workspace, not the container user.
       - run: git config --global --add safe.directory '*'
+
+      - uses: actions/download-artifact@v7
+        with:
+          name: sqll-build
+          path: out/sqll
+
+      # An artifact does not keep the file modes.
+      - name: Make the sqll binary executable
+        run: chmod +x out/sqll/bin/sqll
 
       - uses: actions/cache@v6
         with:
@@ -889,10 +909,10 @@ jobs:
           if-no-files-found: error
 
   # The S9 full corpus run on a push to main and on workflow_dispatch, sharded
-  # by file (corpus/ci-shards.json, ci/corpus_matrix.py). Locally:
-  # scripts/verify --full-bench (no sharding).
+  # by file (corpus/ci-shards.json, ci/corpus_matrix.py). sqll is the binary
+  # of the build job. Locally: scripts/verify --full-bench (no sharding).
   corpus-full:
-    needs: image
+    needs: [image, build]
     if: github.event_name != 'pull_request'
     name: corpus-full (${{ matrix.name }})
     runs-on: ubuntu-latest
@@ -915,6 +935,15 @@ jobs:
 
       # The runner user owns the workspace, not the container user.
       - run: git config --global --add safe.directory '*'
+
+      - uses: actions/download-artifact@v7
+        with:
+          name: sqll-build
+          path: out/sqll
+
+      # An artifact does not keep the file modes.
+      - name: Make the sqll binary executable
+        run: chmod +x out/sqll/bin/sqll
 
       - uses: actions/cache@v6
         with:

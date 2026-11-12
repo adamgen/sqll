@@ -149,15 +149,18 @@ CI (`.github/workflows/ci.yml`):
    are not in the `test` matrix: `ci/matrix.py --s7` gives them to the `s7`
    jobs, one for each suite and tool.
 7. The S9 corpus (`../corpus/README.md`; `python -m sqll_harness.corpus`):
-   `corpus-smoke` (each full run) does `fetch --smoke`, `notices`, `run
-   --profile smoke`, and `check --baseline results/S9/baseline.json`.
-   `corpus-full` (push to main, `workflow_dispatch`) runs one job for each
-   shard of `corpus/ci-shards.json` (`ci/corpus_matrix.py`); `corpus-merge`
-   does `merge --expect corpus/ci-shards.json` and `check --baseline
+   `corpus-smoke` (each full run, after `build`) does `fetch --smoke`,
+   `notices`, `run --profile smoke`, and `check --baseline
+   results/S9/baseline.json`. `corpus-full` (push to main,
+   `workflow_dispatch`, after `build`) runs one job for each shard of
+   `corpus/ci-shards.json` (`ci/corpus_matrix.py`); `corpus-merge` does
+   `merge --expect corpus/ci-shards.json` and `check --baseline
    results/S9/baseline.json --full`. A cache keyed by a hash of
    `corpus/sources.json` keeps the downloaded files; the fetch checks the
-   sha256 of each. Each artifact also has `out/corpus-notices/` (the
-   manifest and the license files). No job compares timings.
+   sha256 of each. `corpus-smoke` and `corpus-full` get the sqll binary
+   of the `sqll-build` artifact, as `bench-smoke` and `bench-full` do.
+   Each artifact also has `out/corpus-notices/` (the manifest and the
+   license files). No job compares timings.
 
 To add a suite or a tool to CI, add an entry to the fragment of your track,
 `ci/matrix.d/<track>.json` (PROCESS.md, "Tracks").
