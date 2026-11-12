@@ -1,4 +1,4 @@
-# S6 decision: the templater design
+# Decision record: the templater design
 
 Status: proposed (2026-11-11). The orchestrator decides the 6 items for
 the human owner (standing delegation, CONSTITUTION.md section 5). No item
@@ -69,6 +69,8 @@ orchestrator writes its decision and the date here and in the status file.
 sqlfluff 4.4.0 (commit `0348222a`). It reads the submodule in place. It
 collects the pytest nodes with `pytest --collect-only` in the Python of
 the sqlfluff oracle tools (`scripts/s6/unit_nodes.py`). It runs no test.
+Its key `license` gives the license of the test data (MIT), and
+THIRD_PARTY.md has the record of the scripts and of `scope.json`.
 
 | Count | Value |
 |---|---|
@@ -98,44 +100,51 @@ the sqlfluff oracle tools (`scripts/s6/unit_nodes.py`). It runs no test.
   `test/core/templaters/jinja_test.py` (`harness/templater.md`). Its helper
   `get_parsed` calls `Linter()` with no argument. `Linter()` makes its
   templater from the default config: `jinja` in `default_config.cfg`.
-  `parse_path` also reads the config files of the folders of the file and
-  the inline config of the file, but these cannot change the templater:
-  `Linter.render_string` uses the templater of the `Linter`. Data
-  (sqlfluff 4.4.0, `Linter().parse_path`): a file with a `.sqlfluff` of its
-  folder that sets `templater = placeholder` gives the warning "Attempt to
-  set templater to placeholder failed. Using jinja templater." and the
-  Jinja output. A file with the inline line
-  `-- sqlfluff:templater:placeholder` also gives the Jinja output. The
-  inventory reads the config of each
-  case (the config files of the root folders and of each folder to the
-  file, then the inline config) and records `core.templater` as
-  `config_templater`. It stops with exit code 1 if a case sets a value
-  that is not the templater of `Linter()`. No case sets it. Thus each case
-  uses `jinja`, and 0 of 43 cases use the placeholder or python templater.
-  Each case is in the known-failure list of this stone with the reason
-  `jinja: S11` (see item 1). 3 cases also have the tag `needs_python`
-  (`library_path`) of the templater suite.
-- Nodes: `test/core/templaters/placeholder_test.py` and `python_test.py`.
-  A node is `black_box` if its test function calls `process()` (the
-  templater output or error). Else it is `internal`.
-- Rule cases: the rule cases of the test harness whose `configs` set
-  `core.templater` to `placeholder` (AM04 3, AM07 1, CP02 4, CP02_LT01 1,
-  RF03 1, ST10 1, ST11 1) or `python` (JJ01 `test_pass_python_templater`).
-  The 9 `fixture_configs` are their 8 YAML files and
-  `test/fixtures/config/placeholder/.sqlfluff-placeholder` (owner: the
-  test conversion of S7, `loader_test.py`).
+  `parse_path` also reads the config files of the folders of the file. It
+  also reads the inline config of the file. But these cannot change the
+  templater: `Linter.render_string` uses the templater of the `Linter`. Data
+  (sqlfluff 4.4.0, `Linter().parse_path`): a `.sqlfluff` file in the folder
+  of a file sets `templater = placeholder`. The output is the Jinja output
+  and the warning "Attempt to set templater to placeholder failed. Using
+  jinja templater." A file with the inline line
+  `-- sqlfluff:templater:placeholder` also gives the Jinja output. The inventory
+  reads the config of each case in this order: the config files of the root
+  folders, the config files of each folder to the file, and the inline
+  config. It records `core.templater` as `config_templater`. It stops with
+  exit code 1 if a case sets a value that is not the templater of
+  `Linter()`. No case sets it. Thus each case uses `jinja`, and 0 of 43
+  cases use the placeholder or python templater. Each case is in the
+  known-failure list of this stone with the reason `jinja: S11` (see item
+  1). 3 cases also have the tag `needs_python` (`library_path`) of the
+  templater suite.
+- Nodes: `test/core/templaters/placeholder_test.py` and `python_test.py`. A
+  node is `black_box` if its test function calls `process()` (the templater
+  output or error). Else it is `internal`.
+- Rule cases: the rule cases of the test harness that set `core.templater`
+  in their `configs`. The cases with `placeholder`: AM04 3, AM07 1, CP02 4,
+  CP02_LT01 1, RF03 1, ST10 1, and ST11 1. The case with `python`: JJ01
+  `test_pass_python_templater`. The 9 `fixture_configs` are their 8 YAML
+  files and `test/fixtures/config/placeholder/.sqlfluff-placeholder`. The
+  owner of that file is the test conversion of S7 (CLI and config parity:
+  the sqlfluff CLI, config, and Python rule tests as black-box cases; sqll
+  passes 100% of the converted cases; cases that need the Jinja templater
+  move to S11), because `loader_test.py` reads it.
 - Fixture not in the set:
   `test/fixtures/templater/placeholder_flyway_var/placeholder_flyway_var_a.sql`.
   No test of sqlfluff 4.4.0 names its folder, and it has no expected output.
-- Fail-closed checks: the inventory stops with exit code 1 if a node has
-  no test function, if a templater input of a node is not a literal, a
-  parameter, a local literal, or `dict(...)`, if `get_parsed` does not call
-  `Linter()` once, if the config of a templater suite case sets another
-  templater, if a test file names these templaters and has no owner (or an
-  owner names a file that does not), if a fixture file sets these
-  templaters and has no owner, if a fixture in a non-Jinja folder has a
-  user, or if the rule case files are not the rule fixture files that set
-  these templaters.
+- Fail-closed checks: the inventory stops with exit code 1 if one of
+  these is true:
+  - A node has no test function.
+  - A templater input of a node is not a literal, a parameter, a local
+    literal, or `dict(...)`.
+  - `get_parsed` does not call `Linter()` one time.
+  - The config of a templater suite case sets a different templater.
+  - A test file names these templaters and has no owner, or an owner names
+    a file that does not name them.
+  - A fixture file sets these templaters and has no owner.
+  - A fixture in a non-Jinja folder has a user.
+  - The rule case files are not the rule fixture files that set these
+    templaters.
 
 ### Other test files
 
@@ -157,9 +166,14 @@ cases that need the Jinja templater move to S11).
 
 ## Needs a Python runtime
 
-G1 (see the goals above) excludes features that need a Python runtime. A
-node or case needs a Python runtime if the output that it checks depends
-on one of these:
+G1 (lint parity with sqlfluff: sqll does all that the pinned sqlfluff
+version does (dialects, rules, fixes, configuration, templaters), except
+Python plugins and features that need a Python runtime. Only the human owner
+approves each version change (the standing delegation keeps it). Parity is
+the percentage of sqlfluff test cases that sqll passes through a binary. The
+same harness runs sqlfluff, sqruff, and sqll) excludes features that need a
+Python runtime. A node or case needs a Python runtime if the output that it
+checks depends on one of these:
 
 1. Python code: a module that the config loads (`library_path`), a
    templater that runs Python code of the user or of a Python package (the
@@ -222,46 +236,64 @@ The 25 internal nodes call internal functions of the Python templater
   its Rust test. The report gives this number apart from the binary parity
   number. Also, the black-box cases check the source slices through the
   binary (see "Black-box form"). Thus the slicer has a binary check too.
-- Option B: exclude the 25 nodes as `python-internal` (the class of the
-  test conversion of S7, see item 4 for its goal). The slicer then has
-  only the binary check. A port error that the black-box cases do not show
-  stays hidden.
+- Option B: exclude the 25 nodes as `python-internal`, a class of the test
+  conversion of S7 (CLI and config parity: the sqlfluff CLI, config, and
+  Python rule tests as black-box cases; sqll passes 100% of the converted
+  cases; cases that need the Jinja templater move to S11). The slicer then
+  has only the binary check. A port error that the black-box cases do not
+  show stays hidden.
 - Option C: count them in the binary parity number through a test command
-  of sqll. This adds a command that sqlfluff does not have, and the same
-  harness cannot run sqlfluff and sqruff on it (G1, see the goals above:
-  the same harness runs sqlfluff, sqruff, and sqll).
+  of sqll. This adds a command that sqlfluff does not have. The same harness
+  cannot run sqlfluff and sqruff on it, against G1 (lint parity with
+  sqlfluff: sqll does all that the pinned sqlfluff version does (dialects,
+  rules, fixes, configuration, templaters), except Python plugins and
+  features that need a Python runtime. Only the human owner approves each
+  version change (the standing delegation keeps it). Parity is the
+  percentage of sqlfluff test cases that sqll passes through a binary. The
+  same harness runs sqlfluff, sqruff, and sqll).
 
 ## Black-box form
 
-- Recommended: the case format, the runner (`sqll-harness s7 run`), and
-  the trace oracle of the test conversion of S7 (see item 4 for its goal)
-  (`harness/sqll_harness/s7_tests`,
-  [s7-tests-design.md](s7-tests-design.md)), with a scope file of this
-  stone (the `nodes` of `results/S6/scope.json`) and case files of this
-  stone in `harness/sqll_harness/s6/`. Not a second runner. A case gives
-  the SQL file, a `.sqlfluff` file with the templater section (from the
-  evaluated `context` and `config` of the node), and the checks.
-- The templated text: sqll has no `render` command (`render` is in S7, see
-  item 4 for its goal). The check is the concatenation of the raw leaves
-  of `parse -f json`. Data (sqlfluff 4.4.0): for the `colon` text of
-  `test__templater_raw` (`{{blah}}`, `%(gnepr)s`, `e~':'`), `parse` gives
-  exit code 1 (unparsable), and the leaves give the full templated text.
-  For a `colon` file with 2 values, the leaves equal the `render` output.
-- Source slices: `parse -f json -m` gives the source position of each
-  leaf. Data: in the file above, the leaf `'2021-10-01'` (12 code points)
-  has the source range 68 to 79 (`:start_date`, 11 code points). sqll
-  `parse -m` gives no position keys now (`harness/sqll.md`). The sqll
-  option is in `crates/sqll_cli`, a path of the track S7-sqll (the track
+- Recommended: use the case format, the runner (`sqll-harness s7 run`), and
+  the trace oracle of the test conversion of S7 (CLI and config parity: the
+  sqlfluff CLI, config, and Python rule tests as black-box cases; sqll
+  passes 100% of the converted cases; cases that need the Jinja templater
+  move to S11). Their source is `harness/sqll_harness/s7_tests` and
+  [s7-tests-design.md](s7-tests-design.md). This stone adds a scope file
+  (the `nodes` of `results/S6/scope.json`) and case files in
+  `harness/sqll_harness/s6/`. It does not add a second runner. A case gives
+  the SQL file, a `.sqlfluff` file, and the checks. The `.sqlfluff` file has
+  the templater section, from the evaluated `context` and `config` of the
+  node.
+- The templated text: sqll has no `render` command. `render` is a part of
+  S7 (CLI and config parity: the sqlfluff CLI, config, and Python rule tests
+  as black-box cases; sqll passes 100% of the converted cases; cases that
+  need the Jinja templater move to S11). The check is the concatenation of
+  the raw leaves of `parse -f json`. Data (sqlfluff 4.4.0): the `colon` text
+  of `test__templater_raw` has `{{blah}}`, `%(gnepr)s`, and `e~':'`. For
+  this text, `parse` gives exit code 1 (unparsable), and the leaves give the
+  full templated text. For a `colon` file with 2 values, the leaves equal
+  the `render` output.
+- Source slices: `parse -f json -m` gives the source position of each leaf.
+  Data: in the file above, the leaf `'2021-10-01'` has 12 code points. Its
+  source range is 68 to 79 (`:start_date`, 11 code points). sqll `parse -m`
+  gives no position keys now (`harness/sqll.md`). The sqll option is in
+  `crates/sqll_cli`. That path is a path of the track S7-sqll (the track
   that makes sqll pass the converted S7 cases (the sqll part of S7)). Thus
-  T9 (the templated text and source slices of sqll equal those of
-  sqlfluff) of S6 is cross-track.
-- The trace oracle needs one more call map: `<Templater>(override_context=C)
-  .process(in_str=S, config=F)` to a CLI case with S as the file and C
-  and F in the config. A test that expects an error maps to the exit code
-  and the `TMP` violation or the error text.
-- Alternative: compare with `sqlfluff render` output. sqll has no
-  `render` command before S7 is complete, so sqll cannot run these cases
-  until then.
+  T9 (the templated text and source slices of sqll equal those of sqlfluff)
+  of S6 (templater parity: sqll passes 100% of the placeholder and Python
+  format-string templater fixtures that do not need a Python runtime) is
+  cross-track.
+- The trace oracle needs one more call map, from
+  `<Templater>(override_context=C).process(in_str=S, config=F)` to a CLI
+  case. The case has S as the file, and C and F in the config. A test that
+  expects an error maps to the exit code and to the `TMP` violation or the
+  error text.
+- Alternative: compare with the output of `sqlfluff render`. sqll has no
+  `render` command before S7 (CLI and config parity: the sqlfluff CLI,
+  config, and Python rule tests as black-box cases; sqll passes 100% of the
+  converted cases; cases that need the Jinja templater move to S11) is
+  complete. Thus sqll cannot run these cases until then.
 
 ## Port
 
@@ -295,12 +327,24 @@ The 25 internal nodes call internal functions of the Python templater
     `${flyway:database}`.
   Its python templater calls the Python module
   `sqruff.templaters.python_templater` through pyo3 (feature `python`).
-  Recommendation: port from sqlfluff, the reference of G1 (see the goals
-  above), with one license (MIT). Do not port from sqruff.
+  Recommendation: port from sqlfluff, the reference of G1 (lint parity with
+  sqlfluff: sqll does all that the pinned sqlfluff version does (dialects,
+  rules, fixes, configuration, templaters), except Python plugins and
+  features that need a Python runtime. Only the human owner approves each
+  version change (the standing delegation keeps it). Parity is the
+  percentage of sqlfluff test cases that sqll passes through a binary. The
+  same harness runs sqlfluff, sqruff, and sqll), with one license (MIT). Do
+  not port from sqruff.
 
 ## Speed
 
-This section is for G3 (see the goals above).
+This section is for G3 (speed: each command, start time included, is as fast
+as reasonably possible and has a benchmark that measures sqlfluff, sqruff,
+and sqll on the same input. sqll is faster than sqlfluff on each benchmark,
+not slower than sqruff on any benchmark, and faster than sqruff on the total
+of all benchmarks. A change that makes a benchmark slower gives the reason.
+Correctness is more important than speed: do not make a result wrong to make
+it fast).
 
 - No benchmark of S2 (benchmarks: a benchmark for each command (start,
   parse, lint, fix) with small, medium, and large inputs for each dialect;
@@ -309,7 +353,9 @@ This section is for G3 (see the goals above).
   templaters: all use `templater = raw` (`harness/bench.md`, "Settings").
 - T10 (each templater benchmark measures sqlfluff, sqruff, and sqll on the
   same input; sqll is faster than sqlfluff on each and not slower than
-  sqruff on any, and a slower benchmark has its reason) of S6 adds
+  sqruff on any, and a slower benchmark has its reason) of S6 (templater
+  parity: sqll passes 100% of the placeholder and Python format-string
+  templater fixtures that do not need a Python runtime) adds
   templater benchmarks: `parse`, `lint`, and `fix` with the placeholder
   templater and with the python templater, small, medium, and large, for
   sqlfluff, sqruff, and sqll. The benchmarks are paths of the track core
@@ -320,12 +366,19 @@ This section is for G3 (see the goals above).
   can run both benchmarks, and its python benchmark includes the start of
   Python.
 - Each pull request of this stone gives the `bench compare` result. A
-  slower benchmark needs a reason (G3, see the goals above: a change that
-  makes a benchmark slower gives the reason).
+  slower benchmark needs a reason, by G3 (speed: each command, start time
+  included, is as fast as reasonably possible and has a benchmark that
+  measures sqlfluff, sqruff, and sqll on the same input. sqll is faster than
+  sqlfluff on each benchmark, not slower than sqruff on any benchmark, and
+  faster than sqruff on the total of all benchmarks. A change that makes a
+  benchmark slower gives the reason. Correctness is more important than
+  speed: do not make a result wrong to make it fast).
 
 ## Paths
 
-`tracks.yml` gives S6 these paths: `status/S6.md`, `ci/matrix.d/S6.json`,
+`tracks.yml` gives S6 (templater parity: sqll passes 100% of the
+placeholder and Python format-string templater fixtures that do not need a
+Python runtime) these paths: `status/S6.md`, `ci/matrix.d/S6.json`,
 `results/S6/**`, `crates/sqll_templater/src/**`,
 `crates/sqll_templater/tests/**`, `docs/decisions/s6-*.md`,
 `scripts/s6/**`, `harness/sqll_harness/s6/**`,

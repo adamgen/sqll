@@ -14,6 +14,8 @@ scripts/s6/unit_nodes.py with the Python of the sqlfluff oracle tools
 nodes of the placeholder and Python templater tests. Each other part comes
 from the files:
 
+  license          the license of the test data (LICENSE.md of the checkout;
+                   THIRD_PARTY.md has the record)
   templater_suite  the templater suite of the harness
                    (sqll_harness.suites.templater): each case, its templater,
                    the core.templater value of its config, and its
@@ -335,6 +337,28 @@ def version(root: Path) -> str:
     return match.group(1) if match else "unknown"
 
 
+def license_of(root: Path) -> tuple[dict, list[str]]:
+    """The license of the sqlfluff test data: the first line and the
+    copyright line of LICENSE.md. THIRD_PARTY.md has the record of the
+    scripts and the results of S6 (templater parity: sqll passes 100% of
+    the placeholder and Python format-string templater fixtures that do not
+    need a Python runtime)."""
+    path = root / "LICENSE.md"
+    if not path.is_file():
+        return {}, ["LICENSE.md: not found in the sqlfluff checkout"]
+    lines = [line.strip() for line in path.read_text("utf8").splitlines()]
+    lines = [line for line in lines if line]
+    copyright_lines = [line for line in lines if line.startswith("Copyright")]
+    if not lines or lines[0] != "MIT License" or not copyright_lines:
+        return {}, ["LICENSE.md: not the MIT license with a copyright line"]
+    return {
+        "name": "MIT",
+        "copyright": copyright_lines[0],
+        "file": "LICENSE.md",
+        "record": "THIRD_PARTY.md",
+    }, []
+
+
 def counts(out: dict) -> dict:
     suite = out["templater_suite"]
     by_templater = Counter(c["templater"] for c in suite)
@@ -370,6 +394,8 @@ def counts(out: dict) -> dict:
 
 def scope(root: Path, python: Path) -> tuple[dict, list[str]]:
     problems: list[str] = []
+    data_license, p = license_of(root)
+    problems += p
     suite, p = suite_cases(root)
     problems += p
     nodes, p = run_unit_nodes(root, python)
@@ -414,6 +440,7 @@ def scope(root: Path, python: Path) -> tuple[dict, list[str]]:
         "format": FORMAT,
         "sqlfluff": version(root),
         "commit": sqlfluff_ref(root),
+        "license": data_license,
         "counts": {},
         "functions": functions,
         "templater_suite": suite,

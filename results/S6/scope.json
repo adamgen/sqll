@@ -3,6 +3,12 @@
  "format": 1,
  "sqlfluff": "4.4.0",
  "commit": "0348222a3bcdb0226563f7349c5a39beb0641955",
+ "license": {
+  "name": "MIT",
+  "copyright": "Copyright (c) 2018-2026 Alan Cruickshank",
+  "file": "LICENSE.md",
+  "record": "THIRD_PARTY.md"
+ },
  "counts": {
   "templater_suite": {
    "total": 43,

@@ -169,6 +169,12 @@ def test_counts():
     assert inventory.counts(SCOPE) == SCOPE["counts"]
     assert SCOPE["sqlfluff"] == "4.4.0"
     assert SCOPE["commit"] == "0348222a3bcdb0226563f7349c5a39beb0641955"
+    assert SCOPE["license"] == {
+        "name": "MIT",
+        "copyright": "Copyright (c) 2018-2026 Alan Cruickshank",
+        "file": "LICENSE.md",
+        "record": "THIRD_PARTY.md",
+    }
     assert len({n["id"] for n in SCOPE["nodes"]}) == len(SCOPE["nodes"])
     for node in SCOPE["nodes"]:
         assert node["id"].split("::")[0] == node["file"]
@@ -284,7 +290,93 @@ def test_a_changed_number_in_the_prose_is_found():
     ]
 
 
+# The license record of the test data (G4: external test data has its
+# source, version, and license).
+
+
+def test_license_is_the_license_file_of_the_submodule():
+    found, problems = inventory.license_of(SQLFLUFF_ROOT)
+    assert problems == []
+    assert found == SCOPE["license"]
+    text = (SQLFLUFF_ROOT / "LICENSE.md").read_text("utf8")
+    assert text.startswith("MIT License\n")
+    assert f"\n{found['copyright']}\n" in text
+
+
+def test_license_fails_closed(tmp_path):
+    assert inventory.license_of(tmp_path)[1] == [
+        "LICENSE.md: not found in the sqlfluff checkout"
+    ]
+    (tmp_path / "LICENSE.md").write_text("Apache License\n\nCopyright x\n", "utf8")
+    assert inventory.license_of(tmp_path)[1] == [
+        "LICENSE.md: not the MIT license with a copyright line"
+    ]
+    (tmp_path / "LICENSE.md").write_text("MIT License\n\nno line\n", "utf8")
+    assert inventory.license_of(tmp_path)[1] == [
+        "LICENSE.md: not the MIT license with a copyright line"
+    ]
+
+
+def third_party_record() -> str:
+    """The paragraph of THIRD_PARTY.md that names the S6 scripts."""
+    text = (REPO_ROOT / "THIRD_PARTY.md").read_text("utf8")
+    found = [p for p in text.split("\n\n") if p.startswith("`scripts/s6/inventory.py`")]
+    assert len(found) == 1
+    return " ".join(found[0].split())
+
+
+def missing_in_record(record: str) -> list[str]:
+    """The facts that the THIRD_PARTY.md record of the S6 scripts does not give."""
+    want = [
+        "`scripts/s6/inventory.py`",
+        "`scripts/s6/unit_nodes.py`",
+        "`results/S6/scope.json`",
+        "`third_party/sqlfluff/LICENSE.md`",
+        "`license`",
+        f"sqlfluff {SCOPE['sqlfluff']} tests (MIT)",
+        "No sqlfluff code is copied.",
+    ]
+    # Each test file that unit_nodes.py collects.
+    want += [f"`{f}`" for f in sorted({n["file"] for n in SCOPE["nodes"]})]
+    return [w for w in want if w not in record]
+
+
+def test_third_party_md_has_the_record_of_the_s6_scripts_and_results():
+    assert missing_in_record(third_party_record()) == []
+    unit_nodes = (SCRIPTS / "unit_nodes.py").read_text("utf8")
+    files = {n["file"] for n in SCOPE["nodes"]}
+    assert files == {
+        "test/core/templaters/placeholder_test.py",
+        "test/core/templaters/python_test.py",
+    }
+    for f in files:
+        assert Path(f).name in unit_nodes
+
+
+def test_a_record_with_no_license_is_found():
+    record = third_party_record()
+    assert missing_in_record(record.replace("(MIT)", "")) == [
+        "sqlfluff 4.4.0 tests (MIT)"
+    ]
+    assert missing_in_record(record.replace("`results/S6/scope.json`", "x")) == [
+        "`results/S6/scope.json`"
+    ]
+
+
 # The parts of the set.
+
+
+def test_harness_known_failures_of_the_templater_suite():
+    """The harness reads known_failures/sqll.txt now, not scope.json."""
+    from sqll_harness import known_failures
+
+    known = known_failures.load(REPO_ROOT / "known_failures", "sqll")
+    reason = "unsupported: templater jinja"
+    for case in SCOPE["templater_suite"]:
+        assert known[case["id"]].startswith(reason), case["id"]
+    status = " ".join(section(STATUS_FILE.read_text("utf8"), "Known failures").split())
+    assert "The list that the harness reads now is `known_failures/sqll.txt`" in status
+    assert f"starts with `{reason}`" in status
 
 
 def test_templater_suite_is_jinja_and_s11():
