@@ -396,5 +396,6 @@ the count of `scope.json`, or if a number in the prose of "Decisions",
 "Set", "Internal nodes", or the tasks table of the status file is not the
 number of `scope.json`. It also fails if the column "Other tracks" of the
 tasks table does not give the owner (`ci/ownership.py`, `owner`) of each
-path that a task changes (`TASK_PATHS`), or if a path in that column is not
-a path of the track that the cell names.
+path that a task changes (`TASK_PATHS`), if a task of that table has no
+entry in `TASK_PATHS`, or if a path in that column is not a path of the
+track that the cell names.

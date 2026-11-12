@@ -530,8 +530,10 @@ def test_s6_owns_its_paths():
         assert f"`{pattern}`" in section(design, "Paths"), pattern
 
 
-# Paths that a task changes (the design record, "Port" and "Black-box
-# form"). The file names in crates/sqll_templater are examples.
+# Paths that a task changes (the design record, "Port", "Black-box form",
+# and "Speed"; the status file, column "Description"). Each task of the
+# tasks table has an entry. The file names of the tasks after T1 are
+# examples; their owners are the data that the test checks.
 TASK_PATHS = {
     "T1": [
         "THIRD_PARTY.md",
@@ -541,6 +543,33 @@ TASK_PATHS = {
         "results/S6/scope.json",
         "scripts/s6/inventory.py",
         "status/S6.md",
+    ],
+    # The case runner and the trace oracle of the test conversion of S7
+    # (track S7-tests), the scope file and case files of this stone, and the
+    # `s7 run` command of sqll-harness (core).
+    "T2": [
+        "harness/sqll_harness/s7_tests/caseformat.py",
+        "harness/sqll_harness/s7_tests/runner.py",
+        "harness/sqll_harness/s7_tests/oracle.py",
+        "scripts/s7-tests/trace-nodes",
+        "harness/sqll_harness/cli.py",
+        "harness/sqll_harness/s6/scope.py",
+    ],
+    "T3": [
+        "harness/sqll_harness/s6/cases/placeholder.yml",
+        "harness/tests/test_s6_cases.py",
+    ],
+    "T4": [
+        "harness/sqll_harness/s6/cases/python.yml",
+        "harness/tests/test_s6_cases.py",
+    ],
+    # CI jobs and the ruff lint step (core), the matrix fragment, the
+    # known-failure lists, and the results of this stone.
+    "T5": [
+        ".github/workflows/ci.yml",
+        "ci/matrix.d/S6.json",
+        "harness/sqll_harness/s6/exclusions.yml",
+        "results/S6/summary.json",
     ],
     "T6": [
         "crates/sqll_templater/src/placeholder.rs",
@@ -560,6 +589,17 @@ TASK_PATHS = {
         "THIRD_PARTY.md",
     ],
     "T9": ["crates/sqll_cli/src/main.rs"],
+    # The benchmarks are paths of the track core (the design record, "Speed").
+    "T10": [
+        "harness/sqll_harness/bench/definitions.json",
+        "harness/sqll_harness/bench/inputs.py",
+        "harness/bench.md",
+    ],
+    "T11": [
+        "results/S6/exit.json",
+        "docs/decisions/s6-exit.md",
+        "status/S6.md",
+    ],
 }
 
 
@@ -581,12 +621,19 @@ def other_tracks(text: str) -> dict[str, list[tuple[str, list[str]]]]:
     return out
 
 
-def cross_track_gaps(text: str) -> list[str]:
+def cross_track_gaps(text: str, task_paths=None) -> list[str]:
+    task_paths = TASK_PATHS if task_paths is None else task_paths
     ownership = ci_module("ownership")
     tracks = ownership.load()
     found = []
     table = other_tracks(text)
-    for task, paths in TASK_PATHS.items():
+    for task in sorted(set(table) - set(task_paths), key=lambda t: int(t[1:])):
+        found.append(f"{task}: no TASK_PATHS entry")
+    for task in sorted(set(task_paths) - set(table), key=lambda t: int(t[1:])):
+        found.append(f"{task}: not in the tasks table")
+    for task, paths in task_paths.items():
+        if task not in table:
+            continue
         owners = {ownership.owner(p, tracks) for p in paths} - {"S6"}
         named = {name for name, _ in table[task]}
         if owners != named:
@@ -616,6 +663,20 @@ def test_a_missing_other_track_is_found():
     )
     assert wrong != text
     assert cross_track_gaps(wrong) == ["T7: status/S6.md is not a path of core"]
+
+
+def test_each_task_has_its_paths():
+    text = STATUS_FILE.read_text("utf8")
+    assert set(other_tracks(text)) == set(TASK_PATHS)
+    no_t10 = {k: v for k, v in TASK_PATHS.items() if k != "T10"}
+    assert cross_track_gaps(text, no_t10) == ["T10: no TASK_PATHS entry"]
+    extra = {**TASK_PATHS, "T12": ["status/S6.md"]}
+    assert cross_track_gaps(text, extra) == ["T12: not in the tasks table"]
+    # A task that names an other track, with only paths of this stone.
+    t2_own = {**TASK_PATHS, "T2": ["harness/sqll_harness/s6/scope.py"]}
+    assert cross_track_gaps(text, t2_own) == [
+        "T2: owners [], named ['S7-tests', 'core']"
+    ]
 
 
 # The rule "needs a Python runtime".
