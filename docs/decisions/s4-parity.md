@@ -144,18 +144,23 @@ flock /tmp/sqll-machine.lock uv run --frozen --project harness \
     --tool sqll --tool sqlfluff --out results/S4/corpus.json
 ```
 
-- sqll uses the corpus layer of S9 decision 1
+- sqll uses the corpus layer of decision 1 of the corpus stone
   (`docs/decisions/s9-corpus.md`, "sqll results", "1. Settings":
-  `rust_parser_max_iterations = 1000000000000`). T11 of S9 (the sqll
-  corpus layer (`rust_parser_max_iterations = 1000000000000`), the status
-  `unsupported` when sqll fails closed, and the "PRS: " message in the
-  reason, with tests) adds this layer to `TOOL_LAYERS` in
-  `harness/sqll_harness/corpus/run.py`. T4 starts only after T11 of S9 is
-  on main. Before the run, T4 records that `TOOL_LAYERS["sqll"]` has this
-  layer. Without the layer, 5 Chinook files are `invalid` because the
-  parser stops at the default iteration limit (3000000). With the layer,
-  sqll gives the sqlfluff result (status, unparsable count and bytes) on
-  each of the 145 untemplated files (the data of S9 decision 1).
+  `rust_parser_max_iterations = 1000000000000`). T11 of S9 (task goal:
+  the sqll corpus layer (`rust_parser_max_iterations = 1000000000000`)
+  and the pair speed tables: `pairs` in the report, the list of slow
+  files of each pair, the 2 tables of `tables`, and the schema check of
+  each derived number, with tests; stone goal: external corpus: large,
+  complex SQL files from public sources, with their source and license;
+  the report shows parse success and speed for each file, for each tool)
+  adds this layer to `TOOL_LAYERS` in `harness/sqll_harness/corpus/run.py`.
+  This task starts only after that task is on main (PR #89 merged it on
+  2026-11-12). Before the run, this task records that
+  `TOOL_LAYERS["sqll"]` has this layer. Without the layer, 5 Chinook
+  files are `invalid` because the parser stops at the default iteration
+  limit (3000000). With the layer, sqll gives the sqlfluff result
+  (status, unparsable count and bytes) on each of the 145 untemplated
+  files (the data of decision 1 of the corpus stone).
 - A difference that a setting causes (for example an iteration limit, a
   depth limit, or a render setting) is a settings difference, not a
   parser gap. Its row gives the setting and the proof: the sqll result
@@ -167,14 +172,16 @@ flock /tmp/sqll-machine.lock uv run --frozen --project harness \
   the corpus track: `corpus/**`, `results/S9/**`,
   `harness/sqll_harness/corpus/**`, or the corpus baseline. The sqll
   results of the corpus stone are the work of its own track
-  (`status/S9.md`, tasks T11 to T13 of S9: T11, the sqll corpus layer,
-  the status `unsupported` when sqll fails closed, and the "PRS: " message
-  in the reason, with tests; T12, the report and the check for sqll:
-  `pairs`, the list of slower files, `compared` for the 3 tools, the
-  direction in each sqll check message, and the `rebase --tool sqll`
-  command, with tests; T13, the sqll results: remove sqll from `LATER`,
-  one controlled full run of the 4 tools, the new
-  `results/S9/baseline.json`, and the tables of the S9 status file).
+  (`status/S9.md`, tasks T11 to T13 of S9 (external corpus: large,
+  complex SQL files from public sources, with their source and license;
+  the report shows parse success and speed for each file, for each tool):
+  T11, the sqll corpus layer and the pair speed tables, with tests; T12,
+  the report and the check for sqll: the status `unsupported` when sqll
+  fails closed, the "PRS: " message in the reason, `compared` for the 3
+  tools, the direction in each sqll check message, and the
+  `rebase --tool sqll` command, with tests; T13, the sqll results: remove
+  sqll from `LATER`, one controlled full run of the 4 tools, the new
+  `results/S9/baseline.json`, and the tables of `status/S9.md`).
 - Each file where sqll and sqlfluff give a different status or a
   different unparsable count gets a row with the difference. A row that
   is not a settings difference is a parser gap. If this track changes the
