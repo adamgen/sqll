@@ -444,7 +444,8 @@ to show that sqll accepts it. The corpus layer does not set it, so each
 tool uses the default.
 
 Also: the harness reason of the 5 results of run A has no tool message.
-The code task (T11) adds the "PRS: " line of sqll to the reason, so that
+The code task of decision 1 (the row of "Tasks", below, with the "PRS: "
+message in its goal) adds the "PRS: " line of sqll to the reason, so that
 the reason names the limit. It adds the line in the corpus code
 (`harness/sqll_harness/corpus/run.py`, where the reason of an `invalid`
 result reads the warmup stderr). It does not change the problem messages
