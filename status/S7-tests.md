@@ -16,10 +16,24 @@ The S7-tests track writes this file (PROCESS.md, "Tracks").
   for each file when one command lints and generates code) supports Jinja
   if kept; each other Jinja case is in a known-failure list with its
   reason)).
-- State: in work. 6 of the 15 tasks are done: T1 to T5 are merged (the
-  last on 2026-11-12, PR #83), and T6 is done in PR #96. The other 9
-  tasks are not started. The table "S7-tests tasks" gives each task with
-  its goal.
+- State: in work. 6 of the 15 tasks of S7 (CLI and config parity: the
+  sqlfluff CLI, config, and Python rule tests as black-box cases) are
+  done. These 5 tasks are merged (the last on 2026-11-12, PR #83):
+  - T1 (design record, scope inventory, and status files; goal: the scope
+    (643 nodes), the design, and the 4 decisions are recorded and tested).
+  - T2 (case format, case runner, and pilot cases; goal: one case format
+    and one runner run pilot cases through a tool binary).
+  - T3 (trace oracle with fail-closed checks; goal: each case agrees with
+    a trace of its original pytest node).
+  - T4 (harness hooks for the S7 suites; goal: the harness core runs the 3
+    S7 suites).
+  - T5 (CI jobs, oracle step, and local verify for the S7 suites; goal: CI
+    and `scripts/verify` run the S7 suites and record the results).
+
+  T6 (convert the rule tests, part 1, the simple-API nodes; goal: the rule
+  nodes that call only `sqlfluff.lint` and `sqlfluff.fix` are black-box
+  cases) is done in PR #96. The other 9 tasks are not started. The table
+  "S7-tests tasks" gives each task with its goal.
 - The S7 test conversion needs only S1 (binary test harness: run the
   sqlfluff test fixtures through a binary, not through function calls;
   sqlfluff passes 100% of the cases through the harness, and the results
@@ -49,7 +63,7 @@ one lost day, T9 converts all config tests (before: 2 tasks).
 | T4 | Cross-track (Core): harness hooks for the S7 suites | The harness core runs the 3 S7 suites | Done (PR #82; the Core track approved it) |
 | T5 | Cross-track (Core): CI jobs, oracle step, and local verify for the S7 suites; the ruff lint of `scripts/s7-tests/` in CI; first recorded results | CI and `scripts/verify` run the S7 suites and record the results | Done (PR #83; the Core track approved it) |
 | T6 | Convert the rule tests, part 1: the simple-API nodes (`sqlfluff.lint` and `sqlfluff.fix` with `sql`, `dialect`, `rules`, and `exclude_rules`; no config) | The rule nodes that call only `sqlfluff.lint` and `sqlfluff.fix` are black-box cases | Done (PR #96) |
-| T7 | Convert the rule tests, part 2: fix, combination, file, and template tests | The other rule nodes (not Rust dispatch) are black-box cases | Not started |
+| T7 | Convert the rule tests, part 2: the rule nodes that are not simple-API nodes and not Rust dispatch (for example the nodes that give a config or a templater, or that call `Linter`) | The other rule nodes (not Rust dispatch) are black-box cases | Not started |
 | T8 | Rust dispatch tests (cp01, cp03, cp04): classification and conversion | Each Rust dispatch node is converted or excluded by decision 3 | Not started |
 | T9 | Convert the config tests: the config fixture tests (users of `test/fixtures/config`) and the other config tests (`test/core/config`) | The 140 nodes of `config` and `config_fixtures` are black-box cases or excluded with a class | Not started |
 | T10 | Convert the CLI tests, part 1: commands, arguments, and exit codes | The CLI nodes of commands, arguments, and exit codes are black-box cases | Not started |
@@ -124,8 +138,11 @@ the case format, the case runner (`scripts/s7-tests/run-cases`; T4 (harness
 hooks for the S7 suites: the harness core runs the 3 S7 suites; S7: CLI and
 config parity, the sqlfluff CLI, config, and Python rule tests as black-box
 cases) moved it to `sqll-harness s7 run`), and pilot cases of each group.
-T2 converted 15 pilot nodes (`cli` 8, `rules` 5, `config` 2) and excluded
-3 nodes. The current counts and the parity of each tool are in "Recorded
+T2 (case format, case runner, and pilot cases; goal: one case format and
+one runner run pilot cases through a tool binary) of S7 (CLI and config
+parity: the sqlfluff CLI, config, and Python rule tests as black-box cases)
+converted 15 pilot nodes (`cli` 8, `rules` 5, `config` 2) and excluded 3
+nodes. The current counts and the parity of each tool are in "Recorded
 results".
 
 T5 (CI jobs, oracle step, and local verify for the S7 suites: CI and
@@ -145,9 +162,13 @@ record, "Trace oracle". The recorded result is
 traces `oracle-trace-sqlfluff.json` and `oracle-trace-sqlfluff-rs.json`.
 The current result is in "Recorded results".
 
-- In T3, each of the 15 converted pilot nodes agreed with its trace, and
-  each of the 49 asserts of the pilot source tests had a check that cites
-  it.
+- In T3 (trace oracle with fail-closed checks; goal: each case agrees with
+  a trace of its original pytest node) of S7 (CLI and config parity: the
+  sqlfluff CLI, config, and Python rule tests as black-box cases), each of
+  the 15 pilot nodes that T2 (case format, case runner, and pilot cases;
+  goal: one case format and one runner run pilot cases through a tool
+  binary) converted agreed with its trace, and each of the 49 asserts of
+  the pilot source tests had a check that cites it.
 - T4 (harness hooks for the S7 suites: the harness core runs the 3 S7
   suites; S7: CLI and config parity, the sqlfluff CLI, config, and Python
   rule tests as black-box cases) added the pointer section in
@@ -251,18 +272,18 @@ code) supports Jinja if kept; each other Jinja case is in a known-failure
 list with its reason)) converted 23 rule nodes and excluded 1 node (PR
 #96).
 
-| Source file | Converted in T6 | Excluded in T6 | Not converted yet |
-|---|---|---|---|
-| `std_AL04_test.py` | 2 (the pilot has the third node) | 0 | 0 |
-| `std_AM06_test.py` | 3 | 0 | 0 |
-| `std_AM09_test.py` | 4 | 1 `python-internal` | 0 |
-| `std_LT01_LT04_test.py` | 1 | 0 | 0 |
-| `std_RF02_test.py` | 1 | 0 | 0 |
-| `std_LT02_LT11_combo_test.py` | 2 | 0 | 0 |
-| `std_LT01_LT02_LT09_combo_test.py` | 1 | 0 | 0 |
-| `std_LT05_LT09_combo_test.py` | 2 (the pilot has the third node) | 0 | 0 |
-| `std_ST12_test.py` | 6 | 0 | 2 |
-| `std_LT03_test.py` | 1 | 0 | 2 |
+| Source file | Converted in T6 | Excluded in T6 | Not converted yet | Goal of T6 |
+|---|---|---|---|---|
+| `std_AL04_test.py` | 2 (the pilot has the third node) | 0 | 0 | The rule nodes that call only `sqlfluff.lint` and `sqlfluff.fix` are black-box cases |
+| `std_AM06_test.py` | 3 | 0 | 0 | The rule nodes that call only `sqlfluff.lint` and `sqlfluff.fix` are black-box cases |
+| `std_AM09_test.py` | 4 | 1 `python-internal` | 0 | The rule nodes that call only `sqlfluff.lint` and `sqlfluff.fix` are black-box cases |
+| `std_LT01_LT04_test.py` | 1 | 0 | 0 | The rule nodes that call only `sqlfluff.lint` and `sqlfluff.fix` are black-box cases |
+| `std_RF02_test.py` | 1 | 0 | 0 | The rule nodes that call only `sqlfluff.lint` and `sqlfluff.fix` are black-box cases |
+| `std_LT02_LT11_combo_test.py` | 2 | 0 | 0 | The rule nodes that call only `sqlfluff.lint` and `sqlfluff.fix` are black-box cases |
+| `std_LT01_LT02_LT09_combo_test.py` | 1 | 0 | 0 | The rule nodes that call only `sqlfluff.lint` and `sqlfluff.fix` are black-box cases |
+| `std_LT05_LT09_combo_test.py` | 2 (the pilot has the third node) | 0 | 0 | The rule nodes that call only `sqlfluff.lint` and `sqlfluff.fix` are black-box cases |
+| `std_ST12_test.py` | 6 | 0 | 2 | The rule nodes that call only `sqlfluff.lint` and `sqlfluff.fix` are black-box cases |
+| `std_LT03_test.py` | 1 | 0 | 2 | The rule nodes that call only `sqlfluff.lint` and `sqlfluff.fix` are black-box cases |
 
 - Each case is an `api` case: `lint` or `fix` with the `sql`, `rules`, and
   `exclude_rules` of the source call. The trace oracle maps each call.
@@ -285,11 +306,17 @@ list with its reason)) converted 23 rule nodes and excluded 1 node (PR
   `std_ST12_test.py` give a Jinja config to `sqlfluff.lint`, and
   `test__rules__std_LT03_leading` and `test__rules__std_LT03_trailing` call
   `Linter.lint_string_wrapped` with a config. The trace oracle does not
-  map these calls yet. A later task converts them.
+  map these calls yet. T7 (convert the rule tests, part 2; goal: the other
+  rule nodes, not Rust dispatch, are black-box cases) of S7 (CLI and
+  config parity: the sqlfluff CLI, config, and Python rule tests as
+  black-box cases) converts them.
 
 ## Recorded results
 
-The recorded results of T6:
+The recorded results of T6 (convert the rule tests, part 1, the
+simple-API nodes; goal: the rule nodes that call only `sqlfluff.lint` and
+`sqlfluff.fix` are black-box cases) of S7 (CLI and config parity: the
+sqlfluff CLI, config, and Python rule tests as black-box cases):
 [report.json](../results/S7-tests/report.json),
 [summary.json](../results/S7-tests/summary.json),
 [oracle.json](../results/S7-tests/oracle.json) with the traces, and
@@ -330,7 +357,8 @@ sqlfluff CLI, config, and Python rule tests as black-box cases) keeps
   and the 6 converted nodes of `std_ST12`.
 
 Results of each suite with each tool. The parity columns count the
-converted nodes that S7 keeps (passed/nodes):
+converted nodes that S7 (CLI and config parity: the sqlfluff CLI, config,
+and Python rule tests as black-box cases) keeps (passed/nodes):
 
 | Suite | In scope | Converted | Excluded | sqlfluff | sqlfluff-rs | sqruff |
 |---|---|---|---|---|---|---|
