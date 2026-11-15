@@ -23,9 +23,9 @@
  },
  "counts": {
   "in_scope": 643,
-  "converted": 38,
+  "converted": 40,
   "excluded": 4,
-  "not_yet_converted": 601,
+  "not_yet_converted": 599,
   "needs_jinja": 1,
   "groups": {
    "cli": {
@@ -36,9 +36,9 @@
    },
    "rules": {
     "in_scope": 208,
-    "converted": 28,
+    "converted": 30,
     "excluded": 2,
-    "not_yet_converted": 178
+    "not_yet_converted": 176
    },
    "config": {
     "in_scope": 137,
@@ -62,27 +62,27 @@
  },
  "parity": {
   "sqlfluff": {
-   "nodes": 37,
-   "passed": 37,
+   "nodes": 39,
+   "passed": 39,
    "failed": 0,
    "error": 0,
    "percent_of_converted": 100.0,
-   "percent_of_in_scope": 5.75
+   "percent_of_in_scope": 6.07
   },
   "sqlfluff-rs": {
-   "nodes": 37,
-   "passed": 36,
+   "nodes": 39,
+   "passed": 38,
    "failed": 1,
    "error": 0,
-   "percent_of_converted": 97.3,
-   "percent_of_in_scope": 5.6
+   "percent_of_converted": 97.44,
+   "percent_of_in_scope": 5.91
   },
   "sqruff": {
-   "nodes": 37,
+   "nodes": 39,
    "passed": 8,
-   "failed": 29,
+   "failed": 31,
    "error": 0,
-   "percent_of_converted": 21.62,
+   "percent_of_converted": 20.51,
    "percent_of_in_scope": 1.24
   }
  },
@@ -815,6 +815,33 @@
    }
   },
   {
+   "id": "test/rules/std_LT03_test.py::test__rules__std_LT03_trailing",
+   "group": "rules",
+   "case_file": "rules/std_LT03_test.yml",
+   "cases": 1,
+   "needs_jinja": false,
+   "results": {
+    "sqlfluff": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqlfluff-rs": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqruff": {
+     "status": "fail",
+     "failed_cases": [
+      {
+       "name": "trailing",
+       "status": "fail",
+       "reason": "unsupported: sqlfluff CLI command 'lint' (the case has no sqruff translation)"
+      }
+     ]
+    }
+   }
+  },
+  {
    "id": "test/rules/std_LT04_test.py::test__rules__std_LT04_unparseable",
    "group": "rules",
    "case_file": "rules/std_LT04_test.yml",
@@ -1099,6 +1126,43 @@
     "sqruff": {
      "status": "pass",
      "failed_cases": []
+    }
+   }
+  },
+  {
+   "id": "test/rules/std_roundtrip_test.py::test__cli__command__fix[LT01-test/fixtures/linter/whitespace_errors.sql]",
+   "group": "rules",
+   "case_file": "rules/std_roundtrip_test.yml",
+   "cases": 3,
+   "needs_jinja": false,
+   "results": {
+    "sqlfluff": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqlfluff-rs": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqruff": {
+     "status": "fail",
+     "failed_cases": [
+      {
+       "name": "lint_before",
+       "status": "fail",
+       "reason": "unsupported: sqlfluff CLI command 'lint' (the case has no sqruff translation)"
+      },
+      {
+       "name": "fix",
+       "status": "fail",
+       "reason": "unsupported: sqlfluff CLI command 'fix' (the case has no sqruff translation)"
+      },
+      {
+       "name": "lint_after",
+       "status": "fail",
+       "reason": "unsupported: sqlfluff CLI command 'lint' (the case has no sqruff translation)"
+      }
+     ]
     }
    }
   }

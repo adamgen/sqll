@@ -1,0 +1,55 @@
+# S7 black-box cases (docs/decisions/s7-tests-design.md, "Case format").
+# A derived work of the sqlfluff tests: copyright (c) 2018-2026 Alan
+# Cruickshank, MIT License.
+# test__cli__command__fix copies a fixture file to a new temporary folder,
+# then runs lint, fix, and lint on it with CliRunner. The trace oracle maps
+# each call to a cwd: tmp case: the files of the folder before the call are
+# the case files, and the files after the call are the files check. T16
+# (trace oracle and case runner, extension 1; goal: the trace oracle maps
+# and proves the calls that the remaining rule nodes use, and fails closed
+# on each other call) of S7 (CLI and config parity: the sqlfluff CLI,
+# config, and Python rule tests as black-box cases) converts one node as a
+# proof node of this map. The text of each file is
+# the text of test/fixtures/linter/whitespace_errors.sql before and after the
+# fix of sqlfluff 4.4.0. The fix check is stronger than the source assert
+# (exit code 0): the source checks the fixed file only with the third call,
+# whose input is the fixed file.
+source:
+  project: sqlfluff
+  version: 4.4.0
+  commit: 0348222a3bcdb0226563f7349c5a39beb0641955
+  file: test/rules/std_roundtrip_test.py
+license: MIT
+nodes:
+  - node: test/rules/std_roundtrip_test.py::test__cli__command__fix[LT01-test/fixtures/linter/whitespace_errors.sql]
+    asserts:
+      L37: ["lint_before:exit_code"]
+      L42: ["fix:exit_code"]
+      L45: ["lint_after:exit_code"]
+    cases:
+      - name: lint_before
+        run: cli
+        argv: [lint, --rules, LT01, --dialect=ansi, "{tmp}/testing.sql"]
+        cwd: tmp
+        files:
+          testing.sql: "SELECT\n    a.id   , -- Comma with leading spaces\n    a.name,    a.training_spaces\n,    -- Comma on newline, trailing spaces but with comment!\n    a.normal_comma, a.should_work\nFROM tbl as a\n"
+        checks:
+          exit_code: 1
+      - name: fix
+        run: cli
+        argv: [fix, --rules, LT01, --dialect=ansi, -f, "{tmp}/testing.sql"]
+        cwd: tmp
+        files:
+          testing.sql: "SELECT\n    a.id   , -- Comma with leading spaces\n    a.name,    a.training_spaces\n,    -- Comma on newline, trailing spaces but with comment!\n    a.normal_comma, a.should_work\nFROM tbl as a\n"
+        checks:
+          exit_code: 0
+          files:
+            testing.sql: "SELECT\n    a.id, -- Comma with leading spaces\n    a.name, a.training_spaces\n,    -- Comma on newline, trailing spaces but with comment!\n    a.normal_comma, a.should_work\nFROM tbl as a\n"
+      - name: lint_after
+        run: cli
+        argv: [lint, --rules, LT01, --dialect=ansi, "{tmp}/testing.sql"]
+        cwd: tmp
+        files:
+          testing.sql: "SELECT\n    a.id, -- Comma with leading spaces\n    a.name, a.training_spaces\n,    -- Comma on newline, trailing spaces but with comment!\n    a.normal_comma, a.should_work\nFROM tbl as a\n"
+        checks:
+          exit_code: 0
