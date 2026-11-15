@@ -12,7 +12,23 @@ test/cli/commands_test.py::test__cli__command_no_dialect[command4]  # no_dialect
 test/cli/commands_test.py::test__cli__command_version  # version: unsupported: sqlfluff CLI command 'version' (the case has no sqruff translation); version_verbose: unsupported: sqlfluff CLI command 'version' (the case has no sqruff translation)
 test/core/config/fluffconfig_test.py::test__config__glob_exclude_config_tests  # glob_exclude: unsupported: sqlfluff CLI command 'lint' (the case has no sqruff translation)
 test/core/config/fluffconfig_test.py::test__config__glob_include_config_tests  # glob_include: unsupported: sqlfluff CLI command 'lint' (the case has no sqruff translation)
+test/rules/std_AL04_test.py::test__rules__std_AL04_complex  # complex: unsupported: rule all
+test/rules/std_AL04_test.py::test__rules__std_AL04_one_aliases_one_duplicate  # one_aliases_one_duplicate: unsupported: rule all
 test/rules/std_AL04_test.py::test__rules__std_AL04_one_aliases_two_duplicate  # one_aliases_two_duplicate: unsupported: rule all
+test/rules/std_AM06_test.py::test__rules__std_AM06_noqa  # noqa: unsupported: rule all
+test/rules/std_AM06_test.py::test__rules__std_AM06_raised  # raised: unsupported: rule all
+test/rules/std_AM06_test.py::test__rules__std_AM06_unparsable  # unparsable: unsupported: rule all
+test/rules/std_AM09_test.py::test__rules__std_AM09_missing_order_by  # missing_order_by: unsupported: rule all
+test/rules/std_AM09_test.py::test__rules__std_AM09_no_limit_or_offset  # no_limit_or_offset: unsupported: rule all
+test/rules/std_AM09_test.py::test__rules__std_AM09_non_select_statement_integration  # non_select_statement: unsupported: rule all
+test/rules/std_AM09_test.py::test__rules__std_AM09_with_order_by  # with_order_by: unsupported: rule all
+test/rules/std_LT01_LT02_LT09_combo_test.py::test__rules__std_LT02_LT09_LT01  # double_indent: unsupported: rule all
+test/rules/std_LT02_LT11_combo_test.py::test__rules__std_LT02_LT11_union_all_in_subquery_fix  # union_all_in_subquery_fix: unsupported: rule all
+test/rules/std_LT02_LT11_combo_test.py::test__rules__std_LT02_LT11_union_all_in_subquery_lint  # union_all_in_subquery_lint: unsupported: rule all
+test/rules/std_LT03_test.py::test__rules__std_LT03_default  # default: unsupported: rule all
 test/rules/std_LT04_test.py::test__rules__std_LT04_unparseable  # unparseable: unsupported: rule all
 test/rules/std_LT05_LT09_combo_test.py::test__rules__std_LT05_LT09_long_line_fix  # long_line_fix: unsupported: rule all
+test/rules/std_LT05_LT09_combo_test.py::test__rules__std_LT05_LT09_long_line_fix2  # long_line_fix2: unsupported: rule all
+test/rules/std_LT05_LT09_combo_test.py::test__rules__std_LT05_LT09_long_line_lint  # long_line_lint: unsupported: rule all
+test/rules/std_RF02_test.py::test__rules__std_RF02_wildcard_single_count  # wildcard_single_count: unsupported: rule all
 test/rules/std_ST03_test.py::test__rules__std_ST03_multiple_unused_ctes  # multiple_unused_ctes: unsupported: output field end_file_pos, end_line_no, end_line_pos, fixes, name, start_file_pos, warning

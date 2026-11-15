@@ -1,0 +1,59 @@
+# S7 black-box cases (docs/decisions/s7-tests-design.md, "Case format").
+# A derived work of the sqlfluff tests: copyright (c) 2018-2026 Alan
+# Cruickshank, MIT License.
+source:
+  project: sqlfluff
+  version: 4.4.0
+  commit: 0348222a3bcdb0226563f7349c5a39beb0641955
+  file: test/rules/std_AM06_test.py
+license: MIT
+nodes:
+  - node: test/rules/std_AM06_test.py::test__rules__std_AM06_raised
+    asserts:
+      L30: ["raised:violations[0]"]
+      L31: ["raised:violations[1].records[0]"]
+    cases:
+      - name: raised
+        run: api
+        function: lint
+        sql: "\n    SELECT\n        foo,\n        bar,\n        sum(baz) AS sum_value\n    FROM (\n        SELECT\n            foo,\n            bar,\n            sum(baz) AS baz\n        FROM fake_table\n        GROUP BY\n            foo, bar\n    )\n    GROUP BY\n        1, 2\n    ORDER BY\n        1, 2;\n    "
+        checks:
+          violations:
+            - select: {code: AM06}
+              count: 2
+            # The source checks only the description of the first AM06
+            # violation. The second record only selects the second one.
+            - select: {code: AM06}
+              records:
+                - description: Inconsistent column references in 'GROUP BY/ORDER BY' clauses.
+                - code: AM06
+  - node: test/rules/std_AM06_test.py::test__rules__std_AM06_unparsable
+    asserts:
+      L49: ["unparsable:violations[0]"]
+      L50: ["unparsable:violations[1]"]
+    cases:
+      - name: unparsable
+        run: api
+        function: lint
+        sql: "\n    SELECT foo.set.barr\n    FROM foo\n    GROUP BY\n      foo.set.barr\n    "
+        checks:
+          violations:
+            - select: {code: AM06}
+              count: 0
+            - select: {code: PRS}
+              min_count: 1
+  - node: test/rules/std_AM06_test.py::test__rules__std_AM06_noqa
+    asserts:
+      L65: ["noqa:violations[0]"]
+      L66: ["noqa:violations[1]"]
+    cases:
+      - name: noqa
+        run: api
+        function: lint
+        sql: "\n    SELECT foo.set.barr  --noqa: PRS\n    FROM foo\n    GROUP BY\n      f@oo.set.bar.r --noqa: PRS\n    "
+        checks:
+          violations:
+            - select: {code: AM06}
+              count: 0
+            - select: {code: PRS}
+              count: 0

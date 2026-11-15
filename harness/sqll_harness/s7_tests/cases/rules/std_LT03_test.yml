@@ -1,0 +1,29 @@
+# S7 black-box cases (docs/decisions/s7-tests-design.md, "Case format").
+# A derived work of the sqlfluff tests: copyright (c) 2018-2026 Alan
+# Cruickshank, MIT License.
+# The nodes test__rules__std_LT03_leading and test__rules__std_LT03_trailing
+# are not converted yet: they call Linter.lint_string_wrapped with a config,
+# and the trace oracle does not map this call.
+source:
+  project: sqlfluff
+  version: 4.4.0
+  commit: 0348222a3bcdb0226563f7349c5a39beb0641955
+  file: test/rules/std_LT03_test.py
+license: MIT
+nodes:
+  - node: test/rules/std_LT03_test.py::test__rules__std_LT03_default
+    asserts:
+      L27: ["default:violations[0]"]
+      L28: ["default:violations[1]"]
+    cases:
+      - name: default
+        run: api
+        function: lint
+        sql: "\n        SELECT\n            a,\n            b\n        FROM foo\n        WHERE\n            a = 1 AND\n            b = 2\n    "
+        checks:
+          violations:
+            - select: {code: LT03}
+              min_count: 1
+            - select:
+                description: Found trailing binary operator. Expected only leading near line breaks.
+              min_count: 1

@@ -23,9 +23,9 @@
  },
  "counts": {
   "in_scope": 643,
-  "converted": 15,
-  "excluded": 3,
-  "not_yet_converted": 625,
+  "converted": 38,
+  "excluded": 4,
+  "not_yet_converted": 601,
   "needs_jinja": 1,
   "groups": {
    "cli": {
@@ -36,9 +36,9 @@
    },
    "rules": {
     "in_scope": 208,
-    "converted": 5,
-    "excluded": 1,
-    "not_yet_converted": 202
+    "converted": 28,
+    "excluded": 2,
+    "not_yet_converted": 178
    },
    "config": {
     "in_scope": 137,
@@ -54,7 +54,7 @@
    }
   },
   "excluded_by_class": {
-   "python-internal": 1,
+   "python-internal": 2,
    "needs-python-runtime": 1,
    "engine-comparison": 1,
    "environment": 0
@@ -62,28 +62,28 @@
  },
  "parity": {
   "sqlfluff": {
-   "nodes": 14,
-   "passed": 14,
+   "nodes": 37,
+   "passed": 37,
    "failed": 0,
    "error": 0,
    "percent_of_converted": 100.0,
-   "percent_of_in_scope": 2.18
+   "percent_of_in_scope": 5.75
   },
   "sqlfluff-rs": {
-   "nodes": 14,
-   "passed": 13,
+   "nodes": 37,
+   "passed": 36,
    "failed": 1,
    "error": 0,
-   "percent_of_converted": 92.86,
-   "percent_of_in_scope": 2.02
+   "percent_of_converted": 97.3,
+   "percent_of_in_scope": 5.6
   },
   "sqruff": {
-   "nodes": 14,
-   "passed": 1,
-   "failed": 13,
+   "nodes": 37,
+   "passed": 8,
+   "failed": 29,
    "error": 0,
-   "percent_of_converted": 7.14,
-   "percent_of_in_scope": 0.16
+   "percent_of_converted": 21.62,
+   "percent_of_in_scope": 1.24
   }
  },
  "s11_jinja": {
@@ -395,6 +395,33 @@
    }
   },
   {
+   "id": "test/rules/std_AL04_test.py::test__rules__std_AL04_one_aliases_one_duplicate",
+   "group": "rules",
+   "case_file": "rules/std_AL04_test.yml",
+   "cases": 1,
+   "needs_jinja": false,
+   "results": {
+    "sqlfluff": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqlfluff-rs": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqruff": {
+     "status": "fail",
+     "failed_cases": [
+      {
+       "name": "one_aliases_one_duplicate",
+       "status": "fail",
+       "reason": "unsupported: rule all"
+      }
+     ]
+    }
+   }
+  },
+  {
    "id": "test/rules/std_AL04_test.py::test__rules__std_AL04_one_aliases_two_duplicate",
    "group": "rules",
    "case_file": "rules/std_AL04_test.yml",
@@ -414,6 +441,222 @@
      "failed_cases": [
       {
        "name": "one_aliases_two_duplicate",
+       "status": "fail",
+       "reason": "unsupported: rule all"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "test/rules/std_AL04_test.py::test__rules__std_AL04_complex",
+   "group": "rules",
+   "case_file": "rules/std_AL04_test.yml",
+   "cases": 1,
+   "needs_jinja": false,
+   "results": {
+    "sqlfluff": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqlfluff-rs": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqruff": {
+     "status": "fail",
+     "failed_cases": [
+      {
+       "name": "complex",
+       "status": "fail",
+       "reason": "unsupported: rule all"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "test/rules/std_AM06_test.py::test__rules__std_AM06_raised",
+   "group": "rules",
+   "case_file": "rules/std_AM06_test.yml",
+   "cases": 1,
+   "needs_jinja": false,
+   "results": {
+    "sqlfluff": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqlfluff-rs": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqruff": {
+     "status": "fail",
+     "failed_cases": [
+      {
+       "name": "raised",
+       "status": "fail",
+       "reason": "unsupported: rule all"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "test/rules/std_AM06_test.py::test__rules__std_AM06_unparsable",
+   "group": "rules",
+   "case_file": "rules/std_AM06_test.yml",
+   "cases": 1,
+   "needs_jinja": false,
+   "results": {
+    "sqlfluff": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqlfluff-rs": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqruff": {
+     "status": "fail",
+     "failed_cases": [
+      {
+       "name": "unparsable",
+       "status": "fail",
+       "reason": "unsupported: rule all"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "test/rules/std_AM06_test.py::test__rules__std_AM06_noqa",
+   "group": "rules",
+   "case_file": "rules/std_AM06_test.yml",
+   "cases": 1,
+   "needs_jinja": false,
+   "results": {
+    "sqlfluff": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqlfluff-rs": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqruff": {
+     "status": "fail",
+     "failed_cases": [
+      {
+       "name": "noqa",
+       "status": "fail",
+       "reason": "unsupported: rule all"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "test/rules/std_AM09_test.py::test__rules__std_AM09_missing_order_by",
+   "group": "rules",
+   "case_file": "rules/std_AM09_test.yml",
+   "cases": 1,
+   "needs_jinja": false,
+   "results": {
+    "sqlfluff": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqlfluff-rs": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqruff": {
+     "status": "fail",
+     "failed_cases": [
+      {
+       "name": "missing_order_by",
+       "status": "fail",
+       "reason": "unsupported: rule all"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "test/rules/std_AM09_test.py::test__rules__std_AM09_with_order_by",
+   "group": "rules",
+   "case_file": "rules/std_AM09_test.yml",
+   "cases": 1,
+   "needs_jinja": false,
+   "results": {
+    "sqlfluff": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqlfluff-rs": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqruff": {
+     "status": "fail",
+     "failed_cases": [
+      {
+       "name": "with_order_by",
+       "status": "fail",
+       "reason": "unsupported: rule all"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "test/rules/std_AM09_test.py::test__rules__std_AM09_no_limit_or_offset",
+   "group": "rules",
+   "case_file": "rules/std_AM09_test.yml",
+   "cases": 1,
+   "needs_jinja": false,
+   "results": {
+    "sqlfluff": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqlfluff-rs": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqruff": {
+     "status": "fail",
+     "failed_cases": [
+      {
+       "name": "no_limit_or_offset",
+       "status": "fail",
+       "reason": "unsupported: rule all"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "test/rules/std_AM09_test.py::test__rules__std_AM09_non_select_statement_integration",
+   "group": "rules",
+   "case_file": "rules/std_AM09_test.yml",
+   "cases": 1,
+   "needs_jinja": false,
+   "results": {
+    "sqlfluff": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqlfluff-rs": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqruff": {
+     "status": "fail",
+     "failed_cases": [
+      {
+       "name": "non_select_statement",
        "status": "fail",
        "reason": "unsupported: rule all"
       }
@@ -443,6 +686,135 @@
    }
   },
   {
+   "id": "test/rules/std_LT01_LT02_LT09_combo_test.py::test__rules__std_LT02_LT09_LT01",
+   "group": "rules",
+   "case_file": "rules/std_LT01_LT02_LT09_combo_test.yml",
+   "cases": 1,
+   "needs_jinja": false,
+   "results": {
+    "sqlfluff": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqlfluff-rs": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqruff": {
+     "status": "fail",
+     "failed_cases": [
+      {
+       "name": "double_indent",
+       "status": "fail",
+       "reason": "unsupported: rule all"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "test/rules/std_LT01_LT04_test.py::test__rules__std_LT01_single_raise",
+   "group": "rules",
+   "case_file": "rules/std_LT01_LT04_test.yml",
+   "cases": 1,
+   "needs_jinja": false,
+   "results": {
+    "sqlfluff": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqlfluff-rs": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqruff": {
+     "status": "pass",
+     "failed_cases": []
+    }
+   }
+  },
+  {
+   "id": "test/rules/std_LT02_LT11_combo_test.py::test__rules__std_LT02_LT11_union_all_in_subquery_lint",
+   "group": "rules",
+   "case_file": "rules/std_LT02_LT11_combo_test.yml",
+   "cases": 1,
+   "needs_jinja": false,
+   "results": {
+    "sqlfluff": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqlfluff-rs": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqruff": {
+     "status": "fail",
+     "failed_cases": [
+      {
+       "name": "union_all_in_subquery_lint",
+       "status": "fail",
+       "reason": "unsupported: rule all"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "test/rules/std_LT02_LT11_combo_test.py::test__rules__std_LT02_LT11_union_all_in_subquery_fix",
+   "group": "rules",
+   "case_file": "rules/std_LT02_LT11_combo_test.yml",
+   "cases": 1,
+   "needs_jinja": false,
+   "results": {
+    "sqlfluff": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqlfluff-rs": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqruff": {
+     "status": "fail",
+     "failed_cases": [
+      {
+       "name": "union_all_in_subquery_fix",
+       "status": "fail",
+       "reason": "unsupported: rule all"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "test/rules/std_LT03_test.py::test__rules__std_LT03_default",
+   "group": "rules",
+   "case_file": "rules/std_LT03_test.yml",
+   "cases": 1,
+   "needs_jinja": false,
+   "results": {
+    "sqlfluff": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqlfluff-rs": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqruff": {
+     "status": "fail",
+     "failed_cases": [
+      {
+       "name": "default",
+       "status": "fail",
+       "reason": "unsupported: rule all"
+      }
+     ]
+    }
+   }
+  },
+  {
    "id": "test/rules/std_LT04_test.py::test__rules__std_LT04_unparseable",
    "group": "rules",
    "case_file": "rules/std_LT04_test.yml",
@@ -462,6 +834,33 @@
      "failed_cases": [
       {
        "name": "unparseable",
+       "status": "fail",
+       "reason": "unsupported: rule all"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "test/rules/std_LT05_LT09_combo_test.py::test__rules__std_LT05_LT09_long_line_lint",
+   "group": "rules",
+   "case_file": "rules/std_LT05_LT09_combo_test.yml",
+   "cases": 1,
+   "needs_jinja": false,
+   "results": {
+    "sqlfluff": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqlfluff-rs": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqruff": {
+     "status": "fail",
+     "failed_cases": [
+      {
+       "name": "long_line_lint",
        "status": "fail",
        "reason": "unsupported: rule all"
       }
@@ -497,6 +896,60 @@
    }
   },
   {
+   "id": "test/rules/std_LT05_LT09_combo_test.py::test__rules__std_LT05_LT09_long_line_fix2",
+   "group": "rules",
+   "case_file": "rules/std_LT05_LT09_combo_test.yml",
+   "cases": 1,
+   "needs_jinja": false,
+   "results": {
+    "sqlfluff": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqlfluff-rs": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqruff": {
+     "status": "fail",
+     "failed_cases": [
+      {
+       "name": "long_line_fix2",
+       "status": "fail",
+       "reason": "unsupported: rule all"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "test/rules/std_RF02_test.py::test__rules__std_RF02_wildcard_single_count",
+   "group": "rules",
+   "case_file": "rules/std_RF02_test.yml",
+   "cases": 1,
+   "needs_jinja": false,
+   "results": {
+    "sqlfluff": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqlfluff-rs": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqruff": {
+     "status": "fail",
+     "failed_cases": [
+      {
+       "name": "wildcard_single_count",
+       "status": "fail",
+       "reason": "unsupported: rule all"
+      }
+     ]
+    }
+   }
+  },
+  {
    "id": "test/rules/std_ST03_test.py::test__rules__std_ST03_multiple_unused_ctes",
    "group": "rules",
    "case_file": "rules/std_ST03_test.yml",
@@ -522,6 +975,132 @@
      ]
     }
    }
+  },
+  {
+   "id": "test/rules/std_ST12_test.py::test__rules__std_ST12_basic_patterns",
+   "group": "rules",
+   "case_file": "rules/std_ST12_test.yml",
+   "cases": 6,
+   "needs_jinja": false,
+   "results": {
+    "sqlfluff": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqlfluff-rs": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqruff": {
+     "status": "pass",
+     "failed_cases": []
+    }
+   }
+  },
+  {
+   "id": "test/rules/std_ST12_test.py::test__rules__std_ST12_complex_multistatement",
+   "group": "rules",
+   "case_file": "rules/std_ST12_test.yml",
+   "cases": 1,
+   "needs_jinja": false,
+   "results": {
+    "sqlfluff": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqlfluff-rs": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqruff": {
+     "status": "pass",
+     "failed_cases": []
+    }
+   }
+  },
+  {
+   "id": "test/rules/std_ST12_test.py::test__rules__std_ST12_fix_functionality",
+   "group": "rules",
+   "case_file": "rules/std_ST12_test.yml",
+   "cases": 2,
+   "needs_jinja": false,
+   "results": {
+    "sqlfluff": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqlfluff-rs": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqruff": {
+     "status": "pass",
+     "failed_cases": []
+    }
+   }
+  },
+  {
+   "id": "test/rules/std_ST12_test.py::test__rules__std_ST12_whitespace_handling",
+   "group": "rules",
+   "case_file": "rules/std_ST12_test.yml",
+   "cases": 1,
+   "needs_jinja": false,
+   "results": {
+    "sqlfluff": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqlfluff-rs": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqruff": {
+     "status": "pass",
+     "failed_cases": []
+    }
+   }
+  },
+  {
+   "id": "test/rules/std_ST12_test.py::test__rules__std_ST12_no_semicolon",
+   "group": "rules",
+   "case_file": "rules/std_ST12_test.yml",
+   "cases": 1,
+   "needs_jinja": false,
+   "results": {
+    "sqlfluff": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqlfluff-rs": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqruff": {
+     "status": "pass",
+     "failed_cases": []
+    }
+   }
+  },
+  {
+   "id": "test/rules/std_ST12_test.py::test__rules__std_ST12_comments_break_runs",
+   "group": "rules",
+   "case_file": "rules/std_ST12_test.yml",
+   "cases": 1,
+   "needs_jinja": false,
+   "results": {
+    "sqlfluff": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqlfluff-rs": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqruff": {
+     "status": "pass",
+     "failed_cases": []
+    }
+   }
   }
  ],
  "excluded": [
@@ -542,6 +1121,12 @@
    "group": "rules",
    "class": "engine-comparison",
    "reason": "It compares use_rust_rules True and False and has no expected value (decision 3)."
+  },
+  {
+   "id": "test/rules/std_AM09_test.py::test__rules__std_AM09_eval_short_circuit_on_non_select_segment",
+   "group": "rules",
+   "class": "python-internal",
+   "reason": "It calls Rule_AM09._eval on a fake segment and calls no CLI command and no simple-API function."
   }
  ]
 }

@@ -8,6 +8,21 @@ source:
   file: test/rules/std_LT05_LT09_combo_test.py
 license: MIT
 nodes:
+  - node: test/rules/std_LT05_LT09_combo_test.py::test__rules__std_LT05_LT09_long_line_lint
+    asserts:
+      L17: ["long_line_lint:violations[0]"]
+      L18: ["long_line_lint:violations[1]"]
+    cases:
+      - name: long_line_lint
+        run: api
+        function: lint
+        sql: "SELECT\n1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\n"
+        checks:
+          violations:
+            - select: {code: LT05}
+              min_count: 1
+            - select: {code: LT09}
+              min_count: 1
   - node: test/rules/std_LT05_LT09_combo_test.py::test__rules__std_LT05_LT09_long_line_fix
     asserts:
       L28: ["long_line_fix:fixed"]
@@ -18,3 +33,13 @@ nodes:
         sql: "SELECT 1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\n"
         checks:
           fixed: "SELECT\n    1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\n"
+  - node: test/rules/std_LT05_LT09_combo_test.py::test__rules__std_LT05_LT09_long_line_fix2
+    asserts:
+      L41: ["long_line_fix2:fixed"]
+    cases:
+      - name: long_line_fix2
+        run: api
+        function: fix
+        sql: "SELECT\n    1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\n"
+        checks:
+          fixed: "SELECT 1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\n"

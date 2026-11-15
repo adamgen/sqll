@@ -8,6 +8,21 @@ source:
   file: test/rules/std_AL04_test.py
 license: MIT
 nodes:
+  - node: test/rules/std_AL04_test.py::test__rules__std_AL04_one_aliases_one_duplicate
+    asserts:
+      L15: ["one_aliases_one_duplicate:violations[0]"]
+      L16: ["one_aliases_one_duplicate:violations[1]"]
+    cases:
+      - name: one_aliases_one_duplicate
+        run: api
+        function: lint
+        sql: "\n        SELECT\n            a.pk\n        FROM table_1 AS a\n        JOIN table_2 AS a ON a.pk = a.pk\n    "
+        checks:
+          violations:
+            - select: {code: AL04}
+              min_count: 1
+            - select: {code: AL04}
+              count: 1
   - node: test/rules/std_AL04_test.py::test__rules__std_AL04_one_aliases_two_duplicate
     asserts:
       L31: ["one_aliases_two_duplicate:violations[0]"]
@@ -30,3 +45,32 @@ nodes:
                 code: AL04
                 description: {contains: Duplicate table alias 'a'}
               count: 2
+  - node: test/rules/std_AL04_test.py::test__rules__std_AL04_complex
+    asserts:
+      L62: ["complex:violations[0]"]
+      L63: ["complex:violations[1]"]
+      L73: ["complex:violations[2]"]
+      L84: ["complex:violations[0].records[0]"]
+      L85: ["complex:violations[0].records[1]"]
+      L86: ["complex:violations[0].records[2]"]
+    cases:
+      - name: complex
+        run: api
+        function: lint
+        sql: "\n        SELECT\n            a.pk,\n            b.pk\n        FROM table_1 AS a\n        JOIN table_2 AS a ON a.pk = a.pk\n        JOIN table_3 AS b ON a.pk = b.pk\n        JOIN table_4 AS b ON b.pk = b.pk\n        JOIN table_5 AS a ON b.pk = a.pk\n    "
+        checks:
+          violations:
+            # The source filters the AL04 violations, then checks them.
+            - select: {code: AL04}
+              records:
+                - start_line_no: 6
+                - start_line_no: 8
+                - start_line_no: 9
+            - select:
+                code: AL04
+                description: {contains: Duplicate table alias 'a'}
+              count: 2
+            - select:
+                code: AL04
+                description: {contains: Duplicate table alias 'b'}
+              count: 1

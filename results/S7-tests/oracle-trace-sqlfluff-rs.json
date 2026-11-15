@@ -8,7 +8,7 @@
  "pytest_exit_code": 1,
  "root_config": {},
  "parse_runs": {
-  "RustParser": 11,
+  "RustParser": 40,
   "Parser": 0
  },
  "collection_errors": {},
@@ -420,6 +420,296 @@
    "untraced": [],
    "processes": []
   },
+  "test/rules/std_AL04_test.py::test__rules__std_AL04_one_aliases_one_duplicate": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "api",
+     "inputs": {
+      "function": "lint",
+      "sql": "\n        SELECT\n            a.pk\n        FROM table_1 AS a\n        JOIN table_2 AS a ON a.pk = a.pk\n    ",
+      "dialect": null,
+      "rules": null,
+      "exclude_rules": null,
+      "config": null,
+      "config_path": null,
+      "cwd": "{sqlfluff}"
+     },
+     "outputs": [
+      {
+       "start_line_no": 1,
+       "start_line_pos": 1,
+       "code": "LT13",
+       "description": "Files must not begin with newlines or whitespace.",
+       "name": "layout.start_of_file",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 1,
+         "start_line_pos": 1,
+         "start_file_pos": 0,
+         "end_line_no": 2,
+         "end_line_pos": 1,
+         "end_file_pos": 1
+        },
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 2,
+         "start_line_pos": 1,
+         "start_file_pos": 1,
+         "end_line_no": 2,
+         "end_line_pos": 9,
+         "end_file_pos": 9
+        }
+       ],
+       "start_file_pos": 0,
+       "end_line_no": 6,
+       "end_line_pos": 5,
+       "end_file_pos": 104
+      },
+      {
+       "start_line_no": 2,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Line should not be indented.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 2,
+         "start_line_pos": 1,
+         "start_file_pos": 1,
+         "end_line_no": 2,
+         "end_line_pos": 9,
+         "end_file_pos": 9
+        }
+       ],
+       "start_file_pos": 1,
+       "end_line_no": 2,
+       "end_line_pos": 9,
+       "end_file_pos": 9
+      },
+      {
+       "start_line_no": 2,
+       "start_line_pos": 9,
+       "code": "LT09",
+       "description": "Select targets should be on a new line unless there is only one select target.",
+       "name": "layout.select_targets",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "replace",
+         "edit": " a.pk",
+         "start_line_no": 2,
+         "start_line_pos": 15,
+         "start_file_pos": 15,
+         "end_line_no": 3,
+         "end_line_pos": 1,
+         "end_file_pos": 16
+        },
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 3,
+         "start_line_pos": 13,
+         "start_file_pos": 28,
+         "end_line_no": 3,
+         "end_line_pos": 17,
+         "end_file_pos": 32
+        },
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 3,
+         "start_line_pos": 1,
+         "start_file_pos": 16,
+         "end_line_no": 3,
+         "end_line_pos": 13,
+         "end_file_pos": 28
+        },
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 3,
+         "start_line_pos": 17,
+         "start_file_pos": 32,
+         "end_line_no": 4,
+         "end_line_pos": 1,
+         "end_file_pos": 33
+        },
+        {
+         "type": "create_after",
+         "edit": "\n",
+         "start_line_no": 3,
+         "start_line_pos": 17,
+         "start_file_pos": 32,
+         "end_line_no": 3,
+         "end_line_pos": 17,
+         "end_file_pos": 32
+        }
+       ],
+       "start_file_pos": 9,
+       "end_line_no": 3,
+       "end_line_pos": 17,
+       "end_file_pos": 32
+      },
+      {
+       "start_line_no": 3,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Expected indent of 4 spaces.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "replace",
+         "edit": "    ",
+         "start_line_no": 3,
+         "start_line_pos": 1,
+         "start_file_pos": 16,
+         "end_line_no": 3,
+         "end_line_pos": 13,
+         "end_file_pos": 28
+        }
+       ],
+       "start_file_pos": 16,
+       "end_line_no": 3,
+       "end_line_pos": 13,
+       "end_file_pos": 28
+      },
+      {
+       "start_line_no": 4,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Line should not be indented.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 4,
+         "start_line_pos": 1,
+         "start_file_pos": 33,
+         "end_line_no": 4,
+         "end_line_pos": 9,
+         "end_file_pos": 41
+        }
+       ],
+       "start_file_pos": 33,
+       "end_line_no": 4,
+       "end_line_pos": 9,
+       "end_file_pos": 41
+      },
+      {
+       "start_line_no": 5,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Line should not be indented.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 5,
+         "start_line_pos": 1,
+         "start_file_pos": 59,
+         "end_line_no": 5,
+         "end_line_pos": 9,
+         "end_file_pos": 67
+        }
+       ],
+       "start_file_pos": 59,
+       "end_line_no": 5,
+       "end_line_pos": 9,
+       "end_file_pos": 67
+      },
+      {
+       "start_line_no": 5,
+       "start_line_pos": 9,
+       "code": "AM05",
+       "description": "Join clauses should be fully qualified.",
+       "name": "ambiguous.join",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "create_before",
+         "edit": "INNER ",
+         "start_line_no": 5,
+         "start_line_pos": 9,
+         "start_file_pos": 67,
+         "end_line_no": 5,
+         "end_line_pos": 9,
+         "end_file_pos": 67
+        }
+       ],
+       "start_file_pos": 67,
+       "end_line_no": 5,
+       "end_line_pos": 13,
+       "end_file_pos": 71
+      },
+      {
+       "start_line_no": 5,
+       "start_line_pos": 25,
+       "code": "AL04",
+       "description": "Duplicate table alias 'a'. Table aliases should be unique.",
+       "name": "aliasing.unique.table",
+       "warning": false,
+       "fixes": [],
+       "start_file_pos": 83,
+       "end_line_no": 5,
+       "end_line_pos": 26,
+       "end_file_pos": 84
+      },
+      {
+       "start_line_no": 5,
+       "start_line_pos": 35,
+       "code": "ST10",
+       "description": "Redundant constant expression.",
+       "name": "structure.constant_expression",
+       "warning": false,
+       "fixes": [],
+       "start_file_pos": 93,
+       "end_line_no": 5,
+       "end_line_pos": 36,
+       "end_file_pos": 94
+      },
+      {
+       "start_line_no": 6,
+       "start_line_pos": 1,
+       "code": "LT01",
+       "description": "Unnecessary trailing whitespace at end of file.",
+       "name": "layout.spacing",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 6,
+         "start_line_pos": 1,
+         "start_file_pos": 100,
+         "end_line_no": 6,
+         "end_line_pos": 5,
+         "end_file_pos": 104
+        }
+       ],
+       "start_file_pos": 100,
+       "end_line_no": 6,
+       "end_line_pos": 5,
+       "end_file_pos": 104
+      }
+     ]
+    }
+   ],
+   "untraced": [],
+   "processes": []
+  },
   "test/rules/std_AL04_test.py::test__rules__std_AL04_one_aliases_two_duplicate": {
    "outcome": "passed",
    "calls": [
@@ -784,6 +1074,2022 @@
    "untraced": [],
    "processes": []
   },
+  "test/rules/std_AL04_test.py::test__rules__std_AL04_complex": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "api",
+     "inputs": {
+      "function": "lint",
+      "sql": "\n        SELECT\n            a.pk,\n            b.pk\n        FROM table_1 AS a\n        JOIN table_2 AS a ON a.pk = a.pk\n        JOIN table_3 AS b ON a.pk = b.pk\n        JOIN table_4 AS b ON b.pk = b.pk\n        JOIN table_5 AS a ON b.pk = a.pk\n    ",
+      "dialect": null,
+      "rules": null,
+      "exclude_rules": null,
+      "config": null,
+      "config_path": null,
+      "cwd": "{sqlfluff}"
+     },
+     "outputs": [
+      {
+       "start_line_no": 1,
+       "start_line_pos": 1,
+       "code": "LT13",
+       "description": "Files must not begin with newlines or whitespace.",
+       "name": "layout.start_of_file",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 1,
+         "start_line_pos": 1,
+         "start_file_pos": 0,
+         "end_line_no": 2,
+         "end_line_pos": 1,
+         "end_file_pos": 1
+        },
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 2,
+         "start_line_pos": 1,
+         "start_file_pos": 1,
+         "end_line_no": 2,
+         "end_line_pos": 9,
+         "end_file_pos": 9
+        }
+       ],
+       "start_file_pos": 0,
+       "end_line_no": 10,
+       "end_line_pos": 5,
+       "end_file_pos": 245
+      },
+      {
+       "start_line_no": 2,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Line should not be indented.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 2,
+         "start_line_pos": 1,
+         "start_file_pos": 1,
+         "end_line_no": 2,
+         "end_line_pos": 9,
+         "end_file_pos": 9
+        }
+       ],
+       "start_file_pos": 1,
+       "end_line_no": 2,
+       "end_line_pos": 9,
+       "end_file_pos": 9
+      },
+      {
+       "start_line_no": 3,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Expected indent of 4 spaces.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "replace",
+         "edit": "    ",
+         "start_line_no": 3,
+         "start_line_pos": 1,
+         "start_file_pos": 16,
+         "end_line_no": 3,
+         "end_line_pos": 13,
+         "end_file_pos": 28
+        }
+       ],
+       "start_file_pos": 16,
+       "end_line_no": 3,
+       "end_line_pos": 13,
+       "end_file_pos": 28
+      },
+      {
+       "start_line_no": 4,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Expected indent of 4 spaces.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "replace",
+         "edit": "    ",
+         "start_line_no": 4,
+         "start_line_pos": 1,
+         "start_file_pos": 34,
+         "end_line_no": 4,
+         "end_line_pos": 13,
+         "end_file_pos": 46
+        }
+       ],
+       "start_file_pos": 34,
+       "end_line_no": 4,
+       "end_line_pos": 13,
+       "end_file_pos": 46
+      },
+      {
+       "start_line_no": 4,
+       "start_line_pos": 15,
+       "code": "AL08",
+       "description": "Reuse of column alias 'pk' from line 3.",
+       "name": "aliasing.unique.column",
+       "warning": false,
+       "fixes": [],
+       "start_file_pos": 48,
+       "end_line_no": 4,
+       "end_line_pos": 17,
+       "end_file_pos": 50
+      },
+      {
+       "start_line_no": 5,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Line should not be indented.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 5,
+         "start_line_pos": 1,
+         "start_file_pos": 51,
+         "end_line_no": 5,
+         "end_line_pos": 9,
+         "end_file_pos": 59
+        }
+       ],
+       "start_file_pos": 51,
+       "end_line_no": 5,
+       "end_line_pos": 9,
+       "end_file_pos": 59
+      },
+      {
+       "start_line_no": 6,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Line should not be indented.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 6,
+         "start_line_pos": 1,
+         "start_file_pos": 77,
+         "end_line_no": 6,
+         "end_line_pos": 9,
+         "end_file_pos": 85
+        }
+       ],
+       "start_file_pos": 77,
+       "end_line_no": 6,
+       "end_line_pos": 9,
+       "end_file_pos": 85
+      },
+      {
+       "start_line_no": 6,
+       "start_line_pos": 9,
+       "code": "AM05",
+       "description": "Join clauses should be fully qualified.",
+       "name": "ambiguous.join",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "create_before",
+         "edit": "INNER ",
+         "start_line_no": 6,
+         "start_line_pos": 9,
+         "start_file_pos": 85,
+         "end_line_no": 6,
+         "end_line_pos": 9,
+         "end_file_pos": 85
+        }
+       ],
+       "start_file_pos": 85,
+       "end_line_no": 6,
+       "end_line_pos": 13,
+       "end_file_pos": 89
+      },
+      {
+       "start_line_no": 6,
+       "start_line_pos": 25,
+       "code": "AL04",
+       "description": "Duplicate table alias 'a'. Table aliases should be unique.",
+       "name": "aliasing.unique.table",
+       "warning": false,
+       "fixes": [],
+       "start_file_pos": 101,
+       "end_line_no": 6,
+       "end_line_pos": 26,
+       "end_file_pos": 102
+      },
+      {
+       "start_line_no": 6,
+       "start_line_pos": 35,
+       "code": "ST10",
+       "description": "Redundant constant expression.",
+       "name": "structure.constant_expression",
+       "warning": false,
+       "fixes": [],
+       "start_file_pos": 111,
+       "end_line_no": 6,
+       "end_line_pos": 36,
+       "end_file_pos": 112
+      },
+      {
+       "start_line_no": 7,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Line should not be indented.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 7,
+         "start_line_pos": 1,
+         "start_file_pos": 118,
+         "end_line_no": 7,
+         "end_line_pos": 9,
+         "end_file_pos": 126
+        }
+       ],
+       "start_file_pos": 118,
+       "end_line_no": 7,
+       "end_line_pos": 9,
+       "end_file_pos": 126
+      },
+      {
+       "start_line_no": 7,
+       "start_line_pos": 9,
+       "code": "AM05",
+       "description": "Join clauses should be fully qualified.",
+       "name": "ambiguous.join",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "create_before",
+         "edit": "INNER ",
+         "start_line_no": 7,
+         "start_line_pos": 9,
+         "start_file_pos": 126,
+         "end_line_no": 7,
+         "end_line_pos": 9,
+         "end_file_pos": 126
+        }
+       ],
+       "start_file_pos": 126,
+       "end_line_no": 7,
+       "end_line_pos": 13,
+       "end_file_pos": 130
+      },
+      {
+       "start_line_no": 8,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Line should not be indented.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 8,
+         "start_line_pos": 1,
+         "start_file_pos": 159,
+         "end_line_no": 8,
+         "end_line_pos": 9,
+         "end_file_pos": 167
+        }
+       ],
+       "start_file_pos": 159,
+       "end_line_no": 8,
+       "end_line_pos": 9,
+       "end_file_pos": 167
+      },
+      {
+       "start_line_no": 8,
+       "start_line_pos": 9,
+       "code": "AM05",
+       "description": "Join clauses should be fully qualified.",
+       "name": "ambiguous.join",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "create_before",
+         "edit": "INNER ",
+         "start_line_no": 8,
+         "start_line_pos": 9,
+         "start_file_pos": 167,
+         "end_line_no": 8,
+         "end_line_pos": 9,
+         "end_file_pos": 167
+        }
+       ],
+       "start_file_pos": 167,
+       "end_line_no": 8,
+       "end_line_pos": 13,
+       "end_file_pos": 171
+      },
+      {
+       "start_line_no": 8,
+       "start_line_pos": 25,
+       "code": "AL04",
+       "description": "Duplicate table alias 'b'. Table aliases should be unique.",
+       "name": "aliasing.unique.table",
+       "warning": false,
+       "fixes": [],
+       "start_file_pos": 183,
+       "end_line_no": 8,
+       "end_line_pos": 26,
+       "end_file_pos": 184
+      },
+      {
+       "start_line_no": 8,
+       "start_line_pos": 35,
+       "code": "ST10",
+       "description": "Redundant constant expression.",
+       "name": "structure.constant_expression",
+       "warning": false,
+       "fixes": [],
+       "start_file_pos": 193,
+       "end_line_no": 8,
+       "end_line_pos": 36,
+       "end_file_pos": 194
+      },
+      {
+       "start_line_no": 9,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Line should not be indented.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 9,
+         "start_line_pos": 1,
+         "start_file_pos": 200,
+         "end_line_no": 9,
+         "end_line_pos": 9,
+         "end_file_pos": 208
+        }
+       ],
+       "start_file_pos": 200,
+       "end_line_no": 9,
+       "end_line_pos": 9,
+       "end_file_pos": 208
+      },
+      {
+       "start_line_no": 9,
+       "start_line_pos": 9,
+       "code": "AM05",
+       "description": "Join clauses should be fully qualified.",
+       "name": "ambiguous.join",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "create_before",
+         "edit": "INNER ",
+         "start_line_no": 9,
+         "start_line_pos": 9,
+         "start_file_pos": 208,
+         "end_line_no": 9,
+         "end_line_pos": 9,
+         "end_file_pos": 208
+        }
+       ],
+       "start_file_pos": 208,
+       "end_line_no": 9,
+       "end_line_pos": 13,
+       "end_file_pos": 212
+      },
+      {
+       "start_line_no": 9,
+       "start_line_pos": 25,
+       "code": "AL04",
+       "description": "Duplicate table alias 'a'. Table aliases should be unique.",
+       "name": "aliasing.unique.table",
+       "warning": false,
+       "fixes": [],
+       "start_file_pos": 224,
+       "end_line_no": 9,
+       "end_line_pos": 26,
+       "end_file_pos": 225
+      },
+      {
+       "start_line_no": 9,
+       "start_line_pos": 30,
+       "code": "ST09",
+       "description": "Joins should list the table referenced earlier first.",
+       "name": "structure.join_condition_order",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "replace",
+         "edit": "a.pk",
+         "start_line_no": 9,
+         "start_line_pos": 30,
+         "start_file_pos": 229,
+         "end_line_no": 9,
+         "end_line_pos": 34,
+         "end_file_pos": 233
+        },
+        {
+         "type": "replace",
+         "edit": "b.pk",
+         "start_line_no": 9,
+         "start_line_pos": 37,
+         "start_file_pos": 236,
+         "end_line_no": 9,
+         "end_line_pos": 41,
+         "end_file_pos": 240
+        }
+       ],
+       "start_file_pos": 229,
+       "end_line_no": 9,
+       "end_line_pos": 34,
+       "end_file_pos": 233
+      },
+      {
+       "start_line_no": 10,
+       "start_line_pos": 1,
+       "code": "LT01",
+       "description": "Unnecessary trailing whitespace at end of file.",
+       "name": "layout.spacing",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 10,
+         "start_line_pos": 1,
+         "start_file_pos": 241,
+         "end_line_no": 10,
+         "end_line_pos": 5,
+         "end_file_pos": 245
+        }
+       ],
+       "start_file_pos": 241,
+       "end_line_no": 10,
+       "end_line_pos": 5,
+       "end_file_pos": 245
+      }
+     ]
+    }
+   ],
+   "untraced": [],
+   "processes": []
+  },
+  "test/rules/std_AM06_test.py::test__rules__std_AM06_raised": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "api",
+     "inputs": {
+      "function": "lint",
+      "sql": "\n    SELECT\n        foo,\n        bar,\n        sum(baz) AS sum_value\n    FROM (\n        SELECT\n            foo,\n            bar,\n            sum(baz) AS baz\n        FROM fake_table\n        GROUP BY\n            foo, bar\n    )\n    GROUP BY\n        1, 2\n    ORDER BY\n        1, 2;\n    ",
+      "dialect": null,
+      "rules": null,
+      "exclude_rules": null,
+      "config": null,
+      "config_path": null,
+      "cwd": "{sqlfluff}"
+     },
+     "outputs": [
+      {
+       "start_line_no": 1,
+       "start_line_pos": 1,
+       "code": "LT13",
+       "description": "Files must not begin with newlines or whitespace.",
+       "name": "layout.start_of_file",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 1,
+         "start_line_pos": 1,
+         "start_file_pos": 0,
+         "end_line_no": 2,
+         "end_line_pos": 1,
+         "end_file_pos": 1
+        },
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 2,
+         "start_line_pos": 1,
+         "start_file_pos": 1,
+         "end_line_no": 2,
+         "end_line_pos": 5,
+         "end_file_pos": 5
+        }
+       ],
+       "start_file_pos": 0,
+       "end_line_no": 19,
+       "end_line_pos": 5,
+       "end_file_pos": 281
+      },
+      {
+       "start_line_no": 2,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Line should not be indented.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 2,
+         "start_line_pos": 1,
+         "start_file_pos": 1,
+         "end_line_no": 2,
+         "end_line_pos": 5,
+         "end_file_pos": 5
+        }
+       ],
+       "start_file_pos": 1,
+       "end_line_no": 2,
+       "end_line_pos": 5,
+       "end_file_pos": 5
+      },
+      {
+       "start_line_no": 3,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Expected indent of 4 spaces.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "replace",
+         "edit": "    ",
+         "start_line_no": 3,
+         "start_line_pos": 1,
+         "start_file_pos": 12,
+         "end_line_no": 3,
+         "end_line_pos": 9,
+         "end_file_pos": 20
+        }
+       ],
+       "start_file_pos": 12,
+       "end_line_no": 3,
+       "end_line_pos": 9,
+       "end_file_pos": 20
+      },
+      {
+       "start_line_no": 4,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Expected indent of 4 spaces.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "replace",
+         "edit": "    ",
+         "start_line_no": 4,
+         "start_line_pos": 1,
+         "start_file_pos": 25,
+         "end_line_no": 4,
+         "end_line_pos": 9,
+         "end_file_pos": 33
+        }
+       ],
+       "start_file_pos": 25,
+       "end_line_no": 4,
+       "end_line_pos": 9,
+       "end_file_pos": 33
+      },
+      {
+       "start_line_no": 5,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Expected indent of 4 spaces.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "replace",
+         "edit": "    ",
+         "start_line_no": 5,
+         "start_line_pos": 1,
+         "start_file_pos": 38,
+         "end_line_no": 5,
+         "end_line_pos": 9,
+         "end_file_pos": 46
+        }
+       ],
+       "start_file_pos": 38,
+       "end_line_no": 5,
+       "end_line_pos": 9,
+       "end_file_pos": 46
+      },
+      {
+       "start_line_no": 6,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Line should not be indented.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 6,
+         "start_line_pos": 1,
+         "start_file_pos": 68,
+         "end_line_no": 6,
+         "end_line_pos": 5,
+         "end_file_pos": 72
+        }
+       ],
+       "start_file_pos": 68,
+       "end_line_no": 6,
+       "end_line_pos": 5,
+       "end_file_pos": 72
+      },
+      {
+       "start_line_no": 6,
+       "start_line_pos": 10,
+       "code": "AL10",
+       "description": "Derived table must have an alias.",
+       "name": "aliasing.required",
+       "warning": false,
+       "fixes": [],
+       "start_file_pos": 77,
+       "end_line_no": 14,
+       "end_line_pos": 6,
+       "end_file_pos": 223
+      },
+      {
+       "start_line_no": 7,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Expected indent of 4 spaces.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "replace",
+         "edit": "    ",
+         "start_line_no": 7,
+         "start_line_pos": 1,
+         "start_file_pos": 79,
+         "end_line_no": 7,
+         "end_line_pos": 9,
+         "end_file_pos": 87
+        }
+       ],
+       "start_file_pos": 79,
+       "end_line_no": 7,
+       "end_line_pos": 9,
+       "end_file_pos": 87
+      },
+      {
+       "start_line_no": 8,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Expected indent of 8 spaces.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "replace",
+         "edit": "        ",
+         "start_line_no": 8,
+         "start_line_pos": 1,
+         "start_file_pos": 94,
+         "end_line_no": 8,
+         "end_line_pos": 13,
+         "end_file_pos": 106
+        }
+       ],
+       "start_file_pos": 94,
+       "end_line_no": 8,
+       "end_line_pos": 13,
+       "end_file_pos": 106
+      },
+      {
+       "start_line_no": 9,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Expected indent of 8 spaces.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "replace",
+         "edit": "        ",
+         "start_line_no": 9,
+         "start_line_pos": 1,
+         "start_file_pos": 111,
+         "end_line_no": 9,
+         "end_line_pos": 13,
+         "end_file_pos": 123
+        }
+       ],
+       "start_file_pos": 111,
+       "end_line_no": 9,
+       "end_line_pos": 13,
+       "end_file_pos": 123
+      },
+      {
+       "start_line_no": 10,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Expected indent of 8 spaces.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "replace",
+         "edit": "        ",
+         "start_line_no": 10,
+         "start_line_pos": 1,
+         "start_file_pos": 128,
+         "end_line_no": 10,
+         "end_line_pos": 13,
+         "end_file_pos": 140
+        }
+       ],
+       "start_file_pos": 128,
+       "end_line_no": 10,
+       "end_line_pos": 13,
+       "end_file_pos": 140
+      },
+      {
+       "start_line_no": 11,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Expected indent of 4 spaces.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "replace",
+         "edit": "    ",
+         "start_line_no": 11,
+         "start_line_pos": 1,
+         "start_file_pos": 156,
+         "end_line_no": 11,
+         "end_line_pos": 9,
+         "end_file_pos": 164
+        }
+       ],
+       "start_file_pos": 156,
+       "end_line_no": 11,
+       "end_line_pos": 9,
+       "end_file_pos": 164
+      },
+      {
+       "start_line_no": 12,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Expected indent of 4 spaces.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "replace",
+         "edit": "    ",
+         "start_line_no": 12,
+         "start_line_pos": 1,
+         "start_file_pos": 180,
+         "end_line_no": 12,
+         "end_line_pos": 9,
+         "end_file_pos": 188
+        }
+       ],
+       "start_file_pos": 180,
+       "end_line_no": 12,
+       "end_line_pos": 9,
+       "end_file_pos": 188
+      },
+      {
+       "start_line_no": 13,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Expected indent of 8 spaces.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "replace",
+         "edit": "        ",
+         "start_line_no": 13,
+         "start_line_pos": 1,
+         "start_file_pos": 197,
+         "end_line_no": 13,
+         "end_line_pos": 13,
+         "end_file_pos": 209
+        }
+       ],
+       "start_file_pos": 197,
+       "end_line_no": 13,
+       "end_line_pos": 13,
+       "end_file_pos": 209
+      },
+      {
+       "start_line_no": 14,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Line should not be indented.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 14,
+         "start_line_pos": 1,
+         "start_file_pos": 218,
+         "end_line_no": 14,
+         "end_line_pos": 5,
+         "end_file_pos": 222
+        }
+       ],
+       "start_file_pos": 218,
+       "end_line_no": 14,
+       "end_line_pos": 5,
+       "end_file_pos": 222
+      },
+      {
+       "start_line_no": 15,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Line should not be indented.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 15,
+         "start_line_pos": 1,
+         "start_file_pos": 224,
+         "end_line_no": 15,
+         "end_line_pos": 5,
+         "end_file_pos": 228
+        }
+       ],
+       "start_file_pos": 224,
+       "end_line_no": 15,
+       "end_line_pos": 5,
+       "end_file_pos": 228
+      },
+      {
+       "start_line_no": 15,
+       "start_line_pos": 5,
+       "code": "AM06",
+       "description": "Inconsistent column references in 'GROUP BY/ORDER BY' clauses.",
+       "name": "ambiguous.column_references",
+       "warning": false,
+       "fixes": [],
+       "start_file_pos": 228,
+       "end_line_no": 16,
+       "end_line_pos": 13,
+       "end_file_pos": 249
+      },
+      {
+       "start_line_no": 16,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Expected indent of 4 spaces.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "replace",
+         "edit": "    ",
+         "start_line_no": 16,
+         "start_line_pos": 1,
+         "start_file_pos": 237,
+         "end_line_no": 16,
+         "end_line_pos": 9,
+         "end_file_pos": 245
+        }
+       ],
+       "start_file_pos": 237,
+       "end_line_no": 16,
+       "end_line_pos": 9,
+       "end_file_pos": 245
+      },
+      {
+       "start_line_no": 17,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Line should not be indented.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 17,
+         "start_line_pos": 1,
+         "start_file_pos": 250,
+         "end_line_no": 17,
+         "end_line_pos": 5,
+         "end_file_pos": 254
+        }
+       ],
+       "start_file_pos": 250,
+       "end_line_no": 17,
+       "end_line_pos": 5,
+       "end_file_pos": 254
+      },
+      {
+       "start_line_no": 17,
+       "start_line_pos": 5,
+       "code": "AM06",
+       "description": "Inconsistent column references in 'GROUP BY/ORDER BY' clauses.",
+       "name": "ambiguous.column_references",
+       "warning": false,
+       "fixes": [],
+       "start_file_pos": 254,
+       "end_line_no": 18,
+       "end_line_pos": 13,
+       "end_file_pos": 275
+      },
+      {
+       "start_line_no": 18,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Expected indent of 4 spaces.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "replace",
+         "edit": "    ",
+         "start_line_no": 18,
+         "start_line_pos": 1,
+         "start_file_pos": 263,
+         "end_line_no": 18,
+         "end_line_pos": 9,
+         "end_file_pos": 271
+        }
+       ],
+       "start_file_pos": 263,
+       "end_line_no": 18,
+       "end_line_pos": 9,
+       "end_file_pos": 271
+      },
+      {
+       "start_line_no": 19,
+       "start_line_pos": 1,
+       "code": "LT01",
+       "description": "Unnecessary trailing whitespace at end of file.",
+       "name": "layout.spacing",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 19,
+         "start_line_pos": 1,
+         "start_file_pos": 277,
+         "end_line_no": 19,
+         "end_line_pos": 5,
+         "end_file_pos": 281
+        }
+       ],
+       "start_file_pos": 277,
+       "end_line_no": 19,
+       "end_line_pos": 5,
+       "end_file_pos": 281
+      }
+     ]
+    }
+   ],
+   "untraced": [],
+   "processes": []
+  },
+  "test/rules/std_AM06_test.py::test__rules__std_AM06_unparsable": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "api",
+     "inputs": {
+      "function": "lint",
+      "sql": "\n    SELECT foo.set.barr\n    FROM foo\n    GROUP BY\n      foo.set.barr\n    ",
+      "dialect": null,
+      "rules": null,
+      "exclude_rules": null,
+      "config": null,
+      "config_path": null,
+      "cwd": "{sqlfluff}"
+     },
+     "outputs": [
+      {
+       "start_line_no": 1,
+       "start_line_pos": 1,
+       "code": "LT13",
+       "description": "Files must not begin with newlines or whitespace.",
+       "name": "layout.start_of_file",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 1,
+         "start_line_pos": 1,
+         "start_file_pos": 0,
+         "end_line_no": 2,
+         "end_line_pos": 1,
+         "end_file_pos": 1
+        },
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 2,
+         "start_line_pos": 1,
+         "start_file_pos": 1,
+         "end_line_no": 2,
+         "end_line_pos": 5,
+         "end_file_pos": 5
+        }
+       ],
+       "start_file_pos": 0,
+       "end_line_no": 6,
+       "end_line_pos": 5,
+       "end_file_pos": 74
+      },
+      {
+       "start_line_no": 2,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Line should not be indented.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 2,
+         "start_line_pos": 1,
+         "start_file_pos": 1,
+         "end_line_no": 2,
+         "end_line_pos": 5,
+         "end_file_pos": 5
+        }
+       ],
+       "start_file_pos": 1,
+       "end_line_no": 2,
+       "end_line_pos": 5,
+       "end_file_pos": 5
+      },
+      {
+       "start_line_no": 2,
+       "start_line_pos": 15,
+       "code": "PRS",
+       "description": "Line 2, Position 15: Found unparsable section: '.set.barr'",
+       "name": "",
+       "warning": false,
+       "start_file_pos": 15,
+       "end_line_no": 2,
+       "end_line_pos": 24,
+       "end_file_pos": 24
+      },
+      {
+       "start_line_no": 3,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Line should not be indented.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 3,
+         "start_line_pos": 1,
+         "start_file_pos": 25,
+         "end_line_no": 3,
+         "end_line_pos": 5,
+         "end_file_pos": 29
+        }
+       ],
+       "start_file_pos": 25,
+       "end_line_no": 3,
+       "end_line_pos": 5,
+       "end_file_pos": 29
+      },
+      {
+       "start_line_no": 4,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Line should not be indented.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 4,
+         "start_line_pos": 1,
+         "start_file_pos": 38,
+         "end_line_no": 4,
+         "end_line_pos": 5,
+         "end_file_pos": 42
+        }
+       ],
+       "start_file_pos": 38,
+       "end_line_no": 4,
+       "end_line_pos": 5,
+       "end_file_pos": 42
+      },
+      {
+       "start_line_no": 5,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Expected indent of 4 spaces.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "replace",
+         "edit": "    ",
+         "start_line_no": 5,
+         "start_line_pos": 1,
+         "start_file_pos": 51,
+         "end_line_no": 5,
+         "end_line_pos": 7,
+         "end_file_pos": 57
+        }
+       ],
+       "start_file_pos": 51,
+       "end_line_no": 5,
+       "end_line_pos": 7,
+       "end_file_pos": 57
+      },
+      {
+       "start_line_no": 5,
+       "start_line_pos": 10,
+       "code": "PRS",
+       "description": "Line 5, Position 10: Found unparsable section: '.set.barr'",
+       "name": "",
+       "warning": false,
+       "start_file_pos": 60,
+       "end_line_no": 5,
+       "end_line_pos": 19,
+       "end_file_pos": 69
+      },
+      {
+       "start_line_no": 6,
+       "start_line_pos": 1,
+       "code": "LT01",
+       "description": "Unnecessary trailing whitespace at end of file.",
+       "name": "layout.spacing",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 6,
+         "start_line_pos": 1,
+         "start_file_pos": 70,
+         "end_line_no": 6,
+         "end_line_pos": 5,
+         "end_file_pos": 74
+        }
+       ],
+       "start_file_pos": 70,
+       "end_line_no": 6,
+       "end_line_pos": 5,
+       "end_file_pos": 74
+      }
+     ]
+    }
+   ],
+   "untraced": [],
+   "processes": []
+  },
+  "test/rules/std_AM06_test.py::test__rules__std_AM06_noqa": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "api",
+     "inputs": {
+      "function": "lint",
+      "sql": "\n    SELECT foo.set.barr  --noqa: PRS\n    FROM foo\n    GROUP BY\n      f@oo.set.bar.r --noqa: PRS\n    ",
+      "dialect": null,
+      "rules": null,
+      "exclude_rules": null,
+      "config": null,
+      "config_path": null,
+      "cwd": "{sqlfluff}"
+     },
+     "outputs": [
+      {
+       "start_line_no": 1,
+       "start_line_pos": 1,
+       "code": "LT13",
+       "description": "Files must not begin with newlines or whitespace.",
+       "name": "layout.start_of_file",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 1,
+         "start_line_pos": 1,
+         "start_file_pos": 0,
+         "end_line_no": 2,
+         "end_line_pos": 1,
+         "end_file_pos": 1
+        },
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 2,
+         "start_line_pos": 1,
+         "start_file_pos": 1,
+         "end_line_no": 2,
+         "end_line_pos": 5,
+         "end_file_pos": 5
+        }
+       ],
+       "start_file_pos": 0,
+       "end_line_no": 6,
+       "end_line_pos": 5,
+       "end_file_pos": 101
+      },
+      {
+       "start_line_no": 2,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Line should not be indented.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 2,
+         "start_line_pos": 1,
+         "start_file_pos": 1,
+         "end_line_no": 2,
+         "end_line_pos": 5,
+         "end_file_pos": 5
+        }
+       ],
+       "start_file_pos": 1,
+       "end_line_no": 2,
+       "end_line_pos": 5,
+       "end_file_pos": 5
+      },
+      {
+       "start_line_no": 3,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Line should not be indented.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 3,
+         "start_line_pos": 1,
+         "start_file_pos": 38,
+         "end_line_no": 3,
+         "end_line_pos": 5,
+         "end_file_pos": 42
+        }
+       ],
+       "start_file_pos": 38,
+       "end_line_no": 3,
+       "end_line_pos": 5,
+       "end_file_pos": 42
+      },
+      {
+       "start_line_no": 4,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Line should not be indented.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 4,
+         "start_line_pos": 1,
+         "start_file_pos": 51,
+         "end_line_no": 4,
+         "end_line_pos": 5,
+         "end_file_pos": 55
+        }
+       ],
+       "start_file_pos": 51,
+       "end_line_no": 4,
+       "end_line_pos": 5,
+       "end_file_pos": 55
+      },
+      {
+       "start_line_no": 5,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Expected indent of 4 spaces.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "replace",
+         "edit": "    ",
+         "start_line_no": 5,
+         "start_line_pos": 1,
+         "start_file_pos": 64,
+         "end_line_no": 5,
+         "end_line_pos": 7,
+         "end_file_pos": 70
+        }
+       ],
+       "start_file_pos": 64,
+       "end_line_no": 5,
+       "end_line_pos": 7,
+       "end_file_pos": 70
+      },
+      {
+       "start_line_no": 5,
+       "start_line_pos": 8,
+       "code": "LXR",
+       "description": "Unable to lex characters: '@oo.set.ba...'",
+       "name": "",
+       "warning": false
+      },
+      {
+       "start_line_no": 6,
+       "start_line_pos": 1,
+       "code": "LT01",
+       "description": "Unnecessary trailing whitespace at end of file.",
+       "name": "layout.spacing",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 6,
+         "start_line_pos": 1,
+         "start_file_pos": 97,
+         "end_line_no": 6,
+         "end_line_pos": 5,
+         "end_file_pos": 101
+        }
+       ],
+       "start_file_pos": 97,
+       "end_line_no": 6,
+       "end_line_pos": 5,
+       "end_file_pos": 101
+      }
+     ]
+    }
+   ],
+   "untraced": [],
+   "processes": []
+  },
+  "test/rules/std_AM09_test.py::test__rules__std_AM09_missing_order_by": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "api",
+     "inputs": {
+      "function": "lint",
+      "sql": "\n    SELECT *\n    FROM foo\n    LIMIT 10 OFFSET 5;\n    ",
+      "dialect": null,
+      "rules": null,
+      "exclude_rules": null,
+      "config": null,
+      "config_path": null,
+      "cwd": "{sqlfluff}"
+     },
+     "outputs": [
+      {
+       "start_line_no": 1,
+       "start_line_pos": 1,
+       "code": "LT13",
+       "description": "Files must not begin with newlines or whitespace.",
+       "name": "layout.start_of_file",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 1,
+         "start_line_pos": 1,
+         "start_file_pos": 0,
+         "end_line_no": 2,
+         "end_line_pos": 1,
+         "end_file_pos": 1
+        },
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 2,
+         "start_line_pos": 1,
+         "start_file_pos": 1,
+         "end_line_no": 2,
+         "end_line_pos": 5,
+         "end_file_pos": 5
+        }
+       ],
+       "start_file_pos": 0,
+       "end_line_no": 5,
+       "end_line_pos": 5,
+       "end_file_pos": 54
+      },
+      {
+       "start_line_no": 2,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Line should not be indented.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 2,
+         "start_line_pos": 1,
+         "start_file_pos": 1,
+         "end_line_no": 2,
+         "end_line_pos": 5,
+         "end_file_pos": 5
+        }
+       ],
+       "start_file_pos": 1,
+       "end_line_no": 2,
+       "end_line_pos": 5,
+       "end_file_pos": 5
+      },
+      {
+       "start_line_no": 2,
+       "start_line_pos": 12,
+       "code": "AM04",
+       "description": "Query produces an unknown number of result columns.",
+       "name": "ambiguous.column_count",
+       "warning": false,
+       "fixes": [],
+       "start_file_pos": 12,
+       "end_line_no": 2,
+       "end_line_pos": 13,
+       "end_file_pos": 13
+      },
+      {
+       "start_line_no": 3,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Line should not be indented.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 3,
+         "start_line_pos": 1,
+         "start_file_pos": 14,
+         "end_line_no": 3,
+         "end_line_pos": 5,
+         "end_file_pos": 18
+        }
+       ],
+       "start_file_pos": 14,
+       "end_line_no": 3,
+       "end_line_pos": 5,
+       "end_file_pos": 18
+      },
+      {
+       "start_line_no": 4,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Line should not be indented.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 4,
+         "start_line_pos": 1,
+         "start_file_pos": 27,
+         "end_line_no": 4,
+         "end_line_pos": 5,
+         "end_file_pos": 31
+        }
+       ],
+       "start_file_pos": 27,
+       "end_line_no": 4,
+       "end_line_pos": 5,
+       "end_file_pos": 31
+      },
+      {
+       "start_line_no": 4,
+       "start_line_pos": 5,
+       "code": "AM09",
+       "description": "LIMIT and OFFSET are used without ORDER BY, which may lead to non-deterministic results.",
+       "name": "ambiguous.order_by_limit",
+       "warning": false,
+       "fixes": [],
+       "start_file_pos": 31,
+       "end_line_no": 4,
+       "end_line_pos": 22,
+       "end_file_pos": 48
+      },
+      {
+       "start_line_no": 5,
+       "start_line_pos": 1,
+       "code": "LT01",
+       "description": "Unnecessary trailing whitespace at end of file.",
+       "name": "layout.spacing",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 5,
+         "start_line_pos": 1,
+         "start_file_pos": 50,
+         "end_line_no": 5,
+         "end_line_pos": 5,
+         "end_file_pos": 54
+        }
+       ],
+       "start_file_pos": 50,
+       "end_line_no": 5,
+       "end_line_pos": 5,
+       "end_file_pos": 54
+      }
+     ]
+    }
+   ],
+   "untraced": [],
+   "processes": []
+  },
+  "test/rules/std_AM09_test.py::test__rules__std_AM09_with_order_by": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "api",
+     "inputs": {
+      "function": "lint",
+      "sql": "\n    SELECT *\n    FROM foo\n    ORDER BY id\n    LIMIT 10 OFFSET 5;\n    ",
+      "dialect": null,
+      "rules": null,
+      "exclude_rules": null,
+      "config": null,
+      "config_path": null,
+      "cwd": "{sqlfluff}"
+     },
+     "outputs": [
+      {
+       "start_line_no": 1,
+       "start_line_pos": 1,
+       "code": "LT13",
+       "description": "Files must not begin with newlines or whitespace.",
+       "name": "layout.start_of_file",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 1,
+         "start_line_pos": 1,
+         "start_file_pos": 0,
+         "end_line_no": 2,
+         "end_line_pos": 1,
+         "end_file_pos": 1
+        },
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 2,
+         "start_line_pos": 1,
+         "start_file_pos": 1,
+         "end_line_no": 2,
+         "end_line_pos": 5,
+         "end_file_pos": 5
+        }
+       ],
+       "start_file_pos": 0,
+       "end_line_no": 6,
+       "end_line_pos": 5,
+       "end_file_pos": 70
+      },
+      {
+       "start_line_no": 2,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Line should not be indented.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 2,
+         "start_line_pos": 1,
+         "start_file_pos": 1,
+         "end_line_no": 2,
+         "end_line_pos": 5,
+         "end_file_pos": 5
+        }
+       ],
+       "start_file_pos": 1,
+       "end_line_no": 2,
+       "end_line_pos": 5,
+       "end_file_pos": 5
+      },
+      {
+       "start_line_no": 2,
+       "start_line_pos": 12,
+       "code": "AM04",
+       "description": "Query produces an unknown number of result columns.",
+       "name": "ambiguous.column_count",
+       "warning": false,
+       "fixes": [],
+       "start_file_pos": 12,
+       "end_line_no": 2,
+       "end_line_pos": 13,
+       "end_file_pos": 13
+      },
+      {
+       "start_line_no": 3,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Line should not be indented.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 3,
+         "start_line_pos": 1,
+         "start_file_pos": 14,
+         "end_line_no": 3,
+         "end_line_pos": 5,
+         "end_file_pos": 18
+        }
+       ],
+       "start_file_pos": 14,
+       "end_line_no": 3,
+       "end_line_pos": 5,
+       "end_file_pos": 18
+      },
+      {
+       "start_line_no": 4,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Line should not be indented.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 4,
+         "start_line_pos": 1,
+         "start_file_pos": 27,
+         "end_line_no": 4,
+         "end_line_pos": 5,
+         "end_file_pos": 31
+        }
+       ],
+       "start_file_pos": 27,
+       "end_line_no": 4,
+       "end_line_pos": 5,
+       "end_file_pos": 31
+      },
+      {
+       "start_line_no": 5,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Line should not be indented.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 5,
+         "start_line_pos": 1,
+         "start_file_pos": 43,
+         "end_line_no": 5,
+         "end_line_pos": 5,
+         "end_file_pos": 47
+        }
+       ],
+       "start_file_pos": 43,
+       "end_line_no": 5,
+       "end_line_pos": 5,
+       "end_file_pos": 47
+      },
+      {
+       "start_line_no": 6,
+       "start_line_pos": 1,
+       "code": "LT01",
+       "description": "Unnecessary trailing whitespace at end of file.",
+       "name": "layout.spacing",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 6,
+         "start_line_pos": 1,
+         "start_file_pos": 66,
+         "end_line_no": 6,
+         "end_line_pos": 5,
+         "end_file_pos": 70
+        }
+       ],
+       "start_file_pos": 66,
+       "end_line_no": 6,
+       "end_line_pos": 5,
+       "end_file_pos": 70
+      }
+     ]
+    }
+   ],
+   "untraced": [],
+   "processes": []
+  },
+  "test/rules/std_AM09_test.py::test__rules__std_AM09_no_limit_or_offset": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "api",
+     "inputs": {
+      "function": "lint",
+      "sql": "\n    SELECT *\n    FROM foo;\n    ",
+      "dialect": null,
+      "rules": null,
+      "exclude_rules": null,
+      "config": null,
+      "config_path": null,
+      "cwd": "{sqlfluff}"
+     },
+     "outputs": [
+      {
+       "start_line_no": 1,
+       "start_line_pos": 1,
+       "code": "LT13",
+       "description": "Files must not begin with newlines or whitespace.",
+       "name": "layout.start_of_file",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 1,
+         "start_line_pos": 1,
+         "start_file_pos": 0,
+         "end_line_no": 2,
+         "end_line_pos": 1,
+         "end_file_pos": 1
+        },
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 2,
+         "start_line_pos": 1,
+         "start_file_pos": 1,
+         "end_line_no": 2,
+         "end_line_pos": 5,
+         "end_file_pos": 5
+        }
+       ],
+       "start_file_pos": 0,
+       "end_line_no": 4,
+       "end_line_pos": 5,
+       "end_file_pos": 32
+      },
+      {
+       "start_line_no": 2,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Line should not be indented.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 2,
+         "start_line_pos": 1,
+         "start_file_pos": 1,
+         "end_line_no": 2,
+         "end_line_pos": 5,
+         "end_file_pos": 5
+        }
+       ],
+       "start_file_pos": 1,
+       "end_line_no": 2,
+       "end_line_pos": 5,
+       "end_file_pos": 5
+      },
+      {
+       "start_line_no": 2,
+       "start_line_pos": 12,
+       "code": "AM04",
+       "description": "Query produces an unknown number of result columns.",
+       "name": "ambiguous.column_count",
+       "warning": false,
+       "fixes": [],
+       "start_file_pos": 12,
+       "end_line_no": 2,
+       "end_line_pos": 13,
+       "end_file_pos": 13
+      },
+      {
+       "start_line_no": 3,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Line should not be indented.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 3,
+         "start_line_pos": 1,
+         "start_file_pos": 14,
+         "end_line_no": 3,
+         "end_line_pos": 5,
+         "end_file_pos": 18
+        }
+       ],
+       "start_file_pos": 14,
+       "end_line_no": 3,
+       "end_line_pos": 5,
+       "end_file_pos": 18
+      },
+      {
+       "start_line_no": 4,
+       "start_line_pos": 1,
+       "code": "LT01",
+       "description": "Unnecessary trailing whitespace at end of file.",
+       "name": "layout.spacing",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 4,
+         "start_line_pos": 1,
+         "start_file_pos": 28,
+         "end_line_no": 4,
+         "end_line_pos": 5,
+         "end_file_pos": 32
+        }
+       ],
+       "start_file_pos": 28,
+       "end_line_no": 4,
+       "end_line_pos": 5,
+       "end_file_pos": 32
+      }
+     ]
+    }
+   ],
+   "untraced": [],
+   "processes": []
+  },
+  "test/rules/std_AM09_test.py::test__rules__std_AM09_non_select_statement_integration": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "api",
+     "inputs": {
+      "function": "lint",
+      "sql": "\n    CREATE TABLE foo (id INT, name TEXT);\n    ",
+      "dialect": null,
+      "rules": null,
+      "exclude_rules": null,
+      "config": null,
+      "config_path": null,
+      "cwd": "{sqlfluff}"
+     },
+     "outputs": [
+      {
+       "start_line_no": 1,
+       "start_line_pos": 1,
+       "code": "LT13",
+       "description": "Files must not begin with newlines or whitespace.",
+       "name": "layout.start_of_file",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 1,
+         "start_line_pos": 1,
+         "start_file_pos": 0,
+         "end_line_no": 2,
+         "end_line_pos": 1,
+         "end_file_pos": 1
+        },
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 2,
+         "start_line_pos": 1,
+         "start_file_pos": 1,
+         "end_line_no": 2,
+         "end_line_pos": 5,
+         "end_file_pos": 5
+        }
+       ],
+       "start_file_pos": 0,
+       "end_line_no": 3,
+       "end_line_pos": 5,
+       "end_file_pos": 47
+      },
+      {
+       "start_line_no": 2,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Line should not be indented.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 2,
+         "start_line_pos": 1,
+         "start_file_pos": 1,
+         "end_line_no": 2,
+         "end_line_pos": 5,
+         "end_file_pos": 5
+        }
+       ],
+       "start_file_pos": 1,
+       "end_line_no": 2,
+       "end_line_pos": 5,
+       "end_file_pos": 5
+      },
+      {
+       "start_line_no": 2,
+       "start_line_pos": 31,
+       "code": "RF04",
+       "description": "Keywords should not be used as identifiers.",
+       "name": "references.keywords",
+       "warning": false,
+       "fixes": [],
+       "start_file_pos": 31,
+       "end_line_no": 2,
+       "end_line_pos": 35,
+       "end_file_pos": 35
+      },
+      {
+       "start_line_no": 3,
+       "start_line_pos": 1,
+       "code": "LT01",
+       "description": "Unnecessary trailing whitespace at end of file.",
+       "name": "layout.spacing",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 3,
+         "start_line_pos": 1,
+         "start_file_pos": 43,
+         "end_line_no": 3,
+         "end_line_pos": 5,
+         "end_file_pos": 47
+        }
+       ],
+       "start_file_pos": 43,
+       "end_line_no": 3,
+       "end_line_pos": 5,
+       "end_file_pos": 47
+      }
+     ]
+    }
+   ],
+   "untraced": [],
+   "processes": []
+  },
   "test/rules/std_CV02_test.py::test__rules__std_CV02_raised": {
    "outcome": "passed",
    "calls": [
@@ -849,6 +3155,520 @@
        "end_line_no": 3,
        "end_line_pos": 5,
        "end_file_pos": 31
+      }
+     ]
+    }
+   ],
+   "untraced": [],
+   "processes": []
+  },
+  "test/rules/std_LT01_LT02_LT09_combo_test.py::test__rules__std_LT02_LT09_LT01": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "api",
+     "inputs": {
+      "function": "fix",
+      "sql": "\nWITH example AS (\n    SELECT my_id,\n        other_thing,\n        one_more\n    FROM\n        my_table\n)\n\nSELECT my_id\nFROM example\n",
+      "dialect": null,
+      "rules": null,
+      "exclude_rules": [
+       "LT13"
+      ],
+      "config": null,
+      "config_path": null,
+      "fix_even_unparsable": null,
+      "cwd": "{sqlfluff}"
+     },
+     "outputs": "\nWITH example AS (\n    SELECT\n        my_id,\n        other_thing,\n        one_more\n    FROM\n        my_table\n)\n\nSELECT my_id\nFROM example\n"
+    }
+   ],
+   "untraced": [],
+   "processes": []
+  },
+  "test/rules/std_LT01_LT04_test.py::test__rules__std_LT01_single_raise": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "api",
+     "inputs": {
+      "function": "lint",
+      "sql": "\nSELECT\n    col_a AS a\n    ,col_b AS b\nFROM foo;\n",
+      "dialect": null,
+      "rules": [
+       "LT01",
+       "LT04"
+      ],
+      "exclude_rules": null,
+      "config": null,
+      "config_path": null,
+      "cwd": "{sqlfluff}"
+     },
+     "outputs": [
+      {
+       "start_line_no": 4,
+       "start_line_pos": 5,
+       "code": "LT04",
+       "description": "Found leading comma ','. Expected only trailing near line breaks.",
+       "name": "layout.commas",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "create_after",
+         "edit": "\n    ",
+         "start_line_no": 4,
+         "start_line_pos": 6,
+         "start_file_pos": 28,
+         "end_line_no": 4,
+         "end_line_pos": 6,
+         "end_file_pos": 28
+        },
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 3,
+         "start_line_pos": 15,
+         "start_file_pos": 22,
+         "end_line_no": 4,
+         "end_line_pos": 1,
+         "end_file_pos": 23
+        },
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 4,
+         "start_line_pos": 1,
+         "start_file_pos": 23,
+         "end_line_no": 4,
+         "end_line_pos": 5,
+         "end_file_pos": 27
+        }
+       ],
+       "start_file_pos": 27,
+       "end_line_no": 4,
+       "end_line_pos": 6,
+       "end_file_pos": 28
+      },
+      {
+       "start_line_no": 4,
+       "start_line_pos": 6,
+       "code": "LT01",
+       "description": "Expected single whitespace between comma ',' and naked identifier.",
+       "name": "layout.spacing",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "create_after",
+         "edit": " ",
+         "start_line_no": 4,
+         "start_line_pos": 6,
+         "start_file_pos": 28,
+         "end_line_no": 4,
+         "end_line_pos": 6,
+         "end_file_pos": 28
+        }
+       ],
+       "start_file_pos": 28,
+       "end_line_no": 4,
+       "end_line_pos": 11,
+       "end_file_pos": 33
+      }
+     ]
+    }
+   ],
+   "untraced": [],
+   "processes": []
+  },
+  "test/rules/std_LT02_LT11_combo_test.py::test__rules__std_LT02_LT11_union_all_in_subquery_lint": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "api",
+     "inputs": {
+      "function": "lint",
+      "sql": "SELECT * FROM (\n    SELECT 'g' UNION ALL\n    SELECT 'h'\n    UNION ALL SELECT 'j'\n)\n",
+      "dialect": null,
+      "rules": null,
+      "exclude_rules": null,
+      "config": null,
+      "config_path": null,
+      "cwd": "{sqlfluff}"
+     },
+     "outputs": [
+      {
+       "start_line_no": 1,
+       "start_line_pos": 15,
+       "code": "AL10",
+       "description": "Derived table must have an alias.",
+       "name": "aliasing.required",
+       "warning": false,
+       "fixes": [],
+       "start_file_pos": 14,
+       "end_line_no": 5,
+       "end_line_pos": 2,
+       "end_file_pos": 82
+      },
+      {
+       "start_line_no": 2,
+       "start_line_pos": 16,
+       "code": "LT11",
+       "description": "Set operators should always have a line break both before and after.",
+       "name": "layout.set_operators",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "replace",
+         "edit": "\n    ",
+         "start_line_no": 2,
+         "start_line_pos": 15,
+         "start_file_pos": 30,
+         "end_line_no": 2,
+         "end_line_pos": 16,
+         "end_file_pos": 31
+        }
+       ],
+       "start_file_pos": 31,
+       "end_line_no": 2,
+       "end_line_pos": 25,
+       "end_file_pos": 40
+      },
+      {
+       "start_line_no": 4,
+       "start_line_pos": 5,
+       "code": "LT11",
+       "description": "Set operators should always have a line break both before and after.",
+       "name": "layout.set_operators",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "replace",
+         "edit": "\n    ",
+         "start_line_no": 4,
+         "start_line_pos": 14,
+         "start_file_pos": 69,
+         "end_line_no": 4,
+         "end_line_pos": 15,
+         "end_file_pos": 70
+        }
+       ],
+       "start_file_pos": 60,
+       "end_line_no": 4,
+       "end_line_pos": 14,
+       "end_file_pos": 69
+      }
+     ]
+    }
+   ],
+   "untraced": [],
+   "processes": []
+  },
+  "test/rules/std_LT02_LT11_combo_test.py::test__rules__std_LT02_LT11_union_all_in_subquery_fix": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "api",
+     "inputs": {
+      "function": "fix",
+      "sql": "SELECT c FROM (\n    SELECT 'g' UNION ALL\n    SELECT 'h'\n    UNION ALL SELECT 'j'\n)\n",
+      "dialect": null,
+      "rules": null,
+      "exclude_rules": null,
+      "config": null,
+      "config_path": null,
+      "fix_even_unparsable": null,
+      "cwd": "{sqlfluff}"
+     },
+     "outputs": "SELECT c FROM (\n    SELECT 'g'\n    UNION ALL\n    SELECT 'h'\n    UNION ALL\n    SELECT 'j'\n)\n"
+    }
+   ],
+   "untraced": [],
+   "processes": []
+  },
+  "test/rules/std_LT03_test.py::test__rules__std_LT03_default": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "api",
+     "inputs": {
+      "function": "lint",
+      "sql": "\n        SELECT\n            a,\n            b\n        FROM foo\n        WHERE\n            a = 1 AND\n            b = 2\n    ",
+      "dialect": null,
+      "rules": null,
+      "exclude_rules": null,
+      "config": null,
+      "config_path": null,
+      "cwd": "{sqlfluff}"
+     },
+     "outputs": [
+      {
+       "start_line_no": 1,
+       "start_line_pos": 1,
+       "code": "LT13",
+       "description": "Files must not begin with newlines or whitespace.",
+       "name": "layout.start_of_file",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 1,
+         "start_line_pos": 1,
+         "start_file_pos": 0,
+         "end_line_no": 2,
+         "end_line_pos": 1,
+         "end_file_pos": 1
+        },
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 2,
+         "start_line_pos": 1,
+         "start_file_pos": 1,
+         "end_line_no": 2,
+         "end_line_pos": 9,
+         "end_file_pos": 9
+        }
+       ],
+       "start_file_pos": 0,
+       "end_line_no": 9,
+       "end_line_pos": 5,
+       "end_file_pos": 120
+      },
+      {
+       "start_line_no": 2,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Line should not be indented.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 2,
+         "start_line_pos": 1,
+         "start_file_pos": 1,
+         "end_line_no": 2,
+         "end_line_pos": 9,
+         "end_file_pos": 9
+        }
+       ],
+       "start_file_pos": 1,
+       "end_line_no": 2,
+       "end_line_pos": 9,
+       "end_file_pos": 9
+      },
+      {
+       "start_line_no": 3,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Expected indent of 4 spaces.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "replace",
+         "edit": "    ",
+         "start_line_no": 3,
+         "start_line_pos": 1,
+         "start_file_pos": 16,
+         "end_line_no": 3,
+         "end_line_pos": 13,
+         "end_file_pos": 28
+        }
+       ],
+       "start_file_pos": 16,
+       "end_line_no": 3,
+       "end_line_pos": 13,
+       "end_file_pos": 28
+      },
+      {
+       "start_line_no": 4,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Expected indent of 4 spaces.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "replace",
+         "edit": "    ",
+         "start_line_no": 4,
+         "start_line_pos": 1,
+         "start_file_pos": 31,
+         "end_line_no": 4,
+         "end_line_pos": 13,
+         "end_file_pos": 43
+        }
+       ],
+       "start_file_pos": 31,
+       "end_line_no": 4,
+       "end_line_pos": 13,
+       "end_file_pos": 43
+      },
+      {
+       "start_line_no": 5,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Line should not be indented.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 5,
+         "start_line_pos": 1,
+         "start_file_pos": 45,
+         "end_line_no": 5,
+         "end_line_pos": 9,
+         "end_file_pos": 53
+        }
+       ],
+       "start_file_pos": 45,
+       "end_line_no": 5,
+       "end_line_pos": 9,
+       "end_file_pos": 53
+      },
+      {
+       "start_line_no": 6,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Line should not be indented.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 6,
+         "start_line_pos": 1,
+         "start_file_pos": 62,
+         "end_line_no": 6,
+         "end_line_pos": 9,
+         "end_file_pos": 70
+        }
+       ],
+       "start_file_pos": 62,
+       "end_line_no": 6,
+       "end_line_pos": 9,
+       "end_file_pos": 70
+      },
+      {
+       "start_line_no": 7,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Expected indent of 4 spaces.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "replace",
+         "edit": "    ",
+         "start_line_no": 7,
+         "start_line_pos": 1,
+         "start_file_pos": 76,
+         "end_line_no": 7,
+         "end_line_pos": 13,
+         "end_file_pos": 88
+        }
+       ],
+       "start_file_pos": 76,
+       "end_line_no": 7,
+       "end_line_pos": 13,
+       "end_file_pos": 88
+      },
+      {
+       "start_line_no": 7,
+       "start_line_pos": 19,
+       "code": "LT03",
+       "description": "Found trailing binary operator. Expected only leading near line breaks.",
+       "name": "layout.operators",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "replace",
+         "edit": "\n            ",
+         "start_line_no": 7,
+         "start_line_pos": 18,
+         "start_file_pos": 93,
+         "end_line_no": 7,
+         "end_line_pos": 19,
+         "end_file_pos": 94
+        },
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 7,
+         "start_line_pos": 22,
+         "start_file_pos": 97,
+         "end_line_no": 8,
+         "end_line_pos": 1,
+         "end_file_pos": 98
+        },
+        {
+         "type": "replace",
+         "edit": " ",
+         "start_line_no": 8,
+         "start_line_pos": 1,
+         "start_file_pos": 98,
+         "end_line_no": 8,
+         "end_line_pos": 13,
+         "end_file_pos": 110
+        }
+       ],
+       "start_file_pos": 94,
+       "end_line_no": 7,
+       "end_line_pos": 22,
+       "end_file_pos": 97
+      },
+      {
+       "start_line_no": 8,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Expected indent of 4 spaces.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "replace",
+         "edit": "    ",
+         "start_line_no": 8,
+         "start_line_pos": 1,
+         "start_file_pos": 98,
+         "end_line_no": 8,
+         "end_line_pos": 13,
+         "end_file_pos": 110
+        }
+       ],
+       "start_file_pos": 98,
+       "end_line_no": 8,
+       "end_line_pos": 13,
+       "end_file_pos": 110
+      },
+      {
+       "start_line_no": 9,
+       "start_line_pos": 1,
+       "code": "LT01",
+       "description": "Unnecessary trailing whitespace at end of file.",
+       "name": "layout.spacing",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 9,
+         "start_line_pos": 1,
+         "start_file_pos": 116,
+         "end_line_no": 9,
+         "end_line_pos": 5,
+         "end_file_pos": 120
+        }
+       ],
+       "start_file_pos": 116,
+       "end_line_no": 9,
+       "end_line_pos": 5,
+       "end_file_pos": 120
       }
      ]
     }
@@ -1380,6 +4200,99 @@
    "untraced": [],
    "processes": []
   },
+  "test/rules/std_LT05_LT09_combo_test.py::test__rules__std_LT05_LT09_long_line_lint": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "api",
+     "inputs": {
+      "function": "lint",
+      "sql": "SELECT\n1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\n",
+      "dialect": null,
+      "rules": null,
+      "exclude_rules": null,
+      "config": null,
+      "config_path": null,
+      "cwd": "{sqlfluff}"
+     },
+     "outputs": [
+      {
+       "start_line_no": 1,
+       "start_line_pos": 1,
+       "code": "LT09",
+       "description": "Select targets should be on a new line unless there is only one select target.",
+       "name": "layout.select_targets",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "replace",
+         "edit": " 1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+         "start_line_no": 1,
+         "start_line_pos": 7,
+         "start_file_pos": 6,
+         "end_line_no": 2,
+         "end_line_pos": 1,
+         "end_file_pos": 7
+        },
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 2,
+         "start_line_pos": 1,
+         "start_file_pos": 7,
+         "end_line_no": 2,
+         "end_line_pos": 101,
+         "end_file_pos": 107
+        }
+       ],
+       "start_file_pos": 0,
+       "end_line_no": 2,
+       "end_line_pos": 101,
+       "end_file_pos": 107
+      },
+      {
+       "start_line_no": 2,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Expected indent of 4 spaces.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "replace",
+         "edit": "\n    ",
+         "start_line_no": 1,
+         "start_line_pos": 7,
+         "start_file_pos": 6,
+         "end_line_no": 2,
+         "end_line_pos": 1,
+         "end_file_pos": 7
+        }
+       ],
+       "start_file_pos": 7,
+       "end_line_no": 2,
+       "end_line_pos": 101,
+       "end_file_pos": 107
+      },
+      {
+       "start_line_no": 2,
+       "start_line_pos": 1,
+       "code": "LT05",
+       "description": "Line is too long (100 > 80).",
+       "name": "layout.long_lines",
+       "warning": false,
+       "fixes": [],
+       "start_file_pos": 7,
+       "end_line_no": 2,
+       "end_line_pos": 101,
+       "end_file_pos": 107
+      }
+     ]
+    }
+   ],
+   "untraced": [],
+   "processes": []
+  },
   "test/rules/std_LT05_LT09_combo_test.py::test__rules__std_LT05_LT09_long_line_fix": {
    "outcome": "passed",
    "calls": [
@@ -1397,6 +4310,219 @@
       "cwd": "{sqlfluff}"
      },
      "outputs": "SELECT\n    1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\n"
+    }
+   ],
+   "untraced": [],
+   "processes": []
+  },
+  "test/rules/std_LT05_LT09_combo_test.py::test__rules__std_LT05_LT09_long_line_fix2": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "api",
+     "inputs": {
+      "function": "fix",
+      "sql": "SELECT\n    1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\n",
+      "dialect": null,
+      "rules": null,
+      "exclude_rules": null,
+      "config": null,
+      "config_path": null,
+      "fix_even_unparsable": null,
+      "cwd": "{sqlfluff}"
+     },
+     "outputs": "SELECT 1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\n"
+    }
+   ],
+   "untraced": [],
+   "processes": []
+  },
+  "test/rules/std_RF02_test.py::test__rules__std_RF02_wildcard_single_count": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "api",
+     "inputs": {
+      "function": "lint",
+      "sql": "\n        SELECT *\n        FROM foo\n        INNER JOIN bar;\n    ",
+      "dialect": null,
+      "rules": null,
+      "exclude_rules": null,
+      "config": null,
+      "config_path": null,
+      "cwd": "{sqlfluff}"
+     },
+     "outputs": [
+      {
+       "start_line_no": 1,
+       "start_line_pos": 1,
+       "code": "LT13",
+       "description": "Files must not begin with newlines or whitespace.",
+       "name": "layout.start_of_file",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 1,
+         "start_line_pos": 1,
+         "start_file_pos": 0,
+         "end_line_no": 2,
+         "end_line_pos": 1,
+         "end_file_pos": 1
+        },
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 2,
+         "start_line_pos": 1,
+         "start_file_pos": 1,
+         "end_line_no": 2,
+         "end_line_pos": 9,
+         "end_file_pos": 9
+        }
+       ],
+       "start_file_pos": 0,
+       "end_line_no": 5,
+       "end_line_pos": 5,
+       "end_file_pos": 63
+      },
+      {
+       "start_line_no": 2,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Line should not be indented.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 2,
+         "start_line_pos": 1,
+         "start_file_pos": 1,
+         "end_line_no": 2,
+         "end_line_pos": 9,
+         "end_file_pos": 9
+        }
+       ],
+       "start_file_pos": 1,
+       "end_line_no": 2,
+       "end_line_pos": 9,
+       "end_file_pos": 9
+      },
+      {
+       "start_line_no": 2,
+       "start_line_pos": 16,
+       "code": "AM04",
+       "description": "Query produces an unknown number of result columns.",
+       "name": "ambiguous.column_count",
+       "warning": false,
+       "fixes": [],
+       "start_file_pos": 16,
+       "end_line_no": 2,
+       "end_line_pos": 17,
+       "end_file_pos": 17
+      },
+      {
+       "start_line_no": 2,
+       "start_line_pos": 16,
+       "code": "RF02",
+       "description": "Unqualified reference '*' found in select with more than one referenced table/view.",
+       "name": "references.qualification",
+       "warning": false,
+       "fixes": [],
+       "start_file_pos": 16,
+       "end_line_no": 2,
+       "end_line_pos": 17,
+       "end_file_pos": 17
+      },
+      {
+       "start_line_no": 3,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Line should not be indented.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 3,
+         "start_line_pos": 1,
+         "start_file_pos": 18,
+         "end_line_no": 3,
+         "end_line_pos": 9,
+         "end_file_pos": 26
+        }
+       ],
+       "start_file_pos": 18,
+       "end_line_no": 3,
+       "end_line_pos": 9,
+       "end_file_pos": 26
+      },
+      {
+       "start_line_no": 4,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Line should not be indented.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 4,
+         "start_line_pos": 1,
+         "start_file_pos": 35,
+         "end_line_no": 4,
+         "end_line_pos": 9,
+         "end_file_pos": 43
+        }
+       ],
+       "start_file_pos": 35,
+       "end_line_no": 4,
+       "end_line_pos": 9,
+       "end_file_pos": 43
+      },
+      {
+       "start_line_no": 4,
+       "start_line_pos": 9,
+       "code": "AM08",
+       "description": "Implicit cross join detected.",
+       "name": "ambiguous.join_condition",
+       "warning": false,
+       "fixes": [],
+       "start_file_pos": 43,
+       "end_line_no": 4,
+       "end_line_pos": 23,
+       "end_file_pos": 57
+      },
+      {
+       "start_line_no": 5,
+       "start_line_pos": 1,
+       "code": "LT01",
+       "description": "Unnecessary trailing whitespace at end of file.",
+       "name": "layout.spacing",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 5,
+         "start_line_pos": 1,
+         "start_file_pos": 59,
+         "end_line_no": 5,
+         "end_line_pos": 5,
+         "end_file_pos": 63
+        }
+       ],
+       "start_file_pos": 59,
+       "end_line_no": 5,
+       "end_line_pos": 5,
+       "end_file_pos": 63
+      }
+     ]
     }
    ],
    "untraced": [],
@@ -1465,7 +4591,682 @@
    "untraced": [],
    "processes": []
   },
+  "test/rules/std_ST12_test.py::test__rules__std_ST12_basic_patterns": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "api",
+     "inputs": {
+      "function": "lint",
+      "sql": "SELECT 1;",
+      "dialect": null,
+      "rules": [
+       "ST12"
+      ],
+      "exclude_rules": null,
+      "config": null,
+      "config_path": null,
+      "cwd": "{sqlfluff}"
+     },
+     "outputs": []
+    },
+    {
+     "kind": "api",
+     "inputs": {
+      "function": "lint",
+      "sql": ";SELECT 1;",
+      "dialect": null,
+      "rules": [
+       "ST12"
+      ],
+      "exclude_rules": null,
+      "config": null,
+      "config_path": null,
+      "cwd": "{sqlfluff}"
+     },
+     "outputs": []
+    },
+    {
+     "kind": "api",
+     "inputs": {
+      "function": "lint",
+      "sql": ";;SELECT 1;",
+      "dialect": null,
+      "rules": [
+       "ST12"
+      ],
+      "exclude_rules": null,
+      "config": null,
+      "config_path": null,
+      "cwd": "{sqlfluff}"
+     },
+     "outputs": [
+      {
+       "start_line_no": 1,
+       "start_line_pos": 1,
+       "code": "ST12",
+       "description": "Consecutive semicolons detected (count 2).",
+       "name": "structure.consecutive_semicolons",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 1,
+         "start_line_pos": 2,
+         "start_file_pos": 1,
+         "end_line_no": 1,
+         "end_line_pos": 3,
+         "end_file_pos": 2
+        }
+       ],
+       "start_file_pos": 0,
+       "end_line_no": 1,
+       "end_line_pos": 2,
+       "end_file_pos": 1
+      }
+     ]
+    },
+    {
+     "kind": "api",
+     "inputs": {
+      "function": "lint",
+      "sql": "SELECT 1;;;",
+      "dialect": null,
+      "rules": [
+       "ST12"
+      ],
+      "exclude_rules": null,
+      "config": null,
+      "config_path": null,
+      "cwd": "{sqlfluff}"
+     },
+     "outputs": [
+      {
+       "start_line_no": 1,
+       "start_line_pos": 9,
+       "code": "ST12",
+       "description": "Consecutive semicolons detected (count 3).",
+       "name": "structure.consecutive_semicolons",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 1,
+         "start_line_pos": 10,
+         "start_file_pos": 9,
+         "end_line_no": 1,
+         "end_line_pos": 11,
+         "end_file_pos": 10
+        },
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 1,
+         "start_line_pos": 11,
+         "start_file_pos": 10,
+         "end_line_no": 1,
+         "end_line_pos": 12,
+         "end_file_pos": 11
+        }
+       ],
+       "start_file_pos": 8,
+       "end_line_no": 1,
+       "end_line_pos": 10,
+       "end_file_pos": 9
+      }
+     ]
+    },
+    {
+     "kind": "api",
+     "inputs": {
+      "function": "lint",
+      "sql": "SELECT 1; ; ;",
+      "dialect": null,
+      "rules": [
+       "ST12"
+      ],
+      "exclude_rules": null,
+      "config": null,
+      "config_path": null,
+      "cwd": "{sqlfluff}"
+     },
+     "outputs": [
+      {
+       "start_line_no": 1,
+       "start_line_pos": 9,
+       "code": "ST12",
+       "description": "Consecutive semicolons detected (count 3).",
+       "name": "structure.consecutive_semicolons",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 1,
+         "start_line_pos": 11,
+         "start_file_pos": 10,
+         "end_line_no": 1,
+         "end_line_pos": 12,
+         "end_file_pos": 11
+        },
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 1,
+         "start_line_pos": 13,
+         "start_file_pos": 12,
+         "end_line_no": 1,
+         "end_line_pos": 14,
+         "end_file_pos": 13
+        }
+       ],
+       "start_file_pos": 8,
+       "end_line_no": 1,
+       "end_line_pos": 10,
+       "end_file_pos": 9
+      }
+     ]
+    },
+    {
+     "kind": "api",
+     "inputs": {
+      "function": "lint",
+      "sql": "SELECT 1;;;;",
+      "dialect": null,
+      "rules": [
+       "ST12"
+      ],
+      "exclude_rules": null,
+      "config": null,
+      "config_path": null,
+      "cwd": "{sqlfluff}"
+     },
+     "outputs": [
+      {
+       "start_line_no": 1,
+       "start_line_pos": 9,
+       "code": "ST12",
+       "description": "Consecutive semicolons detected (count 4).",
+       "name": "structure.consecutive_semicolons",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 1,
+         "start_line_pos": 10,
+         "start_file_pos": 9,
+         "end_line_no": 1,
+         "end_line_pos": 11,
+         "end_file_pos": 10
+        },
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 1,
+         "start_line_pos": 11,
+         "start_file_pos": 10,
+         "end_line_no": 1,
+         "end_line_pos": 12,
+         "end_file_pos": 11
+        },
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 1,
+         "start_line_pos": 12,
+         "start_file_pos": 11,
+         "end_line_no": 1,
+         "end_line_pos": 13,
+         "end_file_pos": 12
+        }
+       ],
+       "start_file_pos": 8,
+       "end_line_no": 1,
+       "end_line_pos": 10,
+       "end_file_pos": 9
+      }
+     ]
+    }
+   ],
+   "untraced": [],
+   "processes": []
+  },
+  "test/rules/std_ST12_test.py::test__rules__std_ST12_complex_multistatement": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "api",
+     "inputs": {
+      "function": "lint",
+      "sql": ";;SELECT col1 FROM tbl1;\nSELECT col2 FROM tbl2;;\nSELECT col3 FROM tbl3;;;;SELECT col4 FROM tbl4;\n; ; ;SELECT col5 FROM tbl5;   ;  ;\nSELECT col6 FROM tbl6;;;;;;\nSELECT col6 FROM tbl6;;;\n",
+      "dialect": null,
+      "rules": [
+       "ST12"
+      ],
+      "exclude_rules": null,
+      "config": null,
+      "config_path": null,
+      "cwd": "{sqlfluff}"
+     },
+     "outputs": [
+      {
+       "start_line_no": 1,
+       "start_line_pos": 1,
+       "code": "ST12",
+       "description": "Consecutive semicolons detected (count 2).",
+       "name": "structure.consecutive_semicolons",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 1,
+         "start_line_pos": 2,
+         "start_file_pos": 1,
+         "end_line_no": 1,
+         "end_line_pos": 3,
+         "end_file_pos": 2
+        }
+       ],
+       "start_file_pos": 0,
+       "end_line_no": 1,
+       "end_line_pos": 2,
+       "end_file_pos": 1
+      },
+      {
+       "start_line_no": 2,
+       "start_line_pos": 22,
+       "code": "ST12",
+       "description": "Consecutive semicolons detected (count 2).",
+       "name": "structure.consecutive_semicolons",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 2,
+         "start_line_pos": 23,
+         "start_file_pos": 47,
+         "end_line_no": 2,
+         "end_line_pos": 24,
+         "end_file_pos": 48
+        }
+       ],
+       "start_file_pos": 46,
+       "end_line_no": 2,
+       "end_line_pos": 23,
+       "end_file_pos": 47
+      },
+      {
+       "start_line_no": 3,
+       "start_line_pos": 22,
+       "code": "ST12",
+       "description": "Consecutive semicolons detected (count 4).",
+       "name": "structure.consecutive_semicolons",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 3,
+         "start_line_pos": 23,
+         "start_file_pos": 71,
+         "end_line_no": 3,
+         "end_line_pos": 24,
+         "end_file_pos": 72
+        },
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 3,
+         "start_line_pos": 24,
+         "start_file_pos": 72,
+         "end_line_no": 3,
+         "end_line_pos": 25,
+         "end_file_pos": 73
+        },
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 3,
+         "start_line_pos": 25,
+         "start_file_pos": 73,
+         "end_line_no": 3,
+         "end_line_pos": 26,
+         "end_file_pos": 74
+        }
+       ],
+       "start_file_pos": 70,
+       "end_line_no": 3,
+       "end_line_pos": 23,
+       "end_file_pos": 71
+      },
+      {
+       "start_line_no": 3,
+       "start_line_pos": 47,
+       "code": "ST12",
+       "description": "Consecutive semicolons detected (count 4).",
+       "name": "structure.consecutive_semicolons",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 4,
+         "start_line_pos": 1,
+         "start_file_pos": 97,
+         "end_line_no": 4,
+         "end_line_pos": 2,
+         "end_file_pos": 98
+        },
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 4,
+         "start_line_pos": 3,
+         "start_file_pos": 99,
+         "end_line_no": 4,
+         "end_line_pos": 4,
+         "end_file_pos": 100
+        },
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 4,
+         "start_line_pos": 5,
+         "start_file_pos": 101,
+         "end_line_no": 4,
+         "end_line_pos": 6,
+         "end_file_pos": 102
+        }
+       ],
+       "start_file_pos": 95,
+       "end_line_no": 3,
+       "end_line_pos": 48,
+       "end_file_pos": 96
+      },
+      {
+       "start_line_no": 4,
+       "start_line_pos": 27,
+       "code": "ST12",
+       "description": "Consecutive semicolons detected (count 3).",
+       "name": "structure.consecutive_semicolons",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 4,
+         "start_line_pos": 31,
+         "start_file_pos": 127,
+         "end_line_no": 4,
+         "end_line_pos": 32,
+         "end_file_pos": 128
+        },
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 4,
+         "start_line_pos": 34,
+         "start_file_pos": 130,
+         "end_line_no": 4,
+         "end_line_pos": 35,
+         "end_file_pos": 131
+        }
+       ],
+       "start_file_pos": 123,
+       "end_line_no": 4,
+       "end_line_pos": 28,
+       "end_file_pos": 124
+      },
+      {
+       "start_line_no": 5,
+       "start_line_pos": 22,
+       "code": "ST12",
+       "description": "Consecutive semicolons detected (count 6).",
+       "name": "structure.consecutive_semicolons",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 5,
+         "start_line_pos": 23,
+         "start_file_pos": 154,
+         "end_line_no": 5,
+         "end_line_pos": 24,
+         "end_file_pos": 155
+        },
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 5,
+         "start_line_pos": 24,
+         "start_file_pos": 155,
+         "end_line_no": 5,
+         "end_line_pos": 25,
+         "end_file_pos": 156
+        },
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 5,
+         "start_line_pos": 25,
+         "start_file_pos": 156,
+         "end_line_no": 5,
+         "end_line_pos": 26,
+         "end_file_pos": 157
+        },
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 5,
+         "start_line_pos": 26,
+         "start_file_pos": 157,
+         "end_line_no": 5,
+         "end_line_pos": 27,
+         "end_file_pos": 158
+        },
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 5,
+         "start_line_pos": 27,
+         "start_file_pos": 158,
+         "end_line_no": 5,
+         "end_line_pos": 28,
+         "end_file_pos": 159
+        }
+       ],
+       "start_file_pos": 153,
+       "end_line_no": 5,
+       "end_line_pos": 23,
+       "end_file_pos": 154
+      },
+      {
+       "start_line_no": 6,
+       "start_line_pos": 22,
+       "code": "ST12",
+       "description": "Consecutive semicolons detected (count 3).",
+       "name": "structure.consecutive_semicolons",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 6,
+         "start_line_pos": 23,
+         "start_file_pos": 182,
+         "end_line_no": 6,
+         "end_line_pos": 24,
+         "end_file_pos": 183
+        },
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 6,
+         "start_line_pos": 24,
+         "start_file_pos": 183,
+         "end_line_no": 6,
+         "end_line_pos": 25,
+         "end_file_pos": 184
+        }
+       ],
+       "start_file_pos": 181,
+       "end_line_no": 6,
+       "end_line_pos": 23,
+       "end_file_pos": 182
+      }
+     ]
+    }
+   ],
+   "untraced": [],
+   "processes": []
+  },
+  "test/rules/std_ST12_test.py::test__rules__std_ST12_fix_functionality": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "api",
+     "inputs": {
+      "function": "fix",
+      "sql": "SELECT 1;; SELECT 2;;; SELECT 3;",
+      "dialect": null,
+      "rules": [
+       "ST12"
+      ],
+      "exclude_rules": null,
+      "config": null,
+      "config_path": null,
+      "fix_even_unparsable": null,
+      "cwd": "{sqlfluff}"
+     },
+     "outputs": "SELECT 1; SELECT 2; SELECT 3;"
+    },
+    {
+     "kind": "api",
+     "inputs": {
+      "function": "lint",
+      "sql": "SELECT 1; SELECT 2; SELECT 3;",
+      "dialect": null,
+      "rules": [
+       "ST12"
+      ],
+      "exclude_rules": null,
+      "config": null,
+      "config_path": null,
+      "cwd": "{sqlfluff}"
+     },
+     "outputs": []
+    }
+   ],
+   "untraced": [],
+   "processes": []
+  },
+  "test/rules/std_ST12_test.py::test__rules__std_ST12_whitespace_handling": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "api",
+     "inputs": {
+      "function": "lint",
+      "sql": "SELECT 1;\n\n;SELECT 2;",
+      "dialect": null,
+      "rules": [
+       "ST12"
+      ],
+      "exclude_rules": null,
+      "config": null,
+      "config_path": null,
+      "cwd": "{sqlfluff}"
+     },
+     "outputs": [
+      {
+       "start_line_no": 1,
+       "start_line_pos": 9,
+       "code": "ST12",
+       "description": "Consecutive semicolons detected (count 2).",
+       "name": "structure.consecutive_semicolons",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 3,
+         "start_line_pos": 1,
+         "start_file_pos": 11,
+         "end_line_no": 3,
+         "end_line_pos": 2,
+         "end_file_pos": 12
+        }
+       ],
+       "start_file_pos": 8,
+       "end_line_no": 1,
+       "end_line_pos": 10,
+       "end_file_pos": 9
+      }
+     ]
+    }
+   ],
+   "untraced": [],
+   "processes": []
+  },
+  "test/rules/std_ST12_test.py::test__rules__std_ST12_no_semicolon": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "api",
+     "inputs": {
+      "function": "lint",
+      "sql": "SELECT 1",
+      "dialect": null,
+      "rules": [
+       "ST12"
+      ],
+      "exclude_rules": null,
+      "config": null,
+      "config_path": null,
+      "cwd": "{sqlfluff}"
+     },
+     "outputs": []
+    }
+   ],
+   "untraced": [],
+   "processes": []
+  },
+  "test/rules/std_ST12_test.py::test__rules__std_ST12_comments_break_runs": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "api",
+     "inputs": {
+      "function": "lint",
+      "sql": "SELECT 1; /* comment */ ; SELECT 2;",
+      "dialect": null,
+      "rules": [
+       "ST12"
+      ],
+      "exclude_rules": null,
+      "config": null,
+      "config_path": null,
+      "cwd": "{sqlfluff}"
+     },
+     "outputs": []
+    }
+   ],
+   "untraced": [],
+   "processes": []
+  },
   "test/cli/commands_test.py::test__get_filtered_parse_violations_caches_rulepack_per_config": {
+   "outcome": "passed",
+   "calls": [],
+   "untraced": [],
+   "processes": []
+  },
+  "test/rules/std_AM09_test.py::test__rules__std_AM09_eval_short_circuit_on_non_select_segment": {
    "outcome": "passed",
    "calls": [],
    "untraced": [],

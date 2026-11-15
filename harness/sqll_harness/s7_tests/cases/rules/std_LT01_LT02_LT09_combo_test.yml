@@ -1,0 +1,21 @@
+# S7 black-box cases (docs/decisions/s7-tests-design.md, "Case format").
+# A derived work of the sqlfluff tests: copyright (c) 2018-2026 Alan
+# Cruickshank, MIT License.
+source:
+  project: sqlfluff
+  version: 4.4.0
+  commit: 0348222a3bcdb0226563f7349c5a39beb0641955
+  file: test/rules/std_LT01_LT02_LT09_combo_test.py
+license: MIT
+nodes:
+  - node: test/rules/std_LT01_LT02_LT09_combo_test.py::test__rules__std_LT02_LT09_LT01
+    asserts:
+      L36: ["double_indent:fixed"]
+    cases:
+      - name: double_indent
+        run: api
+        function: fix
+        sql: "\nWITH example AS (\n    SELECT my_id,\n        other_thing,\n        one_more\n    FROM\n        my_table\n)\n\nSELECT my_id\nFROM example\n"
+        exclude_rules: [LT13]
+        checks:
+          fixed: "\nWITH example AS (\n    SELECT\n        my_id,\n        other_thing,\n        one_more\n    FROM\n        my_table\n)\n\nSELECT my_id\nFROM example\n"
