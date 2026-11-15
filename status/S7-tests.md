@@ -17,7 +17,7 @@ The S7-tests track writes this file (PROCESS.md, "Tracks").
   if kept; each other Jinja case is in a known-failure list with its
   reason)).
 - State: in work. 6 of the 15 tasks are done: T1 to T5 are merged (the
-  last on 2026-11-12, PR #83), and T6 is done in PR #PRNUM. The other 9
+  last on 2026-11-12, PR #83), and T6 is done in PR #96. The other 9
   tasks are not started. The table "S7-tests tasks" gives each task with
   its goal.
 - The S7 test conversion needs only S1 (binary test harness: run the
@@ -48,7 +48,7 @@ one lost day, T9 converts all config tests (before: 2 tasks).
 | T3 | Trace oracle with fail-closed checks | Each case agrees with a trace of its original pytest node | Done (PR #80) |
 | T4 | Cross-track (Core): harness hooks for the S7 suites | The harness core runs the 3 S7 suites | Done (PR #82; the Core track approved it) |
 | T5 | Cross-track (Core): CI jobs, oracle step, and local verify for the S7 suites; the ruff lint of `scripts/s7-tests/` in CI; first recorded results | CI and `scripts/verify` run the S7 suites and record the results | Done (PR #83; the Core track approved it) |
-| T6 | Convert the rule tests, part 1: the simple-API nodes (`sqlfluff.lint` and `sqlfluff.fix` with `sql`, `dialect`, `rules`, and `exclude_rules`; no config) | The rule nodes that call only `sqlfluff.lint` and `sqlfluff.fix` are black-box cases | Done (PR #PRNUM) |
+| T6 | Convert the rule tests, part 1: the simple-API nodes (`sqlfluff.lint` and `sqlfluff.fix` with `sql`, `dialect`, `rules`, and `exclude_rules`; no config) | The rule nodes that call only `sqlfluff.lint` and `sqlfluff.fix` are black-box cases | Done (PR #96) |
 | T7 | Convert the rule tests, part 2: fix, combination, file, and template tests | The other rule nodes (not Rust dispatch) are black-box cases | Not started |
 | T8 | Rust dispatch tests (cp01, cp03, cp04): classification and conversion | Each Rust dispatch node is converted or excluded by decision 3 | Not started |
 | T9 | Convert the config tests: the config fixture tests (users of `test/fixtures/config`) and the other config tests (`test/core/config`) | The 140 nodes of `config` and `config_fixtures` are black-box cases or excluded with a class | Not started |
@@ -249,7 +249,7 @@ style, code made from the schema by one existing tool compiles, and the
 harness shows one parse for each file when one command lints and generates
 code) supports Jinja if kept; each other Jinja case is in a known-failure
 list with its reason)) converted 23 rule nodes and excluded 1 node (PR
-#PRNUM).
+#96).
 
 | Source file | Converted in T6 | Excluded in T6 | Not converted yet |
 |---|---|---|---|
