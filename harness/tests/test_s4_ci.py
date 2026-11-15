@@ -242,3 +242,46 @@ def test_status_row_of_t3():
     assert STONE in row
     assert "CI fails on each gap of this stone" in row
     assert re.search(r"\| (In review|Done) \(PR #\d+\) \|$", row), row
+
+
+# The record of the proof: results/S4/gate.json.
+
+GATE = REPO_ROOT / "results" / "S4" / "gate.json"
+
+
+def test_the_record_gives_a_real_pass_and_each_injected_gap_fails():
+    record = json.loads(GATE.read_text("utf8"))
+    assert record["design_record"] == "docs/decisions/s4-parity.md, section 3"
+    verify_run = record["verify"]
+    assert verify_run["command"].startswith(
+        "flock /tmp/sqll-machine.lock scripts/verify"
+    )
+    assert verify_run["exit_code"] == 0 and verify_run["result"] == "pass"
+    assert verify_run["worktree_clean"] is True and verify_run["failed"] == 0
+    assert verify_run["s4_parity_check"]["exit_code"] == 0
+    assert verify_run["s4_parity_check"]["command"] == next(
+        c.command for c in verify.checks() if c.name == "s4-parity"
+    )
+    assert any("s4-parity" in line and "PASS" in line for line in verify_run["output"])
+    counts = verify_run["s4_parity_counts"]
+    assert counts["passed"] == counts["discovered_cases"] == 2306
+    assert counts["gaps"] == 0
+    runs = {r["name"]: r for r in record["injected_gaps"]["runs"]}
+    assert {name: r["exit_code"] for name, r in runs.items()} == {
+        "control": 0,
+        "known-failures-dialects-line": 1,
+        "report-case-removed": 1,
+        "no-oracle-output": 2,
+    }
+    assert runs["control"]["gaps"] == {}
+    assert runs["known-failures-dialects-line"]["gaps"] == {
+        "known_failures_dialects": ["dialects/ansi/select_a"]
+    }
+    assert runs["report-case-removed"]["gaps"] == {
+        "missing": ["dialects/ansi/select_a"]
+    }
+    assert runs["no-oracle-output"]["errors"]
+    ci = record["ci"]
+    assert ci["conclusion"] == ci["step_conclusion"] == "success"
+    assert ci["job"] == "dialect-oracle (sqlfluff)" and ci["step"] == STEP
+    assert "2306 of 2306" in ci["log"] and ci["log_exit_code"] == 0
