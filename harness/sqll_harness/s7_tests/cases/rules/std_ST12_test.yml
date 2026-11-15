@@ -1,0 +1,167 @@
+# S7 black-box cases (docs/decisions/s7-tests-design.md, "Case format").
+# A derived work of the sqlfluff tests: copyright (c) 2018-2026 Alan
+# Cruickshank, MIT License.
+# The 2 nodes with a Jinja config (templated_*) are not converted yet: the
+# trace oracle does not map a simple-API config.
+source:
+  project: sqlfluff
+  version: 4.4.0
+  commit: 0348222a3bcdb0226563f7349c5a39beb0641955
+  file: test/rules/std_ST12_test.py
+license: MIT
+nodes:
+  - node: test/rules/std_ST12_test.py::test__rules__std_ST12_basic_patterns
+    # The source lints 6 SQL strings in a loop; one case for each call.
+    asserts:
+      L22:
+        - "single:violations[0]"
+        - "leading:violations[0]"
+        - "double_leading:violations[0]"
+        - "triple_trailing:violations[0]"
+        - "spaced_consecutive:violations[0]"
+        - "many_consecutive:violations[0]"
+    cases:
+      - name: single
+        run: api
+        function: lint
+        sql: "SELECT 1;"
+        rules: [ST12]
+        checks:
+          violations:
+            - select: {code: ST12}
+              count: 0
+      - name: leading
+        run: api
+        function: lint
+        sql: ";SELECT 1;"
+        rules: [ST12]
+        checks:
+          violations:
+            - select: {code: ST12}
+              count: 0
+      - name: double_leading
+        run: api
+        function: lint
+        sql: ";;SELECT 1;"
+        rules: [ST12]
+        checks:
+          violations:
+            - select: {code: ST12}
+              count: 1
+      - name: triple_trailing
+        run: api
+        function: lint
+        sql: "SELECT 1;;;"
+        rules: [ST12]
+        checks:
+          violations:
+            - select: {code: ST12}
+              count: 1
+      - name: spaced_consecutive
+        run: api
+        function: lint
+        sql: "SELECT 1; ; ;"
+        rules: [ST12]
+        checks:
+          violations:
+            - select: {code: ST12}
+              count: 1
+      - name: many_consecutive
+        run: api
+        function: lint
+        sql: "SELECT 1;;;;"
+        rules: [ST12]
+        checks:
+          violations:
+            - select: {code: ST12}
+              count: 1
+  - node: test/rules/std_ST12_test.py::test__rules__std_ST12_complex_multistatement
+    asserts:
+      L40: ["complex_multistatement:violations[0]"]
+      L43: ["complex_multistatement:violations[1]"]
+    cases:
+      - name: complex_multistatement
+        run: api
+        function: lint
+        sql: ";;SELECT col1 FROM tbl1;\nSELECT col2 FROM tbl2;;\nSELECT col3 FROM tbl3;;;;SELECT col4 FROM tbl4;\n; ; ;SELECT col5 FROM tbl5;   ;  ;\nSELECT col6 FROM tbl6;;;;;;\nSELECT col6 FROM tbl6;;;\n"
+        rules: [ST12]
+        checks:
+          violations:
+            - select: {code: ST12}
+              count: 7
+            # The source checks that the 7 start positions are different.
+            # The records give the 7 positions of sqlfluff 4.4.0; they are
+            # different, so the check is stronger than the assert.
+            - select: {code: ST12}
+              records:
+                - {start_line_no: 1, start_line_pos: 1}
+                - {start_line_no: 2, start_line_pos: 22}
+                - {start_line_no: 3, start_line_pos: 22}
+                - {start_line_no: 3, start_line_pos: 47}
+                - {start_line_no: 4, start_line_pos: 27}
+                - {start_line_no: 5, start_line_pos: 22}
+                - {start_line_no: 6, start_line_pos: 22}
+  - node: test/rules/std_ST12_test.py::test__rules__std_ST12_fix_functionality
+    # The source fixes the SQL, then lints the fixed SQL. The fixed SQL is
+    # the input of the second call, so the first case checks all of it. The
+    # source checks that the fixed SQL is different and has fewer
+    # semicolons; the exact value of sqlfluff 4.4.0 is stronger.
+    asserts:
+      L53: ["fix:fixed"]
+      L55: ["fix:fixed"]
+      L58: ["lint_fixed:violations[0]"]
+    cases:
+      - name: fix
+        run: api
+        function: fix
+        sql: "SELECT 1;; SELECT 2;;; SELECT 3;"
+        rules: [ST12]
+        checks:
+          fixed: "SELECT 1; SELECT 2; SELECT 3;"
+      - name: lint_fixed
+        run: api
+        function: lint
+        sql: "SELECT 1; SELECT 2; SELECT 3;"
+        rules: [ST12]
+        checks:
+          violations:
+            - count: 0
+  - node: test/rules/std_ST12_test.py::test__rules__std_ST12_whitespace_handling
+    asserts:
+      L68: ["whitespace_handling:violations[0]"]
+    cases:
+      - name: whitespace_handling
+        run: api
+        function: lint
+        sql: "SELECT 1;\n\n;SELECT 2;"
+        rules: [ST12]
+        checks:
+          violations:
+            - select: {code: ST12}
+              count: 1
+  - node: test/rules/std_ST12_test.py::test__rules__std_ST12_no_semicolon
+    asserts:
+      L78: ["no_semicolon:violations[0]"]
+    cases:
+      - name: no_semicolon
+        run: api
+        function: lint
+        sql: "SELECT 1"
+        rules: [ST12]
+        checks:
+          violations:
+            - select: {code: ST12}
+              count: 0
+  - node: test/rules/std_ST12_test.py::test__rules__std_ST12_comments_break_runs
+    asserts:
+      L88: ["comments_break_runs:violations[0]"]
+    cases:
+      - name: comments_break_runs
+        run: api
+        function: lint
+        sql: "SELECT 1; /* comment */ ; SELECT 2;"
+        rules: [ST12]
+        checks:
+          violations:
+            - select: {code: ST12}
+              count: 0

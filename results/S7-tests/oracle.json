@@ -177,6 +177,22 @@
      "errors": []
     },
     {
+     "id": "test/rules/std_AL04_test.py::test__rules__std_AL04_one_aliases_one_duplicate",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "one_aliases_one_duplicate",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 2,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
      "id": "test/rules/std_AL04_test.py::test__rules__std_AL04_one_aliases_two_duplicate",
      "pytest": "passed",
      "trace": "pass",
@@ -189,6 +205,134 @@
       }
      ],
      "asserts": 4,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_AL04_test.py::test__rules__std_AL04_complex",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "complex",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 6,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_AM06_test.py::test__rules__std_AM06_raised",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "raised",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 2,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_AM06_test.py::test__rules__std_AM06_unparsable",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "unparsable",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 2,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_AM06_test.py::test__rules__std_AM06_noqa",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "noqa",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 2,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_AM09_test.py::test__rules__std_AM09_missing_order_by",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "missing_order_by",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 2,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_AM09_test.py::test__rules__std_AM09_with_order_by",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "with_order_by",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_AM09_test.py::test__rules__std_AM09_no_limit_or_offset",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "no_limit_or_offset",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_AM09_test.py::test__rules__std_AM09_non_select_statement_integration",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "non_select_statement",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
      "not_reproduced": 0,
      "errors": []
     },
@@ -209,6 +353,86 @@
      "errors": []
     },
     {
+     "id": "test/rules/std_LT01_LT02_LT09_combo_test.py::test__rules__std_LT02_LT09_LT01",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "double_indent",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_LT01_LT04_test.py::test__rules__std_LT01_single_raise",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "single_raise",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 2,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_LT02_LT11_combo_test.py::test__rules__std_LT02_LT11_union_all_in_subquery_lint",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "union_all_in_subquery_lint",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_LT02_LT11_combo_test.py::test__rules__std_LT02_LT11_union_all_in_subquery_fix",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "union_all_in_subquery_fix",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_LT03_test.py::test__rules__std_LT03_default",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "default",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 2,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
      "id": "test/rules/std_LT04_test.py::test__rules__std_LT04_unparseable",
      "pytest": "passed",
      "trace": "pass",
@@ -221,6 +445,22 @@
       }
      ],
      "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_LT05_LT09_combo_test.py::test__rules__std_LT05_LT09_long_line_lint",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "long_line_lint",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 2,
      "not_reproduced": 0,
      "errors": []
     },
@@ -241,6 +481,38 @@
      "errors": []
     },
     {
+     "id": "test/rules/std_LT05_LT09_combo_test.py::test__rules__std_LT05_LT09_long_line_fix2",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "long_line_fix2",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_RF02_test.py::test__rules__std_RF02_wildcard_single_count",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "wildcard_single_count",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 2,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
      "id": "test/rules/std_ST03_test.py::test__rules__std_ST03_multiple_unused_ctes",
      "pytest": "passed",
      "trace": "pass",
@@ -248,6 +520,132 @@
      "cases": [
       {
        "name": "multiple_unused_ctes",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_ST12_test.py::test__rules__std_ST12_basic_patterns",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "single",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "leading",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "double_leading",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "triple_trailing",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "spaced_consecutive",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "many_consecutive",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_ST12_test.py::test__rules__std_ST12_complex_multistatement",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "complex_multistatement",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 2,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_ST12_test.py::test__rules__std_ST12_fix_functionality",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "fix",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "lint_fixed",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 3,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_ST12_test.py::test__rules__std_ST12_whitespace_handling",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "whitespace_handling",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_ST12_test.py::test__rules__std_ST12_no_semicolon",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "no_semicolon",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_ST12_test.py::test__rules__std_ST12_comments_break_runs",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "comments_break_runs",
        "status": "pass",
        "reason": ""
       }
@@ -263,15 +661,21 @@
      "pytest": "passed",
      "calls": {},
      "errors": []
+    },
+    {
+     "id": "test/rules/std_AM09_test.py::test__rules__std_AM09_eval_short_circuit_on_non_select_segment",
+     "pytest": "passed",
+     "calls": {},
+     "errors": []
     }
    ],
    "counts": {
-    "nodes": 15,
-    "agree": 15,
-    "pass": 15,
+    "nodes": 38,
+    "agree": 38,
+    "pass": 38,
     "fail": 0,
-    "python_internal": 1,
-    "asserts": 49,
+    "python_internal": 2,
+    "asserts": 89,
     "not_reproduced": 0
    },
    "errors": []
@@ -447,6 +851,22 @@
      "errors": []
     },
     {
+     "id": "test/rules/std_AL04_test.py::test__rules__std_AL04_one_aliases_one_duplicate",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "one_aliases_one_duplicate",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 2,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
      "id": "test/rules/std_AL04_test.py::test__rules__std_AL04_one_aliases_two_duplicate",
      "pytest": "passed",
      "trace": "pass",
@@ -459,6 +879,134 @@
       }
      ],
      "asserts": 4,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_AL04_test.py::test__rules__std_AL04_complex",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "complex",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 6,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_AM06_test.py::test__rules__std_AM06_raised",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "raised",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 2,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_AM06_test.py::test__rules__std_AM06_unparsable",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "unparsable",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 2,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_AM06_test.py::test__rules__std_AM06_noqa",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "noqa",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 2,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_AM09_test.py::test__rules__std_AM09_missing_order_by",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "missing_order_by",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 2,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_AM09_test.py::test__rules__std_AM09_with_order_by",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "with_order_by",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_AM09_test.py::test__rules__std_AM09_no_limit_or_offset",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "no_limit_or_offset",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_AM09_test.py::test__rules__std_AM09_non_select_statement_integration",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "non_select_statement",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
      "not_reproduced": 0,
      "errors": []
     },
@@ -479,6 +1027,86 @@
      "errors": []
     },
     {
+     "id": "test/rules/std_LT01_LT02_LT09_combo_test.py::test__rules__std_LT02_LT09_LT01",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "double_indent",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_LT01_LT04_test.py::test__rules__std_LT01_single_raise",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "single_raise",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 2,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_LT02_LT11_combo_test.py::test__rules__std_LT02_LT11_union_all_in_subquery_lint",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "union_all_in_subquery_lint",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_LT02_LT11_combo_test.py::test__rules__std_LT02_LT11_union_all_in_subquery_fix",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "union_all_in_subquery_fix",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_LT03_test.py::test__rules__std_LT03_default",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "default",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 2,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
      "id": "test/rules/std_LT04_test.py::test__rules__std_LT04_unparseable",
      "pytest": "passed",
      "trace": "pass",
@@ -491,6 +1119,22 @@
       }
      ],
      "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_LT05_LT09_combo_test.py::test__rules__std_LT05_LT09_long_line_lint",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "long_line_lint",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 2,
      "not_reproduced": 0,
      "errors": []
     },
@@ -511,6 +1155,38 @@
      "errors": []
     },
     {
+     "id": "test/rules/std_LT05_LT09_combo_test.py::test__rules__std_LT05_LT09_long_line_fix2",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "long_line_fix2",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_RF02_test.py::test__rules__std_RF02_wildcard_single_count",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "wildcard_single_count",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 2,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
      "id": "test/rules/std_ST03_test.py::test__rules__std_ST03_multiple_unused_ctes",
      "pytest": "passed",
      "trace": "pass",
@@ -518,6 +1194,132 @@
      "cases": [
       {
        "name": "multiple_unused_ctes",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_ST12_test.py::test__rules__std_ST12_basic_patterns",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "single",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "leading",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "double_leading",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "triple_trailing",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "spaced_consecutive",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "many_consecutive",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_ST12_test.py::test__rules__std_ST12_complex_multistatement",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "complex_multistatement",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 2,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_ST12_test.py::test__rules__std_ST12_fix_functionality",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "fix",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "lint_fixed",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 3,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_ST12_test.py::test__rules__std_ST12_whitespace_handling",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "whitespace_handling",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_ST12_test.py::test__rules__std_ST12_no_semicolon",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "no_semicolon",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_ST12_test.py::test__rules__std_ST12_comments_break_runs",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "comments_break_runs",
        "status": "pass",
        "reason": ""
       }
@@ -533,15 +1335,21 @@
      "pytest": "passed",
      "calls": {},
      "errors": []
+    },
+    {
+     "id": "test/rules/std_AM09_test.py::test__rules__std_AM09_eval_short_circuit_on_non_select_segment",
+     "pytest": "passed",
+     "calls": {},
+     "errors": []
     }
    ],
    "counts": {
-    "nodes": 15,
-    "agree": 15,
-    "pass": 14,
+    "nodes": 38,
+    "agree": 38,
+    "pass": 37,
     "fail": 1,
-    "python_internal": 1,
-    "asserts": 49,
+    "python_internal": 2,
+    "asserts": 89,
     "not_reproduced": 0
    },
    "errors": []

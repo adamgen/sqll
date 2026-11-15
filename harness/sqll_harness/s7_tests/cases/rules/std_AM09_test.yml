@@ -1,0 +1,62 @@
+# S7 black-box cases (docs/decisions/s7-tests-design.md, "Case format").
+# A derived work of the sqlfluff tests: copyright (c) 2018-2026 Alan
+# Cruickshank, MIT License.
+source:
+  project: sqlfluff
+  version: 4.4.0
+  commit: 0348222a3bcdb0226563f7349c5a39beb0641955
+  file: test/rules/std_AM09_test.py
+license: MIT
+nodes:
+  - node: test/rules/std_AM09_test.py::test__rules__std_AM09_missing_order_by
+    asserts:
+      L19: ["missing_order_by:violations[0]"]
+      L20: ["missing_order_by:violations[1].records[0]"]
+    cases:
+      - name: missing_order_by
+        run: api
+        function: lint
+        sql: "\n    SELECT *\n    FROM foo\n    LIMIT 10 OFFSET 5;\n    "
+        checks:
+          violations:
+            - select: {code: AM09}
+              count: 1
+            - select: {code: AM09}
+              records:
+                - description: LIMIT and OFFSET are used without ORDER BY, which may lead to non-deterministic results.
+  - node: test/rules/std_AM09_test.py::test__rules__std_AM09_with_order_by
+    asserts:
+      L37: ["with_order_by:violations[0]"]
+    cases:
+      - name: with_order_by
+        run: api
+        function: lint
+        sql: "\n    SELECT *\n    FROM foo\n    ORDER BY id\n    LIMIT 10 OFFSET 5;\n    "
+        checks:
+          violations:
+            - select: {code: AM09}
+              count: 0
+  - node: test/rules/std_AM09_test.py::test__rules__std_AM09_no_limit_or_offset
+    asserts:
+      L49: ["no_limit_or_offset:violations[0]"]
+    cases:
+      - name: no_limit_or_offset
+        run: api
+        function: lint
+        sql: "\n    SELECT *\n    FROM foo;\n    "
+        checks:
+          violations:
+            - select: {code: AM09}
+              count: 0
+  - node: test/rules/std_AM09_test.py::test__rules__std_AM09_non_select_statement_integration
+    asserts:
+      L61: ["non_select_statement:violations[0]"]
+    cases:
+      - name: non_select_statement
+        run: api
+        function: lint
+        sql: "\n    CREATE TABLE foo (id INT, name TEXT);\n    "
+        checks:
+          violations:
+            - select: {code: AM09}
+              count: 0

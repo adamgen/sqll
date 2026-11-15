@@ -1,0 +1,32 @@
+# S7 black-box cases (docs/decisions/s7-tests-design.md, "Case format").
+# A derived work of the sqlfluff tests: copyright (c) 2018-2026 Alan
+# Cruickshank, MIT License.
+source:
+  project: sqlfluff
+  version: 4.4.0
+  commit: 0348222a3bcdb0226563f7349c5a39beb0641955
+  file: test/rules/std_LT02_LT11_combo_test.py
+license: MIT
+nodes:
+  - node: test/rules/std_LT02_LT11_combo_test.py::test__rules__std_LT02_LT11_union_all_in_subquery_lint
+    asserts:
+      L24: ["union_all_in_subquery_lint:violations[0]"]
+    cases:
+      - name: union_all_in_subquery_lint
+        run: api
+        function: lint
+        sql: "SELECT * FROM (\n    SELECT 'g' UNION ALL\n    SELECT 'h'\n    UNION ALL SELECT 'j'\n)\n"
+        checks:
+          violations:
+            - select: {code: LT11}
+              min_count: 1
+  - node: test/rules/std_LT02_LT11_combo_test.py::test__rules__std_LT02_LT11_union_all_in_subquery_fix
+    asserts:
+      L46: ["union_all_in_subquery_fix:fixed"]
+    cases:
+      - name: union_all_in_subquery_fix
+        run: api
+        function: fix
+        sql: "SELECT c FROM (\n    SELECT 'g' UNION ALL\n    SELECT 'h'\n    UNION ALL SELECT 'j'\n)\n"
+        checks:
+          fixed: "SELECT c FROM (\n    SELECT 'g'\n    UNION ALL\n    SELECT 'h'\n    UNION ALL\n    SELECT 'j'\n)\n"

@@ -9,6 +9,9 @@ excluded:
   - node: test/cli/commands_test.py::test___main___help
     class: needs-python-runtime
     reason: It runs "python -m sqlfluff --help", the entry point of the Python module.
+  - node: test/rules/std_AM09_test.py::test__rules__std_AM09_eval_short_circuit_on_non_select_segment
+    class: python-internal
+    reason: It calls Rule_AM09._eval on a fake segment and calls no CLI command and no simple-API function.
   - node: test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__ignore_words_parity
     class: engine-comparison
     reason: It compares use_rust_rules True and False and has no expected value (decision 3).
