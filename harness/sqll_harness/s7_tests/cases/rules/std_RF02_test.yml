@@ -1,0 +1,25 @@
+# S7 black-box cases (docs/decisions/s7-tests-design.md, "Case format").
+# A derived work of the sqlfluff tests: copyright (c) 2018-2026 Alan
+# Cruickshank, MIT License.
+source:
+  project: sqlfluff
+  version: 4.4.0
+  commit: 0348222a3bcdb0226563f7349c5a39beb0641955
+  file: test/rules/std_RF02_test.py
+license: MIT
+nodes:
+  - node: test/rules/std_RF02_test.py::test__rules__std_RF02_wildcard_single_count
+    asserts:
+      L14: ["wildcard_single_count:violations[0]"]
+      L15: ["wildcard_single_count:violations[1]"]
+    cases:
+      - name: wildcard_single_count
+        run: api
+        function: lint
+        sql: "\n        SELECT *\n        FROM foo\n        INNER JOIN bar;\n    "
+        checks:
+          violations:
+            - select: {code: RF02}
+              min_count: 1
+            - select: {code: RF02}
+              count: 1

@@ -43,6 +43,10 @@ DIALECT = f"{CLI}::test__cli__command_dialect"
 RENDER = f"{CLI}::test__cli__command_no_dialect[command0]"
 VERSION = f"{CLI}::test__cli__command_version"
 INTERNAL = f"{CLI}::test__get_filtered_parse_violations_caches_rulepack_per_config"
+AM09_INTERNAL = (
+    "test/rules/std_AM09_test.py"
+    "::test__rules__std_AM09_eval_short_circuit_on_non_select_segment"
+)
 EXCLUDE = (
     "test/core/config/fluffconfig_test.py::test__config__glob_exclude_config_tests"
 )
@@ -82,24 +86,26 @@ def test_recorded_result_is_the_check_of_the_recorded_traces():
 
 
 @pytest.mark.parametrize("tool", oracle.TOOLS)
-def test_the_oracle_agrees_with_each_pilot_case(tool):
+def test_the_oracle_agrees_with_each_converted_case(tool):
     result = RECORDED["tools"][tool]
     assert result["errors"] == []
     report_ids = [n["id"] for n in REPORT["nodes"]]
     assert [n["id"] for n in result["nodes"]] == report_ids
     assert report_ids == [n.id for n in CASES.nodes]
-    assert result["counts"]["agree"] == result["counts"]["nodes"] == 15
+    # The 15 pilot nodes of T2 and the 23 rule nodes of T6.
+    assert result["counts"]["agree"] == result["counts"]["nodes"] == 38
     status = {n["id"]: n["results"][tool]["status"] for n in REPORT["nodes"]}
     for node in result["nodes"]:
         assert node["trace"] == status[node["id"]], node["id"]
         assert node["pytest"] == {"pass": "passed", "fail": "failed"}[node["trace"]]
         assert node["errors"] == []
-    # Each assert of the source tests: 49, each cited by a check.
-    assert result["counts"]["asserts"] == 49
+    # Each assert of the source tests: 89, each cited by a check.
+    assert result["counts"]["asserts"] == 89
     assert result["counts"]["not_reproduced"] == 0
     internal = [e["id"] for e in REPORT["excluded"] if e["class"] == "python-internal"]
-    assert [n["id"] for n in result["python_internal"]] == internal == [INTERNAL]
-    assert result["python_internal"][0]["calls"] == {}
+    assert [n["id"] for n in result["python_internal"]] == internal
+    assert internal == [INTERNAL, AM09_INTERNAL]
+    assert all(n["calls"] == {} for n in result["python_internal"])
 
 
 def test_the_sqlfluff_rs_failure_is_the_report_failure():
@@ -260,7 +266,7 @@ def test_case_mutation_makes_the_oracle_fail(tool, node_id, change, error):
     found = errors_with(result, error)
     assert found, result["errors"]
     assert all(e.startswith(node_id) for e in result["errors"]), result["errors"]
-    assert result["counts"]["agree"] == 14
+    assert result["counts"]["agree"] == len(CASES.nodes) - 1
 
 
 # Mutations of the trace.
@@ -781,7 +787,7 @@ def test_oracle_run_is_the_recorded_result(tmp_path):
         check=False,
     )
     assert proc.returncode == 0, proc.stderr[-3000:]
-    assert '"agree": 15' in proc.stdout
+    assert f'"agree": {len(CASES.nodes)}' in proc.stdout
 
 
 TREE_TEST = """
