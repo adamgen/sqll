@@ -1,0 +1,461 @@
+#!/usr/bin/env python3
+"""The parity check of S4 (parser parity: sqll passes 100% of the dialect
+parse fixtures with an exact tree match).
+
+Design record: docs/decisions/s4-parity.md, section 3 ("The CI gate"). Task
+T2 (each dialect fixture of the pinned sqlfluff is one harness case, and the
+check fails closed on each gap) of S4 made this check.
+
+  uv run --frozen --project harness python scripts/s4/parity \\
+      [--root DIR] [--report FILE] [--oracle FILE] [--known-failures FILE] \\
+      [--out FILE]
+
+The inputs. A default path is relative to --root (default: the root of this
+repository):
+
+  --report          the merged harness report (default: out/report.json).
+                    The check uses the "dialects" cases of the tool "sqll"
+                    and "sqlfluff_ref".
+  --oracle          the output of scripts/sqlfluff-dialect-oracle
+                    --passes-of sqll (default:
+                    out/dialect-oracle-sqlfluff.jsonl), one JSON line for
+                    each case: {"id", "status", "reason"}.
+  --known-failures  the known failures of sqll (default:
+                    known_failures/sqll.txt).
+  fixtures          discover() of harness/sqll_harness/suites/dialects.py on
+                    <root>/third_party/sqlfluff.
+  pinned commit     git rev-parse HEAD:third_party/sqlfluff in <root>.
+  submodule         <root>/scripts/check-submodule, and the HEAD of the
+                    checkout of the submodule.
+
+Exit code 1 (fail) on each gap of design record section 3:
+
+  1. The sqll dialects case ids of the report are not exactly the
+     discovered cases: "missing", "extra", "duplicate", or "skipped".
+  2. A sqll dialects case does not pass ("not_passed"), or its check
+     "exact" or "no_unparsable" is not true ("exact_false",
+     "no_unparsable_false").
+  3. known_failures/sqll.txt has a dialects line ("known_failures_dialects").
+  4. The oracle output does not have each case ("oracle_missing"), has a
+     case that the fixtures do not have ("oracle_extra"), or a case that
+     sqll passes does not pass in the oracle ("oracle_not_pass").
+  5. The sqlfluff_ref of the report is not the pinned commit
+     ("sqlfluff_ref"), or the submodule has a change, or its checkout is not
+     the pinned commit ("submodule").
+
+Exit code 2 if an input is missing or not valid (the list "errors"). The
+check never passes with no data: no fixture case, or an oracle output with
+no line, is not valid.
+
+Output: one JSON object on stdout, and in --out if it is given. It has the
+counts of the cases, the dialects, the passes, and each gap, the list of each
+gap, and the result of each item 1 to 5.
+"""
+
+import argparse
+import json
+import re
+import subprocess
+import sys
+from collections import Counter
+from pathlib import Path
+
+from sqll_harness import known_failures
+from sqll_harness.paths import REPO_ROOT
+from sqll_harness.suites import dialects
+
+FORMAT = 1
+SUITE = dialects.NAME
+TOOL = "sqll"
+SUBMODULE = Path("third_party") / "sqlfluff"
+CHECK_SUBMODULE = Path("scripts") / "check-submodule"
+DEFAULT_REPORT = Path("out") / "report.json"
+DEFAULT_ORACLE = Path("out") / "dialect-oracle-sqlfluff.jsonl"
+DEFAULT_KNOWN_FAILURES = Path("known_failures") / f"{TOOL}.txt"
+REPORT_STATUSES = ("pass", "fail", "error", "skip")
+ORACLE_STATUSES = ("pass", "fail", "skip")
+COMMIT = re.compile(r"[0-9a-f]{40}")
+
+# The items of design record section 3, and the gaps of each item.
+ITEMS = {
+    1: (
+        "The sqll dialects case ids are exactly the discovered cases",
+        ("missing", "extra", "duplicate", "skipped"),
+    ),
+    2: (
+        "Each sqll dialects case passes, and its checks exact and"
+        " no_unparsable are true",
+        ("not_passed", "exact_false", "no_unparsable_false"),
+    ),
+    3: (
+        "known_failures/sqll.txt has no dialects line",
+        ("known_failures_dialects",),
+    ),
+    4: (
+        "The oracle output has each case, and each case that sqll passes"
+        " passes in the oracle",
+        ("oracle_missing", "oracle_extra", "oracle_not_pass"),
+    ),
+    5: (
+        "The report sqlfluff_ref is the pinned commit, and the submodule has no change",
+        ("sqlfluff_ref", "submodule"),
+    ),
+}
+GAPS = tuple(name for _, names in ITEMS.values() for name in names)
+
+
+class InputError(Exception):
+    """An input is missing or not valid."""
+
+
+def git(root: Path, *args: str) -> str:
+    return subprocess.run(
+        ["git", "-C", str(root), *args],
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout.strip()
+
+
+def read_text(path: Path, name: str) -> str:
+    if not path.is_file():
+        raise InputError(f"{name}: {path}: no such file")
+    try:
+        return path.read_text(encoding="utf8")
+    except (OSError, UnicodeDecodeError) as exc:
+        raise InputError(f"{name}: {path}: cannot read: {exc}") from exc
+
+
+def load_report(path: Path) -> tuple[str, list[dict]]:
+    """Return the sqlfluff_ref and the sqll dialects cases of the report."""
+    try:
+        data = json.loads(read_text(path, "report"))
+    except json.JSONDecodeError as exc:
+        raise InputError(f"report: {path}: not valid JSON: {exc}") from exc
+    if not isinstance(data, dict):
+        raise InputError(f"report: {path}: not a JSON object")
+    ref = data.get("sqlfluff_ref")
+    if not isinstance(ref, str) or not ref:
+        raise InputError(f"report: {path}: no sqlfluff_ref text")
+    cases = data.get("cases")
+    if not isinstance(cases, list):
+        raise InputError(f"report: {path}: no cases list")
+    found = []
+    for n, case in enumerate(cases):
+        where = f"report: {path}: case {n}"
+        if not isinstance(case, dict):
+            raise InputError(f"{where}: not a JSON object")
+        for key in ("id", "suite", "tool", "status"):
+            if not isinstance(case.get(key), str):
+                raise InputError(f"{where}: no {key} text")
+        if case["suite"] != SUITE or case["tool"] != TOOL:
+            continue
+        where = f"report: {path}: case {case['id']}"
+        if case["status"] not in REPORT_STATUSES:
+            raise InputError(f"{where}: status {case['status']!r} is not known")
+        checks = case.get("checks")
+        if not isinstance(checks, dict) or not all(
+            isinstance(value, bool) for value in checks.values()
+        ):
+            raise InputError(f"{where}: checks is not an object of true or false")
+        found.append(case)
+    return ref, found
+
+
+def load_oracle(path: Path) -> dict[str, str]:
+    """Return {case id: status} of the oracle output."""
+    oracle: dict[str, str] = {}
+    for lineno, line in enumerate(read_text(path, "oracle").splitlines(), 1):
+        if not line.strip():
+            continue
+        where = f"oracle: {path}:{lineno}"
+        try:
+            record = json.loads(line)
+        except json.JSONDecodeError as exc:
+            raise InputError(f"{where}: not valid JSON: {exc}") from exc
+        if not isinstance(record, dict) or not isinstance(record.get("id"), str):
+            raise InputError(f"{where}: no id text")
+        status = record.get("status")
+        if status not in ORACLE_STATUSES:
+            raise InputError(f"{where}: status {status!r} is not known")
+        if record["id"] in oracle:
+            raise InputError(f"{where}: duplicate id {record['id']}")
+        oracle[record["id"]] = status
+    if not oracle:
+        raise InputError(f"oracle: {path}: no case (no data)")
+    return oracle
+
+
+def load_known_failures(path: Path) -> list[str]:
+    try:
+        return list(known_failures.parse(read_text(path, "known failures"), str(path)))
+    except known_failures.KnownFailuresError as exc:
+        raise InputError(f"known failures: {exc}") from exc
+
+
+def load_fixtures(sqlfluff_root: Path) -> list[dialects.DialectCase]:
+    base = sqlfluff_root / dialects.FIXTURE_DIR
+    if not base.is_dir():
+        raise InputError(f"fixtures: {base}: no such folder")
+    try:
+        cases = dialects.discover(sqlfluff_root)
+    except OSError as exc:
+        raise InputError(f"fixtures: {base}: {exc}") from exc
+    if not cases:
+        raise InputError(f"fixtures: {base}: no case (no data)")
+    return cases
+
+
+def pinned_commit(root: Path) -> str:
+    spec = f"HEAD:{SUBMODULE.as_posix()}"
+    try:
+        commit = git(root, "rev-parse", "--verify", "--quiet", spec)
+    except (OSError, subprocess.CalledProcessError) as exc:
+        raise InputError(
+            f"pinned commit: git rev-parse {spec} in {root}: {exc}"
+        ) from exc
+    if not COMMIT.fullmatch(commit):
+        raise InputError(f"pinned commit: {spec} in {root} is {commit!r}")
+    return commit
+
+
+def submodule_gaps(root: Path, pinned: str) -> list[str]:
+    """Run scripts/check-submodule, and compare the HEAD of the checkout of
+    the submodule with the pinned commit."""
+    script = root / CHECK_SUBMODULE
+    if not script.is_file():
+        raise InputError(f"submodule: {script}: no such file")
+    try:
+        done = subprocess.run(
+            ["sh", str(script), "in the S4 parity check"],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+    except OSError as exc:
+        raise InputError(f"submodule: cannot run {script}: {exc}") from exc
+    if done.returncode != 0:
+        text = "; ".join(
+            line.strip()
+            for line in (done.stderr + done.stdout).splitlines()
+            if line.strip()
+        )
+        return [f"{CHECK_SUBMODULE.as_posix()} exit {done.returncode}: {text}"]
+    try:
+        head = git(root / SUBMODULE, "rev-parse", "HEAD")
+    except (OSError, subprocess.CalledProcessError) as exc:
+        return [f"the HEAD of {SUBMODULE.as_posix()} is not known: {exc}"]
+    if head != pinned:
+        return [
+            f"the checkout of {SUBMODULE.as_posix()} is {head}, not the pinned"
+            f" commit {pinned}"
+        ]
+    return []
+
+
+def shown(path: Path, root: Path) -> str:
+    """Give a path relative to the root if it is in the root."""
+    try:
+        return path.resolve().relative_to(root.resolve()).as_posix()
+    except ValueError:
+        return str(path)
+
+
+def dialect_of(case_id: str) -> str:
+    parts = case_id.split("/")
+    return parts[1] if len(parts) == 3 and parts[0] == SUITE else ""
+
+
+def compare(
+    fixtures: list[dialects.DialectCase],
+    ref: str,
+    cases: list[dict],
+    oracle: dict[str, str],
+    known: list[str],
+    pinned: str,
+    submodule: list[str],
+) -> tuple[dict, dict, dict]:
+    """Return the counts, the counts of each dialect, and the gaps."""
+    discovered = {case.id for case in fixtures}
+    ids = Counter(case["id"] for case in cases)
+
+    def where(test) -> list[str]:
+        return sorted({case["id"] for case in cases if test(case)})
+
+    passed = {case["id"] for case in cases if case["status"] == "pass"}
+    gaps = {
+        "missing": sorted(discovered - set(ids)),
+        "extra": sorted(set(ids) - discovered),
+        "duplicate": sorted(i for i, n in ids.items() if n > 1),
+        "skipped": where(lambda c: c["status"] == "skip"),
+        "not_passed": where(lambda c: c["status"] not in ("pass", "skip")),
+        "exact_false": where(lambda c: c["checks"].get("exact") is not True),
+        "no_unparsable_false": where(
+            lambda c: c["checks"].get("no_unparsable") is not True
+        ),
+        "known_failures_dialects": sorted(
+            i for i in known if i.split("/", 1)[0] == SUITE
+        ),
+        "oracle_missing": sorted(discovered - set(oracle)),
+        "oracle_extra": sorted(set(oracle) - discovered),
+        "oracle_not_pass": sorted(
+            i for i in passed if i in oracle and oracle[i] != "pass"
+        ),
+        "sqlfluff_ref": []
+        if ref == pinned
+        else [
+            f"the report sqlfluff_ref {ref} is not the pinned commit {pinned}"
+            f" (HEAD:{SUBMODULE.as_posix()})"
+        ],
+        "submodule": submodule,
+    }
+    status = Counter(case["status"] for case in cases)
+    counts = {
+        "discovered_cases": len(discovered),
+        "discovered_dialects": len({case.dialect for case in fixtures}),
+        "report_cases": len(cases),
+        "report_dialects": len({dialect_of(i) for i in ids} - {""}),
+        "passed": status["pass"],
+        "failed": status["fail"] + status["error"],
+        "skipped": status["skip"],
+        "exact": sum(case["checks"].get("exact") is True for case in cases),
+        "no_unparsable": sum(
+            case["checks"].get("no_unparsable") is True for case in cases
+        ),
+        "oracle_cases": len(oracle),
+        "oracle_passed": sum(s == "pass" for s in oracle.values()),
+        "passed_in_oracle": sum(oracle.get(i) == "pass" for i in passed),
+        "known_failures_lines": len(known),
+        "known_failures_dialects_lines": len(gaps["known_failures_dialects"]),
+        "gaps": sum(len(items) for items in gaps.values()),
+    }
+    by_dialect: dict[str, dict[str, int]] = {}
+    for case in fixtures:
+        entry = by_dialect.setdefault(case.dialect, {"cases": 0, "passed": 0})
+        entry["cases"] += 1
+        entry["passed"] += case.id in passed
+    return counts, dict(sorted(by_dialect.items())), gaps
+
+
+def check(args: argparse.Namespace) -> dict:
+    root = args.root
+    paths = {
+        "report": args.report or root / DEFAULT_REPORT,
+        "oracle": args.oracle or root / DEFAULT_ORACLE,
+        "known_failures": args.known_failures or root / DEFAULT_KNOWN_FAILURES,
+    }
+    result: dict = {
+        "format": FORMAT,
+        "check": "S4 parity (docs/decisions/s4-parity.md, section 3)",
+        "status": "error",
+        "exit_code": 2,
+        "commit": None,
+        "pinned_commit": None,
+        "report_sqlfluff_ref": None,
+        "inputs": {
+            **{name: shown(path, root) for name, path in paths.items()},
+            "fixtures": shown(root / SUBMODULE / dialects.FIXTURE_DIR, root),
+        },
+        "counts": None,
+        "by_dialect": None,
+        "items": None,
+        "gaps": None,
+        "errors": [],
+    }
+    loaded: dict = {}
+    steps = {
+        "report": lambda: load_report(paths["report"]),
+        "oracle": lambda: load_oracle(paths["oracle"]),
+        "known": lambda: load_known_failures(paths["known_failures"]),
+        "fixtures": lambda: load_fixtures(root / SUBMODULE),
+        "pinned": lambda: pinned_commit(root),
+    }
+    for name, step in steps.items():
+        try:
+            loaded[name] = step()
+        except InputError as exc:
+            result["errors"].append(str(exc))
+    if "pinned" in loaded:
+        result["pinned_commit"] = loaded["pinned"]
+        try:
+            loaded["submodule"] = submodule_gaps(root, loaded["pinned"])
+        except InputError as exc:
+            result["errors"].append(str(exc))
+    try:
+        result["commit"] = git(root, "rev-parse", "HEAD")
+    except (OSError, subprocess.CalledProcessError):
+        pass
+    if "report" in loaded:
+        result["report_sqlfluff_ref"] = loaded["report"][0]
+    if result["errors"]:
+        return result
+
+    ref, cases = loaded["report"]
+    counts, by_dialect, gaps = compare(
+        loaded["fixtures"],
+        ref,
+        cases,
+        loaded["oracle"],
+        loaded["known"],
+        loaded["pinned"],
+        loaded["submodule"],
+    )
+    result["counts"] = counts
+    result["by_dialect"] = by_dialect
+    result["items"] = [
+        {
+            "item": number,
+            "rule": rule,
+            "ok": not any(gaps[name] for name in names),
+            "gaps": {name: len(gaps[name]) for name in names},
+        }
+        for number, (rule, names) in ITEMS.items()
+    ]
+    result["gaps"] = gaps
+    ok = all(item["ok"] for item in result["items"])
+    result["status"] = "pass" if ok else "fail"
+    result["exit_code"] = 0 if ok else 1
+    return result
+
+
+def summary_line(result: dict) -> str:
+    if result["status"] == "error":
+        return f"S4 parity: error: {len(result['errors'])} input error(s)"
+    c = result["counts"]
+    failed = [str(item["item"]) for item in result["items"] if not item["ok"]]
+    return (
+        f"S4 parity: {result['status']}: sqll dialects {c['passed']} of"
+        f" {c['discovered_cases']} discovered cases pass in"
+        f" {c['discovered_dialects']} dialects (exact {c['exact']},"
+        f" no_unparsable {c['no_unparsable']}, {c['passed_in_oracle']} pass in"
+        f" the oracle); gaps {c['gaps']}"
+        + (f"; failed items: {', '.join(failed)}" if failed else "")
+    )
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(
+        description="The parity check of S4 (parser parity: sqll passes 100% of"
+        " the dialect parse fixtures with an exact tree match)."
+    )
+    parser.add_argument("--root", type=Path, default=REPO_ROOT)
+    parser.add_argument("--report", type=Path)
+    parser.add_argument("--oracle", type=Path)
+    parser.add_argument("--known-failures", type=Path)
+    parser.add_argument("--out", type=Path)
+    args = parser.parse_args(argv)
+    args.root = args.root.resolve()
+    result = check(args)
+    text = json.dumps(result, indent=1) + "\n"
+    sys.stdout.write(text)
+    if args.out:
+        args.out.parent.mkdir(parents=True, exist_ok=True)
+        args.out.write_text(text, encoding="utf8")
+    print(summary_line(result), file=sys.stderr)
+    for error in result["errors"]:
+        print(f"error: {error}", file=sys.stderr)
+    return result["exit_code"]
+
+
+if __name__ == "__main__":
+    sys.exit(main())
