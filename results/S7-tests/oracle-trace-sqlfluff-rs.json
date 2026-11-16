@@ -8,7 +8,7 @@
  "pytest_exit_code": 1,
  "root_config": {},
  "parse_runs": {
-  "RustParser": 40,
+  "RustParser": 44,
   "Parser": 0
  },
  "collection_errors": {},
@@ -3676,6 +3676,341 @@
    "untraced": [],
    "processes": []
   },
+  "test/rules/std_LT03_test.py::test__rules__std_LT03_trailing": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "linter_string",
+     "inputs": {
+      "method": "lint_string_wrapped",
+      "sql": "\n        SELECT\n            a,\n            b\n        FROM foo\n        WHERE\n            a = 1\n            AND b = 2\n    ",
+      "options": {
+       "fname": "<string input>",
+       "fix": false,
+       "stdin_filename": null
+      },
+      "linter": {
+       "config": {
+        "method": "FluffConfig",
+        "args": {
+         "configs": {
+          "layout": {
+           "type": {
+            "binary_operator": {
+             "line_position": "trailing"
+            }
+           }
+          }
+         },
+         "kwargs": {
+          "overrides": {
+           "dialect": "ansi"
+          }
+         }
+        }
+       }
+      },
+      "config_changed": false,
+      "cwd": "{sqlfluff}",
+      "config_file": {
+       "text": "[sqlfluff]\ndialect = ansi\n\n[sqlfluff:layout:type:binary_operator]\nline_position = trailing\n"
+      },
+      "config_proof": []
+     },
+     "outputs": {
+      "records": [
+       {
+        "filepath": "<string input>",
+        "violations": [
+         {
+          "start_line_no": 1,
+          "start_line_pos": 1,
+          "code": "LT13",
+          "description": "Files must not begin with newlines or whitespace.",
+          "name": "layout.start_of_file",
+          "warning": false,
+          "fixes": [
+           {
+            "type": "delete",
+            "edit": "",
+            "start_line_no": 1,
+            "start_line_pos": 1,
+            "start_file_pos": 0,
+            "end_line_no": 2,
+            "end_line_pos": 1,
+            "end_file_pos": 1
+           },
+           {
+            "type": "delete",
+            "edit": "",
+            "start_line_no": 2,
+            "start_line_pos": 1,
+            "start_file_pos": 1,
+            "end_line_no": 2,
+            "end_line_pos": 9,
+            "end_file_pos": 9
+           }
+          ],
+          "start_file_pos": 0,
+          "end_line_no": 9,
+          "end_line_pos": 5,
+          "end_file_pos": 120
+         },
+         {
+          "start_line_no": 2,
+          "start_line_pos": 1,
+          "code": "LT02",
+          "description": "Line should not be indented.",
+          "name": "layout.indent",
+          "warning": false,
+          "fixes": [
+           {
+            "type": "delete",
+            "edit": "",
+            "start_line_no": 2,
+            "start_line_pos": 1,
+            "start_file_pos": 1,
+            "end_line_no": 2,
+            "end_line_pos": 9,
+            "end_file_pos": 9
+           }
+          ],
+          "start_file_pos": 1,
+          "end_line_no": 2,
+          "end_line_pos": 9,
+          "end_file_pos": 9
+         },
+         {
+          "start_line_no": 3,
+          "start_line_pos": 1,
+          "code": "LT02",
+          "description": "Expected indent of 4 spaces.",
+          "name": "layout.indent",
+          "warning": false,
+          "fixes": [
+           {
+            "type": "replace",
+            "edit": "    ",
+            "start_line_no": 3,
+            "start_line_pos": 1,
+            "start_file_pos": 16,
+            "end_line_no": 3,
+            "end_line_pos": 13,
+            "end_file_pos": 28
+           }
+          ],
+          "start_file_pos": 16,
+          "end_line_no": 3,
+          "end_line_pos": 13,
+          "end_file_pos": 28
+         },
+         {
+          "start_line_no": 4,
+          "start_line_pos": 1,
+          "code": "LT02",
+          "description": "Expected indent of 4 spaces.",
+          "name": "layout.indent",
+          "warning": false,
+          "fixes": [
+           {
+            "type": "replace",
+            "edit": "    ",
+            "start_line_no": 4,
+            "start_line_pos": 1,
+            "start_file_pos": 31,
+            "end_line_no": 4,
+            "end_line_pos": 13,
+            "end_file_pos": 43
+           }
+          ],
+          "start_file_pos": 31,
+          "end_line_no": 4,
+          "end_line_pos": 13,
+          "end_file_pos": 43
+         },
+         {
+          "start_line_no": 5,
+          "start_line_pos": 1,
+          "code": "LT02",
+          "description": "Line should not be indented.",
+          "name": "layout.indent",
+          "warning": false,
+          "fixes": [
+           {
+            "type": "delete",
+            "edit": "",
+            "start_line_no": 5,
+            "start_line_pos": 1,
+            "start_file_pos": 45,
+            "end_line_no": 5,
+            "end_line_pos": 9,
+            "end_file_pos": 53
+           }
+          ],
+          "start_file_pos": 45,
+          "end_line_no": 5,
+          "end_line_pos": 9,
+          "end_file_pos": 53
+         },
+         {
+          "start_line_no": 6,
+          "start_line_pos": 1,
+          "code": "LT02",
+          "description": "Line should not be indented.",
+          "name": "layout.indent",
+          "warning": false,
+          "fixes": [
+           {
+            "type": "delete",
+            "edit": "",
+            "start_line_no": 6,
+            "start_line_pos": 1,
+            "start_file_pos": 62,
+            "end_line_no": 6,
+            "end_line_pos": 9,
+            "end_file_pos": 70
+           }
+          ],
+          "start_file_pos": 62,
+          "end_line_no": 6,
+          "end_line_pos": 9,
+          "end_file_pos": 70
+         },
+         {
+          "start_line_no": 7,
+          "start_line_pos": 1,
+          "code": "LT02",
+          "description": "Expected indent of 4 spaces.",
+          "name": "layout.indent",
+          "warning": false,
+          "fixes": [
+           {
+            "type": "replace",
+            "edit": "    ",
+            "start_line_no": 7,
+            "start_line_pos": 1,
+            "start_file_pos": 76,
+            "end_line_no": 7,
+            "end_line_pos": 13,
+            "end_file_pos": 88
+           }
+          ],
+          "start_file_pos": 76,
+          "end_line_no": 7,
+          "end_line_pos": 13,
+          "end_file_pos": 88
+         },
+         {
+          "start_line_no": 8,
+          "start_line_pos": 1,
+          "code": "LT02",
+          "description": "Expected indent of 4 spaces.",
+          "name": "layout.indent",
+          "warning": false,
+          "fixes": [
+           {
+            "type": "replace",
+            "edit": "    ",
+            "start_line_no": 8,
+            "start_line_pos": 1,
+            "start_file_pos": 94,
+            "end_line_no": 8,
+            "end_line_pos": 13,
+            "end_file_pos": 106
+           }
+          ],
+          "start_file_pos": 94,
+          "end_line_no": 8,
+          "end_line_pos": 13,
+          "end_file_pos": 106
+         },
+         {
+          "start_line_no": 8,
+          "start_line_pos": 13,
+          "code": "LT03",
+          "description": "Found leading binary operator. Expected only trailing near line breaks.",
+          "name": "layout.operators",
+          "warning": false,
+          "fixes": [
+           {
+            "type": "replace",
+            "edit": "\n            ",
+            "start_line_no": 8,
+            "start_line_pos": 16,
+            "start_file_pos": 109,
+            "end_line_no": 8,
+            "end_line_pos": 17,
+            "end_file_pos": 110
+           },
+           {
+            "type": "delete",
+            "edit": "",
+            "start_line_no": 7,
+            "start_line_pos": 18,
+            "start_file_pos": 93,
+            "end_line_no": 8,
+            "end_line_pos": 1,
+            "end_file_pos": 94
+           },
+           {
+            "type": "replace",
+            "edit": " ",
+            "start_line_no": 8,
+            "start_line_pos": 1,
+            "start_file_pos": 94,
+            "end_line_no": 8,
+            "end_line_pos": 13,
+            "end_file_pos": 106
+           }
+          ],
+          "start_file_pos": 106,
+          "end_line_no": 8,
+          "end_line_pos": 16,
+          "end_file_pos": 109
+         },
+         {
+          "start_line_no": 9,
+          "start_line_pos": 1,
+          "code": "LT01",
+          "description": "Unnecessary trailing whitespace at end of file.",
+          "name": "layout.spacing",
+          "warning": false,
+          "fixes": [
+           {
+            "type": "delete",
+            "edit": "",
+            "start_line_no": 9,
+            "start_line_pos": 1,
+            "start_file_pos": 116,
+            "end_line_no": 9,
+            "end_line_pos": 5,
+            "end_file_pos": 120
+           }
+          ],
+          "start_file_pos": 116,
+          "end_line_no": 9,
+          "end_line_pos": 5,
+          "end_file_pos": 120
+         }
+        ],
+        "statistics": {
+         "source_chars": 120,
+         "templated_chars": 120,
+         "segments": 62,
+         "raw_segments": 43
+        }
+       }
+      ],
+      "violations": 10,
+      "tmp_prs": 0,
+      "fixable": 10,
+      "unfixable": 0
+     }
+    }
+   ],
+   "untraced": [],
+   "processes": []
+  },
   "test/rules/std_LT04_test.py::test__rules__std_LT04_unparseable": {
    "outcome": "passed",
    "calls": [
@@ -5260,11 +5595,113 @@
    "untraced": [],
    "processes": []
   },
+  "test/rules/std_roundtrip_test.py::test__cli__command__fix[LT01-test/fixtures/linter/whitespace_errors.sql]": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "cli",
+     "inputs": {
+      "argv": [
+       "lint",
+       "--rules",
+       "LT01",
+       "--dialect=ansi",
+       "{tmp}/testing.sql"
+      ],
+      "stdin": null,
+      "cwd": "{sqlfluff}",
+      "unsupported": [],
+      "tmp": {
+       "files": {
+        "testing.sql": "SELECT\n    a.id   , -- Comma with leading spaces\n    a.name,    a.training_spaces\n,    -- Comma on newline, trailing spaces but with comment!\n    a.normal_comma, a.should_work\nFROM tbl as a\n"
+       },
+       "outer_config": {},
+       "cwd_paths": []
+      }
+     },
+     "outputs": {
+      "exit_code": 1,
+      "stdout": "== [{tmp}/testing.sql] FAIL\nL:   2 | P:   9 | LT01 | Unexpected whitespace before comma ','. [layout.spacing]\nL:   3 | P:  12 | LT01 | Expected only single space before naked identifier.\n                       | Found '    '. [layout.spacing]\nAll Finished!\n",
+      "stderr": "",
+      "files": {
+       "testing.sql": "SELECT\n    a.id   , -- Comma with leading spaces\n    a.name,    a.training_spaces\n,    -- Comma on newline, trailing spaces but with comment!\n    a.normal_comma, a.should_work\nFROM tbl as a\n"
+      }
+     }
+    },
+    {
+     "kind": "cli",
+     "inputs": {
+      "argv": [
+       "fix",
+       "--rules",
+       "LT01",
+       "--dialect=ansi",
+       "-f",
+       "{tmp}/testing.sql"
+      ],
+      "stdin": null,
+      "cwd": "{sqlfluff}",
+      "unsupported": [],
+      "tmp": {
+       "files": {
+        "testing.sql": "SELECT\n    a.id   , -- Comma with leading spaces\n    a.name,    a.training_spaces\n,    -- Comma on newline, trailing spaces but with comment!\n    a.normal_comma, a.should_work\nFROM tbl as a\n"
+       },
+       "outer_config": {},
+       "cwd_paths": []
+      }
+     },
+     "outputs": {
+      "exit_code": 0,
+      "stdout": "==== finding fixable violations ====\n== [{tmp}/testing.sql] FAIL\nL:   2 | P:   9 | LT01 | Unexpected whitespace before comma ','. [layout.spacing]\nL:   3 | P:  12 | LT01 | Expected only single space before naked identifier.\n                       | Found '    '. [layout.spacing]\n== [{tmp}/testing.sql] FIXED\n2 fixable linting violations found\n",
+      "stderr": "The -f/--force option is deprecated as it is now the default behaviour.\n",
+      "files": {
+       "testing.sql": "SELECT\n    a.id, -- Comma with leading spaces\n    a.name, a.training_spaces\n,    -- Comma on newline, trailing spaces but with comment!\n    a.normal_comma, a.should_work\nFROM tbl as a\n"
+      }
+     }
+    },
+    {
+     "kind": "cli",
+     "inputs": {
+      "argv": [
+       "lint",
+       "--rules",
+       "LT01",
+       "--dialect=ansi",
+       "{tmp}/testing.sql"
+      ],
+      "stdin": null,
+      "cwd": "{sqlfluff}",
+      "unsupported": [],
+      "tmp": {
+       "files": {
+        "testing.sql": "SELECT\n    a.id, -- Comma with leading spaces\n    a.name, a.training_spaces\n,    -- Comma on newline, trailing spaces but with comment!\n    a.normal_comma, a.should_work\nFROM tbl as a\n"
+       },
+       "outer_config": {},
+       "cwd_paths": []
+      }
+     },
+     "outputs": {
+      "exit_code": 0,
+      "stdout": "All Finished!\n",
+      "stderr": "",
+      "files": {
+       "testing.sql": "SELECT\n    a.id, -- Comma with leading spaces\n    a.name, a.training_spaces\n,    -- Comma on newline, trailing spaces but with comment!\n    a.normal_comma, a.should_work\nFROM tbl as a\n"
+      }
+     }
+    }
+   ],
+   "untraced": [],
+   "processes": []
+  },
   "test/cli/commands_test.py::test__get_filtered_parse_violations_caches_rulepack_per_config": {
    "outcome": "passed",
    "calls": [],
    "untraced": [],
-   "processes": []
+   "processes": [],
+   "untraced_linter": [
+    "a Linter render (Linter.render_string)",
+    "a Linter parse (Linter.parse_rendered)"
+   ]
   },
   "test/rules/std_AM09_test.py::test__rules__std_AM09_eval_short_circuit_on_non_select_segment": {
    "outcome": "passed",

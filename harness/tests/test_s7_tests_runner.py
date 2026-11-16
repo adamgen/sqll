@@ -247,7 +247,8 @@ def test_cli_case_cwd_and_placeholders(tmp_path):
         checks={"exit_code": 0, "stdout": {"startswith": f"cwd={SQLFLUFF_ROOT}\n"}}
     )
     assert runner.run_case(run, case).status == PASS
-    # A tmp case: its files, the placeholders, and a changed file.
+    # A tmp case: its files, the placeholders, and a changed file. The
+    # output gives the temporary folder as {tmp}, as the trace oracle does.
     case = cli_case(
         argv=["fix", "{tmp}/a.sql", "{sqlfluff}/x"],
         cwd="tmp",
@@ -255,8 +256,9 @@ def test_cli_case_cwd_and_placeholders(tmp_path):
         checks={
             "exit_code": 0,
             "stdout": {
-                "contains": ["arg=fix\narg=/", f"/a.sql\narg={SQLFLUFF_ROOT}/x\n"],
-                "not_contains": ["{tmp}", "{sqlfluff}", f"cwd={SQLFLUFF_ROOT}"],
+                "equals": (
+                    f"cwd={{tmp}}\narg=fix\narg={{tmp}}/a.sql\narg={SQLFLUFF_ROOT}/x\n"
+                ),
             },
             "files": {"a.sql": "SELECT 1\n"},
         },

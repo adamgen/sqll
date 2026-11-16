@@ -3,11 +3,13 @@
 
 scripts/s7-tests/trace-nodes runs the original pytest nodes with the pinned
 sqlfluff (or with sqlfluff[rs]) and records each CLI call, simple-API call,
-and Linter path call with its inputs and outputs. This module reads that
-trace only; sqlfluff is not a module of the harness. For each tool it checks:
+Linter path call, and Linter string call with its inputs and outputs. This
+module reads that trace only; sqlfluff is not a module of the harness.
+map_call gives the cases of each traced call (the maps of the design
+record). For each tool it checks:
 
-1. The inputs of each case are the traced inputs of its call (case i is
-   traced call i of the node).
+1. The inputs of each case are the inputs of its case of the traced calls,
+   in order.
 2. The checks of each case, on the traced outputs, give the pytest outcome
    of the node: pass if the node passed, fail if it failed.
 3. The pytest outcome of each node is the status of the node in the runner
@@ -27,16 +29,17 @@ import json
 import posixpath
 import re
 from dataclasses import dataclass, field
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Any
 
 from ..cases import FAIL, PASS
 from ..paths import REPO_ROOT
 from .asserts import AssertSourceError, find_asserts
-from .caseformat import SQLFLUFF_VERSION, Case, Node
+from .caseformat import SQLFLUFF_VERSION, TMP_MARK, Case, Node
 from .runner import (
     API_DIALECT,
     CheckFailed,
+    check_files,
     check_violations,
     cli_violations,
     match_text,
@@ -128,6 +131,44 @@ def has_pointer(text: str, name: str) -> bool:
 
 # Inputs.
 
+# The .sqlfluff file of a case that maps a Linter string call, and the names
+# of the files that the CLI reads as config or ignore files in a folder.
+CONFIG_FILE = ".sqlfluff"
+CONFIG_FILES = frozenset(
+    {".sqlfluff", "setup.cfg", "tox.ini", "pyproject.toml", ".sqlfluffignore"}
+)
+# The file name of a Linter string call with no name, and the name that the
+# CLI gives to stdin.
+STRING_FNAME = "<string input>"
+STDIN_FNAME = "stdin"
+# The options of a Linter string method that the map allows: only these
+# values (and any fix).
+STRING_OPTIONS = {
+    "lint_string": {"fname": STRING_FNAME, "config": None, "encoding": "utf8"},
+    "lint_string_wrapped": {"fname": STRING_FNAME, "stdin_filename": None},
+}
+# The lint options that give an override of a Linter config to a Linter path
+# call (sqlfluff.cli.commands.get_config: the options are overrides).
+OVERRIDE_OPTIONS = {
+    "dialect": "--dialect",
+    "rules": "--rules",
+    "exclude_rules": "--exclude-rules",
+}
+
+
+@dataclass
+class Mapped:
+    """One case of a traced call: the case inputs, and the outputs in the
+    form that failed_checks reads. A cli case has the outputs exit_code,
+    stdout, stderr, records (the lint records, if not from stdout), files
+    (the files of the temporary folder after the call), and exception."""
+
+    what: str
+    inputs: dict[str, Any]
+    outputs: dict[str, Any] | None = None
+    raised: str | None = None
+    outputs_error: str | None = None
+
 
 def case_inputs(case: Case) -> dict[str, Any]:
     """The inputs of a case, in the form of the traced inputs."""
@@ -150,84 +191,362 @@ def case_inputs(case: Case) -> dict[str, Any]:
     }
 
 
-def _linter_inputs(inputs: dict[str, Any]) -> dict[str, Any]:
+def _mapped(what: str, call: dict[str, Any], inputs: dict[str, Any], outputs):
+    """A Mapped case; outputs(call outputs) gives its outputs."""
+    item = Mapped(what, inputs, raised=call.get("raised"))
+    item.outputs_error = call.get("outputs_error")
+    if "outputs" in call:
+        item.outputs = outputs(call["outputs"])
+    return item
+
+
+def _linter_args(linter: dict[str, Any] | None) -> None:
+    others = {
+        k: v for k, v in (linter or {}).items() if k != "config" and v is not None
+    }
+    if others:
+        raise OracleError(f"Linter arguments {sorted(others)} other than config")
+
+
+def _cli_outputs(out: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "exit_code": out["exit_code"],
+        "stdout": out["stdout"],
+        "stderr": out["stderr"],
+        "records": None,
+        "files": out.get("files"),
+        "exception": out.get("exception"),
+    }
+
+
+def _cli(call: dict[str, Any]) -> list[Mapped]:
+    """A CLI call. In the sqlfluff root it is a cwd: sqlfluff case. With a
+    temporary folder of the node (in an argument or as the working folder)
+    it is a cwd: tmp case with the files of the folder."""
+    inputs = call["inputs"]
+    if inputs["unsupported"]:
+        raise OracleError("; ".join(inputs["unsupported"]))
+    cwd = inputs["cwd"]
+    mapped = {
+        "run": "cli",
+        "argv": inputs["argv"],
+        "stdin": inputs["stdin"] or "",
+        "cwd": "sqlfluff" if cwd == ROOT_MARK else cwd,
+        "files": {},
+    }
+    tmp = inputs.get("tmp")
+    if tmp is not None:
+        if tmp["outer_config"]:
+            raise OracleError(
+                "a folder above the temporary folder has a sqlfluff config"
+                f" {tmp['outer_config']}"
+            )
+        if cwd == ROOT_MARK:
+            # The CLI reads a config file in the working folder for each
+            # file, and a config file in another folder only for the files
+            # in it. Thus the temporary folder must not have one.
+            configs = sorted(
+                n for n in tmp["files"] if PurePosixPath(n).name in CONFIG_FILES
+            )
+            if configs:
+                raise OracleError(
+                    f"the temporary folder has the config or ignore files {configs};"
+                    " the case runs in the folder, the call did not"
+                )
+            if tmp["cwd_paths"]:
+                raise OracleError(
+                    f"the arguments {tmp['cwd_paths']} are paths in the sqlfluff"
+                    " root; the case runs in the temporary folder"
+                )
+        elif cwd != TMP_MARK:
+            raise OracleError(f"a CLI call in the folder {cwd} with a temporary folder")
+        mapped["cwd"] = "tmp"
+        mapped["files"] = dict(tmp["files"])
+    return [_mapped("CLI call", call, mapped, _cli_outputs)]
+
+
+def _linter_path(call: dict[str, Any]) -> list[Mapped]:
     """A Linter path call as the CLI case that it is: "lint -f json PATH...".
 
-    The mapping holds only for a Linter made with
-    FluffConfig.from_path(<folder of the path>) and no other argument, and
-    for a path method with no option. Else OracleError.
+    The mapping holds for a Linter made with
+    FluffConfig.from_path(<folder of the path>) and no other argument, or
+    with a config from overrides only (the overrides become lint options),
+    and for a path method with no option. Else OracleError.
     """
+    inputs = call["inputs"]
     paths = inputs["paths"]
     if inputs["options"]:
         raise OracleError(f"Linter.{inputs['method']} options {inputs['options']}")
     linter = inputs["linter"] or {}
-    others = {k: v for k, v in linter.items() if k != "config" and v is not None}
-    if others:
-        raise OracleError(f"Linter arguments {sorted(others)} other than config")
+    _linter_args(linter)
     source = linter.get("config") or {}
-    folder = (source.get("args") or {}).get("path")
-    if source.get("method") != "from_path" or set(source["args"]) != {"path"}:
+    options: list[str] = []
+    if source.get("method") == "from_path" and set(source["args"]) == {"path"}:
+        folder = source["args"]["path"]
+        if len(paths) != 1 or posixpath.dirname(paths[0]) != folder:
+            raise OracleError(
+                f"Linter config from_path({folder!r}) is not the folder of {paths}"
+            )
+    elif "overrides" in inputs and source.get("method") != "from_path":
+        options = _override_options(inputs["overrides"])
+    else:
         raise OracleError(
             f"a Linter config from {source}; the oracle maps only"
-            " FluffConfig.from_path(<folder>)"
+            " FluffConfig.from_path(<folder>) and a config from overrides"
         )
-    if len(paths) != 1 or posixpath.dirname(paths[0]) != folder:
-        raise OracleError(
-            f"Linter config from_path({folder!r}) is not the folder of {paths}"
-        )
-    return {
+    mapped = {
         "run": "cli",
-        "argv": ["lint", "-f", "json", *paths],
+        "argv": ["lint", "-f", "json", *options, *paths],
         "stdin": "",
         "cwd": "sqlfluff" if inputs["cwd"] == ROOT_MARK else inputs["cwd"],
         "files": {},
     }
 
+    def outputs(out: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "exit_code": out["exit_code"],
+            "stdout": None,
+            "stderr": None,
+            "records": out["records"],
+            "files": None,
+        }
 
-def call_inputs(call: dict[str, Any]) -> dict[str, Any]:
-    """The inputs of a traced call, in the form of case_inputs."""
+    return [_mapped("Linter call", call, mapped, outputs)]
+
+
+def _override_options(model: dict[str, Any]) -> list[str]:
+    """The lint options of the overrides of a Linter config. The trace
+    proves that the config is FluffConfig(overrides=<them>)."""
+    if model["extra_config_path"] is not None or model["ignore_local_config"]:
+        raise OracleError(
+            "a Linter config with extra_config_path or ignore_local_config"
+        )
+    if model["proof"]:
+        raise OracleError(
+            "the Linter config is not FluffConfig(overrides=<its overrides>):"
+            f" the keys {model['proof']} are different"
+        )
+    values = model["values"]
+    unknown = sorted(set(values) - set(OVERRIDE_OPTIONS))
+    if unknown:
+        raise OracleError(
+            f"the overrides {unknown}; the map knows only {list(OVERRIDE_OPTIONS)}"
+        )
+    options = []
+    for key, option in OVERRIDE_OPTIONS.items():
+        if key in values:
+            if not isinstance(values[key], str) or not values[key]:
+                raise OracleError(f"the override {key}={values[key]!r} is not a text")
+            options += [option, values[key]]
+    return options
+
+
+def _stdin_records(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    if len(records) != 1 or records[0]["filepath"] != STRING_FNAME:
+        raise OracleError(f"{len(records)} lint records, not 1 of {STRING_FNAME!r}")
+    return [{**records[0], "filepath": STDIN_FNAME}]
+
+
+def _without_fixes(records: list[dict[str, Any]]) -> list[list[dict[str, Any]]]:
+    return [
+        [
+            {k: v for k, v in violation.items() if k != "fixes"}
+            for violation in r["violations"]
+        ]
+        for r in records
+    ]
+
+
+def _linter_string(
+    call: dict[str, Any], parts: tuple[str, ...]
+) -> list[Mapped | OracleError]:
+    """A Linter string call (Linter.lint_string, lint_string_wrapped) as CLI
+    cases on stdin in a temporary folder with the .sqlfluff file of the
+    config model. parts: "lint" ("lint -f json -") and "fix" ("fix -")."""
+    inputs = call["inputs"]
+    method = inputs["method"]
+    if method not in STRING_OPTIONS:
+        raise OracleError(f"the Linter method {method!r}")
+    _linter_args(inputs["linter"])
+    options = dict(inputs["options"])
+    fix = options.pop("fix")
+    if not isinstance(fix, bool):
+        raise OracleError(f"Linter.{method} fix={fix!r}")
+    allowed = STRING_OPTIONS[method]
+    for key, value in options.items():
+        if key not in allowed or allowed[key] != value:
+            raise OracleError(
+                f"Linter.{method} option {key}={value!r}; the oracle maps only"
+                " the default"
+            )
+    if inputs["cwd"] != ROOT_MARK:
+        raise OracleError(f"a Linter string call in the folder {inputs['cwd']}")
+    if inputs["config_changed"]:
+        raise OracleError("the config of the Linter changed after the Linter was made")
+    model = inputs["config_file"]
+    if "error" in model:
+        raise OracleError(f"the config of the Linter: {model['error']}")
+    if inputs["config_proof"]:
+        raise OracleError(
+            f"the CLI config from the {CONFIG_FILE} file is not the config of the"
+            f" Linter: the keys {inputs['config_proof']} are different"
+        )
+    sql = inputs["sql"]
+    if "\r" in sql:
+        raise OracleError("the SQL has a carriage return; the CLI reads stdin as text")
+    files = {CONFIG_FILE: model["text"]} if model["text"] else {}
+    base = {"run": "cli", "stdin": sql, "cwd": "tmp", "files": files}
+
+    def lint_outputs(out: dict[str, Any]) -> dict[str, Any]:
+        lint = out["lint"] if fix else out
+        if fix and _without_fixes(out["records"]) != _without_fixes(lint["records"]):
+            raise OracleError(
+                "the violations of the fix run are not the violations of a lint"
+                " run; the lint command cannot show them"
+            )
+        return {
+            "exit_code": 1 if lint["violations"] > 0 else 0,
+            "stdout": None,
+            "stderr": None,
+            "records": _stdin_records(lint["records"]),
+            "files": files,
+        }
+
+    def fix_outputs(out: dict[str, Any]) -> dict[str, Any]:
+        # sqlfluff.cli.commands._stdin_fix with no templater or parse error.
+        if out["tmp_prs"]:
+            raise OracleError(
+                f"{out['tmp_prs']} templater or parse errors; the fix command"
+                " does not apply the fixes"
+            )
+        return {
+            "exit_code": 1 if out["unfixable"] else 0,
+            "stdout": out["fixed"] if out["fixable"] else sql,
+            "stderr": None,
+            "records": None,
+            "files": files,
+        }
+
+    out: list[Mapped | OracleError] = []
+    for part in parts:
+        if part == "fix" and not fix:
+            raise OracleError(f"Linter.{method} with no fix has no fixed SQL")
+        argv, outputs = (
+            (["lint", "-f", "json", "-"], lint_outputs)
+            if part == "lint"
+            else (["fix", "-"], fix_outputs)
+        )
+        try:
+            out.append(
+                _mapped("Linter string call", call, {**base, "argv": argv}, outputs)
+            )
+        except OracleError as exc:
+            out.append(exc)
+    return out
+
+
+def _api(call: dict[str, Any]) -> list[Mapped | OracleError]:
+    inputs = call["inputs"]
+    if inputs["cwd"] != ROOT_MARK:
+        raise OracleError(f"a simple-API call in the folder {inputs['cwd']}")
+    if inputs.get("config") is not None:
+        return _api_config(call)
+    for key in ("config_path", "fix_even_unparsable"):
+        if inputs.get(key) is not None:
+            raise OracleError(
+                f"simple-API argument {key}={inputs[key]!r}; the oracle"
+                " maps only the default"
+            )
+    mapped = {
+        "run": "api",
+        "function": inputs["function"],
+        "sql": inputs["sql"],
+        "dialect": inputs["dialect"] or API_DIALECT,
+        "rules": inputs["rules"],
+        "exclude_rules": inputs["exclude_rules"],
+        "config": None,
+    }
+    return [_mapped("simple-API call", call, mapped, lambda out: out)]
+
+
+def _api_config(call: dict[str, Any]) -> list[Mapped | OracleError]:
+    """A simple-API lint or fix with a config. sqlfluff.api.simple then uses
+    only the config (not dialect, rules, exclude_rules, or config_path) and
+    calls Linter(config=config).lint_string_wrapped(sql, fix=<fix>). The
+    trace records that inner call; the case is its lint or fix case."""
+    inputs = call["inputs"]
+    function = inputs["function"]
+    for key in ("config_path", "fix_even_unparsable"):
+        if inputs.get(key) is not None:
+            raise OracleError(
+                f"simple-API argument {key}={inputs[key]!r} with a config; the"
+                " oracle maps only the default"
+            )
+    if function not in ("lint", "fix"):
+        raise OracleError(f"the simple-API function {function} with a config")
+    inner = call.get("inner") or []
+    if "raised" in call and not inner:
+        return [Mapped("simple-API call", {}, raised=call["raised"])]
+    if len(inner) != 1 or inner[0]["kind"] != "linter_string":
+        raise OracleError(
+            f"a simple-API call with a config has {len(inner)} inner calls, not 1"
+            " Linter string call"
+        )
+    sub = inner[0]
+    sub_inputs = sub.get("inputs", {})
+    fix = function == "fix"
+    if (
+        sub_inputs.get("method") != "lint_string_wrapped"
+        or sub_inputs.get("sql") != inputs["sql"]
+        or sub_inputs.get("options", {}).get("fix") is not fix
+    ):
+        raise OracleError("the inner Linter call is not the call of the simple API")
+    part = "fix" if fix else "lint"
+    mapped = _linter_string(sub, (part,))[0]
+    if isinstance(mapped, OracleError):
+        raise mapped
+    mapped.what = "simple-API call"
+    if "raised" in call:
+        mapped.raised = call["raised"]
+    elif mapped.outputs is not None and "outputs" in call:
+        got = call["outputs"]
+        want = (
+            mapped.outputs["stdout"]
+            if fix
+            else mapped.outputs["records"][0]["violations"]
+        )
+        if got != want:
+            raise OracleError(
+                f"the simple-API {function} gives {got!r}, not the {part} output"
+                " of the CLI model"
+            )
+    return [mapped]
+
+
+def map_call(call: dict[str, Any]) -> list[Mapped | OracleError]:
+    """The cases of a traced call, in order. A Linter string call with fix
+    gives 2 cases (lint, then fix); each other call gives 1. An item that is
+    an OracleError is a case that the oracle cannot map."""
     if "inputs_error" in call:
         raise OracleError(
             f"the trace could not read the inputs: {call['inputs_error']}"
         )
-    inputs = call["inputs"]
     kind = call["kind"]
     if kind == "cli":
-        if inputs["unsupported"]:
-            raise OracleError("; ".join(inputs["unsupported"]))
-        return {
-            "run": "cli",
-            "argv": inputs["argv"],
-            "stdin": inputs["stdin"] or "",
-            "cwd": "sqlfluff" if inputs["cwd"] == ROOT_MARK else inputs["cwd"],
-            "files": {},
-        }
+        return _cli(call)
     if kind == "linter":
-        return _linter_inputs(inputs)
+        return _linter_path(call)
+    if kind == "linter_string":
+        fix = call["inputs"]["options"].get("fix")
+        return _linter_string(call, ("lint", "fix") if fix else ("lint",))
     if kind == "api":
-        if inputs["cwd"] != ROOT_MARK:
-            raise OracleError(f"a simple-API call in the folder {inputs['cwd']}")
-        for key in ("config", "config_path", "fix_even_unparsable"):
-            if inputs.get(key) is not None:
-                raise OracleError(
-                    f"simple-API argument {key}={inputs[key]!r}; the oracle"
-                    " maps only the default"
-                )
-        return {
-            "run": "api",
-            "function": inputs["function"],
-            "sql": inputs["sql"],
-            "dialect": inputs["dialect"] or API_DIALECT,
-            "rules": inputs["rules"],
-            "exclude_rules": inputs["exclude_rules"],
-            "config": None,
-        }
+        return _api(call)
     raise OracleError(f"a traced call of the unknown kind {kind!r}")
 
 
-def input_differences(case: Case, call: dict[str, Any]) -> list[str]:
+def input_differences(case: Case, mapped: Mapped) -> list[str]:
     want = case_inputs(case)
-    got = call_inputs(call)
+    got = mapped.inputs
     return [
         f"{key}: the case gives {want.get(key)!r}, the trace {got.get(key)!r}"
         for key in sorted(set(want) | set(got))
@@ -238,15 +557,17 @@ def input_differences(case: Case, call: dict[str, Any]) -> list[str]:
 # Outputs.
 
 
-def failed_checks(case: Case, call: dict[str, Any]) -> list[str]:
+def failed_checks(case: Case, mapped: Mapped) -> list[str]:
     """The checks of a case that fail on the traced outputs of its call."""
-    if "raised" in call:
-        return [f"the call raised {call['raised']}"]
-    if "outputs_error" in call:
+    if mapped.raised is not None:
+        return [f"the call raised {mapped.raised}"]
+    if mapped.outputs_error is not None:
         raise OracleError(
-            f"the trace could not read the outputs: {call['outputs_error']}"
+            f"the trace could not read the outputs: {mapped.outputs_error}"
         )
-    outputs = call["outputs"]
+    if mapped.outputs is None:
+        raise OracleError("the trace has no outputs")
+    outputs = mapped.outputs
     checks = case.checks
     failed: list[str] = []
     if case.run == "api":
@@ -257,23 +578,28 @@ def failed_checks(case: Case, call: dict[str, Any]) -> list[str]:
         for i, check in enumerate(checks["violations"]):
             failed += check_violations(f"violations[{i}]", outputs, check)
         return failed
-    if case.cwd != "sqlfluff" or "files" in checks:
-        raise OracleError("a files check; the trace has no files")
     if outputs["exit_code"] != checks["exit_code"]:
         failed.append(f"exit_code: {outputs['exit_code']}, not {checks['exit_code']}")
-    if call["kind"] == "linter":
-        for stream in ("stdout", "stderr"):
-            if stream in checks:
-                raise OracleError(f"a {stream} check; a Linter call has no {stream}")
+    if outputs.get("exception"):
+        failed.append(f"the command raised {outputs['exception']}")
+    for stream in ("stdout", "stderr"):
+        if stream in checks:
+            if outputs[stream] is None:
+                raise OracleError(f"a {stream} check; a {mapped.what} has no {stream}")
+            failed += match_text(stream, outputs[stream], checks[stream])
+    if case.cwd == "tmp":
+        if outputs["files"] is None:
+            raise OracleError("a files check; the trace has no files")
+        failed += check_files(case, outputs["files"])
+    elif "files" in checks:
+        raise OracleError("a files check; the trace has no files")
+    if outputs["records"] is not None:
         stdout = json.dumps(outputs["records"])
     else:
-        if "exception" in outputs:
-            failed.append(f"the command raised {outputs['exception']}")
         stdout = outputs["stdout"]
-        for stream in ("stdout", "stderr"):
-            if stream in checks:
-                failed += match_text(stream, outputs[stream], checks[stream])
     for i, check in enumerate(checks.get("violations", [])):
+        if stdout is None:
+            raise OracleError(f"a violations check; a {mapped.what} has no lint output")
         try:
             found = cli_violations(stdout, check.get("file"))
         except CheckFailed as exc:
@@ -316,6 +642,12 @@ def _trace_errors(data: dict[str, Any]) -> list[str]:
     out = [f"starts a process: {p}" for p in data["processes"]]
     out += [f"an untraced call: {u}" for u in data["untraced"]]
     return out
+
+
+def _linter_errors(data: dict[str, Any]) -> list[str]:
+    """A Linter render or parse outside each traced call: a Linter method
+    that the oracle does not map. A python-internal node can have it."""
+    return [f"an untraced Linter call: {u}" for u in data.get("untraced_linter", [])]
 
 
 def check_asserts(
@@ -386,19 +718,29 @@ def check_node(
             node.id, "no trace", None, report_status, errors=["not in the trace"]
         )
     result = NodeResult(node.id, data["outcome"], None, report_status)
-    result.errors += _trace_errors(data)
+    result.errors += _trace_errors(data) + _linter_errors(data)
     calls = data["calls"]
     pytest_status = OUTCOMES.get(data["outcome"])
     if pytest_status is None:
         result.errors.append(f"the pytest outcome is {data['outcome']}")
-    statuses = []
-    for case, call in zip(node.cases, calls, strict=False):
+    # The cases of the calls, in order. A call that the oracle cannot map
+    # counts as 1 case.
+    parts: list[Mapped | OracleError] = []
+    for call in calls:
         try:
-            diff = input_differences(case, call)
+            parts += map_call(call)
+        except OracleError as exc:
+            parts.append(exc)
+    statuses = []
+    for case, part in zip(node.cases, parts, strict=False):
+        try:
+            if isinstance(part, OracleError):
+                raise part
+            diff = input_differences(case, part)
             if diff:
                 result.errors += [f"case {case.name}: input {d}" for d in diff]
                 continue
-            failed = failed_checks(case, call)
+            failed = failed_checks(case, part)
         except OracleError as exc:
             result.errors.append(f"case {case.name}: {exc}")
             continue
@@ -407,14 +749,15 @@ def check_node(
         result.cases.append(
             {"name": case.name, "status": status, "reason": "; ".join(failed)}
         )
-    if len(calls) > len(node.cases):
-        result.errors.append(
-            f"{len(calls)} traced calls, {len(node.cases)} cases: a call has no case"
-        )
-    elif len(calls) < len(node.cases):
+    if len(parts) > len(node.cases):
+        counts = f"{len(calls)} traced calls"
+        if len(parts) != len(calls):
+            counts += f" ({len(parts)} cases)"
+        result.errors.append(f"{counts}, {len(node.cases)} cases: a call has no case")
+    elif len(parts) < len(node.cases):
         # A failed node can stop before its last calls. Then a traced case
         # must fail, so that the failure is a failure of a check.
-        missing = [c.name for c in node.cases[len(calls) :]]
+        missing = [c.name for c in node.cases[len(parts) :]]
         if pytest_status == FAIL and FAIL in statuses:
             result.cases += [
                 {"name": n, "status": "not traced", "reason": "the node stopped"}
@@ -489,8 +832,8 @@ def trace_errors(trace: dict[str, Any], tool: str, requested: list[str]) -> list
     for name, error in trace["collection_errors"].items():
         errors.append(f"collection error: {name}: {error}")
     outside = trace["outside"]
-    for key in ("calls", "untraced", "processes"):
-        if outside[key]:
+    for key in ("calls", "untraced", "untraced_linter", "processes"):
+        if outside.get(key):
             errors.append(
                 f"{len(outside[key])} {key} outside the nodes: {outside[key]}"
             )
