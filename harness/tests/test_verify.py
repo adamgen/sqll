@@ -59,6 +59,13 @@ def _bench_shard(data):
     return _step(data, "bench-full", "Run the benchmark shard")
 
 
+S4_PARITY = "Check the S4 parser parity"
+
+
+def _s4_parity(data):
+    return _step(data, "dialect-oracle", S4_PARITY)
+
+
 def _without_step(data, job: str, name: str) -> None:
     steps = data["jobs"][job]["steps"]
     steps.remove(_step(data, job, name))
@@ -454,6 +461,36 @@ CI_CHANGES = {
             "ruff check harness", "ruff check --check harness"
         )
     ),
+    # The S4 parity gate (S4: parser parity: sqll passes 100% of the dialect
+    # parse fixtures with an exact tree match).
+    "no S4 parity step": lambda d: _without_step(d, "dialect-oracle", S4_PARITY),
+    "S4 parity step for sqlfluff-rs": lambda d: _s4_parity(d).update(
+        {"if": "matrix.tool == 'sqlfluff-rs'"}
+    ),
+    "S4 parity step for each tool": lambda d: _s4_parity(d).pop("if"),
+    "S4 parity step always": lambda d: _s4_parity(d).update(
+        {"if": "always() && matrix.tool == 'sqlfluff'"}
+    ),
+    "S4 parity step of the sqlfluff-rs oracle": lambda d: _s4_parity(d).update(
+        run=_s4_parity(d)["run"].replace(
+            "dialect-oracle-sqlfluff.jsonl", "dialect-oracle-sqlfluff-rs.jsonl"
+        )
+    ),
+    "S4 parity step without --out": lambda d: _s4_parity(d).update(
+        run=_s4_parity(d)["run"].replace(" --out out/s4-parity.json", "")
+    ),
+    "S4 parity step || true": lambda d: _s4_parity(d).update(
+        run=_s4_parity(d)["run"] + " || true"
+    ),
+    "S4 parity step continue-on-error": lambda d: _s4_parity(d).update(
+        {"continue-on-error": True}
+    ),
+    "S4 scripts not linted": lambda d: _step(d, "lint", "Lint").update(
+        run=_step(d, "lint", "Lint")["run"].replace(" $S4_SCRIPTS", "")
+    ),
+    "S4 parity script not linted": lambda d: _step(d, "lint", "Lint")["env"].update(
+        S4_SCRIPTS="scripts/s4"
+    ),
 }
 
 
@@ -558,6 +595,23 @@ LOCAL_CHANGES = {
     "submodule check after the full benchmark": (
         "submodule-after-full-bench",
         lambda c: c.replace("benchmarks", "tests"),
+    ),
+    "S4 parity of another oracle output": (
+        "s4-parity",
+        lambda c: c.replace("dialect-oracle-sqlfluff.jsonl", "x.jsonl"),
+    ),
+    "S4 parity without the report": (
+        "s4-parity",
+        lambda c: c.replace(" --report out/report.json", ""),
+    ),
+    "S4 parity || true": ("s4-parity", lambda c: c + " || true"),
+    "S4 scripts not linted": (
+        "ruff-check",
+        lambda c: c.replace(" scripts/s4 scripts/s4/parity", ""),
+    ),
+    "S4 parity script not format checked": (
+        "ruff-format",
+        lambda c: c.replace(" scripts/s4/parity", ""),
     ),
 }
 
@@ -755,6 +809,31 @@ def test_ci_commands_use_env_and_matrix():
     ]
 
 
+def test_a_matrix_if_selects_the_ci_commands():
+    # GitHub skips the step for the other matrix entries.
+    job = {"strategy": {"matrix": {"include": [{"a": "1"}, {"a": "2"}, {"b": "1"}]}}}
+    step = {"run": "x ${{ matrix.a }}", "if": "matrix.a == '2'"}
+    assert verify.ci_commands(step, job) == ["x 2"]
+    step["if"] = "matrix.a   ==   '1'"
+    assert verify.ci_commands(step, job) == ["x 1"]
+    # No entry has the value, or the job has no matrix: no command.
+    step["if"] = "matrix.a == '3'"
+    assert verify.ci_commands(step, job) == []
+    assert verify.ci_commands(step, {}) == []
+    # Another "if" does not select the entries (STEP_IF gives each "if").
+    step["if"] = "always() && matrix.a == '1'"
+    assert verify.ci_commands(step, job) == ["x 1", "x 2", "x {}"]
+
+
+def test_the_s4_parity_step_has_one_ci_command():
+    step = _s4_parity(CI)
+    commands = verify.ci_commands(step, CI["jobs"]["dialect-oracle"], CI.get("env"))
+    assert len(commands) == 1
+    assert verify.lines(commands[0]) == verify.lines(
+        next(c for c in CHECKS if c.name == "s4-parity").command
+    )
+
+
 def test_check_names_are_unique_and_local_only_checks_are_few():
     names = [c.name for c in CHECKS]
     assert len(names) == len(set(names))
@@ -809,6 +888,7 @@ def test_the_reports_of_the_checks():
         "s7-run": "out/s7-tests/report.json",
         "s7-summary": "out/s7-tests/summary.json",
         "s7-oracle": "out/s7-tests/oracle.json",
+        "s4-parity": "out/s4-parity.json",
         "bench-smoke": "out/bench.json",
         "bench-full": "out/bench-full.json",
         "corpus-smoke": "out/corpus.json",

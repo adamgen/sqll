@@ -135,9 +135,14 @@ jobs:
             scripts/s7-tests scripts/s7-tests/config-readers
             scripts/s7-tests/inventory scripts/s7-tests/oracle
             scripts/s7-tests/trace-nodes
+          # The scripts of S4 (parser parity: sqll passes 100% of the dialect
+          # parse fixtures with an exact tree match). The folder gives each
+          # .py file; the other S4 scripts have no extension
+          # (harness/tests/test_s4_ci.py checks that each is here).
+          S4_SCRIPTS: scripts/s4 scripts/s4/parity
         run: |
-          uv run --frozen --project harness ruff check harness ci $ORACLES scripts/build-sqll scripts/speed-check scripts/s3 scripts/s3b $S7_SCRIPTS
-          uv run --frozen --project harness ruff format --check harness ci $ORACLES scripts/build-sqll scripts/speed-check scripts/s3 scripts/s3b $S7_SCRIPTS
+          uv run --frozen --project harness ruff check harness ci $ORACLES scripts/build-sqll scripts/speed-check scripts/s3 scripts/s3b $S7_SCRIPTS $S4_SCRIPTS
+          uv run --frozen --project harness ruff format --check harness ci $ORACLES scripts/build-sqll scripts/speed-check scripts/s3 scripts/s3b $S7_SCRIPTS $S4_SCRIPTS
 
       - name: Unit tests
         env:
@@ -553,6 +558,19 @@ jobs:
             --report out/report.json \
             --out out/dialect-oracle-${{ matrix.tool }}.jsonl
           scripts/check-submodule "after the comparison"
+
+      # The parity gate of S4 (parser parity: sqll passes 100% of the dialect
+      # parse fixtures with an exact tree match; docs/decisions/s4-parity.md,
+      # section 3). Only the sqlfluff entry has the oracle output of the sqll
+      # passes (--passes-of sqll). Exit code 1 on each gap, exit code 2 if
+      # an input is missing or not valid. The drift test of verify.py uses
+      # only the matrix entries that this "if" selects.
+      - name: Check the S4 parser parity
+        if: matrix.tool == 'sqlfluff'
+        run: >-
+          uv run --frozen --project harness python scripts/s4/parity
+          --report out/report.json --oracle out/dialect-oracle-sqlfluff.jsonl
+          --out out/s4-parity.json
 
       - if: always()
         uses: actions/upload-artifact@v7

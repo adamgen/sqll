@@ -312,6 +312,8 @@ STEP_IF = {
     "report: actions/upload-artifact": "always()",
     "report: Check test jobs": "needs.test.result != 'success'",
     "dialect-oracle: actions/upload-artifact": "always()",
+    # ci_commands() uses only the matrix entries that this "if" selects.
+    "dialect-oracle: Check the S4 parser parity": "matrix.tool == 'sqlfluff'",
     "s7: actions/upload-artifact": "always()",
     "s7-report: actions/upload-artifact": "always()",
     "s7-report: Check the S7 jobs": "needs.s7.result != 'success'",
@@ -440,14 +442,20 @@ S7_SCRIPTS = (
     "scripts/s7-tests scripts/s7-tests/config-readers scripts/s7-tests/inventory"
     " scripts/s7-tests/oracle scripts/s7-tests/trace-nodes"
 )
+# The S4 scripts (S4: parser parity: sqll passes 100% of the dialect parse
+# fixtures with an exact tree match): the folder gives each .py file; the other
+# scripts have no extension.
+S4_SCRIPTS = "scripts/s4 scripts/s4/parity"
 # The Python files that the lint job checks with ruff, after harness and ci.
 LINTED = (
     f"{ORACLES} scripts/build-sqll scripts/speed-check scripts/s3 scripts/s3b"
-    f" {S7_SCRIPTS}"
+    f" {S7_SCRIPTS} {S4_SCRIPTS}"
 )
 ORACLE_PY = '"$SQLL_TOOLS_DIR/sqlfluff-oracle/bin/python"'
 RS_PY = '"$SQLL_TOOLS_DIR/sqlfluff-rs-oracle/bin/python"'
 LINT_SUBMODULE = "lint: Check that the sqlfluff submodule is clean"
+DIALECT_ORACLE = "out/dialect-oracle-sqlfluff.jsonl"
+S4_PARITY = "out/s4-parity.json"
 AFTER = 'scripts/check-submodule "after the comparison"'
 
 
@@ -781,6 +789,21 @@ def checks(jobs: int | None = None) -> list[Check]:
             ),
             ("dialect-oracle: Compare the dialect results with the sqlfluff tests",),
             needs=rep,
+            # The S4 parity check reads this file: an old file must not stay.
+            removes=(DIALECT_ORACLE,),
+        ),
+        # The parity gate of S4 (parser parity: sqll passes 100% of the dialect
+        # parse fixtures with an exact tree match; docs/decisions/s4-parity.md,
+        # section 3): exit code 1 on each gap, exit code 2 if an input is
+        # missing or not valid (for example no oracle output).
+        Check(
+            "s4-parity",
+            f"{UV} python scripts/s4/parity --report out/report.json"
+            f" --oracle {DIALECT_ORACLE} --out {S4_PARITY}",
+            ("dialect-oracle: Check the S4 parser parity",),
+            needs=rep,
+            removes=(S4_PARITY,),
+            report=S4_PARITY,
         ),
         Check(
             "dialect-oracle-sqlfluff-rs",
@@ -984,6 +1007,8 @@ def ci_steps(data: dict | None = None) -> list[tuple[str, dict, dict]]:
 
 
 _EXPR = re.compile(r"\$\{\{\s*([^}]*?)\s*\}\}")
+# A step "if" that selects the matrix entries with one value (ci_commands()).
+_MATRIX_IF = re.compile(r"matrix\.([\w-]+) == '([^']*)'")
 
 
 def step_env(step: dict, job: dict, workflow_env: dict | None = None) -> dict:
@@ -1004,7 +1029,9 @@ def ci_commands(step: dict, job: dict, workflow_env: dict | None = None) -> list
 
     An env value replaces $NAME. An env name that the text does not use
     becomes "NAME=value " before each command line. A ${{ matrix.X }} of a
-    static matrix becomes its value; another expression becomes "{}".
+    static matrix becomes its value; another expression becomes "{}". If the
+    step "if" is "matrix.X == 'V'" (_MATRIX_IF), only the matrix entries
+    where X is V give a text: GitHub skips the step for the other entries.
     """
     text = step.get("run", "").replace("\\\n", " ")
     unused = []
@@ -1019,8 +1046,13 @@ def ci_commands(step: dict, job: dict, workflow_env: dict | None = None) -> list
         text = "\n".join(prefix + line for line in text.splitlines() if line.strip())
     include = (job.get("strategy") or {}).get("matrix") or {}
     entries = include.get("include") if isinstance(include, dict) else None
+    only = _MATRIX_IF.fullmatch(" ".join(str(step.get("if", "")).split()))
     out = []
     for entry in entries or [{}]:
+        if only and (
+            only.group(1) not in entry or str(entry[only.group(1)]) != only.group(2)
+        ):
+            continue
 
         def value(m: re.Match, entry: dict = entry) -> str:
             expr = m.group(1)
