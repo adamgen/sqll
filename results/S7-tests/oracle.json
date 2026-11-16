@@ -433,6 +433,22 @@
      "errors": []
     },
     {
+     "id": "test/rules/std_LT03_test.py::test__rules__std_LT03_trailing",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "trailing",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 2,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
      "id": "test/rules/std_LT04_test.py::test__rules__std_LT04_unparseable",
      "pytest": "passed",
      "trace": "pass",
@@ -653,6 +669,32 @@
      "asserts": 1,
      "not_reproduced": 0,
      "errors": []
+    },
+    {
+     "id": "test/rules/std_roundtrip_test.py::test__cli__command__fix[LT01-test/fixtures/linter/whitespace_errors.sql]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint_before",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "fix",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "lint_after",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 3,
+     "not_reproduced": 0,
+     "errors": []
     }
    ],
    "python_internal": [
@@ -670,12 +712,12 @@
     }
    ],
    "counts": {
-    "nodes": 38,
-    "agree": 38,
-    "pass": 38,
+    "nodes": 40,
+    "agree": 40,
+    "pass": 40,
     "fail": 0,
     "python_internal": 2,
-    "asserts": 89,
+    "asserts": 94,
     "not_reproduced": 0
    },
    "errors": []
@@ -1107,6 +1149,22 @@
      "errors": []
     },
     {
+     "id": "test/rules/std_LT03_test.py::test__rules__std_LT03_trailing",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "trailing",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 2,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
      "id": "test/rules/std_LT04_test.py::test__rules__std_LT04_unparseable",
      "pytest": "passed",
      "trace": "pass",
@@ -1327,6 +1385,32 @@
      "asserts": 1,
      "not_reproduced": 0,
      "errors": []
+    },
+    {
+     "id": "test/rules/std_roundtrip_test.py::test__cli__command__fix[LT01-test/fixtures/linter/whitespace_errors.sql]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint_before",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "fix",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "lint_after",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 3,
+     "not_reproduced": 0,
+     "errors": []
     }
    ],
    "python_internal": [
@@ -1344,12 +1428,12 @@
     }
    ],
    "counts": {
-    "nodes": 38,
-    "agree": 38,
-    "pass": 37,
+    "nodes": 40,
+    "agree": 40,
+    "pass": 39,
     "fail": 1,
     "python_internal": 2,
-    "asserts": 89,
+    "asserts": 94,
     "not_reproduced": 0
    },
    "errors": []

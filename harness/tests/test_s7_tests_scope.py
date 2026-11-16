@@ -292,19 +292,26 @@ def _words(text: str) -> str:
 
 
 def test_status_has_each_task():
-    # The plan of 2026-11-11: T1 to T15, and T15 is the exit task. Each row
-    # has a goal (AGENTS.md, "Names").
+    # The plan of 2026-11-11: T1 to T15, and T15 is the exit task. The
+    # orchestrator added T16 (the trace oracle extension 1) before T7 on
+    # 2026-11-15. Each row has a goal (AGENTS.md, "Names").
     table = _section(STATUS, "S7-tests tasks").splitlines()
     rows = [r for r in table if r.startswith("|")]
     assert rows[0] == "| Task | Description | Goal | State |"
     cells = [[c.strip() for c in r.strip("|").split(" | ")] for r in rows[2:]]
-    assert [c[0] for c in cells] == [f"T{n}" for n in range(1, 16)]
+    order = [f"T{n}" for n in range(1, 7)] + ["T16"]
+    order += [f"T{n}" for n in range(7, 16)]
+    assert [c[0] for c in cells] == order
     assert all(len(c) == 4 and all(c) for c in cells), cells
     assert cells[-1][1].startswith("S7 test conversion exit")
+    t16 = cells[order.index("T16")]
+    assert t16[2] == (
+        "The trace oracle maps and proves the calls that the remaining rule"
+        " nodes use, and fails closed on each other call"
+    )
     words = _words(DESIGN)
     assert "Only T1 and T15 change the S7 test conversion row" in words
     assert "At T15 (the exit task" in words
-    assert "T16" not in DESIGN + STATUS
 
 
 def _outcomes(record: dict) -> str:

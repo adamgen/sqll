@@ -26,9 +26,11 @@ test/rules/std_LT01_LT02_LT09_combo_test.py::test__rules__std_LT02_LT09_LT01  # 
 test/rules/std_LT02_LT11_combo_test.py::test__rules__std_LT02_LT11_union_all_in_subquery_fix  # union_all_in_subquery_fix: unsupported: rule all
 test/rules/std_LT02_LT11_combo_test.py::test__rules__std_LT02_LT11_union_all_in_subquery_lint  # union_all_in_subquery_lint: unsupported: rule all
 test/rules/std_LT03_test.py::test__rules__std_LT03_default  # default: unsupported: rule all
+test/rules/std_LT03_test.py::test__rules__std_LT03_trailing  # trailing: unsupported: sqlfluff CLI command 'lint' (the case has no sqruff translation)
 test/rules/std_LT04_test.py::test__rules__std_LT04_unparseable  # unparseable: unsupported: rule all
 test/rules/std_LT05_LT09_combo_test.py::test__rules__std_LT05_LT09_long_line_fix  # long_line_fix: unsupported: rule all
 test/rules/std_LT05_LT09_combo_test.py::test__rules__std_LT05_LT09_long_line_fix2  # long_line_fix2: unsupported: rule all
 test/rules/std_LT05_LT09_combo_test.py::test__rules__std_LT05_LT09_long_line_lint  # long_line_lint: unsupported: rule all
 test/rules/std_RF02_test.py::test__rules__std_RF02_wildcard_single_count  # wildcard_single_count: unsupported: rule all
 test/rules/std_ST03_test.py::test__rules__std_ST03_multiple_unused_ctes  # multiple_unused_ctes: unsupported: output field end_file_pos, end_line_no, end_line_pos, fixes, name, start_file_pos, warning
+test/rules/std_roundtrip_test.py::test__cli__command__fix[LT01-test/fixtures/linter/whitespace_errors.sql]  # lint_before: unsupported: sqlfluff CLI command 'lint' (the case has no sqruff translation); fix: unsupported: sqlfluff CLI command 'fix' (the case has no sqruff translation); lint_after: unsupported: sqlfluff CLI command 'lint' (the case has no sqruff translation)

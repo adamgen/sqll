@@ -113,7 +113,10 @@ new inventory.
   and the license (MIT). Inline SQL, argv, and expected values from the
   Python tests are a derived work of sqlfluff. THIRD_PARTY.md gets an entry
   in T4 (harness hooks for the S7 suites, cross-track). The cases read
-  fixture files in place. They do not copy or change them (G4.5).
+  fixture files in place. They do not copy or change them (G4.5). Only a
+  `cwd: tmp` case that maps a traced call has the files of the temporary
+  folder of that call (see "Trace oracle"), also if the source test copied
+  them from a fixture.
 - T2 (case format, case runner, and pilot cases) set the format, the
   runner, and the report below.
 
@@ -178,7 +181,8 @@ nodes:
   assert id that is not `L<line>` or `L<line>:<name>`, a reference to a
   case or a check that does not exist, a node in 2 places (also in the
   exclusion list), an unknown key, a repeated YAML key, a case with no
-  checks, a cli case with no `exit_code`, and `files` without `cwd: tmp`.
+  checks, a cli case with no `exit_code`, and `files` or `{tmp}` (in
+  `argv` or `sqruff`) without `cwd: tmp`.
 
 ## Exclusion list
 
@@ -214,7 +218,9 @@ the results of the other tools are recorded), `sqll-harness run`, does not
 run the S7 suites.
 
 - `cli`: the CLI of the tool, with the environment of its adapter (an
-  empty home). `sqlfluff-rs` gets the layer of its adapter
+  empty home). In a `cwd: tmp` case, the checks of stdout and stderr see
+  the temporary folder as `{tmp}`, as the trace oracle does.
+  `sqlfluff-rs` gets the layer of its adapter
   (`harness/sqlfluff-rs.md`) as `--config <file>` after the command, for
   `lint`, `fix`, `format`, `parse`, and `render`. A case that gives
   `--config`, or an input with a layer key, is an `error`. sqruff runs the
@@ -343,12 +349,68 @@ with the original sqlfluff tests. T3 made it.
   `scripts/sqlfluff_oracle.py`). It runs the original pytest nodes in place
   in the submodule, with an empty home folder. It records each outermost
   call of the CLI (`CliRunner.invoke` of a sqlfluff command), of the simple
-  API (`sqlfluff.lint`, `fix`, `parse`), and of a Linter path method
-  (`Linter.lint_path`, `lint_paths`), with its inputs and outputs.
+  API (`sqlfluff.lint`, `fix`, `parse`), of a Linter path method
+  (`Linter.lint_path`, `lint_paths`), and of a Linter string method
+  (`Linter.lint_string`, `lint_string_wrapped`), with its inputs and
+  outputs. In a simple-API call with a config, it also records the inner
+  Linter string call. It records the temporary folders of each node
+  (`tempfile.mkdtemp`, which `TemporaryDirectory` uses, and the fixtures
+  `tmp_path` and `tmpdir`).
+- Maps (T16: trace oracle and case runner, extension 1; goal: the trace
+  oracle maps and proves the calls that the remaining rule nodes use, and
+  fails closed on each other call). `oracle.map_call` gives the cases of a
+  traced call, in order. Before these maps, `call_inputs` gave the one
+  case of a call. T2 (goal: the case runner and the trace oracle of the
+  track S7-tests (the track that converts the S7 tests to black-box cases)
+  run the cases of S6 with its scope file) of S6 (templater parity: sqll
+  passes 100% of the placeholder and Python format-string templater
+  fixtures that do not need a Python runtime) adds its map of a templater
+  call to `map_call`. The case format, `sqll-harness s7 run`, and
+  `scripts/s7-tests/oracle` keep their interface; the maps only add to
+  them.
+  - CLI call: a `cli` case with the argv and stdin. In the submodule root
+    it is a `cwd: sqlfluff` case. If an argument is a path in a temporary
+    folder of the node, or the working folder is that folder, it is a
+    `cwd: tmp` case: the folder is `{tmp}` in argv and in stdout and
+    stderr, the case `files` are the files of the folder before the call,
+    and the files after the call are the outputs of the `files` check.
+    For a call in the submodule root, the folder must have no config or
+    ignore file (`.sqlfluff`, `setup.cfg`, `tox.ini`, `pyproject.toml`,
+    `.sqlfluffignore`), and no other argument may be a path in the root:
+    the case runs in the folder, and the CLI reads a config file in the
+    working folder for each file. The folders above it must have no
+    sqlfluff config.
+  - Simple API with no config: an `api` case (T3).
+  - Linter path call: `lint -f json P` (T3), or, for a config from
+    overrides only, `lint -f json --dialect D --rules R --exclude-rules E
+    P` (only the overrides that the config has). The CLI options are
+    overrides, and a Linter path call gives each file the config of its
+    path and the overrides of the Linter config
+    (`FluffConfig.make_child_from_path`). The trace proves that the config
+    is `FluffConfig(overrides=<its overrides>)`.
+  - Linter string call (`Linter(config=C).lint_string(S)` or
+    `lint_string_wrapped(S)`): a `cwd: tmp` case `lint -f json -` with
+    stdin S and the file `.sqlfluff` of the config model (see "Config
+    model"). With `fix=True` it gives 2 cases: that lint case, then `fix
+    -`. The violations of a fix run must be the violations of a lint run
+    (the trace runs the lint too), else it is an error. Outputs (a model of
+    `sqlfluff.cli.commands`, as the Linter path map): lint exit code 1 if
+    the file has a violation, else 0; the lint records with the file name
+    `stdin`; fix stdout the fixed SQL if a violation is fixable, else S;
+    fix exit code 1 if a violation is not fixable, else 0. A fix with a
+    templater or parse error is an error (the CLI does not apply its
+    fixes). The SQL must have no carriage return (the CLI reads stdin as
+    text).
+  - Simple API with `config=C` (`sqlfluff.lint`, `fix`): sqlfluff then
+    ignores `dialect`, `rules`, and `exclude_rules` and calls
+    `Linter(config=C).lint_string_wrapped(sql, fix=...)`. The case is the
+    lint case or the fix case of that inner call. The return value of the
+    call must be the lint records or the fix stdout of the model.
 - Nodes: each converted node and each `python-internal` node of the runner
   report (`results/S7-tests/report.json`).
 - Checks for each tool (`sqll_harness/s7_tests/oracle.py`):
-  1. Case i of a node has the inputs of traced call i of the node.
+  1. The cases of a node have the inputs of the cases of its traced calls,
+     in order (see "Maps").
   2. The checks of the cases on the traced outputs give the pytest outcome
      of the node: pass if it passed, fail if it failed. A failed node can
      stop before its last calls; then a traced case must fail.
@@ -363,7 +425,10 @@ with the original sqlfluff tests. T3 made it.
   fork, or a new Python process in a node or outside the nodes; a sqlfluff
   CLI command (`Command.main`, `get_config`) or a simple-API config
   (`get_simple_config`) that runs outside a traced call of its kind (an
-  untraced call); a traced call outside the nodes; a node of the report
+  untraced call); a Linter render or parse (`Linter.render_string`,
+  `parse_rendered`) outside each traced call in a converted node or outside
+  the nodes, for example `Linter.parse_string` (a `python-internal` node
+  can have it); a traced call outside the nodes; a node of the report
   that the trace does not have; a node that the oracle did not ask for; a
   report that is not of the case files; a collection error; a pytest
   outcome that is not passed or failed (a failed setup or teardown is the
@@ -372,6 +437,18 @@ with the original sqlfluff tests. T3 made it.
   submodule root; with `--rust`, a run of the Python parser or no run of
   the Rust parser; a row of the not-reproduced record before the pointer
   section in `harness/not-reproduced.md` (decision 4).
+- The maps also give these errors: a config that the config model does
+  not map (see "Config model") or that the CLI does not load again as the
+  same config; a config change after the Linter was made; a Linter string
+  method or
+  option that the map does not know (only `fname`, `config`, `encoding`,
+  and `stdin_filename` with their defaults, and any `fix`); a Linter
+  argument other than `config`; an override other than `dialect`,
+  `rules`, and `exclude_rules` in a Linter path call; a simple-API call
+  with a config and with `config_path` or `fix_even_unparsable`, or with
+  no inner Linter string call or more than one; 2 temporary folders in one
+  CLI call; a temporary folder in the middle of an argument.
+
 - Asserts (`sqll_harness/s7_tests/asserts.py`): the finder reads the test
   source with `ast`. An `assert` statement has the id `L<line>`. A known
   helper gives one id for each check that it makes: `invoke_assert_code`
@@ -389,29 +466,89 @@ with the original sqlfluff tests. T3 made it.
   the result (CI unit tests), and has the mutation tests. It also runs the
   oracle script on the recorded traces: exit code 0, and exit code 1 for
   each of the 4 checks (a changed case input, a failed check, a changed
-  report status, an assert with no citation).
+  report status, an assert with no citation). For the maps, exit code 1
+  for a changed config value, a changed stdin, a changed file content, a
+  missing file check, a config key that the map does not know, and an
+  untraced Linter call. A test runs trace-nodes on a small test tree with
+  each new map and each refused call.
+
+### Config model
+
+`scripts/s7-tests/s7config.py`. A Linter string call uses the config
+of its Linter and reads no config file. The case gives that config as a
+`.sqlfluff` file in its temporary folder, and the CLI loads it with the
+defaults (`FluffConfig.from_root` in the folder, with an empty home).
+
+- The trace takes the values of the config of the Linter (`_configs`) when
+  it calls the method. The text has each value that is not the value of
+  the default config (`FluffConfig()` with no input; with `--rust` it has
+  the Rust settings, which the runner gives as a layer). `core` keys go to
+  `[sqlfluff]`, the other keys to `[sqlfluff:<section>:...]`. The
+  derived keys (`color`, `rule_allowlist`, `rule_denylist`,
+  `dialect_obj`, `templater_obj`) are not in the text: the CLI derives
+  them again from the other keys.
+- A value is `True`, `False`, `None`, an integer, a float, or one line of
+  text. sqlfluff `coerce_value` must load the text as the same value of
+  the same type. Thus `set_value(..., True)`, which stores `1`, gives `1`.
+- It fails closed on: a key that the default config does not have (the map
+  knows only these keys), a missing default key, a value that is not a
+  scalar (for example a list or a Python object), a key that ends with
+  `_path` or `_dir` (sqlfluff resolves it relative to the file), and a name
+  that an ini file cannot give.
+- Proof: the trace writes the text to a new folder, loads it as the CLI
+  does, and records each key whose value is not the value of the Linter
+  config (`config_proof`). The oracle maps the call only if there is none.
+  Thus a `set_value` of a key that FluffConfig derives other keys from
+  (for example `["core", "rules"]`) is an error.
+- The trace also takes the values when the Linter is made. If they changed
+  before the call, it is an error: the Linter keeps the dialect and the
+  templater of its config.
+- That the CLI options of a case (`-f json`, `-`) do not change the lint
+  result is a model of sqlfluff, as for the Linter path map.
 
 ### Limits of the oracle
 
-1. Inputs. The oracle maps only these calls. Each other call is an error:
-   - CLI: a sqlfluff command in the submodule root, with string arguments
-     and an optional stdin; no `env` and no other argument of `invoke`.
-     Thus no `cwd: tmp` case and no `files` check yet.
+1. Inputs. The oracle maps only these calls (T3: trace oracle with
+   fail-closed checks; goal: each case agrees with a trace of its original
+   pytest node; and T16: trace oracle and case runner, extension 1; goal:
+   the trace oracle maps and proves the calls that the remaining rule nodes
+   use, and fails closed on each other call). Each other call is an error:
+   - CLI: a sqlfluff command with string arguments and an optional stdin;
+     no `env` and no other argument of `invoke`. It runs in the submodule
+     root, or with one temporary folder of the node (a `cwd: tmp` case,
+     see "Trace oracle"). A temporary folder that pytest or the test makes
+     in another way (for example `tmp_path_factory`) is not `{tmp}`, so
+     the case inputs do not agree.
    - Simple API: `lint` and `fix` with `sql`, `dialect`, `rules`, and
-     `exclude_rules`, in the submodule root; no `config`, `config_path`, or
+     `exclude_rules`, in the submodule root, and no `config_path` or
      `fix_even_unparsable`. A `dialect` of None is `ansi`, as in the simple
      API. This is true only because the submodule root has no sqlfluff
-     config and the home folder is empty; the oracle checks the root.
-   - Linter: `Linter(config=FluffConfig.from_path(D))`, then
+     config and the home folder is empty; the oracle checks the root. With
+     `config`, the call is its inner Linter string call.
+   - Linter path: `Linter(config=FluffConfig.from_path(D))`, then
      `lint_path(P)` or `lint_paths([P])` with no option, where D is the
      folder of P. The oracle maps it to the CLI case `lint -f json P`. The
      exit code is 1 if the result has a violation, else 0, as the lint
      command computes it. That the CLI loads the same config for P as
-     `from_path(D)` is a model of sqlfluff, not a trace.
+     `from_path(D)` is a model of sqlfluff, not a trace. A config from
+     overrides only (`dialect`, `rules`, `exclude_rules`) gives these
+     options as lint options; the trace proves that the config is
+     `FluffConfig(overrides=<them>)`.
+   - Linter string: `lint_string` and `lint_string_wrapped` of a Linter
+     with only a config, with the default options, in the submodule root.
+     The map from the config to the `.sqlfluff` file is the recorded config
+     model, and the trace proves it for each call. The exit codes and the
+     fix stdout are a model of the lint and fix commands, as for the Linter
+     path map.
    - A call that raises, or a CLI command that ends with an exception other
      than `SystemExit`, is a failed check. Thus a node that expects such an
      exception is an error now.
-2. Order. Case i is call i. A node with more calls than cases is an error.
+   - Each other Linter method (for example `parse_string`) is an untraced
+     Linter call. Other Python calls of the test are not traced; the
+     assert citations (limit 3) are the check for them.
+2. Order. The cases of call i follow the cases of call i - 1: a Linter
+   string call with `fix=True` gives 2 cases, each other call 1. A node
+   with more cases from its calls than cases is an error.
 3. Meaning. The oracle checks that each assert has a citation to a check
    that exists. It does not check that the check means the same as the
    assert; the reviewer checks this. Checks 2 and 3 find a check that is
@@ -423,6 +560,11 @@ with the original sqlfluff tests. T3 made it.
    does not run for one parameter.
 5. Processes. The trace does not record calls in another process. A node
    that starts a process is an error, so the oracle cannot prove it yet.
+   With `fix=True`, the trace runs one more lint of the Linter in the node
+   (to compare the violations), and it loads the `.sqlfluff` file of each
+   Linter string call and makes `FluffConfig(overrides=...)` for each
+   Linter path call with overrides. These calls read no file of the
+   submodule, and the test does not see their results.
 6. In process. The trace runs the CLI in the pytest process
    (`CliRunner`), not as a binary. Check 3 compares the binary run of the
    runner with it only by the node status.

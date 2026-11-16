@@ -295,6 +295,12 @@ def run_cli(run: ToolRun, case: Case) -> list[str]:
         )
         stdout = proc.stdout.decode("utf8", "replace")
         stderr = proc.stderr.decode("utf8", "replace")
+        if case.cwd == "tmp":
+            # The checks give the temporary folder as {tmp}, as the trace
+            # oracle does.
+            for folder in {str(tmp.resolve()), str(tmp)}:
+                stdout = stdout.replace(folder, TMP_MARK)
+                stderr = stderr.replace(folder, TMP_MARK)
         if run.layer_file is not None:
             for warning in (FALLBACK_WARNING, ARENA_WARNING):
                 if warning in stdout + stderr:

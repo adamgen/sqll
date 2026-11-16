@@ -337,6 +337,10 @@ def _check_cli(err: _Errors, at: str, case: dict[str, Any]) -> None:
         # The cases read the fixtures in place and never write to the
         # submodule (G4.5).
         err.add(f"{at}.files", "needs cwd: tmp")
+    for key in ("argv", "sqruff"):
+        values = case.get(key)
+        if cwd != "tmp" and _is_str_list(values) and any(TMP_MARK in a for a in values):
+            err.add(f"{at}.{key}", f"{TMP_MARK} needs cwd: tmp")
     for name in files:
         _check_rel_path(err, f"{at}.files", name)
     checks = case.get("checks")

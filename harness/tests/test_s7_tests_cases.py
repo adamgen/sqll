@@ -480,6 +480,24 @@ def test_case_file_text_errors(tmp_path):
     assert any(".name: 'raised' is not a new" in e for e in errors), errors
 
 
+def test_tmp_mark_needs_a_tmp_case(tmp_path):
+    # T16: {tmp} is the temporary folder of a cwd: tmp case only.
+    case = {
+        "name": "dialect",
+        "run": "cli",
+        "argv": ["lint", "{tmp}/a.sql"],
+        "sqruff": ["lint", "{tmp}/a.sql"],
+        "checks": {"exit_code": 2},
+    }
+    errors = errors_of(tmp_path, {CLI_PATH: mutate(VALID_CLI, "nodes.0.cases", [case])})
+    case_at = f"{CLI_PATH}: {CLI_NODE} case 0"
+    assert f"{case_at}.argv: {{tmp}} needs cwd: tmp" in errors, errors
+    assert f"{case_at}.sqruff: {{tmp}} needs cwd: tmp" in errors, errors
+    case["cwd"] = "tmp"
+    errors = errors_of(tmp_path, {CLI_PATH: mutate(VALID_CLI, "nodes.0.cases", [case])})
+    assert not [e for e in errors if "needs cwd: tmp" in e], errors
+
+
 def test_node_not_in_scope_is_refused(tmp_path):
     node = f"{FILE}::test_not_there"
     errors = errors_of(tmp_path, {RULES_PATH: mutate(VALID, "nodes.0.node", node)})

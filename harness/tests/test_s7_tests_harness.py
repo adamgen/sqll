@@ -91,13 +91,13 @@ def test_the_suite_reports_add_up_to_the_recorded_report():
     for tool, parity in RECORDED["parity"].items():
         for key in ("nodes", "passed", "failed", "error"):
             assert sum(p["parity"][tool][key] for p in parts) == parity[key]
-    # The recorded results of T6 (status/S7-tests.md, "Recorded results").
+    # The recorded results of T16 (status/S7-tests.md, "Recorded results").
     passed = {t: p["passed"] for t, p in RECORDED["parity"].items()}
-    assert passed == {"sqlfluff": 37, "sqlfluff-rs": 36, "sqruff": 8}
+    assert passed == {"sqlfluff": 39, "sqlfluff-rs": 38, "sqruff": 8}
     assert {t: p["nodes"] for t, p in RECORDED["parity"].items()} == {
-        "sqlfluff": 37,
-        "sqlfluff-rs": 37,
-        "sqruff": 37,
+        "sqlfluff": 39,
+        "sqlfluff-rs": 39,
+        "sqruff": 39,
     }
 
 
@@ -114,7 +114,7 @@ def test_the_report_lists_each_excluded_node_with_its_class():
     counts = RECORDED["counts"]
     assert (counts["in_scope"], counts["converted"], counts["excluded"]) == (
         643,
-        38,
+        40,
         4,
     )
 
@@ -203,14 +203,14 @@ def test_select_suites_refuses_a_suite_that_the_report_does_not_have():
 def test_summary_lines_give_the_counts_apart_from_parity():
     lines = command.summary_lines(RECORDED)
     assert lines[1] == (
-        "in scope 643, converted 38, excluded 4, not yet converted 601, "
+        "in scope 643, converted 40, excluded 4, not yet converted 599, "
         "needs Jinja (S11) 1"
     )
     assert lines[2] == (
         "excluded by class: python-internal 2, needs-python-runtime 1, "
         "engine-comparison 1, environment 0"
     )
-    assert lines[3].startswith("sqlfluff: 37 of 37 nodes passed, 0 failed, 0 error")
+    assert lines[3].startswith("sqlfluff: 39 of 39 nodes passed, 0 failed, 0 error")
 
 
 # Each assert of a converted test: a check cites it, or a row has it.
