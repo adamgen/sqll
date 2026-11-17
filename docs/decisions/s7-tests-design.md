@@ -402,18 +402,24 @@ with the original sqlfluff tests. T3 made it.
   call to `map_call`. The case format, `sqll-harness s7 run`, and
   `scripts/s7-tests/oracle` keep their interface; the maps only add to
   them.
-  - CLI call: a `cli` case with the argv and stdin. In the submodule root
-    it is a `cwd: sqlfluff` case. If an argument is a path in a temporary
-    folder of the node, or the working folder is that folder, it is a
-    `cwd: tmp` case: the folder is `{tmp}` in argv and in stdout and
-    stderr, the case `files` are the files of the folder before the call,
-    and the files after the call are the outputs of the `files` check.
-    For a call in the submodule root, the folder must have no config or
-    ignore file (`.sqlfluff`, `setup.cfg`, `tox.ini`, `pyproject.toml`,
-    `.sqlfluffignore`), and no other argument may be a path in the root:
-    the case runs in the folder, and the CLI reads a config file in the
-    working folder for each file. The folders above it must have no
-    sqlfluff config.
+  - CLI call: a `cli` case with the argv and stdin. In the submodule root it
+    is a `cwd: sqlfluff` case. If an argument is a path in a temporary
+    folder of the node, or the working folder is that folder, it is a `cwd:
+    tmp` case: the folder is `{tmp}` in argv and in stdout and stderr, the
+    case `files` are the files of the folder before the call, and the files
+    after the call are the outputs of the `files` check. For a call in the
+    submodule root, no other argument may be a path in the root, and the
+    folders above the folder must have no sqlfluff config. If the folder has
+    a config or ignore file (`.sqlfluff`, `setup.cfg`, `tox.ini`,
+    `pyproject.toml`, `.sqlfluffignore`), the case runs in the folder and
+    the call did not: the CLI reads a config file in the working folder for
+    each file (for example `output_line_length`). Thus the trace runs the
+    call again in a copy of the folder, with the copy as the working folder,
+    in process (`cwd_outputs`; T18 (convert the rule tests, part 3, the
+    Jinja rule nodes; goal: each rule node that needs the Jinja templater is
+    a black-box case marked for the Jinja templater stone)). The oracle maps
+    the call only if that run gives each output of the call: exit code,
+    stdout, stderr, files, and exception.
   - Templater call (scope `s6`, `trace-nodes --templaters`):
     `<Templater>(override_context=C).process(in_str=S, fname=N, config=F)`
     of the placeholder or the python templater. The cases are `cwd: tmp`
@@ -575,13 +581,22 @@ with the original sqlfluff tests. T3 made it.
   the result (CI unit tests), and has the mutation tests. It also runs the
   oracle script on the recorded traces: exit code 0, and exit code 1 for
   each of the 4 checks (a changed case input, a failed check, a changed
-  report status, an assert with no citation). For the maps, exit code 1
-  for a changed config value, a changed stdin, a changed file content, a
-  missing file check, a config key that the map does not know, and an
-  untraced Linter call. A test runs trace-nodes on a small test tree with
-  each new map and each refused call. For the maps of T17, a test runs
-  trace-nodes on a second test tree, and the oracle script on its trace:
-  exit code 0, and exit code 1 for a changed input of each map.
+  report status, an assert with no citation). For the maps, exit code 1 for
+  a changed config value, a changed stdin, a changed file content, a missing
+  file check, a config key that the map does not know, and an untraced
+  Linter call. A test runs trace-nodes on a small test tree with each new
+  map and each refused call. For the maps of T17, a test runs trace-nodes on
+  a second test tree, and the oracle script on its trace: exit code 0, and
+  exit code 1 for a changed input of each map. For T18 (convert the rule
+  tests, part 3, the Jinja rule nodes; goal: each rule node that needs the
+  Jinja templater is a black-box case marked for the Jinja templater stone),
+  the config model test has each extra key and each refused key, a test runs
+  trace-nodes on a third test tree (the extra keys, a config file in a
+  temporary folder of a call in the root, and 3 refused calls: other outputs
+  of the run in the folder, a Python function in the Jinja context, and
+  another Jinja key), and the oracle script gives exit code 1 for a changed
+  Jinja context, layout key, or folder config file, and for a missing run in
+  the folder, an error of it, or other outputs of it.
 
 ### Config model
 
@@ -601,8 +616,19 @@ defaults (`FluffConfig.from_root` in the folder, with an empty home).
 - A value is `True`, `False`, `None`, an integer, a float, or one line of
   text. sqlfluff `coerce_value` must load the text as the same value of
   the same type. Thus `set_value(..., True)`, which stores `1`, gives `1`.
-- It fails closed on: a key that the default config does not have (the map
-  knows only these keys), a missing default key, a value that is not a
+- Extra keys (T18 (convert the rule tests, part 3, the Jinja rule nodes;
+  goal: each rule node that needs the Jinja templater is a black-box case
+  marked for the Jinja templater stone)): the default config does not have
+  them, but the map knows them (`EXTRA_KEYS`): each key of
+  `[sqlfluff:templater:jinja:context]` (the Jinja context), the 6 Jinja
+  delimiters of `[sqlfluff:templater:jinja]` (`variable_start_string` to
+  `comment_end_string`), and the 9 keys of a layout type
+  (`[sqlfluff:layout:type:<type>]`, the keys of
+  `ALLOWABLE_LAYOUT_CONFIG_KEYS` of sqlfluff, for example `align_scope`).
+  sqlfluff reads them with `get_section`. The proof checks each value as for
+  the other keys.
+- It fails closed on: a key that the default config does not have and that
+  is not an extra key, a missing default key, a value that is not a
   scalar (for example a list or a Python object), a key that ends with
   `_path` or `_dir` (sqlfluff resolves it relative to the file), and a name
   that an ini file cannot give.
@@ -630,12 +656,17 @@ defaults (`FluffConfig.from_root` in the folder, with an empty home).
    pytest node; and T16: trace oracle and case runner, extension 1; goal:
    the trace oracle maps and proves the calls that the remaining rule nodes
    use, and fails closed on each other call). Each other call is an error:
-   - CLI: a sqlfluff command with string arguments and an optional stdin;
-     no `env` and no other argument of `invoke`. It runs in the submodule
-     root, or with one temporary folder of the node (a `cwd: tmp` case,
-     see "Trace oracle"). A temporary folder that pytest or the test makes
-     in another way (for example `tmp_path_factory`) is not `{tmp}`, so
-     the case inputs do not agree.
+   - CLI: a sqlfluff command with string arguments and an optional stdin; no
+     `env` and no other argument of `invoke`. It runs in the submodule root,
+     or with one temporary folder of the node (a `cwd: tmp` case, see "Trace
+     oracle"). A call in the root with a config or ignore file in the folder
+     needs the run in the folder (T18 (convert the rule tests, part 3, the
+     Jinja rule nodes; goal: each rule node that needs the Jinja templater
+     is a black-box case marked for the Jinja templater stone)); the proof
+     is that run in process, not a run of the binary in the folder. A
+     temporary folder that pytest or the test makes in another way (for
+     example `tmp_path_factory`) is not `{tmp}`, so the case inputs do not
+     agree.
    - Simple API: `lint` and `fix` with `sql`, `dialect`, `rules`, and
      `exclude_rules`, in the submodule root, and no `config_path` or
      `fix_even_unparsable`. A `dialect` of None is `ansi`, as in the simple
@@ -694,19 +725,23 @@ defaults (`FluffConfig.from_root` in the folder, with an empty home).
 5. Processes. The trace does not record calls in another process. A node
    that starts a process is an error, so the oracle cannot prove it yet.
    With `fix=True`, the trace runs one more lint of the Linter in the node
-   (to compare the violations), and it loads the `.sqlfluff` file of each
-   Linter string call and makes `FluffConfig(overrides=...)` for each
-   Linter path call with overrides and each Linter with Linter arguments.
-   For each error call, it runs `lint -` in process in a new folder (T17).
-   That CLI run changes process state outside its result: the `sqlfluff`
-   loggers (`propagate=False`, a log handler, levels) and the globals of
-   colorama (`colorama.init`). The trace saves this state before the run
-   and restores it after (a node of the T17 test tree checks it). The CLI
-   runs of the templater map (limit 10, scope `s6`) save and restore the
-   same state (the teardown of each node of the test tree of the
-   templater map, `harness/tests/fixtures/s6/tree/`, checks it). These
-   calls read no file of the submodule, and the test does not see their
-   results.
+   (to compare the violations), for each CLI call in the root with a config
+   or ignore file in its temporary folder it runs the call again in a copy
+   of the folder (T18 (convert the rule tests, part 3, the Jinja rule nodes;
+   goal: each rule node that needs the Jinja templater is a black-box case
+   marked for the Jinja templater stone); with the same save and restore of
+   the CLI state), and it loads the `.sqlfluff` file of each Linter string
+   call and makes `FluffConfig(overrides=...)` for each Linter path call
+   with overrides and each Linter with Linter arguments. For each error
+   call, it runs `lint -` in process in a new folder (T17). That CLI run
+   changes process state outside its result: the `sqlfluff` loggers
+   (`propagate=False`, a log handler, levels) and the globals of colorama
+   (`colorama.init`). The trace saves this state before the run and restores
+   it after (a node of the T17 test tree checks it). The CLI runs of the
+   templater map (limit 10, scope `s6`) save and restore the same state
+   (the teardown of each node of the test tree of the templater map,
+   `harness/tests/fixtures/s6/tree/`, checks it). These calls read no
+   file of the submodule, and the test does not see their results.
 6. In process. The trace runs the CLI in the pytest process
    (`CliRunner`), not as a binary. Check 3 compares the binary run of the
    runner with it only by the node status.

@@ -1,8 +1,18 @@
 # S7 black-box cases (docs/decisions/s7-tests-design.md, "Case format").
 # A derived work of the sqlfluff tests: copyright (c) 2018-2026 Alan
 # Cruickshank, MIT License.
-# The 2 nodes with a Jinja config (templated_*) are not converted yet: the
-# trace oracle does not map a simple-API config.
+# The 2 templated_* nodes call sqlfluff.lint with a config (the Jinja
+# templater and the dialect ansi). With a config, the simple API ignores the
+# rules argument and calls Linter(config=cfg).lint_string_wrapped(sql). The
+# trace oracle maps the call to "lint -f json -" on stdin in a temporary
+# folder, with the config as a .sqlfluff file (the config model of the design
+# record; the Jinja templater is the default, so the file gives only the
+# dialect). All rules run, so the exit code is 1. The SQL has Jinja tags: the
+# nodes move to S11. T18 (convert the rule tests, part 3, the Jinja rule nodes; goal: each rule
+# node that needs the Jinja templater is a black-box case marked for S11) of
+# S7 (CLI and config parity: the sqlfluff CLI, config, and Python rule tests
+# as black-box cases; sqll passes 100% of the converted cases; cases that need
+# the Jinja templater move to the Jinja templater stone) converts them.
 source:
   project: sqlfluff
   version: 4.4.0
@@ -165,3 +175,35 @@ nodes:
           violations:
             - select: {code: ST12}
               count: 0
+  - node: "test/rules/std_ST12_test.py::test__rules__std_ST12_templated_loop_no_false_positive"
+    asserts:
+      L101: ["templated_loop:violations[0]"]
+    cases:
+      - name: templated_loop
+        run: cli
+        needs_jinja: true
+        argv: [lint, "-f", json, "-"]
+        cwd: tmp
+        files:
+          ".sqlfluff": "[sqlfluff]\ndialect = ansi\n"
+        stdin: "\n    {% for i in range(3) %}\n    SELECT {{ i }};\n    {% endfor %}\n    "
+        checks:
+          exit_code: 1
+          violations:
+            - {select: {code: ST12}, count: 0}
+  - node: "test/rules/std_ST12_test.py::test__rules__std_ST12_templated_consecutive_semicolons_detected"
+    asserts:
+      L114: ["templated_semicolons:violations[0]"]
+    cases:
+      - name: templated_semicolons
+        run: cli
+        needs_jinja: true
+        argv: [lint, "-f", json, "-"]
+        cwd: tmp
+        files:
+          ".sqlfluff": "[sqlfluff]\ndialect = ansi\n"
+        stdin: "\n    {% for _ in range(2) %}\n    ;SELECT 1;;\n    {% endfor %}\n    "
+        checks:
+          exit_code: 1
+          violations:
+            - {select: {code: ST12}, count: 1}
