@@ -1,0 +1,481 @@
+{
+ "format": 1,
+ "kind": "sqll-s4-exit",
+ "stone": "S4 (parser parity: sqll passes 100% of the dialect parse fixtures with an exact tree match)",
+ "task": "T5 (the exit record gives the CI proof that sqll passes 100% of the dialect parse fixtures with an exact tree match, and the orchestrator can approve this stone) of S4 (parser parity: sqll passes 100% of the dialect parse fixtures with an exact tree match)",
+ "command": "uv run --frozen --project harness python scripts/s4/exit.py",
+ "inputs": {
+  "results/S4/exit-ci.json": "6a88d6338997592fb4626063af92ea28c9ba4256d65e617d22678bffc4ad0553",
+  "results/S4/parity.json": "48d64469725292dc2ca46952cd6eb0a0f2e1da8ce5a03d416a6b6e5c10f7bc08",
+  "results/S4/gate.json": "6766d3161dde2430fc84878cb53ddd51cae23289eede91ffb95f17b57b3389f6",
+  "results/S4/corpus-diff.json": "ee73d76ed53955ad2038da443100965ea82cec89ff9a051ee0d44f55c994c51b",
+  "results/s1/summary.json": "7d58a946e0f3fbaffaaa9fe799f41265ec96b3d25e980efead0af897ceaab41c",
+  "known_failures/sqll.txt": "0afdcc00c4f09fad03889918e9ae10e64ccf76f4fce2a86207712afe10b2bccc"
+ },
+ "ci": {
+  "run_id": 44073788566,
+  "url": "https://github.com/adamgen/sqll/actions/runs/44073788566",
+  "event": "push",
+  "branch": "main",
+  "head_sha": "6df6a6a1c284da67949829d3ec05fe9b83be7c7a",
+  "conclusion": "success",
+  "job": {
+   "name": "dialect-oracle (sqlfluff)",
+   "id": 134024330140,
+   "conclusion": "success",
+   "url": "https://github.com/adamgen/sqll/actions/runs/44073788566/job/134024330140"
+  },
+  "summary_line": "S4 parity: pass: sqll dialects 2306 of 2306 discovered cases pass in 28 dialects (exact 2306, no_unparsable 2306, 2306 pass in the oracle); gaps 0"
+ },
+ "git": {
+  "pinned": {
+   "command": "git rev-parse HEAD:third_party/sqlfluff",
+   "exit_code": 0,
+   "output": "0348222a3bcdb0226563f7349c5a39beb0641955"
+  },
+  "submodule_head": {
+   "command": "git -C third_party/sqlfluff rev-parse HEAD",
+   "exit_code": 0,
+   "output": "0348222a3bcdb0226563f7349c5a39beb0641955"
+  },
+  "check_submodule": {
+   "command": "scripts/check-submodule \"in the S4 exit check\"",
+   "exit_code": 0,
+   "output": []
+  },
+  "start_in_ci_head": {
+   "command": "git merge-base --is-ancestor 0fb9cdb 6df6a6a",
+   "exit_code": 0
+  },
+  "ci_head_in_head": {
+   "command": "git merge-base --is-ancestor 6df6a6a HEAD",
+   "exit_code": 0
+  },
+  "diff_ci": {
+   "command": "git diff --name-only 0fb9cdb 6df6a6a",
+   "files": [
+    ".github/workflows/ci.yml",
+    "STATUS.md",
+    "THIRD_PARTY.md",
+    "ci/changes.py",
+    "ci/matrix.d/S7-tests.json",
+    "ci/matrix.py",
+    "docs/decisions/s4-parity.md",
+    "docs/decisions/s6-templaters.md",
+    "docs/decisions/s7-tests-design.md",
+    "docs/decisions/s9-corpus.md",
+    "harness/README.md",
+    "harness/sqll_harness/cli.py",
+    "harness/sqll_harness/corpus/report.py",
+    "harness/sqll_harness/corpus/run.py",
+    "harness/sqll_harness/corpus/tables.py",
+    "harness/sqll_harness/merge.py",
+    "harness/sqll_harness/s7_tests/caseformat.py",
+    "harness/sqll_harness/s7_tests/cases/rules/std_AL04_test.yml",
+    "harness/sqll_harness/s7_tests/cases/rules/std_AM06_test.yml",
+    "harness/sqll_harness/s7_tests/cases/rules/std_AM09_test.yml",
+    "harness/sqll_harness/s7_tests/cases/rules/std_LT01_LT02_LT09_combo_test.yml",
+    "harness/sqll_harness/s7_tests/cases/rules/std_LT01_LT04_test.yml",
+    "harness/sqll_harness/s7_tests/cases/rules/std_LT02_LT11_combo_test.yml",
+    "harness/sqll_harness/s7_tests/cases/rules/std_LT03_test.yml",
+    "harness/sqll_harness/s7_tests/cases/rules/std_LT05_LT09_combo_test.yml",
+    "harness/sqll_harness/s7_tests/cases/rules/std_RF02_test.yml",
+    "harness/sqll_harness/s7_tests/cases/rules/std_ST12_test.yml",
+    "harness/sqll_harness/s7_tests/cases/rules/std_roundtrip_test.yml",
+    "harness/sqll_harness/s7_tests/command.py",
+    "harness/sqll_harness/s7_tests/exclusions.yml",
+    "harness/sqll_harness/s7_tests/known.py",
+    "harness/sqll_harness/s7_tests/oracle.py",
+    "harness/sqll_harness/s7_tests/report.py",
+    "harness/sqll_harness/s7_tests/runner.py",
+    "harness/sqll_harness/s7_tests/summary.py",
+    "harness/sqll_harness/verify.py",
+    "harness/tests/test_ci.py",
+    "harness/tests/test_ownership.py",
+    "harness/tests/test_s4_ci.py",
+    "harness/tests/test_s4_corpus.py",
+    "harness/tests/test_s4_parity.py",
+    "harness/tests/test_s6_scope.py",
+    "harness/tests/test_s7_tests_cases.py",
+    "harness/tests/test_s7_tests_ci.py",
+    "harness/tests/test_s7_tests_harness.py",
+    "harness/tests/test_s7_tests_oracle.py",
+    "harness/tests/test_s7_tests_runner.py",
+    "harness/tests/test_s7_tests_scope.py",
+    "harness/tests/test_s9_report.py",
+    "harness/tests/test_s9_run.py",
+    "harness/tests/test_verify.py",
+    "results/S4/corpus-diff.json",
+    "results/S4/corpus.json",
+    "results/S4/gate.json",
+    "results/S4/parity.json",
+    "results/S6/scope.json",
+    "results/S7-tests/known_failures/sqlfluff-rs.txt",
+    "results/S7-tests/known_failures/sqlfluff.txt",
+    "results/S7-tests/known_failures/sqruff.txt",
+    "results/S7-tests/oracle-trace-sqlfluff-rs.json",
+    "results/S7-tests/oracle-trace-sqlfluff.json",
+    "results/S7-tests/oracle.json",
+    "results/S7-tests/report.json",
+    "results/S7-tests/summary.json",
+    "scripts/s4/corpus.py",
+    "scripts/s4/parity",
+    "scripts/s6/inventory.py",
+    "scripts/s6/s6common.py",
+    "scripts/s6/unit_nodes.py",
+    "scripts/s7-tests/s7config.py",
+    "scripts/s7-tests/trace-nodes",
+    "scripts/verify",
+    "status/S4.md",
+    "status/S6.md",
+    "status/S7-tests.md",
+    "status/S9.md",
+    "tracks.yml"
+   ]
+  },
+  "diff_head_parse_path": {
+   "command": "git diff --name-only 0fb9cdb HEAD (parse-path files only)",
+   "files": []
+  }
+ },
+ "items": [
+  {
+   "item": "a",
+   "rule": "2306 of 2306 dialect cases in 28 dialects pass with exact and no_unparsable through the shared syntax tree and the sqll adapter (design record section 1), in a push run on main with conclusion success",
+   "met": true,
+   "checks": {
+    "ci_workflow": true,
+    "ci_push_on_main": true,
+    "ci_run_success": true,
+    "ci_jobs_ok": true,
+    "ci_job_success": true,
+    "ci_step_success": true,
+    "ci_summary_line": true,
+    "ci_output_pass": true,
+    "ci_output_commit": true,
+    "ci_output_counts": true,
+    "ci_output_items": true,
+    "ci_head_in_head": true,
+    "s1_summary": true,
+    "s1_sqll_adapter_parse": true,
+    "parity_record": true
+   },
+   "failed": [],
+   "values": {
+    "ci_run": 44073788566,
+    "ci_url": "https://github.com/adamgen/sqll/actions/runs/44073788566",
+    "ci_head": "6df6a6a1c284da67949829d3ec05fe9b83be7c7a",
+    "ci_job": 134024330140,
+    "ci_step": "Check the S4 parser parity",
+    "ci_summary_line": "S4 parity: pass: sqll dialects 2306 of 2306 discovered cases pass in 28 dialects (exact 2306, no_unparsable 2306, 2306 pass in the oracle); gaps 0",
+    "ci_counts": {
+     "discovered_cases": 2306,
+     "discovered_dialects": 28,
+     "report_cases": 2306,
+     "report_dialects": 28,
+     "passed": 2306,
+     "failed": 0,
+     "skipped": 0,
+     "exact": 2306,
+     "no_unparsable": 2306,
+     "oracle_cases": 2306,
+     "oracle_passed": 2306,
+     "passed_in_oracle": 2306,
+     "known_failures_dialects_lines": 0,
+     "gaps": 0
+    },
+    "s1": {
+     "total": 2306,
+     "passed": 2306,
+     "exact": 2306,
+     "no_unparsable": 2306
+    },
+    "parity_record": {
+     "commit": "816b4d7cb358101ba7116611f3403aea9c07224f",
+     "exit_code": 0
+    },
+    "tree_path": [
+     "harness/sqll_harness/suites/dialects.py: each SQL file of test/fixtures/dialects/<dialect>/ of the pinned sqlfluff with a .yml file is one case",
+     "harness/sqll_harness/adapters/sqll.py: sqll parse -f json -c --templater raw --dialect D --ignore-local-config PATH",
+     "crates/sqll_cli/src/parse/steps.rs: the raw templater, then sqll_syntax::parse (the frozen parse interface of S3b) to the SyntaxTree",
+     "crates/sqll_cli/src/parse/output.rs: the record of sqlfluff parse -f json from the SyntaxTree",
+     "harness/sqll_harness/compare.py: process_struct of the sqlfluff test, and an exact tree match; no unparsable segment, no error, exit code 0",
+     "scripts/sqlfluff-dialect-oracle --passes-of sqll: each sqll pass passes in the sqlfluff dialect tests"
+    ]
+   }
+  },
+  {
+   "item": "b",
+   "rule": "known_failures/sqll.txt has 0 dialects lines (design record section 2)",
+   "met": true,
+   "checks": {
+    "no_dialects_line": true,
+    "ci_output": true,
+    "parity_record": true
+   },
+   "failed": [],
+   "values": {
+    "command": "the known failures parser of the harness (sqll_harness.known_failures.parse) on known_failures/sqll.txt",
+    "lines": 2593,
+    "dialects_lines": 0,
+    "dialects_ids": [],
+    "ci_known_failures_dialects_lines": 0
+   }
+  },
+  {
+   "item": "c",
+   "rule": "Each sqll pass also passes in the sqlfluff dialect oracle (scripts/sqlfluff-dialect-oracle --passes-of sqll)",
+   "met": true,
+   "checks": {
+    "ci_oracle_step_success": true,
+    "ci_oracle_line": true,
+    "ci_passed_in_oracle": true,
+    "ci_item_4": true,
+    "parity_record": true
+   },
+   "failed": [],
+   "values": {
+    "ci_step": "Compare the dialect results with the sqlfluff tests",
+    "ci_oracle_line": "sqll dialects: 2306 cases, 2306 pass, 2306 of them pass in the oracle",
+    "ci_passed": 2306,
+    "ci_passed_in_oracle": 2306,
+    "ci_oracle_cases": 2306,
+    "ci_oracle_passed": 2306
+   }
+  },
+  {
+   "item": "d",
+   "rule": "The pinned sqlfluff commit is 0348222a3bcdb0226563f7349c5a39beb0641955 (tag 4.4.0), and the submodule is clean",
+   "met": true,
+   "checks": {
+    "pinned_commit": true,
+    "submodule_head": true,
+    "check_submodule": true,
+    "s1_sqlfluff_ref": true,
+    "ci_output": true,
+    "parity_record": true
+   },
+   "failed": [],
+   "values": {
+    "pinned": "0348222a3bcdb0226563f7349c5a39beb0641955",
+    "git_pinned": {
+     "command": "git rev-parse HEAD:third_party/sqlfluff",
+     "exit_code": 0,
+     "output": "0348222a3bcdb0226563f7349c5a39beb0641955"
+    },
+    "git_submodule_head": {
+     "command": "git -C third_party/sqlfluff rev-parse HEAD",
+     "exit_code": 0,
+     "output": "0348222a3bcdb0226563f7349c5a39beb0641955"
+    },
+    "check_submodule": {
+     "command": "scripts/check-submodule \"in the S4 exit check\"",
+     "exit_code": 0,
+     "output": []
+    },
+    "s1_sqlfluff_ref": "0348222a3bcdb0226563f7349c5a39beb0641955",
+    "ci_pinned_commit": "0348222a3bcdb0226563f7349c5a39beb0641955",
+    "ci_report_sqlfluff_ref": "0348222a3bcdb0226563f7349c5a39beb0641955"
+   }
+  },
+  {
+   "item": "e",
+   "rule": "The CI gate fails closed: exit code 1 on an injected gap and exit code 2 on a missing input (the injected-gap proofs of T3 (CI fails on each gap of this stone) of S4 (parser parity: sqll passes 100% of the dialect parse fixtures with an exact tree match))",
+   "met": true,
+   "checks": {
+    "run_control": true,
+    "run_known-failures-dialects-line": true,
+    "run_report-case-removed": true,
+    "run_no-oracle-output": true,
+    "ci_gate_step": true
+   },
+   "failed": [],
+   "values": {
+    "record": "results/S4/gate.json",
+    "runs": {
+     "control": {
+      "exit_code": 0,
+      "gaps": []
+     },
+     "known-failures-dialects-line": {
+      "exit_code": 1,
+      "gaps": [
+       "known_failures_dialects"
+      ]
+     },
+     "report-case-removed": {
+      "exit_code": 1,
+      "gaps": [
+       "missing"
+      ]
+     },
+     "no-oracle-output": {
+      "exit_code": 2,
+      "gaps": []
+     }
+    },
+    "gate_ci_run": 43698880672,
+    "gate_ci_pull_request": 98
+   }
+  },
+  {
+   "item": "f",
+   "rule": "The corpus information of T4 (the parse status of sqll and sqlfluff on each corpus file is recorded, and each difference has a row) of S4 (parser parity: sqll passes 100% of the dialect parse fixtures with an exact tree match), as information only: it does not change the parity number of this stone and does not block its exit (design record section 4)",
+   "met": true,
+   "checks": {
+    "record_pass": true,
+    "rows_classified": true
+   },
+   "failed": [],
+   "values": {
+    "record": "results/S4/corpus-diff.json",
+    "information_only": true,
+    "changes_parity_number": false,
+    "files": 164,
+    "same": 146,
+    "rows": 18,
+    "by_class": {
+     "settings": 0,
+     "templater": 18,
+     "parser gap": 0
+    },
+    "by_tool": {
+     "sqlfluff": {
+      "ok": 57,
+      "unparsable": 104,
+      "no_reference": 0,
+      "invalid": 3,
+      "unsupported": 0,
+      "error": 0
+     },
+     "sqll": {
+      "ok": 39,
+      "unparsable": 104,
+      "no_reference": 0,
+      "invalid": 21,
+      "unsupported": 0,
+      "error": 0
+     }
+    },
+    "report_commit": "c5896d39a841c3fb556acbc42705095c752f74d9"
+   }
+  },
+  {
+   "item": "g",
+   "rule": "G3 (speed: each command, start time included, is as fast as reasonably possible and has a benchmark that measures sqlfluff, sqruff, and sqll on the same input. sqll is faster than sqlfluff on each benchmark, not slower than sqruff on any benchmark, and faster than sqruff on the total of all benchmarks. A change that makes a benchmark slower gives the reason. Correctness is more important than speed: do not make a result wrong to make it fast): no parse-path change from the start of this stone (0fb9cdb); a parse-path change needs the speed-check record of its task (design record section 5), and this check then fails",
+   "met": true,
+   "checks": {
+    "start_in_ci_head": true,
+    "no_parse_path_change_to_ci_head": true,
+    "no_parse_path_change_to_head": true
+   },
+   "failed": [],
+   "values": {
+    "start": "0fb9cdb61a4febb6d9f08b9a149c42bf3d9fdf6e",
+    "parse_path": {
+     "files": [
+      "Cargo.toml",
+      "Cargo.lock",
+      "rust-toolchain.toml",
+      "scripts/build-sqll",
+      "third_party/sqlfluff"
+     ],
+     "dirs": [
+      "crates/",
+      ".cargo/"
+     ]
+    },
+    "command": "git diff --name-only 0fb9cdb 6df6a6a",
+    "files": 77,
+    "changed_files": [
+     ".github/workflows/ci.yml",
+     "STATUS.md",
+     "THIRD_PARTY.md",
+     "ci/changes.py",
+     "ci/matrix.d/S7-tests.json",
+     "ci/matrix.py",
+     "docs/decisions/s4-parity.md",
+     "docs/decisions/s6-templaters.md",
+     "docs/decisions/s7-tests-design.md",
+     "docs/decisions/s9-corpus.md",
+     "harness/README.md",
+     "harness/sqll_harness/cli.py",
+     "harness/sqll_harness/corpus/report.py",
+     "harness/sqll_harness/corpus/run.py",
+     "harness/sqll_harness/corpus/tables.py",
+     "harness/sqll_harness/merge.py",
+     "harness/sqll_harness/s7_tests/caseformat.py",
+     "harness/sqll_harness/s7_tests/cases/rules/std_AL04_test.yml",
+     "harness/sqll_harness/s7_tests/cases/rules/std_AM06_test.yml",
+     "harness/sqll_harness/s7_tests/cases/rules/std_AM09_test.yml",
+     "harness/sqll_harness/s7_tests/cases/rules/std_LT01_LT02_LT09_combo_test.yml",
+     "harness/sqll_harness/s7_tests/cases/rules/std_LT01_LT04_test.yml",
+     "harness/sqll_harness/s7_tests/cases/rules/std_LT02_LT11_combo_test.yml",
+     "harness/sqll_harness/s7_tests/cases/rules/std_LT03_test.yml",
+     "harness/sqll_harness/s7_tests/cases/rules/std_LT05_LT09_combo_test.yml",
+     "harness/sqll_harness/s7_tests/cases/rules/std_RF02_test.yml",
+     "harness/sqll_harness/s7_tests/cases/rules/std_ST12_test.yml",
+     "harness/sqll_harness/s7_tests/cases/rules/std_roundtrip_test.yml",
+     "harness/sqll_harness/s7_tests/command.py",
+     "harness/sqll_harness/s7_tests/exclusions.yml",
+     "harness/sqll_harness/s7_tests/known.py",
+     "harness/sqll_harness/s7_tests/oracle.py",
+     "harness/sqll_harness/s7_tests/report.py",
+     "harness/sqll_harness/s7_tests/runner.py",
+     "harness/sqll_harness/s7_tests/summary.py",
+     "harness/sqll_harness/verify.py",
+     "harness/tests/test_ci.py",
+     "harness/tests/test_ownership.py",
+     "harness/tests/test_s4_ci.py",
+     "harness/tests/test_s4_corpus.py",
+     "harness/tests/test_s4_parity.py",
+     "harness/tests/test_s6_scope.py",
+     "harness/tests/test_s7_tests_cases.py",
+     "harness/tests/test_s7_tests_ci.py",
+     "harness/tests/test_s7_tests_harness.py",
+     "harness/tests/test_s7_tests_oracle.py",
+     "harness/tests/test_s7_tests_runner.py",
+     "harness/tests/test_s7_tests_scope.py",
+     "harness/tests/test_s9_report.py",
+     "harness/tests/test_s9_run.py",
+     "harness/tests/test_verify.py",
+     "results/S4/corpus-diff.json",
+     "results/S4/corpus.json",
+     "results/S4/gate.json",
+     "results/S4/parity.json",
+     "results/S6/scope.json",
+     "results/S7-tests/known_failures/sqlfluff-rs.txt",
+     "results/S7-tests/known_failures/sqlfluff.txt",
+     "results/S7-tests/known_failures/sqruff.txt",
+     "results/S7-tests/oracle-trace-sqlfluff-rs.json",
+     "results/S7-tests/oracle-trace-sqlfluff.json",
+     "results/S7-tests/oracle.json",
+     "results/S7-tests/report.json",
+     "results/S7-tests/summary.json",
+     "scripts/s4/corpus.py",
+     "scripts/s4/parity",
+     "scripts/s6/inventory.py",
+     "scripts/s6/s6common.py",
+     "scripts/s6/unit_nodes.py",
+     "scripts/s7-tests/s7config.py",
+     "scripts/s7-tests/trace-nodes",
+     "scripts/verify",
+     "status/S4.md",
+     "status/S6.md",
+     "status/S7-tests.md",
+     "status/S9.md",
+     "tracks.yml"
+    ],
+    "parse_path_files": [],
+    "head_command": "git diff --name-only 0fb9cdb HEAD (parse-path files only)",
+    "head_parse_path_files": [],
+    "speed_checks": []
+   }
+  }
+ ],
+ "result": {
+  "met": true,
+  "failed_items": [],
+  "state": "Awaiting approval"
+ }
+}
