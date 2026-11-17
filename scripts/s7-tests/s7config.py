@@ -11,8 +11,9 @@ file from the config of the Linter:
   {"<object>": "<module>.<class>"} (and "name" if it has a text name).
 - config_text(): each value of the config that is not the value of the
   default config, as an ini text. It fails closed (ConfigMapError) on a key
-  that the default config does not have, on a value that is not a scalar, on
-  a path key, and on a value that does not load again as the same value.
+  that the default config does not have and that is not an extra key
+  (EXTRA_KEYS), on a value that is not a scalar, on a path key, and on a
+  value that does not load again as the same value.
 - differences(): the keys with different values in 2 snapshots. The trace
   loads the text as the CLI does and records these differences (the proof);
   the oracle accepts the map only if there is none.
@@ -38,6 +39,39 @@ DERIVED = frozenset(
 # sqlfluff resolves a key with one of these suffixes as a path relative to
 # the config file (sqlfluff.core.config.file.RESOLVE_PATH_SUFFIXES).
 PATH_SUFFIXES = ("_path", "_dir")
+# The keys that the default config does not have and that the map knows
+# (T18): a key matches a pattern of the same length, and "*" matches each
+# name. sqlfluff reads them only with get_section, so a config file gives
+# them as the same value (the proof checks each one):
+# - the Jinja context (JinjaTemplater.get_context);
+# - the Jinja delimiters (JinjaTemplater._get_jinja_env_kwargs);
+# - the keys of a layout type that a config file can give
+#   (sqlfluff.core.config.validate.ALLOWABLE_LAYOUT_CONFIG_KEYS; the reflow
+#   config reads them), for example align_scope.
+JINJA_DELIMITERS = (
+    "variable_start_string",
+    "variable_end_string",
+    "block_start_string",
+    "block_end_string",
+    "comment_start_string",
+    "comment_end_string",
+)
+LAYOUT_KEYS = (
+    "spacing_before",
+    "spacing_after",
+    "spacing_within",
+    "line_position",
+    "align_within",
+    "align_scope",
+    "keyword_line_position",
+    "keyword_line_position_exclusions",
+    "alignment_coordinate_space",
+)
+EXTRA_KEYS = (
+    ("templater", "jinja", "context", "*"),
+    *(("templater", "jinja", key) for key in JINJA_DELIMITERS),
+    *(("layout", "type", "*", key) for key in LAYOUT_KEYS),
+)
 _KEY = re.compile(r"^[A-Za-z0-9_]+$")
 _SECTION = re.compile(r"^[A-Za-z0-9_.]+$")
 
@@ -68,6 +102,15 @@ def leaves(data: dict[str, Any], prefix: tuple[str, ...] = ()):
             yield from leaves(value, path)
         else:
             yield path, value
+
+
+def is_extra(path: tuple[str, ...]) -> bool:
+    """True if the key matches a pattern of EXTRA_KEYS."""
+    return any(
+        len(pattern) == len(path)
+        and all(p in ("*", k) for p, k in zip(pattern, path, strict=True))
+        for pattern in EXTRA_KEYS
+    )
 
 
 def same(a: Any, b: Any) -> bool:
@@ -122,9 +165,10 @@ def config_text(effective: dict[str, Any], reference: dict[str, Any]) -> str:
         if path in DERIVED or (path in ref and same(ref[path], value)):
             continue
         where = ":".join(path)
-        if path not in ref:
+        if path not in ref and not is_extra(path):
             raise ConfigMapError(
                 f"{where}: the map knows only the keys of the default config"
+                " and the extra keys"
             )
         if len(path) < 2 or (path[0] == "core" and len(path) != 2):
             raise ConfigMapError(f"{where}: not a key of a config section")

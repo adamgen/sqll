@@ -297,15 +297,13 @@ def _cli(call: dict[str, Any]) -> list[Mapped]:
         if cwd == ROOT_MARK:
             # The CLI reads a config file in the working folder for each
             # file, and a config file in another folder only for the files
-            # in it. Thus the temporary folder must not have one.
+            # in it. Thus a config or ignore file in the temporary folder
+            # needs the run of the call in the folder (T18).
             configs = sorted(
                 n for n in tmp["files"] if PurePosixPath(n).name in CONFIG_FILES
             )
             if configs:
-                raise OracleError(
-                    f"the temporary folder has the config or ignore files {configs};"
-                    " the case runs in the folder, the call did not"
-                )
+                _cwd_proof(call, configs)
             if tmp["cwd_paths"]:
                 raise OracleError(
                     f"the arguments {tmp['cwd_paths']} are paths in the sqlfluff"
@@ -316,6 +314,36 @@ def _cli(call: dict[str, Any]) -> list[Mapped]:
         mapped["cwd"] = "tmp"
         mapped["files"] = dict(tmp["files"])
     return [_mapped("CLI call", call, mapped, _cli_outputs)]
+
+
+CWD_OUTPUTS = ("exit_code", "stdout", "stderr", "files", "exception")
+
+
+def _cwd_proof(call: dict[str, Any], configs: list[str]) -> None:
+    """A CLI call in the sqlfluff root with config or ignore files in its
+    temporary folder (T18). The trace ran the call again in a copy of the
+    folder, with the copy as the working folder (cwd_outputs). The case runs
+    so; the map holds only if that run gives each output of the call."""
+    where = f"the temporary folder has the config or ignore files {configs}"
+    if "outputs" not in call:
+        raise OracleError(f"{where}, and the call has no outputs")
+    outputs = call["outputs"]
+    proof = outputs.get("cwd_outputs")
+    if proof is None:
+        raise OracleError(
+            f"{where}; the case runs in the folder, the call did not, and the"
+            " trace has no run of the call in the folder"
+        )
+    if "error" in proof:
+        raise OracleError(
+            f"{where}; the run of the call in the folder: {proof['error']}"
+        )
+    different = [k for k in CWD_OUTPUTS if outputs.get(k) != proof.get(k)]
+    if different:
+        raise OracleError(
+            f"{where}; the run of the call in the folder gives other outputs:"
+            f" {different}"
+        )
 
 
 def _linter_path(call: dict[str, Any]) -> list[Mapped]:

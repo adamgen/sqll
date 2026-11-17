@@ -1,0 +1,90 @@
+# S7 black-box cases (docs/decisions/s7-tests-design.md, "Case format").
+# A derived work of the sqlfluff tests: copyright (c) 2018-2026 Alan
+# Cruickshank, MIT License.
+# Each node calls Linter(config=FluffConfig.from_string(...)).lint_string(sql)
+# with the Jinja templater and custom Jinja delimiters. The trace oracle maps
+# the call to "lint -f json -" on stdin in a temporary folder, with the config
+# as a .sqlfluff file (the config model of the design record; the Jinja
+# context and delimiters are extra keys of the model). The nodes need Jinja
+# and move to S11. T18 (convert the rule tests, part 3, the Jinja rule nodes; goal: each rule
+# node that needs the Jinja templater is a black-box case marked for S11) of
+# S7 (CLI and config parity: the sqlfluff CLI, config, and Python rule tests
+# as black-box cases; sqll passes 100% of the converted cases; cases that need
+# the Jinja templater move to the Jinja templater stone) converts them.
+# test_lint_jj01_pickled_config is excluded (python-internal): it calls
+# Rule.crawl with a pickled config, and no CLI command or simple-API function.
+# The checks give the exit code of the lint command, which the source does not
+# check.
+source:
+  project: sqlfluff
+  version: 4.4.0
+  commit: 0348222a3bcdb0226563f7349c5a39beb0641955
+  file: test/rules/std_JJ01_test.py
+license: MIT
+nodes:
+  - node: "test/rules/std_JJ01_test.py::test_lint_jj01_custom_delimiters"
+    asserts:
+      L61: ["lint:violations[0]"]
+      L62: ["lint:violations[1]"]
+    cases:
+      - name: lint
+        run: cli
+        needs_jinja: true
+        argv: [lint, "-f", json, "-"]
+        cwd: tmp
+        files:
+          ".sqlfluff": "[sqlfluff]\ndialect = ansi\nrules = JJ01\n\n[sqlfluff:templater:jinja]\nvariable_end_string = %>\nvariable_start_string = <%\n\n[sqlfluff:templater:jinja:context]\nfoo = bar\n"
+        stdin: "SELECT * FROM <%foo%>"
+        checks:
+          exit_code: 1
+          violations:
+            - {count: 1}
+            - {records: [{code: JJ01}]}
+  - node: "test/rules/std_JJ01_test.py::test_lint_jj01_mixed_custom_and_default_delimiters"
+    asserts:
+      L82: ["lint:violations[0]"]
+    cases:
+      - name: lint
+        run: cli
+        needs_jinja: true
+        argv: [lint, "-f", json, "-"]
+        cwd: tmp
+        files:
+          ".sqlfluff": "[sqlfluff]\ndialect = ansi\nrules = JJ01\n\n[sqlfluff:templater:jinja]\nvariable_end_string = %>\nvariable_start_string = <%\n\n[sqlfluff:templater:jinja:context]\nfoo = bar\n"
+        stdin: "{%if true%}SELECT <%foo%> AS x{%endif%}\n"
+        checks:
+          exit_code: 1
+          violations:
+            - {select: {code: JJ01}, count: 3}
+  - node: "test/rules/std_JJ01_test.py::test_lint_jj01_custom_block_delimiters"
+    asserts:
+      L100: ["lint:violations[0]"]
+    cases:
+      - name: lint
+        run: cli
+        needs_jinja: true
+        argv: [lint, "-f", json, "-"]
+        cwd: tmp
+        files:
+          ".sqlfluff": "[sqlfluff]\ndialect = ansi\nrules = JJ01\n\n[sqlfluff:templater:jinja]\nblock_end_string = ))\nblock_start_string = ((\n"
+        stdin: "((if true))SELECT 1((endif))\n"
+        checks:
+          exit_code: 1
+          violations:
+            - {select: {code: JJ01}, count: 2}
+  - node: "test/rules/std_JJ01_test.py::test_lint_jj01_partial_delimiter_override"
+    asserts:
+      L119: ["lint:violations[0]"]
+    cases:
+      - name: lint
+        run: cli
+        needs_jinja: true
+        argv: [lint, "-f", json, "-"]
+        cwd: tmp
+        files:
+          ".sqlfluff": "[sqlfluff]\ndialect = ansi\nrules = JJ01\n\n[sqlfluff:templater:jinja]\nvariable_start_string = <<\n\n[sqlfluff:templater:jinja:context]\nfoo = bar\n"
+        stdin: "SELECT <<foo}} FROM tbl\n"
+        checks:
+          exit_code: 1
+          violations:
+            - {select: {code: JJ01}, count: 1}
