@@ -10,11 +10,18 @@
 # call) of S7 (CLI and config parity: the sqlfluff CLI, config, and Python
 # rule tests as black-box cases; sqll passes 100% of the converted cases;
 # cases that need the Jinja templater move to the Jinja templater stone)
-# converts one node as a proof node of this map. The text of each file is the
-# text of test/fixtures/linter/whitespace_errors.sql before and after the fix
-# of sqlfluff 4.4.0. The fix check is stronger than the source assert (exit
-# code 0): the source checks the fixed file only with the third call, whose
-# input is the fixed file.
+# converted one node as a proof node of this map, and T7 (convert the rule
+# tests, part 2; goal: the other rule nodes, not Rust dispatch and not Jinja,
+# are black-box cases) of S7 (CLI and config parity: the sqlfluff CLI, config,
+# and Python rule tests as black-box cases; sqll passes 100% of the converted
+# cases; cases that need the Jinja templater move to the Jinja templater
+# stone) converts the other 5 nodes of test__cli__command__fix. The text of
+# each file is the text of the fixture before and after the fix of sqlfluff
+# 4.4.0. The fix check is stronger than the source assert (exit code 0): the
+# source checks the fixed file only with the third call, whose input is the
+# fixed file. The 2 nodes of test__cli__command__fix_templated are not
+# converted: their temporary folder has a .sqlfluff file, and the calls run in
+# the sqlfluff root (status/S7-tests.md).
 source:
   project: sqlfluff
   version: 4.4.0
@@ -52,5 +59,165 @@ nodes:
         cwd: tmp
         files:
           testing.sql: "SELECT\n    a.id, -- Comma with leading spaces\n    a.name, a.training_spaces\n,    -- Comma on newline, trailing spaces but with comment!\n    a.normal_comma, a.should_work\nFROM tbl as a\n"
+        checks:
+          exit_code: 0
+  - node: "test/rules/std_roundtrip_test.py::test__cli__command__fix[LT01-test/fixtures/linter/indentation_errors.sql0]"
+    asserts:
+      L37: ["lint_before:exit_code"]
+      L42: ["fix:exit_code"]
+      L45: ["lint_after:exit_code"]
+    cases:
+      - name: lint_before
+        run: cli
+        argv: [lint, "--rules", LT01, "--dialect=ansi", "{tmp}/testing.sql"]
+        cwd: tmp
+        files:
+          testing.sql: "SELECT\n   a.id, -- 3 Spaces\n\t  a.name, -- tabs and spaces, 2 spaces\n\t    a.trailing_spaces,   \n\ta.tabs_alone_after_spaces\nFROM tbl as a\n"
+        checks:
+          exit_code: 1
+      - name: fix
+        run: cli
+        argv: [fix, "--rules", LT01, "--dialect=ansi", "-f", "{tmp}/testing.sql"]
+        cwd: tmp
+        files:
+          testing.sql: "SELECT\n   a.id, -- 3 Spaces\n\t  a.name, -- tabs and spaces, 2 spaces\n\t    a.trailing_spaces,   \n\ta.tabs_alone_after_spaces\nFROM tbl as a\n"
+        checks:
+          exit_code: 0
+          files:
+            testing.sql: "SELECT\n   a.id, -- 3 Spaces\n\t  a.name, -- tabs and spaces, 2 spaces\n\t    a.trailing_spaces,\n\ta.tabs_alone_after_spaces\nFROM tbl as a\n"
+      - name: lint_after
+        run: cli
+        argv: [lint, "--rules", LT01, "--dialect=ansi", "{tmp}/testing.sql"]
+        cwd: tmp
+        files:
+          testing.sql: "SELECT\n   a.id, -- 3 Spaces\n\t  a.name, -- tabs and spaces, 2 spaces\n\t    a.trailing_spaces,\n\ta.tabs_alone_after_spaces\nFROM tbl as a\n"
+        checks:
+          exit_code: 0
+  - node: "test/rules/std_roundtrip_test.py::test__cli__command__fix[LT01-test/fixtures/linter/indentation_errors.sql1]"
+    asserts:
+      L37: ["lint_before:exit_code"]
+      L42: ["fix:exit_code"]
+      L45: ["lint_after:exit_code"]
+    cases:
+      - name: lint_before
+        run: cli
+        argv: [lint, "--rules", LT01, "--dialect=ansi", "{tmp}/testing.sql"]
+        cwd: tmp
+        files:
+          testing.sql: "SELECT\n   a.id, -- 3 Spaces\n\t  a.name, -- tabs and spaces, 2 spaces\n\t    a.trailing_spaces,   \n\ta.tabs_alone_after_spaces\nFROM tbl as a\n"
+        checks:
+          exit_code: 1
+      - name: fix
+        run: cli
+        argv: [fix, "--rules", LT01, "--dialect=ansi", "-f", "{tmp}/testing.sql"]
+        cwd: tmp
+        files:
+          testing.sql: "SELECT\n   a.id, -- 3 Spaces\n\t  a.name, -- tabs and spaces, 2 spaces\n\t    a.trailing_spaces,   \n\ta.tabs_alone_after_spaces\nFROM tbl as a\n"
+        checks:
+          exit_code: 0
+          files:
+            testing.sql: "SELECT\n   a.id, -- 3 Spaces\n\t  a.name, -- tabs and spaces, 2 spaces\n\t    a.trailing_spaces,\n\ta.tabs_alone_after_spaces\nFROM tbl as a\n"
+      - name: lint_after
+        run: cli
+        argv: [lint, "--rules", LT01, "--dialect=ansi", "{tmp}/testing.sql"]
+        cwd: tmp
+        files:
+          testing.sql: "SELECT\n   a.id, -- 3 Spaces\n\t  a.name, -- tabs and spaces, 2 spaces\n\t    a.trailing_spaces,\n\ta.tabs_alone_after_spaces\nFROM tbl as a\n"
+        checks:
+          exit_code: 0
+  - node: "test/rules/std_roundtrip_test.py::test__cli__command__fix[CP01-test/fixtures/linter/whitespace_errors.sql]"
+    asserts:
+      L37: ["lint_before:exit_code"]
+      L42: ["fix:exit_code"]
+      L45: ["lint_after:exit_code"]
+    cases:
+      - name: lint_before
+        run: cli
+        argv: [lint, "--rules", CP01, "--dialect=ansi", "{tmp}/testing.sql"]
+        cwd: tmp
+        files:
+          testing.sql: "SELECT\n    a.id   , -- Comma with leading spaces\n    a.name,    a.training_spaces\n,    -- Comma on newline, trailing spaces but with comment!\n    a.normal_comma, a.should_work\nFROM tbl as a\n"
+        checks:
+          exit_code: 1
+      - name: fix
+        run: cli
+        argv: [fix, "--rules", CP01, "--dialect=ansi", "-f", "{tmp}/testing.sql"]
+        cwd: tmp
+        files:
+          testing.sql: "SELECT\n    a.id   , -- Comma with leading spaces\n    a.name,    a.training_spaces\n,    -- Comma on newline, trailing spaces but with comment!\n    a.normal_comma, a.should_work\nFROM tbl as a\n"
+        checks:
+          exit_code: 0
+          files:
+            testing.sql: "SELECT\n    a.id   , -- Comma with leading spaces\n    a.name,    a.training_spaces\n,    -- Comma on newline, trailing spaces but with comment!\n    a.normal_comma, a.should_work\nFROM tbl AS a\n"
+      - name: lint_after
+        run: cli
+        argv: [lint, "--rules", CP01, "--dialect=ansi", "{tmp}/testing.sql"]
+        cwd: tmp
+        files:
+          testing.sql: "SELECT\n    a.id   , -- Comma with leading spaces\n    a.name,    a.training_spaces\n,    -- Comma on newline, trailing spaces but with comment!\n    a.normal_comma, a.should_work\nFROM tbl AS a\n"
+        checks:
+          exit_code: 0
+  - node: "test/rules/std_roundtrip_test.py::test__cli__command__fix[AL01-test/fixtures/dialects/ansi/select_simple_i.sql]"
+    asserts:
+      L37: ["lint_before:exit_code"]
+      L42: ["fix:exit_code"]
+      L45: ["lint_after:exit_code"]
+    cases:
+      - name: lint_before
+        run: cli
+        argv: [lint, "--rules", AL01, "--dialect=ansi", "{tmp}/testing.sql"]
+        cwd: tmp
+        files:
+          testing.sql: "-- test aliasing\nSELECT\n    raw_column,\n    raw_sch.raw_col,\n    simple_explicit as aliased_column_1,\n    simple_implicit aliased_column_2,\n    an_unaliased + calculation,\n    -- We know that the following one doesn't parse...\n    -- an_implicitly + aliased calculation,\n    an_explicitly - aliased as calculation,\n    'an unalised string',\n    123.6,\n    -786 as aliased_column3\nFROM unaliased\nJOIN aliased_1 as foo\nJOIN aliased_2 bar USING(b)\n"
+        checks:
+          exit_code: 1
+      - name: fix
+        run: cli
+        argv: [fix, "--rules", AL01, "--dialect=ansi", "-f", "{tmp}/testing.sql"]
+        cwd: tmp
+        files:
+          testing.sql: "-- test aliasing\nSELECT\n    raw_column,\n    raw_sch.raw_col,\n    simple_explicit as aliased_column_1,\n    simple_implicit aliased_column_2,\n    an_unaliased + calculation,\n    -- We know that the following one doesn't parse...\n    -- an_implicitly + aliased calculation,\n    an_explicitly - aliased as calculation,\n    'an unalised string',\n    123.6,\n    -786 as aliased_column3\nFROM unaliased\nJOIN aliased_1 as foo\nJOIN aliased_2 bar USING(b)\n"
+        checks:
+          exit_code: 0
+          files:
+            testing.sql: "-- test aliasing\nSELECT\n    raw_column,\n    raw_sch.raw_col,\n    simple_explicit as aliased_column_1,\n    simple_implicit aliased_column_2,\n    an_unaliased + calculation,\n    -- We know that the following one doesn't parse...\n    -- an_implicitly + aliased calculation,\n    an_explicitly - aliased as calculation,\n    'an unalised string',\n    123.6,\n    -786 as aliased_column3\nFROM unaliased\nJOIN aliased_1 as foo\nJOIN aliased_2 AS bar USING(b)\n"
+      - name: lint_after
+        run: cli
+        argv: [lint, "--rules", AL01, "--dialect=ansi", "{tmp}/testing.sql"]
+        cwd: tmp
+        files:
+          testing.sql: "-- test aliasing\nSELECT\n    raw_column,\n    raw_sch.raw_col,\n    simple_explicit as aliased_column_1,\n    simple_implicit aliased_column_2,\n    an_unaliased + calculation,\n    -- We know that the following one doesn't parse...\n    -- an_implicitly + aliased calculation,\n    an_explicitly - aliased as calculation,\n    'an unalised string',\n    123.6,\n    -786 as aliased_column3\nFROM unaliased\nJOIN aliased_1 as foo\nJOIN aliased_2 AS bar USING(b)\n"
+        checks:
+          exit_code: 0
+  - node: "test/rules/std_roundtrip_test.py::test__cli__command__fix[AL02-test/fixtures/dialects/ansi/select_simple_i.sql]"
+    asserts:
+      L37: ["lint_before:exit_code"]
+      L42: ["fix:exit_code"]
+      L45: ["lint_after:exit_code"]
+    cases:
+      - name: lint_before
+        run: cli
+        argv: [lint, "--rules", AL02, "--dialect=ansi", "{tmp}/testing.sql"]
+        cwd: tmp
+        files:
+          testing.sql: "-- test aliasing\nSELECT\n    raw_column,\n    raw_sch.raw_col,\n    simple_explicit as aliased_column_1,\n    simple_implicit aliased_column_2,\n    an_unaliased + calculation,\n    -- We know that the following one doesn't parse...\n    -- an_implicitly + aliased calculation,\n    an_explicitly - aliased as calculation,\n    'an unalised string',\n    123.6,\n    -786 as aliased_column3\nFROM unaliased\nJOIN aliased_1 as foo\nJOIN aliased_2 bar USING(b)\n"
+        checks:
+          exit_code: 1
+      - name: fix
+        run: cli
+        argv: [fix, "--rules", AL02, "--dialect=ansi", "-f", "{tmp}/testing.sql"]
+        cwd: tmp
+        files:
+          testing.sql: "-- test aliasing\nSELECT\n    raw_column,\n    raw_sch.raw_col,\n    simple_explicit as aliased_column_1,\n    simple_implicit aliased_column_2,\n    an_unaliased + calculation,\n    -- We know that the following one doesn't parse...\n    -- an_implicitly + aliased calculation,\n    an_explicitly - aliased as calculation,\n    'an unalised string',\n    123.6,\n    -786 as aliased_column3\nFROM unaliased\nJOIN aliased_1 as foo\nJOIN aliased_2 bar USING(b)\n"
+        checks:
+          exit_code: 0
+          files:
+            testing.sql: "-- test aliasing\nSELECT\n    raw_column,\n    raw_sch.raw_col,\n    simple_explicit as aliased_column_1,\n    simple_implicit AS aliased_column_2,\n    an_unaliased + calculation,\n    -- We know that the following one doesn't parse...\n    -- an_implicitly + aliased calculation,\n    an_explicitly - aliased as calculation,\n    'an unalised string',\n    123.6,\n    -786 as aliased_column3\nFROM unaliased\nJOIN aliased_1 as foo\nJOIN aliased_2 bar USING(b)\n"
+      - name: lint_after
+        run: cli
+        argv: [lint, "--rules", AL02, "--dialect=ansi", "{tmp}/testing.sql"]
+        cwd: tmp
+        files:
+          testing.sql: "-- test aliasing\nSELECT\n    raw_column,\n    raw_sch.raw_col,\n    simple_explicit as aliased_column_1,\n    simple_implicit AS aliased_column_2,\n    an_unaliased + calculation,\n    -- We know that the following one doesn't parse...\n    -- an_implicitly + aliased calculation,\n    an_explicitly - aliased as calculation,\n    'an unalised string',\n    123.6,\n    -786 as aliased_column3\nFROM unaliased\nJOIN aliased_1 as foo\nJOIN aliased_2 bar USING(b)\n"
         checks:
           exit_code: 0

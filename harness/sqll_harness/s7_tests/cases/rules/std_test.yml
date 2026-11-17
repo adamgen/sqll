@@ -1,19 +1,32 @@
 # S7 black-box cases (docs/decisions/s7-tests-design.md, "Case format").
 # A derived work of the sqlfluff tests: copyright (c) 2018-2026 Alan
 # Cruickshank, MIT License.
-# test_improper_configs_are_rejected expects a ValueError from
-# get_ruleset().get_rulepack(config). The trace records the error and runs
-# "lint -" in a new folder with the config as a .sqlfluff file (the config
-# model of the design record). The CLI run raises the same error in the same
-# function, and the CLI gives it as "User Error" with exit code 2. Thus the
-# trace oracle maps the error to this case. T17 (trace oracle and case runner,
-# extension 2; goal: the trace oracle maps and proves the calls of the
-# remaining rule nodes that T16 did not map, and fails closed on each other
-# call) of S7 (CLI and config parity: the sqlfluff CLI, config, and Python
-# rule tests as black-box cases; sqll passes 100% of the converted cases;
-# cases that need the Jinja templater move to the Jinja templater stone)
-# converts the node rule_config_dict3 as a proof node of this map. The other
-# nodes of this file are not converted yet.
+# test__rules__std_file calls the test helper
+# assert_rule_raises_violations_in_file. The trace oracle maps it to its one
+# Linter path call, "lint -f json --dialect ansi --rules <rule> <file>" in the
+# sqlfluff root; the fixture files are read in place. The helper asserts that
+# the set of (code, line, position) of the violations is the expected set. The
+# records check gives each violation of sqlfluff 4.4.0 in the order of the
+# lint output (the same set). The fixture heavy_templating.sql has Jinja tags:
+# that node moves to S11. test_improper_configs_are_rejected expects a
+# ValueError from get_ruleset().get_rulepack(config). The trace records the
+# error and runs "lint -" in a new folder with the config as a .sqlfluff file
+# (the config model of the design record). The CLI run raises the same error
+# in the same function, and the CLI gives it as "User Error" with exit code 2.
+# Thus the trace oracle maps the error to this case. T17 (trace oracle and
+# case runner, extension 2; goal: the trace oracle maps and proves the calls
+# of the remaining rule nodes that T16 did not map, and fails closed on each
+# other call) of S7 (CLI and config parity: the sqlfluff CLI, config, and
+# Python rule tests as black-box cases; sqll passes 100% of the converted
+# cases; cases that need the Jinja templater move to the Jinja templater
+# stone) converted the node rule_config_dict3 as a proof node of this map, and
+# T7 (convert the rule tests, part 2; goal: the other rule nodes, not Rust
+# dispatch and not Jinja, are black-box cases) of S7 (CLI and config parity:
+# the sqlfluff CLI, config, and Python rule tests as black-box cases; sqll
+# passes 100% of the converted cases; cases that need the Jinja templater move
+# to the Jinja templater stone) converts the other nodes. The node
+# rule_config_dict7 is not converted: the config model does not have the key
+# rules:capitalisation.functions:capitalisation_policy (status/S7-tests.md).
 source:
   project: sqlfluff
   version: 4.4.0
@@ -37,3 +50,333 @@ nodes:
           stderr:
             contains:
               - "User Error: Invalid option 'blah' for capitalisation_policy configuration."
+  - node: "test/rules/std_test.py::test__rules__std_file[LT01-indentation_errors.sql-violations0]"
+    asserts:
+      L80:violations: ["lint:violations[0]"]
+    cases:
+      - name: lint
+        run: cli
+        argv: [lint, "-f", json, "--dialect", ansi, "--rules", LT01, test/fixtures/linter/indentation_errors.sql]
+        checks:
+          exit_code: 1
+          violations:
+            - records:
+                - {code: LT01, start_line_no: 4, start_line_pos: 24}
+  - node: "test/rules/std_test.py::test__rules__std_file[LT02-indentation_errors.sql-violations1]"
+    asserts:
+      L80:violations: ["lint:violations[0]"]
+    cases:
+      - name: lint
+        run: cli
+        argv: [lint, "-f", json, "--dialect", ansi, "--rules", LT02, test/fixtures/linter/indentation_errors.sql]
+        checks:
+          exit_code: 1
+          violations:
+            - records:
+                - {code: LT02, start_line_no: 2, start_line_pos: 1}
+                - {code: LT02, start_line_no: 3, start_line_pos: 1}
+                - {code: LT02, start_line_no: 4, start_line_pos: 1}
+                - {code: LT02, start_line_no: 5, start_line_pos: 1}
+  - node: "test/rules/std_test.py::test__rules__std_file[LT01-whitespace_errors.sql-violations2]"
+    asserts:
+      L80:violations: ["lint:violations[0]"]
+    cases:
+      - name: lint
+        run: cli
+        argv: [lint, "-f", json, "--dialect", ansi, "--rules", LT01, test/fixtures/linter/whitespace_errors.sql]
+        checks:
+          exit_code: 1
+          violations:
+            - records:
+                - {code: LT01, start_line_no: 2, start_line_pos: 9}
+                - {code: LT01, start_line_no: 3, start_line_pos: 12}
+  - node: "test/rules/std_test.py::test__rules__std_file[LT01-operator_errors.sql-violations3]"
+    asserts:
+      L80:violations: ["lint:violations[0]"]
+    cases:
+      - name: lint
+        run: cli
+        argv: [lint, "-f", json, "--dialect", ansi, "--rules", LT01, test/fixtures/linter/operator_errors.sql]
+        checks:
+          exit_code: 1
+          violations:
+            - records:
+                - {code: LT01, start_line_no: 3, start_line_pos: 8}
+                - {code: LT01, start_line_no: 4, start_line_pos: 10}
+                - {code: LT01, start_line_no: 7, start_line_pos: 6}
+                - {code: LT01, start_line_no: 7, start_line_pos: 7}
+                - {code: LT01, start_line_no: 7, start_line_pos: 9}
+                - {code: LT01, start_line_no: 7, start_line_pos: 10}
+                - {code: LT01, start_line_no: 7, start_line_pos: 12}
+                - {code: LT01, start_line_no: 7, start_line_pos: 13}
+  - node: "test/rules/std_test.py::test__rules__std_file[LT03-operator_errors.sql-violations4]"
+    asserts:
+      L80:violations: ["lint:violations[0]"]
+    cases:
+      - name: lint
+        run: cli
+        argv: [lint, "-f", json, "--dialect", ansi, "--rules", LT03, test/fixtures/linter/operator_errors.sql]
+        checks:
+          exit_code: 1
+          violations:
+            - records:
+                - {code: LT03, start_line_no: 5, start_line_pos: 9}
+  - node: "test/rules/std_test.py::test__rules__std_file[LT01-operator_errors_negative.sql-violations5]"
+    asserts:
+      L80:violations: ["lint:violations[0]"]
+    cases:
+      - name: lint
+        run: cli
+        argv: [lint, "-f", json, "--dialect", ansi, "--rules", LT01, test/fixtures/linter/operator_errors_negative.sql]
+        checks:
+          exit_code: 1
+          violations:
+            - records:
+                - {code: LT01, start_line_no: 2, start_line_pos: 6}
+                - {code: LT01, start_line_no: 2, start_line_pos: 9}
+                - {code: LT01, start_line_no: 5, start_line_pos: 6}
+                - {code: LT01, start_line_no: 5, start_line_pos: 7}
+  - node: "test/rules/std_test.py::test__rules__std_file[LT02-indentation_error_hard.sql-violations6]"
+    asserts:
+      L80:violations: ["lint:violations[0]"]
+    cases:
+      - name: lint
+        run: cli
+        argv: [lint, "-f", json, "--dialect", ansi, "--rules", LT02, test/fixtures/linter/indentation_error_hard.sql]
+        checks:
+          exit_code: 1
+          violations:
+            - records:
+                - {code: LT02, start_line_no: 2, start_line_pos: 1}
+                - {code: LT02, start_line_no: 6, start_line_pos: 1}
+                - {code: LT02, start_line_no: 9, start_line_pos: 1}
+                - {code: LT02, start_line_no: 11, start_line_pos: 15}
+                - {code: LT02, start_line_no: 12, start_line_pos: 1}
+                - {code: LT02, start_line_no: 12, start_line_pos: 33}
+                - {code: LT02, start_line_no: 13, start_line_pos: 15}
+                - {code: LT02, start_line_no: 14, start_line_pos: 1}
+                - {code: LT02, start_line_no: 14, start_line_pos: 36}
+                - {code: LT02, start_line_no: 18, start_line_pos: 1}
+                - {code: LT02, start_line_no: 19, start_line_pos: 1}
+                - {code: LT02, start_line_no: 20, start_line_pos: 1}
+  - node: "test/rules/std_test.py::test__rules__std_file[LT02-indentation_error_contained.sql-violations7]"
+    asserts:
+      L80:violations: ["lint:violations[0]"]
+    cases:
+      - name: lint
+        run: cli
+        argv: [lint, "-f", json, "--dialect", ansi, "--rules", LT02, test/fixtures/linter/indentation_error_contained.sql]
+        checks:
+          exit_code: 0
+          violations:
+            - records: []
+  - node: "test/rules/std_test.py::test__rules__std_file[LT05-block_comment_errors.sql-violations8]"
+    asserts:
+      L80:violations: ["lint:violations[0]"]
+    cases:
+      - name: lint
+        run: cli
+        argv: [lint, "-f", json, "--dialect", ansi, "--rules", LT05, test/fixtures/linter/block_comment_errors.sql]
+        checks:
+          exit_code: 1
+          violations:
+            - records:
+                - {code: LT05, start_line_no: 1, start_line_pos: 1}
+                - {code: LT05, start_line_no: 2, start_line_pos: 5}
+                - {code: LT05, start_line_no: 4, start_line_pos: 5}
+  - node: "test/rules/std_test.py::test__rules__std_file[LT05-block_comment_errors_2.sql-violations9]"
+    asserts:
+      L80:violations: ["lint:violations[0]"]
+    cases:
+      - name: lint
+        run: cli
+        argv: [lint, "-f", json, "--dialect", ansi, "--rules", LT05, test/fixtures/linter/block_comment_errors_2.sql]
+        checks:
+          exit_code: 1
+          violations:
+            - records:
+                - {code: LT05, start_line_no: 1, start_line_pos: 1}
+                - {code: LT05, start_line_no: 2, start_line_pos: 1}
+  - node: "test/rules/std_test.py::test__rules__std_file[RF02-column_references.sql-violations10]"
+    asserts:
+      L80:violations: ["lint:violations[0]"]
+    cases:
+      - name: lint
+        run: cli
+        argv: [lint, "-f", json, "--dialect", ansi, "--rules", RF02, test/fixtures/linter/column_references.sql]
+        checks:
+          exit_code: 1
+          violations:
+            - records:
+                - {code: RF02, start_line_no: 1, start_line_pos: 8}
+  - node: "test/rules/std_test.py::test__rules__std_file[RF02-column_references_bare_function.sql-violations11]"
+    asserts:
+      L80:violations: ["lint:violations[0]"]
+    cases:
+      - name: lint
+        run: cli
+        argv: [lint, "-f", json, "--dialect", ansi, "--rules", RF02, test/fixtures/linter/column_references_bare_function.sql]
+        checks:
+          exit_code: 0
+          violations:
+            - records: []
+  - node: "test/rules/std_test.py::test__rules__std_file[RF01-column_references.sql-violations12]"
+    asserts:
+      L80:violations: ["lint:violations[0]"]
+    cases:
+      - name: lint
+        run: cli
+        argv: [lint, "-f", json, "--dialect", ansi, "--rules", RF01, test/fixtures/linter/column_references.sql]
+        checks:
+          exit_code: 1
+          violations:
+            - records:
+                - {code: RF01, start_line_no: 1, start_line_pos: 11}
+  - node: "test/rules/std_test.py::test__rules__std_file[AL05-column_references.sql-violations13]"
+    asserts:
+      L80:violations: ["lint:violations[0]"]
+    cases:
+      - name: lint
+        run: cli
+        argv: [lint, "-f", json, "--dialect", ansi, "--rules", AL05, test/fixtures/linter/column_references.sql]
+        checks:
+          exit_code: 1
+          violations:
+            - records:
+                - {code: AL05, start_line_no: 2, start_line_pos: 11}
+  - node: "test/rules/std_test.py::test__rules__std_file[AM01-select_distinct_group_by.sql-violations14]"
+    asserts:
+      L80:violations: ["lint:violations[0]"]
+    cases:
+      - name: lint
+        run: cli
+        argv: [lint, "-f", json, "--dialect", ansi, "--rules", AM01, test/fixtures/linter/select_distinct_group_by.sql]
+        checks:
+          exit_code: 1
+          violations:
+            - records:
+                - {code: AM01, start_line_no: 1, start_line_pos: 8}
+  - node: "test/rules/std_test.py::test__rules__std_file[LT01-operator_errors_ignore.sql-violations15]"
+    asserts:
+      L80:violations: ["lint:violations[0]"]
+    cases:
+      - name: lint
+        run: cli
+        argv: [lint, "-f", json, "--dialect", ansi, "--rules", LT01, test/fixtures/linter/operator_errors_ignore.sql]
+        checks:
+          exit_code: 1
+          violations:
+            - records:
+                - {code: LT01, start_line_no: 10, start_line_pos: 8}
+                - {code: LT01, start_line_no: 10, start_line_pos: 9}
+  - node: "test/rules/std_test.py::test__rules__std_file[JJ01-heavy_templating.sql-violations16]"
+    asserts:
+      L80:violations: ["lint:violations[0]"]
+    cases:
+      - name: lint
+        run: cli
+        # The SQL file has Jinja tags: the node moves to S11.
+        needs_jinja: true
+        argv: [lint, "-f", json, "--dialect", ansi, "--rules", JJ01, test/fixtures/linter/heavy_templating.sql]
+        checks:
+          exit_code: 1
+          violations:
+            - records:
+                - {code: JJ01, start_line_no: 12, start_line_pos: 13}
+                - {code: JJ01, start_line_no: 12, start_line_pos: 25}
+  - node: "test/rules/std_test.py::test_improper_configs_are_rejected[rule_config_dict0]"
+    asserts:
+      L106:raises: ["rejected:exit_code", "rejected:stderr.contains[0]"]
+    cases:
+      - name: rejected
+        run: cli
+        argv: [lint, "-"]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\n\n[sqlfluff:rules]\nallow_scalar = blah\n"
+        stdin: ""
+        checks:
+          exit_code: 2
+          stderr:
+            contains:
+              - "User Error: Invalid option 'blah' for allow_scalar configuration."
+  - node: "test/rules/std_test.py::test_improper_configs_are_rejected[rule_config_dict1]"
+    asserts:
+      L106:raises: ["rejected:exit_code", "rejected:stderr.contains[0]"]
+    cases:
+      - name: rejected
+        run: cli
+        argv: [lint, "-"]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\n\n[sqlfluff:rules]\nsingle_table_references = blah\n"
+        stdin: ""
+        checks:
+          exit_code: 2
+          stderr:
+            contains:
+              - "User Error: Invalid option 'blah' for single_table_references configuration."
+  - node: "test/rules/std_test.py::test_improper_configs_are_rejected[rule_config_dict2]"
+    asserts:
+      L106:raises: ["rejected:exit_code", "rejected:stderr.contains[0]"]
+    cases:
+      - name: rejected
+        run: cli
+        argv: [lint, "-"]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\n\n[sqlfluff:rules]\nunquoted_identifiers_policy = blah\n"
+        stdin: ""
+        checks:
+          exit_code: 2
+          stderr:
+            contains:
+              - "User Error: Invalid option 'blah' for unquoted_identifiers_policy configuration."
+  - node: "test/rules/std_test.py::test_improper_configs_are_rejected[rule_config_dict4]"
+    asserts:
+      L106:raises: ["rejected:exit_code", "rejected:stderr.contains[0]"]
+    cases:
+      - name: rejected
+        run: cli
+        argv: [lint, "-"]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\n\n[sqlfluff:rules:aliasing.table]\naliasing = blah\n"
+        stdin: ""
+        checks:
+          exit_code: 2
+          stderr:
+            contains:
+              - "User Error: Invalid option 'blah' for aliasing configuration."
+  - node: "test/rules/std_test.py::test_improper_configs_are_rejected[rule_config_dict5]"
+    asserts:
+      L106:raises: ["rejected:exit_code", "rejected:stderr.contains[0]"]
+    cases:
+      - name: rejected
+        run: cli
+        argv: [lint, "-"]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\n\n[sqlfluff:rules:aliasing.column]\naliasing = blah\n"
+        stdin: ""
+        checks:
+          exit_code: 2
+          stderr:
+            contains:
+              - "User Error: Invalid option 'blah' for aliasing configuration."
+  - node: "test/rules/std_test.py::test_improper_configs_are_rejected[rule_config_dict6]"
+    asserts:
+      L106:raises: ["rejected:exit_code", "rejected:stderr.contains[0]"]
+    cases:
+      - name: rejected
+        run: cli
+        argv: [lint, "-"]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\n\n[sqlfluff:rules:capitalisation.identifiers]\nextended_capitalisation_policy = blah\n"
+        stdin: ""
+        checks:
+          exit_code: 2
+          stderr:
+            contains:
+              - "User Error: Invalid option 'blah' for extended_capitalisation_policy configuration."

@@ -11,8 +11,14 @@
 # T16 did not map, and fails closed on each other call) of S7 (CLI and config
 # parity: the sqlfluff CLI, config, and Python rule tests as black-box cases;
 # sqll passes 100% of the converted cases; cases that need the Jinja templater
-# move to the Jinja templater stone) converts the node rules0 as a proof node
-# of this map. The other 9 nodes are not converted yet.
+# move to the Jinja templater stone) converted the node rules0 as a proof node
+# of this map, and T7 (convert the rule tests, part 2; goal: the other rule
+# nodes, not Rust dispatch and not Jinja, are black-box cases) of S7 (CLI and
+# config parity: the sqlfluff CLI, config, and Python rule tests as black-box
+# cases; sqll passes 100% of the converted cases; cases that need the Jinja
+# templater move to the Jinja templater stone) converts 5 other nodes. The
+# nodes rules3, rules6, rules7, and rules8 are not converted: the violations
+# of their fix run are not those of a lint run (status/S7-tests.md).
 source:
   project: sqlfluff
   version: 4.4.0
@@ -58,3 +64,182 @@ nodes:
             - records:
                 - {code: AL09, start_line_no: 3, start_line_pos: 5}
                 - {code: AL09, start_line_no: 4, start_line_pos: 5}
+  - node: "test/rules/std_AL09_CP02_RF06_combo_test.py::test__rules__std_AL09_CP02_RF06[rules1-ansi-\\nselect\\n    a as a,\\n    b as b,\\n    \"C\" as c,\\n    \"d\" as d,\\n    \"E\" as e,\\n    \"f\" as f,\\n    g as \"G\",\\n    h as h,\\n    i as i\\nfrom foo\\n-post_fix_errors1]"
+    asserts:
+      L246: ["fix:stdout.equals"]
+      L251: ["lint_fixed:violations[0]"]
+    cases:
+      - name: lint
+        run: cli
+        argv: [lint, "-f", json, "-"]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\nrules = CP02\n"
+        stdin: "\nselect\n    a as A,\n    B as b,\n    \"C\" as C,\n    \"d\" as d,\n    \"E\" as e,\n    \"f\" as F,\n    g as \"G\",\n    h as h,\n    I as I\nfrom foo\n"
+        checks:
+          exit_code: 1
+      - name: fix
+        run: cli
+        argv: [fix, "-"]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\nrules = CP02\n"
+        stdin: "\nselect\n    a as A,\n    B as b,\n    \"C\" as C,\n    \"d\" as d,\n    \"E\" as e,\n    \"f\" as F,\n    g as \"G\",\n    h as h,\n    I as I\nfrom foo\n"
+        checks:
+          exit_code: 0
+          stdout: {equals: "\nselect\n    a as a,\n    b as b,\n    \"C\" as c,\n    \"d\" as d,\n    \"E\" as e,\n    \"f\" as f,\n    g as \"G\",\n    h as h,\n    i as i\nfrom foo\n"}
+      - name: lint_fixed
+        run: cli
+        argv: [lint, "-f", json, "-"]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\nrules = CP02\n"
+        stdin: "\nselect\n    a as a,\n    b as b,\n    \"C\" as c,\n    \"d\" as d,\n    \"E\" as e,\n    \"f\" as f,\n    g as \"G\",\n    h as h,\n    i as i\nfrom foo\n"
+        checks:
+          exit_code: 0
+          violations:
+            - records: []
+  - node: "test/rules/std_AL09_CP02_RF06_combo_test.py::test__rules__std_AL09_CP02_RF06[rules2-ansi-\\nselect\\n    a as A,\\n    B as b,\\n    C as C,\\n    \"d\" as d,\\n    E as e,\\n    \"f\" as F,\\n    g as G,\\n    h as h,\\n    I as I\\nfrom foo\\n-post_fix_errors2]"
+    asserts:
+      L246: ["fix:stdout.equals"]
+      L251: ["lint_fixed:violations[0]"]
+    cases:
+      - name: lint
+        run: cli
+        argv: [lint, "-f", json, "-"]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\nrules = RF06\n"
+        stdin: "\nselect\n    a as A,\n    B as b,\n    \"C\" as C,\n    \"d\" as d,\n    \"E\" as e,\n    \"f\" as F,\n    g as \"G\",\n    h as h,\n    I as I\nfrom foo\n"
+        checks:
+          exit_code: 1
+      - name: fix
+        run: cli
+        argv: [fix, "-"]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\nrules = RF06\n"
+        stdin: "\nselect\n    a as A,\n    B as b,\n    \"C\" as C,\n    \"d\" as d,\n    \"E\" as e,\n    \"f\" as F,\n    g as \"G\",\n    h as h,\n    I as I\nfrom foo\n"
+        checks:
+          exit_code: 0
+          stdout: {equals: "\nselect\n    a as A,\n    B as b,\n    C as C,\n    \"d\" as d,\n    E as e,\n    \"f\" as F,\n    g as G,\n    h as h,\n    I as I\nfrom foo\n"}
+      - name: lint_fixed
+        run: cli
+        argv: [lint, "-f", json, "-"]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\nrules = RF06\n"
+        stdin: "\nselect\n    a as A,\n    B as b,\n    C as C,\n    \"d\" as d,\n    E as e,\n    \"f\" as F,\n    g as G,\n    h as h,\n    I as I\nfrom foo\n"
+        checks:
+          exit_code: 0
+          violations:
+            - records: []
+  - node: "test/rules/std_AL09_CP02_RF06_combo_test.py::test__rules__std_AL09_CP02_RF06[rules4-ansi-\\nselect\\n    a as A,\\n    B as b,\\n    C,\\n    \"d\" as d,\\n    E as e,\\n    \"f\" as F,\\n    g as G,\\n    h,\\n    I\\nfrom foo\\n-post_fix_errors4]"
+    asserts:
+      L246: ["fix:stdout.equals"]
+      L251: ["lint_fixed:violations[0]"]
+    cases:
+      - name: lint
+        run: cli
+        argv: [lint, "-f", json, "-"]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\nrules = AL09,RF06\n"
+        stdin: "\nselect\n    a as A,\n    B as b,\n    \"C\" as C,\n    \"d\" as d,\n    \"E\" as e,\n    \"f\" as F,\n    g as \"G\",\n    h as h,\n    I as I\nfrom foo\n"
+        checks:
+          exit_code: 1
+      - name: fix
+        run: cli
+        argv: [fix, "-"]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\nrules = AL09,RF06\n"
+        stdin: "\nselect\n    a as A,\n    B as b,\n    \"C\" as C,\n    \"d\" as d,\n    \"E\" as e,\n    \"f\" as F,\n    g as \"G\",\n    h as h,\n    I as I\nfrom foo\n"
+        checks:
+          exit_code: 1
+          stdout: {equals: "\nselect\n    a as A,\n    B as b,\n    C,\n    \"d\" as d,\n    E as e,\n    \"f\" as F,\n    g as G,\n    h,\n    I\nfrom foo\n"}
+      - name: lint_fixed
+        run: cli
+        argv: [lint, "-f", json, "-"]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\nrules = AL09,RF06\n"
+        stdin: "\nselect\n    a as A,\n    B as b,\n    C,\n    \"d\" as d,\n    E as e,\n    \"f\" as F,\n    g as G,\n    h,\n    I\nfrom foo\n"
+        checks:
+          exit_code: 1
+          violations:
+            - records:
+                - {code: AL09, start_line_no: 3, start_line_pos: 5}
+                - {code: AL09, start_line_no: 4, start_line_pos: 5}
+                - {code: AL09, start_line_no: 7, start_line_pos: 5}
+                - {code: AL09, start_line_no: 9, start_line_pos: 5}
+  - node: "test/rules/std_AL09_CP02_RF06_combo_test.py::test__rules__std_AL09_CP02_RF06[rules5-ansi-\\nselect\\n    a as a,\\n    b as b,\\n    c as c,\\n    \"d\" as d,\\n    e as e,\\n    \"f\" as f,\\n    g as g,\\n    h as h,\\n    i as i\\nfrom foo\\n-post_fix_errors5]"
+    asserts:
+      L246: ["fix:stdout.equals"]
+      L251: ["lint_fixed:violations[0]"]
+    cases:
+      - name: lint
+        run: cli
+        argv: [lint, "-f", json, "-"]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\nrules = CP02,RF06\n"
+        stdin: "\nselect\n    a as A,\n    B as b,\n    \"C\" as C,\n    \"d\" as d,\n    \"E\" as e,\n    \"f\" as F,\n    g as \"G\",\n    h as h,\n    I as I\nfrom foo\n"
+        checks:
+          exit_code: 1
+      - name: fix
+        run: cli
+        argv: [fix, "-"]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\nrules = CP02,RF06\n"
+        stdin: "\nselect\n    a as A,\n    B as b,\n    \"C\" as C,\n    \"d\" as d,\n    \"E\" as e,\n    \"f\" as F,\n    g as \"G\",\n    h as h,\n    I as I\nfrom foo\n"
+        checks:
+          exit_code: 0
+          stdout: {equals: "\nselect\n    a as a,\n    b as b,\n    c as c,\n    \"d\" as d,\n    e as e,\n    \"f\" as f,\n    g as g,\n    h as h,\n    i as i\nfrom foo\n"}
+      - name: lint_fixed
+        run: cli
+        argv: [lint, "-f", json, "-"]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\nrules = CP02,RF06\n"
+        stdin: "\nselect\n    a as a,\n    b as b,\n    c as c,\n    \"d\" as d,\n    e as e,\n    \"f\" as f,\n    g as g,\n    h as h,\n    i as i\nfrom foo\n"
+        checks:
+          exit_code: 0
+          violations:
+            - records: []
+  - node: "test/rules/std_AL09_CP02_RF06_combo_test.py::test__rules__std_AL09_CP02_RF06[rules9-clickhouse-\\nselect\\n    a as A,\\n    B as b,\\n    C,\\n    d,\\n    E as e,\\n    f as F,\\n    g as G,\\n    h,\\n    I\\nfrom foo\\n-post_fix_errors9]"
+    asserts:
+      L246: ["fix:stdout.equals"]
+      L251: ["lint_fixed:violations[0]"]
+    cases:
+      - name: lint
+        run: cli
+        argv: [lint, "-f", json, "-"]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = clickhouse\nrules = AL09,RF06\n"
+        stdin: "\nselect\n    a as A,\n    B as b,\n    \"C\" as C,\n    \"d\" as d,\n    \"E\" as e,\n    \"f\" as F,\n    g as \"G\",\n    h as h,\n    I as I\nfrom foo\n"
+        checks:
+          exit_code: 1
+      - name: fix
+        run: cli
+        argv: [fix, "-"]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = clickhouse\nrules = AL09,RF06\n"
+        stdin: "\nselect\n    a as A,\n    B as b,\n    \"C\" as C,\n    \"d\" as d,\n    \"E\" as e,\n    \"f\" as F,\n    g as \"G\",\n    h as h,\n    I as I\nfrom foo\n"
+        checks:
+          exit_code: 0
+          stdout: {equals: "\nselect\n    a as A,\n    B as b,\n    C,\n    d,\n    E as e,\n    f as F,\n    g as G,\n    h,\n    I\nfrom foo\n"}
+      - name: lint_fixed
+        run: cli
+        argv: [lint, "-f", json, "-"]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = clickhouse\nrules = AL09,RF06\n"
+        stdin: "\nselect\n    a as A,\n    B as b,\n    C,\n    d,\n    E as e,\n    f as F,\n    g as G,\n    h,\n    I\nfrom foo\n"
+        checks:
+          exit_code: 0
+          violations:
+            - records: []
