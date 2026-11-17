@@ -1,0 +1,38 @@
+# S7 black-box cases (docs/decisions/s7-tests-design.md, "Case format").
+# A derived work of the sqlfluff tests: copyright (c) 2018-2026 Alan
+# Cruickshank, MIT License.
+# test_improper_configs_are_rejected expects a ValueError from
+# get_ruleset().get_rulepack(config). The trace records the error and runs
+# "lint -" in a new folder with the config as a .sqlfluff file (the config
+# model of the design record). The CLI run raises the same error in the same
+# function, and the CLI gives it as "User Error" with exit code 2. Thus the
+# trace oracle maps the error to this case. T17 (trace oracle and case
+# runner, extension 2; goal: the trace oracle maps and proves the calls of
+# the remaining rule nodes that T16 did not map, and fails closed on each
+# other call) of S7 (CLI and config parity: the sqlfluff CLI, config, and
+# Python rule tests as black-box cases) converts the node rule_config_dict3
+# as a proof node of this map. The other nodes of this file are not
+# converted yet.
+source:
+  project: sqlfluff
+  version: 4.4.0
+  commit: 0348222a3bcdb0226563f7349c5a39beb0641955
+  file: test/rules/std_test.py
+license: MIT
+nodes:
+  - node: test/rules/std_test.py::test_improper_configs_are_rejected[rule_config_dict3]
+    asserts:
+      L106:raises: ["rejected:exit_code", "rejected:stderr.contains[0]"]
+    cases:
+      - name: rejected
+        run: cli
+        argv: [lint, "-"]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\n\n[sqlfluff:rules:capitalisation.keywords]\ncapitalisation_policy = blah\n"
+        stdin: ""
+        checks:
+          exit_code: 2
+          stderr:
+            contains:
+              - "User Error: Invalid option 'blah' for capitalisation_policy configuration."

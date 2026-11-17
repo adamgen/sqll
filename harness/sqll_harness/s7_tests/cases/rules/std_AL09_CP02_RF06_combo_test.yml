@@ -1,0 +1,59 @@
+# S7 black-box cases (docs/decisions/s7-tests-design.md, "Case format").
+# A derived work of the sqlfluff tests: copyright (c) 2018-2026 Alan
+# Cruickshank, MIT License.
+# test__rules__std_AL09_CP02_RF06 makes Linter(dialect=..., rules=...) and
+# calls lint_string(sql, fix=True), then lint_string(fixed). The trace proves
+# that the config of this Linter is FluffConfig(overrides=<dialect, rules>)
+# and maps each call to "lint -f json -" (and "fix -" with fix) on stdin in a
+# temporary folder, with the config as a .sqlfluff file (the config model of
+# the design record). T17 (trace oracle and case runner, extension 2; goal:
+# the trace oracle maps and proves the calls of the remaining rule nodes that
+# T16 did not map, and fails closed on each other call) of S7 (CLI and config
+# parity: the sqlfluff CLI, config, and Python rule tests as black-box cases)
+# converts the node rules0 as a proof node of this map. The other 9 nodes are
+# not converted yet.
+source:
+  project: sqlfluff
+  version: 4.4.0
+  commit: 0348222a3bcdb0226563f7349c5a39beb0641955
+  file: test/rules/std_AL09_CP02_RF06_combo_test.py
+license: MIT
+nodes:
+  - node: "test/rules/std_AL09_CP02_RF06_combo_test.py::test__rules__std_AL09_CP02_RF06[rules0-ansi-\\nselect\\n    a as A,\\n    B as b,\\n    \"C\" as C,\\n    \"d\" as d,\\n    \"E\" as e,\\n    \"f\" as F,\\n    g as \"G\",\\n    h,\\n    I\\nfrom foo\\n-post_fix_errors0]"
+    asserts:
+      L246: ["fix:stdout.equals"]
+      L251: ["lint_fixed:violations[0]"]
+    cases:
+      - name: lint
+        run: cli
+        argv: [lint, -f, json, "-"]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\nrules = AL09\n"
+        stdin: "\nselect\n    a as A,\n    B as b,\n    \"C\" as C,\n    \"d\" as d,\n    \"E\" as e,\n    \"f\" as F,\n    g as \"G\",\n    h as h,\n    I as I\nfrom foo\n"
+        checks:
+          exit_code: 1
+      - name: fix
+        run: cli
+        argv: [fix, "-"]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\nrules = AL09\n"
+        stdin: "\nselect\n    a as A,\n    B as b,\n    \"C\" as C,\n    \"d\" as d,\n    \"E\" as e,\n    \"f\" as F,\n    g as \"G\",\n    h as h,\n    I as I\nfrom foo\n"
+        checks:
+          # 2 AL09 violations have no fix: the fix command gives exit code 1.
+          exit_code: 1
+          stdout: {equals: "\nselect\n    a as A,\n    B as b,\n    \"C\" as C,\n    \"d\" as d,\n    \"E\" as e,\n    \"f\" as F,\n    g as \"G\",\n    h,\n    I\nfrom foo\n"}
+      - name: lint_fixed
+        run: cli
+        argv: [lint, -f, json, "-"]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\nrules = AL09\n"
+        stdin: "\nselect\n    a as A,\n    B as b,\n    \"C\" as C,\n    \"d\" as d,\n    \"E\" as e,\n    \"f\" as F,\n    g as \"G\",\n    h,\n    I\nfrom foo\n"
+        checks:
+          exit_code: 1
+          violations:
+            - records:
+                - {code: AL09, start_line_no: 3, start_line_pos: 5}
+                - {code: AL09, start_line_no: 4, start_line_pos: 5}
