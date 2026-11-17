@@ -297,7 +297,9 @@ def test_status_has_each_task():
     # 2026-11-15, and T17 (extension 2) on 2026-11-17. T17 added the
     # extensions T18 to T21, each before the conversion task that needs it.
     # The orchestrator gave T7 the maps of T16 and T17 on 2026-11-17, so T7
-    # comes before T18; T7 added T22 (the rule nodes that need T18).
+    # comes before T18; T7 added T22 (the rule nodes that need T18). The
+    # orchestrator gave T18 a new scope on 2026-11-17: the Jinja rule nodes
+    # with the maps that they need; T22 has the other rule nodes.
     # Each row has a goal (AGENTS.md, "Names").
     table = _section(STATUS, "S7-tests tasks").splitlines()
     rows = [r for r in table if r.startswith("|")]
@@ -320,7 +322,13 @@ def test_status_has_each_task():
         "The trace oracle maps and proves the calls of the remaining rule nodes"
         " that T16 did not map, and fails closed on each other call"
     )
-    for task in ("T18", "T19", "T20", "T21"):
+    t18 = cells[order.index("T18")]
+    assert t18[2] == (
+        "Each rule node that needs the Jinja templater is a black-box case"
+        " marked for the Jinja templater stone"
+    )
+    assert cells[order.index("T7")][3] == "Done (PR #105)"
+    for task in ("T19", "T20", "T21"):
         goal = cells[order.index(task)][2]
         assert goal.startswith("The trace oracle maps and proves"), (task, goal)
         assert goal.endswith("and fails closed on each other call"), (task, goal)

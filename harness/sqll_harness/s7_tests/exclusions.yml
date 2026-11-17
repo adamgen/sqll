@@ -21,3 +21,9 @@ excluded:
   - node: test/rules/yaml_test_cases_test.py::test__rule_test_global_config
     class: python-internal
     reason: It calls the Python test helper load_test_cases on a YAML file and calls no CLI command and no simple-API function.
+  - node: test/rules/std_JJ01_test.py::test_lint_jj01_pickled_config
+    class: python-internal
+    reason: It calls Linter.parse_path and Rule.crawl with a pickled config, and calls no CLI command and no simple-API function.
+  - node: test/rules/std_LT01_jinja_alignment_test.py::test_lt01_alias_alignment_with_jinja_uses_source_positions
+    class: needs-python-runtime
+    reason: Its Jinja context has 2 Python functions (generate_surrogate_key and ref), which a config file cannot give.
