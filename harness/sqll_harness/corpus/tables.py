@@ -1,7 +1,8 @@
 """The Markdown tables of a corpus report for status/S9.md (T6).
 
 markdown() gives 4 tables: the status counts of each tool; the totals over
-the files where each tool is ok, with the ratios to sqlfluff; one row for
+the files where each compared tool (report.COMPARED_TOOLS: not sqll) is ok,
+with the ratios to sqlfluff; one row for
 each file with a cell for each tool; and the reason of each result that is
 not ok or unparsable (the cell of an unparsable result has its count and
 bytes). A report with pairs (report.py) also gives 2 tables: the totals of

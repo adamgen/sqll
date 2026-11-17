@@ -231,12 +231,21 @@ the tool, so a value at or below the harness RSS is only an upper bound.
 Core issue [#38](https://github.com/adamgen/sqll/issues/38). Only `ok`,
 `unparsable`, and `no_reference` have stats. `unparsable`: a tree with all
 the text and unparsable segments, exit code 0 or 1. `invalid`: a crash,
-panic, timeout, no tree, other leaf text, or another exit code.
+panic, timeout, no tree, other leaf text, or another exit code. With no
+tree, the reason also has the first "PRS: " stderr line of the tool, if
+there is one (T12, "sqll results", decision 1). `unsupported`: the adapter
+refuses a setting, or sqll fails closed: exit code 2 and a stderr line
+"Error: unsupported: ..." (T12, decision 2). Then the reason is the sqll
+message ("unsupported: ..."), and the result has no samples. Exit code 2
+with no such line stays `invalid`, and the same output of another tool is
+`invalid`.
 
-`totals`: the count of each status for each tool. `compared`: for the
-files where each tool is `ok`, the count, the bytes, and for each tool the
-sums of the median times, the bytes per second, and the ratios to
-sqlfluff. `pairs` (T11): only in a report with sqll and sqlfluff or
+`totals`: the count of each status for each tool. `compared`: only
+sqlfluff, `sqlfluff[rs]`, and sqruff, also in a report with sqll (T12,
+decision 4). For the files where each of these tools is `ok`, the count,
+the bytes, and for each of these tools the sums of the median times, the
+bytes per second, and the ratios to sqlfluff. The schema check fails if
+`compared` names another tool. `pairs` (T11): only in a report with sqll and sqlfluff or
 sqruff ("sqll results", decision 4). For each pair (sqll to sqlfluff,
 goal `faster`; sqll to sqruff, goal `not_slower`), on the files where both
 tools are `ok`: the count, the bytes, the sums of the median wall and CPU
@@ -250,7 +259,20 @@ the sqlfluff ref, the tool versions and settings, the input records (with
 the render sha256), and the status and unparsable count and bytes of each
 result. Not the timings, reasons, exit codes, or machine. A reason can
 have parts of a corpus file, so an artifact with a report also has the
-manifest and the license files (T7).
+manifest and the license files (T7). For a changed sqll result, the
+message also gives the direction and says if the new result is the
+sqlfluff result of the file (T12, decision 3).
+
+`rebase --tool sqll BASELINE REPORT --out FILE` (T12, decision 3): the
+baseline must be a recorded baseline with sqll results, and REPORT a
+complete full report of the same tools, profile, policy, sqlfluff ref,
+and manifest. It fails closed (exit code 1, no output file) on each change
+of the stable data of another tool or of an input. It writes the baseline
+with the sqll tool record and the sqll results of REPORT, and calculates
+`totals`, `compared`, and `pairs` again. The other fields and results stay
+those of the baseline. It prints each changed sqll result: the file, the
+old and the new status and unparsable data, the direction, and if the new
+result is the sqlfluff result of the file.
 
 ## Profiles
 
