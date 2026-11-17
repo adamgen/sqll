@@ -283,7 +283,10 @@ def test_drift_of_a_report_with_sqll_and_no_change_is_empty():
 
 @pytest.fixture(scope="module")
 def run3(tmp_path_factory):
-    """A full run of the 3 stub tools (sqll too), and a smoke run."""
+    """A full run of the 3 stub tools (sqll too), and a smoke run. Each
+    report has a harness from a worktree with no change, as the reports of
+    a controlled run: rebase refuses a report from a harness with changes
+    (test_rebase_refuses_a_report_from_a_harness_with_changes)."""
     tmp = tmp_path_factory.mktemp("full3")
     with pytest.MonkeyPatch.context() as mp:
         env = Env(tmp, mp, STUBS3)
@@ -292,13 +295,10 @@ def run3(tmp_path_factory):
             env.run("smoke.json", "--profile", "smoke"),
             env.run("shard.json", "--profile", "full", "--shard", "1/2"),
         ]
-        return {
-            "env": env,
-            "codes": codes,
-            "all": env.load("all.json"),
-            "smoke": env.load("smoke.json"),
-            "shard": env.load("shard.json"),
-        }
+        reports = {name: env.load(f"{name}.json") for name in ("all", "smoke", "shard")}
+        for rep in reports.values():
+            rep["harness"]["clean"] = True
+        return {"env": env, "codes": codes, **reports}
 
 
 @pytest.fixture
@@ -443,6 +443,7 @@ def test_rebase_replaces_only_the_sqll_record_and_results(env3, base3, capsys):
         "{'count': 1, 'bytes': 3}): better; the new result is not the sqlfluff "
         f"result of the file (unparsable, unparsable "
         f"{_u(old, 'sql/unparsable0.sql')})",
+        harness_line(path, out, base3, rep, old),
         f"{out}: the baseline {base3} with the sqll record and results of {path}; "
         "3 sqll results changed.",
     ]
@@ -450,17 +451,27 @@ def test_rebase_replaces_only_the_sqll_record_and_results(env3, base3, capsys):
     assert env3["env"].main("check", path, "--baseline", out, "--full") == 0
 
 
+def harness_line(path: Path, out: Path, base: Path, rep: dict, old: dict) -> str:
+    return (
+        f"harness: the sqll results of {path} come from the harness commit "
+        f"{rep['harness']['commit']} (clean); {out} keeps the harness record of "
+        f"{base} (commit {old['harness']['commit']})."
+    )
+
+
 def _u(rep: dict, path: str) -> dict:
     return by_key(rep)[(path, "sqll")]["unparsable"]
 
 
 def test_rebase_with_no_change_changes_no_result(env3, base3, capsys):
-    path = write(env3, retime(env3["all"], 0.5), "same.json")
+    rep = retime(env3["all"], 0.5)
+    path = write(env3, rep, "same.json")
     out = env3["env"].tmp / "same-rebased.json"
     assert rebase(env3, base3, path, out) == 0
     assert capsys.readouterr().out.splitlines() == [
+        harness_line(path, out, base3, rep, report.load(base3)),
         f"{out}: the baseline {base3} with the sqll record and results of {path}; "
-        "0 sqll results changed."
+        "0 sqll results changed.",
     ]
     new, old = report.load(out), report.load(base3)
     assert [stable(r) for r in new["results"]] == [stable(r) for r in old["results"]]
@@ -612,12 +623,77 @@ def test_rebase_says_when_the_report_is_from_another_machine(env3, base3, capsys
         "machine: the report machine is not the baseline machine (cpu_count "
         f"{old['machine']['cpu_count']!r} -> 64, cpu_model "
         f"{old['machine']['cpu_model']!r} -> 'other CPU'); the sqll times come "
-        "from the report machine, and the pairs compare them with the times of "
+        "from that machine, and the pairs compare them with the times of "
         "the other tools from the baseline machine"
     )
     assert text[1].startswith("sqll demo/sql/ok.sql: ok ")
+    assert text[-2] == harness_line(path, out, base3, rep, old)
     assert text[-1].endswith("; 1 sqll results changed.")
     assert report.load(out)["machine"] == old["machine"]
+
+
+def test_rebase_says_when_a_shard_of_a_merged_report_is_from_another_machine(
+    env3, base3, capsys
+):
+    """The machine of a merged report is that of its first shard. rebase
+    also compares the machine of each other shard with the baseline
+    machine."""
+    rep = copy.deepcopy(env3["all"])
+    other = {**rep["machine"], "cpu_model": "other CPU"}
+    rep["parts"] = [
+        {"shard": "1/2", "machine": rep["machine"], "timer": rep["timer"]},
+        {"shard": "2/2", "machine": other, "timer": rep["timer"]},
+    ]
+    rep = set_status(rebuild(rep), "sql/ok.sql", "sqll", "invalid")
+    assert report.check(rep) == []
+    path = write(env3, rep, "merged.json")
+    out = env3["env"].tmp / "merged-rebased.json"
+    assert rebase(env3, base3, path, out) == 0
+    text = capsys.readouterr().out.splitlines()
+    old = report.load(base3)
+    assert rep["machine"] == old["machine"]
+    assert text[0] == (
+        "machine: the machine of shard 2/2 is not the baseline machine "
+        f"(cpu_model {old['machine']['cpu_model']!r} -> 'other CPU'); the sqll "
+        "times of the shard come from that machine, and the pairs compare them "
+        "with the times of the other tools from the baseline machine"
+    )
+    assert text[1].startswith("sqll demo/sql/ok.sql: ok ")
+    assert not any(line.startswith("machine: ") for line in text[1:])
+    # With the machine of the baseline in each shard, no machine line.
+    rep["parts"][1]["machine"] = rep["machine"]
+    path = write(env3, rebuild(rep), "merged-same.json")
+    assert rebase(env3, base3, path, out) == 0
+    text = capsys.readouterr().out.splitlines()
+    assert not any(line.startswith("machine: ") for line in text)
+
+
+def test_rebase_refuses_a_report_from_a_harness_with_changes(env3, base3, capsys):
+    """The new baseline keeps the harness record of the baseline (clean).
+    Thus a report from a harness worktree with changes cannot give it new
+    sqll results: exit code 1 and no file, also with a changed sqll result
+    and another harness commit."""
+    rep = set_status(env3["all"], "sql/ok.sql", "sqll", "invalid")
+    rep["harness"] = {"commit": "f" * 40, "clean": False}
+    path = write(env3, rep, "dirty-report.json")
+    out = env3["env"].tmp / "never.json"
+    assert rebase(env3, base3, path, out) == 1
+    got = capsys.readouterr().out
+    assert got.startswith("FAIL: "), got
+    assert (
+        f"report: the harness worktree had changes (harness commit {'f' * 40})"
+    ) in got
+    assert not out.exists()
+    with pytest.raises(baseline.RebaseError, match="the harness worktree had"):
+        baseline.rebase(report.load(base3), rep, "sqll", m.load(env3["env"].manifest))
+    # The same report from a harness with no change passes.
+    rep["harness"]["clean"] = True
+    path = write(env3, rep, "clean-report.json")
+    out = env3["env"].tmp / "clean-rebased.json"
+    assert rebase(env3, base3, path, out) == 0
+    got = capsys.readouterr().out
+    assert f"come from the harness commit {'f' * 40} (clean)" in got
+    assert report.load(out)["harness"] == report.load(base3)["harness"]
 
 
 def test_rebase_fails_closed_on_a_report_with_a_schema_error(env3, base3, capsys):

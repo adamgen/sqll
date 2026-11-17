@@ -246,12 +246,13 @@ decision 4). For the files where each of these tools is `ok`, the count,
 the bytes, and for each of these tools the sums of the median times, the
 bytes per second, and the ratios to sqlfluff. The schema check fails if
 `compared` names another tool. `pairs` (T11): only in a report with sqll
-and sqlfluff or sqruff ("sqll results", decision 4). For each pair (sqll to sqlfluff,
-goal `faster`; sqll to sqruff, goal `not_slower`), on the files where both
-tools are `ok`: the count, the bytes, the sums of the median wall and CPU
-times of each tool, the ratios sqll / other tool, and `slow_files` (each
-file where the median wall or CPU time of sqll does not meet the goal,
-with its times). The schema check calculates each derived number again.
+and sqlfluff or sqruff ("sqll results", decision 4). For each pair (sqll
+to sqlfluff, goal `faster`; sqll to sqruff, goal `not_slower`), on the
+files where both tools are `ok`: the count, the bytes, the sums of the
+median wall and CPU times of each tool, the ratios sqll / other tool, and
+`slow_files` (each file where the median wall or CPU time of sqll does not
+meet the goal, with its times). The schema check calculates each derived
+number again.
 
 `merge` fails on a missing or repeated shard, or another run record.
 `check --baseline FILE [--full]` compares the stable data, fail closed:
@@ -266,17 +267,21 @@ sqlfluff result of the file (T12, decision 3).
 `rebase --tool sqll BASELINE REPORT --out FILE` (T12, decision 3): the
 baseline must be a recorded baseline with sqll results, and REPORT a
 complete full report of the same tools, profile, policy, sqlfluff ref,
-and manifest. It fails closed (exit code 1, no output file) on each change
-of the stable data of another tool or of an input. It writes the baseline
+and manifest, from a harness worktree with no change. It fails closed
+(exit code 1, no output file) on each change of the stable data of another
+tool or of an input, and on a REPORT from a harness worktree with changes:
+the new baseline keeps the harness record of the baseline, thus such a
+REPORT would give a false "clean" record. It writes the baseline
 with the sqll tool record and the sqll results of REPORT, and calculates
 `totals`, `compared`, and `pairs` again. The other fields and results stay
 those of the baseline. It prints each changed sqll result: the file, the
 old and the new status and unparsable data, the direction, and if the new
-result is the sqlfluff result of the file. If the machine of REPORT is not
-the machine of the baseline, it first prints a line with each changed
-machine field: the baseline keeps its machine record, but its `pairs` then
-compare sqll times of one machine with the times of the other tools of
-another machine.
+result is the sqlfluff result of the file, and then the harness commit
+of REPORT. For each machine of REPORT that is not the machine of the
+baseline (for a merged REPORT, the machine of each shard), it first prints
+a line with each changed machine field: the baseline keeps its machine
+record, but its `pairs` then compare sqll times of one machine with the
+times of the other tools of another machine.
 
 ## Profiles
 

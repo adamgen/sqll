@@ -12,8 +12,9 @@ check REPORT [--baseline FILE [--full]]: check the schema and completeness
 of a report, and its stable data against the baseline.
 rebase --tool sqll BASELINE REPORT --out FILE: write the baseline with the
 sqll tool record and the sqll results of the full report REPORT, and print
-each changed sqll result (docs/decisions/s9-corpus.md, "sqll results",
-decision 3). It fails closed on each other change.
+each changed sqll result and the harness commit of REPORT
+(docs/decisions/s9-corpus.md, "sqll results", decision 3). It fails closed
+on each other change, and on a REPORT from a harness worktree with changes.
 notices [--manifest FILE] [--cache DIR] [--out DIR]: write the manifest and
 the license and notice files of all sources to one folder (default
 out/corpus-notices), for a CI artifact with a report.
@@ -256,6 +257,11 @@ def rebase_command(args: argparse.Namespace, manifest) -> int:
     corpus_report.write(new, args.out)
     for line in lines:
         print(line)
+    print(
+        f"harness: the {args.tool} results of {args.report} come from the harness "
+        f"commit {rep['harness']['commit']} (clean); {args.out} keeps the harness "
+        f"record of {args.baseline} (commit {base['harness']['commit']})."
+    )
     changed = sum(1 for line in lines if line.startswith(f"{args.tool} "))
     print(
         f"{args.out}: the baseline {args.baseline} with the {args.tool} record and "

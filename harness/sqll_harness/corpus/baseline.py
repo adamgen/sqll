@@ -18,7 +18,8 @@ direction. The message of a changed sqll result also gives the direction
 ("worse" or "better", direction()) and says if the new result is the
 sqlfluff result of the file. The messages of the other tools do not change.
 rebase() replaces only the sqll tool record and the sqll results of a
-baseline with those of a full report, and fails closed on each other change.
+baseline with those of a full report from a harness worktree with no change,
+and fails closed on each other change.
 """
 
 from collections.abc import Mapping
@@ -192,10 +193,13 @@ def rebase(
     from the full report rep, and a line for each changed result of tool.
     The totals, compared, and pairs are calculated again. RebaseError if
     base is not a recorded baseline with tool, if rep is not a complete full
-    report of the same tools, or if rep changes anything else of the
-    baseline: the stable data of another tool, an input, the sqlfluff ref,
-    the manifest, the profile, or the policy. If the machine of rep is not
-    the machine of base, the first line says so (machine_text)."""
+    report of the same tools from a harness worktree with no change, or if
+    rep changes anything else of the baseline: the stable data of another
+    tool, an input, the sqlfluff ref, the manifest, the profile, or the
+    policy. The new baseline keeps the harness record of base: thus a
+    report from a harness with changes cannot give a "clean" baseline (as
+    recorded()). For each machine of rep (of each shard of a merged report)
+    that is not the machine of base, a first line says so (machine_text)."""
     if tool not in REBASE_TOOLS:
         raise RebaseError(f"only the results of {', '.join(REBASE_TOOLS)} can change")
     errors = [f"baseline: {e}" for e in recorded(base, manifest)]
@@ -209,6 +213,11 @@ def rebase(
         errors += [f"report: {e}" for e in corpus_run.incomplete(rep, manifest)]
     if errors:
         raise RebaseError("; ".join(errors[:5]))
+    if not rep["harness"]["clean"]:
+        errors.append(
+            "report: the harness worktree had changes (harness commit "
+            f"{rep['harness']['commit']})"
+        )
     for key in ("sqlfluff_ref", "profile", "policy", "manifest_sha256"):
         if rep[key] != base[key]:
             errors.append(f"report: {key} {rep[key]!r}, baseline {base[key]!r}")
@@ -240,21 +249,43 @@ def rebase(
     if errors:
         raise RebaseError("; ".join(errors[:5]))
     lines = changes(base, new, tool)
-    if rep["machine"] != base["machine"]:
-        lines.insert(0, machine_text(base["machine"], rep["machine"], tool))
-    return new, lines
+    moved = [
+        machine_text(base["machine"], machine, tool, shard)
+        for shard, machine in machines(rep)
+        if machine != base["machine"]
+    ]
+    return new, moved + lines
 
 
-def machine_text(old: Mapping[str, Any], new: Mapping[str, Any], tool: str) -> str:
-    """Return the line of rebase when the machine of the report is not the
-    machine of the baseline: the new baseline keeps the baseline machine,
-    but its pairs compare the times of tool from the report machine with
-    the times of the other tools from the baseline machine."""
+def machines(rep: Mapping[str, Any]) -> list[tuple[str | None, dict]]:
+    """Return the (shard, machine) of each machine that made the results of
+    rep: of each shard of a merged report (the machine of a merged report
+    is only that of its first shard), else (None, the report machine)."""
+    if rep["parts"]:
+        return [(p["shard"], p["machine"]) for p in rep["parts"]]
+    return [(None, rep["machine"])]
+
+
+def machine_text(
+    old: Mapping[str, Any],
+    new: Mapping[str, Any],
+    tool: str,
+    shard: str | None = None,
+) -> str:
+    """Return the line of rebase when a machine of the report (of the shard
+    shard of a merged report) is not the machine of the baseline: the new
+    baseline keeps the baseline machine, but its pairs compare the times of
+    tool from the report machine with the times of the other tools from the
+    baseline machine."""
     keys = [k for k in sorted({*old, *new}) if old.get(k) != new.get(k)]
     diff = ", ".join(f"{k} {old.get(k)!r} -> {new.get(k)!r}" for k in keys)
+    if shard is None:
+        name, times = "the report machine", f"the {tool} times"
+    else:
+        name, times = f"the machine of shard {shard}", f"the {tool} times of the shard"
     return (
-        f"machine: the report machine is not the baseline machine ({diff}); "
-        f"the {tool} times come from the report machine, and the pairs compare "
+        f"machine: {name} is not the baseline machine ({diff}); "
+        f"{times} come from that machine, and the pairs compare "
         f"them with the times of the other tools from the baseline machine"
     )
 
