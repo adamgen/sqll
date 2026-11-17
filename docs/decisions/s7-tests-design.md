@@ -1,13 +1,15 @@
 # S7 decision: the test conversion design
 
-Status: decided (2026-11-11). The orchestrator decided the 4 open items
-for the human owner (standing delegation, CONSTITUTION.md section 5); see
-"Decisions". Written in T1 (design record, scope inventory, and status
-files). Scope: STONES.md S7 (CLI and config parity: the sqlfluff CLI,
-config, and Python rule tests as black-box cases), the test conversion part
-(track S7-tests). The sqll part is track S7-sqll. Goals: CONSTITUTION.md
-G1.4 and G1.5 (lint parity with sqlfluff: a percentage of test cases, run
-through a binary), G3 (speed), G4 (verification first). Plan and tasks:
+Status: decided (2026-11-11). The orchestrator decided the 4 open items for
+the human owner (standing delegation, CONSTITUTION.md section 5); see
+"Decisions". Written in T1 (design record, scope inventory, and status files).
+Scope: STONES.md S7 (CLI and config parity: the sqlfluff CLI, config, and
+Python rule tests as black-box cases; sqll passes 100% of the converted cases;
+cases that need the Jinja templater move to the Jinja templater stone), the
+test conversion part (track S7-tests). The sqll part is track S7-sqll. Goals:
+CONSTITUTION.md G1.4 and G1.5 (lint parity with sqlfluff: a percentage of test
+cases, run through a binary), G3 (speed), G4 (verification first). Plan and
+tasks:
 [status/S7-tests.md](../../status/S7-tests.md).
 
 ## Decisions
@@ -195,8 +197,10 @@ reason, a reason of more lines, and a node that is not in `scope.json`.
 ## Case runner
 
 The harness core runs the 3 S7 suites (T4: harness hooks for the S7 suites:
-the harness core runs the 3 S7 suites; S7: CLI and config parity, the
-sqlfluff CLI, config, and Python rule tests as black-box cases):
+the harness core runs the 3 S7 suites; S7: CLI and config parity, the sqlfluff
+CLI, config, and Python rule tests as black-box cases; sqll passes 100% of the
+converted cases; cases that need the Jinja templater move to the Jinja
+templater stone):
 
 ```sh
 uv run --frozen --project harness sqll-harness s7 run [--suite S] [--tool T]
@@ -268,19 +272,20 @@ tools (format 2).
 `results/S7-tests/known_failures/<tool>.txt` (T5: CI jobs, oracle step, and
 local verify for the S7 suites; CI and `scripts/verify` run the S7 suites and
 record the results; S7: CLI and config parity, the sqlfluff CLI, config, and
-Python rule tests as black-box cases). The format is that of the lists of S1
-(binary test harness: run the sqlfluff test fixtures through a binary, not
-through function calls; sqlfluff passes 100% of the cases through the
-harness, and the results of the other tools are recorded): one pytest node id
-on each line, sorted, no duplicates, the reason after `#`. The loader
-(`sqll_harness/s7_tests/known.py`) fails closed (exit code 2) on a format
-error, an id that is not a node of `scope.json`, and an id with no reason.
-A node fails for a tool if its status is not `pass`. With `--known-failures
-DIR`, `s7 run` and `s7 merge` give exit code 1 on a new failure (a node that
-fails and is not listed) and on an unexpected pass (a listed node that
-passes, or a listed node of a suite of the report that is not a converted
-node of it). A listed node of another suite is not checked. The sqlfluff
-list has no node: sqlfluff must pass each converted node.
+Python rule tests as black-box cases; sqll passes 100% of the converted cases;
+cases that need the Jinja templater move to the Jinja templater stone). The
+format is that of the lists of S1 (binary test harness: run the sqlfluff test
+fixtures through a binary, not through function calls; sqlfluff passes 100% of
+the cases through the harness, and the results of the other tools are
+recorded): one pytest node id on each line, sorted, no duplicates, the reason
+after `#`. The loader (`sqll_harness/s7_tests/known.py`) fails closed (exit
+code 2) on a format error, an id that is not a node of `scope.json`, and an id
+with no reason. A node fails for a tool if its status is not `pass`. With
+`--known-failures DIR`, `s7 run` and `s7 merge` give exit code 1 on a new
+failure (a node that fails and is not listed) and on an unexpected pass (a
+listed node that passes, or a listed node of a suite of the report that is not
+a converted node of it). A listed node of another suite is not checked. The
+sqlfluff list has no node: sqlfluff must pass each converted node.
 
 ## Summary
 
@@ -649,6 +654,19 @@ defaults (`FluffConfig.from_root` in the folder, with an empty home).
    review of the exclusion list checks them.
 8. `--rust` gives the Rust settings to each FluffConfig, as the S1 oracles
    do. The runner gives them with `--config` (`harness/sqlfluff-rs.md`).
+9. Files in the submodule. `trace-nodes` runs the nodes in place, in the
+   submodule. Some `cli` nodes that are not converted write files there
+   that git ignores. Data (2026-11-17, review round 2 of PR #101): a trace
+   of the 295 `cli` nodes of `scope.json` with the sqlfluff oracle wrote 4
+   ignored files (`test.csv`,
+   `test/fixtures/linter/multiple_sql_errors_fix.sql`,
+   `test/fixtures/linter/sqlfluffignore/path_b/query_c_fix.sql`, and
+   `test/fixtures/linter/whitespace_errors_fix.sql`), and then
+   `scripts/check-submodule` gave exit code 1. The oracle traces only the
+   converted nodes and the `python-internal` nodes, so CI and the recorded
+   results do not change. After a local trace of other nodes, remove the
+   files that `scripts/check-submodule` lists before the next oracle run. A
+   later task can add a check that does this.
 
 ## Results and ownership
 

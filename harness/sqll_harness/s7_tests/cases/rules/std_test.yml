@@ -6,13 +6,14 @@
 # "lint -" in a new folder with the config as a .sqlfluff file (the config
 # model of the design record). The CLI run raises the same error in the same
 # function, and the CLI gives it as "User Error" with exit code 2. Thus the
-# trace oracle maps the error to this case. T17 (trace oracle and case
-# runner, extension 2; goal: the trace oracle maps and proves the calls of
-# the remaining rule nodes that T16 did not map, and fails closed on each
-# other call) of S7 (CLI and config parity: the sqlfluff CLI, config, and
-# Python rule tests as black-box cases) converts the node rule_config_dict3
-# as a proof node of this map. The other nodes of this file are not
-# converted yet.
+# trace oracle maps the error to this case. T17 (trace oracle and case runner,
+# extension 2; goal: the trace oracle maps and proves the calls of the
+# remaining rule nodes that T16 did not map, and fails closed on each other
+# call) of S7 (CLI and config parity: the sqlfluff CLI, config, and Python
+# rule tests as black-box cases; sqll passes 100% of the converted cases;
+# cases that need the Jinja templater move to the Jinja templater stone)
+# converts the node rule_config_dict3 as a proof node of this map. The other
+# nodes of this file are not converted yet.
 source:
   project: sqlfluff
   version: 4.4.0
