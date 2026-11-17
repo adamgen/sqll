@@ -12,9 +12,6 @@ excluded:
   - node: test/rules/std_AM09_test.py::test__rules__std_AM09_eval_short_circuit_on_non_select_segment
     class: python-internal
     reason: It calls Rule_AM09._eval on a fake segment and calls no CLI command and no simple-API function.
-  - node: test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__ignore_words_parity
-    class: engine-comparison
-    reason: It compares use_rust_rules True and False and has no expected value (decision 3).
   - node: test/rules/std_LT04_ST06_test.py::test_rule_st06_simple_expression_helpers_reject_non_simple_segments
     class: python-internal
     reason: It calls Linter.parse_string and 2 helper methods of Rule_ST06 on a parsed segment, and calls no CLI command and no simple-API function.
@@ -27,3 +24,306 @@ excluded:
   - node: test/rules/std_LT01_jinja_alignment_test.py::test_lt01_alias_alignment_with_jinja_uses_source_positions
     class: needs-python-runtime
     reason: Its Jinja context has 2 Python functions (generate_surrogate_key and ref), which a config file cannot give.
+  - node: "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__fix_parity[select a, b FROM t WHERE x = 1 ORDER by a-consistent]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP01 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP01: CP01.yml has 29 cases, 16 with fix_str."
+  - node: "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__fix_parity[select a, b FROM t WHERE x = 1 ORDER by a-upper]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP01 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP01: CP01.yml has 29 cases, 16 with fix_str."
+  - node: "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__fix_parity[select a, b FROM t WHERE x = 1 ORDER by a-lower]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP01 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP01: CP01.yml has 29 cases, 16 with fix_str."
+  - node: "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__fix_parity[select a, b FROM t WHERE x = 1 ORDER by a-capitalise]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP01 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP01: CP01.yml has 29 cases, 16 with fix_str."
+  - node: "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__fix_parity[SELECT count(*) from foo group BY a having a > 1-consistent]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP01 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP01: CP01.yml has 29 cases, 16 with fix_str."
+  - node: "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__fix_parity[SELECT count(*) from foo group BY a having a > 1-upper]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP01 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP01: CP01.yml has 29 cases, 16 with fix_str."
+  - node: "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__fix_parity[SELECT count(*) from foo group BY a having a > 1-lower]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP01 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP01: CP01.yml has 29 cases, 16 with fix_str."
+  - node: "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__fix_parity[SELECT count(*) from foo group BY a having a > 1-capitalise]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP01 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP01: CP01.yml has 29 cases, 16 with fix_str."
+  - node: "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__fix_parity[select CASE when a then 1 else 2 END as c from t-consistent]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP01 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP01: CP01.yml has 29 cases, 16 with fix_str."
+  - node: "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__fix_parity[select CASE when a then 1 else 2 END as c from t-upper]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP01 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP01: CP01.yml has 29 cases, 16 with fix_str."
+  - node: "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__fix_parity[select CASE when a then 1 else 2 END as c from t-lower]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP01 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP01: CP01.yml has 29 cases, 16 with fix_str."
+  - node: "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__fix_parity[select CASE when a then 1 else 2 END as c from t-capitalise]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP01 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP01: CP01.yml has 29 cases, 16 with fix_str."
+  - node: "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__fix_parity[select a + b, a > b, a AND b OR c from t-consistent]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP01 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP01: CP01.yml has 29 cases, 16 with fix_str."
+  - node: "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__fix_parity[select a + b, a > b, a AND b OR c from t-upper]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP01 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP01: CP01.yml has 29 cases, 16 with fix_str."
+  - node: "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__fix_parity[select a + b, a > b, a AND b OR c from t-lower]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP01 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP01: CP01.yml has 29 cases, 16 with fix_str."
+  - node: "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__fix_parity[select a + b, a > b, a AND b OR c from t-capitalise]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP01 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP01: CP01.yml has 29 cases, 16 with fix_str."
+  - node: "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__fix_parity[create table t (a INT, b Varchar(10), c TIMESTAMP)-consistent]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP01 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP01: CP01.yml has 29 cases, 16 with fix_str."
+  - node: "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__fix_parity[create table t (a INT, b Varchar(10), c TIMESTAMP)-upper]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP01 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP01: CP01.yml has 29 cases, 16 with fix_str."
+  - node: "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__fix_parity[create table t (a INT, b Varchar(10), c TIMESTAMP)-lower]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP01 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP01: CP01.yml has 29 cases, 16 with fix_str."
+  - node: "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__fix_parity[create table t (a INT, b Varchar(10), c TIMESTAMP)-capitalise]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP01 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP01: CP01.yml has 29 cases, 16 with fix_str."
+  - node: "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__fix_parity[select TRUE, false, NULL, a is not NULL from t-consistent]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP01 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP01: CP01.yml has 29 cases, 16 with fix_str."
+  - node: "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__fix_parity[select TRUE, false, NULL, a is not NULL from t-upper]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP01 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP01: CP01.yml has 29 cases, 16 with fix_str."
+  - node: "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__fix_parity[select TRUE, false, NULL, a is not NULL from t-lower]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP01 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP01: CP01.yml has 29 cases, 16 with fix_str."
+  - node: "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__fix_parity[select TRUE, false, NULL, a is not NULL from t-capitalise]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP01 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP01: CP01.yml has 29 cases, 16 with fix_str."
+  - node: "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__fix_parity[SELECT A FROM B-consistent]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP01 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP01: CP01.yml has 29 cases, 16 with fix_str."
+  - node: "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__fix_parity[SELECT A FROM B-upper]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP01 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP01: CP01.yml has 29 cases, 16 with fix_str."
+  - node: "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__fix_parity[SELECT A FROM B-lower]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP01 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP01: CP01.yml has 29 cases, 16 with fix_str."
+  - node: "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__fix_parity[SELECT A FROM B-capitalise]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP01 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP01: CP01.yml has 29 cases, 16 with fix_str."
+  - node: "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__fix_parity[select a from b-consistent]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP01 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP01: CP01.yml has 29 cases, 16 with fix_str."
+  - node: "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__fix_parity[select a from b-upper]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP01 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP01: CP01.yml has 29 cases, 16 with fix_str."
+  - node: "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__fix_parity[select a from b-lower]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP01 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP01: CP01.yml has 29 cases, 16 with fix_str."
+  - node: "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__fix_parity[select a from b-capitalise]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP01 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP01: CP01.yml has 29 cases, 16 with fix_str."
+  - node: "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__ignore_words_parity"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP01 with ignore_words and has no expected value (decision 3); the S1 data cases cover CP01: CP01.yml has 29 cases, 16 with fix_str."
+  - node: "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__engages_rust_only_when_enabled"
+    class: python-internal
+    reason: "A spy (mock.patch of sqlfluffrs.cp01_violations) checks that the Rust detection runs only with use_rust_rules True; the CLI does not show it (decision 3)."
+  - node: "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__regex_ignore_falls_back_to_python"
+    class: python-internal
+    reason: "A spy (mock.patch of sqlfluffrs.cp01_violations) checks that ignore_words_regex does not call the Rust detection; the CLI does not show it (decision 3)."
+  - node: "test/rules/cp01_rust_dispatch_test.py::test__dispatch__rule_without_rust_path_falls_back"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for LT01, a rule with no Rust path and has no expected value (decision 3); the S1 data cases cover LT01: the 9 LT01-*.yml files have 188 cases, 82 with fix_str."
+  - node: "test/rules/cp01_rust_dispatch_test.py::test__dispatch__cp02_inherits_eval_rust_and_falls_back"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP02, a rule with no Rust path of its own and has no expected value (decision 3); the S1 data cases cover CP02: CP02.yml has 48 cases, 25 with fix_str."
+  - node: "test/rules/cp01_rust_dispatch_test.py::test__dispatch__rust_error_is_recoverable"
+    class: python-internal
+    reason: "A mock (mock.patch of sqlfluffrs.cp01_violations with a RuntimeError) makes the Rust detection fail; the CLI cannot make this error (decision 3)."
+  - node: "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__fix_parity[select sum(a) as aa, SUM(b) as bb from foo-consistent]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP03 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP03: CP03.yml has 17 cases, 8 with fix_str."
+  - node: "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__fix_parity[select sum(a) as aa, SUM(b) as bb from foo-upper]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP03 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP03: CP03.yml has 17 cases, 8 with fix_str."
+  - node: "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__fix_parity[select sum(a) as aa, SUM(b) as bb from foo-lower]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP03 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP03: CP03.yml has 17 cases, 8 with fix_str."
+  - node: "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__fix_parity[select sum(a) as aa, SUM(b) as bb from foo-capitalise]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP03 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP03: CP03.yml has 17 cases, 8 with fix_str."
+  - node: "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__fix_parity[select sum(a) as aa, SUM(b) as bb from foo-pascal]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP03 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP03: CP03.yml has 17 cases, 8 with fix_str."
+  - node: "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__fix_parity[select sum(a) as aa, SUM(b) as bb from foo-camel]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP03 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP03: CP03.yml has 17 cases, 8 with fix_str."
+  - node: "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__fix_parity[select sum(a) as aa, SUM(b) as bb from foo-snake]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP03 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP03: CP03.yml has 17 cases, 8 with fix_str."
+  - node: "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__fix_parity[select my_schema.my_udf(a), Count(b) from t-consistent]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP03 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP03: CP03.yml has 17 cases, 8 with fix_str."
+  - node: "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__fix_parity[select my_schema.my_udf(a), Count(b) from t-upper]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP03 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP03: CP03.yml has 17 cases, 8 with fix_str."
+  - node: "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__fix_parity[select my_schema.my_udf(a), Count(b) from t-lower]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP03 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP03: CP03.yml has 17 cases, 8 with fix_str."
+  - node: "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__fix_parity[select my_schema.my_udf(a), Count(b) from t-capitalise]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP03 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP03: CP03.yml has 17 cases, 8 with fix_str."
+  - node: "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__fix_parity[select my_schema.my_udf(a), Count(b) from t-pascal]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP03 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP03: CP03.yml has 17 cases, 8 with fix_str."
+  - node: "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__fix_parity[select my_schema.my_udf(a), Count(b) from t-camel]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP03 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP03: CP03.yml has 17 cases, 8 with fix_str."
+  - node: "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__fix_parity[select my_schema.my_udf(a), Count(b) from t-snake]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP03 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP03: CP03.yml has 17 cases, 8 with fix_str."
+  - node: "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__fix_parity[select MyFunc(a), other_func(b) from t-consistent]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP03 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP03: CP03.yml has 17 cases, 8 with fix_str."
+  - node: "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__fix_parity[select MyFunc(a), other_func(b) from t-upper]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP03 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP03: CP03.yml has 17 cases, 8 with fix_str."
+  - node: "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__fix_parity[select MyFunc(a), other_func(b) from t-lower]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP03 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP03: CP03.yml has 17 cases, 8 with fix_str."
+  - node: "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__fix_parity[select MyFunc(a), other_func(b) from t-capitalise]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP03 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP03: CP03.yml has 17 cases, 8 with fix_str."
+  - node: "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__fix_parity[select MyFunc(a), other_func(b) from t-pascal]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP03 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP03: CP03.yml has 17 cases, 8 with fix_str."
+  - node: "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__fix_parity[select MyFunc(a), other_func(b) from t-camel]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP03 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP03: CP03.yml has 17 cases, 8 with fix_str."
+  - node: "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__fix_parity[select MyFunc(a), other_func(b) from t-snake]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP03 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP03: CP03.yml has 17 cases, 8 with fix_str."
+  - node: "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__fix_parity[SELECT COUNT(*) FROM t-consistent]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP03 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP03: CP03.yml has 17 cases, 8 with fix_str."
+  - node: "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__fix_parity[SELECT COUNT(*) FROM t-upper]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP03 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP03: CP03.yml has 17 cases, 8 with fix_str."
+  - node: "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__fix_parity[SELECT COUNT(*) FROM t-lower]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP03 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP03: CP03.yml has 17 cases, 8 with fix_str."
+  - node: "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__fix_parity[SELECT COUNT(*) FROM t-capitalise]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP03 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP03: CP03.yml has 17 cases, 8 with fix_str."
+  - node: "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__fix_parity[SELECT COUNT(*) FROM t-pascal]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP03 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP03: CP03.yml has 17 cases, 8 with fix_str."
+  - node: "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__fix_parity[SELECT COUNT(*) FROM t-camel]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP03 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP03: CP03.yml has 17 cases, 8 with fix_str."
+  - node: "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__fix_parity[SELECT COUNT(*) FROM t-snake]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP03 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP03: CP03.yml has 17 cases, 8 with fix_str."
+  - node: "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__fix_parity[select count(*) from t-consistent]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP03 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP03: CP03.yml has 17 cases, 8 with fix_str."
+  - node: "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__fix_parity[select count(*) from t-upper]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP03 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP03: CP03.yml has 17 cases, 8 with fix_str."
+  - node: "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__fix_parity[select count(*) from t-lower]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP03 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP03: CP03.yml has 17 cases, 8 with fix_str."
+  - node: "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__fix_parity[select count(*) from t-capitalise]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP03 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP03: CP03.yml has 17 cases, 8 with fix_str."
+  - node: "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__fix_parity[select count(*) from t-pascal]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP03 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP03: CP03.yml has 17 cases, 8 with fix_str."
+  - node: "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__fix_parity[select count(*) from t-camel]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP03 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP03: CP03.yml has 17 cases, 8 with fix_str."
+  - node: "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__fix_parity[select count(*) from t-snake]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP03 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP03: CP03.yml has 17 cases, 8 with fix_str."
+  - node: "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__ignore_words_parity"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP03 with ignore_words and has no expected value (decision 3); the S1 data cases cover CP03: CP03.yml has 17 cases, 8 with fix_str."
+  - node: "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__engages_rust_only_when_enabled"
+    class: python-internal
+    reason: "A spy (mock.patch of sqlfluffrs.cp03_violations) checks that the Rust detection runs only with use_rust_rules True; the CLI does not show it (decision 3)."
+  - node: "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__regex_ignore_falls_back_to_python"
+    class: python-internal
+    reason: "A spy (mock.patch of sqlfluffrs.cp03_violations) checks that ignore_words_regex does not call the Rust detection; the CLI does not show it (decision 3)."
+  - node: "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__not_hijacked_by_cp01_rust_path"
+    class: python-internal
+    reason: "2 spies (mock.patch of sqlfluffrs.cp01_violations and cp03_violations) check which Rust detection runs; the CLI does not show it (decision 3)."
+  - node: "test/rules/cp04_rust_dispatch_test.py::test__cp04_dispatch__fix_parity[select TRUE, false, NULL, a is not NULL from t-consistent]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP04 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP04: CP04.yml has 5 cases, 4 with fix_str."
+  - node: "test/rules/cp04_rust_dispatch_test.py::test__cp04_dispatch__fix_parity[select TRUE, false, NULL, a is not NULL from t-upper]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP04 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP04: CP04.yml has 5 cases, 4 with fix_str."
+  - node: "test/rules/cp04_rust_dispatch_test.py::test__cp04_dispatch__fix_parity[select TRUE, false, NULL, a is not NULL from t-lower]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP04 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP04: CP04.yml has 5 cases, 4 with fix_str."
+  - node: "test/rules/cp04_rust_dispatch_test.py::test__cp04_dispatch__fix_parity[select TRUE, false, NULL, a is not NULL from t-capitalise]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP04 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP04: CP04.yml has 5 cases, 4 with fix_str."
+  - node: "test/rules/cp04_rust_dispatch_test.py::test__cp04_dispatch__fix_parity[select true, FALSE, null from t-consistent]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP04 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP04: CP04.yml has 5 cases, 4 with fix_str."
+  - node: "test/rules/cp04_rust_dispatch_test.py::test__cp04_dispatch__fix_parity[select true, FALSE, null from t-upper]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP04 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP04: CP04.yml has 5 cases, 4 with fix_str."
+  - node: "test/rules/cp04_rust_dispatch_test.py::test__cp04_dispatch__fix_parity[select true, FALSE, null from t-lower]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP04 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP04: CP04.yml has 5 cases, 4 with fix_str."
+  - node: "test/rules/cp04_rust_dispatch_test.py::test__cp04_dispatch__fix_parity[select true, FALSE, null from t-capitalise]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP04 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP04: CP04.yml has 5 cases, 4 with fix_str."
+  - node: "test/rules/cp04_rust_dispatch_test.py::test__cp04_dispatch__fix_parity[select a, TRUE from t where b = FALSE-consistent]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP04 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP04: CP04.yml has 5 cases, 4 with fix_str."
+  - node: "test/rules/cp04_rust_dispatch_test.py::test__cp04_dispatch__fix_parity[select a, TRUE from t where b = FALSE-upper]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP04 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP04: CP04.yml has 5 cases, 4 with fix_str."
+  - node: "test/rules/cp04_rust_dispatch_test.py::test__cp04_dispatch__fix_parity[select a, TRUE from t where b = FALSE-lower]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP04 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP04: CP04.yml has 5 cases, 4 with fix_str."
+  - node: "test/rules/cp04_rust_dispatch_test.py::test__cp04_dispatch__fix_parity[select a, TRUE from t where b = FALSE-capitalise]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP04 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP04: CP04.yml has 5 cases, 4 with fix_str."
+  - node: "test/rules/cp04_rust_dispatch_test.py::test__cp04_dispatch__fix_parity[select NULL from t-consistent]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP04 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP04: CP04.yml has 5 cases, 4 with fix_str."
+  - node: "test/rules/cp04_rust_dispatch_test.py::test__cp04_dispatch__fix_parity[select NULL from t-upper]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP04 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP04: CP04.yml has 5 cases, 4 with fix_str."
+  - node: "test/rules/cp04_rust_dispatch_test.py::test__cp04_dispatch__fix_parity[select NULL from t-lower]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP04 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP04: CP04.yml has 5 cases, 4 with fix_str."
+  - node: "test/rules/cp04_rust_dispatch_test.py::test__cp04_dispatch__fix_parity[select NULL from t-capitalise]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP04 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP04: CP04.yml has 5 cases, 4 with fix_str."
+  - node: "test/rules/cp04_rust_dispatch_test.py::test__cp04_dispatch__fix_parity[select true from t-consistent]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP04 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP04: CP04.yml has 5 cases, 4 with fix_str."
+  - node: "test/rules/cp04_rust_dispatch_test.py::test__cp04_dispatch__fix_parity[select true from t-upper]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP04 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP04: CP04.yml has 5 cases, 4 with fix_str."
+  - node: "test/rules/cp04_rust_dispatch_test.py::test__cp04_dispatch__fix_parity[select true from t-lower]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP04 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP04: CP04.yml has 5 cases, 4 with fix_str."
+  - node: "test/rules/cp04_rust_dispatch_test.py::test__cp04_dispatch__fix_parity[select true from t-capitalise]"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP04 with 1 policy and 1 SQL and has no expected value (decision 3); the S1 data cases cover CP04: CP04.yml has 5 cases, 4 with fix_str."
+  - node: "test/rules/cp04_rust_dispatch_test.py::test__cp04_dispatch__ignore_words_parity"
+    class: engine-comparison
+    reason: "It compares the fixed SQL of use_rust_rules True and False for CP04 with ignore_words and has no expected value (decision 3); the S1 data cases cover CP04: CP04.yml has 5 cases, 4 with fix_str."
+  - node: "test/rules/cp04_rust_dispatch_test.py::test__cp04_dispatch__engages_rust_only_when_enabled"
+    class: python-internal
+    reason: "A spy (mock.patch of sqlfluffrs.cp04_violations) checks that the Rust detection runs only with use_rust_rules True; the CLI does not show it (decision 3)."
+  - node: "test/rules/cp04_rust_dispatch_test.py::test__cp04_dispatch__regex_ignore_falls_back_to_python"
+    class: python-internal
+    reason: "A spy (mock.patch of sqlfluffrs.cp04_violations) checks that ignore_words_regex does not call the Rust detection; the CLI does not show it (decision 3)."
+  - node: "test/rules/cp04_rust_dispatch_test.py::test__cp04_dispatch__not_hijacked_by_cp01_rust_path"
+    class: python-internal
+    reason: "2 spies (mock.patch of sqlfluffrs.cp01_violations and cp04_violations) check which Rust detection runs; the CLI does not show it (decision 3)."
