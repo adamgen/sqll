@@ -41,7 +41,7 @@ dialects, with an exact tree match. Gaps: 0.
 | T2 | Each dialect fixture of the pinned sqlfluff is one harness case, and the check fails closed on each gap | #97 |
 | T3 | CI fails on each gap of this stone | #98 |
 | T4 | The parse status of sqll and sqlfluff on each corpus file is recorded, and each difference has a row | #103 |
-| T5 | The exit record gives the CI proof that sqll passes 100% of the dialect parse fixtures with an exact tree match, and the orchestrator can approve this stone | This pull request |
+| T5 | The exit record gives the CI proof that sqll passes 100% of the dialect parse fixtures with an exact tree match, and the orchestrator can approve this stone | #104 |
 
 The stone of each task is S4 (parser parity: sqll passes 100% of the
 dialect parse fixtures with an exact tree match).
@@ -261,7 +261,7 @@ exit check also lists the parse-path files from `0fb9cdb` to the head of
 this pull request: none. This pull request changes only the files of this
 track: `scripts/s4/exit.py`, `harness/tests/test_s4_exit.py`,
 `results/S4/exit-ci.json`, `results/S4/exit.json`, this record, and
-`status/S4.md`.
+`status/S4.md` (PR #104).
 
 ## The exit check
 
