@@ -62,6 +62,12 @@ ROUNDTRIP = (
     "test/rules/std_roundtrip_test.py"
     "::test__cli__command__fix[LT01-test/fixtures/linter/whitespace_errors.sql]"
 )
+# The proof nodes of T17: a Linter made with dialect and rules (2 Linter
+# string calls), and an error of RuleSet.get_rulepack in pytest.raises.
+KWARGS = next(n.id for n in CASES.nodes if "std_AL09_CP02_RF06[rules0-" in n.id)
+REJECTED = (
+    "test/rules/std_test.py::test_improper_configs_are_rejected[rule_config_dict3]"
+)
 
 
 def check(tool="sqlfluff", trace=None, nodes=None, report=None, records=NONE):
@@ -99,16 +105,16 @@ def test_the_oracle_agrees_with_each_converted_case(tool):
     report_ids = [n["id"] for n in REPORT["nodes"]]
     assert [n["id"] for n in result["nodes"]] == report_ids
     assert report_ids == [n.id for n in CASES.nodes]
-    # The 15 pilot nodes of T2, the 23 rule nodes of T6, and the 2 proof
-    # nodes of T16.
-    assert result["counts"]["agree"] == result["counts"]["nodes"] == 40
+    # The 15 pilot nodes of T2, the 23 rule nodes of T6, the 2 proof nodes
+    # of T16, and the 2 proof nodes of T17.
+    assert result["counts"]["agree"] == result["counts"]["nodes"] == 42
     status = {n["id"]: n["results"][tool]["status"] for n in REPORT["nodes"]}
     for node in result["nodes"]:
         assert node["trace"] == status[node["id"]], node["id"]
         assert node["pytest"] == {"pass": "passed", "fail": "failed"}[node["trace"]]
         assert node["errors"] == []
-    # Each assert of the source tests: 94, each cited by a check.
-    assert result["counts"]["asserts"] == 94
+    # Each assert of the source tests: 97, each cited by a check.
+    assert result["counts"]["asserts"] == 97
     assert result["counts"]["not_reproduced"] == 0
     internal = [e["id"] for e in REPORT["excluded"] if e["class"] == "python-internal"]
     assert [n["id"] for n in result["python_internal"]] == internal
@@ -213,6 +219,16 @@ def _no_files_check(node):
     node.cases[1].checks.pop("files")
 
 
+def _kwargs_config(node):
+    files = node.cases[0].files
+    files[".sqlfluff"] = files[".sqlfluff"].replace("AL09", "CP02")
+
+
+def _error_config(node):
+    files = node.cases[0].files
+    files[".sqlfluff"] = files[".sqlfluff"].replace("blah", "upper")
+
+
 CASE_MUTATIONS = [
     # A changed input.
     ("cli argv", DIRECTED, _argv, "case directed: input argv"),
@@ -286,6 +302,47 @@ CASE_MUTATIONS = [
         "check 2",
     ),
     ("a case with no call", CV02, _extra_case, "cases with no traced call"),
+    # The maps of T17: a Linter made with dialect and rules, and an error of
+    # RuleSet.get_rulepack that the CLI gives.
+    ("Linter argument config", KWARGS, _kwargs_config, "case lint: input files"),
+    (
+        "Linter argument stdin",
+        KWARGS,
+        lambda n: setattr(n.cases[2], "stdin", n.cases[0].stdin),
+        "case lint_fixed: input stdin",
+    ),
+    (
+        "Linter argument fixed SQL",
+        KWARGS,
+        lambda n: n.cases[1].checks["stdout"].update(equals=n.cases[0].stdin),
+        "check 2",
+    ),
+    (
+        "Linter argument violations after the fix",
+        KWARGS,
+        lambda n: n.cases[2].checks["violations"][0]["records"].pop(),
+        "check 2",
+    ),
+    ("error config", REJECTED, _error_config, "case rejected: input files"),
+    (
+        "error argv",
+        REJECTED,
+        lambda n: setattr(n.cases[0], "argv", ["lint", "-f", "json", "-"]),
+        "case rejected: input argv",
+    ),
+    ("error exit code", REJECTED, _checks(["exit_code"], 1), "check 2"),
+    (
+        "error message",
+        REJECTED,
+        _checks(["stderr", "contains", 0], "Invalid option 'blah' for allow_scalar"),
+        "check 2",
+    ),
+    (
+        "uncited error",
+        REJECTED,
+        _uncite("L106:raises"),
+        "assert L106:raises: no check cites it",
+    ),
     # A changed expected value.
     ("exit code", DIALECT, _checks(["exit_code"], 1), "check 2"),
     (
@@ -479,8 +536,13 @@ TRACE_MUTATIONS = [
     ),
     (
         "a Linter argument",
+        lambda t: _call(t, EXCLUDE)["inputs"]["linter"].update(user_rules=["X"]),
+        "Linter arguments ['user_rules'] other than config, dialect, rules",
+    ),
+    (
+        "a Linter path call with a Linter argument and no proof",
         lambda t: _call(t, EXCLUDE)["inputs"]["linter"].update(dialect="ansi"),
-        "Linter arguments ['dialect'] other than config",
+        "a Linter with a config and the arguments ['dialect']",
     ),
     # The maps of T16. Each call that the maps do not know is an error.
     (
@@ -527,8 +589,8 @@ TRACE_MUTATIONS = [
     ),
     (
         "a Linter string argument",
-        lambda t: _call(t, LT03)["inputs"]["linter"].update(dialect="ansi"),
-        "case trailing: Linter arguments ['dialect'] other than config",
+        lambda t: _call(t, LT03)["inputs"]["linter"].update(formatter="<f>"),
+        "case trailing: Linter arguments ['formatter'] other than config, dialect",
     ),
     (
         "a Linter string call in another folder",
@@ -624,6 +686,97 @@ TRACE_MUTATIONS = [
             },
         ),
         "input argv: the case gives ['lint', '-f', 'json', 'test/fixtures",
+    ),
+    # The maps of T17. Each call that the maps do not know is an error.
+    (
+        "Linter arguments that are not the overrides",
+        lambda t: _call(t, KWARGS)["inputs"]["linter"]["kwargs_config"][
+            "values"
+        ].update(rules="CP02"),
+        "case lint: the Linter arguments {'dialect': 'ansi', 'rules': ['AL09']}"
+        " give the overrides",
+    ),
+    (
+        "a Linter argument config that is not its overrides",
+        lambda t: _call(t, KWARGS)["inputs"]["linter"]["kwargs_config"].update(
+            proof=["core:dialect"]
+        ),
+        "is not FluffConfig(overrides=<its overrides>)",
+    ),
+    (
+        "Linter arguments with no proof",
+        lambda t: _call(t, KWARGS)["inputs"]["linter"].pop("kwargs_config"),
+        "case lint: a Linter with the arguments ['dialect', 'rules']: the trace"
+        " has no proof of its config",
+    ),
+    (
+        "a Linter rules argument that is not a list",
+        lambda t: _call(t, KWARGS, 1)["inputs"]["linter"].update(rules="AL09"),
+        "case lint_fixed: the Linter argument rules='AL09'",
+    ),
+    (
+        "an error that the CLI gives as another error",
+        lambda t: _call(t, REJECTED)["cli"]["errors"][0].update(error="ValueError"),
+        "case rejected: the CLI does not give the same error",
+    ),
+    (
+        "an error that the CLI does not give",
+        lambda t: _call(t, REJECTED)["cli"].update(errors=[]),
+        "the CLI run gets []",
+    ),
+    (
+        "an error of a function that the map does not know",
+        lambda t: _call(t, REJECTED)["inputs"].update(function="FluffConfig"),
+        "of FluffConfig; the oracle maps only an error of",
+    ),
+    (
+        "an error with no CLI input",
+        lambda t: _call(t, REJECTED).pop("cli")
+        and _call(t, REJECTED)["inputs"].update(no_cli_input="the reason"),
+        "case rejected: the error",
+    ),
+    (
+        "an error with another CLI output",
+        lambda t: _call(t, REJECTED)["cli"].update(exit_code=1),
+        "check 2",
+    ),
+    (
+        "an error call in another folder",
+        lambda t: _call(t, REJECTED)["inputs"].update(cwd="/tmp/x"),
+        "an error call in the folder /tmp/x",
+    ),
+    (
+        "python-internal node with an error call that maps",
+        lambda t: _node(t, INTERNAL)["calls"].append(_call(t, REJECTED)),
+        "class python-internal, but the error",
+    ),
+    (
+        "a test helper call with no inner call",
+        lambda t: _node(t, CV02)["calls"].__setitem__(
+            0,
+            {
+                "kind": "helper",
+                "inputs": {
+                    "function": "assert_rule_raises_violations_in_file",
+                    "args": {},
+                    "cwd": "{sqlfluff}",
+                },
+                "inner": [],
+            },
+        ),
+        "has 0 inner calls, not 1 call of the kind linter",
+    ),
+    (
+        "a test helper that the map does not know",
+        lambda t: _node(t, CV02)["calls"].__setitem__(
+            0,
+            {
+                "kind": "helper",
+                "inputs": {"function": "assert_rule_fail_in_sql", "cwd": "{sqlfluff}"},
+                "inner": [],
+            },
+        ),
+        "the test helper assert_rule_fail_in_sql; the oracle maps only",
     ),
     (
         "a simple-API config with 2 inner calls",
@@ -845,6 +998,19 @@ MAP_EXIT_MUTATIONS = [
         _no_files_check,
         "check 2: the checks on the traced outputs give fail",
     ),
+    # T17: a Linter made with dialect and rules, and an error call.
+    (
+        "a changed config of Linter arguments",
+        KWARGS,
+        _kwargs_config,
+        "case lint: input files",
+    ),
+    (
+        "a changed config of an error call",
+        REJECTED,
+        _error_config,
+        "case rejected: input files",
+    ),
 ]
 
 
@@ -887,6 +1053,21 @@ UNMAPPED = [
         ),
         f"error: sqlfluff: {LT03}: an untraced Linter call: a Linter render"
         " (Linter.render_string)",
+    ),
+    # T17: Linter arguments with no proof of the config, and an error that
+    # the CLI run does not give.
+    (
+        "Linter arguments with no proof of the config",
+        lambda t: _call(t, KWARGS)["inputs"]["linter"].pop("kwargs_config"),
+        f"error: sqlfluff: {KWARGS}: case lint: a Linter with the arguments"
+        " ['dialect', 'rules']: the trace has no proof of its config",
+    ),
+    (
+        "an error that the CLI does not give",
+        lambda t: _call(t, REJECTED)["cli"].update(errors=[]),
+        f"error: sqlfluff: {REJECTED}: case rejected: the CLI does not give the"
+        f" same error: the test gets {_call(TRACES['sqlfluff'], REJECTED)['error']!r}"
+        " from RuleSet.get_rulepack, the CLI run gets []",
     ),
 ]
 
@@ -1050,6 +1231,56 @@ def test_find_asserts(source):
 def test_find_asserts_fails_closed(source, node, error):
     with pytest.raises(AssertSourceError, match=error.replace("*", r"\*")):
         asserts.find_asserts(source, f"test/a_test.py::{node}")
+
+
+# T17: the test helper assert_rule_raises_violations_in_file of
+# sqlfluff.utils.testing.rules has one check (one id). Each other helper of
+# that module, and a helper of that name from another module, is refused.
+HELPER_SOURCE = """
+from sqlfluff.utils.testing.rules import assert_rule_raises_violations_in_file
+from sqlfluff.utils.testing.rules import load_test_cases
+
+
+def test_file():
+    assert_rule_raises_violations_in_file("LT01", "a.sql", [(1, 2)], None)
+
+
+def test_keywords():
+    assert_rule_raises_violations_in_file(
+        rule="LT01", fpath="a.sql", violations=[], fluff_config=None
+    )
+
+
+def test_load():
+    load_test_cases("x")
+"""
+OTHER_HELPER_SOURCE = """
+from test.helpers import assert_rule_raises_violations_in_file
+
+
+def test_file():
+    assert_rule_raises_violations_in_file("LT01", "a.sql", [], None)
+"""
+
+
+def test_find_asserts_of_the_rule_test_helper(tmp_path):
+    (tmp_path / "test").mkdir()
+    (tmp_path / "test" / "a_test.py").write_text(HELPER_SOURCE)
+    (tmp_path / "test" / "b_test.py").write_text(OTHER_HELPER_SOURCE)
+    assert _ids(tmp_path, "test_file") == ["L7:violations"]
+    assert _ids(tmp_path, "test_keywords") == ["L11:violations"]
+    with pytest.raises(AssertSourceError, match="load_test_cases comes from the"):
+        asserts.find_asserts(tmp_path, "test/a_test.py::test_load")
+    with pytest.raises(AssertSourceError, match="is not the helper of sqlfluff"):
+        asserts.find_asserts(tmp_path, "test/b_test.py::test_file")
+    node = (
+        "test/rules/std_test.py"
+        "::test__rules__std_file[LT01-indentation_errors.sql-violations0]"
+    )
+    ids = [a.id for a in asserts.find_asserts(SQLFLUFF_ROOT, node)]
+    assert ids == ["L80:violations"]
+    ids = [a.id for a in asserts.find_asserts(SQLFLUFF_ROOT, REJECTED)]
+    assert ids == ["L106:raises"]
 
 
 def test_the_pilot_asserts():
@@ -1536,6 +1767,362 @@ def test_trace_step_maps_the_calls_of_t16(tmp_path):
         "a Linter render (Linter.render_string)",
         "a Linter parse (Linter.parse_rendered)",
     ]
+
+
+# T17: the trace step and the oracle on the maps of T17, with the oracle
+# tools: a Linter made with dialect, rules, and exclude_rules; the test helper
+# assert_rule_raises_violations_in_file; and an error in pytest.raises that
+# the CLI gives (an error call). Each call that the maps do not know is an
+# error with a message.
+
+TREE_T17 = """
+import pytest
+from sqlfluff.core import FluffConfig, Linter
+from sqlfluff.core.rules import get_ruleset
+from sqlfluff.utils.testing.rules import assert_rule_raises_violations_in_file
+
+SQL = "SELECT a  FROM b\\n"
+FIXED = "SELECT a FROM b\\n"
+
+
+def test_kwargs_string():
+    linter = Linter(dialect="ansi", rules=["LT01"])
+    assert linter.lint_string(SQL, fix=True).fix_string()[0] == FIXED
+
+
+def test_kwargs_path():
+    linter = Linter(dialect="ansi", rules=["LT01"], exclude_rules=["LT02"])
+    assert len(linter.lint_path("test/a.sql").check_tuples()) == 1
+
+
+def test_helper():
+    assert_rule_raises_violations_in_file(
+        rule="LT01",
+        fpath="test/a.sql",
+        violations=[(1, 9)],
+        fluff_config=FluffConfig(overrides={"dialect": "ansi", "rules": "LT01"}),
+    )
+
+
+def test_rulepack_error():
+    config = FluffConfig(
+        configs={"rules": {"allow_scalar": "blah"}}, overrides={"dialect": "ansi"}
+    )
+    with pytest.raises(ValueError):
+        get_ruleset().get_rulepack(config)
+
+
+def test_helper_fails():
+    assert_rule_raises_violations_in_file(
+        rule="LT01",
+        fpath="test/a.sql",
+        violations=[(1, 10)],
+        fluff_config=FluffConfig(overrides={"dialect": "ansi", "rules": "LT01"}),
+    )
+
+
+def test_kwargs_other_argument():
+    assert Linter(dialect="ansi", rules=["LT01"], user_rules=[]).lint_string(SQL)
+
+
+def test_linter_error():
+    with pytest.raises(KeyError):
+        Linter(dialect="not_a_dialect")
+
+
+def test_config_error():
+    with pytest.raises(ValueError):
+        FluffConfig(configs={"core": {"templater": "nope"}})
+
+
+def test_rulepack_error_unknown_key():
+    config = FluffConfig(
+        configs={"rules": {"capitalisation.functions": {"capitalisation_policy": "x"}}},
+        overrides={"dialect": "ansi"},
+    )
+    with pytest.raises(ValueError):
+        get_ruleset().get_rulepack(config)
+
+
+def test_no_cli_state_after_the_error_calls():
+    # The trace runs the CLI for the error calls above; the test must not
+    # see it (limit 5 of the design record).
+    import logging
+
+    import colorama.initialise
+
+    logger = logging.getLogger("sqlfluff")
+    assert logger.propagate and logger.handlers == []
+    assert colorama.initialise.wrapped_stdout is None
+    assert not colorama.initialise.atexit_done
+"""
+T17_CONFIG = "[sqlfluff]\ndialect = ansi\nrules = LT01\n"
+T17_ERROR_CONFIG = (
+    "[sqlfluff]\ndialect = ansi\n\n[sqlfluff:rules]\nallow_scalar = blah\n"
+)
+T17_LT01 = {
+    "violations": [
+        {"records": [{"code": "LT01", "start_line_no": 1, "start_line_pos": 9}]}
+    ]
+}
+T17_PATH_ARGV = ["lint", "-f", "json", "--dialect", "ansi", "--rules", "LT01"]
+
+
+def _t17_good() -> dict[str, list[caseformat.Case]]:
+    return {
+        # A Linter string call of a Linter with dialect and rules: the
+        # config model of its config (FluffConfig(overrides=...)).
+        "test_kwargs_string": [
+            _stdin_case("lint", ["lint", "-f", "json", "-"], 1, T17_CONFIG, **T17_LT01),
+            _stdin_case(
+                "fix", ["fix", "-"], 0, T17_CONFIG, stdout={"equals": TREE_FIXED}
+            ),
+        ],
+        # A Linter path call of such a Linter: the overrides as lint options.
+        "test_kwargs_path": [
+            _cli_case(
+                "lint",
+                [*T17_PATH_ARGV, "--exclude-rules", "LT02", "test/a.sql"],
+                1,
+                checks=T17_LT01,
+            )
+        ],
+        # The test helper: the case of its one Linter path call.
+        "test_helper": [
+            _cli_case("lint", [*T17_PATH_ARGV, "test/a.sql"], 1, checks=T17_LT01)
+        ],
+        # An error of RuleSet.get_rulepack that the CLI gives.
+        "test_rulepack_error": [
+            _cli_case(
+                "rejected",
+                ["lint", "-"],
+                2,
+                cwd="tmp",
+                files={".sqlfluff": T17_ERROR_CONFIG},
+                checks={
+                    "stderr": {
+                        "contains": [
+                            "User Error: Invalid option 'blah' for allow_scalar"
+                        ]
+                    }
+                },
+            )
+        ],
+    }
+
+
+def _t17_trace(tmp_path) -> tuple[Path, str, dict]:
+    root = tmp_path / "root"
+    (root / "test").mkdir(parents=True)
+    (root / "test" / "t17_test.py").write_text(TREE_T17)
+    (root / "test" / "a.sql").write_text(TREE_SQL)
+    name = "test/t17_test.py::"
+    names = [
+        line[4:].split("(")[0]
+        for line in TREE_T17.splitlines()
+        if line.startswith("def test_")
+    ]
+    out = tmp_path / "trace.json"
+    python = tools_dir() / "sqlfluff-oracle" / "bin" / "python"
+    proc = subprocess.run(
+        [str(python), str(SCRIPTS / "trace-nodes"), "--out", str(out)]
+        + ["--root", str(root)]
+        + [name + n for n in names],
+        capture_output=True,
+        text=True,
+        env=_env(tmp_path),
+        check=False,
+    )
+    assert proc.returncode == 0, proc.stderr[-3000:]
+    trace = json.loads(out.read_text())
+    outcomes = {n: trace["nodes"][name + n]["outcome"] for n in names}
+    want = dict.fromkeys(names, "passed")
+    want["test_helper_fails"] = "failed"
+    assert outcomes == want
+    assert oracle.trace_errors(trace, "sqlfluff", [name + n for n in names]) == []
+    return root, name, trace
+
+
+@needs_oracles
+def test_trace_step_maps_the_calls_of_t17(tmp_path):
+    root, name, trace = _t17_trace(tmp_path)
+    traced = trace["nodes"]
+    good = _t17_good()
+    for test, cases in good.items():
+        node = _tree_node(root, name + test, cases)
+        result = oracle.check_node(node, traced[name + test], "pass", root, [])
+        assert result.errors == [] and result.trace == "pass", (test, result.errors)
+    # The proof of each map in the trace.
+    linter = traced[name + "test_kwargs_string"]["calls"][0]["inputs"]["linter"]
+    assert linter["kwargs_config"]["values"] == {"dialect": "ansi", "rules": "LT01"}
+    assert linter["kwargs_config"]["proof"] == []
+    helper = traced[name + "test_helper"]["calls"]
+    assert [c["kind"] for c in helper] == ["helper"]
+    assert [c["kind"] for c in helper[0]["inner"]] == ["linter"]
+    error = traced[name + "test_rulepack_error"]["calls"][0]
+    assert error["kind"] == "error"
+    assert error["cli"]["errors"] == [
+        {"function": "RuleSet.get_rulepack", "error": error["error"]}
+    ]
+    assert error["error"].startswith("SQLFluffUserError: Invalid option 'blah'")
+    # An error call that maps is not python-internal.
+    errors = oracle.check_internal(
+        name + "test_rulepack_error", traced[name + "test_rulepack_error"]
+    )["errors"]
+    assert errors == [
+        f"class python-internal, but the error {error['error']!r} of"
+        " RuleSet.get_rulepack maps to a CLI case"
+    ]
+    # The helper raised: its case passes on the traced output, pytest gives
+    # failed (check 2).
+    node = _tree_node(root, name + "test_helper_fails", good["test_helper"])
+    errors = oracle.check_node(
+        node, traced[name + "test_helper_fails"], "fail", root, []
+    ).errors
+    assert errors == [
+        "check 2: the checks on the traced outputs give pass, pytest gives failed"
+    ]
+
+    # The calls that the maps do not know: each is an error with a message.
+    refused = {
+        "test_kwargs_other_argument": "case lint: Linter arguments ['user_rules']"
+        " other than config, dialect, rules, and exclude_rules",
+        "test_linter_error": "case lint: the CLI does not give the same error: the"
+        " test gets \"KeyError: 'Unknown dialect'\" from Linter, the CLI run gets []",
+        "test_config_error": "of FluffConfig; the oracle maps only an error of"
+        " ['RuleSet.get_rulepack', 'Linter']",
+        "test_rulepack_error_unknown_key": "the config model:"
+        " rules:capitalisation.functions:capitalisation_policy: the map knows only"
+        " the keys of the default config",
+    }
+    for test, error in refused.items():
+        node = _tree_node(root, name + test, [_cli_case("lint", ["lint"], 0)])
+        errors = oracle.check_node(node, traced[name + test], "pass", root, []).errors
+        assert any(error in e for e in errors), (test, errors)
+    # The refusals of the helper map, on changed copies of the traced helper
+    # call: an inner call that is not the call of the helper arguments
+    # (method, path, or config), a call in another folder, and a helper that
+    # raised before its inner call.
+    helper_data = traced[name + "test_helper"]
+    not_the_call = (
+        "case lint: the inner Linter call is not the call of the helper"
+        " assert_rule_raises_violations_in_file"
+    )
+    helper_refused = [
+        (
+            lambda c: c["inner"][0]["inputs"].update(method="lint_paths"),
+            not_the_call,
+        ),
+        (
+            lambda c: c["inner"][0]["inputs"].update(paths=["test/b.sql"]),
+            not_the_call,
+        ),
+        (
+            lambda c: c["inputs"]["args"].update(fluff_config={"method": "other"}),
+            not_the_call,
+        ),
+        (
+            lambda c: c["inputs"].update(cwd="/tmp/x"),
+            "case lint: a test helper call in the folder /tmp/x",
+        ),
+        (
+            lambda c: c.update(raised="AssertionError: x", inner=[]),
+            "case lint: the test helper assert_rule_raises_violations_in_file"
+            " raised AssertionError: x",
+        ),
+    ]
+    for change, error in helper_refused:
+        call = copy.deepcopy(helper_data["calls"][0])
+        change(call)
+        node = _tree_node(root, name + "test_helper", good["test_helper"])
+        data = {**helper_data, "calls": [call]}
+        errors = oracle.check_node(node, data, "pass", root, []).errors
+        assert error in errors, (error, errors)
+    config_error = traced[name + "test_config_error"]["calls"][0]["inputs"]
+    assert config_error["no_cli_input"].startswith("the FluffConfig construction")
+    # The CLI run of the Linter error gave exit code 2 with no Linter error.
+    linter_error = traced[name + "test_linter_error"]["calls"][0]["cli"]
+    assert linter_error["argv"] == ["lint", "--dialect", "not_a_dialect", "-"]
+    assert linter_error["exit_code"] == 2 and linter_error["errors"] == []
+
+
+def _run_tree_oracle(monkeypatch, tmp_path, root, trace, nodes) -> int:
+    """Run scripts/s7-tests/oracle on a trace of the test tree, for the tool
+    sqlfluff, with these case nodes (each one passes in the report)."""
+    script = _oracle_script()
+    cases = dataclasses.replace(CASES, nodes=nodes)
+    monkeypatch.setattr(script.caseformat, "load", lambda: cases)
+    monkeypatch.setattr(script, "SQLFLUFF_ROOT", root)
+    monkeypatch.setattr(script, "sqlfluff_ref", lambda _: caseformat.SQLFLUFF_COMMIT)
+    ids = {n.id for n in nodes}
+    trace = {**trace, "nodes": {k: v for k, v in trace["nodes"].items() if k in ids}}
+    trace_path = tmp_path / "tree-trace.json"
+    trace_path.write_text(json.dumps(trace), encoding="utf8")
+    report = {
+        "nodes": [
+            {"id": n.id, "results": {"sqlfluff": {"status": "pass"}}} for n in nodes
+        ],
+        "excluded": [],
+    }
+    report_path = tmp_path / "tree-report.json"
+    report_path.write_text(json.dumps(report), encoding="utf8")
+    argv = ["--tool", "sqlfluff", "--trace", f"sqlfluff={trace_path}"]
+    argv += ["--report", str(report_path), "--out", str(tmp_path / "oracle.json")]
+    return script.main(argv)
+
+
+def _t17_files(case):
+    case.files[".sqlfluff"] = case.files[".sqlfluff"].replace("LT01", "LT02")
+
+
+# A changed input of each map of T17 gives exit code 1 with a message.
+T17_EXIT_MUTATIONS = [
+    ("Linter arguments", "test_kwargs_string", 0, _t17_files, "case lint: input files"),
+    (
+        "Linter arguments in a path call",
+        "test_kwargs_path",
+        0,
+        lambda c: c.argv.remove("--exclude-rules"),
+        "case lint: input argv",
+    ),
+    (
+        "test helper",
+        "test_helper",
+        0,
+        lambda c: c.argv.__setitem__(-1, "test/b.sql"),
+        "case lint: input argv",
+    ),
+    (
+        "error call",
+        "test_rulepack_error",
+        0,
+        lambda c: setattr(c, "stdin", "SELECT 1\n"),
+        "case rejected: input stdin",
+    ),
+]
+
+
+@needs_oracles
+def test_a_changed_input_of_each_t17_map_makes_the_oracle_exit_1(
+    tmp_path, monkeypatch, capsys
+):
+    root, name, trace = _t17_trace(tmp_path)
+    good = _t17_good()
+
+    def nodes():
+        return [_tree_node(root, name + t, copy.deepcopy(c)) for t, c in good.items()]
+
+    assert _run_tree_oracle(monkeypatch, tmp_path, root, trace, nodes()) == 0
+    out = capsys.readouterr()
+    assert "error:" not in out.err
+    assert f'"agree": {len(good)}' in out.out
+    for _, test, index, change, error in T17_EXIT_MUTATIONS:
+        changed = nodes()
+        node = next(n for n in changed if n.id == name + test)
+        change(node.cases[index])
+        assert _run_tree_oracle(monkeypatch, tmp_path, root, trace, changed) == 1
+        lines = capsys.readouterr().err.splitlines()
+        assert f"error: sqlfluff: {name}{test}: {error}" in "\n".join(lines), lines
 
 
 S7CONFIG_CHECK = """
