@@ -24,6 +24,7 @@ import pytest
 from conftest import ci_module, needs
 
 from sqll_harness.paths import REPO_ROOT, SQLFLUFF_ROOT, tools_dir
+from sqll_harness.s6.scope import load_cases as load_s6_cases
 
 SCRIPTS = REPO_ROOT / "scripts" / "s6"
 INVENTORY = SCRIPTS / "inventory.py"
@@ -399,7 +400,8 @@ def test_templater_suite_is_jinja_and_s11():
     sqlfluff = SUMMARY["results"]["sqlfluff"]["suites"]["templater"]
     assert f"sqlfluff {sqlfluff['passed']} of {sqlfluff['total']}" in parity
     counts = SCOPE["counts"]
-    assert f"0 of {counts['s6_black_box']} converted" in parity
+    converted = len(load_s6_cases().nodes)
+    assert f"{converted} of {counts['s6_black_box']} converted" in parity
     assert f"0 of {counts['s6_internal']}" in parity
     assert f"each of the {counts['rule_cases']['total']}" in parity
 
@@ -532,8 +534,10 @@ def test_s6_owns_its_paths():
 
 # Paths that a task changes (the design record, "Port", "Black-box form",
 # and "Speed"; the status file, column "Description"). Each task of the
-# tasks table has an entry. The file names of the tasks after T1 are
-# examples; their owners are the data that the test checks.
+# tasks table has an entry, in the order of the tasks table. The paths of T1
+# and T2 are the paths of their pull requests. The file names of the tasks
+# after T2 are examples; their owners are the data that the test checks.
+CASES = "harness/sqll_harness/s6/cases/core/templaters"
 TASK_PATHS = {
     "T1": [
         "THIRD_PARTY.md",
@@ -545,32 +549,56 @@ TASK_PATHS = {
         "status/S6.md",
     ],
     # The case runner and the trace oracle of the test conversion of S7
-    # (track S7-tests), the scope file and case files of this stone, and the
-    # `s7 run` command of sqll-harness (core).
+    # (track S7-tests), the scope file, the pilot case files, and the tests
+    # of this stone, and the `s7 run` command, its documentation, and the
+    # license record (core).
     "T2": [
         "harness/sqll_harness/s7_tests/caseformat.py",
-        "harness/sqll_harness/s7_tests/runner.py",
+        "harness/sqll_harness/s7_tests/command.py",
+        "harness/sqll_harness/s7_tests/known.py",
         "harness/sqll_harness/s7_tests/oracle.py",
+        "harness/sqll_harness/s7_tests/report.py",
+        "harness/sqll_harness/s7_tests/runner.py",
+        "harness/sqll_harness/s7_tests/scopes.py",
+        "harness/sqll_harness/s7_tests/suites.py",
+        "scripts/s7-tests/oracle",
+        "scripts/s7-tests/s7config.py",
         "scripts/s7-tests/trace-nodes",
+        "docs/decisions/s7-tests-design.md",
+        "harness/tests/test_s7_tests_harness.py",
         "harness/sqll_harness/cli.py",
+        "harness/README.md",
+        "THIRD_PARTY.md",
+        "harness/sqll_harness/s6/__init__.py",
         "harness/sqll_harness/s6/scope.py",
+        f"{CASES}/placeholder_test.yml",
+        f"{CASES}/python_test.yml",
+        "harness/tests/test_s6_harness.py",
+        "harness/tests/test_s6_scope.py",
+        "harness/tests/fixtures/s6/trace.json",
+        "harness/tests/fixtures/s6/tree/templater_calls_test.yml",
+        "harness/tests/fixtures/s6/tree/test/templater_calls_test.py",
+        "docs/decisions/s6-templaters.md",
+        "status/S6.md",
     ],
-    "T3": [
-        "harness/sqll_harness/s6/cases/placeholder.yml",
-        "harness/tests/test_s6_cases.py",
-    ],
-    "T4": [
-        "harness/sqll_harness/s6/cases/python.yml",
-        "harness/tests/test_s6_cases.py",
-    ],
+    "T3": [f"{CASES}/placeholder_test.yml", "harness/tests/test_s6_cases.py"],
+    "T4": [f"{CASES}/python_test.yml", "harness/tests/test_s6_cases.py"],
     # CI jobs and the ruff lint step (core), the matrix fragment, the
     # known-failure lists, and the results of this stone.
     "T5": [
         ".github/workflows/ci.yml",
         "ci/matrix.d/S6.json",
-        "harness/sqll_harness/s6/exclusions.yml",
+        "results/S6/known_failures/sqll.txt",
         "results/S6/summary.json",
     ],
+    # The benchmarks are paths of the track core (the design record, "Speed").
+    "T10": [
+        "harness/sqll_harness/bench/definitions.json",
+        "harness/sqll_harness/bench/inputs.py",
+        "harness/bench.md",
+    ],
+    # The source positions of `sqll parse -f json -m` (track S7-sqll).
+    "T9": ["crates/sqll_cli/src/parse/output.rs"],
     "T6": [
         "crates/sqll_templater/src/placeholder.rs",
         "crates/sqll_templater/Cargo.toml",
@@ -588,12 +616,12 @@ TASK_PATHS = {
         "crates/ported.json",
         "THIRD_PARTY.md",
     ],
-    "T9": ["crates/sqll_cli/src/main.rs"],
-    # The benchmarks are paths of the track core (the design record, "Speed").
-    "T10": [
-        "harness/sqll_harness/bench/definitions.json",
-        "harness/sqll_harness/bench/inputs.py",
-        "harness/bench.md",
+    # The check of the templated text and the source slices of the 13 rule
+    # fixture cases.
+    "T12": [
+        "harness/sqll_harness/s6/rule_cases.py",
+        "harness/tests/test_s6_rule_cases.py",
+        "results/S6/rule_cases.json",
     ],
     "T11": [
         "results/S6/exit.json",
@@ -646,6 +674,30 @@ def cross_track_gaps(text: str, task_paths=None) -> list[str]:
     return found
 
 
+# The order of the plan (T2 of S6, 2026-11-17): the cases and the CI first,
+# then the benchmarks, the source positions of sqll, the port, the check of
+# the rule fixture cases, and the exit.
+PLAN = ["T1", "T2", "T3", "T4", "T5", "T10", "T9", "T6", "T7", "T8", "T12", "T11"]
+
+
+def test_tasks_table_has_the_order_of_the_plan():
+    table = other_tracks(STATUS_FILE.read_text("utf8"))
+    assert list(table) == list(TASK_PATHS) == PLAN
+    # T9 changes the source positions of `sqll parse -m`, in its real path.
+    assert TASK_PATHS["T9"] == ["crates/sqll_cli/src/parse/output.rs"]
+    assert (REPO_ROOT / TASK_PATHS["T9"][0]).is_file()
+    assert table["T9"] == [("S7-sqll", TASK_PATHS["T9"])]
+    # T12 checks the rule fixture cases; T9 no longer does.
+    rows = {
+        line.split(" | ")[0].strip("| "): line
+        for line in section(STATUS_FILE.read_text("utf8"), "Tasks").splitlines()
+        if re.match(r"\| T\d+ \|", line)
+    }
+    count = SCOPE["counts"]["rule_cases"]["total"]
+    assert f"of the {count} rule fixture cases" in rows["T12"]
+    assert "rule fixture cases" not in rows["T9"]
+
+
 def test_status_gives_the_other_tracks_of_each_task():
     assert cross_track_gaps(STATUS_FILE.read_text("utf8")) == []
 
@@ -670,8 +722,8 @@ def test_each_task_has_its_paths():
     assert set(other_tracks(text)) == set(TASK_PATHS)
     no_t10 = {k: v for k, v in TASK_PATHS.items() if k != "T10"}
     assert cross_track_gaps(text, no_t10) == ["T10: no TASK_PATHS entry"]
-    extra = {**TASK_PATHS, "T12": ["status/S6.md"]}
-    assert cross_track_gaps(text, extra) == ["T12: not in the tasks table"]
+    extra = {**TASK_PATHS, "T13": ["status/S6.md"]}
+    assert cross_track_gaps(text, extra) == ["T13: not in the tasks table"]
     # A task that names an other track, with only paths of this stone.
     t2_own = {**TASK_PATHS, "T2": ["harness/sqll_harness/s6/scope.py"]}
     assert cross_track_gaps(text, t2_own) == [

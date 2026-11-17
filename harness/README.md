@@ -298,6 +298,18 @@ through the harness, and the results of the other tools are recorded) do
 not change. The design, the case format, and the report:
 [s7-tests-design.md](../docs/decisions/s7-tests-design.md).
 
+`--scope s6` gives the scope file of S6 (templater parity: sqll passes 100%
+of the placeholder and Python format-string templater fixtures that do not
+need a Python runtime) to the same runner: the 54 black-box nodes of
+`results/S6/scope.json` (`sqll_harness/s6/scope.py`), the case files of
+`sqll_harness/s6/cases/`, the suites `s6_placeholder` and `s6_python`, and
+the tools `sqlfluff`, `sqruff`, and `sqll` (default report
+`out/s6/report.json`). `scripts/s7-tests/oracle --scope s6 --report
+out/s6/report.json` proves these cases with the templater map of the trace
+oracle. `s7 merge`, `s7 summarize`, and the CI jobs use only the S7 scope.
+The design: [s6-templaters.md](../docs/decisions/s6-templaters.md),
+"Black-box form".
+
 ## Report: `out/report.json`
 
 ```json

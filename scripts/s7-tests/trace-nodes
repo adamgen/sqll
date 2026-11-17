@@ -46,6 +46,17 @@ oracles do. It records, for each node:
 Calls, untraced runs, and processes outside a node are under "outside".
 The trace also records the sqlfluff config of the root folder (it must be
 empty) and, with --rust, the parse runs of each parser.
+
+With --templaters (the scope of S6, templater parity), it also records each
+outermost process() call of a templater (kind "templater"; the templater
+map of the S6 design record, "Black-box form"): the templater, its
+override_context, in_str, fname, the config, and the result (the templated
+file) or the error. Then it runs the CLI cases of the map in the pytest
+process (CliRunner, in a new folder with the .sqlfluff file of the config
+model and the SQL file), records their outputs, and records the proof: each
+difference between the result of the call and the result of the templater
+call in the CLI run (it must be empty). A get_context or slice_file call of
+a templater outside each traced call is an untraced call.
 """
 
 import argparse
@@ -57,6 +68,7 @@ import shlex
 import shutil
 import sys
 import tempfile
+import traceback
 from collections import Counter
 from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
@@ -79,6 +91,25 @@ TMP_MARK = "{tmp}"
 VOLATILE_RECORD_KEYS = ("timings",)
 # The pytest fixtures that give a temporary folder.
 TMP_FIXTURES = ("tmp_path", "tmpdir")
+# The kind of the CLI runs of the templater map (--templaters). A sentinel
+# does not record a run of this kind.
+PROOF = "proof"
+# The CLI cases of a templater call (the S6 map; sqll_harness/s7_tests/
+# oracle.py has the same table): for each result of the call, the argv of
+# each case. The SQL file of the case is TEMPLATER_SQL.
+TEMPLATER_SQL = "case.sql"
+TEMPLATER_CASES = {
+    "returned": (
+        ["parse", "-f", "json", TEMPLATER_SQL],
+        ["parse", "-f", "json", "-m", TEMPLATER_SQL],
+    ),
+    "templater_error": (["lint", "-f", "json", TEMPLATER_SQL],),
+    "skip_file": (["parse", "-f", "json", TEMPLATER_SQL],),
+    "other_error": (["parse", "-f", "json", TEMPLATER_SQL],),
+}
+# The dialect of the case of a call with no config: the CLI needs a dialect.
+# The templater output does not use it; the proof shows this for each call.
+NO_CONFIG_DIALECT = "ansi"
 # The files that the CLI reads as config or ignore files in a folder.
 CONFIG_FILES = (
     ".sqlfluff",
@@ -140,6 +171,8 @@ class Tracer:
         self.records: dict[str, dict] = {}
         self.tmp: dict[str, list[str]] = {}
         self._reference = None
+        # The templater calls of a CLI run of the templater map.
+        self.proof_calls: list[dict] | None = None
 
     def add_tmp(self, folder) -> None:
         """A temporary folder of the current node."""
@@ -437,13 +470,13 @@ def install(tracer: Tracer) -> None:
 
     CliRunner.invoke = tracer.traced("cli", cli_inputs, cli_outputs)(CliRunner.invoke)
     click.core.Command.main = tracer.sentinel(
-        ("cli",),
+        ("cli", PROOF),
         "a sqlfluff CLI command (Command.main)",
         lambda command, *a, **k: _is_sqlfluff(command),
     )(click.core.Command.main)
-    commands.get_config = tracer.sentinel(("cli",), "the CLI config (get_config)")(
-        commands.get_config
-    )
+    commands.get_config = tracer.sentinel(
+        ("cli", PROOF), "the CLI config (get_config)"
+    )(commands.get_config)
 
     # The simple API.
     def config_source(config) -> object:
@@ -618,7 +651,7 @@ def install(tracer: Tracer) -> None:
 
     # A Linter render or parse outside each traced call (for example
     # Linter.parse_string): the trace does not map it.
-    kinds = ("cli", "api", "linter", "linter_string")
+    kinds = ("cli", "api", "linter", "linter_string", PROOF)
     Linter.render_string = tracer.sentinel(
         kinds, "a Linter render (Linter.render_string)", key="untraced_linter"
     )(Linter.render_string)
@@ -628,6 +661,271 @@ def install(tracer: Tracer) -> None:
             kinds, "a Linter parse (Linter.parse_rendered)", key="untraced_linter"
         )(parse_rendered)
     )
+
+
+def templated_file_data(templated) -> dict:
+    """The parts of a TemplatedFile that the templater gives (not fname)."""
+    return plain(
+        {
+            "source_str": templated.source_str,
+            "templated_str": templated.templated_str,
+            "sliced_file": [
+                [
+                    s.slice_type,
+                    [s.source_slice.start, s.source_slice.stop],
+                    [s.templated_slice.start, s.templated_slice.stop],
+                ]
+                for s in templated.sliced_file
+            ],
+            "raw_sliced": [list(s) for s in templated.raw_sliced],
+        }
+    )
+
+
+def error_text(exc: BaseException, fname) -> str:
+    """The text of an error with the file name as <fname>: the call and the
+    CLI give other file names."""
+    desc = getattr(exc, "desc", None)
+    text = desc() if callable(desc) else str(exc)
+    return f"{type(exc).__name__}: {text}".replace(repr(fname), "<fname>")
+
+
+def violation_texts(violations) -> list[str]:
+    return [f"{type(v).__name__}: {v.desc()}" for v in violations]
+
+
+def _words(text: str) -> str:
+    return " ".join(text.split())
+
+
+def templater_proof(cls, result, error, fname, runs, skip=False) -> list[str]:
+    """The differences between the result of the call (result, or error)
+    and the templater call of each CLI run (runs: (outputs, calls)).
+
+    skip: the call raised SQLFluffSkipFile (large_file_check). The CLI skips
+    the file before it calls the templater: the run must have no templater
+    call and its stderr must have the text of the error, with the file name
+    of the case."""
+    out = []
+    for run, calls in runs:
+        where = " ".join(run["argv"])
+        if skip:
+            text = str(error).replace(repr(fname), repr(TEMPLATER_SQL))
+            if calls:
+                out.append(f"{where}: {len(calls)} templater calls, not 0")
+            if _words(text) not in _words(run["stderr"]):
+                out.append(f"{where}: the stderr does not have {text!r}")
+            continue
+        if len(calls) != 1:
+            out.append(f"{where}: {len(calls)} templater calls, not 1")
+            continue
+        call = calls[0]
+        if call["class"] is not cls:
+            out.append(f"{where}: the templater {call['class'].__name__}")
+            continue
+        if error is not None:
+            if "error" not in call:
+                out.append(f"{where}: the call raised, the CLI templater did not")
+            elif error_text(error, fname) != error_text(call["error"], call["fname"]):
+                out.append(
+                    f"{where}: the error {error_text(call['error'], call['fname'])!r},"
+                    f" not {error_text(error, fname)!r}"
+                )
+            continue
+        if "error" in call:
+            out.append(f"{where}: the CLI templater raised {call['error']!r}")
+            continue
+        got, want = call["result"], result
+        for key, value in templated_file_data(want[0]).items():
+            if templated_file_data(got[0])[key] != value:
+                out.append(f"{where}: the {key} of the templated file is different")
+        if violation_texts(got[1]) != violation_texts(want[1]):
+            out.append(f"{where}: the templater violations are different")
+    return out
+
+
+def install_templaters(tracer: Tracer) -> None:
+    """Trace the process() calls of the templaters (--templaters)."""
+    import sqlfluff.cli.commands as commands
+    from sqlfluff.core.config import FluffConfig
+    from sqlfluff.core.config.loader import load_config_at_path
+    from sqlfluff.core.errors import SQLFluffSkipFile, SQLTemplaterError
+    from sqlfluff.core.helpers.dict import nested_combine
+    from sqlfluff.core.templaters import (
+        JinjaTemplater,
+        PlaceholderTemplater,
+        PythonTemplater,
+        RawTemplater,
+    )
+
+    def config_model(name: str, context, config) -> tuple[dict, list[str]]:
+        """The .sqlfluff text of the case, and the inputs that the map does
+        not know."""
+        unsupported = []
+        source = None if config is None else getattr(config, "_s7_source", None)
+        if config is None:
+            effective = json.loads(json.dumps(tracer.reference()))
+            effective["core"]["dialect"] = NO_CONFIG_DIALECT
+        else:
+            if not isinstance(config, FluffConfig) or source is None:
+                unsupported.append(f"a config that is not a FluffConfig: {config!r}")
+            elif source.get("method") != "FluffConfig" or set(source["args"]) - {
+                "overrides"
+            }:
+                unsupported.append(
+                    f"a config from {source}; the map knows only"
+                    " FluffConfig(overrides=...)"
+                )
+            effective = s7config.snapshot(config._configs)
+        try:
+            json.dumps(context, allow_nan=False)
+        except (TypeError, ValueError):
+            unsupported.append(f"a context value that is not a literal: {context!r}")
+            return {"error": "the context is not a literal"}, unsupported
+        try:
+            text = s7config.templater_text(name, context, effective, tracer.reference())
+        except s7config.ConfigMapError as exc:
+            return {"error": str(exc)}, unsupported
+        return {"text": text}, unsupported
+
+    def run_case(argv: list[str], files: dict[str, str]) -> tuple[dict, list[dict]]:
+        """Run one CLI case in a new folder, as the runner does. Return its
+        outputs and the templater calls of the run."""
+        folder = MKDTEMP(prefix="s6-case-")
+        for name, text in files.items():
+            Path(folder, name).write_bytes(text.encode("utf8"))
+        old = os.getcwd()
+        tracer.active.append(PROOF)
+        tracer.proof_calls = []
+        try:
+            os.chdir(folder)
+            result = CliRunner().invoke(commands.cli, argv)
+        finally:
+            os.chdir(old)
+            tracer.active.pop()
+            calls, tracer.proof_calls = tracer.proof_calls, None
+        out = {
+            "argv": argv,
+            "exit_code": result.exit_code,
+            "stdout": result.stdout.replace(folder, TMP_MARK),
+            "stderr": result.stderr.replace(folder, TMP_MARK),
+        }
+        exc = result.exception
+        if exc is not None and not isinstance(exc, SystemExit):
+            # The binary prints the traceback of an uncaught exception to
+            # stderr and exits with 1; CliRunner keeps the exception. The last
+            # line of the traceback is the model of the binary.
+            out["exception"] = first_line(exc)
+            out["stderr"] += "".join(traceback.format_exception_only(exc))
+        out["files"] = read_tree(folder)
+        outer = [load_config_at_path(str(p)) for p in reversed(Path(folder).parents)]
+        out["outer_config"] = plain(nested_combine({}, *outer))
+        shutil.rmtree(folder)
+        return out, calls
+
+    def wrap(original):
+        @functools.wraps(original)
+        def process(self, *args, **kwargs):
+            if tracer.active:
+                if tracer.proof_calls is None or tracer.active[-1] != PROOF:
+                    return original(self, *args, **kwargs)
+                record = {"class": type(self), "fname": kwargs.get("fname")}
+                tracer.proof_calls.append(record)
+                try:
+                    record["result"] = original(self, *args, **kwargs)
+                except Exception as exc:
+                    record["error"] = exc
+                    raise
+                return record["result"]
+            call: dict = {"kind": "templater"}
+            unsupported = []
+            if args:
+                unsupported.append(f"{len(args)} positional arguments")
+            known = {"in_str", "fname", "config", "formatter"}
+            if set(kwargs) - known:
+                unsupported.append(f"the arguments {sorted(set(kwargs) - known)}")
+            if kwargs.get("formatter") is not None:
+                unsupported.append("a formatter")
+            name = getattr(self, "name", None)
+            context = getattr(self, "override_context", None)
+            config = kwargs.get("config")
+            inputs = {
+                "templater": name,
+                "class": f"{type(self).__module__}.{type(self).__qualname__}",
+                "context": plain(context),
+                "in_str": kwargs.get("in_str"),
+                "fname": kwargs.get("fname"),
+                "config": None
+                if config is None
+                else getattr(config, "_s7_source", {"method": "<unknown>"}),
+                "cwd": tracer.cwd(),
+            }
+            if type(self) not in (PlaceholderTemplater, PythonTemplater):
+                unsupported.append(f"the templater {type(self).__name__}")
+            elif not isinstance(inputs["in_str"], str):
+                unsupported.append("in_str is not a string")
+            else:
+                inputs["config_file"], more = config_model(name, context or {}, config)
+                unsupported += more
+            inputs["unsupported"] = unsupported
+            call["inputs"] = inputs
+            result = error = None
+            tracer.active.append("templater")
+            try:
+                result = original(self, *args, **kwargs)
+            except Exception as exc:
+                error = exc
+                call["raised"] = first_line(exc)
+                if isinstance(exc, SQLTemplaterError):
+                    call["error_kind"] = "templater_error"
+                elif isinstance(exc, SQLFluffSkipFile):
+                    call["error_kind"] = "skip_file"
+                else:
+                    call["error_kind"] = "other_error"
+                raise
+            else:
+                call["outputs"] = {
+                    "templated": str(result[0]),
+                    "violations": violation_texts(result[1]),
+                }
+            finally:
+                tracer.active.pop()
+                if "text" in inputs.get("config_file", {}) and not unsupported:
+                    kind = call.get("error_kind", "returned")
+                    files = {
+                        s7config.CONFIG_FILE: inputs["config_file"]["text"],
+                        TEMPLATER_SQL: inputs["in_str"],
+                    }
+                    try:
+                        runs = [run_case(list(a), files) for a in TEMPLATER_CASES[kind]]
+                        call["cases"] = [r for r, _ in runs]
+                        call["proof"] = templater_proof(
+                            type(self),
+                            result,
+                            error,
+                            inputs["fname"],
+                            runs,
+                            skip=kind == "skip_file",
+                        )
+                    except Exception as exc:
+                        call["proof_error"] = first_line(exc)
+                tracer.bucket()["calls"].append(plain(call))
+            return result
+
+        return process
+
+    classes = (RawTemplater, JinjaTemplater, PythonTemplater, PlaceholderTemplater)
+    for cls in classes:
+        if "process" in cls.__dict__:
+            cls.process = wrap(cls.__dict__["process"])
+    # A templater method that a test calls outside each traced call: the map
+    # does not know it (an untraced call).
+    kinds = ("cli", "api", "linter", "linter_string", "templater", PROOF)
+    for cls in classes:
+        for name in ("get_context", "slice_file"):
+            if name in cls.__dict__:
+                what = f"a templater method ({cls.__name__}.{name})"
+                setattr(cls, name, tracer.sentinel(kinds, what)(cls.__dict__[name]))
 
 
 class Recorder:
@@ -682,7 +980,9 @@ class Recorder:
             self.errors[report.nodeid or "<session>"] = lines[-1] if lines else ""
 
 
-def run(root: Path, nodes: list[str], rust: bool, log: Path) -> dict:
+def run(
+    root: Path, nodes: list[str], rust: bool, log: Path, templaters: bool = False
+) -> dict:
     runs = None
     if rust:
         from sqlfluff_oracle import force_rust
@@ -690,6 +990,8 @@ def run(root: Path, nodes: list[str], rust: bool, log: Path) -> dict:
         runs = force_rust()
     tracer = Tracer(root)
     install(tracer)
+    if templaters:
+        install_templaters(tracer)
     forks: Counter = Counter()
 
     def audit(event: str, args: tuple) -> None:
@@ -785,6 +1087,11 @@ def main(argv: list[str]) -> int:
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--rust", action="store_true")
     parser.add_argument(
+        "--templaters",
+        action="store_true",
+        help="also trace the process() calls of the templaters (the S6 scope)",
+    )
+    parser.add_argument(
         "--root",
         type=Path,
         default=SQLFLUFF_ROOT,
@@ -796,7 +1103,7 @@ def main(argv: list[str]) -> int:
     with tempfile.TemporaryDirectory(prefix="s7-trace-") as tmp:
         log = Path(tmp) / "processes.jsonl"
         log.write_text("")
-        data = run(args.root.resolve(), args.nodes, args.rust, log)
+        data = run(args.root.resolve(), args.nodes, args.rust, log, args.templaters)
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(data, indent=1) + "\n", "utf8")
     print(

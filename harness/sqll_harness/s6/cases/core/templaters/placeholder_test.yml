@@ -1,0 +1,107 @@
+# S6 black-box cases (docs/decisions/s6-templaters.md, "Black-box form"; the
+# case format of docs/decisions/s7-tests-design.md, "Case format"). A
+# derived work of the sqlfluff tests: copyright (c) 2018-2026 Alan
+# Cruickshank, MIT License. The trace oracle gives each case from the
+# process() call of its node (the templater map): the SQL file case.sql
+# and the .sqlfluff file of the context and the config of the call.
+source:
+  project: sqlfluff
+  version: 4.4.0
+  commit: 0348222a3bcdb0226563f7349c5a39beb0641955
+  file: test/core/templaters/placeholder_test.py
+license: MIT
+nodes:
+  - node: test/core/templaters/placeholder_test.py::test__templater_param_style[colon_simple_substitution]
+    asserts:
+      L422: ["templated:templated"]
+    cases:
+      - name: templated
+        run: cli
+        argv: [parse, -f, json, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = placeholder\n\n[sqlfluff:templater:placeholder]\nuser_id = 42\nstart_date = '2021-10-01'\ncity_ids = (1, 2, 3, 45)\nparam_style = colon\n"
+          case.sql: "\n            SELECT user_mail, city_id\n            FROM users_data\n            WHERE userid = :user_id AND date > :start_date\n            "
+        checks:
+          exit_code: 0
+          templated: "\n            SELECT user_mail, city_id\n            FROM users_data\n            WHERE userid = 42 AND date > '2021-10-01'\n            "
+      # The source slices are not an assert of the test: the trace gives
+      # them (the source positions of sqlfluff for the templated file of the
+      # call).
+      - name: slices
+        run: cli
+        argv: [parse, -f, json, -m, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = placeholder\n\n[sqlfluff:templater:placeholder]\nuser_id = 42\nstart_date = '2021-10-01'\ncity_ids = (1, 2, 3, 45)\nparam_style = colon\n"
+          case.sql: "\n            SELECT user_mail, city_id\n            FROM users_data\n            WHERE userid = :user_id AND date > :start_date\n            "
+        checks:
+          exit_code: 0
+          source_slices:
+            - ["\n", 0, 1]
+            - ["            ", 1, 13]
+            - ["SELECT", 13, 19]
+            - ["", 19, 19]
+            - [" ", 19, 20]
+            - ["user_mail", 20, 29]
+            - [",", 29, 30]
+            - [" ", 30, 31]
+            - ["city_id", 31, 38]
+            - ["", 38, 38]
+            - ["\n", 38, 39]
+            - ["            ", 39, 51]
+            - ["FROM", 51, 55]
+            - [" ", 55, 56]
+            - ["", 56, 56]
+            - ["users_data", 56, 66]
+            - ["", 66, 66]
+            - ["\n", 66, 67]
+            - ["            ", 67, 79]
+            - ["WHERE", 79, 84]
+            - ["", 84, 84]
+            - [" ", 84, 85]
+            - ["userid", 85, 91]
+            - [" ", 91, 92]
+            - ["=", 92, 93]
+            - [" ", 93, 94]
+            - ["42", 94, 102]
+            - [" ", 102, 103]
+            - ["AND", 103, 106]
+            - [" ", 106, 107]
+            - ["date", 107, 111]
+            - [" ", 111, 112]
+            - [">", 112, 113]
+            - [" ", 113, 114]
+            - ["'2021-10-01'", 114, 125]
+            - ["", 125, 125]
+            - ["\n", 125, 126]
+            - ["            ", 126, 138]
+            - ["", 138, 138]
+  - node: test/core/templaters/placeholder_test.py::test__templater_setup
+    asserts:
+      L441:raises: ["no_style:exit_code", "no_style:stderr.contains[0]"]
+      L452:raises: ["both:exit_code", "both:stderr.contains[0]"]
+    cases:
+      # A ValueError of the templater: the CLI stops with the traceback.
+      - name: no_style
+        run: cli
+        argv: [parse, -f, json, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = placeholder\n\n[sqlfluff:templater:placeholder]\nname = 'john'\n"
+          case.sql: SELECT 2+2
+        checks:
+          exit_code: 1
+          stderr:
+            contains: ["ValueError: No param_regex nor param_style was provided to the placeholder templater"]
+      - name: both
+        run: cli
+        argv: [parse, -f, json, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = placeholder\n\n[sqlfluff:templater:placeholder]\nparam_style = bla\nparam_regex = bli\n"
+          case.sql: SELECT 2+2
+        checks:
+          exit_code: 1
+          stderr:
+            contains: ["ValueError: Either param_style or param_regex must be provided, not both"]

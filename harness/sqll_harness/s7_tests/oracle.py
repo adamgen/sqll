@@ -18,6 +18,13 @@ record). For each tool it checks:
    the not-reproduced record has it. The record can have no row before the
    pointer section of harness/not-reproduced.md exists (decision 4).
 
+The templater map (S6, templater parity; docs/decisions/s6-templaters.md,
+"Black-box form"; trace-nodes --templaters) gives the CLI cases of a
+process() call of the placeholder or python templater: the SQL file
+case.sql and the .sqlfluff file of the context and the config. The trace
+runs these cases and proves that the templater result of each run is the
+result of the call.
+
 A node of the class python-internal must pass and have no traced CLI or
 simple-API call. The oracle fails closed (an error, not a status) on a
 process that it cannot trace, on an untraced call, on a call or a node
@@ -43,6 +50,7 @@ from .runner import (
     check_violations,
     cli_violations,
     match_text,
+    tree_failures,
 )
 
 KIND = "sqll-s7-tests-oracle"
@@ -523,6 +531,90 @@ def _api_config(call: dict[str, Any]) -> list[Mapped | OracleError]:
     return [mapped]
 
 
+# The templater map. The templaters that the map knows, the SQL file of a
+# case, and the argv of the cases of each result of a process() call
+# (scripts/s7-tests/trace-nodes has the same table): a call that returns
+# gives the templated text case and the source slices case; a templater
+# error gives the TMP violation of lint; a large file skip and each other
+# error give the stderr and the exit code of parse.
+TEMPLATERS = ("placeholder", "python")
+TEMPLATER_SQL = "case.sql"
+TEMPLATER_CASES = {
+    "returned": (
+        ("parse", "-f", "json", TEMPLATER_SQL),
+        ("parse", "-f", "json", "-m", TEMPLATER_SQL),
+    ),
+    "templater_error": (("lint", "-f", "json", TEMPLATER_SQL),),
+    "skip_file": (("parse", "-f", "json", TEMPLATER_SQL),),
+    "other_error": (("parse", "-f", "json", TEMPLATER_SQL),),
+}
+
+
+def _templater(call: dict[str, Any]) -> list[Mapped]:
+    """A process() call of a templater as its CLI cases: cwd tmp, the files
+    .sqlfluff (the config model of the call) and case.sql (in_str), and the
+    argv of the result of the call. The outputs are those of the CLI runs of
+    the trace. Fail closed (OracleError) on a templater that the map does
+    not know, on an input that the trace marks, on a config that the model
+    does not map, and on each difference of the proof."""
+    inputs = call["inputs"]
+    name = inputs["templater"]
+    if name not in TEMPLATERS:
+        raise OracleError(
+            f"a process() call of the templater {name!r}; the map knows only"
+            f" {list(TEMPLATERS)}"
+        )
+    if inputs["unsupported"]:
+        raise OracleError("; ".join(inputs["unsupported"]))
+    model = inputs["config_file"]
+    if "error" in model:
+        raise OracleError(f"the config of the templater call: {model['error']}")
+    if call.get("proof_error"):
+        raise OracleError(f"the trace could not prove the map: {call['proof_error']}")
+    kind = call.get("error_kind", "returned") if "raised" in call else "returned"
+    if kind not in TEMPLATER_CASES:
+        raise OracleError(f"a templater call with the result {kind!r}")
+    want = [list(argv) for argv in TEMPLATER_CASES[kind]]
+    runs = call.get("cases") or []
+    if [r["argv"] for r in runs] != want:
+        raise OracleError(
+            f"the trace ran the cases {[r['argv'] for r in runs]}, not the cases"
+            f" {want} of the map"
+        )
+    if call.get("proof") is None or call["proof"]:
+        raise OracleError(
+            "the templater result of the CLI case is not the result of the call:"
+            f" {call.get('proof')}"
+        )
+    files = {CONFIG_FILE: model["text"], TEMPLATER_SQL: inputs["in_str"]}
+    out = []
+    for run, argv in zip(runs, want, strict=True):
+        if run["outer_config"]:
+            raise OracleError(
+                "a folder above the case folder has a sqlfluff config"
+                f" {run['outer_config']}"
+            )
+        # An uncaught exception of the CLI is the expected result only if
+        # the call raised it too (other_error); the proof compares them.
+        exception = None if kind == "other_error" else run.get("exception")
+        inputs_of = {"run": "cli", "argv": argv, "stdin": "", "cwd": "tmp"}
+        out.append(
+            Mapped(
+                "templater call",
+                {**inputs_of, "files": dict(files)},
+                outputs={
+                    "exit_code": run["exit_code"],
+                    "stdout": run["stdout"],
+                    "stderr": run["stderr"],
+                    "records": None,
+                    "files": run["files"],
+                    "exception": exception,
+                },
+            )
+        )
+    return out
+
+
 def map_call(call: dict[str, Any]) -> list[Mapped | OracleError]:
     """The cases of a traced call, in order. A Linter string call with fix
     gives 2 cases (lint, then fix); each other call gives 1. An item that is
@@ -541,6 +633,8 @@ def map_call(call: dict[str, Any]) -> list[Mapped | OracleError]:
         return _linter_string(call, ("lint", "fix") if fix else ("lint",))
     if kind == "api":
         return _api(call)
+    if kind == "templater":
+        return _templater(call)
     raise OracleError(f"a traced call of the unknown kind {kind!r}")
 
 
@@ -606,6 +700,9 @@ def failed_checks(case: Case, mapped: Mapped) -> list[str]:
             failed.append(f"violations[{i}]: {exc}")
             continue
         failed += check_violations(f"violations[{i}]", found, check)
+    if any(k in checks for k in ("templated", "source_slices")) and stdout is None:
+        raise OracleError(f"a parse tree check; a {mapped.what} has no stdout")
+    failed += tree_failures(checks, stdout)
     return failed
 
 

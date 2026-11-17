@@ -96,7 +96,7 @@ def evaluate(
 ) -> list[str]:
     """The differences between the results of a tool in the report and its
     list, as messages. No message: the results agree with the list."""
-    keep = groups(report["suites"])
+    keep = groups(report["suites"], scope)
     group_of = {n["id"]: n["group"] for n in scope["nodes"]}
     seen = set()
     out = []

@@ -1,0 +1,31 @@
+# S6 black-box cases (docs/decisions/s6-templaters.md, "Black-box form"; the
+# case format of docs/decisions/s7-tests-design.md, "Case format"). A
+# derived work of the sqlfluff tests: copyright (c) 2018-2026 Alan
+# Cruickshank, MIT License. The trace oracle gives each case from the
+# process() call of its node (the templater map): the SQL file case.sql
+# and the .sqlfluff file of the context and the config of the call.
+source:
+  project: sqlfluff
+  version: 4.4.0
+  commit: 0348222a3bcdb0226563f7349c5a39beb0641955
+  file: test/core/templaters/python_test.py
+license: MIT
+nodes:
+  - node: test/core/templaters/python_test.py::test__templater_python_error
+    asserts:
+      L28:raises: ["missing:exit_code", "missing:violations[0]"]
+    cases:
+      # A SQLTemplaterError: the TMP violation of lint.
+      - name: missing
+        run: cli
+        argv: [lint, -f, json, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = python\n\n[sqlfluff:templater:python:context]\nnoblah = foo\n"
+          case.sql: "SELECT * FROM {blah}"
+        checks:
+          exit_code: 1
+          violations:
+            - select: {code: TMP}
+              records:
+                - description: {contains: "Failure in Python templating: 'blah'."}

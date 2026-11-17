@@ -73,7 +73,21 @@ _API_KEYS = _COMMON_KEYS | {
     "exclude_rules",
     "config",
 }
-_CLI_CHECKS = {"exit_code", "stdout", "stderr", "files", "violations"}
+_CLI_CHECKS = {
+    "exit_code",
+    "stdout",
+    "stderr",
+    "files",
+    "violations",
+    "templated",
+    "source_slices",
+}
+# The checks of the parse tree of "parse -f json" (S6 design record,
+# "Black-box form"): "templated" is the text of the leaves of a parse with no
+# meta segments; "source_slices" is [raw, start_file_pos, end_file_pos] of
+# each leaf of "parse -f json -m" (the option that gives the positions).
+TREE_CHECKS = ("templated", "source_slices")
+META_OPTIONS = frozenset({"-m", "--include-meta"})
 _API_CHECKS = {"lint": {"violations"}, "fix": {"fixed"}}
 _VIOLATION_CHECK_KEYS = {"file", "select", "count", "min_count", "records", "exact"}
 _EXCLUSION_KEYS = {"node", "class", "reason"}
@@ -367,6 +381,59 @@ def _check_cli(err: _Errors, at: str, case: dict[str, Any]) -> None:
                 _check_rel_path(err, f"{at}.checks.files", name)
     if "violations" in checks:
         _check_violations(err, f"{at}.checks.violations", checks["violations"], "cli")
+    _check_tree(err, at, case.get("argv"), checks)
+
+
+def parse_json_argv(argv: Any) -> tuple[bool, bool]:
+    """(the argv is "parse" with the JSON format, the argv has the option
+    that adds the meta segments and their positions)."""
+    if not _is_str_list(argv) or argv[0] != "parse":
+        return False, False
+    pairs = list(zip(argv, argv[1:], strict=False))
+    json_format = (
+        ("-f", "json") in pairs
+        or ("--format", "json") in pairs
+        or "--format=json" in argv
+    )
+    return json_format, bool(META_OPTIONS & set(argv))
+
+
+def _check_tree(err: _Errors, at: str, argv: Any, checks: dict[str, Any]) -> None:
+    is_json, meta = parse_json_argv(argv)
+    if "templated" in checks:
+        if not isinstance(checks["templated"], str):
+            err.add(f"{at}.checks.templated", "must be a string")
+        if not is_json or meta:
+            err.add(
+                f"{at}.checks.templated",
+                "needs the argv parse -f json with no meta option (-m)",
+            )
+    if "source_slices" in checks:
+        value = checks["source_slices"]
+        if not is_json or not meta:
+            err.add(
+                f"{at}.checks.source_slices",
+                "needs the argv parse -f json with the meta option (-m)",
+            )
+        if not isinstance(value, list) or not value:
+            err.add(f"{at}.checks.source_slices", "must be a list with one or more")
+            return
+        for i, item in enumerate(value):
+            if not (
+                isinstance(item, list)
+                and len(item) == 3
+                and isinstance(item[0], str)
+                and all(
+                    isinstance(n, int) and not isinstance(n, bool) and n >= 0
+                    for n in item[1:]
+                )
+                and item[1] <= item[2]
+            ):
+                err.add(
+                    f"{at}.checks.source_slices[{i}]",
+                    "must be [raw, start_file_pos, end_file_pos] with"
+                    " 0 <= start <= end",
+                )
 
 
 def _check_api(err: _Errors, at: str, case: dict[str, Any]) -> None:
@@ -568,10 +635,13 @@ def parse_exclusions(
 
 def load(
     cases_dir: Path = CASES_DIR,
-    exclusions_file: Path = EXCLUSIONS_FILE,
+    exclusions_file: Path | None = EXCLUSIONS_FILE,
     scope: dict[str, Any] | None = None,
 ) -> CaseSet:
-    """Load and check all case files and the exclusion list. Fail closed."""
+    """Load and check all case files and the exclusion list. Fail closed.
+
+    exclusions_file None: the scope has no exclusion list (the S6 scope).
+    The default is the S7 scope (results/S7-tests/scope.json)."""
     scope = scope if scope is not None else load_scope()
     scope_ids = {n["id"]: n["group"] for n in scope["nodes"]}
     errors: list[str] = []
@@ -601,7 +671,9 @@ def load(
                 owner[node_id] = rel
                 nodes.append(Node(node_id, scope_ids[node_id], rel, cases, cited))
     exclusions: list[Exclusion] = []
-    if exclusions_file.exists():
+    if exclusions_file is None:
+        pass
+    elif exclusions_file.exists():
         try:
             data = load_yaml(exclusions_file)
         except CaseFormatError as exc:

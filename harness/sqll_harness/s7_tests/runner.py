@@ -178,6 +178,108 @@ def cli_violations(stdout: str, file: str | None) -> list[dict[str, Any]]:
     return by_file[file]
 
 
+# The position keys of a segment in "parse -f json -m" output.
+POSITION_KEYS = (
+    "start_line_no",
+    "start_line_pos",
+    "start_file_pos",
+    "end_line_no",
+    "end_line_pos",
+    "end_file_pos",
+)
+
+
+@dataclass
+class Leaf:
+    """A leaf of the parse tree in "parse -f json" output: its type, its raw
+    text, and (with -m) its source positions."""
+
+    type: str
+    raw: str
+    start_file_pos: int | None = None
+    end_file_pos: int | None = None
+
+
+def _leaves(record: Any, out: list[Leaf]) -> None:
+    """The leaves of one segment record of "parse -f json", in order. A
+    record maps each child type to its value (a text for a leaf, a record,
+    or a list of records). With -m, a record also has the position keys and
+    one child."""
+    if not isinstance(record, dict):
+        raise CheckFailed(f"the parse tree has the item {_short(record)}")
+    positions = {k: record[k] for k in POSITION_KEYS if k in record}
+    children = [(k, v) for k, v in record.items() if k not in POSITION_KEYS]
+    if positions and (len(positions) != len(POSITION_KEYS) or len(children) != 1):
+        raise CheckFailed(f"a segment with positions is not one segment: {record}")
+    for key, value in children:
+        if isinstance(value, str):
+            out.append(
+                Leaf(
+                    key,
+                    value,
+                    positions.get("start_file_pos"),
+                    positions.get("end_file_pos"),
+                )
+            )
+        elif isinstance(value, list):
+            for item in value:
+                _leaves(item, out)
+        else:
+            _leaves(value, out)
+
+
+def parse_leaves(stdout: str) -> list[Leaf]:
+    """The leaves of the one file of "parse -f json" output. CheckFailed if
+    the output is not that of one file with a parse tree."""
+    try:
+        records = json.loads(stdout)
+    except ValueError as exc:
+        raise CheckFailed("the stdout is not parse JSON output") from exc
+    if not isinstance(records, list) or len(records) != 1:
+        raise CheckFailed("the stdout is not the parse JSON output of 1 file")
+    segments = records[0].get("segments") if isinstance(records[0], dict) else None
+    if segments is None:
+        raise CheckFailed("the parse output has no parse tree (segments is null)")
+    out: list[Leaf] = []
+    _leaves(segments, out)
+    return out
+
+
+def tree_failures(checks: dict[str, Any], stdout: str | None) -> list[str]:
+    """The failed checks of the parse tree: "templated" (the text of the
+    leaves) and "source_slices" ([raw, start_file_pos, end_file_pos] of
+    each leaf)."""
+    keys = [k for k in ("templated", "source_slices") if k in checks]
+    if not keys:
+        return []
+    try:
+        if stdout is None:
+            raise CheckFailed("no stdout")
+        leaves = parse_leaves(stdout)
+    except CheckFailed as exc:
+        return [f"{key}: {exc}" for key in keys]
+    out = []
+    if "templated" in checks:
+        text = "".join(leaf.raw for leaf in leaves)
+        if text != checks["templated"]:
+            out.append(f"templated: the text is {_short(text)}")
+    if "source_slices" in checks:
+        got = [[x.raw, x.start_file_pos, x.end_file_pos] for x in leaves]
+        want = checks["source_slices"]
+        if any(x.start_file_pos is None for x in leaves):
+            out.append("source_slices: a leaf has no position (no -m)")
+        elif len(got) != len(want):
+            out.append(f"source_slices: {len(got)} leaves, not {len(want)}")
+        elif got != want:
+            i = next(
+                i
+                for i, pair in enumerate(zip(got, want, strict=True))
+                if pair[0] != pair[1]
+            )
+            out.append(f"source_slices[{i}]: the leaf is {_short(got[i])}")
+    return out
+
+
 def read_tree(root: Path) -> dict[str, str]:
     return {
         p.relative_to(root).as_posix(): p.read_bytes().decode("utf8", "replace")
@@ -322,6 +424,7 @@ def run_cli(run: ToolRun, case: Case) -> list[str]:
             failed.append(f"violations[{i}]: {exc}")
             continue
         failed += check_violations(f"violations[{i}]", found, check)
+    failed += tree_failures(checks, stdout)
     return failed
 
 
@@ -399,12 +502,14 @@ def run_nodes(
     jobs: int = 1,
     adapters: dict[str, Adapter] | None = None,
     progress: Callable[[NodeOutcome], None] | None = None,
+    known_tools: tuple[str, ...] = TOOLS,
 ) -> dict[str, list[NodeOutcome]]:
     """Run each case of each node for each tool. Return the node results of
-    each tool, in the order of nodes."""
-    unknown = [t for t in tools if t not in TOOLS]
+    each tool, in the order of nodes. known_tools are the tools of the scope
+    (default: the S7 tools)."""
+    unknown = [t for t in tools if t not in known_tools]
     if unknown:
-        raise ValueError(f"unknown tools {unknown}; the tools are {list(TOOLS)}")
+        raise ValueError(f"unknown tools {unknown}; the tools are {list(known_tools)}")
     adapters = adapters or {t: ADAPTERS[t]() for t in tools}
     with tempfile.TemporaryDirectory(prefix="sqll-s7-layer-") as layer:
         runs = {t: tool_run(t, adapters[t], Path(layer)) for t in tools}

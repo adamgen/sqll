@@ -130,6 +130,20 @@ test files. Its key `license` gives the license and the copyright line of
 `third_party/sqlfluff/LICENSE.md`. It has no copy of a fixture file. No
 sqlfluff code is copied.
 
+`harness/sqll_harness/s6/cases/` (track S6; S6: templater parity, sqll
+passes 100% of the placeholder and Python format-string templater fixtures
+that do not need a Python runtime) has the black-box cases of the sqlfluff
+4.4.0 tests (MIT) `test/core/templaters/placeholder_test.py` and
+`test/core/templaters/python_test.py`. They are a derived work of these
+test files: the inline SQL, the templater context and config, and the
+expected values. The header of each case file names its source test file,
+the sqlfluff version and commit, the copyright, and the MIT license.
+`scripts/s7-tests/trace-nodes --templaters` runs these test nodes from the
+submodule and runs the sqlfluff CLI (MIT) on the cases.
+`harness/tests/fixtures/s6/` has a test tree that calls the templaters of
+the installed sqlfluff 4.4.0 package, and its trace. No sqlfluff code is
+copied.
+
 `scripts/s3/sqlfluffrs_probe.py` (S3 research, task T5) copies the
 submodule into a scratch folder, runs `utils/rustify.py` there, and builds
 the sqlfluffrs crates and the probe there. The generated Rust files stay in

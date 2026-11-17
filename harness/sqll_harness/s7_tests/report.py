@@ -21,12 +21,12 @@ from .caseformat import (
     CaseSet,
 )
 from .runner import NodeOutcome
-from .suites import SUITES, TOOLS, groups
+from .suites import GROUPS as GROUPS
+from .suites import SUITES, group_list, groups, suite_table, tool_list
 
 KIND = "sqll-s7-tests-report"
 FORMAT = 2
 ALL_SUITES = sorted(SUITES)
-GROUPS = ("cli", "rules", "config", "config_fixtures")
 NODE_STATUSES = (PASS, FAIL, ERROR)
 
 
@@ -71,7 +71,7 @@ def counts(
             "excluded": out[g],
             "not_yet_converted": in_scope[g] - converted[g] - out[g],
         }
-        for g in GROUPS
+        for g in group_list(scope)
     }
     classes = Counter(e["class"] for e in excluded)
     return {
@@ -87,7 +87,7 @@ def counts(
 
 def suite_scope(scope: dict[str, Any], suites: list[str]) -> dict[str, Any]:
     """scope.json with only the nodes of the groups of the suites."""
-    keep = groups(suites)
+    keep = groups(suites, scope)
     return dict(scope, nodes=[n for n in scope["nodes"] if n["group"] in keep])
 
 
@@ -112,8 +112,8 @@ def build(
 ) -> dict[str, Any]:
     """The report of the suites (default: all). results has, for each tool,
     the outcome of each node of the suites, in the order of cases.nodes."""
-    suites = sorted(suites or ALL_SUITES)
-    keep = groups(suites)
+    suites = sorted(suites or suite_table(cases.scope))
+    keep = groups(suites, cases.scope)
     tools = list(results)
     nodes = []
     for i, node in enumerate(n for n in cases.nodes if n.group in keep):
@@ -228,7 +228,7 @@ def merge(parts: list[tuple[str, dict[str, Any]]], cases: CaseSet) -> dict[str, 
             )
     if errors:
         raise ReportError(errors)
-    tools = [t for t in TOOLS if t in versions]
+    tools = [t for t in tool_list(cases.scope) if t in versions]
     for suite in sorted(by_suite):
         missing = [t for t in tools if (suite, t) not in pairs]
         if missing:
@@ -331,21 +331,22 @@ def check(report: dict[str, Any], scope: dict[str, Any]) -> None:
     if len(scope["nodes"]) != scope["counts"]["total"]:
         errors.append("scope.json: the node list is not the total count")
     suites = report["suites"]
+    all_suites = sorted(suite_table(scope))
     if (
         not isinstance(suites, list)
         or not suites
         or suites != sorted(set(suites))
-        or set(suites) - set(SUITES)
+        or set(suites) - set(all_suites)
     ):
         raise ReportError(
-            errors + [f"the suites {suites!r} are not a sorted list of {ALL_SUITES}"]
+            errors + [f"the suites {suites!r} are not a sorted list of {all_suites}"]
         )
-    keep = groups(suites)
+    keep = groups(suites, scope)
     all_groups = {n["id"]: n["group"] for n in scope["nodes"]}
     scope = suite_scope(scope, suites)
     tools = list(report["tools"])
-    if not tools or set(tools) - set(TOOLS):
-        errors.append(f"the tools {tools} are not a part of {list(TOOLS)}")
+    if not tools or set(tools) - set(tool_list(scope)):
+        errors.append(f"the tools {tools} are not a part of {list(tool_list(scope))}")
     seen: set[str] = set()
     for entry in report["nodes"] + report["excluded"]:
         node_id = entry.get("id")
@@ -404,7 +405,7 @@ def select_suites(
     suites = sorted(suites)
     if set(suites) - set(report["suites"]):
         raise ReportError([f"the report has no suites {suites}"])
-    keep = groups(suites)
+    keep = groups(suites, scope)
     part = suite_scope(scope, suites)
     nodes = [n for n in report["nodes"] if n["group"] in keep]
     excluded = [e for e in report["excluded"] if e["group"] in keep]

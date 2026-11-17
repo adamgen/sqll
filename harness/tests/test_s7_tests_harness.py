@@ -60,11 +60,30 @@ def test_cli_parses_s7_run():
     )
     assert (args.command, args.s7_command) == ("s7", "run")
     assert args.suite == ["s7_cli"] and args.tool == ["sqruff"] and args.jobs == 2
-    assert args.out == command.DEFAULT_OUT
+    # No --out: run() writes command.DEFAULT_OUT for the scope s7 (the
+    # default scope), and out/s6/report.json for the scope s6.
+    assert args.scope == "s7" and args.out is None
     with pytest.raises(SystemExit):
         cli._parser().parse_args(["s7", "run", "--suite", "rules"])
     with pytest.raises(SystemExit):
-        cli._parser().parse_args(["s7", "run", "--tool", "sqll"])
+        cli._parser().parse_args(["s7", "run", "--scope", "s8"])
+
+
+def test_s7_run_refuses_a_tool_or_a_suite_of_another_scope(monkeypatch, capsys):
+    # sqll and the S6 suites are choices of the parser (the scope s6 has
+    # them), but not of the S7 scope: the run stops with exit code 2 before
+    # it loads the cases or checks a tool.
+    def no_load():
+        raise AssertionError("the cases must not load")
+
+    monkeypatch.setattr(caseformat, "load", no_load)
+    assert cli.main(["s7", "run", "--tool", "sqll"]) == 2
+    assert "--tool sqll: not of the scope s7" in capsys.readouterr().err
+    assert cli.main(["s7", "run", "--suite", "s6_python"]) == 2
+    assert "--suite s6_python: not of the scope s7" in capsys.readouterr().err
+    argv = ["s7", "run", "--scope", "s6", "--tool", "sqlfluff-rs"]
+    assert cli.main(argv) == 2
+    assert "--tool sqlfluff-rs: not of the scope s6" in capsys.readouterr().err
 
 
 def test_require_pass_needs_the_tool(capsys):
