@@ -1,0 +1,227 @@
+# S7 black-box cases (docs/decisions/s7-tests-design.md, "Case format").
+# A derived work of the sqlfluff tests: copyright (c) 2018-2026 Alan
+# Cruickshank, MIT License.
+# Each node calls sqlfluff.lint and sqlfluff.fix with a config whose layout
+# section has align_scope (and some a Jinja context). With a config, the
+# simple API ignores the rules argument and calls
+# Linter(config=cfg).lint_string_wrapped(sql). The trace oracle maps each call
+# to "lint -f json -" or "fix -" on stdin in a temporary folder, with the config
+# as a .sqlfluff file (the config model of the design record; the layout keys
+# and the Jinja context are extra keys of the model). T18 (convert the rule tests, part 3, the Jinja rule nodes; goal: each rule
+# node that needs the Jinja templater is a black-box case marked for S11) of
+# S7 (CLI and config parity: the sqlfluff CLI, config, and Python rule tests
+# as black-box cases; sqll passes 100% of the converted cases; cases that need
+# the Jinja templater move to the Jinja templater stone) converts them.
+# - The SQL of 5 nodes has Jinja tags: they need Jinja and move to S11.
+# - The SQL and the config of test_lt01_alias_alignment_edge_case_no_segments_on_line
+#   and test_lt01_alias_alignment_target_segment_not_found have no Jinja tag
+#   and no Jinja key: they do not need Jinja (needs_jinja false).
+# - test_lt01_alias_alignment_with_jinja_uses_source_positions is excluded
+#   (needs-python-runtime): its Jinja context has 2 Python functions.
+# The fix checks give the exact fixed SQL of sqlfluff 4.4.0, which is stronger
+# than the source asserts on the lines of the fixed SQL: the next lint call
+# lints this fixed SQL. All rules run (the simple API ignores rules with a
+# config), so the target_segment_not_found fix also moves a select target.
+source:
+  project: sqlfluff
+  version: 4.4.0
+  commit: 0348222a3bcdb0226563f7349c5a39beb0641955
+  file: test/rules/std_LT01_jinja_alignment_test.py
+license: MIT
+nodes:
+  - node: "test/rules/std_LT01_jinja_alignment_test.py::test_lt01_alias_alignment_with_jinja_coordinate_space_config_key"
+    asserts:
+      L93: ["fix:stdout.equals"]
+      L95: ["fix:stdout.equals"]
+      L100: ["fix:stdout.equals"]
+    cases:
+      - name: fix
+        run: cli
+        needs_jinja: true
+        argv: [fix, "-"]
+        cwd: tmp
+        files:
+          ".sqlfluff": "[sqlfluff]\ndialect = ansi\n\n[sqlfluff:layout:type:alias_expression]\nalign_scope = bracketed\nalign_within = select_clause\nalignment_coordinate_space = templated\nspacing_before = align\n"
+        stdin: "select\n    {{ 'templ' }} as a,\n    b as bb\n"
+        checks:
+          exit_code: 0
+          stdout: {equals: "select\n    {{ 'templ' }} as a,\n    b     as bb\n"}
+  - node: "test/rules/std_LT01_jinja_alignment_test.py::test_lt01_alias_alignment_non_rendered_longer_than_template"
+    asserts:
+      L124: ["lint_before:violations[0]"]
+      L131: ["lint_after:violations[0]"]
+      L136: ["fix:stdout.equals"]
+      L140: ["fix:stdout.equals"]
+    cases:
+      - name: lint_before
+        run: cli
+        needs_jinja: true
+        argv: [lint, "-f", json, "-"]
+        cwd: tmp
+        files:
+          ".sqlfluff": "[sqlfluff]\ndialect = ansi\n\n[sqlfluff:layout:type:alias_expression]\nalign_scope = bracketed\nalign_within = select_clause\nspacing_before = align\n"
+        stdin: "select\n    {{ \"xxx\" }} as a,\n    fooooooooo as b\nfrom t\n"
+        checks:
+          exit_code: 1
+          violations:
+            - {select: {code: LT01}, min_count: 1}
+      - name: fix
+        run: cli
+        needs_jinja: true
+        argv: [fix, "-"]
+        cwd: tmp
+        files:
+          ".sqlfluff": "[sqlfluff]\ndialect = ansi\n\n[sqlfluff:layout:type:alias_expression]\nalign_scope = bracketed\nalign_within = select_clause\nspacing_before = align\n"
+        stdin: "select\n    {{ \"xxx\" }} as a,\n    fooooooooo as b\nfrom t\n"
+        checks:
+          exit_code: 0
+          stdout: {equals: "select\n    {{ \"xxx\" }} as a,\n    fooooooooo  as b\nfrom t\n"}
+      - name: lint_after
+        run: cli
+        needs_jinja: true
+        argv: [lint, "-f", json, "-"]
+        cwd: tmp
+        files:
+          ".sqlfluff": "[sqlfluff]\ndialect = ansi\n\n[sqlfluff:layout:type:alias_expression]\nalign_scope = bracketed\nalign_within = select_clause\nspacing_before = align\n"
+        stdin: "select\n    {{ \"xxx\" }} as a,\n    fooooooooo  as b\nfrom t\n"
+        checks:
+          exit_code: 0
+          violations:
+            - {select: {code: LT01}, count: 0}
+  - node: "test/rules/std_LT01_jinja_alignment_test.py::test_lt01_alias_alignment_source_coordinate_space_explicit"
+    asserts:
+      L167: ["lint_after:violations[0]"]
+    cases:
+      - name: fix
+        run: cli
+        needs_jinja: true
+        argv: [fix, "-"]
+        cwd: tmp
+        files:
+          ".sqlfluff": "[sqlfluff]\ndialect = ansi\n\n[sqlfluff:layout:type:alias_expression]\nalign_scope = bracketed\nalign_within = select_clause\nalignment_coordinate_space = source\nspacing_before = align\n\n[sqlfluff:templater:jinja:context]\nvar1 = some_value\n"
+        stdin: "select\n    {{ var1 }} as col1,\n    b as col2\nfrom table1\n"
+        checks:
+          exit_code: 0
+          stdout: {equals: "select\n    {{ var1 }} as col1,\n    b          as col2\nfrom table1\n"}
+      - name: lint_after
+        run: cli
+        needs_jinja: true
+        argv: [lint, "-f", json, "-"]
+        cwd: tmp
+        files:
+          ".sqlfluff": "[sqlfluff]\ndialect = ansi\n\n[sqlfluff:layout:type:alias_expression]\nalign_scope = bracketed\nalign_within = select_clause\nalignment_coordinate_space = source\nspacing_before = align\n\n[sqlfluff:templater:jinja:context]\nvar1 = some_value\n"
+        stdin: "select\n    {{ var1 }} as col1,\n    b          as col2\nfrom table1\n"
+        checks:
+          exit_code: 0
+          violations:
+            - {select: {code: LT01}, count: 0}
+  - node: "test/rules/std_LT01_jinja_alignment_test.py::test_lt01_alias_alignment_edge_case_no_segments_on_line"
+    asserts:
+      L190: ["fix:stdout.equals"]
+      L191: ["lint_after:violations[0]"]
+    cases:
+      - name: fix
+        run: cli
+        needs_jinja: false
+        argv: [fix, "-"]
+        cwd: tmp
+        files:
+          ".sqlfluff": "[sqlfluff]\ndialect = ansi\n\n[sqlfluff:layout:type:alias_expression]\nalign_scope = bracketed\nalign_within = select_clause\nspacing_before = align\n"
+        stdin: "select\n\n    col1 as a,\n    col2 as b\nfrom t\n"
+        checks:
+          exit_code: 0
+          stdout: {equals: "select\n\n    col1 as a,\n    col2 as b\nfrom t\n"}
+      - name: lint_after
+        run: cli
+        needs_jinja: false
+        argv: [lint, "-f", json, "-"]
+        cwd: tmp
+        files:
+          ".sqlfluff": "[sqlfluff]\ndialect = ansi\n\n[sqlfluff:layout:type:alias_expression]\nalign_scope = bracketed\nalign_within = select_clause\nspacing_before = align\n"
+        stdin: "select\n\n    col1 as a,\n    col2 as b\nfrom t\n"
+        checks:
+          exit_code: 0
+          violations:
+            - {select: {code: LT01}, count: 0}
+  - node: "test/rules/std_LT01_jinja_alignment_test.py::test_lt01_alias_alignment_target_segment_not_found"
+    asserts:
+      L220: ["fix:stdout.equals"]
+      L221: ["lint_after:violations[0]"]
+    cases:
+      - name: fix
+        run: cli
+        needs_jinja: false
+        argv: [fix, "-"]
+        cwd: tmp
+        files:
+          ".sqlfluff": "[sqlfluff]\ndialect = ansi\n\n[sqlfluff:layout:type:alias_expression]\nalign_scope = bracketed\nalign_within = select_clause\nspacing_before = align\n"
+        stdin: "select\n    case when 1=1\n         then col1 end as a,\n    col2 as b\nfrom t\n"
+        checks:
+          exit_code: 0
+          stdout: {equals: "select\n    col2 as b,\n    case\n        when 1 = 1\n            then col1\n    end  as a\nfrom t\n"}
+      - name: lint_after
+        run: cli
+        needs_jinja: false
+        argv: [lint, "-f", json, "-"]
+        cwd: tmp
+        files:
+          ".sqlfluff": "[sqlfluff]\ndialect = ansi\n\n[sqlfluff:layout:type:alias_expression]\nalign_scope = bracketed\nalign_within = select_clause\nspacing_before = align\n"
+        stdin: "select\n    col2 as b,\n    case\n        when 1 = 1\n            then col1\n    end  as a\nfrom t\n"
+        checks:
+          exit_code: 0
+          violations:
+            - {select: {code: LT01}, count: 0}
+  - node: "test/rules/std_LT01_jinja_alignment_test.py::test_lt01_alias_alignment_templated_next_segment"
+    asserts:
+      L246: ["lint_after:violations[0]"]
+    cases:
+      - name: fix
+        run: cli
+        needs_jinja: true
+        argv: [fix, "-"]
+        cwd: tmp
+        files:
+          ".sqlfluff": "[sqlfluff]\ndialect = ansi\n\n[sqlfluff:layout:type:alias_expression]\nalign_scope = bracketed\nalign_within = select_clause\nspacing_before = align\n\n[sqlfluff:templater:jinja:context]\ncol2 = column_two\n"
+        stdin: "select\n    col1 as a,\n    {{ col2 }} as b\n"
+        checks:
+          exit_code: 0
+          stdout: {equals: "select\n    col1       as a,\n    {{ col2 }} as b\n"}
+      - name: lint_after
+        run: cli
+        needs_jinja: true
+        argv: [lint, "-f", json, "-"]
+        cwd: tmp
+        files:
+          ".sqlfluff": "[sqlfluff]\ndialect = ansi\n\n[sqlfluff:layout:type:alias_expression]\nalign_scope = bracketed\nalign_within = select_clause\nspacing_before = align\n\n[sqlfluff:templater:jinja:context]\ncol2 = column_two\n"
+        stdin: "select\n    col1       as a,\n    {{ col2 }} as b\n"
+        checks:
+          exit_code: 0
+          violations:
+            - {select: {code: LT01}, count: 0}
+  - node: "test/rules/std_LT01_jinja_alignment_test.py::test_lt01_alias_alignment_templated_siblings"
+    asserts:
+      L271: ["lint_after:violations[0]"]
+    cases:
+      - name: fix
+        run: cli
+        needs_jinja: true
+        argv: [fix, "-"]
+        cwd: tmp
+        files:
+          ".sqlfluff": "[sqlfluff]\ndialect = ansi\n\n[sqlfluff:layout:type:alias_expression]\nalign_scope = bracketed\nalign_within = select_clause\nspacing_before = align\n\n[sqlfluff:templater:jinja:context]\ncol1 = column_one\ncol3 = column_three\n"
+        stdin: "select\n    {{ col1 }} as a,\n    col2 as b,\n    {{ col3 }} as c\n"
+        checks:
+          exit_code: 0
+          stdout: {equals: "select\n    {{ col1 }} as a,\n    col2       as b,\n    {{ col3 }} as c\n"}
+      - name: lint_after
+        run: cli
+        needs_jinja: true
+        argv: [lint, "-f", json, "-"]
+        cwd: tmp
+        files:
+          ".sqlfluff": "[sqlfluff]\ndialect = ansi\n\n[sqlfluff:layout:type:alias_expression]\nalign_scope = bracketed\nalign_within = select_clause\nspacing_before = align\n\n[sqlfluff:templater:jinja:context]\ncol1 = column_one\ncol3 = column_three\n"
+        stdin: "select\n    {{ col1 }} as a,\n    col2       as b,\n    {{ col3 }} as c\n"
+        checks:
+          exit_code: 0
+          violations:
+            - {select: {code: LT01}, count: 0}

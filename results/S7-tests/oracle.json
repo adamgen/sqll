@@ -525,6 +525,70 @@
      "errors": []
     },
     {
+     "id": "test/rules/std_JJ01_test.py::test_lint_jj01_custom_delimiters",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 2,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_JJ01_test.py::test_lint_jj01_mixed_custom_and_default_delimiters",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_JJ01_test.py::test_lint_jj01_custom_block_delimiters",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_JJ01_test.py::test_lint_jj01_partial_delimiter_override",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
      "id": "test/rules/std_LT01_LT02_LT09_combo_test.py::test__rules__std_LT02_LT09_LT01",
      "pytest": "passed",
      "trace": "pass",
@@ -574,6 +638,153 @@
       }
      ],
      "asserts": 2,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_LT01_jinja_alignment_test.py::test_lt01_alias_alignment_with_jinja_coordinate_space_config_key",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "fix",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 3,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_LT01_jinja_alignment_test.py::test_lt01_alias_alignment_non_rendered_longer_than_template",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint_before",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "fix",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "lint_after",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 4,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_LT01_jinja_alignment_test.py::test_lt01_alias_alignment_source_coordinate_space_explicit",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "fix",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "lint_after",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_LT01_jinja_alignment_test.py::test_lt01_alias_alignment_edge_case_no_segments_on_line",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "fix",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "lint_after",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 2,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_LT01_jinja_alignment_test.py::test_lt01_alias_alignment_target_segment_not_found",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "fix",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "lint_after",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 2,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_LT01_jinja_alignment_test.py::test_lt01_alias_alignment_templated_next_segment",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "fix",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "lint_after",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_LT01_jinja_alignment_test.py::test_lt01_alias_alignment_templated_siblings",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "fix",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "lint_after",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
      "not_reproduced": 0,
      "errors": []
     },
@@ -1173,6 +1384,38 @@
      "errors": []
     },
     {
+     "id": "test/rules/std_ST12_test.py::test__rules__std_ST12_templated_loop_no_false_positive",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "templated_loop",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_ST12_test.py::test__rules__std_ST12_templated_consecutive_semicolons_detected",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "templated_semicolons",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
      "id": "test/rules/std_roundtrip_test.py::test__cli__command__fix[LT01-test/fixtures/linter/indentation_errors.sql0]",
      "pytest": "passed",
      "trace": "pass",
@@ -1325,6 +1568,58 @@
       }
      ],
      "asserts": 3,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_roundtrip_test.py::test__cli__command__fix_templated[CP01]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint_before",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "fix",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "lint_after",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 4,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_roundtrip_test.py::test__cli__command__fix_templated[LT01]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint_before",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "fix",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "lint_after",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 4,
      "not_reproduced": 0,
      "errors": []
     },
@@ -1727,6 +2022,12 @@
      "errors": []
     },
     {
+     "id": "test/rules/std_JJ01_test.py::test_lint_jj01_pickled_config",
+     "pytest": "passed",
+     "calls": {},
+     "errors": []
+    },
+    {
      "id": "test/rules/std_LT04_ST06_test.py::test_rule_st06_simple_expression_helpers_reject_non_simple_segments",
      "pytest": "passed",
      "calls": {},
@@ -1740,12 +2041,12 @@
     }
    ],
    "counts": {
-    "nodes": 91,
-    "agree": 91,
-    "pass": 91,
+    "nodes": 106,
+    "agree": 106,
+    "pass": 106,
     "fail": 0,
-    "python_internal": 4,
-    "asserts": 184,
+    "python_internal": 5,
+    "asserts": 213,
     "not_reproduced": 0
    },
    "errors": []
@@ -2269,6 +2570,70 @@
      "errors": []
     },
     {
+     "id": "test/rules/std_JJ01_test.py::test_lint_jj01_custom_delimiters",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 2,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_JJ01_test.py::test_lint_jj01_mixed_custom_and_default_delimiters",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_JJ01_test.py::test_lint_jj01_custom_block_delimiters",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_JJ01_test.py::test_lint_jj01_partial_delimiter_override",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
      "id": "test/rules/std_LT01_LT02_LT09_combo_test.py::test__rules__std_LT02_LT09_LT01",
      "pytest": "passed",
      "trace": "pass",
@@ -2318,6 +2683,153 @@
       }
      ],
      "asserts": 2,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_LT01_jinja_alignment_test.py::test_lt01_alias_alignment_with_jinja_coordinate_space_config_key",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "fix",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 3,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_LT01_jinja_alignment_test.py::test_lt01_alias_alignment_non_rendered_longer_than_template",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint_before",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "fix",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "lint_after",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 4,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_LT01_jinja_alignment_test.py::test_lt01_alias_alignment_source_coordinate_space_explicit",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "fix",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "lint_after",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_LT01_jinja_alignment_test.py::test_lt01_alias_alignment_edge_case_no_segments_on_line",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "fix",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "lint_after",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 2,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_LT01_jinja_alignment_test.py::test_lt01_alias_alignment_target_segment_not_found",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "fix",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "lint_after",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 2,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_LT01_jinja_alignment_test.py::test_lt01_alias_alignment_templated_next_segment",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "fix",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "lint_after",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_LT01_jinja_alignment_test.py::test_lt01_alias_alignment_templated_siblings",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "fix",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "lint_after",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
      "not_reproduced": 0,
      "errors": []
     },
@@ -2917,6 +3429,38 @@
      "errors": []
     },
     {
+     "id": "test/rules/std_ST12_test.py::test__rules__std_ST12_templated_loop_no_false_positive",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "templated_loop",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_ST12_test.py::test__rules__std_ST12_templated_consecutive_semicolons_detected",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "templated_semicolons",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
      "id": "test/rules/std_roundtrip_test.py::test__cli__command__fix[LT01-test/fixtures/linter/indentation_errors.sql0]",
      "pytest": "passed",
      "trace": "pass",
@@ -3069,6 +3613,58 @@
       }
      ],
      "asserts": 3,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_roundtrip_test.py::test__cli__command__fix_templated[CP01]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint_before",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "fix",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "lint_after",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 4,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_roundtrip_test.py::test__cli__command__fix_templated[LT01]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint_before",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "fix",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "lint_after",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 4,
      "not_reproduced": 0,
      "errors": []
     },
@@ -3471,6 +4067,12 @@
      "errors": []
     },
     {
+     "id": "test/rules/std_JJ01_test.py::test_lint_jj01_pickled_config",
+     "pytest": "passed",
+     "calls": {},
+     "errors": []
+    },
+    {
      "id": "test/rules/std_LT04_ST06_test.py::test_rule_st06_simple_expression_helpers_reject_non_simple_segments",
      "pytest": "passed",
      "calls": {},
@@ -3484,12 +4086,12 @@
     }
    ],
    "counts": {
-    "nodes": 91,
-    "agree": 91,
-    "pass": 90,
+    "nodes": 106,
+    "agree": 106,
+    "pass": 105,
     "fail": 1,
-    "python_internal": 4,
-    "asserts": 184,
+    "python_internal": 5,
+    "asserts": 213,
     "not_reproduced": 0
    },
    "errors": []
