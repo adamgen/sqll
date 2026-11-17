@@ -3,7 +3,7 @@ fixtures with an exact tree match): scripts/s4/exit.py.
 
 Task T5 (the exit record gives the CI proof that sqll passes 100% of the
 dialect parse fixtures with an exact tree match, and the orchestrator can
-approve this stone) of S4. Exit record: docs/decisions/s4-exit.md.
+approve this stone) of this stone. Exit record: docs/decisions/s4-exit.md.
 
 The tests use copies of the real inputs (results/S4/, results/s1/summary.json,
 known_failures/sqll.txt) in a scratch folder. The git facts come from a fake

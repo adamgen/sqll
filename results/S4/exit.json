@@ -197,7 +197,7 @@
     "tree_path": [
      "harness/sqll_harness/suites/dialects.py: each SQL file of test/fixtures/dialects/<dialect>/ of the pinned sqlfluff with a .yml file is one case",
      "harness/sqll_harness/adapters/sqll.py: sqll parse -f json -c --templater raw --dialect D --ignore-local-config PATH",
-     "crates/sqll_cli/src/parse/steps.rs: the raw templater, then sqll_syntax::parse (the frozen parse interface of S3b) to the SyntaxTree",
+     "crates/sqll_cli/src/parse/steps.rs: the raw templater, then sqll_syntax::parse (the frozen parse interface of the shared core) to the SyntaxTree",
      "crates/sqll_cli/src/parse/output.rs: the record of sqlfluff parse -f json from the SyntaxTree",
      "harness/sqll_harness/compare.py: process_struct of the sqlfluff test, and an exact tree match; no unparsable segment, no error, exit code 0",
      "scripts/sqlfluff-dialect-oracle --passes-of sqll: each sqll pass passes in the sqlfluff dialect tests"

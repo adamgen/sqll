@@ -3,7 +3,7 @@ fixtures with an exact tree match).
 
 Task T5 (the exit record gives the CI proof that sqll passes 100% of the
 dialect parse fixtures with an exact tree match, and the orchestrator can
-approve this stone) of S4. Design record: docs/decisions/s4-parity.md. Exit
+approve this stone) of this stone. Design record: docs/decisions/s4-parity.md. Exit
 record: docs/decisions/s4-exit.md.
 
 One command. Run it from the root of the repository with the harness Python:
@@ -19,13 +19,19 @@ repository):
                     steps "Compare the dialect results with the sqlfluff
                     tests" and "Check the S4 parser parity" (copied from the
                     GitHub job log).
-  --parity          the record of the local parity run of T2
+  --parity          the record of the local parity run of T2 (each dialect
+                    fixture of the pinned sqlfluff is one harness case, and
+                    the check fails closed on each gap) of this stone
                     (default: results/S4/parity.json).
-  --gate            the record of the CI gate of T3, with the injected gaps
+  --gate            the record of the CI gate of T3 (CI fails on each gap of
+                    this stone) of this stone, with the injected gaps
                     (default: results/S4/gate.json).
-  --corpus          the corpus information of T4
+  --corpus          the corpus information of T4 (the parse status of sqll
+                    and sqlfluff on each corpus file is recorded, and each
+                    difference has a row) of this stone
                     (default: results/S4/corpus-diff.json).
-  --s1              the recorded S1 summary (default: results/s1/summary.json).
+  --s1              the recorded summary of the harness
+                    (default: results/s1/summary.json).
   --known-failures  the known failures of sqll
                     (default: known_failures/sqll.txt).
   git               in --root: the pinned commit (git rev-parse
@@ -50,8 +56,10 @@ The exit items:
   e  The CI gate fails closed (the injected-gap proofs of T3).
   f  The corpus information of T4, as information only (it does not change
      the parity number).
-  g  G3 (speed): no parse-path change from START, or the speed-check record
-     of each task that changed it (design record section 5).
+  g  The speed rule of G3 (the text of G3 is in the constant G3): no
+     parse-path change from START (design record section 5). A parse-path
+     change needs the speed-check record of its task; this check then
+     fails, and the exit record must give that record.
 
 Exit code 0 if each item is met, 1 if an item is not met, and 2 if an input
 is missing or not valid (no record is written).
@@ -165,7 +173,8 @@ TREE_PATH = [
     "harness/sqll_harness/adapters/sqll.py: sqll parse -f json -c --templater"
     " raw --dialect D --ignore-local-config PATH",
     "crates/sqll_cli/src/parse/steps.rs: the raw templater, then"
-    " sqll_syntax::parse (the frozen parse interface of S3b) to the SyntaxTree",
+    " sqll_syntax::parse (the frozen parse interface of the shared core) to the"
+    " SyntaxTree",
     "crates/sqll_cli/src/parse/output.rs: the record of sqlfluff parse -f json"
     " from the SyntaxTree",
     "harness/sqll_harness/compare.py: process_struct of the sqlfluff test, and"
