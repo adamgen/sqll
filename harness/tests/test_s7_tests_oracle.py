@@ -47,6 +47,14 @@ AM09_INTERNAL = (
     "test/rules/std_AM09_test.py"
     "::test__rules__std_AM09_eval_short_circuit_on_non_select_segment"
 )
+# The python-internal nodes of T7 (convert the rule tests, part 2).
+ST06_INTERNAL = (
+    "test/rules/std_LT04_ST06_test.py"
+    "::test_rule_st06_simple_expression_helpers_reject_non_simple_segments"
+)
+GLOBAL_CONFIG_INTERNAL = (
+    "test/rules/yaml_test_cases_test.py::test__rule_test_global_config"
+)
 EXCLUDE = (
     "test/core/config/fluffconfig_test.py::test__config__glob_exclude_config_tests"
 )
@@ -106,19 +114,20 @@ def test_the_oracle_agrees_with_each_converted_case(tool):
     assert [n["id"] for n in result["nodes"]] == report_ids
     assert report_ids == [n.id for n in CASES.nodes]
     # The 15 pilot nodes of T2, the 23 rule nodes of T6, the 2 proof nodes
-    # of T16, and the 2 proof nodes of T17.
-    assert result["counts"]["agree"] == result["counts"]["nodes"] == 42
+    # of T16, the 2 proof nodes of T17, and the 49 rule nodes of T7.
+    assert result["counts"]["agree"] == result["counts"]["nodes"] == 91
     status = {n["id"]: n["results"][tool]["status"] for n in REPORT["nodes"]}
     for node in result["nodes"]:
         assert node["trace"] == status[node["id"]], node["id"]
         assert node["pytest"] == {"pass": "passed", "fail": "failed"}[node["trace"]]
         assert node["errors"] == []
-    # Each assert of the source tests: 97, each cited by a check.
-    assert result["counts"]["asserts"] == 97
+    # Each assert of the source tests: 184 (97 before T7), each cited by a
+    # check.
+    assert result["counts"]["asserts"] == 184
     assert result["counts"]["not_reproduced"] == 0
     internal = [e["id"] for e in REPORT["excluded"] if e["class"] == "python-internal"]
     assert [n["id"] for n in result["python_internal"]] == internal
-    assert internal == [INTERNAL, AM09_INTERNAL]
+    assert internal == [INTERNAL, AM09_INTERNAL, ST06_INTERNAL, GLOBAL_CONFIG_INTERNAL]
     assert all(n["calls"] == {} for n in result["python_internal"])
 
 

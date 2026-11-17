@@ -1,17 +1,22 @@
 # S7 black-box cases (docs/decisions/s7-tests-design.md, "Case format").
 # A derived work of the sqlfluff tests: copyright (c) 2018-2026 Alan
 # Cruickshank, MIT License.
-# test__rules__std_LT03_trailing calls Linter(config=FluffConfig(...))
-# .lint_string_wrapped(sql). The trace oracle maps the call to "lint -f json -"
-# on stdin in a temporary folder, with the config as a .sqlfluff file (the
-# config model of the design record). T16 (trace oracle and case runner,
-# extension 1; goal: the trace oracle maps and proves the calls that the
-# remaining rule nodes use, and fails closed on each other call) of S7 (CLI
-# and config parity: the sqlfluff CLI, config, and Python rule tests as
-# black-box cases; sqll passes 100% of the converted cases; cases that need
-# the Jinja templater move to the Jinja templater stone) converts it as a
-# proof node of this map. The node test__rules__std_LT03_leading is not
-# converted yet.
+# test__rules__std_LT03_trailing and test__rules__std_LT03_leading call
+# Linter(config=FluffConfig(...)).lint_string_wrapped(sql). The trace oracle
+# maps the call to "lint -f json -" on stdin in a temporary folder, with the
+# config as a .sqlfluff file (the config model of the design record). The
+# leading config is the default, so the file gives only the dialect. T16
+# (trace oracle and case runner, extension 1; goal: the trace oracle maps and
+# proves the calls that the remaining rule nodes use, and fails closed on each
+# other call) of S7 (CLI and config parity: the sqlfluff CLI, config, and
+# Python rule tests as black-box cases; sqll passes 100% of the converted
+# cases; cases that need the Jinja templater move to the Jinja templater
+# stone) converted the trailing node as a proof node of this map, and T7
+# (convert the rule tests, part 2; goal: the other rule nodes, not Rust
+# dispatch and not Jinja, are black-box cases) of S7 (CLI and config parity:
+# the sqlfluff CLI, config, and Python rule tests as black-box cases; sqll
+# passes 100% of the converted cases; cases that need the Jinja templater move
+# to the Jinja templater stone) converts the leading node.
 source:
   project: sqlfluff
   version: 4.4.0
@@ -54,4 +59,23 @@ nodes:
               min_count: 1
             - select:
                 description: Found leading binary operator. Expected only trailing near line breaks.
+              min_count: 1
+  - node: "test/rules/std_LT03_test.py::test__rules__std_LT03_leading"
+    asserts:
+      L50: ["leading:violations[0]"]
+      L51: ["leading:violations[1]"]
+    cases:
+      - name: leading
+        run: cli
+        argv: [lint, "-f", json, "-"]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\n"
+        stdin: "\n        SELECT\n            a,\n            b\n        FROM foo\n        WHERE\n            a = 1 AND\n            b = 2\n    "
+        checks:
+          exit_code: 1
+          violations:
+            - select: {code: LT03}
+              min_count: 1
+            - select: {description: "Found trailing binary operator. Expected only leading near line breaks."}
               min_count: 1

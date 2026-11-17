@@ -1,0 +1,39 @@
+# S7 black-box cases (docs/decisions/s7-tests-design.md, "Case format").
+# A derived work of the sqlfluff tests: copyright (c) 2018-2026 Alan
+# Cruickshank, MIT License.
+# test__rules__std_RF01_LT09_copy calls
+# Linter(config=FluffConfig.from_kwargs(...)).lint_string(sql). The trace
+# oracle maps each Linter string call to "lint -f json -" (and "fix -" if the
+# call fixes) on stdin in a temporary folder, with the config of the Linter as
+# a .sqlfluff file (the config model of the design record). The record gives
+# the description of the one violation: thus it has no "Unexpected exception".
+# T7 (convert the rule tests, part 2; goal: the other rule nodes, not Rust
+# dispatch and not Jinja, are black-box cases) of S7 (CLI and config parity:
+# the sqlfluff CLI, config, and Python rule tests as black-box cases; sqll
+# passes 100% of the converted cases; cases that need the Jinja templater move
+# to the Jinja templater stone) converts it.
+source:
+  project: sqlfluff
+  version: 4.4.0
+  commit: 0348222a3bcdb0226563f7349c5a39beb0641955
+  file: test/rules/std_RF01_LT09_test.py
+license: MIT
+nodes:
+  - node: "test/rules/std_RF01_LT09_test.py::test__rules__std_RF01_LT09_copy"
+    asserts:
+      L25: ["lint:violations[0].records[0]"]
+      L26: ["lint:violations[0]"]
+      L28: ["lint:violations[0].records[0]"]
+    cases:
+      - name: lint
+        run: cli
+        argv: [lint, "-f", json, "-"]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = mysql\nrules = RF01,LT09\n"
+        stdin: "\nSELECT\n    DISTINCT `FIELD`\nFROM `TABLE`;\n"
+        checks:
+          exit_code: 1
+          violations:
+            - records:
+                - {code: LT09, description: "Select targets should be on a new line unless there is only one select target."}

@@ -296,12 +296,15 @@ def test_status_has_each_task():
     # orchestrator added T16 (the trace oracle extension 1) before T7 on
     # 2026-11-15, and T17 (extension 2) on 2026-11-17. T17 added the
     # extensions T18 to T21, each before the conversion task that needs it.
+    # The orchestrator gave T7 the maps of T16 and T17 on 2026-11-17, so T7
+    # comes before T18; T7 added T22 (the rule nodes that need T18).
     # Each row has a goal (AGENTS.md, "Names").
     table = _section(STATUS, "S7-tests tasks").splitlines()
     rows = [r for r in table if r.startswith("|")]
     assert rows[0] == "| Task | Description | Goal | State |"
     cells = [[c.strip() for c in r.strip("|").split(" | ")] for r in rows[2:]]
-    order = [f"T{n}" for n in range(1, 7)] + ["T16", "T17", "T18", "T7", "T8"]
+    order = [f"T{n}" for n in range(1, 7)] + ["T16", "T17", "T7", "T18", "T22"]
+    order += ["T8"]
     order += ["T19", "T9", "T20", "T21"] + [f"T{n}" for n in range(10, 16)]
     assert [c[0] for c in cells] == order
     assert all(len(c) == 4 and all(c) for c in cells), cells
