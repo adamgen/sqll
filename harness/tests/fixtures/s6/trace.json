@@ -279,7 +279,7 @@
        ],
        "exit_code": 0,
        "stdout": "[{\"filepath\": \"case.sql\", \"segments\": null}]\n",
-       "stderr": "WARNING    The config value large_file_skip_char_limit was found set. This feature will be removed in a future release, please use the more efficient 'large_file_skip_byte_limit' instead.       \nWARNING    Length of file 'case.sql' is over 2 characters. Skipping to avoid parser lock. Users can increase this limit in their config by setting the 'large_file_skip_char_limit' value, or disable by setting it to zero.       \n",
+       "stderr": "WARNING    The config value large_file_skip_char_limit was found set. This feature will be removed in a future release, please use the more efficient 'large_file_skip_byte_limit' instead. \nWARNING    Length of file 'case.sql' is over 2 characters. Skipping to avoid parser lock. Users can increase this limit in their config by setting the 'large_file_skip_char_limit' value, or disable by setting it to zero. \n",
        "files": {
         ".sqlfluff": "[sqlfluff]\ndialect = ansi\nlarge_file_skip_char_limit = 2\ntemplater = python\n",
         "case.sql": "SELECT 1"

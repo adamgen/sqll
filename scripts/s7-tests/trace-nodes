@@ -1046,6 +1046,10 @@ def install_templaters(tracer: Tracer) -> None:
         # The error wrapper records the errors of the watched functions in
         # a proof run (Tracer.errors); the templater proof does not use them.
         tracer.proof_errors = []
+        # The CLI run changes the sqlfluff loggers and colorama (cli_state);
+        # restore them, as Tracer.cli_proof does, so the test does not see
+        # the run.
+        state = cli_state()
         try:
             os.chdir(folder)
             with tracer.scope(PROOF):
@@ -1054,6 +1058,7 @@ def install_templaters(tracer: Tracer) -> None:
             os.chdir(old)
             calls, tracer.proof_calls = tracer.proof_calls, None
             tracer.proof_errors = []
+            state()
         out = {
             "argv": argv,
             "exit_code": result.exit_code,
@@ -1170,7 +1175,7 @@ def install_templaters(tracer: Tracer) -> None:
             cls.process = wrap(cls.__dict__["process"])
     # A templater method that a test calls outside each traced call: the map
     # does not know it (an untraced call).
-    kinds = ("cli", "api", "linter", "linter_string", "templater", PROOF)
+    kinds = ("cli", "api", "linter", "linter_string", "helper", "templater", PROOF)
     for cls in classes:
         for name in ("get_context", "slice_file"):
             if name in cls.__dict__:

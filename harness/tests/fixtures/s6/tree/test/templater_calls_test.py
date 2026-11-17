@@ -87,3 +87,20 @@ def test_map_python_empty():
     t = PythonTemplater(override_context=dict(foo="bar"))
     out, _ = t.process(in_str="", fname="test")
     assert str(out) == ""
+
+
+@pytest.fixture(autouse=True)
+def no_cli_state():
+    # The trace runs the CLI cases of each mapped call in this process; the
+    # test must not see them (limit 5 of the design record). A failed
+    # teardown is the outcome "error" of the trace. This fixture is at the
+    # end of the file, so the lines of the asserts above do not change.
+    yield
+    import logging
+
+    import colorama.initialise
+
+    logger = logging.getLogger("sqlfluff")
+    assert logger.propagate and logger.handlers == []
+    assert colorama.initialise.wrapped_stdout is None
+    assert not colorama.initialise.atexit_done
