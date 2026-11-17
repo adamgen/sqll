@@ -21,10 +21,19 @@ oracles do. It records, for each node:
 - calls: each outermost call of the CLI (click.testing.CliRunner.invoke of
   a sqlfluff command), of the simple API (sqlfluff.lint, fix, parse), of a
   Linter path method (Linter.lint_path, lint_paths), and of a Linter string
-  method (Linter.lint_string, lint_string_wrapped), in order, with its
+  method (Linter.lint_string, lint_string_wrapped), and of a known test
+  helper of sqlfluff.utils.testing.rules (HELPERS), in order, with its
   inputs and its outputs. A call inside a traced call is part of it. Only a
-  Linter string call in a simple-API call with a config is recorded too,
-  under "inner" of that call.
+  Linter string call in a simple-API call with a config, and the Linter
+  calls of a test helper, are recorded too, under "inner" of that call.
+- error calls (kind "error"): a FluffConfig construction, a Linter
+  construction, or a RuleSet.get_rulepack call outside each traced call that
+  raises an exception (for example in pytest.raises). The call records the
+  error and the CLI input of its config. If the trace can give the config
+  to the CLI (a .sqlfluff file of the config model, or lint options), it
+  runs "lint -" with that input and an empty stdin in a new folder, in
+  process, and records the outputs and the errors of the same functions in
+  that CLI run (the proof that the CLI gives the same error).
 - untraced: each sqlfluff CLI command (click Command.main, get_config of
   the CLI) and each simple-API config (get_simple_config) that runs outside
   a traced call of its kind. Thus a call that the trace does not record is
@@ -38,7 +47,9 @@ oracles do. It records, for each node:
   model (s7config.py), and the keys that the CLI config from that file does
   not give (the proof; it must be empty). A Linter path call with a config
   that is not from FluffConfig.from_path records the overrides of the config
-  and the keys that FluffConfig(overrides=...) does not give.
+  and the keys that FluffConfig(overrides=...) does not give. A Linter made
+  with dialect, rules, or exclude_rules (and no config) records the same
+  model of its config ("kwargs_config" of the Linter inputs).
 - processes: each program start, fork, and new Python process (the audit
   events and trace/sitecustomize.py, as scripts/s7-tests/config-readers).
   The trace does not record calls in another process.
@@ -49,6 +60,8 @@ empty) and, with --rust, the parse runs of each parser.
 """
 
 import argparse
+import atexit
+import contextlib
 import functools
 import inspect
 import json
@@ -79,6 +92,15 @@ TMP_MARK = "{tmp}"
 VOLATILE_RECORD_KEYS = ("timings",)
 # The pytest fixtures that give a temporary folder.
 TMP_FIXTURES = ("tmp_path", "tmpdir")
+# The test helpers of sqlfluff.utils.testing.rules that the trace records,
+# with the kind of their inner calls.
+HELPERS = {"assert_rule_raises_violations_in_file": "linter"}
+# The Linter arguments that FluffConfig.from_kwargs makes into overrides.
+LINTER_KWARGS = ("dialect", "rules", "exclude_rules")
+# The marks of self.active: a construction that the error wrapper watches,
+# and the CLI run of the proof of an error call.
+CONSTRUCT = "construct"
+PROOF = "proof"
 # The files that the CLI reads as config or ignore files in a folder.
 CONFIG_FILES = (
     ".sqlfluff",
@@ -140,6 +162,10 @@ class Tracer:
         self.records: dict[str, dict] = {}
         self.tmp: dict[str, list[str]] = {}
         self._reference = None
+        # The errors of the watched functions in the CLI run of a proof.
+        self.proof_errors: list[dict[str, str]] = []
+        # The original CliRunner.invoke (install sets it).
+        self.invoke = None
 
     def add_tmp(self, folder) -> None:
         """A temporary folder of the current node."""
@@ -223,20 +249,21 @@ class Tracer:
     def cwd(self) -> str:
         return self.path(os.getcwd())
 
-    def traced(self, kind: str, inputs, outputs, nested_in: str | None = None):
+    def traced(self, kind: str, inputs, outputs, nested_in: tuple[str, ...] = ()):
         """Wrap fn: record each outermost call with its inputs and outputs.
 
         inputs(context, *args, **kwargs) and outputs(context, result) share
         the dict context. If inputs sets context["nest"], the call records
-        its inner calls of a kind with nested_in == kind. A call inside a
-        traced call is part of it, and is not recorded alone.
+        its inner calls of a kind whose nested_in has the kind of the call.
+        A call inside a traced call is part of it, and is not recorded alone.
         """
 
         def wrap(fn):
             @functools.wraps(fn)
             def wrapper(*args, **kwargs):
                 if self.active:
-                    sink = self.inner[-1] if self.active == [nested_in] else None
+                    outer = self.active[0] if len(self.active) == 1 else None
+                    sink = self.inner[-1] if outer in nested_in else None
                     if sink is None:
                         return fn(*args, **kwargs)
                 else:
@@ -283,13 +310,153 @@ class Tracer:
         def wrap(fn):
             @functools.wraps(fn)
             def wrapper(*args, **kwargs):
-                if not set(kinds) & set(self.active) and applies(*args, **kwargs):
+                covered = set(kinds) | {PROOF}
+                if not covered & set(self.active) and applies(*args, **kwargs):
                     self.bucket()[key].append(what)
                 return fn(*args, **kwargs)
 
             return wrapper
 
         return wrap
+
+    def errors(self, function: str, describe):
+        """Wrap fn: record an error call if fn raises outside each traced call.
+
+        describe(*args, **kwargs) gives the inputs of the call: the function,
+        and either the CLI input ("cli_input": {"files": ..., "options": ...})
+        or the reason why the trace has none ("no_cli_input"). In the CLI run
+        of a proof, an error of fn is a proof error, not a call.
+        """
+
+        def wrap(fn):
+            @functools.wraps(fn)
+            def wrapper(*args, **kwargs):
+                proof = self.active == [PROOF]
+                if self.active and not proof:
+                    return fn(*args, **kwargs)
+                try:
+                    with self.scope(CONSTRUCT):
+                        return fn(*args, **kwargs)
+                except Exception as exc:
+                    if proof:
+                        error = {"function": function, "error": first_line(exc)}
+                        self.proof_errors.append(error)
+                    else:
+                        self.error_call(function, describe, exc, args, kwargs)
+                    raise
+
+            return wrapper
+
+        return wrap
+
+    @contextlib.contextmanager
+    def scope(self, mark: str):
+        """A mark on self.active: no call in it is a traced call."""
+        self.active.append(mark)
+        self.inner.append(None)
+        try:
+            yield
+        finally:
+            self.active.pop()
+            self.inner.pop()
+
+    def error_call(self, function: str, describe, exc, args, kwargs) -> None:
+        call: dict = {"kind": "error", "error": first_line(exc)}
+        try:
+            inputs = {"function": function, **describe(*args, **kwargs)}
+            inputs["cwd"] = self.cwd()
+            call["inputs"] = inputs
+            cli_input = inputs.get("cli_input")
+            if cli_input is not None:
+                call["cli"] = self.cli_proof(cli_input)
+        except Exception as error:
+            call["inputs_error"] = first_line(error)
+        self.bucket()["calls"].append(plain(call))
+
+    def cli_proof(self, cli_input: dict) -> dict:
+        """Run "lint [options] -" with an empty stdin in a new folder with the
+        files, in process. The outputs, and the errors of the watched
+        functions in the run."""
+        from sqlfluff.cli import commands
+
+        files = cli_input.get("files", {})
+        argv = [*cli_input.get("options", []), "-"]
+        folder = MKDTEMP(prefix="s7-error-")
+        old = os.getcwd()
+        self.proof_errors = []
+        state = cli_state()
+        try:
+            for name, text in files.items():
+                Path(folder, name).write_text(text, encoding="utf8")
+            os.chdir(folder)
+            with self.scope(PROOF):
+                result = self.invoke(CliRunner(), commands.lint, argv, input="")
+            os.chdir(old)
+            out = {
+                "argv": ["lint", *argv],
+                "stdin": "",
+                "files": files,
+                "exit_code": result.exit_code,
+                "stdout": result.stdout.replace(folder, TMP_MARK),
+                "stderr": result.stderr.replace(folder, TMP_MARK),
+                "files_after": read_tree(folder),
+                "errors": list(self.proof_errors),
+            }
+            if result.exception is not None and not isinstance(
+                result.exception, SystemExit
+            ):
+                out["exception"] = first_line(result.exception)
+            return out
+        finally:
+            os.chdir(old)
+            self.proof_errors = []
+            shutil.rmtree(folder)
+            state()
+
+
+def cli_state():
+    """Save the process state that a CLI run changes outside its result: the
+    sqlfluff loggers (the CLI sets propagate=False on "sqlfluff", adds a log
+    handler, and sets levels) and the globals of colorama (colorama.init).
+    The returned function restores them, so the test does not see the CLI
+    run of a proof (for example caplog sees the sqlfluff log records)."""
+    import logging
+
+    import colorama.initialise as colorama_state
+
+    manager = logging.Logger.manager
+    loggers = {
+        name: (log.propagate, log.level, log.disabled, list(log.handlers))
+        for name, log in [("sqlfluff", logging.getLogger("sqlfluff"))]
+        + [
+            (name, log)
+            for name, log in list(manager.loggerDict.items())
+            if name.startswith("sqlfluff.") and isinstance(log, logging.Logger)
+        ]
+    }
+    names = ("orig_stdout", "orig_stderr", "wrapped_stdout", "wrapped_stderr")
+    streams = {name: getattr(colorama_state, name, None) for name in names}
+    atexit_done = getattr(colorama_state, "atexit_done", False)
+
+    def restore() -> None:
+        for name, log in list(manager.loggerDict.items()):
+            if not (name == "sqlfluff" or name.startswith("sqlfluff.")):
+                continue
+            if not isinstance(log, logging.Logger):
+                continue
+            propagate, level, disabled, handlers = loggers.get(
+                name, (True, logging.NOTSET, False, [])
+            )
+            log.propagate, log.disabled = propagate, disabled
+            log.setLevel(level)
+            log.handlers[:] = handlers
+        for name, value in streams.items():
+            setattr(colorama_state, name, value)
+        if not atexit_done and getattr(colorama_state, "atexit_done", False):
+            atexit.unregister(colorama_state.reset_all)
+            colorama_state.atexit_done = False
+
+    return restore
 
 
 def _is_sqlfluff(command) -> bool:
@@ -321,16 +488,18 @@ def file_outputs(linted_file) -> dict:
 
 
 def install(tracer: Tracer) -> None:
-    """Patch the CLI runner, the simple API, the Linter, FluffConfig, and
-    tempfile.mkdtemp."""
+    """Patch the CLI runner, the simple API, the Linter, FluffConfig, the
+    RuleSet, the test helpers, and tempfile.mkdtemp."""
     import sqlfluff
     import sqlfluff.api
     import sqlfluff.api.simple as simple
     import sqlfluff.cli.commands as commands
+    import sqlfluff.utils.testing.rules as testing_rules
     from sqlfluff.core.config import FluffConfig
     from sqlfluff.core.config.loader import load_config_at_path
     from sqlfluff.core.helpers.dict import nested_combine
     from sqlfluff.core.linter import Linter
+    from sqlfluff.core.rules.base import RuleSet
 
     # The temporary folders of the nodes.
     @functools.wraps(MKDTEMP)
@@ -435,6 +604,7 @@ def install(tracer: Tracer) -> None:
             out["files"] = read_tree(folder)
         return out
 
+    tracer.invoke = CliRunner.invoke
     CliRunner.invoke = tracer.traced("cli", cli_inputs, cli_outputs)(CliRunner.invoke)
     click.core.Command.main = tracer.sentinel(
         ("cli",),
@@ -485,7 +655,13 @@ def install(tracer: Tracer) -> None:
         self._s7_source = plain({"method": "FluffConfig", "args": data})
         init(self, *args, **kwargs)
 
-    FluffConfig.__init__ = config_init
+    def no_config(*args, **kwargs) -> dict:
+        return {
+            "no_cli_input": "the FluffConfig construction failed: the trace has"
+            " no config to give to the CLI"
+        }
+
+    FluffConfig.__init__ = tracer.errors("FluffConfig", no_config)(config_init)
     for name in ("from_path", "from_root", "from_kwargs", "from_string"):
         method = getattr(FluffConfig, name).__func__
         sig = inspect.signature(method)
@@ -499,7 +675,8 @@ def install(tracer: Tracer) -> None:
             config._s7_source = plain({"method": _name, "args": data})
             return config
 
-        setattr(FluffConfig, name, classmethod(functools.wraps(method)(tagged)))
+        watched = tracer.errors(f"FluffConfig.{name}", no_config)(tagged)
+        setattr(FluffConfig, name, classmethod(functools.wraps(method)(watched)))
 
     # The Linter path methods.
     linter_init = Linter.__init__
@@ -512,10 +689,60 @@ def install(tracer: Tracer) -> None:
         data["config"] = config_source(data.get("config"))
         self._s7_init = plain(data)
         linter_init(self, *args, **kwargs)
+        if data["config"] is None and any(data.get(k) for k in LINTER_KWARGS):
+            # FluffConfig.from_kwargs made the config: the trace proves that
+            # it is FluffConfig(overrides=<its overrides>).
+            self._s7_init["kwargs_config"] = tracer.overrides_model(self.config)
         # The config when the Linter took its dialect and templater.
         self._s7_config = s7config.snapshot(self.config._configs)
 
-    Linter.__init__ = new_linter_init
+    def config_input(config) -> dict:
+        """The config model of a config, and its CLI input: a .sqlfluff file
+        (only if the model maps it and the CLI loads it as the same
+        config)."""
+        model = tracer.config_model(config)
+        if "error" in model["config_file"]:
+            reason = f"the config model: {model['config_file']['error']}"
+        elif model["config_proof"]:
+            reason = f"the config model: the keys {model['config_proof']} differ"
+        else:
+            text = model["config_file"]["text"]
+            files = {s7config.CONFIG_FILE: text} if text else {}
+            return {**model, "cli_input": {"files": files}}
+        return {**model, "no_cli_input": reason}
+
+    def linter_error(self, *args, **kwargs) -> dict:
+        """A Linter construction that failed: its config or its arguments as
+        the CLI input."""
+        bound = linter_sig.bind(self, *args, **kwargs)
+        data = {k: v for k, v in bound.arguments.items() if k != "self"}
+        config = data.pop("config", None)
+        out = {"linter": plain({**data, "config": config_source(config)})}
+        others = sorted(k for k, v in data.items() if k not in LINTER_KWARGS and v)
+        if others:
+            return {**out, "no_cli_input": f"the Linter arguments {others}"}
+        if config is not None:
+            if any(data.get(k) for k in LINTER_KWARGS):
+                return {**out, "no_cli_input": "a config and Linter arguments"}
+            return {**out, **config_input(config)}
+        options = []
+        for key in LINTER_KWARGS:
+            value = data.get(key)
+            if value:
+                text = value if key == "dialect" else ",".join(value)
+                options += ["--" + key.replace("_", "-"), text]
+        return {**out, "cli_input": {"options": options}}
+
+    Linter.__init__ = tracer.errors("Linter", linter_error)(new_linter_init)
+
+    # A rule pack of a config (RuleSet.get_rulepack) outside each traced
+    # call: an error is an error call, with the config as the CLI input.
+    def rulepack_error(self, config, *args, **kwargs) -> dict:
+        return config_input(config)
+
+    RuleSet.get_rulepack = tracer.errors("RuleSet.get_rulepack", rulepack_error)(
+        RuleSet.get_rulepack
+    )
 
     def path_method(name: str):
         original = getattr(Linter, name)
@@ -550,7 +777,7 @@ def install(tracer: Tracer) -> None:
             # (sqlfluff.cli.commands.lint: LintingResult.stats).
             return {"records": records, "exit_code": 1 if violations > 0 else 0}
 
-        return tracer.traced("linter", inputs, outputs)(original)
+        return tracer.traced("linter", inputs, outputs, nested_in=("helper",))(original)
 
     Linter.lint_path = path_method("lint_path")
     Linter.lint_paths = path_method("lint_paths")
@@ -609,16 +836,38 @@ def install(tracer: Tracer) -> None:
                 )
             return out
 
-        return tracer.traced("linter_string", inputs, outputs, nested_in="api")(
+        return tracer.traced("linter_string", inputs, outputs, nested_in=("api",))(
             original
         )
 
     Linter.lint_string = string_method("lint_string")
     Linter.lint_string_wrapped = string_method("lint_string_wrapped")
 
+    # The test helpers: each call records its inner Linter calls. A test
+    # module imports a helper after this patch (in the collection).
+    def helper(name: str):
+        original = getattr(testing_rules, name)
+        sig = inspect.signature(original)
+
+        def inputs(context, *args, **kwargs):
+            bound = sig.bind(*args, **kwargs)
+            bound.apply_defaults()
+            data = dict(bound.arguments)
+            context["nest"] = True
+            if "fluff_config" in data:
+                data["fluff_config"] = config_source(data["fluff_config"])
+            if "fpath" in data:
+                data["fpath"] = tracer.path(data["fpath"])
+            return {"function": name, "args": data, "cwd": tracer.cwd()}
+
+        return tracer.traced("helper", inputs, lambda context, r: plain(r))(original)
+
+    for name in HELPERS:
+        setattr(testing_rules, name, helper(name))
+
     # A Linter render or parse outside each traced call (for example
     # Linter.parse_string): the trace does not map it.
-    kinds = ("cli", "api", "linter", "linter_string")
+    kinds = ("cli", "api", "linter", "linter_string", "helper")
     Linter.render_string = tracer.sentinel(
         kinds, "a Linter render (Linter.render_string)", key="untraced_linter"
     )(Linter.render_string)

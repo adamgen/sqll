@@ -16,10 +16,11 @@ The S7-tests track writes this file (PROCESS.md, "Tracks").
   for each file when one command lints and generates code) supports Jinja
   if kept; each other Jinja case is in a known-failure list with its
   reason)).
-- State: in work. 6 of the 16 tasks of S7 (CLI and config parity: the
-  sqlfluff CLI, config, and Python rule tests as black-box cases) are
-  done, and 1 is in review. These 5 tasks are merged (the last on
-  2026-11-12, PR #83):
+- State: in work. 7 of the 21 tasks of S7 (CLI and config parity: the sqlfluff
+  CLI, config, and Python rule tests as black-box cases; sqll passes 100% of
+  the converted cases; cases that need the Jinja templater move to the Jinja
+  templater stone) are done, and 1 is in review. These 7 tasks are merged (the
+  last on 2026-11-16, PR #99):
   - T1 (design record, scope inventory, and status files; goal: the scope
     (643 nodes), the design, and the 4 decisions are recorded and tested).
   - T2 (case format, case runner, and pilot cases; goal: one case format
@@ -30,14 +31,18 @@ The S7-tests track writes this file (PROCESS.md, "Tracks").
     S7 suites).
   - T5 (CI jobs, oracle step, and local verify for the S7 suites; goal: CI
     and `scripts/verify` run the S7 suites and record the results).
+  - T6 (convert the rule tests, part 1, the simple-API nodes; goal: the
+    rule nodes that call only `sqlfluff.lint` and `sqlfluff.fix` are
+    black-box cases), PR #96.
+  - T16 (trace oracle and case runner, extension 1; goal: the trace oracle
+    maps and proves the calls that the remaining rule nodes use, and fails
+    closed on each other call), PR #99.
 
-  T6 (convert the rule tests, part 1, the simple-API nodes; goal: the rule
-  nodes that call only `sqlfluff.lint` and `sqlfluff.fix` are black-box
-  cases) is done in PR #96. T16 (trace oracle and case runner, extension
-  1; goal: the trace oracle maps and proves the calls that the remaining
-  rule nodes use, and fails closed on each other call) is in review. The
-  other 9 tasks are not started. The table "S7-tests tasks" gives each task
-  with its goal.
+  T17 (trace oracle and case runner, extension 2; goal: the trace oracle
+  maps and proves the calls of the remaining rule nodes that T16 did not
+  map, and fails closed on each other call) is in review (PR #101). The
+  other 13 tasks are not started. The table "S7-tests tasks" gives each
+  task with its goal, in the order of the plan.
 - The S7 test conversion needs only S1 (binary test harness: run the
   sqlfluff test fixtures through a binary, not through function calls;
   sqlfluff passes 100% of the cases through the harness, and the results
@@ -56,12 +61,37 @@ The S7-tests track writes this file (PROCESS.md, "Tracks").
 ## S7-tests tasks
 
 Each task is a part of S7 (CLI and config parity: the sqlfluff CLI, config,
-and Python rule tests as black-box cases). Plan of 2026-11-11: to recover
-one lost day, T9 converts all config tests (before: 2 tasks). The
-orchestrator added T16 (trace oracle and case runner, extension 1; goal: the trace oracle maps and proves the calls that the remaining rule nodes use, and fails closed on each other call) on
-2026-11-15, before T7 (convert the rule tests, part 2; goal: the other rule
-nodes, not Rust dispatch, are black-box cases): the rule nodes of T7 use
-calls that the trace oracle did not map.
+and Python rule tests as black-box cases; sqll passes 100% of the converted
+cases; cases that need the Jinja templater move to the Jinja templater
+stone). Plan of 2026-11-11: to recover one lost day, T9 (convert the config
+tests; goal: the 140 nodes of `config` and `config_fixtures` are black-box
+cases or excluded with a class) converts all config tests (before: 2
+tasks). The orchestrator added T16 (trace oracle and case runner, extension
+1; goal: the trace oracle maps and proves the calls that the remaining rule
+nodes use, and fails closed on each other call) on 2026-11-15, before T7
+(convert the rule tests, part 2; goal: the other rule nodes, not Rust
+dispatch, are black-box cases): the rule nodes of T7 use calls that the
+trace oracle did not map. The orchestrator added T17 (trace oracle and case
+runner, extension 2; goal: the trace oracle maps and proves the calls of the
+remaining rule nodes that T16 did not map, and fails closed on each other
+call) on 2026-11-17 for the calls that T16 refuses. T17 added 4 tasks to the
+plan (2026-11-17), each before the conversion task that needs it, from the
+data of "Plan data (T17)":
+
+- T18 (trace oracle and case runner, extension 3; goal: the trace oracle
+  maps and proves the calls of the rule nodes that T17 did not map, and
+  fails closed on each other call).
+- T19 (trace oracle and case runner, extension 4; goal: the trace oracle
+  maps and proves each config call of the config nodes that a CLI command
+  shows, and fails closed on each other call).
+- T20 (trace oracle and case runner, extension 5; goal: the trace oracle
+  maps and proves the CLI calls of the CLI nodes that do not use
+  `CliRunner.invoke`, and fails closed on each other call).
+- T21 (trace oracle and case runner, extension 6; goal: the trace oracle
+  maps and proves the other calls of the CLI nodes, and fails closed on
+  each other call).
+
+The rows of the table are in the order of the plan.
 
 | Task | Description | Goal | State |
 |---|---|---|---|
@@ -71,10 +101,15 @@ calls that the trace oracle did not map.
 | T4 | Cross-track (Core): harness hooks for the S7 suites | The harness core runs the 3 S7 suites | Done (PR #82; the Core track approved it) |
 | T5 | Cross-track (Core): CI jobs, oracle step, and local verify for the S7 suites; the ruff lint of `scripts/s7-tests/` in CI; first recorded results | CI and `scripts/verify` run the S7 suites and record the results | Done (PR #83; the Core track approved it) |
 | T6 | Convert the rule tests, part 1: the simple-API nodes (`sqlfluff.lint` and `sqlfluff.fix` with `sql`, `dialect`, `rules`, and `exclude_rules`; no config) | The rule nodes that call only `sqlfluff.lint` and `sqlfluff.fix` are black-box cases | Done (PR #96) |
-| T16 | Trace oracle and case runner, extension 1: Linter string calls with a config, the simple-API config, Linter path calls with a config from overrides, and temporary folders with file checks; at most 2 proof nodes | The trace oracle maps and proves the calls that the remaining rule nodes use, and fails closed on each other call | In review |
-| T7 | Convert the rule tests, part 2: the rule nodes that are not simple-API nodes and not Rust dispatch (for example the nodes that give a config or a templater, or that call `Linter`); it needs the maps of T16 | The other rule nodes (not Rust dispatch) are black-box cases | Not started |
+| T16 | Trace oracle and case runner, extension 1: Linter string calls with a config, the simple-API config, Linter path calls with a config from overrides, and temporary folders with file checks; at most 2 proof nodes | The trace oracle maps and proves the calls that the remaining rule nodes use, and fails closed on each other call | Done (PR #99) |
+| T17 | Trace oracle and case runner, extension 2: Linter arguments `dialect`, `rules`, and `exclude_rules`; the test helper `assert_rule_raises_violations_in_file`; an error of `RuleSet.get_rulepack` or of a Linter construction that the CLI gives; at most 2 proof nodes | The trace oracle maps and proves the calls of the remaining rule nodes that T16 did not map, and fails closed on each other call | In review (PR #101) |
+| T18 | Trace oracle and case runner, extension 3: the calls of the rule nodes that T17 refuses: a config key that the default config does not have (Jinja context and delimiters, `align_scope`, the `capitalisation_policy` of functions), a fix run whose violations are not those of a lint run, and a config file in a temporary folder of a CLI call in the sqlfluff root | The trace oracle maps and proves the calls of the rule nodes that T17 did not map, and fails closed on each other call | Not started |
+| T7 | Convert the rule tests, part 2: the rule nodes that are not simple-API nodes and not Rust dispatch (for example the nodes that give a config or a templater, or that call `Linter`); it needs the maps of T16, T17, and T18 | The other rule nodes (not Rust dispatch) are black-box cases | Not started |
 | T8 | Rust dispatch tests (cp01, cp03, cp04): classification and conversion | Each Rust dispatch node is converted or excluded by decision 3 | Not started |
-| T9 | Convert the config tests: the config fixture tests (users of `test/fixtures/config`) and the other config tests (`test/core/config`) | The 140 nodes of `config` and `config_fixtures` are black-box cases or excluded with a class | Not started |
+| T19 | Trace oracle and case runner, extension 4: the config calls of the `config` and `config_fixtures` nodes (FluffConfig loaders and errors) that a CLI command shows | The trace oracle maps and proves each config call of the config nodes that a CLI command shows, and fails closed on each other call | Not started |
+| T9 | Convert the config tests: the config fixture tests (users of `test/fixtures/config`) and the other config tests (`test/core/config`); it needs the maps of T19 | The 140 nodes of `config` and `config_fixtures` are black-box cases or excluded with a class | Not started |
+| T20 | Trace oracle and case runner, extension 5: the sqlfluff CLI commands that a `cli` node runs without `CliRunner.invoke` (`Command.main`, `get_config`) | The trace oracle maps and proves the CLI calls of the CLI nodes that do not use `CliRunner.invoke`, and fails closed on each other call | Not started |
+| T21 | Trace oracle and case runner, extension 6: the other calls of the `cli` nodes that the oracle refuses: Linter path calls with options, `CliRunner.invoke` arguments that the trace cannot read, paths in the sqlfluff root and in a temporary folder in one call, a config file in a temporary folder, and programs | The trace oracle maps and proves the other calls of the CLI nodes, and fails closed on each other call | Not started |
 | T10 | Convert the CLI tests, part 1: commands, arguments, and exit codes | The CLI nodes of commands, arguments, and exit codes are black-box cases | Not started |
 | T11 | Convert the CLI tests, part 2: output formats and serialization | The CLI nodes of output formats are black-box cases | Not started |
 | T12 | Convert the CLI tests, part 3: stdin, render, noqa, and inline config | The CLI nodes of stdin, render, noqa, and inline config are black-box cases | Not started |
@@ -141,48 +176,56 @@ output of `scripts/s7-tests/inventory` on sqlfluff 4.4.0 (pytest nodes):
 
 ## Pilot (T2)
 
-T2 (case format, case runner, and pilot cases; S7: CLI and config parity,
-the sqlfluff CLI, config, and Python rule tests as black-box cases) gives
-the case format, the case runner (`scripts/s7-tests/run-cases`; T4 (harness
-hooks for the S7 suites: the harness core runs the 3 S7 suites; S7: CLI and
-config parity, the sqlfluff CLI, config, and Python rule tests as black-box
-cases) moved it to `sqll-harness s7 run`), and pilot cases of each group.
-T2 (case format, case runner, and pilot cases; goal: one case format and
-one runner run pilot cases through a tool binary) of S7 (CLI and config
-parity: the sqlfluff CLI, config, and Python rule tests as black-box cases)
-converted 15 pilot nodes (`cli` 8, `rules` 5, `config` 2) and excluded 3
-nodes. The current counts and the parity of each tool are in "Recorded
-results".
+T2 (case format, case runner, and pilot cases; S7: CLI and config parity, the
+sqlfluff CLI, config, and Python rule tests as black-box cases; sqll passes
+100% of the converted cases; cases that need the Jinja templater move to the
+Jinja templater stone) gives the case format, the case runner
+(`scripts/s7-tests/run-cases`; T4 (harness hooks for the S7 suites: the
+harness core runs the 3 S7 suites; S7: CLI and config parity, the sqlfluff
+CLI, config, and Python rule tests as black-box cases; sqll passes 100% of the
+converted cases; cases that need the Jinja templater move to the Jinja
+templater stone) moved it to `sqll-harness s7 run`), and pilot cases of each
+group. T2 (case format, case runner, and pilot cases; goal: one case format
+and one runner run pilot cases through a tool binary) of S7 (CLI and config
+parity: the sqlfluff CLI, config, and Python rule tests as black-box cases;
+sqll passes 100% of the converted cases; cases that need the Jinja templater
+move to the Jinja templater stone) converted 15 pilot nodes (`cli` 8, `rules`
+5, `config` 2) and excluded 3 nodes. The current counts and the parity of each
+tool are in "Recorded results".
 
 T5 (CI jobs, oracle step, and local verify for the S7 suites: CI and
-`scripts/verify` run the S7 suites and record the results; S7: CLI and
-config parity, the sqlfluff CLI, config, and Python rule tests as black-box
-cases) added the S7 CI jobs and the known-failure lists; see "CI and
-recorded results (T5)".
+`scripts/verify` run the S7 suites and record the results; S7: CLI and config
+parity, the sqlfluff CLI, config, and Python rule tests as black-box cases;
+sqll passes 100% of the converted cases; cases that need the Jinja templater
+move to the Jinja templater stone) added the S7 CI jobs and the known-failure
+lists; see "CI and recorded results (T5)".
 
 ## Trace oracle (T3)
 
-T3 (trace oracle with fail-closed checks: each case agrees with a trace of
-its original pytest node; S7: CLI and config parity, the sqlfluff CLI,
-config, and Python rule tests as black-box cases) gives
-`scripts/s7-tests/oracle`. The design and its limits are in the design
-record, "Trace oracle". The recorded result is
+T3 (trace oracle with fail-closed checks: each case agrees with a trace of its
+original pytest node; S7: CLI and config parity, the sqlfluff CLI, config, and
+Python rule tests as black-box cases; sqll passes 100% of the converted cases;
+cases that need the Jinja templater move to the Jinja templater stone) gives
+`scripts/s7-tests/oracle`. The design and its limits are in the design record,
+"Trace oracle". The recorded result is
 [results/S7-tests/oracle.json](../results/S7-tests/oracle.json), with the
 traces `oracle-trace-sqlfluff.json` and `oracle-trace-sqlfluff-rs.json`.
 The current result is in "Recorded results".
 
-- In T3 (trace oracle with fail-closed checks; goal: each case agrees with
-  a trace of its original pytest node) of S7 (CLI and config parity: the
-  sqlfluff CLI, config, and Python rule tests as black-box cases), each of
-  the 15 pilot nodes that T2 (case format, case runner, and pilot cases;
-  goal: one case format and one runner run pilot cases through a tool
-  binary) converted agreed with its trace, and each of the 49 asserts of
-  the pilot source tests had a check that cites it.
-- T4 (harness hooks for the S7 suites: the harness core runs the 3 S7
-  suites; S7: CLI and config parity, the sqlfluff CLI, config, and Python
-  rule tests as black-box cases) added the pointer section in
-  `harness/not-reproduced.md` (decision 4); the recorded result now has
-  `"pointer": true`.
+- In T3 (trace oracle with fail-closed checks; goal: each case agrees with a
+  trace of its original pytest node) of S7 (CLI and config parity: the
+  sqlfluff CLI, config, and Python rule tests as black-box cases; sqll passes
+  100% of the converted cases; cases that need the Jinja templater move to the
+  Jinja templater stone), each of the 15 pilot nodes that T2 (case format,
+  case runner, and pilot cases; goal: one case format and one runner run pilot
+  cases through a tool binary) converted agreed with its trace, and each of
+  the 49 asserts of the pilot source tests had a check that cites it.
+- T4 (harness hooks for the S7 suites: the harness core runs the 3 S7 suites;
+  S7: CLI and config parity, the sqlfluff CLI, config, and Python rule tests
+  as black-box cases; sqll passes 100% of the converted cases; cases that need
+  the Jinja templater move to the Jinja templater stone) added the pointer
+  section in `harness/not-reproduced.md` (decision 4); the recorded result now
+  has `"pointer": true`.
 - A `python-internal` node has no traced CLI or simple-API call.
 - The case files now have an `asserts` map for each node.
 - The oracle exits with code 1 if a case input is not the traced input, a
@@ -217,8 +260,10 @@ runner" and "Report".
   of a converted source test has no citing check and no row of the
   not-reproduced record.
 - `harness/not-reproduced.md` has the pointer section "S7 test conversion"
-  (decision 4). THIRD_PARTY.md has the entry of S7 (CLI and config parity:
-  the sqlfluff CLI, config, and Python rule tests as black-box cases).
+  (decision 4). THIRD_PARTY.md has the entry of S7 (CLI and config parity: the
+  sqlfluff CLI, config, and Python rule tests as black-box cases; sqll passes
+  100% of the converted cases; cases that need the Jinja templater move to the
+  Jinja templater stone).
 - The command of S1 (binary test harness: run the sqlfluff test fixtures
   through a binary, not through function calls; sqlfluff passes 100% of the
   cases through the harness, and the results of the other tools are
@@ -311,16 +356,19 @@ list with its reason)) converted 23 rule nodes and excluded 1 node (PR
   `test__rules__std_AM09_eval_short_circuit_on_non_select_segment`, calls
   `Rule_AM09._eval` on a fake segment. The oracle shows that it has no
   traced CLI or simple-API call.
-- Not converted in T6 (4 nodes of these files): the 2 `templated_*` nodes
-  of `std_ST12_test.py` give a Jinja config to `sqlfluff.lint`, and
+- Not converted in T6 (4 nodes of these files): the 2 `templated_*` nodes of
+  `std_ST12_test.py` give a Jinja config to `sqlfluff.lint`, and
   `test__rules__std_LT03_leading` and `test__rules__std_LT03_trailing` call
-  `Linter.lint_string_wrapped` with a config. The trace oracle of T6 did
-  not map these calls. T16 (trace oracle and case runner, extension 1;
-  goal: the trace oracle maps and proves the calls that the remaining rule nodes use, and fails closed on each other call; see "Trace oracle, extension 1 (T16)") maps them and converts `test__rules__std_LT03_trailing` as a proof node. T7
+  `Linter.lint_string_wrapped` with a config. The trace oracle of T6 did not
+  map these calls. T16 (trace oracle and case runner, extension 1; goal: the
+  trace oracle maps and proves the calls that the remaining rule nodes use,
+  and fails closed on each other call; see "Trace oracle, extension 1 (T16)")
+  maps them and converts `test__rules__std_LT03_trailing` as a proof node. T7
   (convert the rule tests, part 2; goal: the other rule nodes, not Rust
   dispatch, are black-box cases) of S7 (CLI and config parity: the sqlfluff
-  CLI, config, and Python rule tests as black-box cases) converts the
-  other 3.
+  CLI, config, and Python rule tests as black-box cases; sqll passes 100% of
+  the converted cases; cases that need the Jinja templater move to the Jinja
+  templater stone) converts the other 3.
 
 ## Trace oracle, extension 1 (T16)
 
@@ -369,19 +417,133 @@ templater stone). The design record gives each map and the new limits
   before and 6.8 s after (the 2 proof nodes add 4 traced calls). No tool
   code changes, so no benchmark changes.
 
+## Trace oracle, extension 2 (T17)
+
+T17 (trace oracle and case runner, extension 2; goal: the trace oracle maps
+and proves the calls of the remaining rule nodes that T16 did not map, and
+fails closed on each other call) of S7 (CLI and config parity: the sqlfluff
+CLI, config, and Python rule tests as black-box cases; sqll passes 100% of
+the converted cases; cases that need the Jinja templater move to the Jinja
+templater stone). The design record gives each map and its limits ("Trace
+oracle", "Config model", "Limits of the oracle").
+
+- New maps:
+  - Linter arguments (`Linter(dialect=..., rules=..., exclude_rules=...)`,
+    for example `std_AL09_CP02_RF06_combo_test.py`): the trace proves that
+    the config is `FluffConfig(overrides=<the arguments>)`. Then a Linter
+    string call gives the `.sqlfluff` file of the config model, and a
+    Linter path call gives the lint options, as in T16 (trace oracle and
+    case runner, extension 1; goal: the trace oracle maps and proves the
+    calls that the remaining rule nodes use, and fails closed on each
+    other call).
+  - The test helper `assert_rule_raises_violations_in_file` of
+    `sqlfluff.utils.testing.rules` (`std_test.py::test__rules__std_file`):
+    the trace records the helper call and its one Linter path call; the
+    case is that call. The asserts finder gives the helper one id,
+    `L<line>:violations`, and still fails closed on each other helper.
+  - An error call: an error of `RuleSet.get_rulepack` or of a Linter
+    construction outside each traced call (for example in `pytest.raises`,
+    `std_test.py::test_improper_configs_are_rejected`). The trace gives the
+    config to the CLI and runs `lint -` in process. The oracle maps the
+    error to a `cwd: tmp` CLI case (exit code and message) only if that run
+    gives the same error first: the same function, exception type, and
+    message.
+- Fail-closed checks (exit code 1 with a message): a Linter argument other
+  than these 3, Linter arguments with a config or with no proof of the
+  config, overrides that are not the arguments; a test helper that the map
+  does not know, or with another inner call; an error of another function
+  (for example of a FluffConfig construction), an error whose config the
+  trace cannot give to the CLI, and an error that the CLI run does not give
+  first.
+- Proof nodes (2): `test__rules__std_AL09_CP02_RF06[rules0-...]` (Linter
+  arguments; 3 cases: lint, fix, lint of the fixed SQL) and
+  `test_improper_configs_are_rejected[rule_config_dict3]` (an error call;
+  exit code 2 and `User Error: Invalid option 'blah' for
+  capitalisation_policy configuration.`). sqlfluff and `sqlfluff[rs]` pass
+  both, and each agrees with its trace. sqruff fails both with
+  `unsupported`: the cases have no sqruff translation.
+- The recorded results change only by the 2 proof nodes: the other nodes of
+  `report.json` and `oracle.json`, and their traces, do not change.
+- Speed: the oracle run (`scripts/s7-tests/oracle`, 2 tools) took 6.8 s
+  before and 6.2 s after. A full local `sqll-harness s7 run` (3 suites, 3
+  tools) took 12.0 s and 10.8 s before, and 11.2 s and 11.3 s after: the 4
+  new cases for each tool are in the noise. No tool code changes, so no
+  benchmark changes.
+
+### Plan data (T17)
+
+A trace with the oracle of T17 (trace oracle and case runner, extension 2;
+goal: the trace oracle maps and proves the calls of the remaining rule nodes
+that T16 did not map, and fails closed on each other call) for sqlfluff
+(`trace-nodes`, then `oracle.map_call` on each traced call), on 2026-11-17,
+of the 496 nodes that are not converted after T17, not excluded, and not
+Rust dispatch nodes. The 2 proof nodes of T17 are not in this set (498
+before T17; the `rules` row was then 75 nodes: each call maps 53, no
+traced call 3, refused 19; the other rows were the same). Each of the 496
+nodes passed in the trace. A node is in 1 column: "each call maps" (each
+traced call maps, and the trace has no other error), "no traced call" (the
+trace has no traced call), or "refused" (the trace has a traced call, and
+the oracle refuses a traced call or the trace has an untraced call or a
+process). The column "untraced" is the part of "no traced call" that has an
+untraced call.
+
+| Group | Nodes | Each call maps | No traced call | Untraced | Refused |
+|---|---|---|---|---|---|
+| `rules` | 73 | 51 | 3 | 2 | 19 |
+| `config`, `config_fixtures` | 138 | 4 | 129 | 0 | 5 |
+| `cli` | 285 | 195 | 55 | 5 | 35 |
+
+- `rules`: the 19 refused nodes need T18 (trace oracle and case runner,
+  extension 3; goal: the trace oracle maps and proves the calls of the rule
+  nodes that T17 did not map, and fails closed on each other call): a
+  config key that the default config does not have (13 nodes: 8
+  `align_scope`, 4 Jinja context and delimiters, and 1 error call with the
+  `capitalisation_policy` of functions), a fix run with other violations
+  than a lint run (4), and a config file in a temporary folder (2). Of the
+  3 nodes with no traced call, 2 have an untraced Linter render and parse
+  (`python-internal` candidates for T7 (convert the rule tests, part 2;
+  goal: the other rule nodes, not Rust dispatch, are black-box cases)), and
+  1 has no call.
+- `config`: 129 nodes have no traced call: they test FluffConfig in
+  Python. The 5 refused nodes: 4 errors of a FluffConfig construction and
+  1 simple-API `parse` with a config. T19 (trace oracle and case runner,
+  extension 4; goal: the trace oracle maps and proves each config call of
+  the config nodes that a CLI command shows, and fails closed on each other
+  call) maps the config calls that a CLI command shows; T9 (convert the
+  config tests; goal: the 140 nodes of `config` and `config_fixtures` are
+  black-box cases or excluded with a class) excludes the others with a
+  class.
+- `cli`: the 35 refused nodes and the 5 untraced nodes: 21 nodes with an
+  untraced CLI command (`Command.main`, `get_config`; 13 of them also with
+  Linter path options, 8 with `CliRunner.invoke` arguments that the trace
+  cannot read) and 2 untraced nodes with only an untraced `get_config` are
+  for T20 (trace oracle and case runner, extension 5; goal: the trace
+  oracle maps and proves the CLI calls of the CLI nodes that do not use
+  `CliRunner.invoke`, and fails closed on each other call). The other 14
+  refused nodes (8 paths in the sqlfluff root and a temporary folder in one
+  call, 3 config files in a temporary folder, 2 programs, 1 input file
+  that is not UTF-8) are for T21 (trace oracle and case runner, extension
+  6; goal: the trace oracle maps and proves the other calls of the CLI
+  nodes, and fails closed on each other call). The 3 untraced nodes with an
+  untraced Linter render are `python-internal` candidates.
+- The same run with the `trace-nodes` of the first review head (before the
+  saved CLI state of the error calls) gave the same column for each of the
+  498 nodes.
+
 ## Recorded results
 
-The recorded results of T16 (trace oracle and case runner, extension 1;
-goal: the trace oracle maps and proves the calls that the remaining rule
-nodes use, and fails closed on each other call) of S7 (CLI and config
-parity: the sqlfluff CLI, config, and Python rule tests as black-box
-cases):
+The recorded results of T17 (trace oracle and case runner, extension 2; goal:
+the trace oracle maps and proves the calls of the remaining rule nodes that
+T16 did not map, and fails closed on each other call) of S7 (CLI and config
+parity: the sqlfluff CLI, config, and Python rule tests as black-box cases;
+sqll passes 100% of the converted cases; cases that need the Jinja templater
+move to the Jinja templater stone):
 [report.json](../results/S7-tests/report.json),
 [summary.json](../results/S7-tests/summary.json),
 [oracle.json](../results/S7-tests/oracle.json) with the traces, and
 [known_failures/](../results/S7-tests/known_failures/). The counts: in scope 643,
-converted 40, excluded 4, not yet converted 599. The converted nodes:
-`cli` 8, `rules` 30, `config` 2. 1 converted node needs Jinja
+converted 42, excluded 4, not yet converted 597. The converted nodes:
+`cli` 8, `rules` 32, `config` 2. 1 converted node needs Jinja
 (`std_LT04_test.py::test__rules__std_LT04_unparseable`) and moves to S11
 (Jinja templater: the last stone; decision of the human owner (2026-11-07):
 do not write a Jinja engine in sqll; decide with data how sqll supports
@@ -394,22 +556,23 @@ code) supports Jinja if kept; each other Jinja case is in a known-failure
 list with its reason). The excluded nodes: 2
 `python-internal`, 1 `needs-python-runtime`, 1 `engine-comparison`.
 
-Parity of the 39 converted nodes that S7 (CLI and config parity: the
-sqlfluff CLI, config, and Python rule tests as black-box cases) keeps
-(nodes):
+Parity of the 41 converted nodes that S7 (CLI and config parity: the sqlfluff
+CLI, config, and Python rule tests as black-box cases; sqll passes 100% of the
+converted cases; cases that need the Jinja templater move to the Jinja
+templater stone) keeps (nodes):
 
 | Tool | Nodes | Passed | Failed | Error |
 |---|---|---|---|---|
-| sqlfluff | 39 | 39 | 0 | 0 |
-| sqlfluff-rs | 39 | 38 | 1 | 0 |
-| sqruff | 39 | 8 | 31 | 0 |
+| sqlfluff | 41 | 41 | 0 | 0 |
+| sqlfluff-rs | 41 | 40 | 1 | 0 |
+| sqruff | 41 | 8 | 33 | 0 |
 
 - sqlfluff-rs: `test__cli__command_directed` fails. With
   `use_rust_rules`, the CP01 description is "Keywords must be consistent."
   and not "Keywords must be consistently upper case.".
-- sqruff: 29 nodes fail with `unsupported: <item>`: 10 CLI nodes with no
-  sqruff translation of the command (2 of them the proof nodes of the
-  trace oracle extension 1),
+- sqruff: 31 nodes fail with `unsupported: <item>`: 12 CLI nodes with no
+  sqruff translation of the command (4 of them the proof nodes of the
+  trace oracle extensions 1 and 2),
   18 `rule all`, and 1 output fields.
   2 translated CLI nodes fail on the output: `test__cli__command_directed`
   (sqruff writes the lint output to stderr, not to stdout) and
@@ -417,13 +580,15 @@ sqlfluff CLI, config, and Python rule tests as black-box cases) keeps
   rule nodes whose source call gives `rules`: `std_CV02`, `std_LT01_LT04`,
   and the 6 converted nodes of `std_ST12`.
 
-Results of each suite with each tool. The parity columns count the
-converted nodes that S7 (CLI and config parity: the sqlfluff CLI, config,
-and Python rule tests as black-box cases) keeps (passed/nodes):
+Results of each suite with each tool. The parity columns count the converted
+nodes that S7 (CLI and config parity: the sqlfluff CLI, config, and Python
+rule tests as black-box cases; sqll passes 100% of the converted cases; cases
+that need the Jinja templater move to the Jinja templater stone) keeps
+(passed/nodes):
 
 | Suite | In scope | Converted | Excluded | sqlfluff | sqlfluff-rs | sqruff |
 |---|---|---|---|---|---|---|
-| `s7_rules` | 208 | 30 | 2 | 29/29 | 29/29 | 8/29 |
+| `s7_rules` | 208 | 32 | 2 | 31/31 | 31/31 | 8/31 |
 | `s7_config` | 140 | 2 | 0 | 2/2 | 2/2 | 0/2 |
 | `s7_cli` | 295 | 8 | 2 | 8/8 | 7/8 | 0/8 |
 
@@ -431,13 +596,13 @@ Trace oracle (`results/S7-tests/oracle.json`):
 
 | Tool | Nodes | Agree | Pass | Fail | Asserts | Not reproduced | `python-internal` |
 |---|---|---|---|---|---|---|---|
-| sqlfluff | 40 | 40 | 40 | 0 | 94 | 0 | 2 |
-| sqlfluff-rs | 40 | 40 | 39 | 1 | 94 | 0 | 2 |
+| sqlfluff | 42 | 42 | 42 | 0 | 97 | 0 | 2 |
+| sqlfluff-rs | 42 | 42 | 41 | 1 | 97 | 0 | 2 |
 
-- Each of the 40 converted nodes agrees with its trace, with sqlfluff and
+- Each of the 42 converted nodes agrees with its trace, with sqlfluff and
   with `sqlfluff[rs]`. The 1 sqlfluff-rs failure is
   `test__cli__command_directed`: the pytest node fails too.
-- Each of the 94 asserts of the converted source tests has a check that
+- Each of the 97 asserts of the converted source tests has a check that
   cites it. No case uses a row of
   [s7-tests-not-reproduced.md](../docs/decisions/s7-tests-not-reproduced.md).
 
@@ -447,4 +612,4 @@ Known failures (nodes):
 |---|---|---|
 | sqlfluff | 0 | sqlfluff passes each converted node |
 | sqlfluff-rs | 1 | `test__cli__command_directed`: with `use_rust_rules`, the CP01 description is different; the pytest node fails with `--rust` too |
-| sqruff | 32 | 30 `unsupported: <item>`: 10 CLI nodes with no sqruff translation of the command, 19 `rule all`, 1 output fields. 2 translated CLI nodes fail on the output: `test__cli__command_directed` (the lint output is on stderr) and `test__cli__command_dialect` (exit code 1, not 2). 1 of the 32 (`test__rules__std_LT04_unparseable`) needs Jinja and moves to S11 (Jinja templater: the last stone; decision of the human owner (2026-11-07): do not write a Jinja engine in sqll; decide with data how sqll supports Jinja; sqll passes 100% of the Jinja cases that the decision keeps, and S8 (code generation: types of query parameters and result columns as JSON Schema; the JSON Schema output is valid and correct for each parameter style, code made from the schema by one existing tool compiles, and the harness shows one parse for each file when one command lints and generates code) supports Jinja if kept; each other Jinja case is in a known-failure list with its reason) |
+| sqruff | 34 | 32 `unsupported: <item>`: 12 CLI nodes with no sqruff translation of the command, 19 `rule all`, 1 output fields. 2 translated CLI nodes fail on the output: `test__cli__command_directed` (the lint output is on stderr) and `test__cli__command_dialect` (exit code 1, not 2). 1 of the 34 (`test__rules__std_LT04_unparseable`) needs Jinja and moves to S11 (Jinja templater: the last stone; decision of the human owner (2026-11-07): do not write a Jinja engine in sqll; decide with data how sqll supports Jinja; sqll passes 100% of the Jinja cases that the decision keeps, and S8 (code generation: types of query parameters and result columns as JSON Schema; the JSON Schema output is valid and correct for each parameter style, code made from the schema by one existing tool compiles, and the harness shows one parse for each file when one command lints and generates code) supports Jinja if kept; each other Jinja case is in a known-failure list with its reason) |

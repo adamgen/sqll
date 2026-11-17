@@ -225,6 +225,32 @@
      "errors": []
     },
     {
+     "id": "test/rules/std_AL09_CP02_RF06_combo_test.py::test__rules__std_AL09_CP02_RF06[rules0-ansi-\\nselect\\n    a as A,\\n    B as b,\\n    \"C\" as C,\\n    \"d\" as d,\\n    \"E\" as e,\\n    \"f\" as F,\\n    g as \"G\",\\n    h,\\n    I\\nfrom foo\\n-post_fix_errors0]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "fix",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "lint_fixed",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 2,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
      "id": "test/rules/std_AM06_test.py::test__rules__std_AM06_raised",
      "pytest": "passed",
      "trace": "pass",
@@ -695,6 +721,22 @@
      "asserts": 3,
      "not_reproduced": 0,
      "errors": []
+    },
+    {
+     "id": "test/rules/std_test.py::test_improper_configs_are_rejected[rule_config_dict3]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "rejected",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
     }
    ],
    "python_internal": [
@@ -712,12 +754,12 @@
     }
    ],
    "counts": {
-    "nodes": 40,
-    "agree": 40,
-    "pass": 40,
+    "nodes": 42,
+    "agree": 42,
+    "pass": 42,
     "fail": 0,
     "python_internal": 2,
-    "asserts": 94,
+    "asserts": 97,
     "not_reproduced": 0
    },
    "errors": []
@@ -941,6 +983,32 @@
      "errors": []
     },
     {
+     "id": "test/rules/std_AL09_CP02_RF06_combo_test.py::test__rules__std_AL09_CP02_RF06[rules0-ansi-\\nselect\\n    a as A,\\n    B as b,\\n    \"C\" as C,\\n    \"d\" as d,\\n    \"E\" as e,\\n    \"f\" as F,\\n    g as \"G\",\\n    h,\\n    I\\nfrom foo\\n-post_fix_errors0]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "fix",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "lint_fixed",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 2,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
      "id": "test/rules/std_AM06_test.py::test__rules__std_AM06_raised",
      "pytest": "passed",
      "trace": "pass",
@@ -1411,6 +1479,22 @@
      "asserts": 3,
      "not_reproduced": 0,
      "errors": []
+    },
+    {
+     "id": "test/rules/std_test.py::test_improper_configs_are_rejected[rule_config_dict3]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "rejected",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
     }
    ],
    "python_internal": [
@@ -1428,12 +1512,12 @@
     }
    ],
    "counts": {
-    "nodes": 40,
-    "agree": 40,
-    "pass": 39,
+    "nodes": 42,
+    "agree": 42,
+    "pass": 41,
     "fail": 1,
     "python_internal": 2,
-    "asserts": 94,
+    "asserts": 97,
     "not_reproduced": 0
    },
    "errors": []

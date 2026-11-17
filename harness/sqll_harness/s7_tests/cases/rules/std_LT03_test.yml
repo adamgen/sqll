@@ -8,8 +8,10 @@
 # extension 1; goal: the trace oracle maps and proves the calls that the
 # remaining rule nodes use, and fails closed on each other call) of S7 (CLI
 # and config parity: the sqlfluff CLI, config, and Python rule tests as
-# black-box cases) converts it as a proof node of this map. The node
-# test__rules__std_LT03_leading is not converted yet.
+# black-box cases; sqll passes 100% of the converted cases; cases that need
+# the Jinja templater move to the Jinja templater stone) converts it as a
+# proof node of this map. The node test__rules__std_LT03_leading is not
+# converted yet.
 source:
   project: sqlfluff
   version: 4.4.0
