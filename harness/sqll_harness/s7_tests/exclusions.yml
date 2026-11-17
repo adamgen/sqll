@@ -15,3 +15,9 @@ excluded:
   - node: test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__ignore_words_parity
     class: engine-comparison
     reason: It compares use_rust_rules True and False and has no expected value (decision 3).
+  - node: test/rules/std_LT04_ST06_test.py::test_rule_st06_simple_expression_helpers_reject_non_simple_segments
+    class: python-internal
+    reason: It calls Linter.parse_string and 2 helper methods of Rule_ST06 on a parsed segment, and calls no CLI command and no simple-API function.
+  - node: test/rules/yaml_test_cases_test.py::test__rule_test_global_config
+    class: python-internal
+    reason: It calls the Python test helper load_test_cases on a YAML file and calls no CLI command and no simple-API function.

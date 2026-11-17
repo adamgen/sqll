@@ -1,0 +1,79 @@
+# S7 black-box cases (docs/decisions/s7-tests-design.md, "Case format").
+# A derived work of the sqlfluff tests: copyright (c) 2018-2026 Alan
+# Cruickshank, MIT License.
+# test_rules_std_LT02_loop_comma_no_oscillation calls
+# Linter(config=cfg).lint_string(sql, fix=True) 2 times, with the Jinja
+# templater. check_tuples() is the list of (code, line, position). The trace
+# oracle maps each Linter string call to "lint -f json -" (and "fix -" if the
+# call fixes) on stdin in a temporary folder, with the config of the Linter as
+# a .sqlfluff file (the config model of the design record). The SQL has Jinja
+# tags: the node moves to S11. T7 (convert the rule tests, part 2; goal: the
+# other rule nodes, not Rust dispatch and not Jinja, are black-box cases) of
+# S7 (CLI and config parity: the sqlfluff CLI, config, and Python rule tests
+# as black-box cases; sqll passes 100% of the converted cases; cases that need
+# the Jinja templater move to the Jinja templater stone) converts it.
+source:
+  project: sqlfluff
+  version: 4.4.0
+  commit: 0348222a3bcdb0226563f7349c5a39beb0641955
+  file: test/rules/std_LT02_oscillation_test.py
+license: MIT
+nodes:
+  - node: "test/rules/std_LT02_oscillation_test.py::test_rules_std_LT02_loop_comma_no_oscillation"
+    asserts:
+      L77: ["lint_under:violations[0]"]
+      L79: ["fix_under:stdout.equals"]
+      L84: ["lint_stable:violations[0]"]
+      L86: ["fix_stable:stdout.equals"]
+    cases:
+      - name: lint_under
+        run: cli
+        # The SQL has Jinja tags: the node moves to S11.
+        needs_jinja: true
+        argv: [lint, "-f", json, "-"]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = bigquery\nrules = LT02\n"
+        stdin: "{%- set extraction_list = [\n    ('Compound', 'Canonicalized', 'ival'),\n    ('IUPAC Name', 'Allowed', 'sval'),\n    ('InChI', 'Standard', 'sval')\n] %}\n\n{{ config(cluster_by=['cid']) }}\n\nSELECT\n{%- for label, name, field in extraction_list %}\n        (\n            SELECT\n                p.value.{{ field }}\n            FROM UNNEST(props) AS p\n            WHERE\n                p.urn.label = '{{ label }}'\n                AND p.urn.name = '{{ name }}'\n            LIMIT 1\n        )\n            AS {{ (label ~ '_' ~ name) | lower | replace(' ', '_') | replace('-','_') }}\n    {{- \",\" if not loop.last }}\n{%- endfor %}\nFROM {{ ref('pubchem_compound_raw') }}\n"
+        checks:
+          exit_code: 1
+          violations:
+            - records:
+                - {code: LT02, start_line_no: 20, start_line_pos: 89}
+      - name: fix_under
+        run: cli
+        # The SQL has Jinja tags: the node moves to S11.
+        needs_jinja: true
+        argv: [fix, "-"]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = bigquery\nrules = LT02\n"
+        stdin: "{%- set extraction_list = [\n    ('Compound', 'Canonicalized', 'ival'),\n    ('IUPAC Name', 'Allowed', 'sval'),\n    ('InChI', 'Standard', 'sval')\n] %}\n\n{{ config(cluster_by=['cid']) }}\n\nSELECT\n{%- for label, name, field in extraction_list %}\n        (\n            SELECT\n                p.value.{{ field }}\n            FROM UNNEST(props) AS p\n            WHERE\n                p.urn.label = '{{ label }}'\n                AND p.urn.name = '{{ name }}'\n            LIMIT 1\n        )\n            AS {{ (label ~ '_' ~ name) | lower | replace(' ', '_') | replace('-','_') }}\n    {{- \",\" if not loop.last }}\n{%- endfor %}\nFROM {{ ref('pubchem_compound_raw') }}\n"
+        checks:
+          exit_code: 0
+          stdout: {equals: "{%- set extraction_list = [\n    ('Compound', 'Canonicalized', 'ival'),\n    ('IUPAC Name', 'Allowed', 'sval'),\n    ('InChI', 'Standard', 'sval')\n] %}\n\n{{ config(cluster_by=['cid']) }}\n\nSELECT\n{%- for label, name, field in extraction_list %}\n        (\n            SELECT\n                p.value.{{ field }}\n            FROM UNNEST(props) AS p\n            WHERE\n                p.urn.label = '{{ label }}'\n                AND p.urn.name = '{{ name }}'\n            LIMIT 1\n        )\n            AS {{ (label ~ '_' ~ name) | lower | replace(' ', '_') | replace('-','_') }}\n        {{- \",\" if not loop.last }}\n{%- endfor %}\nFROM {{ ref('pubchem_compound_raw') }}\n"}
+      - name: lint_stable
+        run: cli
+        # The SQL has Jinja tags: the node moves to S11.
+        needs_jinja: true
+        argv: [lint, "-f", json, "-"]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = bigquery\nrules = LT02\n"
+        stdin: "{%- set extraction_list = [\n    ('Compound', 'Canonicalized', 'ival'),\n    ('IUPAC Name', 'Allowed', 'sval'),\n    ('InChI', 'Standard', 'sval')\n] %}\n\n{{ config(cluster_by=['cid']) }}\n\nSELECT\n{%- for label, name, field in extraction_list %}\n        (\n            SELECT\n                p.value.{{ field }}\n            FROM UNNEST(props) AS p\n            WHERE\n                p.urn.label = '{{ label }}'\n                AND p.urn.name = '{{ name }}'\n            LIMIT 1\n        )\n            AS {{ (label ~ '_' ~ name) | lower | replace(' ', '_') | replace('-','_') }}\n        {{- \",\" if not loop.last }}\n{%- endfor %}\nFROM {{ ref('pubchem_compound_raw') }}\n"
+        checks:
+          exit_code: 0
+          violations:
+            - records: []
+      - name: fix_stable
+        run: cli
+        # The SQL has Jinja tags: the node moves to S11.
+        needs_jinja: true
+        argv: [fix, "-"]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = bigquery\nrules = LT02\n"
+        stdin: "{%- set extraction_list = [\n    ('Compound', 'Canonicalized', 'ival'),\n    ('IUPAC Name', 'Allowed', 'sval'),\n    ('InChI', 'Standard', 'sval')\n] %}\n\n{{ config(cluster_by=['cid']) }}\n\nSELECT\n{%- for label, name, field in extraction_list %}\n        (\n            SELECT\n                p.value.{{ field }}\n            FROM UNNEST(props) AS p\n            WHERE\n                p.urn.label = '{{ label }}'\n                AND p.urn.name = '{{ name }}'\n            LIMIT 1\n        )\n            AS {{ (label ~ '_' ~ name) | lower | replace(' ', '_') | replace('-','_') }}\n        {{- \",\" if not loop.last }}\n{%- endfor %}\nFROM {{ ref('pubchem_compound_raw') }}\n"
+        checks:
+          exit_code: 0
+          stdout: {equals: "{%- set extraction_list = [\n    ('Compound', 'Canonicalized', 'ival'),\n    ('IUPAC Name', 'Allowed', 'sval'),\n    ('InChI', 'Standard', 'sval')\n] %}\n\n{{ config(cluster_by=['cid']) }}\n\nSELECT\n{%- for label, name, field in extraction_list %}\n        (\n            SELECT\n                p.value.{{ field }}\n            FROM UNNEST(props) AS p\n            WHERE\n                p.urn.label = '{{ label }}'\n                AND p.urn.name = '{{ name }}'\n            LIMIT 1\n        )\n            AS {{ (label ~ '_' ~ name) | lower | replace(' ', '_') | replace('-','_') }}\n        {{- \",\" if not loop.last }}\n{%- endfor %}\nFROM {{ ref('pubchem_compound_raw') }}\n"}
