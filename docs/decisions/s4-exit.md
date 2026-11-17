@@ -9,7 +9,9 @@ dialect parse fixtures with an exact tree match, and the orchestrator can
 approve this stone) of S4 (parser parity: sqll passes 100% of the dialect
 parse fixtures with an exact tree match).
 
-Date: 2026-11-17. State: **Awaiting approval**. Design record:
+Date: 2026-11-17. State: **Approved (orchestrator under the standing
+delegation of the human owner, 2026-11-17)**. The proof of the approval:
+[status/S4.md](../../status/S4.md), "Approval". Design record:
 [s4-parity.md](s4-parity.md). Status file:
 [status/S4.md](../../status/S4.md).
 
@@ -279,10 +281,11 @@ each item is met, 1 if an item is not met, and 2 if an input is missing or
 not valid (then it writes no record). A shallow clone has no history, so
 the git commands need the full history of main.
 
-The output on the head of this pull request:
+The output after the approval of this stone (before the approval, the
+state text was "Awaiting approval"; no other value changed):
 
 ```
-S4 exit: pass: items met 7 of 7; failed items: none; state: Awaiting approval; wrote results/S4/exit.json
+S4 exit: pass: items met 7 of 7; failed items: none; state: Exit met; wrote results/S4/exit.json
 ```
 
 `harness/tests/test_s4_exit.py` proves each exit code: exit code 0 on the
@@ -295,7 +298,8 @@ commands in a new git repository.
 
 ## Approval
 
-This record asks for the approval of this stone. The orchestrator approves
-it by the standing delegation (CONSTITUTION.md, section 5) only after an
-independent check finds no blocking gap. It records the approval with its
-data and date in `status/S4.md` and STATUS.md.
+Approved (orchestrator under the standing delegation of the human owner,
+2026-11-17; CONSTITUTION.md, section 5). An independent check on main
+`3117b02` (the merge of PR #104) found no blocking gap. The data of the
+check is in [status/S4.md](../../status/S4.md), "Approval", and the
+summary is in STATUS.md.
