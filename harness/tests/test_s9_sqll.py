@@ -547,6 +547,79 @@ def test_rebase_fails_closed_on_another_profile_or_a_shard(env3, base3, capsys):
     assert not out.exists()
 
 
+def _edit_policy(rep):
+    rep = copy.deepcopy(rep)
+    rep["policy"]["max_runs"] += 1
+    return rebuild(rep)
+
+
+def _edit_manifest_sha256(rep):
+    rep = copy.deepcopy(rep)
+    rep["manifest_sha256"] = "2" * 64
+    return rebuild(rep)
+
+
+@pytest.mark.parametrize(
+    "edit, text, own",
+    [
+        (
+            _edit_policy,
+            "report: schema: policy: not the full policy",
+            "report: policy {",
+        ),
+        (
+            _edit_manifest_sha256,
+            f"report: manifest_sha256 {'2' * 64} is not that of the manifest",
+            f"report: manifest_sha256 '{'2' * 64}', baseline '",
+        ),
+    ],
+)
+def test_rebase_fails_closed_on_another_policy_or_manifest(
+    env3, base3, capsys, monkeypatch, edit, text, own
+):
+    """The policy and the manifest of the report must be those of the
+    baseline. The schema check and incomplete() see such a change first.
+    The compare of rebase() itself also sees it if these checks find no
+    error."""
+    rep = edit(set_status(env3["all"], "sql/ok.sql", "sqll", "invalid"))
+    path = env3["env"].tmp / "other.json"
+    path.write_text(json.dumps(rep))
+    out = env3["env"].tmp / "never.json"
+    assert rebase(env3, base3, path, out) == 1
+    got = capsys.readouterr().out
+    assert got.startswith("FAIL: ") and text in got, got
+    assert not out.exists()
+    # The compare of rebase() alone, with no schema or completeness error.
+    monkeypatch.setattr(report, "check", lambda rep: [])
+    monkeypatch.setattr(corpus_run, "incomplete", lambda rep, manifest: [])
+    with pytest.raises(baseline.RebaseError) as exc:
+        baseline.rebase(report.load(base3), rep, "sqll", m.load(env3["env"].manifest))
+    assert own in str(exc.value), str(exc.value)
+
+
+def test_rebase_says_when_the_report_is_from_another_machine(env3, base3, capsys):
+    """The new baseline keeps the baseline machine, and the first line says
+    that its pairs compare sqll times of another machine."""
+    rep = copy.deepcopy(env3["all"])
+    rep["machine"] = {**rep["machine"], "cpu_model": "other CPU", "cpu_count": 64}
+    rep = set_status(rebuild(rep), "sql/ok.sql", "sqll", "invalid")
+    path = write(env3, rep, "machine.json")
+    out = env3["env"].tmp / "machine-rebased.json"
+    assert rebase(env3, base3, path, out) == 0
+    text = capsys.readouterr().out.splitlines()
+    old = report.load(base3)
+    assert text[0] == (
+        "machine: the report machine is not the baseline machine (cpu_count "
+        f"{old['machine']['cpu_count']!r} -> 64, cpu_model "
+        f"{old['machine']['cpu_model']!r} -> 'other CPU'); the sqll times come "
+        "from the report machine, and the pairs compare them with the times of "
+        "the other tools from the baseline machine"
+    )
+    assert text[1].startswith("sqll demo/sql/ok.sql: ok ")
+    assert text[-1].endswith("; 1 sqll results changed.")
+    assert report.load(out)["machine"] == old["machine"]
+
+
 def test_rebase_fails_closed_on_a_report_with_a_schema_error(env3, base3, capsys):
     rep = copy.deepcopy(env3["all"])
     rep["totals"]["sqll"]["ok"] += 1

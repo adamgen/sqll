@@ -194,7 +194,8 @@ def rebase(
     base is not a recorded baseline with tool, if rep is not a complete full
     report of the same tools, or if rep changes anything else of the
     baseline: the stable data of another tool, an input, the sqlfluff ref,
-    the manifest, the profile, or the policy."""
+    the manifest, the profile, or the policy. If the machine of rep is not
+    the machine of base, the first line says so (machine_text)."""
     if tool not in REBASE_TOOLS:
         raise RebaseError(f"only the results of {', '.join(REBASE_TOOLS)} can change")
     errors = [f"baseline: {e}" for e in recorded(base, manifest)]
@@ -238,7 +239,24 @@ def rebase(
     errors = [f"new baseline: {e}" for e in recorded(new, manifest)]
     if errors:
         raise RebaseError("; ".join(errors[:5]))
-    return new, changes(base, new, tool)
+    lines = changes(base, new, tool)
+    if rep["machine"] != base["machine"]:
+        lines.insert(0, machine_text(base["machine"], rep["machine"], tool))
+    return new, lines
+
+
+def machine_text(old: Mapping[str, Any], new: Mapping[str, Any], tool: str) -> str:
+    """Return the line of rebase when the machine of the report is not the
+    machine of the baseline: the new baseline keeps the baseline machine,
+    but its pairs compare the times of tool from the report machine with
+    the times of the other tools from the baseline machine."""
+    keys = [k for k in sorted({*old, *new}) if old.get(k) != new.get(k)]
+    diff = ", ".join(f"{k} {old.get(k)!r} -> {new.get(k)!r}" for k in keys)
+    return (
+        f"machine: the report machine is not the baseline machine ({diff}); "
+        f"the {tool} times come from the report machine, and the pairs compare "
+        f"them with the times of the other tools from the baseline machine"
+    )
 
 
 def _without(rep: Mapping[str, Any], tool: str) -> dict:

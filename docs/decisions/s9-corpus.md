@@ -245,8 +245,8 @@ sqlfluff, `sqlfluff[rs]`, and sqruff, also in a report with sqll (T12,
 decision 4). For the files where each of these tools is `ok`, the count,
 the bytes, and for each of these tools the sums of the median times, the
 bytes per second, and the ratios to sqlfluff. The schema check fails if
-`compared` names another tool. `pairs` (T11): only in a report with sqll and sqlfluff or
-sqruff ("sqll results", decision 4). For each pair (sqll to sqlfluff,
+`compared` names another tool. `pairs` (T11): only in a report with sqll
+and sqlfluff or sqruff ("sqll results", decision 4). For each pair (sqll to sqlfluff,
 goal `faster`; sqll to sqruff, goal `not_slower`), on the files where both
 tools are `ok`: the count, the bytes, the sums of the median wall and CPU
 times of each tool, the ratios sqll / other tool, and `slow_files` (each
@@ -272,7 +272,11 @@ with the sqll tool record and the sqll results of REPORT, and calculates
 `totals`, `compared`, and `pairs` again. The other fields and results stay
 those of the baseline. It prints each changed sqll result: the file, the
 old and the new status and unparsable data, the direction, and if the new
-result is the sqlfluff result of the file.
+result is the sqlfluff result of the file. If the machine of REPORT is not
+the machine of the baseline, it first prints a line with each changed
+machine field: the baseline keeps its machine record, but its `pairs` then
+compare sqll times of one machine with the times of the other tools of
+another machine.
 
 ## Profiles
 
