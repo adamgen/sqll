@@ -366,8 +366,10 @@ The 25 internal nodes call internal functions of the Python templater
   call of the 54 nodes, and the proof of each call has no difference. 4
   nodes raise a `SQLTemplaterError` and map to `lint` with the default
   rules. sqll refuses a rule that it does not have (`harness/sqll.md`);
-  thus T8 (sqll passes the 28 black-box python cases) also needs the `TMP`
-  violation of sqll for the default rule set.
+  thus T8 (sqll passes the 28 black-box python cases) of S6 (templater
+  parity: sqll passes 100% of the placeholder and Python format-string
+  templater fixtures that do not need a Python runtime) also needs the
+  `TMP` violation of sqll for the default rule set.
 - Alternative: compare with the output of `sqlfluff render`. sqll has no
   `render` command before S7 (CLI and config parity: the sqlfluff CLI,
   config, and Python rule tests as black-box cases; sqll passes 100% of the

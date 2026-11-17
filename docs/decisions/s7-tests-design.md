@@ -639,8 +639,11 @@ defaults (`FluffConfig.from_root` in the folder, with an empty home).
    CLI run are not a part of the test. The CLI runs in the pytest process
    (limit 6); the stderr of an uncaught exception is a model (its last
    traceback line). The `dialect = ansi` of a call with no config is a
-   model that the proof checks only for the templater output. A `lint`
-   case uses the default rules of the config, as the call does.
+   model that the proof checks only for the templater output. A
+   `process()` call does not lint. A `lint` case (the map of a
+   `SQLTemplaterError`) runs the default rules of its config; its checks
+   are the exit code and the violations that `select` gives with the code
+   `TMP`.
 
 ## Results and ownership
 

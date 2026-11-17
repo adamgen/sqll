@@ -34,7 +34,9 @@ class Scope:
     scope of another stone also has "suites" and "tools"). load_cases gives
     the checked case set (caseformat.load). load_not_reproduced gives the
     not-reproduced record of the oracle check 4. trace_args are the options
-    of scripts/s7-tests/trace-nodes for the nodes of the scope.
+    of scripts/s7-tests/trace-nodes for the nodes of the scope. exclusions
+    is False for a scope with no exclusion list (the run summary then has
+    no "excluded by class" line).
     """
 
     name: str
@@ -47,6 +49,7 @@ class Scope:
     results_dir: Path
     oracle_tools: tuple[str, ...]
     trace_args: tuple[str, ...] = field(default=())
+    exclusions: bool = True
 
 
 def _s7_scope() -> dict[str, Any]:

@@ -21,7 +21,7 @@ from conftest import needs_all_tools
 from sqll_harness import cli
 from sqll_harness.cases import ERROR, FAIL, PASS
 from sqll_harness.paths import REPO_ROOT, SQLFLUFF_ROOT
-from sqll_harness.s7_tests import caseformat, command, oracle, report, suites
+from sqll_harness.s7_tests import caseformat, command, oracle, report, scopes, suites
 from sqll_harness.s7_tests.report import ReportError
 from sqll_harness.s7_tests.runner import CaseOutcome, NodeOutcome
 from sqll_harness.suites import SUITES as S1_SUITES
@@ -230,6 +230,16 @@ def test_summary_lines_give_the_counts_apart_from_parity():
         "engine-comparison 1, environment 0"
     )
     assert lines[3].startswith("sqlfluff: 39 of 39 nodes passed, 0 failed, 0 error")
+
+
+def test_summary_lines_of_a_scope_with_no_exclusion_list():
+    # The scope s6 has no exclusion list: the S7 classes give no data.
+    assert scopes.get("s7").exclusions is True
+    assert scopes.get("s6").exclusions is False
+    lines = command.summary_lines(RECORDED, "S7", exclusions=False)
+    full = command.summary_lines(RECORDED)
+    assert full[2].startswith("excluded by class: ")
+    assert lines == [*full[:2], *full[3:]]
 
 
 # Each assert of a converted test: a check cites it, or a row has it.

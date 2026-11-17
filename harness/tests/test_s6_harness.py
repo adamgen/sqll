@@ -784,6 +784,8 @@ def test_s7_run_runs_the_s6_case_files(tmp_path, monkeypatch, capsys):
     assert cli.main([*argv, "sqlfluff"]) == 0
     printed = capsys.readouterr().out
     assert "S6 suites: s6_placeholder s6_python" in printed
+    # The scope s6 has no exclusion list: no "excluded by class" line.
+    assert "excluded by class" not in printed
     data = json.loads(out.read_text("utf8"))
     scope = s6scope.load()
     report.check(data, scope)

@@ -133,4 +133,5 @@ SCOPE = Scope(
     results_dir=REPO_ROOT / "results" / "S6",
     oracle_tools=ORACLE_TOOLS,
     trace_args=TRACE_ARGS,
+    exclusions=False,
 )

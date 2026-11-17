@@ -176,18 +176,23 @@ def _known_failures(
     return 0
 
 
-def summary_lines(data: dict[str, Any], label: str = "S7") -> list[str]:
+def summary_lines(
+    data: dict[str, Any], label: str = "S7", exclusions: bool = True
+) -> list[str]:
     """The counts and the parity of a report, as text. label: the name of
-    the scope (S7 or S6)."""
+    the scope (S7 or S6). exclusions: False for a scope with no exclusion
+    list; then there is no "excluded by class" line (the classes are those
+    of the S7 exclusion list)."""
     c = data["counts"]
-    classes = ", ".join(f"{k} {v}" for k, v in c["excluded_by_class"].items())
     lines = [
         f"{label} suites: {' '.join(data['suites'])}",
         f"in scope {c['in_scope']}, converted {c['converted']}, excluded "
         f"{c['excluded']}, not yet converted {c['not_yet_converted']}, needs "
         f"Jinja (S11) {c['needs_jinja']}",
-        f"excluded by class: {classes}",
     ]
+    if exclusions:
+        classes = ", ".join(f"{k} {v}" for k, v in c["excluded_by_class"].items())
+        lines.append(f"excluded by class: {classes}")
     for tool, p in data["parity"].items():
         lines.append(
             f"{tool}: {p['passed']} of {p['nodes']} nodes passed, {p['failed']} "
@@ -254,7 +259,7 @@ def run(args: argparse.Namespace) -> int:
     )
     data = report.build(cases, results, versions, suites)
     report.write(data, out)
-    for line in summary_lines(data, scope.name.upper()):
+    for line in summary_lines(data, scope.name.upper(), scope.exclusions):
         print(line)
     print(f"report: {out}")
 
