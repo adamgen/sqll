@@ -355,7 +355,7 @@ The 25 internal nodes call internal functions of the Python templater
   sqruff, and sqll, and `scripts/s7-tests/oracle --scope s6` proves them.
   The case format has the checks `templated` and `source_slices`. The map
   and its proof are in [s7-tests-design.md](s7-tests-design.md), "Trace
-  oracle" (templater call) and "Limits of the oracle" (item 9). The case
+  oracle" (templater call) and "Limits of the oracle" (item 10). The case
   files are `core/templaters/placeholder_test.yml` and
   `core/templaters/python_test.yml`, the paths of their test files. The
   SQL file of a case is `case.sql`. A call that returns gives 2 cases (the
