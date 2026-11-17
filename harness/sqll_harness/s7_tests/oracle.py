@@ -169,13 +169,20 @@ class Mapped:
     """One case of a traced call: the case inputs, and the outputs in the
     form that failed_checks reads. A cli case has the outputs exit_code,
     stdout, stderr, records (the lint records, if not from stdout), files
-    (the files of the temporary folder after the call), and exception."""
+    (the files of the temporary folder after the call), and exception.
+
+    A case of a templater call that returned also has: required, the parse
+    tree check that the case must have ("templated" or "source_slices"),
+    and templated, the templated text that the call returned. The value of
+    a "templated" check must be that text."""
 
     what: str
     inputs: dict[str, Any]
     outputs: dict[str, Any] | None = None
     raised: str | None = None
     outputs_error: str | None = None
+    required: str | None = None
+    templated: str | None = None
 
 
 def case_inputs(case: Case) -> dict[str, Any]:
@@ -548,6 +555,10 @@ TEMPLATER_CASES = {
     "skip_file": (("parse", "-f", "json", TEMPLATER_SQL),),
     "other_error": (("parse", "-f", "json", TEMPLATER_SQL),),
 }
+# The parse tree check that each case of a call that returns must have, in
+# the order of TEMPLATER_CASES["returned"]. Without it, a case of the call
+# would not test the templated text or the source slices.
+TEMPLATER_TREE_CHECKS = ("templated", "source_slices")
 
 
 def _templater(call: dict[str, Any]) -> list[Mapped]:
@@ -587,8 +598,15 @@ def _templater(call: dict[str, Any]) -> list[Mapped]:
             f" {call.get('proof')}"
         )
     files = {CONFIG_FILE: model["text"], TEMPLATER_SQL: inputs["in_str"]}
+    required: tuple[str | None, ...] = (None,) * len(runs)
+    templated = None
+    if kind == "returned":
+        templated = (call.get("outputs") or {}).get("templated")
+        if not isinstance(templated, str):
+            raise OracleError("a templater call that returned has no templated text")
+        required = TEMPLATER_TREE_CHECKS
     out = []
-    for run, argv in zip(runs, want, strict=True):
+    for run, argv, check in zip(runs, want, required, strict=True):
         if run["outer_config"]:
             raise OracleError(
                 "a folder above the case folder has a sqlfluff config"
@@ -610,6 +628,8 @@ def _templater(call: dict[str, Any]) -> list[Mapped]:
                     "files": run["files"],
                     "exception": exception,
                 },
+                required=check,
+                templated=templated,
             )
         )
     return out
@@ -700,8 +720,19 @@ def failed_checks(case: Case, mapped: Mapped) -> list[str]:
             failed.append(f"violations[{i}]: {exc}")
             continue
         failed += check_violations(f"violations[{i}]", found, check)
+    if mapped.required is not None and mapped.required not in checks:
+        raise OracleError(
+            f"the case of a {mapped.what} that returned has no {mapped.required!r}"
+            " check"
+        )
     if any(k in checks for k in ("templated", "source_slices")) and stdout is None:
         raise OracleError(f"a parse tree check; a {mapped.what} has no stdout")
+    if (
+        mapped.templated is not None
+        and "templated" in checks
+        and checks["templated"] != mapped.templated
+    ):
+        failed.append(f"templated: the call returned {mapped.templated!r}")
     failed += tree_failures(checks, stdout)
     return failed
 

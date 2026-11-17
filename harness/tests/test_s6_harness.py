@@ -79,6 +79,7 @@ REFUSED = {
 }
 PLACEHOLDER = f"{TREE_FILE}::test_map_placeholder"
 VALUE_ERROR = f"{TREE_FILE}::test_map_value_error"
+EMPTY = f"{TREE_FILE}::test_map_python_empty"
 
 
 def check(node_id: str, data: dict | None = None, node=None, root: Path = TREE):
@@ -89,7 +90,7 @@ def check(node_id: str, data: dict | None = None, node=None, root: Path = TREE):
 
 def test_the_tree_has_each_case():
     assert set(NODES) == set(TRACE["nodes"])
-    assert len(MAPPED) == 5 and set(NODES) - set(MAPPED) == set(REFUSED)
+    assert len(MAPPED) == 6 and set(NODES) - set(MAPPED) == set(REFUSED)
 
 
 # The scope file.
@@ -330,7 +331,7 @@ def _runs(node_id: str) -> list[dict]:
 
 
 def test_the_tree_checks_pass_on_the_traced_outputs():
-    for node_id in (PLACEHOLDER, f"{TREE_FILE}::test_map_python_no_config"):
+    for node_id in (PLACEHOLDER, f"{TREE_FILE}::test_map_python_no_config", EMPTY):
         runs = _runs(node_id)
         for case, run in zip(NODES[node_id].cases, runs, strict=True):
             assert runner.tree_failures(case.checks, run["stdout"]) == []
@@ -342,6 +343,51 @@ def test_the_tree_checks_pass_on_the_traced_outputs():
     one = next(x for x in leaves if x.raw == "1")
     # The leaf "1" has the source slice of ":a".
     assert (one.type, one.start_file_pos, one.end_file_pos) == ("numeric_literal", 7, 9)
+
+
+def test_an_empty_file_has_a_tree_with_no_leaf():
+    """An empty file: "parse -f json" gives the tree {"file": null} (the
+    segment file has no children; sqlfluff BaseSegment.structural_simplify
+    gives None for no children). It has no leaf, so the templated text is
+    "". With -m, the tree has the end_of_file meta segment at 0 to 0."""
+    plain, meta = _runs(EMPTY)
+    assert json.loads(plain["stdout"]) == [
+        {"filepath": "case.sql", "segments": {"file": None}}
+    ]
+    assert runner.parse_leaves(plain["stdout"]) == []
+    assert runner.tree_failures({"templated": ""}, plain["stdout"]) == []
+    assert runner.parse_leaves(meta["stdout"]) == [runner.Leaf("end_of_file", "", 0, 0)]
+    assert runner.tree_failures({"source_slices": [["", 0, 0]]}, meta["stdout"]) == []
+
+
+@pytest.mark.parametrize(
+    "stdout, checks, error",
+    [
+        # The empty tree is not the tree of a text.
+        (None, {"templated": "x"}, "templated: the text is ''"),
+        # The tree of "parse -f json" (no -m) has no leaf of end_of_file.
+        (None, {"source_slices": [["", 0, 0]]}, "source_slices: 0 leaves, not 1"),
+        (
+            '[{"filepath": "a", "segments": {"file": [null]}}]',
+            {"templated": ""},
+            "templated: the parse tree has the item None",
+        ),
+        (
+            '[{"filepath": "a", "segments": {"file": 1}}]',
+            {"templated": ""},
+            "templated: the parse tree has the item 1",
+        ),
+        (
+            '[{"filepath": "a", "segments": null}]',
+            {"templated": ""},
+            "templated: the parse output has no parse tree (segments is null)",
+        ),
+    ],
+)
+def test_an_empty_tree_check_fails(stdout, checks, error):
+    stdout = _runs(EMPTY)[0]["stdout"] if stdout is None else stdout
+    failed = runner.tree_failures(checks, stdout)
+    assert len(failed) == 1 and error in failed[0], failed
 
 
 @pytest.mark.parametrize(
@@ -431,6 +477,7 @@ def test_the_oracle_agrees_with_each_mapped_call():
     assert shapes == {
         "test_map_placeholder": [("returned", [parse, meta])],
         "test_map_python_no_config": [("returned", [parse, meta])],
+        "test_map_python_empty": [("returned", [parse, meta])],
         "test_map_value_error": [("other_error", [parse])],
         "test_map_templater_error": [
             ("templater_error", [["lint", "-f", "json", "case.sql"]])
@@ -535,6 +582,16 @@ def _trace_change(node_id: str, change):
         ),
         (
             PLACEHOLDER,
+            lambda d: _call(d)["outputs"].update(templated="SELECT 2 FROM t\n"),
+            "check 2: the checks on the traced outputs give fail, pytest gives passed",
+        ),
+        (
+            PLACEHOLDER,
+            lambda d: _call(d).pop("outputs"),
+            "case templated: a templater call that returned has no templated text",
+        ),
+        (
+            PLACEHOLDER,
             lambda d: d["calls"].append(copy.deepcopy(_call(d))),
             "2 traced calls (4 cases), 2 cases: a call has no case",
         ),
@@ -584,11 +641,43 @@ def _case_change(node_id: str, index: int, change) -> caseformat.Node:
             lambda c: c.checks["source_slices"].__setitem__(3, ["1", 7, 8]),
             "check 2: the checks on the traced outputs give fail, pytest gives passed",
         ),
+        (
+            0,
+            lambda c: c.checks.pop("templated"),
+            "case templated: the case of a templater call that returned has no"
+            " 'templated' check",
+        ),
+        (
+            1,
+            lambda c: c.checks.pop("source_slices"),
+            "case slices: the case of a templater call that returned has no"
+            " 'source_slices' check",
+        ),
     ],
 )
 def test_case_mutation_makes_the_oracle_fail(index, change, error):
     result = check(PLACEHOLDER, node=_case_change(PLACEHOLDER, index, change))
     assert any(error in e for e in result.errors), result.errors
+
+
+def test_the_oracle_compares_the_templated_check_with_the_call():
+    """The value of a "templated" check must be the templated text that the
+    call returned (outputs.templated of the trace), not only the text of the
+    leaves of the CLI run."""
+    data = TRACE["nodes"][PLACEHOLDER]
+    case = NODES[PLACEHOLDER].cases[0]
+    mapped = oracle.map_call(_call(data))[0]
+    assert mapped.templated == case.checks["templated"] == "SELECT 1 FROM t\n"
+    assert oracle.failed_checks(case, mapped) == []
+    changed = copy.deepcopy(_call(data))
+    changed["outputs"]["templated"] = "SELECT 2 FROM t\n"
+    mapped = oracle.map_call(changed)[0]
+    assert oracle.failed_checks(case, mapped) == [
+        "templated: the call returned 'SELECT 2 FROM t\\n'"
+    ]
+    # A templater error has no tree check to require.
+    error = oracle.map_call(_call(TRACE["nodes"][VALUE_ERROR]))[0]
+    assert (error.required, error.templated) == (None, None)
 
 
 def test_a_missing_citation_makes_the_oracle_fail():

@@ -80,3 +80,10 @@ def test_refuse_config_from_kwargs():
 def test_refuse_untraced_method():
     context = PythonTemplater(override_context=dict(a=1)).get_context("test", None)
     assert context["a"] == 1
+
+
+def test_map_python_empty():
+    # An empty file: "parse -f json" gives the tree {"file": null}.
+    t = PythonTemplater(override_context=dict(foo="bar"))
+    out, _ = t.process(in_str="", fname="test")
+    assert str(out) == ""

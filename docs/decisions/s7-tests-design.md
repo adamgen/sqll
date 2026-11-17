@@ -430,7 +430,15 @@ with the original sqlfluff tests. T3 made it.
     from another source, a config that the model does not map, a proof with
     a difference, and a folder above the case folder with a sqlfluff
     config. A `get_context` or `slice_file` call of a templater outside each
-    traced call is an untraced call.
+    traced call is an untraced call. For a call that returns, the `parse -f
+    json` case must have a `templated` check and the `parse -f json -m`
+    case must have a `source_slices` check (else the oracle fails closed),
+    and the value of the `templated` check must be the templated text that
+    the call returned (the trace output `templated`). In the parse tree, a
+    segment with no children has the value null and gives no leaf
+    (sqlfluff `BaseSegment.structural_simplify`); for example, `parse -f
+    json` of an empty file gives `{"file": null}` and the templated text
+    `""`.
   - Simple API with no config: an `api` case (T3).
   - Linter path call: `lint -f json P` (T3), or, for a config from
     overrides only, `lint -f json --dialect D --rules R --exclude-rules E

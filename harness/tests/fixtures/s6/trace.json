@@ -402,6 +402,71 @@
     "a templater method (RawTemplater.get_context)"
    ],
    "processes": []
+  },
+  "test/templater_calls_test.py::test_map_python_empty": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "templater",
+     "inputs": {
+      "templater": "python",
+      "class": "sqlfluff.core.templaters.python.PythonTemplater",
+      "context": {
+       "foo": "bar"
+      },
+      "in_str": "",
+      "fname": "test",
+      "config": null,
+      "cwd": "{sqlfluff}",
+      "config_file": {
+       "text": "[sqlfluff]\ndialect = ansi\ntemplater = python\n\n[sqlfluff:templater:python:context]\nfoo = bar\n"
+      },
+      "unsupported": []
+     },
+     "outputs": {
+      "templated": "",
+      "violations": []
+     },
+     "cases": [
+      {
+       "argv": [
+        "parse",
+        "-f",
+        "json",
+        "case.sql"
+       ],
+       "exit_code": 0,
+       "stdout": "[{\"filepath\": \"case.sql\", \"segments\": {\"file\": null}}]\n",
+       "stderr": "",
+       "files": {
+        ".sqlfluff": "[sqlfluff]\ndialect = ansi\ntemplater = python\n\n[sqlfluff:templater:python:context]\nfoo = bar\n",
+        "case.sql": ""
+       },
+       "outer_config": {}
+      },
+      {
+       "argv": [
+        "parse",
+        "-f",
+        "json",
+        "-m",
+        "case.sql"
+       ],
+       "exit_code": 0,
+       "stdout": "[{\"filepath\": \"case.sql\", \"segments\": {\"start_line_no\": 1, \"start_line_pos\": 1, \"start_file_pos\": 0, \"end_line_no\": 1, \"end_line_pos\": 1, \"end_file_pos\": 0, \"file\": {\"start_line_no\": 1, \"start_line_pos\": 1, \"start_file_pos\": 0, \"end_line_no\": 1, \"end_line_pos\": 1, \"end_file_pos\": 0, \"end_of_file\": \"\"}}}]\n",
+       "stderr": "",
+       "files": {
+        ".sqlfluff": "[sqlfluff]\ndialect = ansi\ntemplater = python\n\n[sqlfluff:templater:python:context]\nfoo = bar\n",
+        "case.sql": ""
+       },
+       "outer_config": {}
+      }
+     ],
+     "proof": []
+    }
+   ],
+   "untraced": [],
+   "processes": []
   }
  },
  "outside": {

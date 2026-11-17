@@ -204,7 +204,11 @@ def _leaves(record: Any, out: list[Leaf]) -> None:
     """The leaves of one segment record of "parse -f json", in order. A
     record maps each child type to its value (a text for a leaf, a record,
     or a list of records). With -m, a record also has the position keys and
-    one child."""
+    one child. A segment with no children has the value null and gives no
+    leaf: sqlfluff BaseSegment.structural_simplify gives {type: None} for an
+    empty tuple. For example, "parse -f json" of an empty file gives
+    {"file": null} (without -m, the end_of_file meta segment is not in the
+    tree). A null item in a list is not a segment and fails."""
     if not isinstance(record, dict):
         raise CheckFailed(f"the parse tree has the item {_short(record)}")
     positions = {k: record[k] for k in POSITION_KEYS if k in record}
@@ -212,6 +216,8 @@ def _leaves(record: Any, out: list[Leaf]) -> None:
     if positions and (len(positions) != len(POSITION_KEYS) or len(children) != 1):
         raise CheckFailed(f"a segment with positions is not one segment: {record}")
     for key, value in children:
+        if value is None:
+            continue
         if isinstance(value, str):
             out.append(
                 Leaf(

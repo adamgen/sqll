@@ -154,3 +154,30 @@ nodes:
       L82: ["x:exit_code"]
     cases:
       - {name: x, run: cli, argv: [parse, -f, json, case.sql], cwd: tmp, checks: {exit_code: 0}}
+  - node: test/templater_calls_test.py::test_map_python_empty
+    asserts:
+      L89: ["templated:templated"]
+    cases:
+      # An empty file. "parse -f json" gives {"file": null} (a segment with
+      # no children); with -m, the tree has the end_of_file meta segment.
+      - name: templated
+        run: cli
+        argv: [parse, -f, json, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = python\n\n[sqlfluff:templater:python:context]\nfoo = bar\n"
+          case.sql: ""
+        checks:
+          exit_code: 0
+          templated: ""
+      - name: slices
+        run: cli
+        argv: [parse, -f, json, -m, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = python\n\n[sqlfluff:templater:python:context]\nfoo = bar\n"
+          case.sql: ""
+        checks:
+          exit_code: 0
+          source_slices:
+            - ["", 0, 0]
