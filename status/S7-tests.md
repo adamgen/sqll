@@ -42,7 +42,7 @@ The S7-tests track writes this file (PROCESS.md, "Tracks").
     map, and fails closed on each other call), PR #101.
 
   T7 (convert the rule tests, part 2; goal: the other rule nodes, not Rust
-  dispatch and not Jinja, are black-box cases) is in review (PR #T7PR). The
+  dispatch and not Jinja, are black-box cases) is in review (PR #105). The
   other 13 tasks are not started. The table "S7-tests tasks" gives each
   task with its goal, in the order of the plan.
 - The S7 test conversion needs only S1 (binary test harness: run the
@@ -115,7 +115,7 @@ The rows of the table are in the order of the plan.
 | T6 | Convert the rule tests, part 1: the simple-API nodes (`sqlfluff.lint` and `sqlfluff.fix` with `sql`, `dialect`, `rules`, and `exclude_rules`; no config) | The rule nodes that call only `sqlfluff.lint` and `sqlfluff.fix` are black-box cases | Done (PR #96) |
 | T16 | Trace oracle and case runner, extension 1: Linter string calls with a config, the simple-API config, Linter path calls with a config from overrides, and temporary folders with file checks; at most 2 proof nodes | The trace oracle maps and proves the calls that the remaining rule nodes use, and fails closed on each other call | Done (PR #99) |
 | T17 | Trace oracle and case runner, extension 2: Linter arguments `dialect`, `rules`, and `exclude_rules`; the test helper `assert_rule_raises_violations_in_file`; an error of `RuleSet.get_rulepack` or of a Linter construction that the CLI gives; at most 2 proof nodes | The trace oracle maps and proves the calls of the remaining rule nodes that T16 did not map, and fails closed on each other call | Done (PR #101) |
-| T7 | Convert the rule tests, part 2: the rule nodes of 14 source files that are not simple-API nodes, not Rust dispatch, and not Jinja nodes (for example the nodes that give a config, or that call `Linter`); it uses the maps of T16 and T17 | The other rule nodes, not Rust dispatch and not Jinja, are black-box cases | In review (PR #T7PR) |
+| T7 | Convert the rule tests, part 2: the rule nodes of 14 source files that are not simple-API nodes, not Rust dispatch, and not Jinja nodes (for example the nodes that give a config, or that call `Linter`); it uses the maps of T16 and T17 | The other rule nodes, not Rust dispatch and not Jinja, are black-box cases | In review (PR #105) |
 | T18 | Trace oracle and case runner, extension 3: the calls of the rule nodes that T17 refuses: a config key that the default config does not have (Jinja context and delimiters, `align_scope`, the `capitalisation_policy` of functions), a fix run whose violations are not those of a lint run, and a config file in a temporary folder of a CLI call in the sqlfluff root | The trace oracle maps and proves the calls of the rule nodes that T17 did not map, and fails closed on each other call | Not started |
 | T22 | Convert the rule tests, part 3: the 7 rule nodes that T7 did not convert (calls that T17 refuses) and the 15 Jinja rule nodes (`std_LT01_jinja_alignment_test.py`, `std_JJ01_test.py`, and the 2 `templated_*` nodes of `std_ST12_test.py`); it needs the maps of T18 | Each other rule node, not Rust dispatch, is a black-box case or is excluded with a class | Not started |
 | T8 | Rust dispatch tests (cp01, cp03, cp04): classification and conversion | Each Rust dispatch node is converted or excluded by decision 3 | Not started |
