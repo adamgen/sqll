@@ -4,16 +4,17 @@
 # test__cli__command__fix copies a fixture file to a new temporary folder,
 # then runs lint, fix, and lint on it with CliRunner. The trace oracle maps
 # each call to a cwd: tmp case: the files of the folder before the call are
-# the case files, and the files after the call are the files check. T16
-# (trace oracle and case runner, extension 1; goal: the trace oracle maps
-# and proves the calls that the remaining rule nodes use, and fails closed
-# on each other call) of S7 (CLI and config parity: the sqlfluff CLI,
-# config, and Python rule tests as black-box cases) converts one node as a
-# proof node of this map. The text of each file is
-# the text of test/fixtures/linter/whitespace_errors.sql before and after the
-# fix of sqlfluff 4.4.0. The fix check is stronger than the source assert
-# (exit code 0): the source checks the fixed file only with the third call,
-# whose input is the fixed file.
+# the case files, and the files after the call are the files check. T16 (trace
+# oracle and case runner, extension 1; goal: the trace oracle maps and proves
+# the calls that the remaining rule nodes use, and fails closed on each other
+# call) of S7 (CLI and config parity: the sqlfluff CLI, config, and Python
+# rule tests as black-box cases; sqll passes 100% of the converted cases;
+# cases that need the Jinja templater move to the Jinja templater stone)
+# converts one node as a proof node of this map. The text of each file is the
+# text of test/fixtures/linter/whitespace_errors.sql before and after the fix
+# of sqlfluff 4.4.0. The fix check is stronger than the source assert (exit
+# code 0): the source checks the fixed file only with the third call, whose
+# input is the fixed file.
 source:
   project: sqlfluff
   version: 4.4.0

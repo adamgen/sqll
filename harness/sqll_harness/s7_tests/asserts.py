@@ -12,6 +12,8 @@ An assert has an id:
 - "L<line>:<arg>": a check of a known assert helper at the line of its call
   (KNOWN_HELPERS). invoke_assert_code always checks ret_code, and checks
   assert_stdout_contains and assert_stderr_contains if the call gives them.
+  assert_rule_raises_violations_in_file (sqlfluff.utils.testing.rules) has
+  one check: the violations of the file are the violations argument.
 - "L<line>:raises", "L<line>:warns", "L<line>:fail": pytest.raises,
   pytest.warns, and pytest.fail.
 
@@ -44,6 +46,13 @@ KNOWN_HELPERS = {
         ),
         "always": ("ret_code",),
         "if_given": ("assert_stdout_contains", "assert_stderr_contains"),
+    },
+    # assert set(lnt.check_tuples()) == {(rule, *v) for v in violations}
+    "assert_rule_raises_violations_in_file": {
+        "params": ("rule", "fpath", "violations", "fluff_config"),
+        "always": ("violations",),
+        "if_given": (),
+        "module": "sqlfluff.utils.testing.rules",
     },
 }
 PYTEST_CHECKS = {"raises": "raises", "warns": "warns", "fail": "fail"}
@@ -171,6 +180,12 @@ def find_asserts(source_root: Path, node_id: str) -> list[Assert]:
             name, base = _callee(node)
             text = _first_line(module.lines, node)
             if base is None and name in KNOWN_HELPERS:
+                module_name = KNOWN_HELPERS[name].get("module")
+                if module_name and module.helper_imports.get(name) != module_name:
+                    raise AssertSourceError(
+                        f"{node_id}: line {node.lineno}: {name} is not the helper"
+                        f" of {module_name}"
+                    )
                 for arg in _helper_asserts(name, node):
                     aid = f"L{node.lineno}:{arg}"
                     found[aid] = Assert(aid, function.name, text)

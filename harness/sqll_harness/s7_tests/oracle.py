@@ -3,8 +3,9 @@
 
 scripts/s7-tests/trace-nodes runs the original pytest nodes with the pinned
 sqlfluff (or with sqlfluff[rs]) and records each CLI call, simple-API call,
-Linter path call, and Linter string call with its inputs and outputs. This
-module reads that trace only; sqlfluff is not a module of the harness.
+Linter path call, Linter string call, test helper call, and error call with
+its inputs and outputs. This module reads that trace only; sqlfluff is not a
+module of the harness.
 map_call gives the cases of each traced call (the maps of the design
 record). For each tool it checks:
 
@@ -162,6 +163,23 @@ OVERRIDE_OPTIONS = {
     "rules": "--rules",
     "exclude_rules": "--exclude-rules",
 }
+# The Linter arguments that FluffConfig.from_kwargs makes into these
+# overrides (a list of rules becomes a text with commas).
+LINTER_KWARGS = tuple(OVERRIDE_OPTIONS)
+# The test helpers of sqlfluff.utils.testing.rules that the oracle maps: the
+# kind and the method of the one inner call of each, and the helper argument
+# that is the path and the config of that call.
+HELPER_CALLS = {
+    "assert_rule_raises_violations_in_file": {
+        "kind": "linter",
+        "method": "lint_path",
+        "path": "fpath",
+        "config": "fluff_config",
+    },
+}
+# The functions whose error the oracle maps to a CLI case, if the CLI run of
+# the trace gives the same error (an error call).
+ERROR_FUNCTIONS = ("RuleSet.get_rulepack", "Linter")
 
 
 @dataclass
@@ -216,11 +234,46 @@ def _mapped(what: str, call: dict[str, Any], inputs: dict[str, Any], outputs):
 
 
 def _linter_args(linter: dict[str, Any] | None) -> None:
-    others = {
-        k: v for k, v in (linter or {}).items() if k != "config" and v is not None
-    }
+    """The arguments of a Linter: a config, or dialect, rules, and
+    exclude_rules. The trace proves that the config of a Linter with these
+    arguments is FluffConfig(overrides=<them>) (FluffConfig.from_kwargs);
+    the maps then use that config as the config of the Linter."""
+    linter = linter or {}
+    known = ("config", "kwargs_config", *LINTER_KWARGS)
+    others = {k: v for k, v in linter.items() if k not in known and v is not None}
     if others:
-        raise OracleError(f"Linter arguments {sorted(others)} other than config")
+        raise OracleError(
+            f"Linter arguments {sorted(others)} other than config, dialect, rules,"
+            " and exclude_rules"
+        )
+    given = {k: linter[k] for k in LINTER_KWARGS if linter.get(k) is not None}
+    if not given:
+        return
+    if linter.get("config") is not None:
+        raise OracleError(f"a Linter with a config and the arguments {sorted(given)}")
+    model = linter.get("kwargs_config")
+    if model is None:
+        raise OracleError(
+            f"a Linter with the arguments {sorted(given)}: the trace has no proof"
+            " of its config"
+        )
+    want = {}
+    for key, value in given.items():
+        if key == "dialect":
+            ok = isinstance(value, str)
+        else:
+            ok = isinstance(value, list) and all(isinstance(v, str) for v in value)
+            value = ",".join(value) if ok else value
+        if not ok:
+            raise OracleError(f"the Linter argument {key}={value!r}")
+        if value:
+            want[key] = value
+    if model["values"] != want:
+        raise OracleError(
+            f"the Linter arguments {given} give the overrides {model['values']},"
+            f" not {want}"
+        )
+    _override_options(model)
 
 
 def _cli_outputs(out: dict[str, Any]) -> dict[str, Any]:
@@ -635,6 +688,88 @@ def _templater(call: dict[str, Any]) -> list[Mapped]:
     return out
 
 
+def _helper(call: dict[str, Any]) -> list[Mapped | OracleError]:
+    """A test helper call (HELPER_CALLS) as the case of its one inner call.
+    The inner call must have the path and the config of the helper
+    arguments. The asserts finder gives the checks of the helper; the case
+    checks are a model of them (limit 3 of the design record)."""
+    inputs = call["inputs"]
+    name = inputs["function"]
+    helper = HELPER_CALLS.get(name)
+    if helper is None:
+        raise OracleError(
+            f"the test helper {name}; the oracle maps only {sorted(HELPER_CALLS)}"
+        )
+    if inputs["cwd"] != ROOT_MARK:
+        raise OracleError(f"a test helper call in the folder {inputs['cwd']}")
+    inner = call.get("inner") or []
+    if "raised" in call and not inner:
+        raise OracleError(f"the test helper {name} raised {call['raised']}")
+    if len(inner) != 1 or inner[0]["kind"] != helper["kind"]:
+        raise OracleError(
+            f"the test helper {name} has {len(inner)} inner calls, not 1 call of"
+            f" the kind {helper['kind']}"
+        )
+    sub = inner[0]
+    sub_inputs = sub.get("inputs", {})
+    args = inputs["args"]
+    if (
+        sub_inputs.get("method") != helper["method"]
+        or sub_inputs.get("paths") != [args[helper["path"]]]
+        or (sub_inputs.get("linter") or {}).get("config") != args[helper["config"]]
+    ):
+        raise OracleError(f"the inner Linter call is not the call of the helper {name}")
+    out = map_call(sub)
+    for item in out:
+        if isinstance(item, Mapped):
+            item.what = "test helper call"
+    return out
+
+
+def _error(call: dict[str, Any]) -> list[Mapped | OracleError]:
+    """An error call: a function of ERROR_FUNCTIONS that raised outside each
+    traced call (for example in pytest.raises). It is the CLI case "lint
+    [options] -" with an empty stdin in a temporary folder with the
+    .sqlfluff file of the config, only if the CLI run of the trace raised
+    the same error (type and message) in the same function first."""
+    inputs = call["inputs"]
+    function = inputs["function"]
+    error = call["error"]
+    if function not in ERROR_FUNCTIONS:
+        raise OracleError(
+            f"the error {error!r} of {function}; the oracle maps only an error"
+            f" of {list(ERROR_FUNCTIONS)}"
+        )
+    if inputs["cwd"] != ROOT_MARK:
+        raise OracleError(f"an error call in the folder {inputs['cwd']}")
+    proof = call.get("cli")
+    if proof is None:
+        reason = inputs.get("no_cli_input", "the trace has no CLI run")
+        raise OracleError(f"the error {error!r} of {function}: {reason}")
+    errors = proof["errors"]
+    if not errors or errors[0] != {"function": function, "error": error}:
+        raise OracleError(
+            f"the CLI does not give the same error: the test gets {error!r} from"
+            f" {function}, the CLI run gets {errors}"
+        )
+    mapped = {
+        "run": "cli",
+        "argv": proof["argv"],
+        "stdin": proof["stdin"],
+        "cwd": "tmp",
+        "files": dict(proof["files"]),
+    }
+    outputs = {
+        "exit_code": proof["exit_code"],
+        "stdout": proof["stdout"],
+        "stderr": proof["stderr"],
+        "records": None,
+        "files": proof["files_after"],
+        "exception": proof.get("exception"),
+    }
+    return [Mapped("error call", mapped, outputs)]
+
+
 def map_call(call: dict[str, Any]) -> list[Mapped | OracleError]:
     """The cases of a traced call, in order. A Linter string call with fix
     gives 2 cases (lint, then fix); each other call gives 1. An item that is
@@ -655,6 +790,10 @@ def map_call(call: dict[str, Any]) -> list[Mapped | OracleError]:
         return _api(call)
     if kind == "templater":
         return _templater(call)
+    if kind == "helper":
+        return _helper(call)
+    if kind == "error":
+        return _error(call)
     raise OracleError(f"a traced call of the unknown kind {kind!r}")
 
 
@@ -929,6 +1068,16 @@ def check_internal(node_id: str, data: dict[str, Any] | None) -> dict[str, Any]:
         if calls.get(kind):
             errors.append(
                 f"class {INTERNAL}, but the trace has {calls[kind]} {kind} calls"
+            )
+    for call in data["calls"]:
+        if call["kind"] == "error":
+            try:
+                map_call(call)
+            except OracleError:
+                continue
+            errors.append(
+                f"class {INTERNAL}, but the error {call['error']!r} of"
+                f" {call['inputs']['function']} maps to a CLI case"
             )
     if data["outcome"] != "passed":
         errors.append(
