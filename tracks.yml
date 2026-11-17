@@ -183,6 +183,17 @@ tracks:
       - results/S5/**
       - crates/sqll_rules/src/**
       - crates/sqll_rules/tests/**
+      # The design records, scripts, and harness tests of the rule parity
+      # track (task T1 (start the track: the plan, the parity path, the
+      # rule source, the case classes, the gap rule, the speed rule, and
+      # the start data are recorded; this track owns its records,
+      # scripts, and harness tests) of S5 (rule parity: sqll passes 100%
+      # of the rule fixtures, lint and fix; cases that need the Jinja
+      # templater move to the Jinja templater stone);
+      # docs/decisions/s5-rules.md).
+      - docs/decisions/s5-*.md
+      - scripts/s5/**
+      - harness/tests/test_s5_*.py
   S6:
     stones: [S6]
     branches: [claude/s6, claude/s6-*]
