@@ -60,6 +60,7 @@ empty) and, with --rust, the parse runs of each parser.
 """
 
 import argparse
+import atexit
 import contextlib
 import functools
 import inspect
@@ -383,6 +384,7 @@ class Tracer:
         folder = MKDTEMP(prefix="s7-error-")
         old = os.getcwd()
         self.proof_errors = []
+        state = cli_state()
         try:
             for name, text in files.items():
                 Path(folder, name).write_text(text, encoding="utf8")
@@ -409,6 +411,52 @@ class Tracer:
             os.chdir(old)
             self.proof_errors = []
             shutil.rmtree(folder)
+            state()
+
+
+def cli_state():
+    """Save the process state that a CLI run changes outside its result: the
+    sqlfluff loggers (the CLI sets propagate=False on "sqlfluff", adds a log
+    handler, and sets levels) and the globals of colorama (colorama.init).
+    The returned function restores them, so the test does not see the CLI
+    run of a proof (for example caplog sees the sqlfluff log records)."""
+    import logging
+
+    import colorama.initialise as colorama_state
+
+    manager = logging.Logger.manager
+    loggers = {
+        name: (log.propagate, log.level, log.disabled, list(log.handlers))
+        for name, log in [("sqlfluff", logging.getLogger("sqlfluff"))]
+        + [
+            (name, log)
+            for name, log in list(manager.loggerDict.items())
+            if name.startswith("sqlfluff.") and isinstance(log, logging.Logger)
+        ]
+    }
+    names = ("orig_stdout", "orig_stderr", "wrapped_stdout", "wrapped_stderr")
+    streams = {name: getattr(colorama_state, name, None) for name in names}
+    atexit_done = getattr(colorama_state, "atexit_done", False)
+
+    def restore() -> None:
+        for name, log in list(manager.loggerDict.items()):
+            if not (name == "sqlfluff" or name.startswith("sqlfluff.")):
+                continue
+            if not isinstance(log, logging.Logger):
+                continue
+            propagate, level, disabled, handlers = loggers.get(
+                name, (True, logging.NOTSET, False, [])
+            )
+            log.propagate, log.disabled = propagate, disabled
+            log.setLevel(level)
+            log.handlers[:] = handlers
+        for name, value in streams.items():
+            setattr(colorama_state, name, value)
+        if not atexit_done and getattr(colorama_state, "atexit_done", False):
+            atexit.unregister(colorama_state.reset_all)
+            colorama_state.atexit_done = False
+
+    return restore
 
 
 def _is_sqlfluff(command) -> bool:

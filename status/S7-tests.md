@@ -60,17 +60,37 @@ The S7-tests track writes this file (PROCESS.md, "Tracks").
 ## S7-tests tasks
 
 Each task is a part of S7 (CLI and config parity: the sqlfluff CLI, config,
-and Python rule tests as black-box cases). Plan of 2026-11-11: to recover
-one lost day, T9 converts all config tests (before: 2 tasks). The
-orchestrator added T16 (trace oracle and case runner, extension 1; goal: the
-trace oracle maps and proves the calls that the remaining rule nodes use,
-and fails closed on each other call) on 2026-11-15, before T7 (convert the
-rule tests, part 2; goal: the other rule nodes, not Rust dispatch, are
-black-box cases): the rule nodes of T7 use calls that the trace oracle did
-not map. The orchestrator added T17 on 2026-11-17 for the calls that T16
-refuses. T17 added T18 to T21 to the plan (2026-11-17), each before the
-conversion task that needs it, from the data of "Plan data (T17)". The rows
-are in the order of the plan.
+and Python rule tests as black-box cases; sqll passes 100% of the converted
+cases; cases that need the Jinja templater move to the Jinja templater
+stone). Plan of 2026-11-11: to recover one lost day, T9 (convert the config
+tests; goal: the 140 nodes of `config` and `config_fixtures` are black-box
+cases or excluded with a class) converts all config tests (before: 2
+tasks). The orchestrator added T16 (trace oracle and case runner, extension
+1; goal: the trace oracle maps and proves the calls that the remaining rule
+nodes use, and fails closed on each other call) on 2026-11-15, before T7
+(convert the rule tests, part 2; goal: the other rule nodes, not Rust
+dispatch, are black-box cases): the rule nodes of T7 use calls that the
+trace oracle did not map. The orchestrator added T17 (trace oracle and case
+runner, extension 2; goal: the trace oracle maps and proves the calls of the
+remaining rule nodes that T16 did not map, and fails closed on each other
+call) on 2026-11-17 for the calls that T16 refuses. T17 added 4 tasks to the
+plan (2026-11-17), each before the conversion task that needs it, from the
+data of "Plan data (T17)":
+
+- T18 (trace oracle and case runner, extension 3; goal: the trace oracle
+  maps and proves the calls of the rule nodes that T17 did not map, and
+  fails closed on each other call).
+- T19 (trace oracle and case runner, extension 4; goal: the trace oracle
+  maps and proves each config call of the config nodes that a CLI command
+  shows, and fails closed on each other call).
+- T20 (trace oracle and case runner, extension 5; goal: the trace oracle
+  maps and proves the CLI calls of the CLI nodes that do not use
+  `CliRunner.invoke`, and fails closed on each other call).
+- T21 (trace oracle and case runner, extension 6; goal: the trace oracle
+  maps and proves the other calls of the CLI nodes, and fails closed on
+  each other call).
+
+The rows of the table are in the order of the plan.
 
 | Task | Description | Goal | State |
 |---|---|---|---|
@@ -398,7 +418,10 @@ oracle", "Config model", "Limits of the oracle").
     for example `std_AL09_CP02_RF06_combo_test.py`): the trace proves that
     the config is `FluffConfig(overrides=<the arguments>)`. Then a Linter
     string call gives the `.sqlfluff` file of the config model, and a
-    Linter path call gives the lint options, as in T16.
+    Linter path call gives the lint options, as in T16 (trace oracle and
+    case runner, extension 1; goal: the trace oracle maps and proves the
+    calls that the remaining rule nodes use, and fails closed on each
+    other call).
   - The test helper `assert_rule_raises_violations_in_file` of
     `sqlfluff.utils.testing.rules` (`std_test.py::test__rules__std_file`):
     the trace records the helper call and its one Linter path call; the
@@ -435,33 +458,63 @@ oracle", "Config model", "Limits of the oracle").
 
 ### Plan data (T17)
 
-A trace with the oracle of T17 (sqlfluff) of the 498 nodes that are not
-converted yet and are not Rust dispatch nodes:
+A trace with the oracle of T17 (trace oracle and case runner, extension 2;
+goal: the trace oracle maps and proves the calls of the remaining rule nodes
+that T16 did not map, and fails closed on each other call) for sqlfluff
+(`trace-nodes`, then `oracle.map_call` on each traced call), on 2026-11-17,
+of the 496 nodes that are not converted after T17, not excluded, and not
+Rust dispatch nodes. The 2 proof nodes of T17 are not in this set (498
+before T17; the `rules` row was then 75 nodes: each call maps 53, no
+traced call 3, refused 19; the other rows were the same). Each of the 496
+nodes passed in the trace. A node is in 1 column: "each call maps" (each
+traced call maps, and the trace has no other error), "no traced call" (the
+trace has no traced call), or "refused" (the trace has a traced call, and
+the oracle refuses a traced call or the trace has an untraced call or a
+process). The column "untraced" is the part of "no traced call" that has an
+untraced call.
 
-| Group | Nodes | Each call maps | No traced call | Refused |
-|---|---|---|---|---|
-| `rules` | 75 | 53 | 0 | 22 |
-| `config`, `config_fixtures` | 138 | 4 | 121 | 13 |
-| `cli` | 285 | 193 | 50 | 42 |
+| Group | Nodes | Each call maps | No traced call | Untraced | Refused |
+|---|---|---|---|---|---|
+| `rules` | 73 | 51 | 3 | 2 | 19 |
+| `config`, `config_fixtures` | 138 | 4 | 129 | 0 | 5 |
+| `cli` | 285 | 195 | 55 | 5 | 35 |
 
-- `rules`: 19 of the 22 refused nodes need T18 (trace oracle and case
-  runner, extension 3; goal: the trace oracle maps and proves the calls of
-  the rule nodes that T17 did not map, and fails closed on each other
-  call): a config key that the default config does not have (13 nodes), a
-  fix run with other violations than a lint run (4), and a config file in
-  a temporary folder (2). The other 3 have no traced call (`python-internal`
-  candidates for T7).
-- `config`: most nodes have no traced call: they test FluffConfig in
-  Python. T19 (trace oracle and case runner, extension 4; goal: the trace
-  oracle maps and proves each config call of the config nodes that a CLI
-  command shows, and fails closed on each other call) maps the config calls
-  that a CLI command shows; T9 excludes the others with a class.
-- `cli`: T20 (trace oracle and case runner, extension 5; goal: the trace
+- `rules`: the 19 refused nodes need T18 (trace oracle and case runner,
+  extension 3; goal: the trace oracle maps and proves the calls of the rule
+  nodes that T17 did not map, and fails closed on each other call): a
+  config key that the default config does not have (13 nodes: 8
+  `align_scope`, 4 Jinja context and delimiters, and 1 error call with the
+  `capitalisation_policy` of functions), a fix run with other violations
+  than a lint run (4), and a config file in a temporary folder (2). Of the
+  3 nodes with no traced call, 2 have an untraced Linter render and parse
+  (`python-internal` candidates for T7 (convert the rule tests, part 2;
+  goal: the other rule nodes, not Rust dispatch, are black-box cases)), and
+  1 has no call.
+- `config`: 129 nodes have no traced call: they test FluffConfig in
+  Python. The 5 refused nodes: 4 errors of a FluffConfig construction and
+  1 simple-API `parse` with a config. T19 (trace oracle and case runner,
+  extension 4; goal: the trace oracle maps and proves each config call of
+  the config nodes that a CLI command shows, and fails closed on each other
+  call) maps the config calls that a CLI command shows; T9 (convert the
+  config tests; goal: the 140 nodes of `config` and `config_fixtures` are
+  black-box cases or excluded with a class) excludes the others with a
+  class.
+- `cli`: the 35 refused nodes and the 5 untraced nodes: 21 nodes with an
+  untraced CLI command (`Command.main`, `get_config`; 13 of them also with
+  Linter path options, 8 with `CliRunner.invoke` arguments that the trace
+  cannot read) and 2 untraced nodes with only an untraced `get_config` are
+  for T20 (trace oracle and case runner, extension 5; goal: the trace
   oracle maps and proves the CLI calls of the CLI nodes that do not use
-  `CliRunner.invoke`, and fails closed on each other call) and T21 (trace
-  oracle and case runner, extension 6; goal: the trace oracle maps and
-  proves the other calls of the CLI nodes, and fails closed on each other
-  call) map the 42 refused nodes.
+  `CliRunner.invoke`, and fails closed on each other call). The other 14
+  refused nodes (8 paths in the sqlfluff root and a temporary folder in one
+  call, 3 config files in a temporary folder, 2 programs, 1 input file
+  that is not UTF-8) are for T21 (trace oracle and case runner, extension
+  6; goal: the trace oracle maps and proves the other calls of the CLI
+  nodes, and fails closed on each other call). The 3 untraced nodes with an
+  untraced Linter render are `python-internal` candidates.
+- The same run with the `trace-nodes` of the first review head (before the
+  saved CLI state of the error calls) gave the same column for each of the
+  498 nodes.
 
 ## Recorded results
 

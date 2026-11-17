@@ -1842,6 +1842,19 @@ def test_rulepack_error_unknown_key():
     )
     with pytest.raises(ValueError):
         get_ruleset().get_rulepack(config)
+
+
+def test_no_cli_state_after_the_error_calls():
+    # The trace runs the CLI for the error calls above; the test must not
+    # see it (limit 5 of the design record).
+    import logging
+
+    import colorama.initialise
+
+    logger = logging.getLogger("sqlfluff")
+    assert logger.propagate and logger.handlers == []
+    assert colorama.initialise.wrapped_stdout is None
+    assert not colorama.initialise.atexit_done
 """
 T17_CONFIG = "[sqlfluff]\ndialect = ansi\nrules = LT01\n"
 T17_ERROR_CONFIG = (
@@ -1986,6 +1999,45 @@ def test_trace_step_maps_the_calls_of_t17(tmp_path):
         node = _tree_node(root, name + test, [_cli_case("lint", ["lint"], 0)])
         errors = oracle.check_node(node, traced[name + test], "pass", root, []).errors
         assert any(error in e for e in errors), (test, errors)
+    # The refusals of the helper map, on changed copies of the traced helper
+    # call: an inner call that is not the call of the helper arguments
+    # (method, path, or config), a call in another folder, and a helper that
+    # raised before its inner call.
+    helper_data = traced[name + "test_helper"]
+    not_the_call = (
+        "case lint: the inner Linter call is not the call of the helper"
+        " assert_rule_raises_violations_in_file"
+    )
+    helper_refused = [
+        (
+            lambda c: c["inner"][0]["inputs"].update(method="lint_paths"),
+            not_the_call,
+        ),
+        (
+            lambda c: c["inner"][0]["inputs"].update(paths=["test/b.sql"]),
+            not_the_call,
+        ),
+        (
+            lambda c: c["inputs"]["args"].update(fluff_config={"method": "other"}),
+            not_the_call,
+        ),
+        (
+            lambda c: c["inputs"].update(cwd="/tmp/x"),
+            "case lint: a test helper call in the folder /tmp/x",
+        ),
+        (
+            lambda c: c.update(raised="AssertionError: x", inner=[]),
+            "case lint: the test helper assert_rule_raises_violations_in_file"
+            " raised AssertionError: x",
+        ),
+    ]
+    for change, error in helper_refused:
+        call = copy.deepcopy(helper_data["calls"][0])
+        change(call)
+        node = _tree_node(root, name + "test_helper", good["test_helper"])
+        data = {**helper_data, "calls": [call]}
+        errors = oracle.check_node(node, data, "pass", root, []).errors
+        assert error in errors, (error, errors)
     config_error = traced[name + "test_config_error"]["calls"][0]["inputs"]
     assert config_error["no_cli_input"].startswith("the FluffConfig construction")
     # The CLI run of the Linter error gave exit code 2 with no Linter error.

@@ -634,8 +634,12 @@ defaults (`FluffConfig.from_root` in the folder, with an empty home).
    Linter string call and makes `FluffConfig(overrides=...)` for each
    Linter path call with overrides and each Linter with Linter arguments.
    For each error call, it runs `lint -` in process in a new folder (T17).
-   These calls read no file of the submodule, and the test does not see
-   their results.
+   That CLI run changes process state outside its result: the `sqlfluff`
+   loggers (`propagate=False`, a log handler, levels) and the globals of
+   colorama (`colorama.init`). The trace saves this state before the run
+   and restores it after (a node of the T17 test tree checks it). These
+   calls read no file of the submodule, and the test does not see their
+   results.
 6. In process. The trace runs the CLI in the pytest process
    (`CliRunner`), not as a binary. Check 3 compares the binary run of the
    runner with it only by the node status.
