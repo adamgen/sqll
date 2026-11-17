@@ -23,10 +23,10 @@
  },
  "counts": {
   "in_scope": 643,
-  "converted": 91,
-  "excluded": 6,
-  "not_yet_converted": 546,
-  "needs_jinja": 3,
+  "converted": 106,
+  "excluded": 8,
+  "not_yet_converted": 529,
+  "needs_jinja": 16,
   "groups": {
    "cli": {
     "in_scope": 295,
@@ -36,9 +36,9 @@
    },
    "rules": {
     "in_scope": 208,
-    "converted": 81,
-    "excluded": 4,
-    "not_yet_converted": 123
+    "converted": 96,
+    "excluded": 6,
+    "not_yet_converted": 106
    },
    "config": {
     "in_scope": 137,
@@ -54,59 +54,59 @@
    }
   },
   "excluded_by_class": {
-   "python-internal": 4,
-   "needs-python-runtime": 1,
+   "python-internal": 5,
+   "needs-python-runtime": 2,
    "engine-comparison": 1,
    "environment": 0
   }
  },
  "parity": {
   "sqlfluff": {
-   "nodes": 88,
-   "passed": 88,
+   "nodes": 90,
+   "passed": 90,
    "failed": 0,
    "error": 0,
    "percent_of_converted": 100.0,
-   "percent_of_in_scope": 13.69
+   "percent_of_in_scope": 14.0
   },
   "sqlfluff-rs": {
-   "nodes": 88,
-   "passed": 87,
+   "nodes": 90,
+   "passed": 89,
    "failed": 1,
    "error": 0,
-   "percent_of_converted": 98.86,
-   "percent_of_in_scope": 13.53
+   "percent_of_converted": 98.89,
+   "percent_of_in_scope": 13.84
   },
   "sqruff": {
-   "nodes": 88,
+   "nodes": 90,
    "passed": 8,
-   "failed": 80,
+   "failed": 82,
    "error": 0,
-   "percent_of_converted": 9.09,
+   "percent_of_converted": 8.89,
    "percent_of_in_scope": 1.24
   }
  },
  "s11_jinja": {
   "sqlfluff": {
-   "nodes": 3,
-   "passed": 3,
+   "nodes": 16,
+   "passed": 16,
    "failed": 0,
    "error": 0,
    "percent_of_converted": 100.0,
-   "percent_of_in_scope": 0.47
+   "percent_of_in_scope": 2.49
   },
   "sqlfluff-rs": {
-   "nodes": 3,
-   "passed": 3,
+   "nodes": 16,
+   "passed": 16,
    "failed": 0,
    "error": 0,
    "percent_of_converted": 100.0,
-   "percent_of_in_scope": 0.47
+   "percent_of_in_scope": 2.49
   },
   "sqruff": {
-   "nodes": 3,
+   "nodes": 16,
    "passed": 0,
-   "failed": 3,
+   "failed": 16,
    "error": 0,
    "percent_of_converted": 0.0,
    "percent_of_in_scope": 0.0
@@ -935,6 +935,114 @@
    }
   },
   {
+   "id": "test/rules/std_JJ01_test.py::test_lint_jj01_custom_delimiters",
+   "group": "rules",
+   "case_file": "rules/std_JJ01_test.yml",
+   "cases": 1,
+   "needs_jinja": true,
+   "results": {
+    "sqlfluff": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqlfluff-rs": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqruff": {
+     "status": "fail",
+     "failed_cases": [
+      {
+       "name": "lint",
+       "status": "fail",
+       "reason": "unsupported: sqlfluff CLI command 'lint' (the case has no sqruff translation)"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "test/rules/std_JJ01_test.py::test_lint_jj01_mixed_custom_and_default_delimiters",
+   "group": "rules",
+   "case_file": "rules/std_JJ01_test.yml",
+   "cases": 1,
+   "needs_jinja": true,
+   "results": {
+    "sqlfluff": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqlfluff-rs": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqruff": {
+     "status": "fail",
+     "failed_cases": [
+      {
+       "name": "lint",
+       "status": "fail",
+       "reason": "unsupported: sqlfluff CLI command 'lint' (the case has no sqruff translation)"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "test/rules/std_JJ01_test.py::test_lint_jj01_custom_block_delimiters",
+   "group": "rules",
+   "case_file": "rules/std_JJ01_test.yml",
+   "cases": 1,
+   "needs_jinja": true,
+   "results": {
+    "sqlfluff": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqlfluff-rs": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqruff": {
+     "status": "fail",
+     "failed_cases": [
+      {
+       "name": "lint",
+       "status": "fail",
+       "reason": "unsupported: sqlfluff CLI command 'lint' (the case has no sqruff translation)"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "test/rules/std_JJ01_test.py::test_lint_jj01_partial_delimiter_override",
+   "group": "rules",
+   "case_file": "rules/std_JJ01_test.yml",
+   "cases": 1,
+   "needs_jinja": true,
+   "results": {
+    "sqlfluff": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqlfluff-rs": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqruff": {
+     "status": "fail",
+     "failed_cases": [
+      {
+       "name": "lint",
+       "status": "fail",
+       "reason": "unsupported: sqlfluff CLI command 'lint' (the case has no sqruff translation)"
+      }
+     ]
+    }
+   }
+  },
+  {
    "id": "test/rules/std_LT01_LT02_LT09_combo_test.py::test__rules__std_LT02_LT09_LT01",
    "group": "rules",
    "case_file": "rules/std_LT01_LT02_LT09_combo_test.yml",
@@ -1009,6 +1117,230 @@
        "name": "fix",
        "status": "fail",
        "reason": "unsupported: sqlfluff CLI command 'fix' (the case has no sqruff translation)"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "test/rules/std_LT01_jinja_alignment_test.py::test_lt01_alias_alignment_with_jinja_coordinate_space_config_key",
+   "group": "rules",
+   "case_file": "rules/std_LT01_jinja_alignment_test.yml",
+   "cases": 1,
+   "needs_jinja": true,
+   "results": {
+    "sqlfluff": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqlfluff-rs": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqruff": {
+     "status": "fail",
+     "failed_cases": [
+      {
+       "name": "fix",
+       "status": "fail",
+       "reason": "unsupported: sqlfluff CLI command 'fix' (the case has no sqruff translation)"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "test/rules/std_LT01_jinja_alignment_test.py::test_lt01_alias_alignment_non_rendered_longer_than_template",
+   "group": "rules",
+   "case_file": "rules/std_LT01_jinja_alignment_test.yml",
+   "cases": 3,
+   "needs_jinja": true,
+   "results": {
+    "sqlfluff": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqlfluff-rs": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqruff": {
+     "status": "fail",
+     "failed_cases": [
+      {
+       "name": "lint_before",
+       "status": "fail",
+       "reason": "unsupported: sqlfluff CLI command 'lint' (the case has no sqruff translation)"
+      },
+      {
+       "name": "fix",
+       "status": "fail",
+       "reason": "unsupported: sqlfluff CLI command 'fix' (the case has no sqruff translation)"
+      },
+      {
+       "name": "lint_after",
+       "status": "fail",
+       "reason": "unsupported: sqlfluff CLI command 'lint' (the case has no sqruff translation)"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "test/rules/std_LT01_jinja_alignment_test.py::test_lt01_alias_alignment_source_coordinate_space_explicit",
+   "group": "rules",
+   "case_file": "rules/std_LT01_jinja_alignment_test.yml",
+   "cases": 2,
+   "needs_jinja": true,
+   "results": {
+    "sqlfluff": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqlfluff-rs": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqruff": {
+     "status": "fail",
+     "failed_cases": [
+      {
+       "name": "fix",
+       "status": "fail",
+       "reason": "unsupported: sqlfluff CLI command 'fix' (the case has no sqruff translation)"
+      },
+      {
+       "name": "lint_after",
+       "status": "fail",
+       "reason": "unsupported: sqlfluff CLI command 'lint' (the case has no sqruff translation)"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "test/rules/std_LT01_jinja_alignment_test.py::test_lt01_alias_alignment_edge_case_no_segments_on_line",
+   "group": "rules",
+   "case_file": "rules/std_LT01_jinja_alignment_test.yml",
+   "cases": 2,
+   "needs_jinja": false,
+   "results": {
+    "sqlfluff": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqlfluff-rs": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqruff": {
+     "status": "fail",
+     "failed_cases": [
+      {
+       "name": "fix",
+       "status": "fail",
+       "reason": "unsupported: sqlfluff CLI command 'fix' (the case has no sqruff translation)"
+      },
+      {
+       "name": "lint_after",
+       "status": "fail",
+       "reason": "unsupported: sqlfluff CLI command 'lint' (the case has no sqruff translation)"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "test/rules/std_LT01_jinja_alignment_test.py::test_lt01_alias_alignment_target_segment_not_found",
+   "group": "rules",
+   "case_file": "rules/std_LT01_jinja_alignment_test.yml",
+   "cases": 2,
+   "needs_jinja": false,
+   "results": {
+    "sqlfluff": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqlfluff-rs": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqruff": {
+     "status": "fail",
+     "failed_cases": [
+      {
+       "name": "fix",
+       "status": "fail",
+       "reason": "unsupported: sqlfluff CLI command 'fix' (the case has no sqruff translation)"
+      },
+      {
+       "name": "lint_after",
+       "status": "fail",
+       "reason": "unsupported: sqlfluff CLI command 'lint' (the case has no sqruff translation)"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "test/rules/std_LT01_jinja_alignment_test.py::test_lt01_alias_alignment_templated_next_segment",
+   "group": "rules",
+   "case_file": "rules/std_LT01_jinja_alignment_test.yml",
+   "cases": 2,
+   "needs_jinja": true,
+   "results": {
+    "sqlfluff": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqlfluff-rs": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqruff": {
+     "status": "fail",
+     "failed_cases": [
+      {
+       "name": "fix",
+       "status": "fail",
+       "reason": "unsupported: sqlfluff CLI command 'fix' (the case has no sqruff translation)"
+      },
+      {
+       "name": "lint_after",
+       "status": "fail",
+       "reason": "unsupported: sqlfluff CLI command 'lint' (the case has no sqruff translation)"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "test/rules/std_LT01_jinja_alignment_test.py::test_lt01_alias_alignment_templated_siblings",
+   "group": "rules",
+   "case_file": "rules/std_LT01_jinja_alignment_test.yml",
+   "cases": 2,
+   "needs_jinja": true,
+   "results": {
+    "sqlfluff": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqlfluff-rs": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqruff": {
+     "status": "fail",
+     "failed_cases": [
+      {
+       "name": "fix",
+       "status": "fail",
+       "reason": "unsupported: sqlfluff CLI command 'fix' (the case has no sqruff translation)"
+      },
+      {
+       "name": "lint_after",
+       "status": "fail",
+       "reason": "unsupported: sqlfluff CLI command 'lint' (the case has no sqruff translation)"
       }
      ]
     }
@@ -1874,6 +2206,60 @@
    }
   },
   {
+   "id": "test/rules/std_ST12_test.py::test__rules__std_ST12_templated_loop_no_false_positive",
+   "group": "rules",
+   "case_file": "rules/std_ST12_test.yml",
+   "cases": 1,
+   "needs_jinja": true,
+   "results": {
+    "sqlfluff": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqlfluff-rs": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqruff": {
+     "status": "fail",
+     "failed_cases": [
+      {
+       "name": "templated_loop",
+       "status": "fail",
+       "reason": "unsupported: sqlfluff CLI command 'lint' (the case has no sqruff translation)"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "test/rules/std_ST12_test.py::test__rules__std_ST12_templated_consecutive_semicolons_detected",
+   "group": "rules",
+   "case_file": "rules/std_ST12_test.yml",
+   "cases": 1,
+   "needs_jinja": true,
+   "results": {
+    "sqlfluff": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqlfluff-rs": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqruff": {
+     "status": "fail",
+     "failed_cases": [
+      {
+       "name": "templated_semicolons",
+       "status": "fail",
+       "reason": "unsupported: sqlfluff CLI command 'lint' (the case has no sqruff translation)"
+      }
+     ]
+    }
+   }
+  },
+  {
    "id": "test/rules/std_roundtrip_test.py::test__cli__command__fix[LT01-test/fixtures/linter/indentation_errors.sql0]",
    "group": "rules",
    "case_file": "rules/std_roundtrip_test.yml",
@@ -2064,6 +2450,80 @@
    "case_file": "rules/std_roundtrip_test.yml",
    "cases": 3,
    "needs_jinja": false,
+   "results": {
+    "sqlfluff": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqlfluff-rs": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqruff": {
+     "status": "fail",
+     "failed_cases": [
+      {
+       "name": "lint_before",
+       "status": "fail",
+       "reason": "unsupported: sqlfluff CLI command 'lint' (the case has no sqruff translation)"
+      },
+      {
+       "name": "fix",
+       "status": "fail",
+       "reason": "unsupported: sqlfluff CLI command 'fix' (the case has no sqruff translation)"
+      },
+      {
+       "name": "lint_after",
+       "status": "fail",
+       "reason": "unsupported: sqlfluff CLI command 'lint' (the case has no sqruff translation)"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "test/rules/std_roundtrip_test.py::test__cli__command__fix_templated[CP01]",
+   "group": "rules",
+   "case_file": "rules/std_roundtrip_test.yml",
+   "cases": 3,
+   "needs_jinja": true,
+   "results": {
+    "sqlfluff": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqlfluff-rs": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqruff": {
+     "status": "fail",
+     "failed_cases": [
+      {
+       "name": "lint_before",
+       "status": "fail",
+       "reason": "unsupported: sqlfluff CLI command 'lint' (the case has no sqruff translation)"
+      },
+      {
+       "name": "fix",
+       "status": "fail",
+       "reason": "unsupported: sqlfluff CLI command 'fix' (the case has no sqruff translation)"
+      },
+      {
+       "name": "lint_after",
+       "status": "fail",
+       "reason": "unsupported: sqlfluff CLI command 'lint' (the case has no sqruff translation)"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "test/rules/std_roundtrip_test.py::test__cli__command__fix_templated[LT01]",
+   "group": "rules",
+   "case_file": "rules/std_roundtrip_test.yml",
+   "cases": 3,
+   "needs_jinja": true,
    "results": {
     "sqlfluff": {
      "status": "pass",
@@ -2768,6 +3228,18 @@
    "group": "rules",
    "class": "python-internal",
    "reason": "It calls Rule_AM09._eval on a fake segment and calls no CLI command and no simple-API function."
+  },
+  {
+   "id": "test/rules/std_JJ01_test.py::test_lint_jj01_pickled_config",
+   "group": "rules",
+   "class": "python-internal",
+   "reason": "It calls Linter.parse_path and Rule.crawl with a pickled config, and calls no CLI command and no simple-API function."
+  },
+  {
+   "id": "test/rules/std_LT01_jinja_alignment_test.py::test_lt01_alias_alignment_with_jinja_uses_source_positions",
+   "group": "rules",
+   "class": "needs-python-runtime",
+   "reason": "Its Jinja context has 2 Python functions (generate_surrogate_key and ref), which a config file cannot give."
   },
   {
    "id": "test/rules/std_LT04_ST06_test.py::test_rule_st06_simple_expression_helpers_reject_non_simple_segments",

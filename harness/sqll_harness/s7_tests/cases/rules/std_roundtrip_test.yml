@@ -19,9 +19,19 @@
 # each file is the text of the fixture before and after the fix of sqlfluff
 # 4.4.0. The fix check is stronger than the source assert (exit code 0): the
 # source checks the fixed file only with the third call, whose input is the
-# fixed file. The 2 nodes of test__cli__command__fix_templated are not
-# converted: their temporary folder has a .sqlfluff file, and the calls run in
-# the sqlfluff root (status/S7-tests.md).
+# fixed file.
+# test__cli__command__fix_templated copies a .sqlfluff file (a Jinja context)
+# and a SQL file with Jinja tags to a new temporary folder, and runs the 3
+# calls in the sqlfluff root. The case runs in the folder. The trace runs each
+# call again in a copy of the folder, with the copy as the working folder; the
+# oracle maps the call only if that run gives the same outputs (exit code,
+# stdout, stderr, files). The fix files check cites the source assert that the
+# Jinja tags do not change (L110): it gives the exact fixed file. The SQL has
+# Jinja tags: the 2 nodes move to S11. T18 (convert the rule tests, part 3, the Jinja rule nodes; goal: each rule
+# node that needs the Jinja templater is a black-box case marked for S11) of
+# S7 (CLI and config parity: the sqlfluff CLI, config, and Python rule tests
+# as black-box cases; sqll passes 100% of the converted cases; cases that need
+# the Jinja templater move to the Jinja templater stone) converts them.
 source:
   project: sqlfluff
   version: 4.4.0
@@ -219,5 +229,83 @@ nodes:
         cwd: tmp
         files:
           testing.sql: "-- test aliasing\nSELECT\n    raw_column,\n    raw_sch.raw_col,\n    simple_explicit as aliased_column_1,\n    simple_implicit AS aliased_column_2,\n    an_unaliased + calculation,\n    -- We know that the following one doesn't parse...\n    -- an_implicitly + aliased calculation,\n    an_explicitly - aliased as calculation,\n    'an unalised string',\n    123.6,\n    -786 as aliased_column3\nFROM unaliased\nJOIN aliased_1 as foo\nJOIN aliased_2 bar USING(b)\n"
+        checks:
+          exit_code: 0
+  - node: "test/rules/std_roundtrip_test.py::test__cli__command__fix_templated[CP01]"
+    asserts:
+      L83: ["lint_before:exit_code"]
+      L88: ["fix:exit_code"]
+      L100: ["lint_after:exit_code"]
+      L110: ["fix:files[test.sql]"]
+    cases:
+      - name: lint_before
+        run: cli
+        needs_jinja: true
+        argv: [lint, "--rules", CP01, "--dialect=ansi", "{tmp}/test.sql"]
+        cwd: tmp
+        files:
+          ".sqlfluff": "[sqlfluff:templater:jinja:context]\nsome_field=nothing_interesting\nmy_table=another_table\n"
+          "test.sql": "select\n    {{some_field}},\n    (1+2 ) AS kev,\n  \"wrongly indented field\" as something_else,\n    trailing_whitespace    ,    \n    4678.9\n  from {{my_table}}\n where indentation  = \"wrong\" AND    NotSpacedProperly\n AND 4+6 > 9\n    "
+        checks:
+          exit_code: 1
+      - name: fix
+        run: cli
+        needs_jinja: true
+        argv: [fix, "--rules", CP01, "-f", "--dialect=ansi", "{tmp}/test.sql"]
+        cwd: tmp
+        files:
+          ".sqlfluff": "[sqlfluff:templater:jinja:context]\nsome_field=nothing_interesting\nmy_table=another_table\n"
+          "test.sql": "select\n    {{some_field}},\n    (1+2 ) AS kev,\n  \"wrongly indented field\" as something_else,\n    trailing_whitespace    ,    \n    4678.9\n  from {{my_table}}\n where indentation  = \"wrong\" AND    NotSpacedProperly\n AND 4+6 > 9\n    "
+        checks:
+          exit_code: 0
+          files:
+            "test.sql": "select\n    {{some_field}},\n    (1+2 ) as kev,\n  \"wrongly indented field\" as something_else,\n    trailing_whitespace    ,    \n    4678.9\n  from {{my_table}}\n where indentation  = \"wrong\" and    NotSpacedProperly\n and 4+6 > 9\n    "
+      - name: lint_after
+        run: cli
+        needs_jinja: true
+        argv: [lint, "--rules", CP01, "--dialect=ansi", "{tmp}/test.sql"]
+        cwd: tmp
+        files:
+          ".sqlfluff": "[sqlfluff:templater:jinja:context]\nsome_field=nothing_interesting\nmy_table=another_table\n"
+          "test.sql": "select\n    {{some_field}},\n    (1+2 ) as kev,\n  \"wrongly indented field\" as something_else,\n    trailing_whitespace    ,    \n    4678.9\n  from {{my_table}}\n where indentation  = \"wrong\" and    NotSpacedProperly\n and 4+6 > 9\n    "
+        checks:
+          exit_code: 0
+  - node: "test/rules/std_roundtrip_test.py::test__cli__command__fix_templated[LT01]"
+    asserts:
+      L83: ["lint_before:exit_code"]
+      L88: ["fix:exit_code"]
+      L100: ["lint_after:exit_code"]
+      L110: ["fix:files[test.sql]"]
+    cases:
+      - name: lint_before
+        run: cli
+        needs_jinja: true
+        argv: [lint, "--rules", LT01, "--dialect=ansi", "{tmp}/test.sql"]
+        cwd: tmp
+        files:
+          ".sqlfluff": "[sqlfluff:templater:jinja:context]\nsome_field=nothing_interesting\nmy_table=another_table\n"
+          "test.sql": "select\n    {{some_field}},\n    (1+2 ) AS kev,\n  \"wrongly indented field\" as something_else,\n    trailing_whitespace    ,    \n    4678.9\n  from {{my_table}}\n where indentation  = \"wrong\" AND    NotSpacedProperly\n AND 4+6 > 9\n    "
+        checks:
+          exit_code: 1
+      - name: fix
+        run: cli
+        needs_jinja: true
+        argv: [fix, "--rules", LT01, "-f", "--dialect=ansi", "{tmp}/test.sql"]
+        cwd: tmp
+        files:
+          ".sqlfluff": "[sqlfluff:templater:jinja:context]\nsome_field=nothing_interesting\nmy_table=another_table\n"
+          "test.sql": "select\n    {{some_field}},\n    (1+2 ) AS kev,\n  \"wrongly indented field\" as something_else,\n    trailing_whitespace    ,    \n    4678.9\n  from {{my_table}}\n where indentation  = \"wrong\" AND    NotSpacedProperly\n AND 4+6 > 9\n    "
+        checks:
+          exit_code: 0
+          files:
+            "test.sql": "select\n    {{some_field}},\n    (1 + 2) AS kev,\n  \"wrongly indented field\" as something_else,\n    trailing_whitespace,\n    4678.9\n  from {{my_table}}\n where indentation = \"wrong\" AND NotSpacedProperly\n AND 4 + 6 > 9\n"
+      - name: lint_after
+        run: cli
+        needs_jinja: true
+        argv: [lint, "--rules", LT01, "--dialect=ansi", "{tmp}/test.sql"]
+        cwd: tmp
+        files:
+          ".sqlfluff": "[sqlfluff:templater:jinja:context]\nsome_field=nothing_interesting\nmy_table=another_table\n"
+          "test.sql": "select\n    {{some_field}},\n    (1 + 2) AS kev,\n  \"wrongly indented field\" as something_else,\n    trailing_whitespace,\n    4678.9\n  from {{my_table}}\n where indentation = \"wrong\" AND NotSpacedProperly\n AND 4 + 6 > 9\n"
         checks:
           exit_code: 0

@@ -42,7 +42,10 @@ oracles do. It records, for each node:
   example Linter.parse_string.
 - The temporary folders of the node (tempfile.mkdtemp, and the tmp_path
   and tmpdir fixtures). A CLI argument or working folder in one of them is
-  {tmp}; the call records the files of the folder before and after it.
+  {tmp}; the call records the files of the folder before and after it. A CLI
+  call in the sqlfluff root with a config or ignore file in the folder also
+  records cwd_outputs (T18): the outputs of the same call in a copy of the
+  folder, with the copy as the working folder, in process.
 - The config of each Linter string call: the .sqlfluff text of the config
   model (s7config.py), and the keys that the CLI config from that file does
   not give (the proof; it must be empty). A Linter path call with a config
@@ -513,16 +516,65 @@ def install(tracer: Tracer) -> None:
     def tmp_inputs(context, folder: str, others: list[str]) -> dict:
         """The files of a temporary folder before a CLI call, the sqlfluff
         config of the folders above it, and the other arguments that are
-        paths in the working folder."""
+        paths in the working folder. For a call in the sqlfluff root with a
+        config or ignore file in the folder, a copy of the folder for the
+        run of the call in the folder (cwd_outputs)."""
         context["tmp"] = folder
         outer = [load_config_at_path(str(p)) for p in reversed(Path(folder).parents)]
+        files = read_tree(folder)
+        if tracer.cwd() == ROOT_MARK and any(
+            Path(name).name in CONFIG_FILES for name in files
+        ):
+            copy = MKDTEMP(prefix="s7-cwd-")
+            atexit.register(shutil.rmtree, copy, True)
+            shutil.copytree(folder, copy, dirs_exist_ok=True)
+            context["copy"] = copy
         return {
-            "files": read_tree(folder),
+            "files": files,
             "outer_config": plain(nested_combine({}, *outer)),
             "cwd_paths": [
                 a for a in others if not a.startswith("-") and os.path.exists(a)
             ],
         }
+
+    def cwd_outputs(context) -> dict:
+        """Run the CLI call again in the copy of its temporary folder, with
+        the copy as the working folder, in process (the case runs so). The
+        outputs, with the copy as {tmp}. The oracle maps a call in the
+        sqlfluff root with a config or ignore file in the folder only if
+        these are the outputs of the call."""
+        folder, copy = context["tmp"], context["copy"]
+        argv = [os.fspath(a) for a in context["argv"]]
+        argv = [
+            copy + a[len(folder) :]
+            if a == folder or a.startswith(folder + os.sep)
+            else a
+            for a in argv
+        ]
+        old = os.getcwd()
+        state = cli_state()
+        try:
+            os.chdir(copy)
+            with tracer.scope(PROOF):
+                result = tracer.invoke(
+                    context["runner"], context["cli"], argv, input=context["stdin"]
+                )
+            os.chdir(old)
+            out = {
+                "exit_code": result.exit_code,
+                "stdout": result.stdout.replace(copy, TMP_MARK),
+                "stderr": result.stderr.replace(copy, TMP_MARK),
+                "files": read_tree(copy),
+            }
+            if result.exception is not None and not isinstance(
+                result.exception, SystemExit
+            ):
+                out["exception"] = first_line(result.exception)
+            return out
+        finally:
+            os.chdir(old)
+            shutil.rmtree(copy)
+            state()
 
     # CLI.
     invoke_sig = inspect.signature(CliRunner.invoke)
@@ -559,6 +611,9 @@ def install(tracer: Tracer) -> None:
                 unsupported.append("the working folder is in a temporary folder")
             folders.add(cwd_folder)
             cwd = cwd_text
+        context.update(
+            runner=runner, cli=cli, argv=list(argv), stdin=bound.arguments.get("input")
+        )
         is_group = isinstance(cli, click.Group) and cli is commands.cli
         if not is_group:
             texts = [cli.name or "", *texts]
@@ -602,6 +657,11 @@ def install(tracer: Tracer) -> None:
             for stream in ("stdout", "stderr"):
                 out[stream] = out[stream].replace(folder, TMP_MARK)
             out["files"] = read_tree(folder)
+        if "copy" in context:
+            try:
+                out["cwd_outputs"] = cwd_outputs(context)
+            except Exception as exc:
+                out["cwd_outputs"] = {"error": first_line(exc)}
         return out
 
     tracer.invoke = CliRunner.invoke

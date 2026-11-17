@@ -55,6 +55,9 @@ ST06_INTERNAL = (
 GLOBAL_CONFIG_INTERNAL = (
     "test/rules/yaml_test_cases_test.py::test__rule_test_global_config"
 )
+# The python-internal node of T18 (convert the rule tests, part 3, the Jinja
+# rule nodes).
+JJ01_INTERNAL = "test/rules/std_JJ01_test.py::test_lint_jj01_pickled_config"
 EXCLUDE = (
     "test/core/config/fluffconfig_test.py::test__config__glob_exclude_config_tests"
 )
@@ -76,6 +79,16 @@ KWARGS = next(n.id for n in CASES.nodes if "std_AL09_CP02_RF06[rules0-" in n.id)
 REJECTED = (
     "test/rules/std_test.py::test_improper_configs_are_rejected[rule_config_dict3]"
 )
+# Nodes of T18 (convert the rule tests, part 3, the Jinja rule nodes): a
+# Linter string call with the Jinja context and delimiters, simple-API calls
+# with the keys of a layout type, and CLI calls in the sqlfluff root with a
+# .sqlfluff file in the temporary folder.
+JJ01 = "test/rules/std_JJ01_test.py::test_lint_jj01_custom_delimiters"
+LT01_JINJA = (
+    "test/rules/std_LT01_jinja_alignment_test.py"
+    "::test_lt01_alias_alignment_templated_siblings"
+)
+TEMPLATED = "test/rules/std_roundtrip_test.py::test__cli__command__fix_templated[LT01]"
 
 
 def check(tool="sqlfluff", trace=None, nodes=None, report=None, records=NONE):
@@ -114,20 +127,27 @@ def test_the_oracle_agrees_with_each_converted_case(tool):
     assert [n["id"] for n in result["nodes"]] == report_ids
     assert report_ids == [n.id for n in CASES.nodes]
     # The 15 pilot nodes of T2, the 23 rule nodes of T6, the 2 proof nodes
-    # of T16, the 2 proof nodes of T17, and the 49 rule nodes of T7.
-    assert result["counts"]["agree"] == result["counts"]["nodes"] == 91
+    # of T16, the 2 proof nodes of T17, the 49 rule nodes of T7, and the 15
+    # Jinja rule nodes of T18.
+    assert result["counts"]["agree"] == result["counts"]["nodes"] == 106
     status = {n["id"]: n["results"][tool]["status"] for n in REPORT["nodes"]}
     for node in result["nodes"]:
         assert node["trace"] == status[node["id"]], node["id"]
         assert node["pytest"] == {"pass": "passed", "fail": "failed"}[node["trace"]]
         assert node["errors"] == []
-    # Each assert of the source tests: 184 (97 before T7), each cited by a
-    # check.
-    assert result["counts"]["asserts"] == 184
+    # Each assert of the source tests: 213 (97 before T7, 184 before T18),
+    # each cited by a check.
+    assert result["counts"]["asserts"] == 213
     assert result["counts"]["not_reproduced"] == 0
     internal = [e["id"] for e in REPORT["excluded"] if e["class"] == "python-internal"]
     assert [n["id"] for n in result["python_internal"]] == internal
-    assert internal == [INTERNAL, AM09_INTERNAL, ST06_INTERNAL, GLOBAL_CONFIG_INTERNAL]
+    assert internal == [
+        INTERNAL,
+        AM09_INTERNAL,
+        JJ01_INTERNAL,
+        ST06_INTERNAL,
+        GLOBAL_CONFIG_INTERNAL,
+    ]
     assert all(n["calls"] == {} for n in result["python_internal"])
 
 
@@ -236,6 +256,21 @@ def _kwargs_config(node):
 def _error_config(node):
     files = node.cases[0].files
     files[".sqlfluff"] = files[".sqlfluff"].replace("blah", "upper")
+
+
+def _jinja_context(node):
+    files = node.cases[0].files
+    files[".sqlfluff"] = files[".sqlfluff"].replace("foo = bar", "foo = baz")
+
+
+def _layout_key(node):
+    files = node.cases[0].files
+    files[".sqlfluff"] = files[".sqlfluff"].replace("bracketed", "select_clause")
+
+
+def _folder_config(node):
+    files = node.cases[0].files
+    files[".sqlfluff"] = files[".sqlfluff"].replace("another_table", "a_table")
 
 
 CASE_MUTATIONS = [
@@ -1020,6 +1055,16 @@ MAP_EXIT_MUTATIONS = [
         _error_config,
         "case rejected: input files",
     ),
+    # T18: the Jinja context, the keys of a layout type, and a config file
+    # in the temporary folder of a call in the sqlfluff root.
+    ("a changed Jinja context", JJ01, _jinja_context, "case lint: input files"),
+    ("a changed layout key", LT01_JINJA, _layout_key, "case fix: input files"),
+    (
+        "a changed config file in the folder",
+        TEMPLATED,
+        _folder_config,
+        "case lint_before: input files",
+    ),
 ]
 
 
@@ -1077,6 +1122,35 @@ UNMAPPED = [
         f"error: sqlfluff: {REJECTED}: case rejected: the CLI does not give the"
         f" same error: the test gets {_call(TRACES['sqlfluff'], REJECTED)['error']!r}"
         " from RuleSet.get_rulepack, the CLI run gets []",
+    ),
+    # T18: a call in the sqlfluff root with a config file in its temporary
+    # folder, with no run in the folder, with an error of that run, and with
+    # other outputs of that run.
+    (
+        "a config file in the folder and no run in the folder",
+        lambda t: _call(t, TEMPLATED)["outputs"].pop("cwd_outputs"),
+        f"error: sqlfluff: {TEMPLATED}: case lint_before: the temporary folder"
+        " has the config or ignore files ['.sqlfluff']; the case runs in the"
+        " folder, the call did not, and the trace has no run of the call in the"
+        " folder",
+    ),
+    (
+        "a config file in the folder and an error of the run in the folder",
+        lambda t: _call(t, TEMPLATED, 1)["outputs"].update(
+            cwd_outputs={"error": "OSError: x"}
+        ),
+        f"error: sqlfluff: {TEMPLATED}: case fix: the temporary folder has the"
+        " config or ignore files ['.sqlfluff']; the run of the call in the folder:"
+        " OSError: x",
+    ),
+    (
+        "a config file in the folder and other outputs of the run in the folder",
+        lambda t: _call(t, TEMPLATED, 2)["outputs"]["cwd_outputs"].update(
+            exit_code=1, files={}
+        ),
+        f"error: sqlfluff: {TEMPLATED}: case lint_after: the temporary folder"
+        " has the config or ignore files ['.sqlfluff']; the run of the call in"
+        " the folder gives other outputs: ['exit_code', 'files']",
     ),
 ]
 
@@ -1732,6 +1806,18 @@ def test_trace_step_maps_the_calls_of_t16(tmp_path):
                 files={".sqlfluff": "[sqlfluff]\ndialect = ansi\n", "a.sql": TREE_SQL},
             )
         ],
+        # A config file in the temporary folder of a call in the sqlfluff
+        # root (T18): the run of the call in the folder gives the same
+        # outputs. test_trace_step_maps_the_calls_of_t18 has the refusal.
+        "test_tmp_config": [
+            _cli_case(
+                "lint",
+                ["lint", "--rules", "LT01", "{tmp}/a.sql"],
+                1,
+                cwd="tmp",
+                files={".sqlfluff": "[sqlfluff]\ndialect = ansi\n", "a.sql": TREE_SQL},
+            )
+        ],
     }
     for test, cases in good.items():
         node = _tree_node(root, name + test, cases)
@@ -1757,7 +1843,6 @@ def test_trace_step_maps_the_calls_of_t16(tmp_path):
 
     # The calls that the maps do not know: each is an error with a message.
     refused = {
-        "test_tmp_config": "the temporary folder has the config or ignore files",
         "test_set_core": "the keys ['core:rule_allowlist'] are different",
         "test_unknown_key": (
             "the config of the Linter: core:not_a_key: the map knows only the"
@@ -2134,6 +2219,229 @@ def test_a_changed_input_of_each_t17_map_makes_the_oracle_exit_1(
         assert f"error: sqlfluff: {name}{test}: {error}" in "\n".join(lines), lines
 
 
+# T18 (convert the rule tests, part 3, the Jinja rule nodes): the trace step
+# and the oracle on the extra keys of the config model (the Jinja context and
+# delimiters, the keys of a layout type) and on a config file in the
+# temporary folder of a CLI call in the sqlfluff root, with the oracle tools.
+# Each call that the maps do not know is an error with a message.
+
+TREE_T18 = """
+import os
+import tempfile
+
+import sqlfluff
+from click.testing import CliRunner
+from sqlfluff.cli.commands import fix, lint
+from sqlfluff.core import FluffConfig, Linter
+
+SQL = "SELECT {{ x }}  FROM b\\n"
+FIXED = "SELECT {{ x }} FROM b\\n"
+ALIGN = "select\\n    {{ x }} as a,\\n    bbbbbbbb as b\\n"
+ALIGNED = "select\\n    {{ x }}  as a,\\n    bbbbbbbb as b\\n"
+
+
+def write(folder, name, text):
+    with open(os.path.join(folder, name), "w") as f:
+        f.write(text)
+
+
+def layout(cfg):
+    cfg._configs.setdefault("layout", {}).setdefault("type", {}).setdefault(
+        "alias_expression", {}
+    ).update(
+        {
+            "spacing_before": "align",
+            "align_within": "select_clause",
+            "align_scope": "bracketed",
+        }
+    )
+    return cfg
+
+
+def test_jinja_string():
+    config = FluffConfig.from_string(
+        "[sqlfluff]\\ndialect = ansi\\nrules = JJ01\\n"
+        "[sqlfluff:templater:jinja]\\n"
+        "variable_start_string = <%\\nvariable_end_string = %>\\n"
+        "[sqlfluff:templater:jinja:context]\\nfoo = bar\\n"
+    )
+    result = Linter(config=config).lint_string("SELECT <%foo%>\\n")
+    assert [v.rule_code() for v in result.violations] == ["JJ01"]
+
+
+def test_layout_api_fix():
+    cfg = layout(FluffConfig.from_kwargs(dialect="ansi", rules=["LT01"]))
+    cfg._configs["templater"]["jinja"].setdefault("context", {})["x"] = "a"
+    assert sqlfluff.fix(ALIGN, config=cfg) == ALIGNED
+
+
+def test_tmp_config_root():
+    folder = tempfile.mkdtemp()
+    write(folder, ".sqlfluff", "[sqlfluff:templater:jinja:context]\\nx = a\\n")
+    write(folder, "a.sql", SQL)
+    path = os.path.join(folder, "a.sql")
+    args = ["--dialect=ansi", "--rules", "LT01", path]
+    assert CliRunner().invoke(lint, args).exit_code == 1
+    assert CliRunner().invoke(fix, args).exit_code == 0
+    with open(path) as f:
+        assert f.read() == FIXED
+
+
+def test_tmp_config_root_other_outputs():
+    folder = tempfile.mkdtemp()
+    write(folder, ".sqlfluff", "[sqlfluff]\\noutput_line_length = 30\\n")
+    write(folder, "a.sql", SQL)
+    args = ["--dialect=ansi", "--rules", "LT01", os.path.join(folder, "a.sql")]
+    assert CliRunner().invoke(lint, args).exit_code == 1
+
+
+def test_function_in_context():
+    cfg = FluffConfig.from_kwargs(dialect="ansi", rules=["LT01"])
+    cfg._configs["templater"]["jinja"].setdefault("context", {})["x"] = lambda: "a"
+    assert sqlfluff.lint(SQL, config=cfg)
+
+
+def test_other_jinja_key():
+    cfg = FluffConfig.from_kwargs(dialect="ansi", rules=["LT01"])
+    cfg._configs["templater"]["jinja"]["not_a_key"] = "a"
+    assert sqlfluff.lint(SQL, config=cfg)
+"""
+TREE_T18_SQL = "SELECT {{ x }}  FROM b\n"
+TREE_T18_FIXED = "SELECT {{ x }} FROM b\n"
+TREE_T18_ALIGN = "select\n    {{ x }} as a,\n    bbbbbbbb as b\n"
+TREE_T18_ALIGNED = "select\n    {{ x }}  as a,\n    bbbbbbbb as b\n"
+TREE_T18_LAYOUT = (
+    "[sqlfluff]\ndialect = ansi\nrules = LT01\n\n"
+    "[sqlfluff:layout:type:alias_expression]\nalign_scope = bracketed\n"
+    "align_within = select_clause\nspacing_before = align\n\n"
+    "[sqlfluff:templater:jinja:context]\nx = a\n"
+)
+TREE_T18_JINJA = (
+    "[sqlfluff]\ndialect = ansi\nrules = JJ01\n\n"
+    "[sqlfluff:templater:jinja]\nvariable_end_string = %>\n"
+    "variable_start_string = <%\n\n"
+    "[sqlfluff:templater:jinja:context]\nfoo = bar\n"
+)
+
+
+@needs_oracles
+def test_trace_step_maps_the_calls_of_t18(tmp_path):
+    root = tmp_path / "root"
+    (root / "test").mkdir(parents=True)
+    (root / "test" / "t18_test.py").write_text(TREE_T18)
+    name = "test/t18_test.py::"
+    names = [
+        line[4:].split("(")[0]
+        for line in TREE_T18.splitlines()
+        if line.startswith("def test_")
+    ]
+    out = tmp_path / "trace.json"
+    python = tools_dir() / "sqlfluff-oracle" / "bin" / "python"
+    proc = subprocess.run(
+        [str(python), str(SCRIPTS / "trace-nodes"), "--out", str(out)]
+        + ["--root", str(root)]
+        + [name + n for n in names],
+        capture_output=True,
+        text=True,
+        env=_env(tmp_path),
+        check=False,
+    )
+    assert proc.returncode == 0, proc.stderr[-3000:]
+    trace = json.loads(out.read_text())
+    traced = trace["nodes"]
+    assert {n: traced[name + n]["outcome"] for n in names} == dict.fromkeys(
+        names, "passed"
+    )
+    assert oracle.trace_errors(trace, "sqlfluff", [name + n for n in names]) == []
+    folder_config = "[sqlfluff:templater:jinja:context]\nx = a\n"
+    folder_files = {".sqlfluff": folder_config, "a.sql": TREE_T18_SQL}
+    args = ["--dialect=ansi", "--rules", "LT01", "{tmp}/a.sql"]
+    good = {
+        # A Linter string call with the Jinja context and delimiters.
+        "test_jinja_string": [
+            _cli_case(
+                "lint",
+                ["lint", "-f", "json", "-"],
+                1,
+                stdin="SELECT <%foo%>\n",
+                cwd="tmp",
+                files={".sqlfluff": TREE_T18_JINJA},
+                checks={"violations": [{"records": [{"code": "JJ01"}]}]},
+            )
+        ],
+        # A simple-API fix with the keys of a layout type and a Jinja
+        # context.
+        "test_layout_api_fix": [
+            _cli_case(
+                "fix",
+                ["fix", "-"],
+                0,
+                stdin=TREE_T18_ALIGN,
+                cwd="tmp",
+                files={".sqlfluff": TREE_T18_LAYOUT},
+                checks={"stdout": {"equals": TREE_T18_ALIGNED}},
+            )
+        ],
+        # 2 calls in the sqlfluff root with a .sqlfluff file in the folder.
+        "test_tmp_config_root": [
+            _cli_case("lint", ["lint", *args], 1, cwd="tmp", files=folder_files),
+            _cli_case(
+                "fix",
+                ["fix", *args],
+                0,
+                cwd="tmp",
+                files=folder_files,
+                checks={"files": {"a.sql": TREE_T18_FIXED}},
+            ),
+        ],
+    }
+    for test, cases in good.items():
+        node = _tree_node(root, name + test, cases)
+        result = oracle.check_node(node, traced[name + test], "pass", root, [])
+        assert result.errors == [] and result.trace == "pass", (test, result.errors)
+    # The run in the folder: the same outputs as the call.
+    for call in traced[name + "test_tmp_config_root"]["calls"]:
+        outputs = dict(call["outputs"])
+        proof = outputs.pop("cwd_outputs")
+        assert proof == outputs, proof
+
+    # Mutations: a changed Jinja context, layout key, and folder config.
+    mutations = [
+        ("test_jinja_string", 0, "foo = bar", "foo = baz"),
+        ("test_layout_api_fix", 0, "bracketed", "select_clause"),
+        ("test_tmp_config_root", 1, "x = a", "x = b"),
+    ]
+    for test, index, old, new in mutations:
+        node = _tree_node(root, name + test, copy.deepcopy(good[test]))
+        files = node.cases[index].files
+        files[".sqlfluff"] = files[".sqlfluff"].replace(old, new)
+        errors = oracle.check_node(node, traced[name + test], "pass", root, []).errors
+        case = node.cases[index].name
+        assert any(f"case {case}: input files" in e for e in errors), (test, errors)
+
+    # The calls that the maps do not know: each is an error with a message.
+    # output_line_length of the folder config changes the lint output only
+    # when the folder is the working folder (the CLI reads it from there).
+    refused = {
+        "test_tmp_config_root_other_outputs": (
+            "the temporary folder has the config or ignore files ['.sqlfluff'];"
+            " the run of the call in the folder gives other outputs: ['stdout']"
+        ),
+        "test_function_in_context": (
+            "templater:jinja:context:x: the value {'<object>': 'builtins.function'}"
+            " is not a scalar"
+        ),
+        "test_other_jinja_key": (
+            "templater:jinja:not_a_key: the map knows only the keys of the default"
+            " config and the extra keys"
+        ),
+    }
+    for test, error in refused.items():
+        node = _tree_node(root, name + test, [_cli_case("lint", ["lint"], 0)])
+        errors = oracle.check_node(node, traced[name + test], "pass", root, []).errors
+        assert any(error in e for e in errors), (test, errors)
+
+
 S7CONFIG_CHECK = """
 import json
 import sys
@@ -2161,9 +2469,35 @@ def change(core=None, rule=None):
     return out
 
 
+def extra(*path, value="v"):
+    out = change()
+    target = out
+    for key in path[:-1]:
+        target = target.setdefault(key, {})
+    target[path[-1]] = value
+    return out
+
+
 missing = change()
 del missing["rules"]["x.y"]["name"]
 print(json.dumps({
+    "jinja context": text(extra("templater", "jinja", "context", "foo")),
+    "jinja delimiter": text(
+        extra("templater", "jinja", "block_start_string", value="((")
+    ),
+    "layout key": text(
+        extra("layout", "type", "alias_expression", "align_scope", value="bracketed")
+    ),
+    "other jinja key": text(extra("templater", "jinja", "not_a_key")),
+    "other templater": text(extra("templater", "python", "context", "foo")),
+    "nested context": text(extra("templater", "jinja", "context", "a", "b")),
+    "other layout key": text(extra("layout", "type", "alias_expression", "x")),
+    "function in context": text(
+        extra("templater", "jinja", "context", "f", value={"<object>": "f"})
+    ),
+    "number text in context": text(
+        extra("templater", "jinja", "context", "n", value="123")
+    ),
     "same": text(change()),
     "derived": text(change({"color": True})),
     "values": text(change({"dialect": "ansi"}, {"flag": 1, "name": "b c"})),
@@ -2197,6 +2531,30 @@ def test_config_model(tmp_path):
     )
     assert out["unknown"] == (
         "error: core:other: the map knows only the keys of the default config"
+        " and the extra keys"
+    )
+    # T18: the extra keys (the Jinja context and delimiters, and the keys of a
+    # layout type) map; each other key that the default config does not have
+    # is an error.
+    assert out["jinja context"] == "[sqlfluff:templater:jinja:context]\nfoo = v\n"
+    assert out["jinja delimiter"] == (
+        "[sqlfluff:templater:jinja]\nblock_start_string = ((\n"
+    )
+    assert out["layout key"] == (
+        "[sqlfluff:layout:type:alias_expression]\nalign_scope = bracketed\n"
+    )
+    unknown = "the map knows only the keys of the default config and the extra keys"
+    assert out["other jinja key"] == f"error: templater:jinja:not_a_key: {unknown}"
+    assert out["other templater"] == (f"error: templater:python:context:foo: {unknown}")
+    assert out["nested context"] == f"error: templater:jinja:context:a:b: {unknown}"
+    assert out["other layout key"] == (
+        f"error: layout:type:alias_expression:x: {unknown}"
+    )
+    assert out["function in context"] == (
+        "error: templater:jinja:context:f: the value {'<object>': 'f'} is not a scalar"
+    )
+    assert out["number text in context"] == (
+        "error: templater:jinja:context:n: the text '123' loads as another value"
     )
     assert out["path"].startswith("error: core:a_path: a path key")
     assert out["loads as another value"] == (

@@ -8,7 +8,7 @@
  "pytest_exit_code": 1,
  "root_config": {},
  "parse_runs": {
-  "RustParser": 140,
+  "RustParser": 180,
   "Parser": 0
  },
  "collection_errors": {},
@@ -5894,6 +5894,386 @@
    "untraced": [],
    "processes": []
   },
+  "test/rules/std_JJ01_test.py::test_lint_jj01_custom_delimiters": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "linter_string",
+     "inputs": {
+      "method": "lint_string",
+      "sql": "SELECT * FROM <%foo%>",
+      "options": {
+       "fname": "<string input>",
+       "fix": false,
+       "config": null,
+       "encoding": "utf8"
+      },
+      "linter": {
+       "config": {
+        "method": "from_string",
+        "args": {
+         "config_string": "[sqlfluff]\ndialect = ansi\nrules = JJ01\ntemplater = jinja\n[sqlfluff:templater:jinja]\nvariable_start_string = <%\nvariable_end_string = %>\n[sqlfluff:templater:jinja:context]\nfoo = bar\n"
+        }
+       }
+      },
+      "config_changed": false,
+      "cwd": "{sqlfluff}",
+      "config_file": {
+       "text": "[sqlfluff]\ndialect = ansi\nrules = JJ01\n\n[sqlfluff:templater:jinja]\nvariable_end_string = %>\nvariable_start_string = <%\n\n[sqlfluff:templater:jinja:context]\nfoo = bar\n"
+      },
+      "config_proof": []
+     },
+     "outputs": {
+      "records": [
+       {
+        "filepath": "<string input>",
+        "violations": [
+         {
+          "start_line_no": 1,
+          "start_line_pos": 15,
+          "code": "JJ01",
+          "description": "Jinja tags should have a single whitespace on either side: <%foo%>",
+          "name": "jinja.padding",
+          "warning": false,
+          "fixes": [
+           {
+            "type": "replace",
+            "edit": "<% foo %>",
+            "start_line_no": 1,
+            "start_line_pos": 15,
+            "start_file_pos": 14,
+            "end_line_no": 1,
+            "end_line_pos": 22,
+            "end_file_pos": 21
+           }
+          ],
+          "start_file_pos": 14,
+          "end_line_no": 1,
+          "end_line_pos": 22,
+          "end_file_pos": 21
+         }
+        ],
+        "statistics": {
+         "source_chars": 21,
+         "templated_chars": 17,
+         "segments": 24,
+         "raw_segments": 12
+        }
+       }
+      ],
+      "violations": 1,
+      "tmp_prs": 0,
+      "fixable": 1,
+      "unfixable": 0
+     }
+    }
+   ],
+   "untraced": [],
+   "processes": []
+  },
+  "test/rules/std_JJ01_test.py::test_lint_jj01_mixed_custom_and_default_delimiters": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "linter_string",
+     "inputs": {
+      "method": "lint_string",
+      "sql": "{%if true%}SELECT <%foo%> AS x{%endif%}\n",
+      "options": {
+       "fname": "<string input>",
+       "fix": false,
+       "config": null,
+       "encoding": "utf8"
+      },
+      "linter": {
+       "config": {
+        "method": "from_string",
+        "args": {
+         "config_string": "[sqlfluff]\ndialect = ansi\nrules = JJ01\ntemplater = jinja\n[sqlfluff:templater:jinja]\nvariable_start_string = <%\nvariable_end_string = %>\n[sqlfluff:templater:jinja:context]\nfoo = bar\n"
+        }
+       }
+      },
+      "config_changed": false,
+      "cwd": "{sqlfluff}",
+      "config_file": {
+       "text": "[sqlfluff]\ndialect = ansi\nrules = JJ01\n\n[sqlfluff:templater:jinja]\nvariable_end_string = %>\nvariable_start_string = <%\n\n[sqlfluff:templater:jinja:context]\nfoo = bar\n"
+      },
+      "config_proof": []
+     },
+     "outputs": {
+      "records": [
+       {
+        "filepath": "<string input>",
+        "violations": [
+         {
+          "start_line_no": 1,
+          "start_line_pos": 1,
+          "code": "JJ01",
+          "description": "Jinja tags should have a single whitespace on either side: {%if true%}",
+          "name": "jinja.padding",
+          "warning": false,
+          "fixes": [
+           {
+            "type": "replace",
+            "edit": "{% if true %}",
+            "start_line_no": 1,
+            "start_line_pos": 1,
+            "start_file_pos": 0,
+            "end_line_no": 1,
+            "end_line_pos": 12,
+            "end_file_pos": 11
+           }
+          ],
+          "start_file_pos": 0,
+          "end_line_no": 1,
+          "end_line_pos": 12,
+          "end_file_pos": 11
+         },
+         {
+          "start_line_no": 1,
+          "start_line_pos": 19,
+          "code": "JJ01",
+          "description": "Jinja tags should have a single whitespace on either side: <%foo%>",
+          "name": "jinja.padding",
+          "warning": false,
+          "fixes": [
+           {
+            "type": "replace",
+            "edit": "<% foo %>",
+            "start_line_no": 1,
+            "start_line_pos": 19,
+            "start_file_pos": 18,
+            "end_line_no": 1,
+            "end_line_pos": 26,
+            "end_file_pos": 25
+           }
+          ],
+          "start_file_pos": 18,
+          "end_line_no": 1,
+          "end_line_pos": 26,
+          "end_file_pos": 25
+         },
+         {
+          "start_line_no": 1,
+          "start_line_pos": 31,
+          "code": "JJ01",
+          "description": "Jinja tags should have a single whitespace on either side: {%endif%}",
+          "name": "jinja.padding",
+          "warning": false,
+          "fixes": [
+           {
+            "type": "replace",
+            "edit": "{% endif %}",
+            "start_line_no": 1,
+            "start_line_pos": 31,
+            "start_file_pos": 30,
+            "end_line_no": 1,
+            "end_line_pos": 40,
+            "end_file_pos": 39
+           }
+          ],
+          "start_file_pos": 30,
+          "end_line_no": 1,
+          "end_line_pos": 40,
+          "end_file_pos": 39
+         }
+        ],
+        "statistics": {
+         "source_chars": 40,
+         "templated_chars": 16,
+         "segments": 25,
+         "raw_segments": 17
+        }
+       }
+      ],
+      "violations": 3,
+      "tmp_prs": 0,
+      "fixable": 3,
+      "unfixable": 0
+     }
+    }
+   ],
+   "untraced": [],
+   "processes": []
+  },
+  "test/rules/std_JJ01_test.py::test_lint_jj01_custom_block_delimiters": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "linter_string",
+     "inputs": {
+      "method": "lint_string",
+      "sql": "((if true))SELECT 1((endif))\n",
+      "options": {
+       "fname": "<string input>",
+       "fix": false,
+       "config": null,
+       "encoding": "utf8"
+      },
+      "linter": {
+       "config": {
+        "method": "from_string",
+        "args": {
+         "config_string": "[sqlfluff]\ndialect = ansi\nrules = JJ01\ntemplater = jinja\n[sqlfluff:templater:jinja]\nblock_start_string = ((\nblock_end_string = ))\n"
+        }
+       }
+      },
+      "config_changed": false,
+      "cwd": "{sqlfluff}",
+      "config_file": {
+       "text": "[sqlfluff]\ndialect = ansi\nrules = JJ01\n\n[sqlfluff:templater:jinja]\nblock_end_string = ))\nblock_start_string = ((\n"
+      },
+      "config_proof": []
+     },
+     "outputs": {
+      "records": [
+       {
+        "filepath": "<string input>",
+        "violations": [
+         {
+          "start_line_no": 1,
+          "start_line_pos": 1,
+          "code": "JJ01",
+          "description": "Jinja tags should have a single whitespace on either side: ((if true))",
+          "name": "jinja.padding",
+          "warning": false,
+          "fixes": [
+           {
+            "type": "replace",
+            "edit": "(( if true ))",
+            "start_line_no": 1,
+            "start_line_pos": 1,
+            "start_file_pos": 0,
+            "end_line_no": 1,
+            "end_line_pos": 12,
+            "end_file_pos": 11
+           }
+          ],
+          "start_file_pos": 0,
+          "end_line_no": 1,
+          "end_line_pos": 12,
+          "end_file_pos": 11
+         },
+         {
+          "start_line_no": 1,
+          "start_line_pos": 20,
+          "code": "JJ01",
+          "description": "Jinja tags should have a single whitespace on either side: ((endif))",
+          "name": "jinja.padding",
+          "warning": false,
+          "fixes": [
+           {
+            "type": "replace",
+            "edit": "(( endif ))",
+            "start_line_no": 1,
+            "start_line_pos": 20,
+            "start_file_pos": 19,
+            "end_line_no": 1,
+            "end_line_pos": 29,
+            "end_file_pos": 28
+           }
+          ],
+          "start_file_pos": 19,
+          "end_line_no": 1,
+          "end_line_pos": 29,
+          "end_file_pos": 28
+         }
+        ],
+        "statistics": {
+         "source_chars": 29,
+         "templated_chars": 9,
+         "segments": 16,
+         "raw_segments": 11
+        }
+       }
+      ],
+      "violations": 2,
+      "tmp_prs": 0,
+      "fixable": 2,
+      "unfixable": 0
+     }
+    }
+   ],
+   "untraced": [],
+   "processes": []
+  },
+  "test/rules/std_JJ01_test.py::test_lint_jj01_partial_delimiter_override": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "linter_string",
+     "inputs": {
+      "method": "lint_string",
+      "sql": "SELECT <<foo}} FROM tbl\n",
+      "options": {
+       "fname": "<string input>",
+       "fix": false,
+       "config": null,
+       "encoding": "utf8"
+      },
+      "linter": {
+       "config": {
+        "method": "from_string",
+        "args": {
+         "config_string": "[sqlfluff]\ndialect = ansi\nrules = JJ01\ntemplater = jinja\n[sqlfluff:templater:jinja]\nvariable_start_string = <<\n[sqlfluff:templater:jinja:context]\nfoo = bar\n"
+        }
+       }
+      },
+      "config_changed": false,
+      "cwd": "{sqlfluff}",
+      "config_file": {
+       "text": "[sqlfluff]\ndialect = ansi\nrules = JJ01\n\n[sqlfluff:templater:jinja]\nvariable_start_string = <<\n\n[sqlfluff:templater:jinja:context]\nfoo = bar\n"
+      },
+      "config_proof": []
+     },
+     "outputs": {
+      "records": [
+       {
+        "filepath": "<string input>",
+        "violations": [
+         {
+          "start_line_no": 1,
+          "start_line_pos": 8,
+          "code": "JJ01",
+          "description": "Jinja tags should have a single whitespace on either side: <<foo}}",
+          "name": "jinja.padding",
+          "warning": false,
+          "fixes": [
+           {
+            "type": "replace",
+            "edit": "<< foo }}",
+            "start_line_no": 1,
+            "start_line_pos": 8,
+            "start_file_pos": 7,
+            "end_line_no": 1,
+            "end_line_pos": 15,
+            "end_file_pos": 14
+           }
+          ],
+          "start_file_pos": 7,
+          "end_line_no": 1,
+          "end_line_pos": 15,
+          "end_file_pos": 14
+         }
+        ],
+        "statistics": {
+         "source_chars": 24,
+         "templated_chars": 20,
+         "segments": 24,
+         "raw_segments": 13
+        }
+       }
+      ],
+      "violations": 1,
+      "tmp_prs": 0,
+      "fixable": 1,
+      "unfixable": 0
+     }
+    }
+   ],
+   "untraced": [],
+   "processes": []
+  },
   "test/rules/std_LT01_LT02_LT09_combo_test.py::test__rules__std_LT02_LT09_LT01": {
    "outcome": "passed",
    "calls": [
@@ -6127,6 +6507,1791 @@
        "unfixable": 0
       }
      }
+    }
+   ],
+   "untraced": [],
+   "processes": []
+  },
+  "test/rules/std_LT01_jinja_alignment_test.py::test_lt01_alias_alignment_with_jinja_coordinate_space_config_key": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "api",
+     "inputs": {
+      "function": "fix",
+      "sql": "select\n    {{ 'templ' }} as a,\n    b as bb\n",
+      "dialect": null,
+      "rules": [
+       "LT01"
+      ],
+      "exclude_rules": null,
+      "config": {
+       "method": "from_kwargs",
+       "args": {
+        "dialect": "ansi"
+       }
+      },
+      "config_path": null,
+      "fix_even_unparsable": null,
+      "cwd": "{sqlfluff}"
+     },
+     "outputs": "select\n    {{ 'templ' }} as a,\n    b     as bb\n",
+     "inner": [
+      {
+       "kind": "linter_string",
+       "inputs": {
+        "method": "lint_string_wrapped",
+        "sql": "select\n    {{ 'templ' }} as a,\n    b as bb\n",
+        "options": {
+         "fname": "<string input>",
+         "fix": true,
+         "stdin_filename": null
+        },
+        "linter": {
+         "config": {
+          "method": "from_kwargs",
+          "args": {
+           "dialect": "ansi"
+          }
+         }
+        },
+        "config_changed": false,
+        "cwd": "{sqlfluff}",
+        "config_file": {
+         "text": "[sqlfluff]\ndialect = ansi\n\n[sqlfluff:layout:type:alias_expression]\nalign_scope = bracketed\nalign_within = select_clause\nalignment_coordinate_space = templated\nspacing_before = align\n"
+        },
+        "config_proof": []
+       },
+       "outputs": {
+        "records": [
+         {
+          "filepath": "<string input>",
+          "violations": [
+           {
+            "start_line_no": 3,
+            "start_line_pos": 6,
+            "code": "LT01",
+            "description": "'alias_expression' elements are expected to be aligned. Found incorrect whitespace before 'as' keyword: ' '.",
+            "name": "layout.spacing",
+            "warning": false,
+            "fixes": [
+             {
+              "type": "replace",
+              "edit": "     ",
+              "start_line_no": 3,
+              "start_line_pos": 6,
+              "start_file_pos": 36,
+              "end_line_no": 3,
+              "end_line_pos": 7,
+              "end_file_pos": 37
+             }
+            ],
+            "start_file_pos": 36,
+            "end_line_no": 3,
+            "end_line_pos": 7,
+            "end_file_pos": 37
+           }
+          ],
+          "statistics": {
+           "source_chars": 43,
+           "templated_chars": 35,
+           "segments": 36,
+           "raw_segments": 24
+          }
+         }
+        ],
+        "violations": 1,
+        "tmp_prs": 0,
+        "fixable": 1,
+        "unfixable": 0,
+        "fixed": "select\n    {{ 'templ' }} as a,\n    b     as bb\n",
+        "lint": {
+         "records": [
+          {
+           "filepath": "<string input>",
+           "violations": [
+            {
+             "start_line_no": 3,
+             "start_line_pos": 6,
+             "code": "LT01",
+             "description": "'alias_expression' elements are expected to be aligned. Found incorrect whitespace before 'as' keyword: ' '.",
+             "name": "layout.spacing",
+             "warning": false,
+             "fixes": [
+              {
+               "type": "replace",
+               "edit": "     ",
+               "start_line_no": 3,
+               "start_line_pos": 6,
+               "start_file_pos": 36,
+               "end_line_no": 3,
+               "end_line_pos": 7,
+               "end_file_pos": 37
+              }
+             ],
+             "start_file_pos": 36,
+             "end_line_no": 3,
+             "end_line_pos": 7,
+             "end_file_pos": 37
+            }
+           ],
+           "statistics": {
+            "source_chars": 43,
+            "templated_chars": 35,
+            "segments": 36,
+            "raw_segments": 24
+           }
+          }
+         ],
+         "violations": 1,
+         "tmp_prs": 0,
+         "fixable": 1,
+         "unfixable": 0
+        }
+       }
+      }
+     ]
+    }
+   ],
+   "untraced": [],
+   "processes": []
+  },
+  "test/rules/std_LT01_jinja_alignment_test.py::test_lt01_alias_alignment_non_rendered_longer_than_template": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "api",
+     "inputs": {
+      "function": "lint",
+      "sql": "select\n    {{ \"xxx\" }} as a,\n    fooooooooo as b\nfrom t\n",
+      "dialect": null,
+      "rules": [
+       "LT01"
+      ],
+      "exclude_rules": null,
+      "config": {
+       "method": "from_kwargs",
+       "args": {
+        "dialect": "ansi"
+       }
+      },
+      "config_path": null,
+      "cwd": "{sqlfluff}"
+     },
+     "outputs": [
+      {
+       "start_line_no": 3,
+       "start_line_pos": 15,
+       "code": "LT01",
+       "description": "'alias_expression' elements are expected to be aligned. Found incorrect whitespace before 'as' keyword: ' '.",
+       "name": "layout.spacing",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "replace",
+         "edit": "  ",
+         "start_line_no": 3,
+         "start_line_pos": 15,
+         "start_file_pos": 43,
+         "end_line_no": 3,
+         "end_line_pos": 16,
+         "end_file_pos": 44
+        }
+       ],
+       "start_file_pos": 43,
+       "end_line_no": 3,
+       "end_line_pos": 16,
+       "end_file_pos": 44
+      }
+     ],
+     "inner": [
+      {
+       "kind": "linter_string",
+       "inputs": {
+        "method": "lint_string_wrapped",
+        "sql": "select\n    {{ \"xxx\" }} as a,\n    fooooooooo as b\nfrom t\n",
+        "options": {
+         "fname": "<string input>",
+         "fix": false,
+         "stdin_filename": null
+        },
+        "linter": {
+         "config": {
+          "method": "from_kwargs",
+          "args": {
+           "dialect": "ansi"
+          }
+         }
+        },
+        "config_changed": false,
+        "cwd": "{sqlfluff}",
+        "config_file": {
+         "text": "[sqlfluff]\ndialect = ansi\n\n[sqlfluff:layout:type:alias_expression]\nalign_scope = bracketed\nalign_within = select_clause\nspacing_before = align\n"
+        },
+        "config_proof": []
+       },
+       "outputs": {
+        "records": [
+         {
+          "filepath": "<string input>",
+          "violations": [
+           {
+            "start_line_no": 3,
+            "start_line_pos": 15,
+            "code": "LT01",
+            "description": "'alias_expression' elements are expected to be aligned. Found incorrect whitespace before 'as' keyword: ' '.",
+            "name": "layout.spacing",
+            "warning": false,
+            "fixes": [
+             {
+              "type": "replace",
+              "edit": "  ",
+              "start_line_no": 3,
+              "start_line_pos": 15,
+              "start_file_pos": 43,
+              "end_line_no": 3,
+              "end_line_pos": 16,
+              "end_file_pos": 44
+             }
+            ],
+            "start_file_pos": 43,
+            "end_line_no": 3,
+            "end_line_pos": 16,
+            "end_file_pos": 44
+           }
+          ],
+          "statistics": {
+           "source_chars": 56,
+           "templated_chars": 48,
+           "segments": 47,
+           "raw_segments": 30
+          }
+         }
+        ],
+        "violations": 1,
+        "tmp_prs": 0,
+        "fixable": 1,
+        "unfixable": 0
+       }
+      }
+     ]
+    },
+    {
+     "kind": "api",
+     "inputs": {
+      "function": "fix",
+      "sql": "select\n    {{ \"xxx\" }} as a,\n    fooooooooo as b\nfrom t\n",
+      "dialect": null,
+      "rules": [
+       "LT01"
+      ],
+      "exclude_rules": null,
+      "config": {
+       "method": "from_kwargs",
+       "args": {
+        "dialect": "ansi"
+       }
+      },
+      "config_path": null,
+      "fix_even_unparsable": null,
+      "cwd": "{sqlfluff}"
+     },
+     "outputs": "select\n    {{ \"xxx\" }} as a,\n    fooooooooo  as b\nfrom t\n",
+     "inner": [
+      {
+       "kind": "linter_string",
+       "inputs": {
+        "method": "lint_string_wrapped",
+        "sql": "select\n    {{ \"xxx\" }} as a,\n    fooooooooo as b\nfrom t\n",
+        "options": {
+         "fname": "<string input>",
+         "fix": true,
+         "stdin_filename": null
+        },
+        "linter": {
+         "config": {
+          "method": "from_kwargs",
+          "args": {
+           "dialect": "ansi"
+          }
+         }
+        },
+        "config_changed": false,
+        "cwd": "{sqlfluff}",
+        "config_file": {
+         "text": "[sqlfluff]\ndialect = ansi\n\n[sqlfluff:layout:type:alias_expression]\nalign_scope = bracketed\nalign_within = select_clause\nspacing_before = align\n"
+        },
+        "config_proof": []
+       },
+       "outputs": {
+        "records": [
+         {
+          "filepath": "<string input>",
+          "violations": [
+           {
+            "start_line_no": 3,
+            "start_line_pos": 15,
+            "code": "LT01",
+            "description": "'alias_expression' elements are expected to be aligned. Found incorrect whitespace before 'as' keyword: ' '.",
+            "name": "layout.spacing",
+            "warning": false,
+            "fixes": [
+             {
+              "type": "replace",
+              "edit": "  ",
+              "start_line_no": 3,
+              "start_line_pos": 15,
+              "start_file_pos": 43,
+              "end_line_no": 3,
+              "end_line_pos": 16,
+              "end_file_pos": 44
+             }
+            ],
+            "start_file_pos": 43,
+            "end_line_no": 3,
+            "end_line_pos": 16,
+            "end_file_pos": 44
+           }
+          ],
+          "statistics": {
+           "source_chars": 56,
+           "templated_chars": 48,
+           "segments": 47,
+           "raw_segments": 30
+          }
+         }
+        ],
+        "violations": 1,
+        "tmp_prs": 0,
+        "fixable": 1,
+        "unfixable": 0,
+        "fixed": "select\n    {{ \"xxx\" }} as a,\n    fooooooooo  as b\nfrom t\n",
+        "lint": {
+         "records": [
+          {
+           "filepath": "<string input>",
+           "violations": [
+            {
+             "start_line_no": 3,
+             "start_line_pos": 15,
+             "code": "LT01",
+             "description": "'alias_expression' elements are expected to be aligned. Found incorrect whitespace before 'as' keyword: ' '.",
+             "name": "layout.spacing",
+             "warning": false,
+             "fixes": [
+              {
+               "type": "replace",
+               "edit": "  ",
+               "start_line_no": 3,
+               "start_line_pos": 15,
+               "start_file_pos": 43,
+               "end_line_no": 3,
+               "end_line_pos": 16,
+               "end_file_pos": 44
+              }
+             ],
+             "start_file_pos": 43,
+             "end_line_no": 3,
+             "end_line_pos": 16,
+             "end_file_pos": 44
+            }
+           ],
+           "statistics": {
+            "source_chars": 56,
+            "templated_chars": 48,
+            "segments": 47,
+            "raw_segments": 30
+           }
+          }
+         ],
+         "violations": 1,
+         "tmp_prs": 0,
+         "fixable": 1,
+         "unfixable": 0
+        }
+       }
+      }
+     ]
+    },
+    {
+     "kind": "api",
+     "inputs": {
+      "function": "lint",
+      "sql": "select\n    {{ \"xxx\" }} as a,\n    fooooooooo  as b\nfrom t\n",
+      "dialect": null,
+      "rules": [
+       "LT01"
+      ],
+      "exclude_rules": null,
+      "config": {
+       "method": "from_kwargs",
+       "args": {
+        "dialect": "ansi"
+       }
+      },
+      "config_path": null,
+      "cwd": "{sqlfluff}"
+     },
+     "outputs": [],
+     "inner": [
+      {
+       "kind": "linter_string",
+       "inputs": {
+        "method": "lint_string_wrapped",
+        "sql": "select\n    {{ \"xxx\" }} as a,\n    fooooooooo  as b\nfrom t\n",
+        "options": {
+         "fname": "<string input>",
+         "fix": false,
+         "stdin_filename": null
+        },
+        "linter": {
+         "config": {
+          "method": "from_kwargs",
+          "args": {
+           "dialect": "ansi"
+          }
+         }
+        },
+        "config_changed": false,
+        "cwd": "{sqlfluff}",
+        "config_file": {
+         "text": "[sqlfluff]\ndialect = ansi\n\n[sqlfluff:layout:type:alias_expression]\nalign_scope = bracketed\nalign_within = select_clause\nspacing_before = align\n"
+        },
+        "config_proof": []
+       },
+       "outputs": {
+        "records": [
+         {
+          "filepath": "<string input>",
+          "violations": [],
+          "statistics": {
+           "source_chars": 57,
+           "templated_chars": 49,
+           "segments": 47,
+           "raw_segments": 30
+          }
+         }
+        ],
+        "violations": 0,
+        "tmp_prs": 0,
+        "fixable": 0,
+        "unfixable": 0
+       }
+      }
+     ]
+    }
+   ],
+   "untraced": [],
+   "processes": []
+  },
+  "test/rules/std_LT01_jinja_alignment_test.py::test_lt01_alias_alignment_source_coordinate_space_explicit": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "api",
+     "inputs": {
+      "function": "fix",
+      "sql": "select\n    {{ var1 }} as col1,\n    b as col2\nfrom table1\n",
+      "dialect": null,
+      "rules": [
+       "LT01"
+      ],
+      "exclude_rules": null,
+      "config": {
+       "method": "from_kwargs",
+       "args": {
+        "dialect": "ansi"
+       }
+      },
+      "config_path": null,
+      "fix_even_unparsable": null,
+      "cwd": "{sqlfluff}"
+     },
+     "outputs": "select\n    {{ var1 }} as col1,\n    b          as col2\nfrom table1\n",
+     "inner": [
+      {
+       "kind": "linter_string",
+       "inputs": {
+        "method": "lint_string_wrapped",
+        "sql": "select\n    {{ var1 }} as col1,\n    b as col2\nfrom table1\n",
+        "options": {
+         "fname": "<string input>",
+         "fix": true,
+         "stdin_filename": null
+        },
+        "linter": {
+         "config": {
+          "method": "from_kwargs",
+          "args": {
+           "dialect": "ansi"
+          }
+         }
+        },
+        "config_changed": false,
+        "cwd": "{sqlfluff}",
+        "config_file": {
+         "text": "[sqlfluff]\ndialect = ansi\n\n[sqlfluff:layout:type:alias_expression]\nalign_scope = bracketed\nalign_within = select_clause\nalignment_coordinate_space = source\nspacing_before = align\n\n[sqlfluff:templater:jinja:context]\nvar1 = some_value\n"
+        },
+        "config_proof": []
+       },
+       "outputs": {
+        "records": [
+         {
+          "filepath": "<string input>",
+          "violations": [
+           {
+            "start_line_no": 3,
+            "start_line_pos": 6,
+            "code": "LT01",
+            "description": "'alias_expression' elements are expected to be aligned. Found incorrect whitespace before 'as' keyword: ' '.",
+            "name": "layout.spacing",
+            "warning": false,
+            "fixes": [
+             {
+              "type": "replace",
+              "edit": "          ",
+              "start_line_no": 3,
+              "start_line_pos": 6,
+              "start_file_pos": 36,
+              "end_line_no": 3,
+              "end_line_pos": 7,
+              "end_file_pos": 37
+             }
+            ],
+            "start_file_pos": 36,
+            "end_line_no": 3,
+            "end_line_pos": 7,
+            "end_file_pos": 37
+           }
+          ],
+          "statistics": {
+           "source_chars": 57,
+           "templated_chars": 57,
+           "segments": 47,
+           "raw_segments": 30
+          }
+         }
+        ],
+        "violations": 1,
+        "tmp_prs": 0,
+        "fixable": 1,
+        "unfixable": 0,
+        "fixed": "select\n    {{ var1 }} as col1,\n    b          as col2\nfrom table1\n",
+        "lint": {
+         "records": [
+          {
+           "filepath": "<string input>",
+           "violations": [
+            {
+             "start_line_no": 3,
+             "start_line_pos": 6,
+             "code": "LT01",
+             "description": "'alias_expression' elements are expected to be aligned. Found incorrect whitespace before 'as' keyword: ' '.",
+             "name": "layout.spacing",
+             "warning": false,
+             "fixes": [
+              {
+               "type": "replace",
+               "edit": "          ",
+               "start_line_no": 3,
+               "start_line_pos": 6,
+               "start_file_pos": 36,
+               "end_line_no": 3,
+               "end_line_pos": 7,
+               "end_file_pos": 37
+              }
+             ],
+             "start_file_pos": 36,
+             "end_line_no": 3,
+             "end_line_pos": 7,
+             "end_file_pos": 37
+            }
+           ],
+           "statistics": {
+            "source_chars": 57,
+            "templated_chars": 57,
+            "segments": 47,
+            "raw_segments": 30
+           }
+          }
+         ],
+         "violations": 1,
+         "tmp_prs": 0,
+         "fixable": 1,
+         "unfixable": 0
+        }
+       }
+      }
+     ]
+    },
+    {
+     "kind": "api",
+     "inputs": {
+      "function": "lint",
+      "sql": "select\n    {{ var1 }} as col1,\n    b          as col2\nfrom table1\n",
+      "dialect": null,
+      "rules": [
+       "LT01"
+      ],
+      "exclude_rules": null,
+      "config": {
+       "method": "from_kwargs",
+       "args": {
+        "dialect": "ansi"
+       }
+      },
+      "config_path": null,
+      "cwd": "{sqlfluff}"
+     },
+     "outputs": [],
+     "inner": [
+      {
+       "kind": "linter_string",
+       "inputs": {
+        "method": "lint_string_wrapped",
+        "sql": "select\n    {{ var1 }} as col1,\n    b          as col2\nfrom table1\n",
+        "options": {
+         "fname": "<string input>",
+         "fix": false,
+         "stdin_filename": null
+        },
+        "linter": {
+         "config": {
+          "method": "from_kwargs",
+          "args": {
+           "dialect": "ansi"
+          }
+         }
+        },
+        "config_changed": false,
+        "cwd": "{sqlfluff}",
+        "config_file": {
+         "text": "[sqlfluff]\ndialect = ansi\n\n[sqlfluff:layout:type:alias_expression]\nalign_scope = bracketed\nalign_within = select_clause\nalignment_coordinate_space = source\nspacing_before = align\n\n[sqlfluff:templater:jinja:context]\nvar1 = some_value\n"
+        },
+        "config_proof": []
+       },
+       "outputs": {
+        "records": [
+         {
+          "filepath": "<string input>",
+          "violations": [],
+          "statistics": {
+           "source_chars": 66,
+           "templated_chars": 66,
+           "segments": 47,
+           "raw_segments": 30
+          }
+         }
+        ],
+        "violations": 0,
+        "tmp_prs": 0,
+        "fixable": 0,
+        "unfixable": 0
+       }
+      }
+     ]
+    }
+   ],
+   "untraced": [],
+   "processes": []
+  },
+  "test/rules/std_LT01_jinja_alignment_test.py::test_lt01_alias_alignment_edge_case_no_segments_on_line": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "api",
+     "inputs": {
+      "function": "fix",
+      "sql": "select\n\n    col1 as a,\n    col2 as b\nfrom t\n",
+      "dialect": null,
+      "rules": [
+       "LT01"
+      ],
+      "exclude_rules": null,
+      "config": {
+       "method": "from_kwargs",
+       "args": {
+        "dialect": "ansi"
+       }
+      },
+      "config_path": null,
+      "fix_even_unparsable": null,
+      "cwd": "{sqlfluff}"
+     },
+     "outputs": "select\n\n    col1 as a,\n    col2 as b\nfrom t\n",
+     "inner": [
+      {
+       "kind": "linter_string",
+       "inputs": {
+        "method": "lint_string_wrapped",
+        "sql": "select\n\n    col1 as a,\n    col2 as b\nfrom t\n",
+        "options": {
+         "fname": "<string input>",
+         "fix": true,
+         "stdin_filename": null
+        },
+        "linter": {
+         "config": {
+          "method": "from_kwargs",
+          "args": {
+           "dialect": "ansi"
+          }
+         }
+        },
+        "config_changed": false,
+        "cwd": "{sqlfluff}",
+        "config_file": {
+         "text": "[sqlfluff]\ndialect = ansi\n\n[sqlfluff:layout:type:alias_expression]\nalign_scope = bracketed\nalign_within = select_clause\nspacing_before = align\n"
+        },
+        "config_proof": []
+       },
+       "outputs": {
+        "records": [
+         {
+          "filepath": "<string input>",
+          "violations": [],
+          "statistics": {
+           "source_chars": 44,
+           "templated_chars": 44,
+           "segments": 48,
+           "raw_segments": 31
+          }
+         }
+        ],
+        "violations": 0,
+        "tmp_prs": 0,
+        "fixable": 0,
+        "unfixable": 0,
+        "fixed": "select\n\n    col1 as a,\n    col2 as b\nfrom t\n",
+        "lint": {
+         "records": [
+          {
+           "filepath": "<string input>",
+           "violations": [],
+           "statistics": {
+            "source_chars": 44,
+            "templated_chars": 44,
+            "segments": 48,
+            "raw_segments": 31
+           }
+          }
+         ],
+         "violations": 0,
+         "tmp_prs": 0,
+         "fixable": 0,
+         "unfixable": 0
+        }
+       }
+      }
+     ]
+    },
+    {
+     "kind": "api",
+     "inputs": {
+      "function": "lint",
+      "sql": "select\n\n    col1 as a,\n    col2 as b\nfrom t\n",
+      "dialect": null,
+      "rules": [
+       "LT01"
+      ],
+      "exclude_rules": null,
+      "config": {
+       "method": "from_kwargs",
+       "args": {
+        "dialect": "ansi"
+       }
+      },
+      "config_path": null,
+      "cwd": "{sqlfluff}"
+     },
+     "outputs": [],
+     "inner": [
+      {
+       "kind": "linter_string",
+       "inputs": {
+        "method": "lint_string_wrapped",
+        "sql": "select\n\n    col1 as a,\n    col2 as b\nfrom t\n",
+        "options": {
+         "fname": "<string input>",
+         "fix": false,
+         "stdin_filename": null
+        },
+        "linter": {
+         "config": {
+          "method": "from_kwargs",
+          "args": {
+           "dialect": "ansi"
+          }
+         }
+        },
+        "config_changed": false,
+        "cwd": "{sqlfluff}",
+        "config_file": {
+         "text": "[sqlfluff]\ndialect = ansi\n\n[sqlfluff:layout:type:alias_expression]\nalign_scope = bracketed\nalign_within = select_clause\nspacing_before = align\n"
+        },
+        "config_proof": []
+       },
+       "outputs": {
+        "records": [
+         {
+          "filepath": "<string input>",
+          "violations": [],
+          "statistics": {
+           "source_chars": 44,
+           "templated_chars": 44,
+           "segments": 48,
+           "raw_segments": 31
+          }
+         }
+        ],
+        "violations": 0,
+        "tmp_prs": 0,
+        "fixable": 0,
+        "unfixable": 0
+       }
+      }
+     ]
+    }
+   ],
+   "untraced": [],
+   "processes": []
+  },
+  "test/rules/std_LT01_jinja_alignment_test.py::test_lt01_alias_alignment_target_segment_not_found": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "api",
+     "inputs": {
+      "function": "fix",
+      "sql": "select\n    case when 1=1\n         then col1 end as a,\n    col2 as b\nfrom t\n",
+      "dialect": null,
+      "rules": [
+       "LT01"
+      ],
+      "exclude_rules": null,
+      "config": {
+       "method": "from_kwargs",
+       "args": {
+        "dialect": "ansi"
+       }
+      },
+      "config_path": null,
+      "fix_even_unparsable": null,
+      "cwd": "{sqlfluff}"
+     },
+     "outputs": "select\n    col2 as b,\n    case\n        when 1 = 1\n            then col1\n    end  as a\nfrom t\n",
+     "inner": [
+      {
+       "kind": "linter_string",
+       "inputs": {
+        "method": "lint_string_wrapped",
+        "sql": "select\n    case when 1=1\n         then col1 end as a,\n    col2 as b\nfrom t\n",
+        "options": {
+         "fname": "<string input>",
+         "fix": true,
+         "stdin_filename": null
+        },
+        "linter": {
+         "config": {
+          "method": "from_kwargs",
+          "args": {
+           "dialect": "ansi"
+          }
+         }
+        },
+        "config_changed": false,
+        "cwd": "{sqlfluff}",
+        "config_file": {
+         "text": "[sqlfluff]\ndialect = ansi\n\n[sqlfluff:layout:type:alias_expression]\nalign_scope = bracketed\nalign_within = select_clause\nspacing_before = align\n"
+        },
+        "config_proof": []
+       },
+       "outputs": {
+        "records": [
+         {
+          "filepath": "<string input>",
+          "violations": [
+           {
+            "start_line_no": 1,
+            "start_line_pos": 1,
+            "code": "ST06",
+            "description": "Select wildcards then simple targets before calculations and aggregates.",
+            "name": "structure.column_order",
+            "warning": false,
+            "fixes": [
+             {
+              "type": "replace",
+              "edit": "col2               as b",
+              "start_line_no": 2,
+              "start_line_pos": 5,
+              "start_file_pos": 11,
+              "end_line_no": 3,
+              "end_line_pos": 28,
+              "end_file_pos": 52
+             },
+             {
+              "type": "replace",
+              "edit": "case\n        when 1 = 1\n            then col1\nend as a",
+              "start_line_no": 4,
+              "start_line_pos": 5,
+              "start_file_pos": 58,
+              "end_line_no": 4,
+              "end_line_pos": 14,
+              "end_file_pos": 67
+             }
+            ],
+            "start_file_pos": 0,
+            "end_line_no": 4,
+            "end_line_pos": 14,
+            "end_file_pos": 67
+           },
+           {
+            "start_line_no": 2,
+            "start_line_pos": 9,
+            "code": "LT02",
+            "description": "Expected line break and indent of 8 spaces before 'when'.",
+            "name": "layout.indent",
+            "warning": false,
+            "fixes": [
+             {
+              "type": "replace",
+              "edit": "\n        ",
+              "start_line_no": 2,
+              "start_line_pos": 9,
+              "start_file_pos": 15,
+              "end_line_no": 2,
+              "end_line_pos": 10,
+              "end_file_pos": 16
+             }
+            ],
+            "start_file_pos": 15,
+            "end_line_no": 2,
+            "end_line_pos": 10,
+            "end_file_pos": 16
+           },
+           {
+            "start_line_no": 2,
+            "start_line_pos": 16,
+            "code": "LT01",
+            "description": "Expected single whitespace between numeric literal and raw comparison operator '='.",
+            "name": "layout.spacing",
+            "warning": false,
+            "fixes": [
+             {
+              "type": "create_after",
+              "edit": " ",
+              "start_line_no": 2,
+              "start_line_pos": 16,
+              "start_file_pos": 22,
+              "end_line_no": 2,
+              "end_line_pos": 16,
+              "end_file_pos": 22
+             }
+            ],
+            "start_file_pos": 22,
+            "end_line_no": 2,
+            "end_line_pos": 17,
+            "end_file_pos": 23
+           },
+           {
+            "start_line_no": 2,
+            "start_line_pos": 17,
+            "code": "LT01",
+            "description": "Expected single whitespace between raw comparison operator '=' and numeric literal.",
+            "name": "layout.spacing",
+            "warning": false,
+            "fixes": [
+             {
+              "type": "create_after",
+              "edit": " ",
+              "start_line_no": 2,
+              "start_line_pos": 17,
+              "start_file_pos": 23,
+              "end_line_no": 2,
+              "end_line_pos": 17,
+              "end_file_pos": 23
+             }
+            ],
+            "start_file_pos": 23,
+            "end_line_no": 2,
+            "end_line_pos": 18,
+            "end_file_pos": 24
+           },
+           {
+            "start_line_no": 3,
+            "start_line_pos": 1,
+            "code": "LT02",
+            "description": "Expected indent of 12 spaces.",
+            "name": "layout.indent",
+            "warning": false,
+            "fixes": [
+             {
+              "type": "replace",
+              "edit": "            ",
+              "start_line_no": 3,
+              "start_line_pos": 1,
+              "start_file_pos": 25,
+              "end_line_no": 3,
+              "end_line_pos": 10,
+              "end_file_pos": 34
+             }
+            ],
+            "start_file_pos": 25,
+            "end_line_no": 3,
+            "end_line_pos": 10,
+            "end_file_pos": 34
+           },
+           {
+            "start_line_no": 3,
+            "start_line_pos": 19,
+            "code": "LT02",
+            "description": "Expected line break and no indent before 'end'.",
+            "name": "layout.indent",
+            "warning": false,
+            "fixes": [
+             {
+              "type": "replace",
+              "edit": "\n",
+              "start_line_no": 3,
+              "start_line_pos": 19,
+              "start_file_pos": 43,
+              "end_line_no": 3,
+              "end_line_pos": 20,
+              "end_file_pos": 44
+             }
+            ],
+            "start_file_pos": 43,
+            "end_line_no": 3,
+            "end_line_pos": 20,
+            "end_file_pos": 44
+           },
+           {
+            "start_line_no": 4,
+            "start_line_pos": 9,
+            "code": "LT01",
+            "description": "'alias_expression' elements are expected to be aligned. Found incorrect whitespace before 'as' keyword: ' '.",
+            "name": "layout.spacing",
+            "warning": false,
+            "fixes": [
+             {
+              "type": "replace",
+              "edit": "               ",
+              "start_line_no": 4,
+              "start_line_pos": 9,
+              "start_file_pos": 62,
+              "end_line_no": 4,
+              "end_line_pos": 10,
+              "end_file_pos": 63
+             }
+            ],
+            "start_file_pos": 62,
+            "end_line_no": 4,
+            "end_line_pos": 10,
+            "end_file_pos": 63
+           }
+          ],
+          "statistics": {
+           "source_chars": 75,
+           "templated_chars": 75,
+           "segments": 78,
+           "raw_segments": 55
+          }
+         }
+        ],
+        "violations": 7,
+        "tmp_prs": 0,
+        "fixable": 7,
+        "unfixable": 0,
+        "fixed": "select\n    col2 as b,\n    case\n        when 1 = 1\n            then col1\n    end  as a\nfrom t\n",
+        "lint": {
+         "records": [
+          {
+           "filepath": "<string input>",
+           "violations": [
+            {
+             "start_line_no": 1,
+             "start_line_pos": 1,
+             "code": "ST06",
+             "description": "Select wildcards then simple targets before calculations and aggregates.",
+             "name": "structure.column_order",
+             "warning": false,
+             "fixes": [
+              {
+               "type": "replace",
+               "edit": "col2 as b",
+               "start_line_no": 2,
+               "start_line_pos": 5,
+               "start_file_pos": 11,
+               "end_line_no": 3,
+               "end_line_pos": 28,
+               "end_file_pos": 52
+              },
+              {
+               "type": "replace",
+               "edit": "case when 1=1\n         then col1 end as a",
+               "start_line_no": 4,
+               "start_line_pos": 5,
+               "start_file_pos": 58,
+               "end_line_no": 4,
+               "end_line_pos": 14,
+               "end_file_pos": 67
+              }
+             ],
+             "start_file_pos": 0,
+             "end_line_no": 4,
+             "end_line_pos": 14,
+             "end_file_pos": 67
+            },
+            {
+             "start_line_no": 2,
+             "start_line_pos": 9,
+             "code": "LT02",
+             "description": "Expected line break and indent of 8 spaces before 'when'.",
+             "name": "layout.indent",
+             "warning": false,
+             "fixes": [
+              {
+               "type": "replace",
+               "edit": "\n        ",
+               "start_line_no": 2,
+               "start_line_pos": 9,
+               "start_file_pos": 15,
+               "end_line_no": 2,
+               "end_line_pos": 10,
+               "end_file_pos": 16
+              }
+             ],
+             "start_file_pos": 15,
+             "end_line_no": 2,
+             "end_line_pos": 10,
+             "end_file_pos": 16
+            },
+            {
+             "start_line_no": 2,
+             "start_line_pos": 16,
+             "code": "LT01",
+             "description": "Expected single whitespace between numeric literal and raw comparison operator '='.",
+             "name": "layout.spacing",
+             "warning": false,
+             "fixes": [
+              {
+               "type": "create_after",
+               "edit": " ",
+               "start_line_no": 2,
+               "start_line_pos": 16,
+               "start_file_pos": 22,
+               "end_line_no": 2,
+               "end_line_pos": 16,
+               "end_file_pos": 22
+              }
+             ],
+             "start_file_pos": 22,
+             "end_line_no": 2,
+             "end_line_pos": 17,
+             "end_file_pos": 23
+            },
+            {
+             "start_line_no": 2,
+             "start_line_pos": 17,
+             "code": "LT01",
+             "description": "Expected single whitespace between raw comparison operator '=' and numeric literal.",
+             "name": "layout.spacing",
+             "warning": false,
+             "fixes": [
+              {
+               "type": "create_after",
+               "edit": " ",
+               "start_line_no": 2,
+               "start_line_pos": 17,
+               "start_file_pos": 23,
+               "end_line_no": 2,
+               "end_line_pos": 17,
+               "end_file_pos": 23
+              }
+             ],
+             "start_file_pos": 23,
+             "end_line_no": 2,
+             "end_line_pos": 18,
+             "end_file_pos": 24
+            },
+            {
+             "start_line_no": 3,
+             "start_line_pos": 1,
+             "code": "LT02",
+             "description": "Expected indent of 12 spaces.",
+             "name": "layout.indent",
+             "warning": false,
+             "fixes": [
+              {
+               "type": "replace",
+               "edit": "            ",
+               "start_line_no": 3,
+               "start_line_pos": 1,
+               "start_file_pos": 25,
+               "end_line_no": 3,
+               "end_line_pos": 10,
+               "end_file_pos": 34
+              }
+             ],
+             "start_file_pos": 25,
+             "end_line_no": 3,
+             "end_line_pos": 10,
+             "end_file_pos": 34
+            },
+            {
+             "start_line_no": 3,
+             "start_line_pos": 19,
+             "code": "LT02",
+             "description": "Expected line break and no indent before 'end'.",
+             "name": "layout.indent",
+             "warning": false,
+             "fixes": [
+              {
+               "type": "replace",
+               "edit": "\n",
+               "start_line_no": 3,
+               "start_line_pos": 19,
+               "start_file_pos": 43,
+               "end_line_no": 3,
+               "end_line_pos": 20,
+               "end_file_pos": 44
+              }
+             ],
+             "start_file_pos": 43,
+             "end_line_no": 3,
+             "end_line_pos": 20,
+             "end_file_pos": 44
+            },
+            {
+             "start_line_no": 4,
+             "start_line_pos": 9,
+             "code": "LT01",
+             "description": "'alias_expression' elements are expected to be aligned. Found incorrect whitespace before 'as' keyword: ' '.",
+             "name": "layout.spacing",
+             "warning": false,
+             "fixes": [
+              {
+               "type": "replace",
+               "edit": "               ",
+               "start_line_no": 4,
+               "start_line_pos": 9,
+               "start_file_pos": 62,
+               "end_line_no": 4,
+               "end_line_pos": 10,
+               "end_file_pos": 63
+              }
+             ],
+             "start_file_pos": 62,
+             "end_line_no": 4,
+             "end_line_pos": 10,
+             "end_file_pos": 63
+            }
+           ],
+           "statistics": {
+            "source_chars": 75,
+            "templated_chars": 75,
+            "segments": 74,
+            "raw_segments": 51
+           }
+          }
+         ],
+         "violations": 7,
+         "tmp_prs": 0,
+         "fixable": 7,
+         "unfixable": 0
+        }
+       }
+      }
+     ]
+    },
+    {
+     "kind": "api",
+     "inputs": {
+      "function": "lint",
+      "sql": "select\n    col2 as b,\n    case\n        when 1 = 1\n            then col1\n    end  as a\nfrom t\n",
+      "dialect": null,
+      "rules": [
+       "LT01"
+      ],
+      "exclude_rules": null,
+      "config": {
+       "method": "from_kwargs",
+       "args": {
+        "dialect": "ansi"
+       }
+      },
+      "config_path": null,
+      "cwd": "{sqlfluff}"
+     },
+     "outputs": [],
+     "inner": [
+      {
+       "kind": "linter_string",
+       "inputs": {
+        "method": "lint_string_wrapped",
+        "sql": "select\n    col2 as b,\n    case\n        when 1 = 1\n            then col1\n    end  as a\nfrom t\n",
+        "options": {
+         "fname": "<string input>",
+         "fix": false,
+         "stdin_filename": null
+        },
+        "linter": {
+         "config": {
+          "method": "from_kwargs",
+          "args": {
+           "dialect": "ansi"
+          }
+         }
+        },
+        "config_changed": false,
+        "cwd": "{sqlfluff}",
+        "config_file": {
+         "text": "[sqlfluff]\ndialect = ansi\n\n[sqlfluff:layout:type:alias_expression]\nalign_scope = bracketed\nalign_within = select_clause\nspacing_before = align\n"
+        },
+        "config_proof": []
+       },
+       "outputs": {
+        "records": [
+         {
+          "filepath": "<string input>",
+          "violations": [],
+          "statistics": {
+           "source_chars": 93,
+           "templated_chars": 93,
+           "segments": 78,
+           "raw_segments": 55
+          }
+         }
+        ],
+        "violations": 0,
+        "tmp_prs": 0,
+        "fixable": 0,
+        "unfixable": 0
+       }
+      }
+     ]
+    }
+   ],
+   "untraced": [],
+   "processes": []
+  },
+  "test/rules/std_LT01_jinja_alignment_test.py::test_lt01_alias_alignment_templated_next_segment": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "api",
+     "inputs": {
+      "function": "fix",
+      "sql": "select\n    col1 as a,\n    {{ col2 }} as b\n",
+      "dialect": null,
+      "rules": [
+       "LT01"
+      ],
+      "exclude_rules": null,
+      "config": {
+       "method": "from_kwargs",
+       "args": {
+        "dialect": "ansi"
+       }
+      },
+      "config_path": null,
+      "fix_even_unparsable": null,
+      "cwd": "{sqlfluff}"
+     },
+     "outputs": "select\n    col1       as a,\n    {{ col2 }} as b\n",
+     "inner": [
+      {
+       "kind": "linter_string",
+       "inputs": {
+        "method": "lint_string_wrapped",
+        "sql": "select\n    col1 as a,\n    {{ col2 }} as b\n",
+        "options": {
+         "fname": "<string input>",
+         "fix": true,
+         "stdin_filename": null
+        },
+        "linter": {
+         "config": {
+          "method": "from_kwargs",
+          "args": {
+           "dialect": "ansi"
+          }
+         }
+        },
+        "config_changed": false,
+        "cwd": "{sqlfluff}",
+        "config_file": {
+         "text": "[sqlfluff]\ndialect = ansi\n\n[sqlfluff:layout:type:alias_expression]\nalign_scope = bracketed\nalign_within = select_clause\nspacing_before = align\n\n[sqlfluff:templater:jinja:context]\ncol2 = column_two\n"
+        },
+        "config_proof": []
+       },
+       "outputs": {
+        "records": [
+         {
+          "filepath": "<string input>",
+          "violations": [
+           {
+            "start_line_no": 2,
+            "start_line_pos": 9,
+            "code": "LT01",
+            "description": "'alias_expression' elements are expected to be aligned. Found incorrect whitespace before 'as' keyword: ' '.",
+            "name": "layout.spacing",
+            "warning": false,
+            "fixes": [
+             {
+              "type": "replace",
+              "edit": "       ",
+              "start_line_no": 2,
+              "start_line_pos": 9,
+              "start_file_pos": 15,
+              "end_line_no": 2,
+              "end_line_pos": 10,
+              "end_file_pos": 16
+             }
+            ],
+            "start_file_pos": 15,
+            "end_line_no": 2,
+            "end_line_pos": 10,
+            "end_file_pos": 16
+           }
+          ],
+          "statistics": {
+           "source_chars": 42,
+           "templated_chars": 42,
+           "segments": 36,
+           "raw_segments": 24
+          }
+         }
+        ],
+        "violations": 1,
+        "tmp_prs": 0,
+        "fixable": 1,
+        "unfixable": 0,
+        "fixed": "select\n    col1       as a,\n    {{ col2 }} as b\n",
+        "lint": {
+         "records": [
+          {
+           "filepath": "<string input>",
+           "violations": [
+            {
+             "start_line_no": 2,
+             "start_line_pos": 9,
+             "code": "LT01",
+             "description": "'alias_expression' elements are expected to be aligned. Found incorrect whitespace before 'as' keyword: ' '.",
+             "name": "layout.spacing",
+             "warning": false,
+             "fixes": [
+              {
+               "type": "replace",
+               "edit": "       ",
+               "start_line_no": 2,
+               "start_line_pos": 9,
+               "start_file_pos": 15,
+               "end_line_no": 2,
+               "end_line_pos": 10,
+               "end_file_pos": 16
+              }
+             ],
+             "start_file_pos": 15,
+             "end_line_no": 2,
+             "end_line_pos": 10,
+             "end_file_pos": 16
+            }
+           ],
+           "statistics": {
+            "source_chars": 42,
+            "templated_chars": 42,
+            "segments": 36,
+            "raw_segments": 24
+           }
+          }
+         ],
+         "violations": 1,
+         "tmp_prs": 0,
+         "fixable": 1,
+         "unfixable": 0
+        }
+       }
+      }
+     ]
+    },
+    {
+     "kind": "api",
+     "inputs": {
+      "function": "lint",
+      "sql": "select\n    col1       as a,\n    {{ col2 }} as b\n",
+      "dialect": null,
+      "rules": [
+       "LT01"
+      ],
+      "exclude_rules": null,
+      "config": {
+       "method": "from_kwargs",
+       "args": {
+        "dialect": "ansi"
+       }
+      },
+      "config_path": null,
+      "cwd": "{sqlfluff}"
+     },
+     "outputs": [],
+     "inner": [
+      {
+       "kind": "linter_string",
+       "inputs": {
+        "method": "lint_string_wrapped",
+        "sql": "select\n    col1       as a,\n    {{ col2 }} as b\n",
+        "options": {
+         "fname": "<string input>",
+         "fix": false,
+         "stdin_filename": null
+        },
+        "linter": {
+         "config": {
+          "method": "from_kwargs",
+          "args": {
+           "dialect": "ansi"
+          }
+         }
+        },
+        "config_changed": false,
+        "cwd": "{sqlfluff}",
+        "config_file": {
+         "text": "[sqlfluff]\ndialect = ansi\n\n[sqlfluff:layout:type:alias_expression]\nalign_scope = bracketed\nalign_within = select_clause\nspacing_before = align\n\n[sqlfluff:templater:jinja:context]\ncol2 = column_two\n"
+        },
+        "config_proof": []
+       },
+       "outputs": {
+        "records": [
+         {
+          "filepath": "<string input>",
+          "violations": [],
+          "statistics": {
+           "source_chars": 48,
+           "templated_chars": 48,
+           "segments": 36,
+           "raw_segments": 24
+          }
+         }
+        ],
+        "violations": 0,
+        "tmp_prs": 0,
+        "fixable": 0,
+        "unfixable": 0
+       }
+      }
+     ]
+    }
+   ],
+   "untraced": [],
+   "processes": []
+  },
+  "test/rules/std_LT01_jinja_alignment_test.py::test_lt01_alias_alignment_templated_siblings": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "api",
+     "inputs": {
+      "function": "fix",
+      "sql": "select\n    {{ col1 }} as a,\n    col2 as b,\n    {{ col3 }} as c\n",
+      "dialect": null,
+      "rules": [
+       "LT01"
+      ],
+      "exclude_rules": null,
+      "config": {
+       "method": "from_kwargs",
+       "args": {
+        "dialect": "ansi"
+       }
+      },
+      "config_path": null,
+      "fix_even_unparsable": null,
+      "cwd": "{sqlfluff}"
+     },
+     "outputs": "select\n    {{ col1 }} as a,\n    col2       as b,\n    {{ col3 }} as c\n",
+     "inner": [
+      {
+       "kind": "linter_string",
+       "inputs": {
+        "method": "lint_string_wrapped",
+        "sql": "select\n    {{ col1 }} as a,\n    col2 as b,\n    {{ col3 }} as c\n",
+        "options": {
+         "fname": "<string input>",
+         "fix": true,
+         "stdin_filename": null
+        },
+        "linter": {
+         "config": {
+          "method": "from_kwargs",
+          "args": {
+           "dialect": "ansi"
+          }
+         }
+        },
+        "config_changed": false,
+        "cwd": "{sqlfluff}",
+        "config_file": {
+         "text": "[sqlfluff]\ndialect = ansi\n\n[sqlfluff:layout:type:alias_expression]\nalign_scope = bracketed\nalign_within = select_clause\nspacing_before = align\n\n[sqlfluff:templater:jinja:context]\ncol1 = column_one\ncol3 = column_three\n"
+        },
+        "config_proof": []
+       },
+       "outputs": {
+        "records": [
+         {
+          "filepath": "<string input>",
+          "violations": [
+           {
+            "start_line_no": 3,
+            "start_line_pos": 9,
+            "code": "LT01",
+            "description": "'alias_expression' elements are expected to be aligned. Found incorrect whitespace before 'as' keyword: ' '.",
+            "name": "layout.spacing",
+            "warning": false,
+            "fixes": [
+             {
+              "type": "replace",
+              "edit": "       ",
+              "start_line_no": 3,
+              "start_line_pos": 9,
+              "start_file_pos": 36,
+              "end_line_no": 3,
+              "end_line_pos": 10,
+              "end_file_pos": 37
+             }
+            ],
+            "start_file_pos": 36,
+            "end_line_no": 3,
+            "end_line_pos": 10,
+            "end_file_pos": 37
+           }
+          ],
+          "statistics": {
+           "source_chars": 63,
+           "templated_chars": 65,
+           "segments": 50,
+           "raw_segments": 34
+          }
+         }
+        ],
+        "violations": 1,
+        "tmp_prs": 0,
+        "fixable": 1,
+        "unfixable": 0,
+        "fixed": "select\n    {{ col1 }} as a,\n    col2       as b,\n    {{ col3 }} as c\n",
+        "lint": {
+         "records": [
+          {
+           "filepath": "<string input>",
+           "violations": [
+            {
+             "start_line_no": 3,
+             "start_line_pos": 9,
+             "code": "LT01",
+             "description": "'alias_expression' elements are expected to be aligned. Found incorrect whitespace before 'as' keyword: ' '.",
+             "name": "layout.spacing",
+             "warning": false,
+             "fixes": [
+              {
+               "type": "replace",
+               "edit": "       ",
+               "start_line_no": 3,
+               "start_line_pos": 9,
+               "start_file_pos": 36,
+               "end_line_no": 3,
+               "end_line_pos": 10,
+               "end_file_pos": 37
+              }
+             ],
+             "start_file_pos": 36,
+             "end_line_no": 3,
+             "end_line_pos": 10,
+             "end_file_pos": 37
+            }
+           ],
+           "statistics": {
+            "source_chars": 63,
+            "templated_chars": 65,
+            "segments": 50,
+            "raw_segments": 34
+           }
+          }
+         ],
+         "violations": 1,
+         "tmp_prs": 0,
+         "fixable": 1,
+         "unfixable": 0
+        }
+       }
+      }
+     ]
+    },
+    {
+     "kind": "api",
+     "inputs": {
+      "function": "lint",
+      "sql": "select\n    {{ col1 }} as a,\n    col2       as b,\n    {{ col3 }} as c\n",
+      "dialect": null,
+      "rules": [
+       "LT01"
+      ],
+      "exclude_rules": null,
+      "config": {
+       "method": "from_kwargs",
+       "args": {
+        "dialect": "ansi"
+       }
+      },
+      "config_path": null,
+      "cwd": "{sqlfluff}"
+     },
+     "outputs": [],
+     "inner": [
+      {
+       "kind": "linter_string",
+       "inputs": {
+        "method": "lint_string_wrapped",
+        "sql": "select\n    {{ col1 }} as a,\n    col2       as b,\n    {{ col3 }} as c\n",
+        "options": {
+         "fname": "<string input>",
+         "fix": false,
+         "stdin_filename": null
+        },
+        "linter": {
+         "config": {
+          "method": "from_kwargs",
+          "args": {
+           "dialect": "ansi"
+          }
+         }
+        },
+        "config_changed": false,
+        "cwd": "{sqlfluff}",
+        "config_file": {
+         "text": "[sqlfluff]\ndialect = ansi\n\n[sqlfluff:layout:type:alias_expression]\nalign_scope = bracketed\nalign_within = select_clause\nspacing_before = align\n\n[sqlfluff:templater:jinja:context]\ncol1 = column_one\ncol3 = column_three\n"
+        },
+        "config_proof": []
+       },
+       "outputs": {
+        "records": [
+         {
+          "filepath": "<string input>",
+          "violations": [],
+          "statistics": {
+           "source_chars": 69,
+           "templated_chars": 71,
+           "segments": 50,
+           "raw_segments": 34
+          }
+         }
+        ],
+        "violations": 0,
+        "tmp_prs": 0,
+        "fixable": 0,
+        "unfixable": 0
+       }
+      }
+     ]
     }
    ],
    "untraced": [],
@@ -14001,6 +16166,856 @@
    "untraced": [],
    "processes": []
   },
+  "test/rules/std_ST12_test.py::test__rules__std_ST12_templated_loop_no_false_positive": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "api",
+     "inputs": {
+      "function": "lint",
+      "sql": "\n    {% for i in range(3) %}\n    SELECT {{ i }};\n    {% endfor %}\n    ",
+      "dialect": null,
+      "rules": [
+       "ST12"
+      ],
+      "exclude_rules": null,
+      "config": {
+       "method": "FluffConfig",
+       "args": {
+        "kwargs": {
+         "overrides": {
+          "dialect": "ansi",
+          "templater": "jinja"
+         }
+        }
+       }
+      },
+      "config_path": null,
+      "cwd": "{sqlfluff}"
+     },
+     "outputs": [
+      {
+       "start_line_no": 1,
+       "start_line_pos": 1,
+       "code": "LT13",
+       "description": "Files must not begin with newlines or whitespace.",
+       "name": "layout.start_of_file",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 1,
+         "start_line_pos": 1,
+         "start_file_pos": 0,
+         "end_line_no": 2,
+         "end_line_pos": 1,
+         "end_file_pos": 1
+        },
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 2,
+         "start_line_pos": 1,
+         "start_file_pos": 1,
+         "end_line_no": 2,
+         "end_line_pos": 5,
+         "end_file_pos": 5
+        }
+       ]
+      },
+      {
+       "start_line_no": 2,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Line should not be indented.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 2,
+         "start_line_pos": 1,
+         "start_file_pos": 1,
+         "end_line_no": 2,
+         "end_line_pos": 5,
+         "end_file_pos": 5
+        }
+       ],
+       "start_file_pos": 1,
+       "end_line_no": 2,
+       "end_line_pos": 5,
+       "end_file_pos": 5
+      },
+      {
+       "start_line_no": 4,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Line should not be indented.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 4,
+         "start_line_pos": 1,
+         "start_file_pos": 49,
+         "end_line_no": 4,
+         "end_line_pos": 5,
+         "end_file_pos": 53
+        }
+       ],
+       "start_file_pos": 49,
+       "end_line_no": 4,
+       "end_line_pos": 5,
+       "end_file_pos": 53
+      },
+      {
+       "start_line_no": 5,
+       "start_line_pos": 1,
+       "code": "LT01",
+       "description": "Unnecessary trailing whitespace at end of file.",
+       "name": "layout.spacing",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 5,
+         "start_line_pos": 1,
+         "start_file_pos": 66,
+         "end_line_no": 5,
+         "end_line_pos": 5,
+         "end_file_pos": 70
+        }
+       ],
+       "start_file_pos": 66,
+       "end_line_no": 5,
+       "end_line_pos": 5,
+       "end_file_pos": 70
+      }
+     ],
+     "inner": [
+      {
+       "kind": "linter_string",
+       "inputs": {
+        "method": "lint_string_wrapped",
+        "sql": "\n    {% for i in range(3) %}\n    SELECT {{ i }};\n    {% endfor %}\n    ",
+        "options": {
+         "fname": "<string input>",
+         "fix": false,
+         "stdin_filename": null
+        },
+        "linter": {
+         "config": {
+          "method": "FluffConfig",
+          "args": {
+           "kwargs": {
+            "overrides": {
+             "dialect": "ansi",
+             "templater": "jinja"
+            }
+           }
+          }
+         }
+        },
+        "config_changed": false,
+        "cwd": "{sqlfluff}",
+        "config_file": {
+         "text": "[sqlfluff]\ndialect = ansi\n"
+        },
+        "config_proof": []
+       },
+       "outputs": {
+        "records": [
+         {
+          "filepath": "<string input>",
+          "violations": [
+           {
+            "start_line_no": 1,
+            "start_line_pos": 1,
+            "code": "LT13",
+            "description": "Files must not begin with newlines or whitespace.",
+            "name": "layout.start_of_file",
+            "warning": false,
+            "fixes": [
+             {
+              "type": "delete",
+              "edit": "",
+              "start_line_no": 1,
+              "start_line_pos": 1,
+              "start_file_pos": 0,
+              "end_line_no": 2,
+              "end_line_pos": 1,
+              "end_file_pos": 1
+             },
+             {
+              "type": "delete",
+              "edit": "",
+              "start_line_no": 2,
+              "start_line_pos": 1,
+              "start_file_pos": 1,
+              "end_line_no": 2,
+              "end_line_pos": 5,
+              "end_file_pos": 5
+             }
+            ]
+           },
+           {
+            "start_line_no": 2,
+            "start_line_pos": 1,
+            "code": "LT02",
+            "description": "Line should not be indented.",
+            "name": "layout.indent",
+            "warning": false,
+            "fixes": [
+             {
+              "type": "delete",
+              "edit": "",
+              "start_line_no": 2,
+              "start_line_pos": 1,
+              "start_file_pos": 1,
+              "end_line_no": 2,
+              "end_line_pos": 5,
+              "end_file_pos": 5
+             }
+            ],
+            "start_file_pos": 1,
+            "end_line_no": 2,
+            "end_line_pos": 5,
+            "end_file_pos": 5
+           },
+           {
+            "start_line_no": 4,
+            "start_line_pos": 1,
+            "code": "LT02",
+            "description": "Line should not be indented.",
+            "name": "layout.indent",
+            "warning": false,
+            "fixes": [
+             {
+              "type": "delete",
+              "edit": "",
+              "start_line_no": 4,
+              "start_line_pos": 1,
+              "start_file_pos": 49,
+              "end_line_no": 4,
+              "end_line_pos": 5,
+              "end_file_pos": 53
+             }
+            ],
+            "start_file_pos": 49,
+            "end_line_no": 4,
+            "end_line_pos": 5,
+            "end_file_pos": 53
+           },
+           {
+            "start_line_no": 5,
+            "start_line_pos": 1,
+            "code": "LT01",
+            "description": "Unnecessary trailing whitespace at end of file.",
+            "name": "layout.spacing",
+            "warning": false,
+            "fixes": [
+             {
+              "type": "delete",
+              "edit": "",
+              "start_line_no": 5,
+              "start_line_pos": 1,
+              "start_file_pos": 66,
+              "end_line_no": 5,
+              "end_line_pos": 5,
+              "end_file_pos": 70
+             }
+            ],
+            "start_file_pos": 66,
+            "end_line_no": 5,
+            "end_line_pos": 5,
+            "end_file_pos": 70
+           }
+          ],
+          "statistics": {
+           "source_chars": 70,
+           "templated_chars": 67,
+           "segments": 58,
+           "raw_segments": 45
+          }
+         }
+        ],
+        "violations": 4,
+        "tmp_prs": 0,
+        "fixable": 4,
+        "unfixable": 0
+       }
+      }
+     ]
+    }
+   ],
+   "untraced": [],
+   "processes": []
+  },
+  "test/rules/std_ST12_test.py::test__rules__std_ST12_templated_consecutive_semicolons_detected": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "api",
+     "inputs": {
+      "function": "lint",
+      "sql": "\n    {% for _ in range(2) %}\n    ;SELECT 1;;\n    {% endfor %}\n    ",
+      "dialect": null,
+      "rules": [
+       "ST12"
+      ],
+      "exclude_rules": null,
+      "config": {
+       "method": "FluffConfig",
+       "args": {
+        "kwargs": {
+         "overrides": {
+          "dialect": "ansi",
+          "templater": "jinja"
+         }
+        }
+       }
+      },
+      "config_path": null,
+      "cwd": "{sqlfluff}"
+     },
+     "outputs": [
+      {
+       "start_line_no": 1,
+       "start_line_pos": 1,
+       "code": "CV06",
+       "description": "Statements must end with a semi-colon.",
+       "name": "convention.terminator",
+       "warning": false,
+       "fixes": [],
+       "start_file_pos": 0,
+       "end_line_no": 2,
+       "end_line_pos": 1,
+       "end_file_pos": 1
+      },
+      {
+       "start_line_no": 1,
+       "start_line_pos": 1,
+       "code": "LT13",
+       "description": "Files must not begin with newlines or whitespace.",
+       "name": "layout.start_of_file",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 1,
+         "start_line_pos": 1,
+         "start_file_pos": 0,
+         "end_line_no": 2,
+         "end_line_pos": 1,
+         "end_file_pos": 1
+        },
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 2,
+         "start_line_pos": 1,
+         "start_file_pos": 1,
+         "end_line_no": 2,
+         "end_line_pos": 5,
+         "end_file_pos": 5
+        }
+       ]
+      },
+      {
+       "start_line_no": 2,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Line should not be indented.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 2,
+         "start_line_pos": 1,
+         "start_file_pos": 1,
+         "end_line_no": 2,
+         "end_line_pos": 5,
+         "end_file_pos": 5
+        }
+       ],
+       "start_file_pos": 1,
+       "end_line_no": 2,
+       "end_line_pos": 5,
+       "end_file_pos": 5
+      },
+      {
+       "start_line_no": 3,
+       "start_line_pos": 6,
+       "code": "LT01",
+       "description": "Expected single whitespace between statement terminator ';' and 'SELECT' keyword.",
+       "name": "layout.spacing",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "create_after",
+         "edit": " ",
+         "start_line_no": 3,
+         "start_line_pos": 6,
+         "start_file_pos": 34,
+         "end_line_no": 3,
+         "end_line_pos": 6,
+         "end_file_pos": 34
+        }
+       ],
+       "start_file_pos": 34,
+       "end_line_no": 3,
+       "end_line_pos": 12,
+       "end_file_pos": 40
+      },
+      {
+       "start_line_no": 3,
+       "start_line_pos": 14,
+       "code": "ST12",
+       "description": "Consecutive semicolons detected (count 3).",
+       "name": "structure.consecutive_semicolons",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 3,
+         "start_line_pos": 15,
+         "start_file_pos": 43,
+         "end_line_no": 3,
+         "end_line_pos": 16,
+         "end_file_pos": 44
+        },
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 3,
+         "start_line_pos": 5,
+         "start_file_pos": 33,
+         "end_line_no": 3,
+         "end_line_pos": 6,
+         "end_file_pos": 34
+        }
+       ],
+       "start_file_pos": 42,
+       "end_line_no": 3,
+       "end_line_pos": 15,
+       "end_file_pos": 43
+      },
+      {
+       "start_line_no": 3,
+       "start_line_pos": 16,
+       "code": "CV06",
+       "description": "Statements must end with a semi-colon.",
+       "name": "convention.terminator",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "replace",
+         "edit": ";",
+         "start_line_no": 3,
+         "start_line_pos": 16,
+         "start_file_pos": 44,
+         "end_line_no": 4,
+         "end_line_pos": 1,
+         "end_file_pos": 45
+        },
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 3,
+         "start_line_pos": 5,
+         "start_file_pos": 33,
+         "end_line_no": 3,
+         "end_line_pos": 6,
+         "end_file_pos": 34
+        },
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 3,
+         "start_line_pos": 1,
+         "start_file_pos": 29,
+         "end_line_no": 3,
+         "end_line_pos": 5,
+         "end_file_pos": 33
+        },
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 2,
+         "start_line_pos": 28,
+         "start_file_pos": 28,
+         "end_line_no": 3,
+         "end_line_pos": 1,
+         "end_file_pos": 29
+        },
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 4,
+         "start_line_pos": 1,
+         "start_file_pos": 45,
+         "end_line_no": 4,
+         "end_line_pos": 5,
+         "end_file_pos": 49
+        }
+       ],
+       "start_file_pos": 44,
+       "end_line_no": 4,
+       "end_line_pos": 1,
+       "end_file_pos": 45
+      },
+      {
+       "start_line_no": 4,
+       "start_line_pos": 1,
+       "code": "LT02",
+       "description": "Line should not be indented.",
+       "name": "layout.indent",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 4,
+         "start_line_pos": 1,
+         "start_file_pos": 45,
+         "end_line_no": 4,
+         "end_line_pos": 5,
+         "end_file_pos": 49
+        }
+       ],
+       "start_file_pos": 45,
+       "end_line_no": 4,
+       "end_line_pos": 5,
+       "end_file_pos": 49
+      },
+      {
+       "start_line_no": 5,
+       "start_line_pos": 1,
+       "code": "LT01",
+       "description": "Unnecessary trailing whitespace at end of file.",
+       "name": "layout.spacing",
+       "warning": false,
+       "fixes": [
+        {
+         "type": "delete",
+         "edit": "",
+         "start_line_no": 5,
+         "start_line_pos": 1,
+         "start_file_pos": 62,
+         "end_line_no": 5,
+         "end_line_pos": 5,
+         "end_file_pos": 66
+        }
+       ],
+       "start_file_pos": 62,
+       "end_line_no": 5,
+       "end_line_pos": 5,
+       "end_file_pos": 66
+      }
+     ],
+     "inner": [
+      {
+       "kind": "linter_string",
+       "inputs": {
+        "method": "lint_string_wrapped",
+        "sql": "\n    {% for _ in range(2) %}\n    ;SELECT 1;;\n    {% endfor %}\n    ",
+        "options": {
+         "fname": "<string input>",
+         "fix": false,
+         "stdin_filename": null
+        },
+        "linter": {
+         "config": {
+          "method": "FluffConfig",
+          "args": {
+           "kwargs": {
+            "overrides": {
+             "dialect": "ansi",
+             "templater": "jinja"
+            }
+           }
+          }
+         }
+        },
+        "config_changed": false,
+        "cwd": "{sqlfluff}",
+        "config_file": {
+         "text": "[sqlfluff]\ndialect = ansi\n"
+        },
+        "config_proof": []
+       },
+       "outputs": {
+        "records": [
+         {
+          "filepath": "<string input>",
+          "violations": [
+           {
+            "start_line_no": 1,
+            "start_line_pos": 1,
+            "code": "CV06",
+            "description": "Statements must end with a semi-colon.",
+            "name": "convention.terminator",
+            "warning": false,
+            "fixes": [],
+            "start_file_pos": 0,
+            "end_line_no": 2,
+            "end_line_pos": 1,
+            "end_file_pos": 1
+           },
+           {
+            "start_line_no": 1,
+            "start_line_pos": 1,
+            "code": "LT13",
+            "description": "Files must not begin with newlines or whitespace.",
+            "name": "layout.start_of_file",
+            "warning": false,
+            "fixes": [
+             {
+              "type": "delete",
+              "edit": "",
+              "start_line_no": 1,
+              "start_line_pos": 1,
+              "start_file_pos": 0,
+              "end_line_no": 2,
+              "end_line_pos": 1,
+              "end_file_pos": 1
+             },
+             {
+              "type": "delete",
+              "edit": "",
+              "start_line_no": 2,
+              "start_line_pos": 1,
+              "start_file_pos": 1,
+              "end_line_no": 2,
+              "end_line_pos": 5,
+              "end_file_pos": 5
+             }
+            ]
+           },
+           {
+            "start_line_no": 2,
+            "start_line_pos": 1,
+            "code": "LT02",
+            "description": "Line should not be indented.",
+            "name": "layout.indent",
+            "warning": false,
+            "fixes": [
+             {
+              "type": "delete",
+              "edit": "",
+              "start_line_no": 2,
+              "start_line_pos": 1,
+              "start_file_pos": 1,
+              "end_line_no": 2,
+              "end_line_pos": 5,
+              "end_file_pos": 5
+             }
+            ],
+            "start_file_pos": 1,
+            "end_line_no": 2,
+            "end_line_pos": 5,
+            "end_file_pos": 5
+           },
+           {
+            "start_line_no": 3,
+            "start_line_pos": 6,
+            "code": "LT01",
+            "description": "Expected single whitespace between statement terminator ';' and 'SELECT' keyword.",
+            "name": "layout.spacing",
+            "warning": false,
+            "fixes": [
+             {
+              "type": "create_after",
+              "edit": " ",
+              "start_line_no": 3,
+              "start_line_pos": 6,
+              "start_file_pos": 34,
+              "end_line_no": 3,
+              "end_line_pos": 6,
+              "end_file_pos": 34
+             }
+            ],
+            "start_file_pos": 34,
+            "end_line_no": 3,
+            "end_line_pos": 12,
+            "end_file_pos": 40
+           },
+           {
+            "start_line_no": 3,
+            "start_line_pos": 14,
+            "code": "ST12",
+            "description": "Consecutive semicolons detected (count 3).",
+            "name": "structure.consecutive_semicolons",
+            "warning": false,
+            "fixes": [
+             {
+              "type": "delete",
+              "edit": "",
+              "start_line_no": 3,
+              "start_line_pos": 15,
+              "start_file_pos": 43,
+              "end_line_no": 3,
+              "end_line_pos": 16,
+              "end_file_pos": 44
+             },
+             {
+              "type": "delete",
+              "edit": "",
+              "start_line_no": 3,
+              "start_line_pos": 5,
+              "start_file_pos": 33,
+              "end_line_no": 3,
+              "end_line_pos": 6,
+              "end_file_pos": 34
+             }
+            ],
+            "start_file_pos": 42,
+            "end_line_no": 3,
+            "end_line_pos": 15,
+            "end_file_pos": 43
+           },
+           {
+            "start_line_no": 3,
+            "start_line_pos": 16,
+            "code": "CV06",
+            "description": "Statements must end with a semi-colon.",
+            "name": "convention.terminator",
+            "warning": false,
+            "fixes": [
+             {
+              "type": "replace",
+              "edit": ";",
+              "start_line_no": 3,
+              "start_line_pos": 16,
+              "start_file_pos": 44,
+              "end_line_no": 4,
+              "end_line_pos": 1,
+              "end_file_pos": 45
+             },
+             {
+              "type": "delete",
+              "edit": "",
+              "start_line_no": 3,
+              "start_line_pos": 5,
+              "start_file_pos": 33,
+              "end_line_no": 3,
+              "end_line_pos": 6,
+              "end_file_pos": 34
+             },
+             {
+              "type": "delete",
+              "edit": "",
+              "start_line_no": 3,
+              "start_line_pos": 1,
+              "start_file_pos": 29,
+              "end_line_no": 3,
+              "end_line_pos": 5,
+              "end_file_pos": 33
+             },
+             {
+              "type": "delete",
+              "edit": "",
+              "start_line_no": 2,
+              "start_line_pos": 28,
+              "start_file_pos": 28,
+              "end_line_no": 3,
+              "end_line_pos": 1,
+              "end_file_pos": 29
+             },
+             {
+              "type": "delete",
+              "edit": "",
+              "start_line_no": 4,
+              "start_line_pos": 1,
+              "start_file_pos": 45,
+              "end_line_no": 4,
+              "end_line_pos": 5,
+              "end_file_pos": 49
+             }
+            ],
+            "start_file_pos": 44,
+            "end_line_no": 4,
+            "end_line_pos": 1,
+            "end_file_pos": 45
+           },
+           {
+            "start_line_no": 4,
+            "start_line_pos": 1,
+            "code": "LT02",
+            "description": "Line should not be indented.",
+            "name": "layout.indent",
+            "warning": false,
+            "fixes": [
+             {
+              "type": "delete",
+              "edit": "",
+              "start_line_no": 4,
+              "start_line_pos": 1,
+              "start_file_pos": 45,
+              "end_line_no": 4,
+              "end_line_pos": 5,
+              "end_file_pos": 49
+             }
+            ],
+            "start_file_pos": 45,
+            "end_line_no": 4,
+            "end_line_pos": 5,
+            "end_file_pos": 49
+           },
+           {
+            "start_line_no": 5,
+            "start_line_pos": 1,
+            "code": "LT01",
+            "description": "Unnecessary trailing whitespace at end of file.",
+            "name": "layout.spacing",
+            "warning": false,
+            "fixes": [
+             {
+              "type": "delete",
+              "edit": "",
+              "start_line_no": 5,
+              "start_line_pos": 1,
+              "start_file_pos": 62,
+              "end_line_no": 5,
+              "end_line_pos": 5,
+              "end_file_pos": 66
+             }
+            ],
+            "start_file_pos": 62,
+            "end_line_no": 5,
+            "end_line_pos": 5,
+            "end_file_pos": 66
+           }
+          ],
+          "statistics": {
+           "source_chars": 66,
+           "templated_chars": 52,
+           "segments": 45,
+           "raw_segments": 36
+          }
+         }
+        ],
+        "violations": 8,
+        "tmp_prs": 0,
+        "fixable": 7,
+        "unfixable": 1
+       }
+      }
+     ]
+    }
+   ],
+   "untraced": [],
+   "processes": []
+  },
   "test/rules/std_roundtrip_test.py::test__cli__command__fix[LT01-test/fixtures/linter/indentation_errors.sql0]": {
    "outcome": "passed",
    "calls": [
@@ -14582,6 +17597,268 @@
       "stderr": "",
       "files": {
        "testing.sql": "-- test aliasing\nSELECT\n    raw_column,\n    raw_sch.raw_col,\n    simple_explicit as aliased_column_1,\n    simple_implicit AS aliased_column_2,\n    an_unaliased + calculation,\n    -- We know that the following one doesn't parse...\n    -- an_implicitly + aliased calculation,\n    an_explicitly - aliased as calculation,\n    'an unalised string',\n    123.6,\n    -786 as aliased_column3\nFROM unaliased\nJOIN aliased_1 as foo\nJOIN aliased_2 bar USING(b)\n"
+      }
+     }
+    }
+   ],
+   "untraced": [],
+   "processes": []
+  },
+  "test/rules/std_roundtrip_test.py::test__cli__command__fix_templated[CP01]": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "cli",
+     "inputs": {
+      "argv": [
+       "lint",
+       "--rules",
+       "CP01",
+       "--dialect=ansi",
+       "{tmp}/test.sql"
+      ],
+      "stdin": null,
+      "cwd": "{sqlfluff}",
+      "unsupported": [],
+      "tmp": {
+       "files": {
+        ".sqlfluff": "[sqlfluff:templater:jinja:context]\nsome_field=nothing_interesting\nmy_table=another_table\n",
+        "test.sql": "select\n    {{some_field}},\n    (1+2 ) AS kev,\n  \"wrongly indented field\" as something_else,\n    trailing_whitespace    ,    \n    4678.9\n  from {{my_table}}\n where indentation  = \"wrong\" AND    NotSpacedProperly\n AND 4+6 > 9\n    "
+       },
+       "outer_config": {},
+       "cwd_paths": []
+      }
+     },
+     "outputs": {
+      "exit_code": 1,
+      "stdout": "== [{tmp}/test.sql] FAIL\nL:   3 | P:  12 | CP01 | Keywords must be consistent. [capitalisation.keywords]\nL:   8 | P:  31 | CP01 | Keywords must be consistent. [capitalisation.keywords]\nL:   9 | P:   2 | CP01 | Keywords must be consistent. [capitalisation.keywords]\nAll Finished!\n",
+      "stderr": "",
+      "files": {
+       ".sqlfluff": "[sqlfluff:templater:jinja:context]\nsome_field=nothing_interesting\nmy_table=another_table\n",
+       "test.sql": "select\n    {{some_field}},\n    (1+2 ) AS kev,\n  \"wrongly indented field\" as something_else,\n    trailing_whitespace    ,    \n    4678.9\n  from {{my_table}}\n where indentation  = \"wrong\" AND    NotSpacedProperly\n AND 4+6 > 9\n    "
+      },
+      "cwd_outputs": {
+       "exit_code": 1,
+       "stdout": "== [{tmp}/test.sql] FAIL\nL:   3 | P:  12 | CP01 | Keywords must be consistent. [capitalisation.keywords]\nL:   8 | P:  31 | CP01 | Keywords must be consistent. [capitalisation.keywords]\nL:   9 | P:   2 | CP01 | Keywords must be consistent. [capitalisation.keywords]\nAll Finished!\n",
+       "stderr": "",
+       "files": {
+        ".sqlfluff": "[sqlfluff:templater:jinja:context]\nsome_field=nothing_interesting\nmy_table=another_table\n",
+        "test.sql": "select\n    {{some_field}},\n    (1+2 ) AS kev,\n  \"wrongly indented field\" as something_else,\n    trailing_whitespace    ,    \n    4678.9\n  from {{my_table}}\n where indentation  = \"wrong\" AND    NotSpacedProperly\n AND 4+6 > 9\n    "
+       }
+      }
+     }
+    },
+    {
+     "kind": "cli",
+     "inputs": {
+      "argv": [
+       "fix",
+       "--rules",
+       "CP01",
+       "-f",
+       "--dialect=ansi",
+       "{tmp}/test.sql"
+      ],
+      "stdin": null,
+      "cwd": "{sqlfluff}",
+      "unsupported": [],
+      "tmp": {
+       "files": {
+        ".sqlfluff": "[sqlfluff:templater:jinja:context]\nsome_field=nothing_interesting\nmy_table=another_table\n",
+        "test.sql": "select\n    {{some_field}},\n    (1+2 ) AS kev,\n  \"wrongly indented field\" as something_else,\n    trailing_whitespace    ,    \n    4678.9\n  from {{my_table}}\n where indentation  = \"wrong\" AND    NotSpacedProperly\n AND 4+6 > 9\n    "
+       },
+       "outer_config": {},
+       "cwd_paths": []
+      }
+     },
+     "outputs": {
+      "exit_code": 0,
+      "stdout": "==== finding fixable violations ====\n== [{tmp}/test.sql] FAIL\nL:   3 | P:  12 | CP01 | Keywords must be consistent. [capitalisation.keywords]\nL:   8 | P:  31 | CP01 | Keywords must be consistent. [capitalisation.keywords]\nL:   9 | P:   2 | CP01 | Keywords must be consistent. [capitalisation.keywords]\n== [{tmp}/test.sql] FIXED\n3 fixable linting violations found\n",
+      "stderr": "The -f/--force option is deprecated as it is now the default behaviour.\n",
+      "files": {
+       ".sqlfluff": "[sqlfluff:templater:jinja:context]\nsome_field=nothing_interesting\nmy_table=another_table\n",
+       "test.sql": "select\n    {{some_field}},\n    (1+2 ) as kev,\n  \"wrongly indented field\" as something_else,\n    trailing_whitespace    ,    \n    4678.9\n  from {{my_table}}\n where indentation  = \"wrong\" and    NotSpacedProperly\n and 4+6 > 9\n    "
+      },
+      "cwd_outputs": {
+       "exit_code": 0,
+       "stdout": "==== finding fixable violations ====\n== [{tmp}/test.sql] FAIL\nL:   3 | P:  12 | CP01 | Keywords must be consistent. [capitalisation.keywords]\nL:   8 | P:  31 | CP01 | Keywords must be consistent. [capitalisation.keywords]\nL:   9 | P:   2 | CP01 | Keywords must be consistent. [capitalisation.keywords]\n== [{tmp}/test.sql] FIXED\n3 fixable linting violations found\n",
+       "stderr": "The -f/--force option is deprecated as it is now the default behaviour.\n",
+       "files": {
+        ".sqlfluff": "[sqlfluff:templater:jinja:context]\nsome_field=nothing_interesting\nmy_table=another_table\n",
+        "test.sql": "select\n    {{some_field}},\n    (1+2 ) as kev,\n  \"wrongly indented field\" as something_else,\n    trailing_whitespace    ,    \n    4678.9\n  from {{my_table}}\n where indentation  = \"wrong\" and    NotSpacedProperly\n and 4+6 > 9\n    "
+       }
+      }
+     }
+    },
+    {
+     "kind": "cli",
+     "inputs": {
+      "argv": [
+       "lint",
+       "--rules",
+       "CP01",
+       "--dialect=ansi",
+       "{tmp}/test.sql"
+      ],
+      "stdin": null,
+      "cwd": "{sqlfluff}",
+      "unsupported": [],
+      "tmp": {
+       "files": {
+        ".sqlfluff": "[sqlfluff:templater:jinja:context]\nsome_field=nothing_interesting\nmy_table=another_table\n",
+        "test.sql": "select\n    {{some_field}},\n    (1+2 ) as kev,\n  \"wrongly indented field\" as something_else,\n    trailing_whitespace    ,    \n    4678.9\n  from {{my_table}}\n where indentation  = \"wrong\" and    NotSpacedProperly\n and 4+6 > 9\n    "
+       },
+       "outer_config": {},
+       "cwd_paths": []
+      }
+     },
+     "outputs": {
+      "exit_code": 0,
+      "stdout": "All Finished!\n",
+      "stderr": "",
+      "files": {
+       ".sqlfluff": "[sqlfluff:templater:jinja:context]\nsome_field=nothing_interesting\nmy_table=another_table\n",
+       "test.sql": "select\n    {{some_field}},\n    (1+2 ) as kev,\n  \"wrongly indented field\" as something_else,\n    trailing_whitespace    ,    \n    4678.9\n  from {{my_table}}\n where indentation  = \"wrong\" and    NotSpacedProperly\n and 4+6 > 9\n    "
+      },
+      "cwd_outputs": {
+       "exit_code": 0,
+       "stdout": "All Finished!\n",
+       "stderr": "",
+       "files": {
+        ".sqlfluff": "[sqlfluff:templater:jinja:context]\nsome_field=nothing_interesting\nmy_table=another_table\n",
+        "test.sql": "select\n    {{some_field}},\n    (1+2 ) as kev,\n  \"wrongly indented field\" as something_else,\n    trailing_whitespace    ,    \n    4678.9\n  from {{my_table}}\n where indentation  = \"wrong\" and    NotSpacedProperly\n and 4+6 > 9\n    "
+       }
+      }
+     }
+    }
+   ],
+   "untraced": [],
+   "processes": []
+  },
+  "test/rules/std_roundtrip_test.py::test__cli__command__fix_templated[LT01]": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "cli",
+     "inputs": {
+      "argv": [
+       "lint",
+       "--rules",
+       "LT01",
+       "--dialect=ansi",
+       "{tmp}/test.sql"
+      ],
+      "stdin": null,
+      "cwd": "{sqlfluff}",
+      "unsupported": [],
+      "tmp": {
+       "files": {
+        ".sqlfluff": "[sqlfluff:templater:jinja:context]\nsome_field=nothing_interesting\nmy_table=another_table\n",
+        "test.sql": "select\n    {{some_field}},\n    (1+2 ) AS kev,\n  \"wrongly indented field\" as something_else,\n    trailing_whitespace    ,    \n    4678.9\n  from {{my_table}}\n where indentation  = \"wrong\" AND    NotSpacedProperly\n AND 4+6 > 9\n    "
+       },
+       "outer_config": {},
+       "cwd_paths": []
+      }
+     },
+     "outputs": {
+      "exit_code": 1,
+      "stdout": "== [{tmp}/test.sql] FAIL\nL:   3 | P:   7 | LT01 | Expected single whitespace between numeric literal and\n                       | binary operator '+'. [layout.spacing]\nL:   3 | P:   8 | LT01 | Expected single whitespace between binary operator '+'\n                       | and numeric literal. [layout.spacing]\nL:   3 | P:   9 | LT01 | Unexpected whitespace before end bracket ')'.\n                       | [layout.spacing]\nL:   5 | P:  24 | LT01 | Unexpected whitespace before comma ','. [layout.spacing]\nL:   5 | P:  29 | LT01 | Unnecessary trailing whitespace. [layout.spacing]\nL:   8 | P:  19 | LT01 | Expected only single space before raw comparison\n                       | operator '='. Found '  '. [layout.spacing]\nL:   8 | P:  34 | LT01 | Expected only single space before naked identifier.\n                       | Found '    '. [layout.spacing]\nL:   9 | P:   7 | LT01 | Expected single whitespace between numeric literal and\n                       | binary operator '+'. [layout.spacing]\nL:   9 | P:   8 | LT01 | Expected single whitespace between binary operator '+'\n                       | and numeric literal. [layout.spacing]\nL:  10 | P:   1 | LT01 | Unnecessary trailing whitespace at end of file.\n                       | [layout.spacing]\nAll Finished!\n",
+      "stderr": "",
+      "files": {
+       ".sqlfluff": "[sqlfluff:templater:jinja:context]\nsome_field=nothing_interesting\nmy_table=another_table\n",
+       "test.sql": "select\n    {{some_field}},\n    (1+2 ) AS kev,\n  \"wrongly indented field\" as something_else,\n    trailing_whitespace    ,    \n    4678.9\n  from {{my_table}}\n where indentation  = \"wrong\" AND    NotSpacedProperly\n AND 4+6 > 9\n    "
+      },
+      "cwd_outputs": {
+       "exit_code": 1,
+       "stdout": "== [{tmp}/test.sql] FAIL\nL:   3 | P:   7 | LT01 | Expected single whitespace between numeric literal and\n                       | binary operator '+'. [layout.spacing]\nL:   3 | P:   8 | LT01 | Expected single whitespace between binary operator '+'\n                       | and numeric literal. [layout.spacing]\nL:   3 | P:   9 | LT01 | Unexpected whitespace before end bracket ')'.\n                       | [layout.spacing]\nL:   5 | P:  24 | LT01 | Unexpected whitespace before comma ','. [layout.spacing]\nL:   5 | P:  29 | LT01 | Unnecessary trailing whitespace. [layout.spacing]\nL:   8 | P:  19 | LT01 | Expected only single space before raw comparison\n                       | operator '='. Found '  '. [layout.spacing]\nL:   8 | P:  34 | LT01 | Expected only single space before naked identifier.\n                       | Found '    '. [layout.spacing]\nL:   9 | P:   7 | LT01 | Expected single whitespace between numeric literal and\n                       | binary operator '+'. [layout.spacing]\nL:   9 | P:   8 | LT01 | Expected single whitespace between binary operator '+'\n                       | and numeric literal. [layout.spacing]\nL:  10 | P:   1 | LT01 | Unnecessary trailing whitespace at end of file.\n                       | [layout.spacing]\nAll Finished!\n",
+       "stderr": "",
+       "files": {
+        ".sqlfluff": "[sqlfluff:templater:jinja:context]\nsome_field=nothing_interesting\nmy_table=another_table\n",
+        "test.sql": "select\n    {{some_field}},\n    (1+2 ) AS kev,\n  \"wrongly indented field\" as something_else,\n    trailing_whitespace    ,    \n    4678.9\n  from {{my_table}}\n where indentation  = \"wrong\" AND    NotSpacedProperly\n AND 4+6 > 9\n    "
+       }
+      }
+     }
+    },
+    {
+     "kind": "cli",
+     "inputs": {
+      "argv": [
+       "fix",
+       "--rules",
+       "LT01",
+       "-f",
+       "--dialect=ansi",
+       "{tmp}/test.sql"
+      ],
+      "stdin": null,
+      "cwd": "{sqlfluff}",
+      "unsupported": [],
+      "tmp": {
+       "files": {
+        ".sqlfluff": "[sqlfluff:templater:jinja:context]\nsome_field=nothing_interesting\nmy_table=another_table\n",
+        "test.sql": "select\n    {{some_field}},\n    (1+2 ) AS kev,\n  \"wrongly indented field\" as something_else,\n    trailing_whitespace    ,    \n    4678.9\n  from {{my_table}}\n where indentation  = \"wrong\" AND    NotSpacedProperly\n AND 4+6 > 9\n    "
+       },
+       "outer_config": {},
+       "cwd_paths": []
+      }
+     },
+     "outputs": {
+      "exit_code": 0,
+      "stdout": "==== finding fixable violations ====\n== [{tmp}/test.sql] FAIL\nL:   3 | P:   7 | LT01 | Expected single whitespace between numeric literal and\n                       | binary operator '+'. [layout.spacing]\nL:   3 | P:   8 | LT01 | Expected single whitespace between binary operator '+'\n                       | and numeric literal. [layout.spacing]\nL:   3 | P:   9 | LT01 | Unexpected whitespace before end bracket ')'.\n                       | [layout.spacing]\nL:   5 | P:  24 | LT01 | Unexpected whitespace before comma ','. [layout.spacing]\nL:   5 | P:  29 | LT01 | Unnecessary trailing whitespace. [layout.spacing]\nL:   8 | P:  19 | LT01 | Expected only single space before raw comparison\n                       | operator '='. Found '  '. [layout.spacing]\nL:   8 | P:  34 | LT01 | Expected only single space before naked identifier.\n                       | Found '    '. [layout.spacing]\nL:   9 | P:   7 | LT01 | Expected single whitespace between numeric literal and\n                       | binary operator '+'. [layout.spacing]\nL:   9 | P:   8 | LT01 | Expected single whitespace between binary operator '+'\n                       | and numeric literal. [layout.spacing]\nL:  10 | P:   1 | LT01 | Unnecessary trailing whitespace at end of file.\n                       | [layout.spacing]\n== [{tmp}/test.sql] FIXED\n10 fixable linting violations found\n",
+      "stderr": "The -f/--force option is deprecated as it is now the default behaviour.\n",
+      "files": {
+       ".sqlfluff": "[sqlfluff:templater:jinja:context]\nsome_field=nothing_interesting\nmy_table=another_table\n",
+       "test.sql": "select\n    {{some_field}},\n    (1 + 2) AS kev,\n  \"wrongly indented field\" as something_else,\n    trailing_whitespace,\n    4678.9\n  from {{my_table}}\n where indentation = \"wrong\" AND NotSpacedProperly\n AND 4 + 6 > 9\n"
+      },
+      "cwd_outputs": {
+       "exit_code": 0,
+       "stdout": "==== finding fixable violations ====\n== [{tmp}/test.sql] FAIL\nL:   3 | P:   7 | LT01 | Expected single whitespace between numeric literal and\n                       | binary operator '+'. [layout.spacing]\nL:   3 | P:   8 | LT01 | Expected single whitespace between binary operator '+'\n                       | and numeric literal. [layout.spacing]\nL:   3 | P:   9 | LT01 | Unexpected whitespace before end bracket ')'.\n                       | [layout.spacing]\nL:   5 | P:  24 | LT01 | Unexpected whitespace before comma ','. [layout.spacing]\nL:   5 | P:  29 | LT01 | Unnecessary trailing whitespace. [layout.spacing]\nL:   8 | P:  19 | LT01 | Expected only single space before raw comparison\n                       | operator '='. Found '  '. [layout.spacing]\nL:   8 | P:  34 | LT01 | Expected only single space before naked identifier.\n                       | Found '    '. [layout.spacing]\nL:   9 | P:   7 | LT01 | Expected single whitespace between numeric literal and\n                       | binary operator '+'. [layout.spacing]\nL:   9 | P:   8 | LT01 | Expected single whitespace between binary operator '+'\n                       | and numeric literal. [layout.spacing]\nL:  10 | P:   1 | LT01 | Unnecessary trailing whitespace at end of file.\n                       | [layout.spacing]\n== [{tmp}/test.sql] FIXED\n10 fixable linting violations found\n",
+       "stderr": "The -f/--force option is deprecated as it is now the default behaviour.\n",
+       "files": {
+        ".sqlfluff": "[sqlfluff:templater:jinja:context]\nsome_field=nothing_interesting\nmy_table=another_table\n",
+        "test.sql": "select\n    {{some_field}},\n    (1 + 2) AS kev,\n  \"wrongly indented field\" as something_else,\n    trailing_whitespace,\n    4678.9\n  from {{my_table}}\n where indentation = \"wrong\" AND NotSpacedProperly\n AND 4 + 6 > 9\n"
+       }
+      }
+     }
+    },
+    {
+     "kind": "cli",
+     "inputs": {
+      "argv": [
+       "lint",
+       "--rules",
+       "LT01",
+       "--dialect=ansi",
+       "{tmp}/test.sql"
+      ],
+      "stdin": null,
+      "cwd": "{sqlfluff}",
+      "unsupported": [],
+      "tmp": {
+       "files": {
+        ".sqlfluff": "[sqlfluff:templater:jinja:context]\nsome_field=nothing_interesting\nmy_table=another_table\n",
+        "test.sql": "select\n    {{some_field}},\n    (1 + 2) AS kev,\n  \"wrongly indented field\" as something_else,\n    trailing_whitespace,\n    4678.9\n  from {{my_table}}\n where indentation = \"wrong\" AND NotSpacedProperly\n AND 4 + 6 > 9\n"
+       },
+       "outer_config": {},
+       "cwd_paths": []
+      }
+     },
+     "outputs": {
+      "exit_code": 0,
+      "stdout": "All Finished!\n",
+      "stderr": "",
+      "files": {
+       ".sqlfluff": "[sqlfluff:templater:jinja:context]\nsome_field=nothing_interesting\nmy_table=another_table\n",
+       "test.sql": "select\n    {{some_field}},\n    (1 + 2) AS kev,\n  \"wrongly indented field\" as something_else,\n    trailing_whitespace,\n    4678.9\n  from {{my_table}}\n where indentation = \"wrong\" AND NotSpacedProperly\n AND 4 + 6 > 9\n"
+      },
+      "cwd_outputs": {
+       "exit_code": 0,
+       "stdout": "All Finished!\n",
+       "stderr": "",
+       "files": {
+        ".sqlfluff": "[sqlfluff:templater:jinja:context]\nsome_field=nothing_interesting\nmy_table=another_table\n",
+        "test.sql": "select\n    {{some_field}},\n    (1 + 2) AS kev,\n  \"wrongly indented field\" as something_else,\n    trailing_whitespace,\n    4678.9\n  from {{my_table}}\n where indentation = \"wrong\" AND NotSpacedProperly\n AND 4 + 6 > 9\n"
+       }
       }
      }
     }
@@ -17557,6 +20834,16 @@
    "calls": [],
    "untraced": [],
    "processes": []
+  },
+  "test/rules/std_JJ01_test.py::test_lint_jj01_pickled_config": {
+   "outcome": "passed",
+   "calls": [],
+   "untraced": [],
+   "processes": [],
+   "untraced_linter": [
+    "a Linter render (Linter.render_string)",
+    "a Linter parse (Linter.parse_rendered)"
+   ]
   },
   "test/rules/std_LT04_ST06_test.py::test_rule_st06_simple_expression_helpers_reject_non_simple_segments": {
    "outcome": "passed",
