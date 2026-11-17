@@ -96,7 +96,10 @@ G3 = (
     " make it fast)"
 )
 COMMAND = "uv run --frozen --project harness python scripts/s4/exit.py"
-STATE = "Awaiting approval"
+# The state when each exit item is met. Before the approval of this stone
+# (2026-11-17) it was "Awaiting approval"; status/S4.md, "Approval", records
+# the approval.
+STATE = "Exit met"
 NOT_MET = "Exit not met"
 
 # The start of this stone (status/S4.md, "Start data"): main after the merge

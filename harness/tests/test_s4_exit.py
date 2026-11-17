@@ -32,6 +32,33 @@ CI_RECORD = REPO_ROOT / "results" / "S4" / "exit-ci.json"
 STATUS = REPO_ROOT / "status" / "S4.md"
 DOC = REPO_ROOT / "docs" / "decisions" / "s4-exit.md"
 OTHER = "f" * 40
+INDEX = REPO_ROOT / "STATUS.md"
+# The state of the exit check when each item is met. It was "Awaiting
+# approval" until the approval of this stone (2026-11-17).
+STATE = "Exit met"
+APPROVED = (
+    "Approved (orchestrator under the standing delegation of the human owner,"
+    " 2026-11-17)"
+)
+# The 3-line summary of the proof of the approval, in the S4 row of
+# STATUS.md and in the state of status/S4.md.
+APPROVAL_SUMMARY = [
+    "CI push run 44113683205 on main `3117b02` (the merge of PR #104): 87 of"
+    " 87 jobs success; the S4 parity step gives 2306 of 2306 cases in 28"
+    " dialects, exact and with no unparsable segment, 2306 pass in the"
+    " oracle, gaps 0",
+    "local runs with the machine lock give the same numbers;"
+    " `scripts/s4/parity` and `scripts/s4/exit.py --check` pass, the"
+    " submodule is clean, and `known_failures/sqll.txt` has 0 `dialects`"
+    " lines",
+    "the tree compare is exact, 3 different inputs give 3 different trees,"
+    " and no file of `crates/`, `Cargo.toml`, `Cargo.lock`, or the submodule"
+    " changed after the start `0fb9cdb`",
+]
+
+
+def words(text: str) -> str:
+    return " ".join(text.split())
 
 
 def load_module():
@@ -174,8 +201,9 @@ def test_real_inputs_meet_each_item(case, capsys):
     assert report["result"] == {
         "met": True,
         "failed_items": [],
-        "state": "Awaiting approval",
+        "state": STATE,
     }
+    assert exit_mod.STATE == STATE
     assert [i["item"] for i in report["items"]] == list("abcdefg")
     assert all(i["met"] and not i["failed"] for i in report["items"])
     assert report["ci"]["event"] == "push"
@@ -195,6 +223,7 @@ def test_real_inputs_meet_each_item(case, capsys):
     assert case.item("g")["values"]["parse_path_files"] == []
     out = capsys.readouterr().out
     assert "S4 exit: pass: items met 7 of 7; failed items: none" in out
+    assert f"; state: {STATE};" in out
 
 
 def test_check_mode(case):
@@ -210,7 +239,7 @@ def test_committed_record_is_met():
     record = json.loads(RECORD.read_text("utf8"))
     ci = json.loads(CI_RECORD.read_text("utf8"))
     assert record["result"]["met"] is True
-    assert record["result"]["state"] == "Awaiting approval"
+    assert record["result"]["state"] == STATE
     assert all(i["met"] for i in record["items"])
     assert record["ci"]["run_id"] == ci["run_id"]
     assert record["ci"]["head_sha"] == ci["head_sha"]
@@ -785,15 +814,91 @@ def test_exit_record_document():
     assert exit_mod.SUMMARY in text
     assert PINNED in text
     assert START[:7] in text
-    assert "Awaiting approval" in text
+    # The approval of this stone (2026-11-17).
+    flat = words(text)
+    assert (
+        f"Date: 2026-11-17. State: **{APPROVED}**. The proof of the approval:"
+        ' [status/S4.md](../../status/S4.md), "Approval".'
+    ) in flat
+    assert "State: **Awaiting" not in flat
+    assert (
+        "S4 exit: pass: items met 7 of 7; failed items: none; state:"
+        f" {STATE}; wrote results/S4/exit.json"
+    ) in text
+    part = words(text.split("\n## Approval\n", 1)[1])
+    assert part.startswith(
+        f"{APPROVED[:-1]}; CONSTITUTION.md, section 5). An independent check on"
+        " main `3117b02` (the merge of PR #104) found no blocking gap."
+    )
 
 
 def test_status_state():
     text = STATUS.read_text("utf8")
-    assert "- State: Awaiting approval." in text
+    state = words(text.split("\n- State: ", 1)[1].split("\n- Start:", 1)[0])
+    assert state.startswith(f"**{APPROVED}.** Each exit item is met")
+    for n, line in enumerate(APPROVAL_SUMMARY, 1):
+        assert f"{n}. {line[0].upper()}{line[1:]}." in state, n
+    assert "Awaiting approval" not in state
     rows = [x for x in text.splitlines() if re.match(r"\| T\d+ \|", x)]
     states = {row.split(" | ")[0][2:]: row.rsplit(" | ", 1)[1] for row in rows}
     assert set(states) == {"T1", "T2", "T3", "T4", "T5"}
     for task in ("T1", "T2", "T3", "T4"):
         assert states[task].startswith("Done (PR #"), task
-    assert states["T5"].startswith("In review (PR #")
+    # T5 (the exit record gives the CI proof that sqll passes 100% of the
+    # dialect parse fixtures with an exact tree match, and the orchestrator
+    # can approve this stone) is merged.
+    assert states["T5"] == "Done (PR #104) |"
+
+
+def test_index_row_records_the_approval():
+    """The S4 row of STATUS.md gives the approval, the date, and the 3-line
+    summary of the proof."""
+    (row,) = [x for x in INDEX.read_text("utf8").splitlines() if x.startswith("| S4 |")]
+    cells = [c.strip() for c in row.strip("|").split("|")]
+    assert cells[0] == cells[1] == "S4"
+    assert cells[2].startswith(
+        f"{APPROVED} (track S4). S4 (parser parity: sqll passes 100% of the"
+        " dialect parse fixtures with an exact tree match). Each task of the plan"
+        " is merged (PR #85, #97, #98, #103, #104)."
+    )
+    for n, line in enumerate(APPROVAL_SUMMARY, 1):
+        assert f"({n}) {line}" in cells[2], n
+    assert '[status/S4.md](status/S4.md), "Approval"' in cells[2]
+    assert "[docs/decisions/s4-exit.md](docs/decisions/s4-exit.md)" in cells[2]
+    assert "In work" not in row and "awaiting" not in row.lower()
+    assert cells[3] == "[status/S4.md](status/S4.md)"
+
+
+def test_status_records_the_approval_and_its_data():
+    text = STATUS.read_text("utf8")
+    part = words(text.split("\n## Approval\n", 1)[1].split("\n## ", 1)[0])
+    assert part.startswith(
+        f"{APPROVED[:-1]}; CONSTITUTION.md, section 5). An independent agent that"
+        " did not author the work of this stone checked it on main `3117b02`"
+        " (the merge of PR #104)"
+    )
+    assert "Result: no blocking gap." in part
+    for item in (
+        "run [44113683205](https://github.com/adamgen/sqll/actions/runs/44113683205)"
+        " on main `3117b02`: conclusion success, 87 of 87 jobs success",
+        '(job 134171985020), step 7 "Check the S4 parser parity": conclusion'
+        f" success; `{exit_mod.SUMMARY}`",
+        "`dialects/sqll: total=2306 passed=2306 failed=0 skipped=0 exact=2306"
+        " no_unparsable=2306 (100.00% pass)`",
+        f"`{exit_mod.ORACLE_LINE}`",
+        "28 dialect folders and 2306 `.sql` files",
+        "3 different JSON trees",
+        "`pytest harness/tests/test_s4_*.py`: 229 passed",
+        "2593 lines, 0 `dialects` lines",
+        "164 files, 18 templater rows, 0 settings rows, 0 parser gap rows",
+        "`git diff --name-only 0fb9cdb..3117b02` changes no file in `crates/`,"
+        " `Cargo.toml`, `Cargo.lock`, or the submodule",
+        "(PR #85, #97, #98, #103, #104)",
+        "The stone does not weaken a goal of CONSTITUTION.md or an exit rule.",
+        f'is now "{STATE}"; no other value changes.',
+    ):
+        assert item in part, item
+    # The CI proof of the approval is a later push run on main than the CI
+    # proof of the exit record (results/S4/exit-ci.json).
+    ci = json.loads(CI_RECORD.read_text("utf8"))
+    assert ci["run_id"] < 44113683205
