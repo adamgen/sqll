@@ -144,6 +144,15 @@ flock /tmp/sqll-machine.lock uv run --frozen --project harness \
     --tool sqll --tool sqlfluff --out results/S4/corpus.json
 ```
 
+Decision of the orchestrator of 2026-11-17 (standing delegation;
+[status/S4.md](../../status/S4.md), "Corpus information"): one full run
+does not fit in one turn (the sqlfluff wall time of the baseline is about
+45 min). Thus the run is 24 shards of one run (`--shard K/24`, each with
+the machine lock, all on one clean commit), and the `merge` command of
+the corpus harness joins them into `results/S4/corpus.json`. The profile,
+the tools, the settings, and the scope do not change. The script
+`scripts/s4/corpus.py` writes the rows to `results/S4/corpus-diff.json`.
+
 - sqll uses the corpus layer of decision 1 of the corpus stone
   (`docs/decisions/s9-corpus.md`, "sqll results", "1. Settings":
   `rust_parser_max_iterations = 1000000000000`). T11 of S9 (task goal:

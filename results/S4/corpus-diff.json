@@ -1,0 +1,3232 @@
+{
+ "format": 1,
+ "check": "S4 corpus information (docs/decisions/s4-parity.md, section 4)",
+ "status": "pass",
+ "exit_code": 0,
+ "commit": "c5896d39a841c3fb556acbc42705095c752f74d9",
+ "inputs": {
+  "report": "/home/user/wt/s4/results/S4/corpus.json",
+  "manifest": "/home/user/wt/s4/corpus/sources.json",
+  "settings": null
+ },
+ "errors": [],
+ "report": {
+  "sqlfluff_ref": "0348222a3bcdb0226563f7349c5a39beb0641955",
+  "harness": {
+   "commit": "c5896d39a841c3fb556acbc42705095c752f74d9",
+   "clean": true
+  },
+  "profile": "full",
+  "manifest_sha256": "80660c66c283763f0fd549f84e9fa4cf792d09b204e19e7fb516f1db40b45386",
+  "tools": {
+   "sqlfluff": "4.4.0",
+   "sqll": "0.1.0+tables.5371ded8ae219be1a62cd34b1b793d36c41bc9fa432f344de5d84f48d2d059e8"
+  },
+  "parts": [
+   "1/24",
+   "2/24",
+   "3/24",
+   "4/24",
+   "5/24",
+   "6/24",
+   "7/24",
+   "8/24",
+   "9/24",
+   "10/24",
+   "11/24",
+   "12/24",
+   "13/24",
+   "14/24",
+   "15/24",
+   "16/24",
+   "17/24",
+   "18/24",
+   "19/24",
+   "20/24",
+   "21/24",
+   "22/24",
+   "23/24",
+   "24/24"
+  ]
+ },
+ "counts": {
+  "files": 164,
+  "same": 146,
+  "rows": 18,
+  "by_tool": {
+   "sqlfluff": {
+    "ok": 57,
+    "unparsable": 104,
+    "no_reference": 0,
+    "invalid": 3,
+    "unsupported": 0,
+    "error": 0
+   },
+   "sqll": {
+    "ok": 39,
+    "unparsable": 104,
+    "no_reference": 0,
+    "invalid": 21,
+    "unsupported": 0,
+    "error": 0
+   }
+  },
+  "by_class": {
+   "settings": 0,
+   "templater": 18,
+   "parser gap": 0
+  }
+ },
+ "files": [
+  {
+   "file": "amazon-redshift-utils/src/AdminViews/v_generate_user_grant_revoke_ddl.sql",
+   "dialect": "redshift",
+   "templater": "raw",
+   "bytes": 19499,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 8,
+    "unparsable_bytes": 368
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 8,
+    "unparsable_bytes": 368
+   },
+   "same": true
+  },
+  {
+   "file": "bigquery-utils/views/audit/bigquery_audit_logs_v2.sql",
+   "dialect": "bigquery",
+   "templater": "raw",
+   "bytes": 50976,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "sqll": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "same": true
+  },
+  {
+   "file": "bigquery-utils/views/audit/bigquery_script_logs_v2.sql",
+   "dialect": "bigquery",
+   "templater": "raw",
+   "bytes": 36935,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "sqll": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "same": true
+  },
+  {
+   "file": "chinook-database/ChinookDatabase/DataSources/Chinook_Db2.sql",
+   "dialect": "db2",
+   "templater": "raw",
+   "bytes": 604388,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 600254
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 600254
+   },
+   "same": true
+  },
+  {
+   "file": "chinook-database/ChinookDatabase/DataSources/Chinook_MySql.sql",
+   "dialect": "mysql",
+   "templater": "raw",
+   "bytes": 600574,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "sqll": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "same": true
+  },
+  {
+   "file": "chinook-database/ChinookDatabase/DataSources/Chinook_MySql_AutoIncrementPKs.sql",
+   "dialect": "mysql",
+   "templater": "raw",
+   "bytes": 563074,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "sqll": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "same": true
+  },
+  {
+   "file": "chinook-database/ChinookDatabase/DataSources/Chinook_Oracle.sql",
+   "dialect": "oracle",
+   "templater": "raw",
+   "bytes": 613709,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 612721
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 612721
+   },
+   "same": true
+  },
+  {
+   "file": "chinook-database/ChinookDatabase/DataSources/Chinook_PostgreSql.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 600200,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "sqll": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "same": true
+  },
+  {
+   "file": "chinook-database/ChinookDatabase/DataSources/Chinook_PostgreSql_AutoIncrementPKs.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 562854,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "sqll": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "same": true
+  },
+  {
+   "file": "chinook-database/ChinookDatabase/DataSources/Chinook_PostgreSql_SerialPKs.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 562563,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "sqll": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "same": true
+  },
+  {
+   "file": "chinook-database/ChinookDatabase/DataSources/Chinook_SqlServer.sql",
+   "dialect": "tsql",
+   "templater": "raw",
+   "bytes": 601344,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "sqll": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "same": true
+  },
+  {
+   "file": "chinook-database/ChinookDatabase/DataSources/Chinook_SqlServer_AutoIncrementPKs.sql",
+   "dialect": "tsql",
+   "templater": "raw",
+   "bytes": 563826,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "sqll": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "same": true
+  },
+  {
+   "file": "chinook-database/ChinookDatabase/DataSources/Chinook_Sqlite.sql",
+   "dialect": "sqlite",
+   "templater": "raw",
+   "bytes": 595545,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 594444
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 594444
+   },
+   "same": true
+  },
+  {
+   "file": "chinook-database/ChinookDatabase/DataSources/Chinook_Sqlite_AutoIncrementPKs.sql",
+   "dialect": "sqlite",
+   "templater": "raw",
+   "bytes": 557539,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 556421
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 556421
+   },
+   "same": true
+  },
+  {
+   "file": "clickhouse/tests/queries/0_stateless/00024_random_counters.sql",
+   "dialect": "clickhouse",
+   "templater": "raw",
+   "bytes": 75925,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 308
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 308
+   },
+   "same": true
+  },
+  {
+   "file": "clickhouse/tests/queries/0_stateless/00182_functions_higher_order_and_consts.sql",
+   "dialect": "clickhouse",
+   "templater": "raw",
+   "bytes": 19158,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "sqll": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "same": true
+  },
+  {
+   "file": "clickhouse/tests/queries/0_stateless/00189_time_zones_long.sql",
+   "dialect": "clickhouse",
+   "templater": "raw",
+   "bytes": 26825,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "sqll": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "same": true
+  },
+  {
+   "file": "clickhouse/tests/queries/0_stateless/00223_shard_distributed_aggregation_memory_efficient.sql",
+   "dialect": "clickhouse",
+   "templater": "raw",
+   "bytes": 23285,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 23262
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 23262
+   },
+   "same": true
+  },
+  {
+   "file": "clickhouse/tests/queries/0_stateless/00233_position_function_family.sql",
+   "dialect": "clickhouse",
+   "templater": "raw",
+   "bytes": 30430,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 30367
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 30367
+   },
+   "same": true
+  },
+  {
+   "file": "clickhouse/tests/queries/0_stateless/00276_sample.sql",
+   "dialect": "clickhouse",
+   "templater": "raw",
+   "bytes": 17399,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 17362
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 17362
+   },
+   "same": true
+  },
+  {
+   "file": "db-sample-schemas/customer_orders/co_create.sql",
+   "dialect": "oracle",
+   "templater": "raw",
+   "bytes": 19570,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 19565
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 19565
+   },
+   "same": true
+  },
+  {
+   "file": "db-sample-schemas/customer_orders/co_populate.sql",
+   "dialect": "oracle",
+   "templater": "raw",
+   "bytes": 1274129,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 1274124
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 1274124
+   },
+   "same": true
+  },
+  {
+   "file": "db-sample-schemas/human_resources/hr_create.sql",
+   "dialect": "oracle",
+   "templater": "raw",
+   "bytes": 17114,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 17109
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 17109
+   },
+   "same": true
+  },
+  {
+   "file": "db-sample-schemas/human_resources/hr_populate.sql",
+   "dialect": "oracle",
+   "templater": "raw",
+   "bytes": 41301,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 41294
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 41294
+   },
+   "same": true
+  },
+  {
+   "file": "db-sample-schemas/sales_history/sh_create.sql",
+   "dialect": "oracle",
+   "templater": "raw",
+   "bytes": 25051,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 25046
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 25046
+   },
+   "same": true
+  },
+  {
+   "file": "db-sample-schemas/sales_history/sh_populate.sql",
+   "dialect": "oracle",
+   "templater": "raw",
+   "bytes": 41072,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 41067
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 41067
+   },
+   "same": true
+  },
+  {
+   "file": "dbt-cerebro/models/ESG/intermediate/int_esg_dynamic_power_consumption.sql",
+   "dialect": "clickhouse",
+   "templater": "jinja",
+   "bytes": 10298,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "sqll": {
+    "status": "invalid",
+    "unparsable_count": null,
+    "unparsable_bytes": null
+   },
+   "same": false
+  },
+  {
+   "file": "dbt-cerebro/models/ESG/marts/fct_esg_carbon_footprint_uncertainty.sql",
+   "dialect": "clickhouse",
+   "templater": "jinja",
+   "bytes": 15270,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "sqll": {
+    "status": "invalid",
+    "unparsable_count": null,
+    "unparsable_bytes": null
+   },
+   "same": false
+  },
+  {
+   "file": "dbt-cerebro/models/celo/gpay/marts/fct_celo_gpay_cardholder_engagement.sql",
+   "dialect": "clickhouse",
+   "templater": "jinja",
+   "bytes": 9692,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "sqll": {
+    "status": "invalid",
+    "unparsable_count": null,
+    "unparsable_bytes": null
+   },
+   "same": false
+  },
+  {
+   "file": "dbt-cerebro/models/celo/gpay/marts/fct_celo_gpay_settlement_batches.sql",
+   "dialect": "clickhouse",
+   "templater": "jinja",
+   "bytes": 8792,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "sqll": {
+    "status": "invalid",
+    "unparsable_count": null,
+    "unparsable_bytes": null
+   },
+   "same": false
+  },
+  {
+   "file": "dbt-cerebro/models/crawlers_data/staging/stg_crawlers_data__dune_labels.sql",
+   "dialect": "clickhouse",
+   "templater": "jinja",
+   "bytes": 9110,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "sqll": {
+    "status": "invalid",
+    "unparsable_count": null,
+    "unparsable_bytes": null
+   },
+   "same": false
+  },
+  {
+   "file": "dbt-cerebro/models/execution/Circles/intermediate/int_execution_circles_v2_avatar_metadata.sql",
+   "dialect": "clickhouse",
+   "templater": "jinja",
+   "bytes": 9877,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "sqll": {
+    "status": "invalid",
+    "unparsable_count": null,
+    "unparsable_bytes": null
+   },
+   "same": false
+  },
+  {
+   "file": "dbt-cerebro/models/execution/Circles/marts/api_execution_circles_v2_pool_explorer_liquidity_events.sql",
+   "dialect": "clickhouse",
+   "templater": "jinja",
+   "bytes": 10017,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "sqll": {
+    "status": "invalid",
+    "unparsable_count": null,
+    "unparsable_bytes": null
+   },
+   "same": false
+  },
+  {
+   "file": "dbt-cerebro/models/execution/accounts/marts/fct_execution_account_profile_latest.sql",
+   "dialect": "clickhouse",
+   "templater": "jinja",
+   "bytes": 9493,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "sqll": {
+    "status": "invalid",
+    "unparsable_count": null,
+    "unparsable_bytes": null
+   },
+   "same": false
+  },
+  {
+   "file": "dbt-cerebro/models/execution/gnosis_app_gt/intermediate/int_execution_gnosis_app_gt_user_activity.sql",
+   "dialect": "clickhouse",
+   "templater": "jinja",
+   "bytes": 8907,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "sqll": {
+    "status": "invalid",
+    "unparsable_count": null,
+    "unparsable_bytes": null
+   },
+   "same": false
+  },
+  {
+   "file": "dbt-cerebro/models/execution/hopr/intermediate/int_hopr_channels_events.sql",
+   "dialect": "clickhouse",
+   "templater": "jinja",
+   "bytes": 13594,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "sqll": {
+    "status": "invalid",
+    "unparsable_count": null,
+    "unparsable_bytes": null
+   },
+   "same": false
+  },
+  {
+   "file": "dbt-cerebro/models/execution/hopr/intermediate/int_hopr_nodes.sql",
+   "dialect": "clickhouse",
+   "templater": "jinja",
+   "bytes": 21746,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "sqll": {
+    "status": "invalid",
+    "unparsable_count": null,
+    "unparsable_bytes": null
+   },
+   "same": false
+  },
+  {
+   "file": "dbt-cerebro/models/execution/lending/intermediate/int_execution_lending_aave_daily.sql",
+   "dialect": "clickhouse",
+   "templater": "jinja",
+   "bytes": 13524,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "sqll": {
+    "status": "invalid",
+    "unparsable_count": null,
+    "unparsable_bytes": null
+   },
+   "same": false
+  },
+  {
+   "file": "dbt-cerebro/models/execution/ubo/intermediate/int_ubo_claims_curve_daily.sql",
+   "dialect": "clickhouse",
+   "templater": "jinja",
+   "bytes": 9311,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "sqll": {
+    "status": "invalid",
+    "unparsable_count": null,
+    "unparsable_bytes": null
+   },
+   "same": false
+  },
+  {
+   "file": "dbt-cerebro/models/execution/yields/marts/fct_execution_yields_opportunities_latest.sql",
+   "dialect": "clickhouse",
+   "templater": "jinja",
+   "bytes": 9881,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "sqll": {
+    "status": "invalid",
+    "unparsable_count": null,
+    "unparsable_bytes": null
+   },
+   "same": false
+  },
+  {
+   "file": "dbt-cerebro/models/execution/yields/marts/fct_execution_yields_overview_snapshot.sql",
+   "dialect": "clickhouse",
+   "templater": "jinja",
+   "bytes": 8301,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "sqll": {
+    "status": "invalid",
+    "unparsable_count": null,
+    "unparsable_bytes": null
+   },
+   "same": false
+  },
+  {
+   "file": "dbt-cerebro/models/governance/intermediate/int_governance_gip.sql",
+   "dialect": "clickhouse",
+   "templater": "jinja",
+   "bytes": 9079,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "sqll": {
+    "status": "invalid",
+    "unparsable_count": null,
+    "unparsable_bytes": null
+   },
+   "same": false
+  },
+  {
+   "file": "dbt-cerebro/models/p2p/staging/stg_crawlers_data__ipinfo.sql",
+   "dialect": "clickhouse",
+   "templater": "jinja",
+   "bytes": 10648,
+   "sqlfluff": {
+    "status": "invalid",
+    "unparsable_count": null,
+    "unparsable_bytes": null
+   },
+   "sqll": {
+    "status": "invalid",
+    "unparsable_count": null,
+    "unparsable_bytes": null
+   },
+   "same": true
+  },
+  {
+   "file": "emerging-solutions-toolbox/framework-zamboni/demo/02_zamboni_demo.sql",
+   "dialect": "snowflake",
+   "templater": "raw",
+   "bytes": 30257,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "sqll": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "same": true
+  },
+  {
+   "file": "emerging-solutions-toolbox/framework-zamboni/setup/03_zamboni_load_process_types.sql",
+   "dialect": "snowflake",
+   "templater": "raw",
+   "bytes": 26794,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "sqll": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "same": true
+  },
+  {
+   "file": "emerging-solutions-toolbox/framework-zamboni/setup/04_zamboni_create_procs.sql",
+   "dialect": "snowflake",
+   "templater": "raw",
+   "bytes": 54033,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 9291
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 9291
+   },
+   "same": true
+  },
+  {
+   "file": "emerging-solutions-toolbox/helper-iceberg-migrator/iceberg-migrator/scripts/step_5_migrate_table_to_iceberg.sql",
+   "dialect": "snowflake",
+   "templater": "raw",
+   "bytes": 27257,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "sqll": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "same": true
+  },
+  {
+   "file": "emerging-solutions-toolbox/helper-iceberg-migrator/iceberg-migrator/scripts/step_7_update_glue_metadata_location_template.sql",
+   "dialect": "snowflake",
+   "templater": "raw",
+   "bytes": 18067,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "sqll": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "same": true
+  },
+  {
+   "file": "emerging-solutions-toolbox/sfguide-alert-hub/alert_hub_setup.sql",
+   "dialect": "snowflake",
+   "templater": "raw",
+   "bytes": 82030,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 79110
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 79110
+   },
+   "same": true
+  },
+  {
+   "file": "emerging-solutions-toolbox/sfguide-application-control-framework/acf_acct/acf/02_create_acf_objects.sql",
+   "dialect": "snowflake",
+   "templater": "raw",
+   "bytes": 30709,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 25960
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 25960
+   },
+   "same": true
+  },
+  {
+   "file": "emerging-solutions-toolbox/sfguide-application-control-framework/acf_acct/acf/03_create_process_consumer_events_procedure.sql",
+   "dialect": "snowflake",
+   "templater": "raw",
+   "bytes": 24059,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 22761
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 22761
+   },
+   "same": true
+  },
+  {
+   "file": "emerging-solutions-toolbox/sfguide-solution-installation-wizard/3-sol_inst_wzd_package_setup.sql",
+   "dialect": "snowflake",
+   "templater": "raw",
+   "bytes": 26182,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 24063
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 24063
+   },
+   "same": true
+  },
+  {
+   "file": "emerging-solutions-toolbox/sfguide-supply-chain-network-optimization/app_setup.sql",
+   "dialect": "snowflake",
+   "templater": "raw",
+   "bytes": 81130,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 79701
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 79701
+   },
+   "same": true
+  },
+  {
+   "file": "pagila/pagila-schema.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 89841,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 36108
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 36108
+   },
+   "same": true
+  },
+  {
+   "file": "postgres/src/test/regress/sql/aggregates.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 50532,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 3,
+    "unparsable_bytes": 42638
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 3,
+    "unparsable_bytes": 42638
+   },
+   "same": true
+  },
+  {
+   "file": "postgres/src/test/regress/sql/alter_generic.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 28361,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 28114
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 28114
+   },
+   "same": true
+  },
+  {
+   "file": "postgres/src/test/regress/sql/alter_table.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 116578,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 113009
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 113009
+   },
+   "same": true
+  },
+  {
+   "file": "postgres/src/test/regress/sql/arrays.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 31071,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 30570
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 30570
+   },
+   "same": true
+  },
+  {
+   "file": "postgres/src/test/regress/sql/brin.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 18488,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 2260
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 2260
+   },
+   "same": true
+  },
+  {
+   "file": "postgres/src/test/regress/sql/brin_multi.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 24854,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 9792
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 9792
+   },
+   "same": true
+  },
+  {
+   "file": "postgres/src/test/regress/sql/collate.icu.utf8.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 35153,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 2,
+    "unparsable_bytes": 23499
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 2,
+    "unparsable_bytes": 23499
+   },
+   "same": true
+  },
+  {
+   "file": "postgres/src/test/regress/sql/constraints.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 19390,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 2,
+    "unparsable_bytes": 7735
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 2,
+    "unparsable_bytes": 7735
+   },
+   "same": true
+  },
+  {
+   "file": "postgres/src/test/regress/sql/create_index.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 49440,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 49109
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 49109
+   },
+   "same": true
+  },
+  {
+   "file": "postgres/src/test/regress/sql/create_index_spgist.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 17028,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 6,
+    "unparsable_bytes": 13886
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 6,
+    "unparsable_bytes": 13886
+   },
+   "same": true
+  },
+  {
+   "file": "postgres/src/test/regress/sql/create_table.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 29687,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 28230
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 28230
+   },
+   "same": true
+  },
+  {
+   "file": "postgres/src/test/regress/sql/create_view.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 26764,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 26458
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 26458
+   },
+   "same": true
+  },
+  {
+   "file": "postgres/src/test/regress/sql/domain.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 26142,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 24798
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 24798
+   },
+   "same": true
+  },
+  {
+   "file": "postgres/src/test/regress/sql/event_trigger.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 20301,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 20263
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 20263
+   },
+   "same": true
+  },
+  {
+   "file": "postgres/src/test/regress/sql/fast_default.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 18149,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 16734
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 16734
+   },
+   "same": true
+  },
+  {
+   "file": "postgres/src/test/regress/sql/float8.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 16661,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 5,
+    "unparsable_bytes": 97
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 5,
+    "unparsable_bytes": 97
+   },
+   "same": true
+  },
+  {
+   "file": "postgres/src/test/regress/sql/foreign_data.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 35674,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 35439
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 35439
+   },
+   "same": true
+  },
+  {
+   "file": "postgres/src/test/regress/sql/foreign_key.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 82117,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 52113
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 52113
+   },
+   "same": true
+  },
+  {
+   "file": "postgres/src/test/regress/sql/generated.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 25725,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 23148
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 23148
+   },
+   "same": true
+  },
+  {
+   "file": "postgres/src/test/regress/sql/groupingsets.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 21315,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 10,
+    "unparsable_bytes": 16883
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 10,
+    "unparsable_bytes": 16883
+   },
+   "same": true
+  },
+  {
+   "file": "postgres/src/test/regress/sql/horology.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 29258,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 18655
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 18655
+   },
+   "same": true
+  },
+  {
+   "file": "postgres/src/test/regress/sql/identity.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 20229,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 12199
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 12199
+   },
+   "same": true
+  },
+  {
+   "file": "postgres/src/test/regress/sql/indexing.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 45904,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 21239
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 21239
+   },
+   "same": true
+  },
+  {
+   "file": "postgres/src/test/regress/sql/inherit.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 48712,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 21,
+    "unparsable_bytes": 44727
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 21,
+    "unparsable_bytes": 44727
+   },
+   "same": true
+  },
+  {
+   "file": "postgres/src/test/regress/sql/insert.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 28820,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 26591
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 26591
+   },
+   "same": true
+  },
+  {
+   "file": "postgres/src/test/regress/sql/insert_conflict.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 28843,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 28121
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 28121
+   },
+   "same": true
+  },
+  {
+   "file": "postgres/src/test/regress/sql/interval.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 31331,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 27474
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 27474
+   },
+   "same": true
+  },
+  {
+   "file": "postgres/src/test/regress/sql/join.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 86768,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 12,
+    "unparsable_bytes": 82263
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 12,
+    "unparsable_bytes": 82263
+   },
+   "same": true
+  },
+  {
+   "file": "postgres/src/test/regress/sql/join_hash.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 22915,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 19906
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 19906
+   },
+   "same": true
+  },
+  {
+   "file": "postgres/src/test/regress/sql/json.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 36231,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 31406
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 31406
+   },
+   "same": true
+  },
+  {
+   "file": "postgres/src/test/regress/sql/jsonb.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 73393,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 69561
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 69561
+   },
+   "same": true
+  },
+  {
+   "file": "postgres/src/test/regress/sql/jsonb_jsonpath.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 70170,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "sqll": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "same": true
+  },
+  {
+   "file": "postgres/src/test/regress/sql/merge.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 51260,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 50199
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 50199
+   },
+   "same": true
+  },
+  {
+   "file": "postgres/src/test/regress/sql/multirangetypes.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 42558,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "sqll": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "same": true
+  },
+  {
+   "file": "postgres/src/test/regress/sql/numeric.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 62541,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "sqll": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "same": true
+  },
+  {
+   "file": "postgres/src/test/regress/sql/numeric_big.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 305102,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "sqll": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "same": true
+  },
+  {
+   "file": "postgres/src/test/regress/sql/opr_sanity.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 54772,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "sqll": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "same": true
+  },
+  {
+   "file": "postgres/src/test/regress/sql/partition_aggregate.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 17532,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 16272
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 16272
+   },
+   "same": true
+  },
+  {
+   "file": "postgres/src/test/regress/sql/partition_join.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 66606,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 65344
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 65344
+   },
+   "same": true
+  },
+  {
+   "file": "postgres/src/test/regress/sql/partition_prune.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 58419,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 57864
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 57864
+   },
+   "same": true
+  },
+  {
+   "file": "postgres/src/test/regress/sql/plpgsql.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 122991,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 66557
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 66557
+   },
+   "same": true
+  },
+  {
+   "file": "postgres/src/test/regress/sql/polymorphism.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 38472,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 30508
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 30508
+   },
+   "same": true
+  },
+  {
+   "file": "postgres/src/test/regress/sql/privileges.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 75353,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 73868
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 73868
+   },
+   "same": true
+  },
+  {
+   "file": "postgres/src/test/regress/sql/psql.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 43126,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 2,
+    "unparsable_bytes": 42278
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 2,
+    "unparsable_bytes": 42278
+   },
+   "same": true
+  },
+  {
+   "file": "postgres/src/test/regress/sql/publication.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 49776,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 49599
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 49599
+   },
+   "same": true
+  },
+  {
+   "file": "postgres/src/test/regress/sql/rangefuncs.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 33861,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 7,
+    "unparsable_bytes": 31658
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 7,
+    "unparsable_bytes": 31658
+   },
+   "same": true
+  },
+  {
+   "file": "postgres/src/test/regress/sql/rangetypes.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 28200,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 10054
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 10054
+   },
+   "same": true
+  },
+  {
+   "file": "postgres/src/test/regress/sql/rowsecurity.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 80655,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 77630
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 77630
+   },
+   "same": true
+  },
+  {
+   "file": "postgres/src/test/regress/sql/rowtypes.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 18578,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 13,
+    "unparsable_bytes": 14676
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 13,
+    "unparsable_bytes": 14676
+   },
+   "same": true
+  },
+  {
+   "file": "postgres/src/test/regress/sql/rules.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 45666,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 45350
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 45350
+   },
+   "same": true
+  },
+  {
+   "file": "postgres/src/test/regress/sql/select_parallel.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 17723,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 17364
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 17364
+   },
+   "same": true
+  },
+  {
+   "file": "postgres/src/test/regress/sql/sqljson.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 18680,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 4,
+    "unparsable_bytes": 18254
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 4,
+    "unparsable_bytes": 18254
+   },
+   "same": true
+  },
+  {
+   "file": "postgres/src/test/regress/sql/sqljson_jsontable.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 18505,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 21,
+    "unparsable_bytes": 15695
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 21,
+    "unparsable_bytes": 15695
+   },
+   "same": true
+  },
+  {
+   "file": "postgres/src/test/regress/sql/sqljson_queryfuncs.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 26998,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 96,
+    "unparsable_bytes": 16674
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 96,
+    "unparsable_bytes": 16674
+   },
+   "same": true
+  },
+  {
+   "file": "postgres/src/test/regress/sql/stats.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 35283,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 33067
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 33067
+   },
+   "same": true
+  },
+  {
+   "file": "postgres/src/test/regress/sql/stats_ext.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 77946,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 77090
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 77090
+   },
+   "same": true
+  },
+  {
+   "file": "postgres/src/test/regress/sql/strings.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 31336,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 11,
+    "unparsable_bytes": 24565
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 11,
+    "unparsable_bytes": 24565
+   },
+   "same": true
+  },
+  {
+   "file": "postgres/src/test/regress/sql/subselect.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 30788,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 28450
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 28450
+   },
+   "same": true
+  },
+  {
+   "file": "postgres/src/test/regress/sql/tablespace.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 20159,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 20109
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 20109
+   },
+   "same": true
+  },
+  {
+   "file": "postgres/src/test/regress/sql/timestamptz.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 29869,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 6,
+    "unparsable_bytes": 1460
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 6,
+    "unparsable_bytes": 1460
+   },
+   "same": true
+  },
+  {
+   "file": "postgres/src/test/regress/sql/transactions.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 18026,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 17592
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 17592
+   },
+   "same": true
+  },
+  {
+   "file": "postgres/src/test/regress/sql/triggers.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 101806,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 101523
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 101523
+   },
+   "same": true
+  },
+  {
+   "file": "postgres/src/test/regress/sql/tsearch.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 38080,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 34938
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 34938
+   },
+   "same": true
+  },
+  {
+   "file": "postgres/src/test/regress/sql/type_sanity.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 20469,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "sqll": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "same": true
+  },
+  {
+   "file": "postgres/src/test/regress/sql/union.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 18378,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 2,
+    "unparsable_bytes": 15445
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 2,
+    "unparsable_bytes": 15445
+   },
+   "same": true
+  },
+  {
+   "file": "postgres/src/test/regress/sql/updatable_views.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 77872,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 71184
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 71184
+   },
+   "same": true
+  },
+  {
+   "file": "postgres/src/test/regress/sql/update.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 26779,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 24702
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 24702
+   },
+   "same": true
+  },
+  {
+   "file": "postgres/src/test/regress/sql/window.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 73543,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 2,
+    "unparsable_bytes": 67441
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 2,
+    "unparsable_bytes": 67441
+   },
+   "same": true
+  },
+  {
+   "file": "postgres/src/test/regress/sql/with.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 43347,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 34333
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 34333
+   },
+   "same": true
+  },
+  {
+   "file": "postgres/src/test/regress/sql/xml.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 32375,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 11,
+    "unparsable_bytes": 24627
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 11,
+    "unparsable_bytes": 24627
+   },
+   "same": true
+  },
+  {
+   "file": "sakila-mysql/mysql-sakila-db/mysql-sakila-schema.sql",
+   "dialect": "mysql",
+   "templater": "raw",
+   "bytes": 23088,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 5639
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 5639
+   },
+   "same": true
+  },
+  {
+   "file": "sakila/cockroachdb-sakila-db/cockroachdb-sakila-schema.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 23710,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "sqll": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "same": true
+  },
+  {
+   "file": "sakila/oracle-sakila-db/oracle-sakila-schema.sql",
+   "dialect": "oracle",
+   "templater": "raw",
+   "bytes": 19768,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "sqll": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "same": true
+  },
+  {
+   "file": "sakila/postgres-sakila-db/postgres-sakila-schema.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 50732,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 50269
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 50269
+   },
+   "same": true
+  },
+  {
+   "file": "sakila/sqlite-sakila-db/sqlite-sakila-schema.sql",
+   "dialect": "sqlite",
+   "templater": "raw",
+   "bytes": 17860,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 11642
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 11642
+   },
+   "same": true
+  },
+  {
+   "file": "sakila/yugabytedb-sakila-db/yugabytedb-sakila-schema.sql",
+   "dialect": "postgres",
+   "templater": "raw",
+   "bytes": 48153,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 21030
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 21030
+   },
+   "same": true
+  },
+  {
+   "file": "simple_ga4_dbt/models/simple_ga4__sessions.sql",
+   "dialect": "bigquery",
+   "templater": "jinja",
+   "bytes": 28649,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "sqll": {
+    "status": "invalid",
+    "unparsable_count": null,
+    "unparsable_bytes": null
+   },
+   "same": false
+  },
+  {
+   "file": "simple_ga4_dbt/models/simple_ga4__users.sql",
+   "dialect": "bigquery",
+   "templater": "jinja",
+   "bytes": 10547,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "sqll": {
+    "status": "invalid",
+    "unparsable_count": null,
+    "unparsable_bytes": null
+   },
+   "same": false
+  },
+  {
+   "file": "spark/sql/core/src/test/resources/sql-tests/inputs/cte-recursion.sql",
+   "dialect": "sparksql",
+   "templater": "raw",
+   "bytes": 19498,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 18107
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 18107
+   },
+   "same": true
+  },
+  {
+   "file": "spark/sql/core/src/test/resources/sql-tests/inputs/identifier-clause.sql",
+   "dialect": "sparksql",
+   "templater": "raw",
+   "bytes": 18101,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 17657
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 17657
+   },
+   "same": true
+  },
+  {
+   "file": "spark/sql/core/src/test/resources/sql-tests/inputs/join-lateral.sql",
+   "dialect": "sparksql",
+   "templater": "raw",
+   "bytes": 19640,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 52,
+    "unparsable_bytes": 5104
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 52,
+    "unparsable_bytes": 5104
+   },
+   "same": true
+  },
+  {
+   "file": "spark/sql/core/src/test/resources/sql-tests/inputs/kllquantiles.sql",
+   "dialect": "sparksql",
+   "templater": "raw",
+   "bytes": 26871,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "sqll": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "same": true
+  },
+  {
+   "file": "spark/sql/core/src/test/resources/sql-tests/inputs/order-by-and-having-on-top-of-aggregate-with-join.sql",
+   "dialect": "sparksql",
+   "templater": "raw",
+   "bytes": 17902,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "sqll": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "same": true
+  },
+  {
+   "file": "spark/sql/core/src/test/resources/sql-tests/inputs/scripting/randomly_generated_scripts.sql",
+   "dialect": "sparksql",
+   "templater": "raw",
+   "bytes": 314583,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 306129
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 306129
+   },
+   "same": true
+  },
+  {
+   "file": "spark/sql/core/src/test/resources/sql-tests/inputs/sql-udf.sql",
+   "dialect": "sparksql",
+   "templater": "raw",
+   "bytes": 38623,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 38458
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 38458
+   },
+   "same": true
+  },
+  {
+   "file": "spark/sql/core/src/test/resources/sql-tests/inputs/subquery/in-subquery/in-set-operations.sql",
+   "dialect": "sparksql",
+   "templater": "raw",
+   "bytes": 16946,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 2,
+    "unparsable_bytes": 132
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 2,
+    "unparsable_bytes": 132
+   },
+   "same": true
+  },
+  {
+   "file": "spark/sql/core/src/test/resources/sql-tests/inputs/thetasketch.sql",
+   "dialect": "sparksql",
+   "templater": "raw",
+   "bytes": 23821,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 7,
+    "unparsable_bytes": 145
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 7,
+    "unparsable_bytes": 145
+   },
+   "same": true
+  },
+  {
+   "file": "spark/sql/core/src/test/resources/sql-tests/inputs/tuplesketch.sql",
+   "dialect": "sparksql",
+   "templater": "raw",
+   "bytes": 79416,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 30,
+    "unparsable_bytes": 1705
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 30,
+    "unparsable_bytes": 1705
+   },
+   "same": true
+  },
+  {
+   "file": "spark/sql/core/src/test/resources/sql-tests/inputs/typeCoercion/native/decimalPrecision.sql",
+   "dialect": "sparksql",
+   "templater": "raw",
+   "bytes": 77012,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "sqll": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "same": true
+  },
+  {
+   "file": "spark/sql/core/src/test/resources/sql-tests/inputs/typeCoercion/native/inConversion.sql",
+   "dialect": "sparksql",
+   "templater": "raw",
+   "bytes": 22810,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "sqll": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "same": true
+  },
+  {
+   "file": "spark/sql/core/src/test/resources/sql-tests/inputs/typeCoercion/native/promoteStrings.sql",
+   "dialect": "sparksql",
+   "templater": "raw",
+   "bytes": 20937,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "sqll": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "same": true
+  },
+  {
+   "file": "spark/sql/core/src/test/resources/sql-tests/inputs/window.sql",
+   "dialect": "sparksql",
+   "templater": "raw",
+   "bytes": 20127,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 8,
+    "unparsable_bytes": 950
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 8,
+    "unparsable_bytes": 950
+   },
+   "same": true
+  },
+  {
+   "file": "sql-server-maintenance-solution/DatabaseBackup.sql",
+   "dialect": "tsql",
+   "templater": "raw",
+   "bytes": 267445,
+   "sqlfluff": {
+    "status": "invalid",
+    "unparsable_count": null,
+    "unparsable_bytes": null
+   },
+   "sqll": {
+    "status": "invalid",
+    "unparsable_count": null,
+    "unparsable_bytes": null
+   },
+   "same": true
+  },
+  {
+   "file": "sql-server-maintenance-solution/DatabaseIntegrityCheck.sql",
+   "dialect": "tsql",
+   "templater": "raw",
+   "bytes": 107911,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "sqll": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "same": true
+  },
+  {
+   "file": "sql-server-maintenance-solution/IndexOptimize.sql",
+   "dialect": "tsql",
+   "templater": "raw",
+   "bytes": 190055,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "sqll": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "same": true
+  },
+  {
+   "file": "sql-server-maintenance-solution/MaintenanceSolution.sql",
+   "dialect": "tsql",
+   "templater": "raw",
+   "bytes": 595994,
+   "sqlfluff": {
+    "status": "invalid",
+    "unparsable_count": null,
+    "unparsable_bytes": null
+   },
+   "sqll": {
+    "status": "invalid",
+    "unparsable_count": null,
+    "unparsable_bytes": null
+   },
+   "same": true
+  },
+  {
+   "file": "sql-server-maintenance-solution/MaintenanceSolutionAzureSQLDatabase.sql",
+   "dialect": "tsql",
+   "templater": "raw",
+   "bytes": 312040,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "sqll": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "same": true
+  },
+  {
+   "file": "sql-server-samples/samples/databases/adventure-works/data-warehouse-install-script/instawdbdw.sql",
+   "dialect": "tsql",
+   "templater": "raw",
+   "bytes": 54095,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 52380
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 52380
+   },
+   "same": true
+  },
+  {
+   "file": "sql-server-samples/samples/databases/adventure-works/oltp-install-script/instawdb.sql",
+   "dialect": "tsql",
+   "templater": "raw",
+   "bytes": 329368,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 311095
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 311095
+   },
+   "same": true
+  },
+  {
+   "file": "sql-server-samples/samples/databases/futon-manufacturing/02-sample-data.sql",
+   "dialect": "tsql",
+   "templater": "raw",
+   "bytes": 42196,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "sqll": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "same": true
+  },
+  {
+   "file": "sql-server-samples/samples/databases/futon-manufacturing/03-manufacturing-reports.sql",
+   "dialect": "tsql",
+   "templater": "raw",
+   "bytes": 32940,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "sqll": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "same": true
+  },
+  {
+   "file": "sql-server-samples/samples/databases/futon-manufacturing/06-sales-sample-data.sql",
+   "dialect": "tsql",
+   "templater": "raw",
+   "bytes": 23271,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "sqll": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "same": true
+  },
+  {
+   "file": "sql-server-samples/samples/databases/futon-manufacturing/07-sales-reports.sql",
+   "dialect": "tsql",
+   "templater": "raw",
+   "bytes": 34141,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "sqll": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "same": true
+  },
+  {
+   "file": "sql-server-samples/samples/databases/futon-manufacturing/08-sales-sample-queries.sql",
+   "dialect": "tsql",
+   "templater": "raw",
+   "bytes": 17884,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "sqll": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "same": true
+  },
+  {
+   "file": "sql-server-samples/samples/databases/northwind-pubs/instnwnd (Azure SQL Database).sql",
+   "dialect": "tsql",
+   "templater": "raw",
+   "bytes": 1049643,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "sqll": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "same": true
+  },
+  {
+   "file": "sql-server-samples/samples/databases/northwind-pubs/instnwnd.sql",
+   "dialect": "tsql",
+   "templater": "raw",
+   "bytes": 1049720,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "sqll": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "same": true
+  },
+  {
+   "file": "sql-server-samples/samples/databases/northwind-pubs/instpubs.sql",
+   "dialect": "tsql",
+   "templater": "raw",
+   "bytes": 125718,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 125046
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 125046
+   },
+   "same": true
+  },
+  {
+   "file": "sql-server-samples/samples/features/in-memory-database/in-memory-oltp/t-sql-scripts/clustered_columnstore_sample_queries.sql",
+   "dialect": "tsql",
+   "templater": "raw",
+   "bytes": 17166,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 4709
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 4709
+   },
+   "same": true
+  },
+  {
+   "file": "sql-server-samples/samples/features/in-memory-database/in-memory-oltp/t-sql-scripts/sql_in-memory_analytics_sample.sql",
+   "dialect": "tsql",
+   "templater": "raw",
+   "bytes": 19451,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "sqll": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0
+   },
+   "same": true
+  },
+  {
+   "file": "sql-server-samples/samples/features/in-memory-database/in-memory-oltp/t-sql-scripts/sql_in-memory_oltp_sample.sql",
+   "dialect": "tsql",
+   "templater": "raw",
+   "bytes": 19068,
+   "sqlfluff": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 17731
+   },
+   "sqll": {
+    "status": "unparsable",
+    "unparsable_count": 1,
+    "unparsable_bytes": 17731
+   },
+   "same": true
+  }
+ ],
+ "rows": [
+  {
+   "file": "dbt-cerebro/models/ESG/intermediate/int_esg_dynamic_power_consumption.sql",
+   "dialect": "clickhouse",
+   "templater": "jinja",
+   "bytes": 10298,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0,
+    "reason": null
+   },
+   "sqll": {
+    "status": "invalid",
+    "unparsable_count": null,
+    "unparsable_bytes": null,
+    "reason": "sqll does not support an item: Error: unsupported: templater jinja for an empty file or a file with a Jinja tag (\"{{\", \"{%\", or \"{#\"). sqll has no Jinja templater yet (S11). Use the raw templater (--templater raw).; warmup run: exit code 2, expected 0, 1; stderr: Error: unsupported: templater jinja for an empty file or a file with a Jinja tag (\"{{\", \"{%\", or \"{#\"). sqll has no Jinja templater yet (S11). Use the raw templater (--templater raw)."
+   },
+   "class": "templater",
+   "cause": "sqll fails closed: it does not have the Jinja templater of S11 (Jinja templater: the last stone; decide with data how sqll supports Jinja)"
+  },
+  {
+   "file": "dbt-cerebro/models/ESG/marts/fct_esg_carbon_footprint_uncertainty.sql",
+   "dialect": "clickhouse",
+   "templater": "jinja",
+   "bytes": 15270,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0,
+    "reason": null
+   },
+   "sqll": {
+    "status": "invalid",
+    "unparsable_count": null,
+    "unparsable_bytes": null,
+    "reason": "sqll does not support an item: Error: unsupported: templater jinja for an empty file or a file with a Jinja tag (\"{{\", \"{%\", or \"{#\"). sqll has no Jinja templater yet (S11). Use the raw templater (--templater raw).; warmup run: exit code 2, expected 0, 1; stderr: Error: unsupported: templater jinja for an empty file or a file with a Jinja tag (\"{{\", \"{%\", or \"{#\"). sqll has no Jinja templater yet (S11). Use the raw templater (--templater raw)."
+   },
+   "class": "templater",
+   "cause": "sqll fails closed: it does not have the Jinja templater of S11 (Jinja templater: the last stone; decide with data how sqll supports Jinja)"
+  },
+  {
+   "file": "dbt-cerebro/models/celo/gpay/marts/fct_celo_gpay_cardholder_engagement.sql",
+   "dialect": "clickhouse",
+   "templater": "jinja",
+   "bytes": 9692,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0,
+    "reason": null
+   },
+   "sqll": {
+    "status": "invalid",
+    "unparsable_count": null,
+    "unparsable_bytes": null,
+    "reason": "sqll does not support an item: Error: unsupported: templater jinja for an empty file or a file with a Jinja tag (\"{{\", \"{%\", or \"{#\"). sqll has no Jinja templater yet (S11). Use the raw templater (--templater raw).; warmup run: exit code 2, expected 0, 1; stderr: Error: unsupported: templater jinja for an empty file or a file with a Jinja tag (\"{{\", \"{%\", or \"{#\"). sqll has no Jinja templater yet (S11). Use the raw templater (--templater raw)."
+   },
+   "class": "templater",
+   "cause": "sqll fails closed: it does not have the Jinja templater of S11 (Jinja templater: the last stone; decide with data how sqll supports Jinja)"
+  },
+  {
+   "file": "dbt-cerebro/models/celo/gpay/marts/fct_celo_gpay_settlement_batches.sql",
+   "dialect": "clickhouse",
+   "templater": "jinja",
+   "bytes": 8792,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0,
+    "reason": null
+   },
+   "sqll": {
+    "status": "invalid",
+    "unparsable_count": null,
+    "unparsable_bytes": null,
+    "reason": "sqll does not support an item: Error: unsupported: templater jinja for an empty file or a file with a Jinja tag (\"{{\", \"{%\", or \"{#\"). sqll has no Jinja templater yet (S11). Use the raw templater (--templater raw).; warmup run: exit code 2, expected 0, 1; stderr: Error: unsupported: templater jinja for an empty file or a file with a Jinja tag (\"{{\", \"{%\", or \"{#\"). sqll has no Jinja templater yet (S11). Use the raw templater (--templater raw)."
+   },
+   "class": "templater",
+   "cause": "sqll fails closed: it does not have the Jinja templater of S11 (Jinja templater: the last stone; decide with data how sqll supports Jinja)"
+  },
+  {
+   "file": "dbt-cerebro/models/crawlers_data/staging/stg_crawlers_data__dune_labels.sql",
+   "dialect": "clickhouse",
+   "templater": "jinja",
+   "bytes": 9110,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0,
+    "reason": null
+   },
+   "sqll": {
+    "status": "invalid",
+    "unparsable_count": null,
+    "unparsable_bytes": null,
+    "reason": "sqll does not support an item: Error: unsupported: templater jinja for an empty file or a file with a Jinja tag (\"{{\", \"{%\", or \"{#\"). sqll has no Jinja templater yet (S11). Use the raw templater (--templater raw).; warmup run: exit code 2, expected 0, 1; stderr: Error: unsupported: templater jinja for an empty file or a file with a Jinja tag (\"{{\", \"{%\", or \"{#\"). sqll has no Jinja templater yet (S11). Use the raw templater (--templater raw)."
+   },
+   "class": "templater",
+   "cause": "sqll fails closed: it does not have the Jinja templater of S11 (Jinja templater: the last stone; decide with data how sqll supports Jinja)"
+  },
+  {
+   "file": "dbt-cerebro/models/execution/Circles/intermediate/int_execution_circles_v2_avatar_metadata.sql",
+   "dialect": "clickhouse",
+   "templater": "jinja",
+   "bytes": 9877,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0,
+    "reason": null
+   },
+   "sqll": {
+    "status": "invalid",
+    "unparsable_count": null,
+    "unparsable_bytes": null,
+    "reason": "sqll does not support an item: Error: unsupported: templater jinja for an empty file or a file with a Jinja tag (\"{{\", \"{%\", or \"{#\"). sqll has no Jinja templater yet (S11). Use the raw templater (--templater raw).; warmup run: exit code 2, expected 0, 1; stderr: Error: unsupported: templater jinja for an empty file or a file with a Jinja tag (\"{{\", \"{%\", or \"{#\"). sqll has no Jinja templater yet (S11). Use the raw templater (--templater raw)."
+   },
+   "class": "templater",
+   "cause": "sqll fails closed: it does not have the Jinja templater of S11 (Jinja templater: the last stone; decide with data how sqll supports Jinja)"
+  },
+  {
+   "file": "dbt-cerebro/models/execution/Circles/marts/api_execution_circles_v2_pool_explorer_liquidity_events.sql",
+   "dialect": "clickhouse",
+   "templater": "jinja",
+   "bytes": 10017,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0,
+    "reason": null
+   },
+   "sqll": {
+    "status": "invalid",
+    "unparsable_count": null,
+    "unparsable_bytes": null,
+    "reason": "sqll does not support an item: Error: unsupported: templater jinja for an empty file or a file with a Jinja tag (\"{{\", \"{%\", or \"{#\"). sqll has no Jinja templater yet (S11). Use the raw templater (--templater raw).; warmup run: exit code 2, expected 0, 1; stderr: Error: unsupported: templater jinja for an empty file or a file with a Jinja tag (\"{{\", \"{%\", or \"{#\"). sqll has no Jinja templater yet (S11). Use the raw templater (--templater raw)."
+   },
+   "class": "templater",
+   "cause": "sqll fails closed: it does not have the Jinja templater of S11 (Jinja templater: the last stone; decide with data how sqll supports Jinja)"
+  },
+  {
+   "file": "dbt-cerebro/models/execution/accounts/marts/fct_execution_account_profile_latest.sql",
+   "dialect": "clickhouse",
+   "templater": "jinja",
+   "bytes": 9493,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0,
+    "reason": null
+   },
+   "sqll": {
+    "status": "invalid",
+    "unparsable_count": null,
+    "unparsable_bytes": null,
+    "reason": "sqll does not support an item: Error: unsupported: templater jinja for an empty file or a file with a Jinja tag (\"{{\", \"{%\", or \"{#\"). sqll has no Jinja templater yet (S11). Use the raw templater (--templater raw).; warmup run: exit code 2, expected 0, 1; stderr: Error: unsupported: templater jinja for an empty file or a file with a Jinja tag (\"{{\", \"{%\", or \"{#\"). sqll has no Jinja templater yet (S11). Use the raw templater (--templater raw)."
+   },
+   "class": "templater",
+   "cause": "sqll fails closed: it does not have the Jinja templater of S11 (Jinja templater: the last stone; decide with data how sqll supports Jinja)"
+  },
+  {
+   "file": "dbt-cerebro/models/execution/gnosis_app_gt/intermediate/int_execution_gnosis_app_gt_user_activity.sql",
+   "dialect": "clickhouse",
+   "templater": "jinja",
+   "bytes": 8907,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0,
+    "reason": null
+   },
+   "sqll": {
+    "status": "invalid",
+    "unparsable_count": null,
+    "unparsable_bytes": null,
+    "reason": "sqll does not support an item: Error: unsupported: templater jinja for an empty file or a file with a Jinja tag (\"{{\", \"{%\", or \"{#\"). sqll has no Jinja templater yet (S11). Use the raw templater (--templater raw).; warmup run: exit code 2, expected 0, 1; stderr: Error: unsupported: templater jinja for an empty file or a file with a Jinja tag (\"{{\", \"{%\", or \"{#\"). sqll has no Jinja templater yet (S11). Use the raw templater (--templater raw)."
+   },
+   "class": "templater",
+   "cause": "sqll fails closed: it does not have the Jinja templater of S11 (Jinja templater: the last stone; decide with data how sqll supports Jinja)"
+  },
+  {
+   "file": "dbt-cerebro/models/execution/hopr/intermediate/int_hopr_channels_events.sql",
+   "dialect": "clickhouse",
+   "templater": "jinja",
+   "bytes": 13594,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0,
+    "reason": null
+   },
+   "sqll": {
+    "status": "invalid",
+    "unparsable_count": null,
+    "unparsable_bytes": null,
+    "reason": "sqll does not support an item: Error: unsupported: templater jinja for an empty file or a file with a Jinja tag (\"{{\", \"{%\", or \"{#\"). sqll has no Jinja templater yet (S11). Use the raw templater (--templater raw).; warmup run: exit code 2, expected 0, 1; stderr: Error: unsupported: templater jinja for an empty file or a file with a Jinja tag (\"{{\", \"{%\", or \"{#\"). sqll has no Jinja templater yet (S11). Use the raw templater (--templater raw)."
+   },
+   "class": "templater",
+   "cause": "sqll fails closed: it does not have the Jinja templater of S11 (Jinja templater: the last stone; decide with data how sqll supports Jinja)"
+  },
+  {
+   "file": "dbt-cerebro/models/execution/hopr/intermediate/int_hopr_nodes.sql",
+   "dialect": "clickhouse",
+   "templater": "jinja",
+   "bytes": 21746,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0,
+    "reason": null
+   },
+   "sqll": {
+    "status": "invalid",
+    "unparsable_count": null,
+    "unparsable_bytes": null,
+    "reason": "sqll does not support an item: Error: unsupported: templater jinja for an empty file or a file with a Jinja tag (\"{{\", \"{%\", or \"{#\"). sqll has no Jinja templater yet (S11). Use the raw templater (--templater raw).; warmup run: exit code 2, expected 0, 1; stderr: Error: unsupported: templater jinja for an empty file or a file with a Jinja tag (\"{{\", \"{%\", or \"{#\"). sqll has no Jinja templater yet (S11). Use the raw templater (--templater raw)."
+   },
+   "class": "templater",
+   "cause": "sqll fails closed: it does not have the Jinja templater of S11 (Jinja templater: the last stone; decide with data how sqll supports Jinja)"
+  },
+  {
+   "file": "dbt-cerebro/models/execution/lending/intermediate/int_execution_lending_aave_daily.sql",
+   "dialect": "clickhouse",
+   "templater": "jinja",
+   "bytes": 13524,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0,
+    "reason": null
+   },
+   "sqll": {
+    "status": "invalid",
+    "unparsable_count": null,
+    "unparsable_bytes": null,
+    "reason": "sqll does not support an item: Error: unsupported: templater jinja for an empty file or a file with a Jinja tag (\"{{\", \"{%\", or \"{#\"). sqll has no Jinja templater yet (S11). Use the raw templater (--templater raw).; warmup run: exit code 2, expected 0, 1; stderr: Error: unsupported: templater jinja for an empty file or a file with a Jinja tag (\"{{\", \"{%\", or \"{#\"). sqll has no Jinja templater yet (S11). Use the raw templater (--templater raw)."
+   },
+   "class": "templater",
+   "cause": "sqll fails closed: it does not have the Jinja templater of S11 (Jinja templater: the last stone; decide with data how sqll supports Jinja)"
+  },
+  {
+   "file": "dbt-cerebro/models/execution/ubo/intermediate/int_ubo_claims_curve_daily.sql",
+   "dialect": "clickhouse",
+   "templater": "jinja",
+   "bytes": 9311,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0,
+    "reason": null
+   },
+   "sqll": {
+    "status": "invalid",
+    "unparsable_count": null,
+    "unparsable_bytes": null,
+    "reason": "sqll does not support an item: Error: unsupported: templater jinja for an empty file or a file with a Jinja tag (\"{{\", \"{%\", or \"{#\"). sqll has no Jinja templater yet (S11). Use the raw templater (--templater raw).; warmup run: exit code 2, expected 0, 1; stderr: Error: unsupported: templater jinja for an empty file or a file with a Jinja tag (\"{{\", \"{%\", or \"{#\"). sqll has no Jinja templater yet (S11). Use the raw templater (--templater raw)."
+   },
+   "class": "templater",
+   "cause": "sqll fails closed: it does not have the Jinja templater of S11 (Jinja templater: the last stone; decide with data how sqll supports Jinja)"
+  },
+  {
+   "file": "dbt-cerebro/models/execution/yields/marts/fct_execution_yields_opportunities_latest.sql",
+   "dialect": "clickhouse",
+   "templater": "jinja",
+   "bytes": 9881,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0,
+    "reason": null
+   },
+   "sqll": {
+    "status": "invalid",
+    "unparsable_count": null,
+    "unparsable_bytes": null,
+    "reason": "sqll does not support an item: Error: unsupported: templater jinja for an empty file or a file with a Jinja tag (\"{{\", \"{%\", or \"{#\"). sqll has no Jinja templater yet (S11). Use the raw templater (--templater raw).; warmup run: exit code 2, expected 0, 1; stderr: Error: unsupported: templater jinja for an empty file or a file with a Jinja tag (\"{{\", \"{%\", or \"{#\"). sqll has no Jinja templater yet (S11). Use the raw templater (--templater raw)."
+   },
+   "class": "templater",
+   "cause": "sqll fails closed: it does not have the Jinja templater of S11 (Jinja templater: the last stone; decide with data how sqll supports Jinja)"
+  },
+  {
+   "file": "dbt-cerebro/models/execution/yields/marts/fct_execution_yields_overview_snapshot.sql",
+   "dialect": "clickhouse",
+   "templater": "jinja",
+   "bytes": 8301,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0,
+    "reason": null
+   },
+   "sqll": {
+    "status": "invalid",
+    "unparsable_count": null,
+    "unparsable_bytes": null,
+    "reason": "sqll does not support an item: Error: unsupported: templater jinja for an empty file or a file with a Jinja tag (\"{{\", \"{%\", or \"{#\"). sqll has no Jinja templater yet (S11). Use the raw templater (--templater raw).; warmup run: exit code 2, expected 0, 1; stderr: Error: unsupported: templater jinja for an empty file or a file with a Jinja tag (\"{{\", \"{%\", or \"{#\"). sqll has no Jinja templater yet (S11). Use the raw templater (--templater raw)."
+   },
+   "class": "templater",
+   "cause": "sqll fails closed: it does not have the Jinja templater of S11 (Jinja templater: the last stone; decide with data how sqll supports Jinja)"
+  },
+  {
+   "file": "dbt-cerebro/models/governance/intermediate/int_governance_gip.sql",
+   "dialect": "clickhouse",
+   "templater": "jinja",
+   "bytes": 9079,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0,
+    "reason": null
+   },
+   "sqll": {
+    "status": "invalid",
+    "unparsable_count": null,
+    "unparsable_bytes": null,
+    "reason": "sqll does not support an item: Error: unsupported: templater jinja for an empty file or a file with a Jinja tag (\"{{\", \"{%\", or \"{#\"). sqll has no Jinja templater yet (S11). Use the raw templater (--templater raw).; warmup run: exit code 2, expected 0, 1; stderr: Error: unsupported: templater jinja for an empty file or a file with a Jinja tag (\"{{\", \"{%\", or \"{#\"). sqll has no Jinja templater yet (S11). Use the raw templater (--templater raw)."
+   },
+   "class": "templater",
+   "cause": "sqll fails closed: it does not have the Jinja templater of S11 (Jinja templater: the last stone; decide with data how sqll supports Jinja)"
+  },
+  {
+   "file": "simple_ga4_dbt/models/simple_ga4__sessions.sql",
+   "dialect": "bigquery",
+   "templater": "jinja",
+   "bytes": 28649,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0,
+    "reason": null
+   },
+   "sqll": {
+    "status": "invalid",
+    "unparsable_count": null,
+    "unparsable_bytes": null,
+    "reason": "sqll does not support an item: Error: unsupported: templater jinja for an empty file or a file with a Jinja tag (\"{{\", \"{%\", or \"{#\"). sqll has no Jinja templater yet (S11). Use the raw templater (--templater raw).; warmup run: exit code 2, expected 0, 1; stderr: Error: unsupported: templater jinja for an empty file or a file with a Jinja tag (\"{{\", \"{%\", or \"{#\"). sqll has no Jinja templater yet (S11). Use the raw templater (--templater raw)."
+   },
+   "class": "templater",
+   "cause": "sqll fails closed: it does not have the Jinja templater of S11 (Jinja templater: the last stone; decide with data how sqll supports Jinja)"
+  },
+  {
+   "file": "simple_ga4_dbt/models/simple_ga4__users.sql",
+   "dialect": "bigquery",
+   "templater": "jinja",
+   "bytes": 10547,
+   "sqlfluff": {
+    "status": "ok",
+    "unparsable_count": 0,
+    "unparsable_bytes": 0,
+    "reason": null
+   },
+   "sqll": {
+    "status": "invalid",
+    "unparsable_count": null,
+    "unparsable_bytes": null,
+    "reason": "sqll does not support an item: Error: unsupported: templater jinja for an empty file or a file with a Jinja tag (\"{{\", \"{%\", or \"{#\"). sqll has no Jinja templater yet (S11). Use the raw templater (--templater raw).; warmup run: exit code 2, expected 0, 1; stderr: Error: unsupported: templater jinja for an empty file or a file with a Jinja tag (\"{{\", \"{%\", or \"{#\"). sqll has no Jinja templater yet (S11). Use the raw templater (--templater raw)."
+   },
+   "class": "templater",
+   "cause": "sqll fails closed: it does not have the Jinja templater of S11 (Jinja templater: the last stone; decide with data how sqll supports Jinja)"
+  }
+ ]
+}
