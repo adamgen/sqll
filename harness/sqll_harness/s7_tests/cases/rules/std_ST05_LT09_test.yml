@@ -1,0 +1,67 @@
+# S7 black-box cases (docs/decisions/s7-tests-design.md, "Case format").
+# A derived work of the sqlfluff tests: copyright (c) 2018-2026 Alan
+# Cruickshank, MIT License.
+# The 2 nodes call
+# Linter(config=FluffConfig.from_kwargs(...)).lint_string(sql, fix=True). The
+# trace oracle maps each Linter string call to "lint -f json -" (and "fix -"
+# if the call fixes) on stdin in a temporary folder, with the config of the
+# Linter as a .sqlfluff file (the config model of the design record). The
+# source checks only the fixed SQL. T7 (convert the rule tests, part 2; goal:
+# the other rule nodes, not Rust dispatch and not Jinja, are black-box cases)
+# of S7 (CLI and config parity: the sqlfluff CLI, config, and Python rule
+# tests as black-box cases; sqll passes 100% of the converted cases; cases
+# that need the Jinja templater move to the Jinja templater stone) converts
+# them.
+source:
+  project: sqlfluff
+  version: 4.4.0
+  commit: 0348222a3bcdb0226563f7349c5a39beb0641955
+  file: test/rules/std_ST05_LT09_test.py
+license: MIT
+nodes:
+  - node: "test/rules/std_ST05_LT09_test.py::test__rules__std_ST05_LT09_4137"
+    asserts:
+      L66: ["fix:stdout.equals"]
+    cases:
+      - name: lint
+        run: cli
+        argv: [lint, "-f", json, "-"]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\nrules = ST05,LT09\n"
+        stdin: "\nwith\n\ncte1 as (\n    select t1.x, t2.y\n    from tbl1 t1\n    join (select x, y from tbl2) t2\n        on t1.x = t2.x\n)\n\n, cte2 as (\n    select x, y from tbl2 t2\n)\n\nselect x, y from cte1\nunion all\nselect x, y from cte2\n;\n"
+        checks:
+          exit_code: 1
+      - name: fix
+        run: cli
+        argv: [fix, "-"]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\nrules = ST05,LT09\n"
+        stdin: "\nwith\n\ncte1 as (\n    select t1.x, t2.y\n    from tbl1 t1\n    join (select x, y from tbl2) t2\n        on t1.x = t2.x\n)\n\n, cte2 as (\n    select x, y from tbl2 t2\n)\n\nselect x, y from cte1\nunion all\nselect x, y from cte2\n;\n"
+        checks:
+          exit_code: 0
+          stdout: {equals: "\nwith t2 as (select\nx,\ny\nfrom tbl2),\ncte1 as (\n    select\nt1.x,\nt2.y\n    from tbl1 t1\n    join t2\n        on t1.x = t2.x\n),\ncte2 as (\n    select\nx,\ny\nfrom tbl2 t2\n)\nselect\nx,\ny\nfrom cte1\nunion all\nselect\nx,\ny\nfrom cte2\n;\n"}
+  - node: "test/rules/std_ST05_LT09_test.py::test__rules__std_ST05_LT09_5265"
+    asserts:
+      L129: ["fix:stdout.equals"]
+    cases:
+      - name: lint
+        run: cli
+        argv: [lint, "-f", json, "-"]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\nrules = ST05,LT09\n"
+        stdin: "\nwith\n\ncte1 as (\n    select t1.x, t2.y\n    from tbl1 t1\n    join (select x, y from tbl2) t2\n        on t1.x = t2.x\n)\n\n, cte2 as (\n    select x, y from tbl2 t2\n)\n\nselect x, y from cte1\nunion all\nselect x, y from cte2\n;\n"
+        checks:
+          exit_code: 1
+      - name: fix
+        run: cli
+        argv: [fix, "-"]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\nrules = ST05,LT09\n"
+        stdin: "\nwith\n\ncte1 as (\n    select t1.x, t2.y\n    from tbl1 t1\n    join (select x, y from tbl2) t2\n        on t1.x = t2.x\n)\n\n, cte2 as (\n    select x, y from tbl2 t2\n)\n\nselect x, y from cte1\nunion all\nselect x, y from cte2\n;\n"
+        checks:
+          exit_code: 0
+          stdout: {equals: "\nwith t2 as (select\nx,\ny\nfrom tbl2),\ncte1 as (\n    select\nt1.x,\nt2.y\n    from tbl1 t1\n    join t2\n        on t1.x = t2.x\n),\ncte2 as (\n    select\nx,\ny\nfrom tbl2 t2\n)\nselect\nx,\ny\nfrom cte1\nunion all\nselect\nx,\ny\nfrom cte2\n;\n"}

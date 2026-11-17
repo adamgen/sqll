@@ -1,0 +1,249 @@
+# S7 black-box cases (docs/decisions/s7-tests-design.md, "Case format").
+# A derived work of the sqlfluff tests: copyright (c) 2018-2026 Alan
+# Cruickshank, MIT License.
+# test_rules_std_LT04_and_ST06_interaction_trailing and
+# test_rule_st06_shorthand_casted_aggregates_are_complex make
+# Linter(config=FluffConfig.from_string(...)) and call lint_string. The trace
+# oracle maps each Linter string call to "lint -f json -" (and "fix -" if the
+# call fixes) on stdin in a temporary folder, with the config of the Linter as
+# a .sqlfluff file (the config model of the design record). The source reads
+# the violations of the fix run; the trace proves that they are the violations
+# of the lint run. The fixed SQL is fix_string()[0], the stdout of "fix -".
+# The violations check gives the codes of sqlfluff 4.4.0 in the order of the
+# lint output; the source checks only the set of the codes. Thus the check is
+# stronger than its assert. T7 (convert the rule tests, part 2; goal: the
+# other rule nodes, not Rust dispatch and not Jinja, are black-box cases) of
+# S7 (CLI and config parity: the sqlfluff CLI, config, and Python rule tests
+# as black-box cases; sqll passes 100% of the converted cases; cases that need
+# the Jinja templater move to the Jinja templater stone) converts these 6
+# nodes. test_rule_st06_simple_expression_helpers_reject_non_simple_segments
+# is excluded (python-internal, exclusions.yml).
+source:
+  project: sqlfluff
+  version: 4.4.0
+  commit: 0348222a3bcdb0226563f7349c5a39beb0641955
+  file: test/rules/std_LT04_ST06_test.py
+license: MIT
+nodes:
+  - node: "test/rules/std_LT04_ST06_test.py::test_rules_std_LT04_and_ST06_interaction_trailing[SELECT COALESCE(a, 0) AS b\\n\\n    , COALESCE(c, 0) AS d\\n    , e\\nFROM t-SELECT e,\\n\\n    COALESCE(a, 0) AS b,\\n    COALESCE(c, 0) AS d\\nFROM t]"
+    asserts:
+      L113: ["lint:violations[0]"]
+      L116: ["lint:violations[1]"]
+      L122: ["fix:stdout.equals"]
+    cases:
+      - name: lint
+        run: cli
+        argv: [lint, "-f", json, "-"]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\nrules = LT04, ST06\n"
+        stdin: "SELECT COALESCE(a, 0) AS b\n\n    , COALESCE(c, 0) AS d\n    , e\nFROM t"
+        checks:
+          exit_code: 1
+          violations:
+            - select: {code: PRS}
+              count: 0
+            - records:
+                - {code: ST06}
+                - {code: LT04}
+                - {code: LT04}
+      - name: fix
+        run: cli
+        argv: [fix, "-"]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\nrules = LT04, ST06\n"
+        stdin: "SELECT COALESCE(a, 0) AS b\n\n    , COALESCE(c, 0) AS d\n    , e\nFROM t"
+        checks:
+          exit_code: 0
+          stdout: {equals: "SELECT e,\n\n    COALESCE(a, 0) AS b,\n    COALESCE(c, 0) AS d\nFROM t"}
+  - node: "test/rules/std_LT04_ST06_test.py::test_rules_std_LT04_and_ST06_interaction_trailing[SELECT COALESCE(a, 0) AS b--comment\\n\\n    , COALESCE(c, 0) AS d\\n    , e\\nFROM t-SELECT COALESCE(a, 0) AS b,--comment\\n\\n    COALESCE(c, 0) AS d,\\n    e\\nFROM t]"
+    asserts:
+      L113: ["lint:violations[0]"]
+      L116: ["lint:violations[1]"]
+      L122: ["fix:stdout.equals"]
+    cases:
+      - name: lint
+        run: cli
+        argv: [lint, "-f", json, "-"]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\nrules = LT04, ST06\n"
+        stdin: "SELECT COALESCE(a, 0) AS b--comment\n\n    , COALESCE(c, 0) AS d\n    , e\nFROM t"
+        checks:
+          exit_code: 1
+          violations:
+            - select: {code: PRS}
+              count: 0
+            - records:
+                - {code: ST06}
+                - {code: LT04}
+                - {code: LT04}
+      - name: fix
+        run: cli
+        argv: [fix, "-"]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\nrules = LT04, ST06\n"
+        stdin: "SELECT COALESCE(a, 0) AS b--comment\n\n    , COALESCE(c, 0) AS d\n    , e\nFROM t"
+        checks:
+          exit_code: 1
+          stdout: {equals: "SELECT COALESCE(a, 0) AS b,--comment\n\n    COALESCE(c, 0) AS d,\n    e\nFROM t"}
+  - node: "test/rules/std_LT04_ST06_test.py::test_rules_std_LT04_and_ST06_interaction_trailing[with cte1 as (\\nselect \"a\"\\n      ,\"b\"\\n      ,coalesce(\"g1\"\\n               ,\"g2\"\\n               ,\"g3\"\\n       ) as \"g_combined\"\\n\\n      ,\"i\"\\n      ,\"j\"\\n  from test\\n),\\n\\ncte2 as (\\nselect \"col1\"\\n\\n      ,'start: ' + \"col2\" as \"new_col2\"\\n\\n      ,'start2: ' + \"col3\" as \"new_col3\"\\n\\n      ,\"col4\"\\n      ,\"col5\"\\nfrom cte1\\n)\\n\\nselect * from cte2-with cte1 as (\\nselect \"a\",\\n      \"b\",\\n      \"i\",\\n\\n      \"j\",\\n      coalesce(\"g1\",\\n               \"g2\",\\n               \"g3\"\\n       ) as \"g_combined\"\\n  from test\\n),\\n\\ncte2 as (\\nselect \"col1\",\\n\\n      \"col4\",\\n\\n      \"col5\",\\n\\n      'start: ' + \"col2\" as \"new_col2\",\\n      'start2: ' + \"col3\" as \"new_col3\"\\nfrom cte1\\n)\\n\\nselect * from cte2]"
+    asserts:
+      L113: ["lint:violations[0]"]
+      L116: ["lint:violations[1]"]
+      L122: ["fix:stdout.equals"]
+    cases:
+      - name: lint
+        run: cli
+        argv: [lint, "-f", json, "-"]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\nrules = LT04, ST06\n"
+        stdin: "with cte1 as (\nselect \"a\"\n      ,\"b\"\n      ,coalesce(\"g1\"\n               ,\"g2\"\n               ,\"g3\"\n       ) as \"g_combined\"\n\n      ,\"i\"\n      ,\"j\"\n  from test\n),\n\ncte2 as (\nselect \"col1\"\n\n      ,'start: ' + \"col2\" as \"new_col2\"\n\n      ,'start2: ' + \"col3\" as \"new_col3\"\n\n      ,\"col4\"\n      ,\"col5\"\nfrom cte1\n)\n\nselect * from cte2"
+        checks:
+          exit_code: 1
+          violations:
+            - select: {code: PRS}
+              count: 0
+            - records:
+                - {code: ST06}
+                - {code: LT04}
+                - {code: LT04}
+                - {code: LT04}
+                - {code: LT04}
+                - {code: LT04}
+                - {code: LT04}
+                - {code: ST06}
+                - {code: LT04}
+                - {code: LT04}
+                - {code: LT04}
+                - {code: LT04}
+      - name: fix
+        run: cli
+        argv: [fix, "-"]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\nrules = LT04, ST06\n"
+        stdin: "with cte1 as (\nselect \"a\"\n      ,\"b\"\n      ,coalesce(\"g1\"\n               ,\"g2\"\n               ,\"g3\"\n       ) as \"g_combined\"\n\n      ,\"i\"\n      ,\"j\"\n  from test\n),\n\ncte2 as (\nselect \"col1\"\n\n      ,'start: ' + \"col2\" as \"new_col2\"\n\n      ,'start2: ' + \"col3\" as \"new_col3\"\n\n      ,\"col4\"\n      ,\"col5\"\nfrom cte1\n)\n\nselect * from cte2"
+        checks:
+          exit_code: 0
+          stdout: {equals: "with cte1 as (\nselect \"a\",\n      \"b\",\n      \"i\",\n\n      \"j\",\n      coalesce(\"g1\",\n               \"g2\",\n               \"g3\"\n       ) as \"g_combined\"\n  from test\n),\n\ncte2 as (\nselect \"col1\",\n\n      \"col4\",\n\n      \"col5\",\n\n      'start: ' + \"col2\" as \"new_col2\",\n      'start2: ' + \"col3\" as \"new_col3\"\nfrom cte1\n)\n\nselect * from cte2"}
+  - node: "test/rules/std_LT04_ST06_test.py::test_rule_st06_shorthand_casted_aggregates_are_complex[postgres]"
+    asserts:
+      L139: ["lint_pass:violations[0]"]
+      L142: ["lint:violations[0]"]
+      L143: ["fix:stdout.equals"]
+    cases:
+      - name: lint_pass
+        run: cli
+        argv: [lint, "-f", json, "-"]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = postgres\nrules = ST06\n"
+        stdin: "SELECT a, MIN(c)::DATE AS d FROM foo"
+        checks:
+          exit_code: 0
+          violations:
+            - count: 0
+      - name: lint
+        run: cli
+        argv: [lint, "-f", json, "-"]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = postgres\nrules = ST06\n"
+        stdin: "SELECT MIN(c)::DATE AS d, a FROM foo"
+        checks:
+          exit_code: 1
+          violations:
+            - records:
+                - {code: ST06}
+      - name: fix
+        run: cli
+        argv: [fix, "-"]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = postgres\nrules = ST06\n"
+        stdin: "SELECT MIN(c)::DATE AS d, a FROM foo"
+        checks:
+          exit_code: 0
+          stdout: {equals: "SELECT a, MIN(c)::DATE AS d FROM foo"}
+  - node: "test/rules/std_LT04_ST06_test.py::test_rule_st06_shorthand_casted_aggregates_are_complex[redshift]"
+    asserts:
+      L139: ["lint_pass:violations[0]"]
+      L142: ["lint:violations[0]"]
+      L143: ["fix:stdout.equals"]
+    cases:
+      - name: lint_pass
+        run: cli
+        argv: [lint, "-f", json, "-"]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = redshift\nrules = ST06\n"
+        stdin: "SELECT a, MIN(c)::DATE AS d FROM foo"
+        checks:
+          exit_code: 0
+          violations:
+            - count: 0
+      - name: lint
+        run: cli
+        argv: [lint, "-f", json, "-"]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = redshift\nrules = ST06\n"
+        stdin: "SELECT MIN(c)::DATE AS d, a FROM foo"
+        checks:
+          exit_code: 1
+          violations:
+            - records:
+                - {code: ST06}
+      - name: fix
+        run: cli
+        argv: [fix, "-"]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = redshift\nrules = ST06\n"
+        stdin: "SELECT MIN(c)::DATE AS d, a FROM foo"
+        checks:
+          exit_code: 0
+          stdout: {equals: "SELECT a, MIN(c)::DATE AS d FROM foo"}
+  - node: "test/rules/std_LT04_ST06_test.py::test_rule_st06_shorthand_casted_aggregates_are_complex[snowflake]"
+    asserts:
+      L139: ["lint_pass:violations[0]"]
+      L142: ["lint:violations[0]"]
+      L143: ["fix:stdout.equals"]
+    cases:
+      - name: lint_pass
+        run: cli
+        argv: [lint, "-f", json, "-"]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = snowflake\nrules = ST06\n"
+        stdin: "SELECT a, MIN(c)::DATE AS d FROM foo"
+        checks:
+          exit_code: 0
+          violations:
+            - count: 0
+      - name: lint
+        run: cli
+        argv: [lint, "-f", json, "-"]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = snowflake\nrules = ST06\n"
+        stdin: "SELECT MIN(c)::DATE AS d, a FROM foo"
+        checks:
+          exit_code: 1
+          violations:
+            - records:
+                - {code: ST06}
+      - name: fix
+        run: cli
+        argv: [fix, "-"]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = snowflake\nrules = ST06\n"
+        stdin: "SELECT MIN(c)::DATE AS d, a FROM foo"
+        checks:
+          exit_code: 0
+          stdout: {equals: "SELECT a, MIN(c)::DATE AS d FROM foo"}

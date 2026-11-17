@@ -1,0 +1,39 @@
+# S7 black-box cases (docs/decisions/s7-tests-design.md, "Case format").
+# A derived work of the sqlfluff tests: copyright (c) 2018-2026 Alan
+# Cruickshank, MIT License.
+# test__rules__std_CV09_raised sets the blocked_words of CV09 on a config and
+# calls Linter(config=cfg).lint_string_wrapped(sql). The trace oracle maps
+# each Linter string call to "lint -f json -" (and "fix -" if the call fixes)
+# on stdin in a temporary folder, with the config of the Linter as a .sqlfluff
+# file (the config model of the design record). T7 (convert the rule tests,
+# part 2; goal: the other rule nodes, not Rust dispatch and not Jinja, are
+# black-box cases) of S7 (CLI and config parity: the sqlfluff CLI, config, and
+# Python rule tests as black-box cases; sqll passes 100% of the converted
+# cases; cases that need the Jinja templater move to the Jinja templater
+# stone) converts it.
+source:
+  project: sqlfluff
+  version: 4.4.0
+  commit: 0348222a3bcdb0226563f7349c5a39beb0641955
+  file: test/rules/std_CV09_test.py
+license: MIT
+nodes:
+  - node: "test/rules/std_CV09_test.py::test__rules__std_CV09_raised"
+    asserts:
+      L18: ["raised:violations[0]"]
+      L19: ["raised:violations[0].records[0]"]
+      L20: ["raised:violations[0].records[1]"]
+    cases:
+      - name: raised
+        run: cli
+        argv: [lint, "-f", json, "-"]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\n\n[sqlfluff:rules:convention.blocked_words]\nblocked_words = myoldfunction,deprecated_table\n"
+        stdin: "SELECT MYOLDFUNCTION(col1) FROM deprecated_table;\n"
+        checks:
+          exit_code: 1
+          violations:
+            - records:
+                - {description: "Use of blocked word 'MYOLDFUNCTION'."}
+                - {description: "Use of blocked word 'deprecated_table'."}
