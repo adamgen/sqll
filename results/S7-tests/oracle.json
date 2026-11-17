@@ -251,6 +251,136 @@
      "errors": []
     },
     {
+     "id": "test/rules/std_AL09_CP02_RF06_combo_test.py::test__rules__std_AL09_CP02_RF06[rules1-ansi-\\nselect\\n    a as a,\\n    b as b,\\n    \"C\" as c,\\n    \"d\" as d,\\n    \"E\" as e,\\n    \"f\" as f,\\n    g as \"G\",\\n    h as h,\\n    i as i\\nfrom foo\\n-post_fix_errors1]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "fix",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "lint_fixed",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 2,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_AL09_CP02_RF06_combo_test.py::test__rules__std_AL09_CP02_RF06[rules2-ansi-\\nselect\\n    a as A,\\n    B as b,\\n    C as C,\\n    \"d\" as d,\\n    E as e,\\n    \"f\" as F,\\n    g as G,\\n    h as h,\\n    I as I\\nfrom foo\\n-post_fix_errors2]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "fix",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "lint_fixed",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 2,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_AL09_CP02_RF06_combo_test.py::test__rules__std_AL09_CP02_RF06[rules4-ansi-\\nselect\\n    a as A,\\n    B as b,\\n    C,\\n    \"d\" as d,\\n    E as e,\\n    \"f\" as F,\\n    g as G,\\n    h,\\n    I\\nfrom foo\\n-post_fix_errors4]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "fix",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "lint_fixed",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 2,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_AL09_CP02_RF06_combo_test.py::test__rules__std_AL09_CP02_RF06[rules5-ansi-\\nselect\\n    a as a,\\n    b as b,\\n    c as c,\\n    \"d\" as d,\\n    e as e,\\n    \"f\" as f,\\n    g as g,\\n    h as h,\\n    i as i\\nfrom foo\\n-post_fix_errors5]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "fix",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "lint_fixed",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 2,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_AL09_CP02_RF06_combo_test.py::test__rules__std_AL09_CP02_RF06[rules9-clickhouse-\\nselect\\n    a as A,\\n    B as b,\\n    C,\\n    d,\\n    E as e,\\n    f as F,\\n    g as G,\\n    h,\\n    I\\nfrom foo\\n-post_fix_errors9]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "fix",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "lint_fixed",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 2,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
      "id": "test/rules/std_AM06_test.py::test__rules__std_AM06_raised",
      "pytest": "passed",
      "trace": "pass",
@@ -379,6 +509,22 @@
      "errors": []
     },
     {
+     "id": "test/rules/std_CV09_test.py::test__rules__std_CV09_raised",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "raised",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 3,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
      "id": "test/rules/std_LT01_LT02_LT09_combo_test.py::test__rules__std_LT02_LT09_LT01",
      "pytest": "passed",
      "trace": "pass",
@@ -402,6 +548,48 @@
      "cases": [
       {
        "name": "single_raise",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 2,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_LT01_ST02_test.py::test_rules_std_LT01_and_ST02_interaction[\\nselect\\n    case\\n        when ended_at is null or date(ended_at) > current_date()\\n        then true else false\\n    end as is_active\\nfrom foo\\n-\\nselect\\n    coalesce(ended_at is null or date(ended_at) > current_date(), false) as is_active\\nfrom foo\\n]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "fix",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 2,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_LT02_LT04_test.py::test_rules_std_LT02_LT04_interaction_indentation_leading[SELECT\\n    acct_id,\\n    date_x,\\n    't' AS test,\\n\\n    CASE\\n        WHEN condition_1 = '1' THEN ''\\n        ELSE condition_1\\n    END AS case_1,\\n\\n    CASE\\n        WHEN condition_2 = '2' THEN ''\\n        ELSE condition_2\\n    END AS case_2,\\n    dollar_amt,\\nFROM\\n    table_x-SELECT\\n    acct_id\\n    , date_x\\n    , 't' AS test\\n\\n    , CASE\\n        WHEN condition_1 = '1' THEN ''\\n        ELSE condition_1\\n    END AS case_1\\n\\n    , CASE\\n        WHEN condition_2 = '2' THEN ''\\n        ELSE condition_2\\n    END AS case_2\\n    , dollar_amt,\\nFROM\\n    table_x]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "fix",
        "status": "pass",
        "reason": ""
       }
@@ -443,6 +631,37 @@
      "errors": []
     },
     {
+     "id": "test/rules/std_LT02_oscillation_test.py::test_rules_std_LT02_loop_comma_no_oscillation",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint_under",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "fix_under",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "lint_stable",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "fix_stable",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 4,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
      "id": "test/rules/std_LT03_test.py::test__rules__std_LT03_default",
      "pytest": "passed",
      "trace": "pass",
@@ -450,6 +669,22 @@
      "cases": [
       {
        "name": "default",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 2,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_LT03_test.py::test__rules__std_LT03_leading",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "leading",
        "status": "pass",
        "reason": ""
       }
@@ -471,6 +706,147 @@
       }
      ],
      "asserts": 2,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_LT04_ST06_test.py::test_rules_std_LT04_and_ST06_interaction_trailing[SELECT COALESCE(a, 0) AS b\\n\\n    , COALESCE(c, 0) AS d\\n    , e\\nFROM t-SELECT e,\\n\\n    COALESCE(a, 0) AS b,\\n    COALESCE(c, 0) AS d\\nFROM t]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "fix",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 3,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_LT04_ST06_test.py::test_rules_std_LT04_and_ST06_interaction_trailing[SELECT COALESCE(a, 0) AS b--comment\\n\\n    , COALESCE(c, 0) AS d\\n    , e\\nFROM t-SELECT COALESCE(a, 0) AS b,--comment\\n\\n    COALESCE(c, 0) AS d,\\n    e\\nFROM t]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "fix",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 3,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_LT04_ST06_test.py::test_rules_std_LT04_and_ST06_interaction_trailing[with cte1 as (\\nselect \"a\"\\n      ,\"b\"\\n      ,coalesce(\"g1\"\\n               ,\"g2\"\\n               ,\"g3\"\\n       ) as \"g_combined\"\\n\\n      ,\"i\"\\n      ,\"j\"\\n  from test\\n),\\n\\ncte2 as (\\nselect \"col1\"\\n\\n      ,'start: ' + \"col2\" as \"new_col2\"\\n\\n      ,'start2: ' + \"col3\" as \"new_col3\"\\n\\n      ,\"col4\"\\n      ,\"col5\"\\nfrom cte1\\n)\\n\\nselect * from cte2-with cte1 as (\\nselect \"a\",\\n      \"b\",\\n      \"i\",\\n\\n      \"j\",\\n      coalesce(\"g1\",\\n               \"g2\",\\n               \"g3\"\\n       ) as \"g_combined\"\\n  from test\\n),\\n\\ncte2 as (\\nselect \"col1\",\\n\\n      \"col4\",\\n\\n      \"col5\",\\n\\n      'start: ' + \"col2\" as \"new_col2\",\\n      'start2: ' + \"col3\" as \"new_col3\"\\nfrom cte1\\n)\\n\\nselect * from cte2]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "fix",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 3,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_LT04_ST06_test.py::test_rule_st06_shorthand_casted_aggregates_are_complex[postgres]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint_pass",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "fix",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 3,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_LT04_ST06_test.py::test_rule_st06_shorthand_casted_aggregates_are_complex[redshift]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint_pass",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "fix",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 3,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_LT04_ST06_test.py::test_rule_st06_shorthand_casted_aggregates_are_complex[snowflake]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint_pass",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "fix",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 3,
      "not_reproduced": 0,
      "errors": []
     },
@@ -539,6 +915,43 @@
      "errors": []
     },
     {
+     "id": "test/rules/std_LT12_CV06_test.py::test__rules__std_LT12_and_CV06_interaction",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "fix",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 2,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_RF01_LT09_test.py::test__rules__std_RF01_LT09_copy",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 3,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
      "id": "test/rules/std_RF02_test.py::test__rules__std_RF02_wildcard_single_count",
      "pytest": "passed",
      "trace": "pass",
@@ -562,6 +975,69 @@
      "cases": [
       {
        "name": "multiple_unused_ctes",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_ST05_LT08_test.py::test__rules__std_ST05_LT08_5265",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "fix",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_ST05_LT09_test.py::test__rules__std_ST05_LT09_4137",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "fix",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_ST05_LT09_test.py::test__rules__std_ST05_LT09_5265",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "fix",
        "status": "pass",
        "reason": ""
       }
@@ -697,6 +1173,32 @@
      "errors": []
     },
     {
+     "id": "test/rules/std_roundtrip_test.py::test__cli__command__fix[LT01-test/fixtures/linter/indentation_errors.sql0]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint_before",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "fix",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "lint_after",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 3,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
      "id": "test/rules/std_roundtrip_test.py::test__cli__command__fix[LT01-test/fixtures/linter/whitespace_errors.sql]",
      "pytest": "passed",
      "trace": "pass",
@@ -723,7 +1225,479 @@
      "errors": []
     },
     {
+     "id": "test/rules/std_roundtrip_test.py::test__cli__command__fix[LT01-test/fixtures/linter/indentation_errors.sql1]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint_before",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "fix",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "lint_after",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 3,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_roundtrip_test.py::test__cli__command__fix[CP01-test/fixtures/linter/whitespace_errors.sql]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint_before",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "fix",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "lint_after",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 3,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_roundtrip_test.py::test__cli__command__fix[AL01-test/fixtures/dialects/ansi/select_simple_i.sql]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint_before",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "fix",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "lint_after",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 3,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_roundtrip_test.py::test__cli__command__fix[AL02-test/fixtures/dialects/ansi/select_simple_i.sql]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint_before",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "fix",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "lint_after",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 3,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_test.py::test__rules__std_file[LT01-indentation_errors.sql-violations0]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_test.py::test__rules__std_file[LT02-indentation_errors.sql-violations1]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_test.py::test__rules__std_file[LT01-whitespace_errors.sql-violations2]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_test.py::test__rules__std_file[LT01-operator_errors.sql-violations3]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_test.py::test__rules__std_file[LT03-operator_errors.sql-violations4]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_test.py::test__rules__std_file[LT01-operator_errors_negative.sql-violations5]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_test.py::test__rules__std_file[LT02-indentation_error_hard.sql-violations6]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_test.py::test__rules__std_file[LT02-indentation_error_contained.sql-violations7]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_test.py::test__rules__std_file[LT05-block_comment_errors.sql-violations8]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_test.py::test__rules__std_file[LT05-block_comment_errors_2.sql-violations9]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_test.py::test__rules__std_file[RF02-column_references.sql-violations10]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_test.py::test__rules__std_file[RF02-column_references_bare_function.sql-violations11]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_test.py::test__rules__std_file[RF01-column_references.sql-violations12]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_test.py::test__rules__std_file[AL05-column_references.sql-violations13]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_test.py::test__rules__std_file[AM01-select_distinct_group_by.sql-violations14]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_test.py::test__rules__std_file[LT01-operator_errors_ignore.sql-violations15]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_test.py::test__rules__std_file[JJ01-heavy_templating.sql-violations16]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_test.py::test_improper_configs_are_rejected[rule_config_dict0]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "rejected",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_test.py::test_improper_configs_are_rejected[rule_config_dict1]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "rejected",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_test.py::test_improper_configs_are_rejected[rule_config_dict2]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "rejected",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
      "id": "test/rules/std_test.py::test_improper_configs_are_rejected[rule_config_dict3]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "rejected",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_test.py::test_improper_configs_are_rejected[rule_config_dict4]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "rejected",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_test.py::test_improper_configs_are_rejected[rule_config_dict5]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "rejected",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_test.py::test_improper_configs_are_rejected[rule_config_dict6]",
      "pytest": "passed",
      "trace": "pass",
      "report": "pass",
@@ -751,15 +1725,27 @@
      "pytest": "passed",
      "calls": {},
      "errors": []
+    },
+    {
+     "id": "test/rules/std_LT04_ST06_test.py::test_rule_st06_simple_expression_helpers_reject_non_simple_segments",
+     "pytest": "passed",
+     "calls": {},
+     "errors": []
+    },
+    {
+     "id": "test/rules/yaml_test_cases_test.py::test__rule_test_global_config",
+     "pytest": "passed",
+     "calls": {},
+     "errors": []
     }
    ],
    "counts": {
-    "nodes": 42,
-    "agree": 42,
-    "pass": 42,
+    "nodes": 91,
+    "agree": 91,
+    "pass": 91,
     "fail": 0,
-    "python_internal": 2,
-    "asserts": 97,
+    "python_internal": 4,
+    "asserts": 184,
     "not_reproduced": 0
    },
    "errors": []
@@ -1009,6 +1995,136 @@
      "errors": []
     },
     {
+     "id": "test/rules/std_AL09_CP02_RF06_combo_test.py::test__rules__std_AL09_CP02_RF06[rules1-ansi-\\nselect\\n    a as a,\\n    b as b,\\n    \"C\" as c,\\n    \"d\" as d,\\n    \"E\" as e,\\n    \"f\" as f,\\n    g as \"G\",\\n    h as h,\\n    i as i\\nfrom foo\\n-post_fix_errors1]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "fix",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "lint_fixed",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 2,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_AL09_CP02_RF06_combo_test.py::test__rules__std_AL09_CP02_RF06[rules2-ansi-\\nselect\\n    a as A,\\n    B as b,\\n    C as C,\\n    \"d\" as d,\\n    E as e,\\n    \"f\" as F,\\n    g as G,\\n    h as h,\\n    I as I\\nfrom foo\\n-post_fix_errors2]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "fix",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "lint_fixed",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 2,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_AL09_CP02_RF06_combo_test.py::test__rules__std_AL09_CP02_RF06[rules4-ansi-\\nselect\\n    a as A,\\n    B as b,\\n    C,\\n    \"d\" as d,\\n    E as e,\\n    \"f\" as F,\\n    g as G,\\n    h,\\n    I\\nfrom foo\\n-post_fix_errors4]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "fix",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "lint_fixed",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 2,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_AL09_CP02_RF06_combo_test.py::test__rules__std_AL09_CP02_RF06[rules5-ansi-\\nselect\\n    a as a,\\n    b as b,\\n    c as c,\\n    \"d\" as d,\\n    e as e,\\n    \"f\" as f,\\n    g as g,\\n    h as h,\\n    i as i\\nfrom foo\\n-post_fix_errors5]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "fix",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "lint_fixed",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 2,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_AL09_CP02_RF06_combo_test.py::test__rules__std_AL09_CP02_RF06[rules9-clickhouse-\\nselect\\n    a as A,\\n    B as b,\\n    C,\\n    d,\\n    E as e,\\n    f as F,\\n    g as G,\\n    h,\\n    I\\nfrom foo\\n-post_fix_errors9]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "fix",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "lint_fixed",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 2,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
      "id": "test/rules/std_AM06_test.py::test__rules__std_AM06_raised",
      "pytest": "passed",
      "trace": "pass",
@@ -1137,6 +2253,22 @@
      "errors": []
     },
     {
+     "id": "test/rules/std_CV09_test.py::test__rules__std_CV09_raised",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "raised",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 3,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
      "id": "test/rules/std_LT01_LT02_LT09_combo_test.py::test__rules__std_LT02_LT09_LT01",
      "pytest": "passed",
      "trace": "pass",
@@ -1160,6 +2292,48 @@
      "cases": [
       {
        "name": "single_raise",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 2,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_LT01_ST02_test.py::test_rules_std_LT01_and_ST02_interaction[\\nselect\\n    case\\n        when ended_at is null or date(ended_at) > current_date()\\n        then true else false\\n    end as is_active\\nfrom foo\\n-\\nselect\\n    coalesce(ended_at is null or date(ended_at) > current_date(), false) as is_active\\nfrom foo\\n]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "fix",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 2,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_LT02_LT04_test.py::test_rules_std_LT02_LT04_interaction_indentation_leading[SELECT\\n    acct_id,\\n    date_x,\\n    't' AS test,\\n\\n    CASE\\n        WHEN condition_1 = '1' THEN ''\\n        ELSE condition_1\\n    END AS case_1,\\n\\n    CASE\\n        WHEN condition_2 = '2' THEN ''\\n        ELSE condition_2\\n    END AS case_2,\\n    dollar_amt,\\nFROM\\n    table_x-SELECT\\n    acct_id\\n    , date_x\\n    , 't' AS test\\n\\n    , CASE\\n        WHEN condition_1 = '1' THEN ''\\n        ELSE condition_1\\n    END AS case_1\\n\\n    , CASE\\n        WHEN condition_2 = '2' THEN ''\\n        ELSE condition_2\\n    END AS case_2\\n    , dollar_amt,\\nFROM\\n    table_x]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "fix",
        "status": "pass",
        "reason": ""
       }
@@ -1201,6 +2375,37 @@
      "errors": []
     },
     {
+     "id": "test/rules/std_LT02_oscillation_test.py::test_rules_std_LT02_loop_comma_no_oscillation",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint_under",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "fix_under",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "lint_stable",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "fix_stable",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 4,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
      "id": "test/rules/std_LT03_test.py::test__rules__std_LT03_default",
      "pytest": "passed",
      "trace": "pass",
@@ -1208,6 +2413,22 @@
      "cases": [
       {
        "name": "default",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 2,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_LT03_test.py::test__rules__std_LT03_leading",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "leading",
        "status": "pass",
        "reason": ""
       }
@@ -1229,6 +2450,147 @@
       }
      ],
      "asserts": 2,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_LT04_ST06_test.py::test_rules_std_LT04_and_ST06_interaction_trailing[SELECT COALESCE(a, 0) AS b\\n\\n    , COALESCE(c, 0) AS d\\n    , e\\nFROM t-SELECT e,\\n\\n    COALESCE(a, 0) AS b,\\n    COALESCE(c, 0) AS d\\nFROM t]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "fix",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 3,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_LT04_ST06_test.py::test_rules_std_LT04_and_ST06_interaction_trailing[SELECT COALESCE(a, 0) AS b--comment\\n\\n    , COALESCE(c, 0) AS d\\n    , e\\nFROM t-SELECT COALESCE(a, 0) AS b,--comment\\n\\n    COALESCE(c, 0) AS d,\\n    e\\nFROM t]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "fix",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 3,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_LT04_ST06_test.py::test_rules_std_LT04_and_ST06_interaction_trailing[with cte1 as (\\nselect \"a\"\\n      ,\"b\"\\n      ,coalesce(\"g1\"\\n               ,\"g2\"\\n               ,\"g3\"\\n       ) as \"g_combined\"\\n\\n      ,\"i\"\\n      ,\"j\"\\n  from test\\n),\\n\\ncte2 as (\\nselect \"col1\"\\n\\n      ,'start: ' + \"col2\" as \"new_col2\"\\n\\n      ,'start2: ' + \"col3\" as \"new_col3\"\\n\\n      ,\"col4\"\\n      ,\"col5\"\\nfrom cte1\\n)\\n\\nselect * from cte2-with cte1 as (\\nselect \"a\",\\n      \"b\",\\n      \"i\",\\n\\n      \"j\",\\n      coalesce(\"g1\",\\n               \"g2\",\\n               \"g3\"\\n       ) as \"g_combined\"\\n  from test\\n),\\n\\ncte2 as (\\nselect \"col1\",\\n\\n      \"col4\",\\n\\n      \"col5\",\\n\\n      'start: ' + \"col2\" as \"new_col2\",\\n      'start2: ' + \"col3\" as \"new_col3\"\\nfrom cte1\\n)\\n\\nselect * from cte2]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "fix",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 3,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_LT04_ST06_test.py::test_rule_st06_shorthand_casted_aggregates_are_complex[postgres]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint_pass",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "fix",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 3,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_LT04_ST06_test.py::test_rule_st06_shorthand_casted_aggregates_are_complex[redshift]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint_pass",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "fix",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 3,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_LT04_ST06_test.py::test_rule_st06_shorthand_casted_aggregates_are_complex[snowflake]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint_pass",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "fix",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 3,
      "not_reproduced": 0,
      "errors": []
     },
@@ -1297,6 +2659,43 @@
      "errors": []
     },
     {
+     "id": "test/rules/std_LT12_CV06_test.py::test__rules__std_LT12_and_CV06_interaction",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "fix",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 2,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_RF01_LT09_test.py::test__rules__std_RF01_LT09_copy",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 3,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
      "id": "test/rules/std_RF02_test.py::test__rules__std_RF02_wildcard_single_count",
      "pytest": "passed",
      "trace": "pass",
@@ -1320,6 +2719,69 @@
      "cases": [
       {
        "name": "multiple_unused_ctes",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_ST05_LT08_test.py::test__rules__std_ST05_LT08_5265",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "fix",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_ST05_LT09_test.py::test__rules__std_ST05_LT09_4137",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "fix",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_ST05_LT09_test.py::test__rules__std_ST05_LT09_5265",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "fix",
        "status": "pass",
        "reason": ""
       }
@@ -1455,6 +2917,32 @@
      "errors": []
     },
     {
+     "id": "test/rules/std_roundtrip_test.py::test__cli__command__fix[LT01-test/fixtures/linter/indentation_errors.sql0]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint_before",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "fix",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "lint_after",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 3,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
      "id": "test/rules/std_roundtrip_test.py::test__cli__command__fix[LT01-test/fixtures/linter/whitespace_errors.sql]",
      "pytest": "passed",
      "trace": "pass",
@@ -1481,7 +2969,479 @@
      "errors": []
     },
     {
+     "id": "test/rules/std_roundtrip_test.py::test__cli__command__fix[LT01-test/fixtures/linter/indentation_errors.sql1]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint_before",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "fix",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "lint_after",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 3,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_roundtrip_test.py::test__cli__command__fix[CP01-test/fixtures/linter/whitespace_errors.sql]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint_before",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "fix",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "lint_after",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 3,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_roundtrip_test.py::test__cli__command__fix[AL01-test/fixtures/dialects/ansi/select_simple_i.sql]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint_before",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "fix",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "lint_after",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 3,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_roundtrip_test.py::test__cli__command__fix[AL02-test/fixtures/dialects/ansi/select_simple_i.sql]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint_before",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "fix",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "lint_after",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 3,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_test.py::test__rules__std_file[LT01-indentation_errors.sql-violations0]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_test.py::test__rules__std_file[LT02-indentation_errors.sql-violations1]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_test.py::test__rules__std_file[LT01-whitespace_errors.sql-violations2]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_test.py::test__rules__std_file[LT01-operator_errors.sql-violations3]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_test.py::test__rules__std_file[LT03-operator_errors.sql-violations4]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_test.py::test__rules__std_file[LT01-operator_errors_negative.sql-violations5]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_test.py::test__rules__std_file[LT02-indentation_error_hard.sql-violations6]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_test.py::test__rules__std_file[LT02-indentation_error_contained.sql-violations7]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_test.py::test__rules__std_file[LT05-block_comment_errors.sql-violations8]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_test.py::test__rules__std_file[LT05-block_comment_errors_2.sql-violations9]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_test.py::test__rules__std_file[RF02-column_references.sql-violations10]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_test.py::test__rules__std_file[RF02-column_references_bare_function.sql-violations11]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_test.py::test__rules__std_file[RF01-column_references.sql-violations12]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_test.py::test__rules__std_file[AL05-column_references.sql-violations13]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_test.py::test__rules__std_file[AM01-select_distinct_group_by.sql-violations14]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_test.py::test__rules__std_file[LT01-operator_errors_ignore.sql-violations15]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_test.py::test__rules__std_file[JJ01-heavy_templating.sql-violations16]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "lint",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_test.py::test_improper_configs_are_rejected[rule_config_dict0]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "rejected",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_test.py::test_improper_configs_are_rejected[rule_config_dict1]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "rejected",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_test.py::test_improper_configs_are_rejected[rule_config_dict2]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "rejected",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
      "id": "test/rules/std_test.py::test_improper_configs_are_rejected[rule_config_dict3]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "rejected",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_test.py::test_improper_configs_are_rejected[rule_config_dict4]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "rejected",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_test.py::test_improper_configs_are_rejected[rule_config_dict5]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "rejected",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_test.py::test_improper_configs_are_rejected[rule_config_dict6]",
      "pytest": "passed",
      "trace": "pass",
      "report": "pass",
@@ -1509,15 +3469,27 @@
      "pytest": "passed",
      "calls": {},
      "errors": []
+    },
+    {
+     "id": "test/rules/std_LT04_ST06_test.py::test_rule_st06_simple_expression_helpers_reject_non_simple_segments",
+     "pytest": "passed",
+     "calls": {},
+     "errors": []
+    },
+    {
+     "id": "test/rules/yaml_test_cases_test.py::test__rule_test_global_config",
+     "pytest": "passed",
+     "calls": {},
+     "errors": []
     }
    ],
    "counts": {
-    "nodes": 42,
-    "agree": 42,
-    "pass": 41,
+    "nodes": 91,
+    "agree": 91,
+    "pass": 90,
     "fail": 1,
-    "python_internal": 2,
-    "asserts": 97,
+    "python_internal": 4,
+    "asserts": 184,
     "not_reproduced": 0
    },
    "errors": []
