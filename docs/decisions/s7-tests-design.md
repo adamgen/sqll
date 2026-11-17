@@ -703,9 +703,10 @@ defaults (`FluffConfig.from_root` in the folder, with an empty home).
    colorama (`colorama.init`). The trace saves this state before the run
    and restores it after (a node of the T17 test tree checks it). The CLI
    runs of the templater map (limit 10, scope `s6`) save and restore the
-   same state (the teardown of each node of the S6 test tree,
-   `harness/tests/fixtures/s6/tree/`, checks it). These calls read no file
-   of the submodule, and the test does not see their results.
+   same state (the teardown of each node of the test tree of the
+   templater map, `harness/tests/fixtures/s6/tree/`, checks it). These
+   calls read no file of the submodule, and the test does not see their
+   results.
 6. In process. The trace runs the CLI in the pytest process
    (`CliRunner`), not as a binary. Check 3 compares the binary run of the
    runner with it only by the node status.
