@@ -123,8 +123,9 @@ of its folder (default `jinja`).
 | templater of S6 | 13 | 0 | `core.templater` is `placeholder` (12) or `python` (1) | This stone, after S6 (templater parity: sqll passes 100% of the placeholder and Python format-string templater fixtures that do not need a Python runtime) has the templaters |
 | gap | 2307 | 40 | Each other case | This stone |
 
-- The Jinja class: each of the 169 rule cases has a tag; 29 of them also
-  have a `templater` section. 20 autofix cases have a tag in
+- The Jinja class: each of the 169 rule cases has a tag; 16 of them also
+  have a `templater` section (11 with no `core.templater`, 5 with an
+  explicit `core.templater: jinja`). 20 autofix cases have a tag in
   `before.sql`. 1 autofix case has only a setting:
   `ansi/macro_file_jinja_include_undefined_variable`
   (`load_macros_from_path`). The rule files with Jinja cases: AL01 1, AL02
