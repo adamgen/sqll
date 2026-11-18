@@ -252,7 +252,13 @@ run the S7 suites.
   `sqlfluff-rs` gets the layer of its adapter
   (`harness/sqlfluff-rs.md`) as `--config <file>` after the command, for
   `lint`, `fix`, `format`, `parse`, and `render`. A case that gives
-  `--config`, or an input with a layer key, is an `error`. sqruff runs the
+  `--config`, or an input with a layer key, is an `error`. One exception
+  (T8: Rust dispatch tests cp01, cp03, cp04, classification and
+  conversion): if the `.sqlfluff` file of a `cwd: tmp` case sets each key of
+  the layer in its `[sqlfluff]` section, the run gets no layer. The trace
+  oracle puts the layer under the settings of each test config
+  (`force_rust`), so the layer then changes nothing. Each other input with a
+  layer key is still an `error` (`runner.case_sets_the_layer`). sqruff runs the
   `sqruff` argv; with no translation the case fails with `unsupported:
   sqlfluff CLI command '<command>'`.
 - `api`: `lint()` or `fix()` of the adapter of the tool, which runs the
@@ -356,13 +362,18 @@ A node that the harness cannot run through a binary is excluded, with one
 reason class:
 
 - `python-internal`: the node calls no CLI command and no simple-API
-  function. The trace oracle checks this class (no traced call).
+  function. The trace oracle checks this class (no traced call). A mock or
+  spy node is `python-internal` (decision 3): it can have a Linter or test
+  helper call only if it patches with `unittest.mock` (T8: Rust dispatch
+  tests cp01, cp03, cp04, classification and conversion).
 - `needs-python-runtime`: G1.3, for example a Python plugin.
 - `engine-comparison`: the node compares 2 engines and has no expected
   value. This includes the 87 `fix_parity` nodes, as the S1 owner decision
   on `test/fixtures/parity/` does (status/S1.md). Each other Rust dispatch
   node with an expected value that the CLI shows is converted (decision
-  3).
+  3). The oracle does not check this class;
+  `harness/tests/test_s7_tests_rust_dispatch.py` reads the source of each
+  Rust dispatch test and checks the class of each node (T8).
 - `environment`: the node needs a condition that the harness cannot make.
 
 Parity counts the converted cases and nodes. The report gives the excluded
@@ -389,7 +400,10 @@ with the original sqlfluff tests. T3 made it.
   `RuleSet.get_rulepack` call outside each traced call that raises (for
   example in `pytest.raises`). It records the temporary folders of each node
   (`tempfile.mkdtemp`, which `TemporaryDirectory` uses, and the fixtures
-  `tmp_path` and `tmpdir`).
+  `tmp_path` and `tmpdir`). T8 (Rust dispatch tests cp01, cp03, cp04:
+  classification and conversion) adds the target of each `unittest.mock`
+  patch of a node (`mocks`), and the reason of a skip (`skip_reason`). These
+  keys are in a node only if they have a value.
 - Maps (T16: trace oracle and case runner, extension 1; goal: the trace
   oracle maps and proves the calls that the remaining rule nodes use, and
   fails closed on each other call). `oracle.map_call` gives the cases of a
@@ -511,6 +525,14 @@ with the original sqlfluff tests. T3 made it.
     error (for example `User Error: Invalid option ...` and exit code 2).
     An error of a FluffConfig construction has no config for the CLI and is
     refused. A `python-internal` node must have no error call that maps.
+  - Error of `FluffConfig.from_string(S)` with no overrides (T8: Rust
+    dispatch tests cp01, cp03, cp04, classification and conversion): the
+    CLI input is S as the `.sqlfluff` file. The CLI loads it with
+    `FluffConfig.from_root`, so the first error of the CLI run must be an
+    error of `FluffConfig.from_root` with the same exception type and
+    message. With overrides, the trace has no CLI input and the oracle
+    refuses the call. Each other FluffConfig construction is still
+    refused.
 - Nodes: each converted node and each `python-internal` node of the runner
   report (`results/S7-tests/report.json`).
 - Checks for each tool (`sqll_harness/s7_tests/oracle.py`):
@@ -525,7 +547,12 @@ with the original sqlfluff tests. T3 made it.
      [s7-tests-not-reproduced.md](s7-tests-not-reproduced.md) has it. A
      citation must name an assert of the test.
   - A `python-internal` node passes and has no traced CLI or simple-API
-    call.
+    call. A Linter or test helper call is an error if the node patches
+    nothing with `unittest.mock` (T8). With the tool sqlfluff (no
+    sqlfluffrs), the node can skip with the reason `Skipped: Rust parser not
+    available` and no traced call; with `sqlfluff-rs` it must pass. Thus the
+    9 mock and spy nodes of the Rust dispatch tests are checked with
+    `sqlfluff-rs`.
 - Fail-closed checks (each is an error and exit code 1): a program start, a
   fork, or a new Python process in a node or outside the nodes; a sqlfluff
   CLI command (`Command.main`, `get_config`) or a simple-API config
@@ -596,7 +623,14 @@ with the original sqlfluff tests. T3 made it.
   of the run in the folder, a Python function in the Jinja context, and
   another Jinja key), and the oracle script gives exit code 1 for a changed
   Jinja context, layout key, or folder config file, and for a missing run in
-  the folder, an error of it, or other outputs of it.
+  the folder, an error of it, or other outputs of it. For T8 (Rust dispatch
+  tests cp01, cp03, cp04: classification and conversion), a test runs
+  trace-nodes on a fourth test tree (an error of `FluffConfig.from_string`
+  that maps, one with overrides that is refused, a spy node, a node with a
+  Linter string call and no mock, and a skip with the Rust reason and with
+  another reason), and the mutation tests refuse a changed function or file
+  of the CLI run of that error, a mock node with no `mocks`, and a skip with
+  another reason, with a traced call, or with `sqlfluff-rs`.
 
 ### Config model
 
@@ -749,9 +783,15 @@ defaults (`FluffConfig.from_root` in the folder, with an empty home).
    scope `s6`: only sqlfluff). It
    does not check sqruff, the `sqruff` translations, or the classes
    `needs-python-runtime`, `engine-comparison`, and `environment`. The
-   review of the exclusion list checks them.
+   review of the exclusion list checks them. For the Rust dispatch nodes, a
+   harness test also checks the class `engine-comparison` from the test
+   source (T8). The 9 mock and spy nodes skip with sqlfluff (no
+   sqlfluffrs); only the `sqlfluff-rs` trace runs them.
 8. `--rust` gives the Rust settings to each FluffConfig, as the S1 oracles
    do. The runner gives them with `--config` (`harness/sqlfluff-rs.md`).
+   `force_rust` puts them under the configs of the test, so a test setting
+   wins; the runner gives no layer to a case that sets each layer key (T8,
+   "Case runner").
 9. Files in the submodule. `trace-nodes` runs the nodes in place, in the
    submodule. Some `cli` nodes that are not converted write files there
    that git ignores. Data (2026-11-17, review round 2 of PR #101): a trace

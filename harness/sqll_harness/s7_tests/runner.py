@@ -6,6 +6,7 @@ A cli case runs the CLI of the tool. An api case runs a simple-API function
 case runs through a binary (G1.5). A node passes only if all its cases pass.
 """
 
+import configparser
 import copy
 import json
 import subprocess
@@ -341,14 +342,36 @@ def _substitute(argv: list[str], tmp: Path) -> list[str]:
     ]
 
 
-def _check_rust_inputs(case: Case, argv: list[str], cwd: Path) -> None:
+def case_sets_the_layer(case: Case) -> bool:
+    """True if the case is a cwd: tmp case whose .sqlfluff file sets each key
+    of the sqlfluff-rs layer in its [sqlfluff] section (T8). The trace oracle
+    puts the layer under the settings of each test config (force_rust), so
+    the layer then changes nothing, and the run gets no layer."""
+    text = case.files.get(".sqlfluff") if case.cwd == "tmp" else None
+    if text is None:
+        return False
+    parser = configparser.ConfigParser(interpolation=None)
+    parser.optionxform = str  # keep the case of the keys
+    try:
+        parser.read_string(text)
+    except configparser.Error:
+        return False
+    if not parser.has_section("sqlfluff"):
+        return False
+    return set(RUST_CONFIG["core"]) <= set(parser["sqlfluff"])
+
+
+def _check_rust_inputs(case: Case, argv: list[str], cwd: Path) -> bool:
     """Fail if a config file or in-file line that the run can read sets a
     key of the sqlfluff-rs layer. As the adapter: the check reads more
-    files than sqlfluff reads, never less."""
+    files than sqlfluff reads, never less. The one exception is the
+    .sqlfluff file of a case that sets each key of the layer
+    (case_sets_the_layer). Return True if the run gets the layer."""
     if any(a == "--config" or a.startswith("--config=") for a in argv):
         raise RustConfigConflict(
             "the case gives --config; the sqlfluff-rs layer needs --config"
         )
+    own = (cwd / ".sqlfluff").resolve() if case_sets_the_layer(case) else None
     texts = [case.stdin or ""]
     files: set[Path] = set()
     for arg in [".", *argv[1:]]:
@@ -366,9 +389,14 @@ def _check_rust_inputs(case: Case, argv: list[str], cwd: Path) -> None:
                 for p in full.rglob("*")
                 if p.name in CONFIG_FILES or p.suffix in SQL_SUFFIXES
             }
-    texts += [p.read_bytes().decode("utf8", "replace") for p in files if p.is_file()]
+    texts += [
+        p.read_bytes().decode("utf8", "replace")
+        for p in files
+        if p.is_file() and p.resolve() != own
+    ]
     if any(RUST_KEY.search(text) for text in texts):
         raise RustConfigConflict("an input of the case has a sqlfluff-rs layer key")
+    return own is None
 
 
 def run_cli(run: ToolRun, case: Case) -> list[str]:
@@ -390,8 +418,8 @@ def run_cli(run: ToolRun, case: Case) -> list[str]:
         cwd = tmp if case.cwd == "tmp" else SQLFLUFF_ROOT
         argv = _substitute(case.sqruff if run.name == "sqruff" else case.argv, tmp)
         if run.layer_file is not None and argv[0] in CONFIG_COMMANDS:
-            _check_rust_inputs(case, argv, cwd)
-            argv = [argv[0], "--config", str(run.layer_file), *argv[1:]]
+            if _check_rust_inputs(case, argv, cwd):
+                argv = [argv[0], "--config", str(run.layer_file), *argv[1:]]
         proc = subprocess.run(
             [str(run.binary), *argv],
             cwd=cwd,

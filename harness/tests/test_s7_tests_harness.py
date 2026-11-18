@@ -110,13 +110,13 @@ def test_the_suite_reports_add_up_to_the_recorded_report():
     for tool, parity in RECORDED["parity"].items():
         for key in ("nodes", "passed", "failed", "error"):
             assert sum(p["parity"][tool][key] for p in parts) == parity[key]
-    # The recorded results of T18 (status/S7-tests.md, "Recorded results").
+    # The recorded results of T8 (status/S7-tests.md, "Recorded results").
     passed = {t: p["passed"] for t, p in RECORDED["parity"].items()}
-    assert passed == {"sqlfluff": 90, "sqlfluff-rs": 89, "sqruff": 8}
+    assert passed == {"sqlfluff": 91, "sqlfluff-rs": 90, "sqruff": 8}
     assert {t: p["nodes"] for t, p in RECORDED["parity"].items()} == {
-        "sqlfluff": 90,
-        "sqlfluff-rs": 90,
-        "sqruff": 90,
+        "sqlfluff": 91,
+        "sqlfluff-rs": 91,
+        "sqruff": 91,
     }
     # The 16 converted nodes that need Jinja and move to S11.
     jinja = {t: (p["nodes"], p["passed"]) for t, p in RECORDED["s11_jinja"].items()}
@@ -126,18 +126,18 @@ def test_the_suite_reports_add_up_to_the_recorded_report():
 def test_the_report_lists_each_excluded_node_with_its_class():
     # Decision 2: each excluded node by node id with its class, apart from
     # parity; a reason of one line for needs-python-runtime and environment.
+    # Each recorded exclusion has a reason of one line (T8).
     want = [(e.id, e.cls) for e in CASES.exclusions]
     assert [(e["id"], e["class"]) for e in RECORDED["excluded"]] == want
     for entry in RECORDED["excluded"]:
-        if entry["class"] in caseformat.NEEDS_REASON:
-            assert entry["reason"].strip() and "\n" not in entry["reason"]
+        assert entry["reason"].strip() and "\n" not in entry["reason"]
     excluded = {e["id"] for e in RECORDED["excluded"]}
     assert not excluded & {n["id"] for n in RECORDED["nodes"]}
     counts = RECORDED["counts"]
     assert (counts["in_scope"], counts["converted"], counts["excluded"]) == (
         643,
-        106,
-        8,
+        107,
+        108,
     )
 
 
@@ -225,14 +225,14 @@ def test_select_suites_refuses_a_suite_that_the_report_does_not_have():
 def test_summary_lines_give_the_counts_apart_from_parity():
     lines = command.summary_lines(RECORDED)
     assert lines[1] == (
-        "in scope 643, converted 106, excluded 8, not yet converted 529, "
+        "in scope 643, converted 107, excluded 108, not yet converted 428, "
         "needs Jinja (S11) 16"
     )
     assert lines[2] == (
-        "excluded by class: python-internal 5, needs-python-runtime 2, "
-        "engine-comparison 1, environment 0"
+        "excluded by class: python-internal 14, needs-python-runtime 2, "
+        "engine-comparison 92, environment 0"
     )
-    assert lines[3].startswith("sqlfluff: 90 of 90 nodes passed, 0 failed, 0 error")
+    assert lines[3].startswith("sqlfluff: 91 of 91 nodes passed, 0 failed, 0 error")
 
 
 def test_summary_lines_of_a_scope_with_no_exclusion_list():

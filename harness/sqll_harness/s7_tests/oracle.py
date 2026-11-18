@@ -27,7 +27,9 @@ runs these cases and proves that the templater result of each run is the
 result of the call.
 
 A node of the class python-internal must pass and have no traced CLI or
-simple-API call. The oracle fails closed (an error, not a status) on a
+simple-API call; a Linter or test helper call is allowed only in a mock or
+spy node (decision 3), and with the tool sqlfluff the node can skip with no
+Rust parser (T8). The oracle fails closed (an error, not a status) on a
 process that it cannot trace, on an untraced call, on a call or a node
 outside the requested nodes, on a node that the report has and the trace
 does not, and on an input that it cannot map to a case.
@@ -178,8 +180,18 @@ HELPER_CALLS = {
     },
 }
 # The functions whose error the oracle maps to a CLI case, if the CLI run of
-# the trace gives the same error (an error call).
-ERROR_FUNCTIONS = ("RuleSet.get_rulepack", "Linter")
+# the trace gives the same error (an error call), each with the function of
+# the CLI run that must give it. The CLI loads its config with
+# FluffConfig.from_root; a config string of FluffConfig.from_string is its
+# .sqlfluff file (T8).
+ERROR_FUNCTIONS = {
+    "RuleSet.get_rulepack": "RuleSet.get_rulepack",
+    "Linter": "Linter",
+    "FluffConfig.from_string": "FluffConfig.from_root",
+}
+# The skip reason of a node that needs sqlfluffrs (the Rust dispatch tests).
+# A python-internal node can have it with the tool sqlfluff (T8).
+RUST_ONLY_SKIP = "Skipped: Rust parser not available"
 
 
 @dataclass
@@ -775,7 +787,8 @@ def _error(call: dict[str, Any]) -> list[Mapped | OracleError]:
         reason = inputs.get("no_cli_input", "the trace has no CLI run")
         raise OracleError(f"the error {error!r} of {function}: {reason}")
     errors = proof["errors"]
-    if not errors or errors[0] != {"function": function, "error": error}:
+    cli_function = ERROR_FUNCTIONS[function]
+    if not errors or errors[0] != {"function": cli_function, "error": error}:
         raise OracleError(
             f"the CLI does not give the same error: the test gets {error!r} from"
             f" {function}, the CLI run gets {errors}"
@@ -1078,9 +1091,13 @@ def check_node(
     return result
 
 
-def check_internal(node_id: str, data: dict[str, Any] | None) -> dict[str, Any]:
+def check_internal(
+    node_id: str, data: dict[str, Any] | None, tool: str = "sqlfluff"
+) -> dict[str, Any]:
     """A python-internal node must pass with no traced CLI or simple-API
-    call."""
+    call. A Linter or test helper call is allowed only in a mock or spy node
+    (a unittest.mock patch in the node, decision 3). With the tool sqlfluff
+    (no sqlfluffrs), a node can skip with RUST_ONLY_SKIP (T8)."""
     if data is None:
         return {
             "id": node_id,
@@ -1097,6 +1114,13 @@ def check_internal(node_id: str, data: dict[str, Any] | None) -> dict[str, Any]:
             errors.append(
                 f"class {INTERNAL}, but the trace has {calls[kind]} {kind} calls"
             )
+    mocks = data.get("mocks", [])
+    for kind in sorted(set(calls) - {"cli", "api", "error"}):
+        if not mocks:
+            errors.append(
+                f"class {INTERNAL}, but the trace has {calls[kind]} {kind} calls"
+                " and the node patches nothing with unittest.mock"
+            )
     for call in data["calls"]:
         if call["kind"] == "error":
             try:
@@ -1107,12 +1131,22 @@ def check_internal(node_id: str, data: dict[str, Any] | None) -> dict[str, Any]:
                 f"class {INTERNAL}, but the error {call['error']!r} of"
                 f" {call['inputs']['function']} maps to a CLI case"
             )
-    if data["outcome"] != "passed":
+    result: dict[str, Any] = {"id": node_id, "pytest": data["outcome"], "calls": calls}
+    if mocks:
+        result["mocks"] = mocks
+    skipped = data["outcome"] == "skipped"
+    if skipped:
+        result["skip_reason"] = data.get("skip_reason")
+    if skipped and tool != RUST_TOOL and data.get("skip_reason") == RUST_ONLY_SKIP:
+        if data["calls"]:
+            errors.append(f"skipped with {data['calls']!r} traced calls")
+    elif data["outcome"] != "passed":
         errors.append(
             f"the pytest outcome is {data['outcome']}; the trace of a node that"
             " does not pass can be incomplete"
         )
-    return {"id": node_id, "pytest": data["outcome"], "calls": calls, "errors": errors}
+    result["errors"] = errors
+    return result
 
 
 def trace_errors(trace: dict[str, Any], tool: str, requested: list[str]) -> list[str]:
@@ -1185,7 +1219,7 @@ def check_tool(
         for i in converted
         if i in by_id
     ]
-    internals = [check_internal(i, traced.get(i)) for i in internal]
+    internals = [check_internal(i, traced.get(i), tool) for i in internal]
     errors += record_errors(set(by_id), not_reproduced)
     for item in [*results, *internals]:
         node_errors = item.errors if isinstance(item, NodeResult) else item["errors"]
