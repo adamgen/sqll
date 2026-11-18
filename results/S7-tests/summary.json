@@ -23,9 +23,9 @@
  },
  "counts": {
   "in_scope": 643,
-  "converted": 106,
-  "excluded": 8,
-  "not_yet_converted": 529,
+  "converted": 107,
+  "excluded": 108,
+  "not_yet_converted": 428,
   "needs_jinja": 16,
   "groups": {
    "cli": {
@@ -36,9 +36,9 @@
    },
    "rules": {
     "in_scope": 208,
-    "converted": 96,
-    "excluded": 6,
-    "not_yet_converted": 106
+    "converted": 97,
+    "excluded": 106,
+    "not_yet_converted": 5
    },
    "config": {
     "in_scope": 137,
@@ -54,35 +54,35 @@
    }
   },
   "excluded_by_class": {
-   "python-internal": 5,
+   "python-internal": 14,
    "needs-python-runtime": 2,
-   "engine-comparison": 1,
+   "engine-comparison": 92,
    "environment": 0
   }
  },
  "parity": {
   "sqlfluff": {
-   "nodes": 90,
-   "passed": 90,
+   "nodes": 91,
+   "passed": 91,
    "failed": 0,
    "error": 0,
    "percent_of_converted": 100.0,
-   "percent_of_in_scope": 14.0
+   "percent_of_in_scope": 14.15
   },
   "sqlfluff-rs": {
-   "nodes": 90,
-   "passed": 89,
+   "nodes": 91,
+   "passed": 90,
    "failed": 1,
    "error": 0,
-   "percent_of_converted": 98.89,
-   "percent_of_in_scope": 13.84
+   "percent_of_converted": 98.9,
+   "percent_of_in_scope": 14.0
   },
   "sqruff": {
-   "nodes": 90,
+   "nodes": 91,
    "passed": 8,
-   "failed": 82,
+   "failed": 83,
    "error": 0,
-   "percent_of_converted": 8.89,
+   "percent_of_converted": 8.79,
    "percent_of_in_scope": 1.24
   }
  },
@@ -181,33 +181,33 @@
   },
   "s7_rules": {
    "in_scope": 208,
-   "converted": 96,
-   "excluded": 6,
-   "not_yet_converted": 106,
+   "converted": 97,
+   "excluded": 106,
+   "not_yet_converted": 5,
    "needs_jinja": 16,
    "parity": {
     "sqlfluff": {
-     "nodes": 80,
-     "passed": 80,
+     "nodes": 81,
+     "passed": 81,
      "failed": 0,
      "error": 0,
      "percent_of_converted": 100.0,
-     "percent_of_in_scope": 38.46
+     "percent_of_in_scope": 38.94
     },
     "sqlfluff-rs": {
-     "nodes": 80,
-     "passed": 80,
+     "nodes": 81,
+     "passed": 81,
      "failed": 0,
      "error": 0,
      "percent_of_converted": 100.0,
-     "percent_of_in_scope": 38.46
+     "percent_of_in_scope": 38.94
     },
     "sqruff": {
-     "nodes": 80,
+     "nodes": 81,
      "passed": 8,
-     "failed": 72,
+     "failed": 73,
      "error": 0,
-     "percent_of_converted": 10.0,
+     "percent_of_converted": 9.88,
      "percent_of_in_scope": 3.85
     }
    }
@@ -216,6 +216,6 @@
  "known_failures": {
   "sqlfluff": 0,
   "sqlfluff-rs": 1,
-  "sqruff": 98
+  "sqruff": 99
  }
 }

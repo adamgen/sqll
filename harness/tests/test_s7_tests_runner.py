@@ -350,6 +350,61 @@ def test_sqlfluff_rs_layer_conflict_is_an_error(tmp_path, case):
     assert RustConfigConflict.__name__ in out.reason
 
 
+RUST_KEYS = "[sqlfluff]\ndialect=ansi\nuse_rust_parser=False\nuse_rust_rules=True\n"
+
+
+def test_sqlfluff_rs_case_that_sets_the_layer_gets_no_layer(tmp_path):
+    # T8: the .sqlfluff file of the case sets each key of the layer. The
+    # trace oracle puts the layer under the case config (force_rust), so the
+    # layer changes nothing and the run gets no --config.
+    run = fake_run(tmp_path, name="sqlfluff-rs")
+    run.layer_file = tmp_path / "layer.toml"
+    case = cli_case(
+        argv=["lint", "-"],
+        cwd="tmp",
+        files={".sqlfluff": RUST_KEYS},
+        checks={
+            "exit_code": 0,
+            "stdout": {
+                "contains": ["\narg=lint\narg=-\n"],
+                "not_contains": ["--config"],
+            },
+        },
+    )
+    assert runner.case_sets_the_layer(case)
+    assert runner.run_case(run, case) == CaseOutcome("c", PASS)
+    # The same file in a case in the sqlfluff root is not a case file.
+    assert not runner.case_sets_the_layer(cli_case(files={".sqlfluff": RUST_KEYS}))
+
+
+@pytest.mark.parametrize(
+    ("files", "stdin"),
+    [
+        # Only 1 key of the layer: the layer would change the other key.
+        ({".sqlfluff": "[sqlfluff]\nuse_rust_rules=True\n"}, None),
+        # The keys in another section, or with other letters.
+        ({".sqlfluff": "[sqlfluff:x]\nuse_rust_parser=1\nuse_rust_rules=1\n"}, None),
+        ({".sqlfluff": "[sqlfluff]\nUSE_RUST_PARSER=1\nUSE_RUST_RULES=1\n"}, None),
+        # Not a config file that configparser reads.
+        ({".sqlfluff": "use_rust_parser=1\nuse_rust_rules=1\n"}, None),
+        # Another input also has a key of the layer.
+        ({".sqlfluff": RUST_KEYS}, "-- sqlfluff:use_rust_rules:False\n"),
+        (
+            {".sqlfluff": RUST_KEYS, "d/.sqlfluff": "[sqlfluff]\nuse_rust_rules=1\n"},
+            None,
+        ),
+    ],
+)
+def test_sqlfluff_rs_case_that_sets_the_layer_fails_closed(tmp_path, files, stdin):
+    run = fake_run(tmp_path, name="sqlfluff-rs")
+    run.layer_file = tmp_path / "layer.toml"
+    argv = ["lint", "d", "-"] if "d/.sqlfluff" in files else ["lint", "-"]
+    case = cli_case(argv=argv, cwd="tmp", files=files, stdin=stdin)
+    out = runner.run_case(run, case)
+    assert out.status == ERROR
+    assert out.reason.startswith("RustConfigConflict: ")
+
+
 def test_sqlfluff_rs_fallback_warning_is_an_error(tmp_path):
     run = fake_run(tmp_path, name="sqlfluff-rs")
     run.layer_file = tmp_path / "layer.toml"

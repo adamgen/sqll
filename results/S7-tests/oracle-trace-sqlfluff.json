@@ -417,6 +417,48 @@
    "untraced": [],
    "processes": []
   },
+  "test/rules/cp01_rust_dispatch_test.py::test__use_rust_rules_requires_rust_parser": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "error",
+     "error": "SQLFluffUserError: use_rust_rules is enabled but use_rust_parser is disabled. Rust-native rules require the Rust parser (they read its parse arena), so this combination does nothing. Set use_rust_parser to 'auto' or 'True', or disable use_rust_rules.",
+     "inputs": {
+      "function": "FluffConfig.from_string",
+      "cli_input": {
+       "files": {
+        ".sqlfluff": "[sqlfluff]\ndialect=ansi\nuse_rust_parser=False\nuse_rust_rules=True\n"
+       }
+      },
+      "cwd": "{sqlfluff}"
+     },
+     "cli": {
+      "argv": [
+       "lint",
+       "-"
+      ],
+      "stdin": "",
+      "files": {
+       ".sqlfluff": "[sqlfluff]\ndialect=ansi\nuse_rust_parser=False\nuse_rust_rules=True\n"
+      },
+      "exit_code": 2,
+      "stdout": "Error loading config: use_rust_rules is enabled but use_rust_parser is disabled. Rust-native rules require the Rust parser (they read its parse arena), so this combination does nothing. Set use_rust_parser to 'auto' or 'True', or disable use_rust_rules.\n",
+      "stderr": "",
+      "files_after": {
+       ".sqlfluff": "[sqlfluff]\ndialect=ansi\nuse_rust_parser=False\nuse_rust_rules=True\n"
+      },
+      "errors": [
+       {
+        "function": "FluffConfig.from_root",
+        "error": "SQLFluffUserError: use_rust_rules is enabled but use_rust_parser is disabled. Rust-native rules require the Rust parser (they read its parse arena), so this combination does nothing. Set use_rust_parser to 'auto' or 'True', or disable use_rust_rules."
+       }
+      ]
+     }
+    }
+   ],
+   "untraced": [],
+   "processes": []
+  },
   "test/rules/std_AL04_test.py::test__rules__std_AL04_one_aliases_one_duplicate": {
    "outcome": "passed",
    "calls": [
@@ -20736,7 +20778,73 @@
    "untraced_linter": [
     "a Linter render (Linter.render_string)",
     "a Linter parse (Linter.parse_rendered)"
+   ],
+   "mocks": [
+    "Linter.get_rulepack"
    ]
+  },
+  "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__engages_rust_only_when_enabled": {
+   "outcome": "skipped",
+   "calls": [],
+   "untraced": [],
+   "processes": [],
+   "skip_reason": "Skipped: Rust parser not available"
+  },
+  "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__regex_ignore_falls_back_to_python": {
+   "outcome": "skipped",
+   "calls": [],
+   "untraced": [],
+   "processes": [],
+   "skip_reason": "Skipped: Rust parser not available"
+  },
+  "test/rules/cp01_rust_dispatch_test.py::test__dispatch__rust_error_is_recoverable": {
+   "outcome": "skipped",
+   "calls": [],
+   "untraced": [],
+   "processes": [],
+   "skip_reason": "Skipped: Rust parser not available"
+  },
+  "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__engages_rust_only_when_enabled": {
+   "outcome": "skipped",
+   "calls": [],
+   "untraced": [],
+   "processes": [],
+   "skip_reason": "Skipped: Rust parser not available"
+  },
+  "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__regex_ignore_falls_back_to_python": {
+   "outcome": "skipped",
+   "calls": [],
+   "untraced": [],
+   "processes": [],
+   "skip_reason": "Skipped: Rust parser not available"
+  },
+  "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__not_hijacked_by_cp01_rust_path": {
+   "outcome": "skipped",
+   "calls": [],
+   "untraced": [],
+   "processes": [],
+   "skip_reason": "Skipped: Rust parser not available"
+  },
+  "test/rules/cp04_rust_dispatch_test.py::test__cp04_dispatch__engages_rust_only_when_enabled": {
+   "outcome": "skipped",
+   "calls": [],
+   "untraced": [],
+   "processes": [],
+   "skip_reason": "Skipped: Rust parser not available"
+  },
+  "test/rules/cp04_rust_dispatch_test.py::test__cp04_dispatch__regex_ignore_falls_back_to_python": {
+   "outcome": "skipped",
+   "calls": [],
+   "untraced": [],
+   "processes": [],
+   "skip_reason": "Skipped: Rust parser not available"
+  },
+  "test/rules/cp04_rust_dispatch_test.py::test__cp04_dispatch__not_hijacked_by_cp01_rust_path": {
+   "outcome": "skipped",
+   "calls": [],
+   "untraced": [],
+   "processes": [],
+   "skip_reason": "Skipped: Rust parser not available"
   },
   "test/rules/std_AM09_test.py::test__rules__std_AM09_eval_short_circuit_on_non_select_segment": {
    "outcome": "passed",

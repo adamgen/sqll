@@ -33,7 +33,11 @@ oracles do. It records, for each node:
   to the CLI (a .sqlfluff file of the config model, or lint options), it
   runs "lint -" with that input and an empty stdin in a new folder, in
   process, and records the outputs and the errors of the same functions in
-  that CLI run (the proof that the CLI gives the same error).
+  that CLI run (the proof that the CLI gives the same error). For an error
+  of FluffConfig.from_string with no overrides (T8), the CLI input is its
+  config string as the .sqlfluff file.
+- mocks (only if not empty): the target of each unittest.mock patch in the
+  node (T8). skip_reason: the reason of a skipped node.
 - untraced: each sqlfluff CLI command (click Command.main, get_config of
   the CLI) and each simple-API config (get_simple_config) that runs outside
   a traced call of its kind. Thus a call that the trace does not record is
@@ -76,6 +80,7 @@ import tempfile
 from collections import Counter
 from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
+from unittest import mock
 
 sys.dont_write_bytecode = True
 
@@ -237,7 +242,13 @@ class Tracer:
     def bucket(self) -> dict:
         return self.records.setdefault(
             self.node,
-            {"calls": [], "untraced": [], "untraced_linter": [], "forks": 0},
+            {
+                "calls": [],
+                "untraced": [],
+                "untraced_linter": [],
+                "mocks": [],
+                "forks": 0,
+            },
         )
 
     def path(self, value) -> str:
@@ -721,6 +732,21 @@ def install(tracer: Tracer) -> None:
             " no config to give to the CLI"
         }
 
+    string_sig = inspect.signature(FluffConfig.from_string.__func__)
+
+    def string_config(cls, *args, **kwargs) -> dict:
+        """FluffConfig.from_string that failed (T8): its config string is the
+        CLI input, as a .sqlfluff file. With overrides, the trace has none."""
+        data = string_sig.bind(cls, *args, **kwargs).arguments
+        if data.get("overrides"):
+            return {
+                "no_cli_input": "FluffConfig.from_string with overrides: the"
+                " trace gives only a config string to the CLI"
+            }
+        text = data["config_string"]
+        return {"cli_input": {"files": {s7config.CONFIG_FILE: text}}}
+
+    describe = {"from_string": string_config}
     FluffConfig.__init__ = tracer.errors("FluffConfig", no_config)(config_init)
     for name in ("from_path", "from_root", "from_kwargs", "from_string"):
         method = getattr(FluffConfig, name).__func__
@@ -735,7 +761,9 @@ def install(tracer: Tracer) -> None:
             config._s7_source = plain({"method": _name, "args": data})
             return config
 
-        watched = tracer.errors(f"FluffConfig.{name}", no_config)(tagged)
+        watched = tracer.errors(f"FluffConfig.{name}", describe.get(name, no_config))(
+            tagged
+        )
         setattr(FluffConfig, name, classmethod(functools.wraps(method)(watched)))
 
     # The Linter path methods.
@@ -938,6 +966,21 @@ def install(tracer: Tracer) -> None:
         )(parse_rendered)
     )
 
+    # The targets of each unittest.mock patch (mock.patch, patch.object, as a
+    # context manager, a decorator, or with start) in a node (T8): a mock or
+    # spy node is python-internal (decision 3).
+    patch_enter = mock._patch.__enter__
+
+    @functools.wraps(patch_enter)
+    def recorded_enter(self):
+        result = patch_enter(self)
+        target = self.getter()
+        name = getattr(target, "__name__", type(target).__name__)
+        tracer.bucket()["mocks"].append(f"{name}.{self.attribute}")
+        return result
+
+    mock._patch.__enter__ = recorded_enter
+
 
 class Recorder:
     """A pytest plugin: sets the node for the trace and records outcomes."""
@@ -946,6 +989,9 @@ class Recorder:
         self.tracer = tracer
         self.outcomes: dict[str, str] = {}
         self.errors: dict[str, str] = {}
+        # The reason of each skip (T8: a Rust dispatch node with no Rust
+        # parser).
+        self.skips: dict[str, str] = {}
 
     def _set(self, node: str) -> None:
         self.tracer.node = node
@@ -984,6 +1030,8 @@ class Recorder:
             self.outcomes[report.nodeid] = "error"
         elif report.outcome == "skipped":
             self.outcomes.setdefault(report.nodeid, "skipped")
+        if report.skipped and isinstance(report.longrepr, tuple):
+            self.skips.setdefault(report.nodeid, str(report.longrepr[2]))
 
     def pytest_collectreport(self, report) -> None:
         if report.failed:
@@ -1059,6 +1107,10 @@ def run(root: Path, nodes: list[str], rust: bool, log: Path) -> dict:
         }
         if data.get("untraced_linter"):
             out_nodes[node]["untraced_linter"] = data["untraced_linter"]
+        if data.get("mocks"):
+            out_nodes[node]["mocks"] = data["mocks"]
+        if out_nodes[node]["outcome"] == "skipped":
+            out_nodes[node]["skip_reason"] = recorder.skips.get(node, "")
     outside = {
         "nodes": sorted(records),
         "calls": [c for r in records.values() for c in r["calls"]],

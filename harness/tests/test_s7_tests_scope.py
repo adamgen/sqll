@@ -299,7 +299,8 @@ def test_status_has_each_task():
     # The orchestrator gave T7 the maps of T16 and T17 on 2026-11-17, so T7
     # comes before T18; T7 added T22 (the rule nodes that need T18). The
     # orchestrator gave T18 a new scope on 2026-11-17: the Jinja rule nodes
-    # with the maps that they need; T22 has the other rule nodes.
+    # with the maps that they need; T22 has the other rule nodes. T8 gets
+    # the maps that the Rust dispatch nodes need (2026-11-17).
     # Each row has a goal (AGENTS.md, "Names").
     table = _section(STATUS, "S7-tests tasks").splitlines()
     rows = [r for r in table if r.startswith("|")]
@@ -328,6 +329,9 @@ def test_status_has_each_task():
         " marked for the Jinja templater stone"
     )
     assert cells[order.index("T7")][3] == "Done (PR #105)"
+    assert cells[order.index("T18")][3] == "Done (PR #109)"
+    t8 = cells[order.index("T8")]
+    assert t8[2] == "Each Rust dispatch node is converted or excluded by decision 3"
     for task in ("T19", "T20", "T21"):
         goal = cells[order.index(task)][2]
         assert goal.startswith("The trace oracle maps and proves"), (task, goal)
