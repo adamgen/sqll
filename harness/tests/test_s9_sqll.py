@@ -223,6 +223,15 @@ def test_the_target_is_the_sqlfluff_result_of_the_report_else_of_the_baseline():
     base2 = build3(two)
     errors = baseline.drift(rep, base2)
     assert errors[0].endswith("; worse; the file has no sqlfluff result")
+    # The report has its own sqlfluff result (here also changed): the sqll
+    # message uses it, not the sqlfluff result of the baseline.
+    rep = with_result(rep, result("s/a.sql", "sqlfluff", "invalid"))
+    assert baseline.drift(rep, base) == [
+        "sqlfluff s/a.sql: status invalid (warmup run: no parse tree), baseline "
+        "ok (None)",
+        "sqll s/a.sql: status invalid (warmup run: no parse tree), baseline ok "
+        "(None); worse; the new result is the sqlfluff result of the file",
+    ]
 
 
 @pytest.mark.parametrize(
@@ -400,7 +409,10 @@ def test_rebase_replaces_only_the_sqll_record_and_results(env3, base3, capsys):
     rep = set_status(
         rep, "sql/unparsable0.sql", "sqll", "unparsable", {"count": 1, "bytes": 3}
     )
+    # A copy: rebuild() keeps the tool records of the module fixture run3.
+    rep = copy.deepcopy(rep)
     rep["tools"]["sqll"]["version"] = "1.1"
+    rep["tools"]["sqll"]["settings"]["raw"]["core"]["x"] = 1
     rep = rebuild(rep)
     path = write(env3, rep, "new.json")
     out = env3["env"].tmp / "rebased.json"
@@ -431,6 +443,7 @@ def test_rebase_replaces_only_the_sqll_record_and_results(env3, base3, capsys):
     # Each changed sqll result, with its direction.
     assert text == [
         "tool sqll: version 1.0 -> 1.1",
+        "tool sqll: the settings changed",
         "sqll demo/sql/ok.sql: ok (unparsable {'count': 0, 'bytes': 0}) -> "
         "invalid (unparsable None): worse; the new result is not the sqlfluff "
         "result of the file (ok, unparsable {'count': 0, 'bytes': 0})",

@@ -274,14 +274,18 @@ the new baseline keeps the harness record of the baseline, thus such a
 REPORT would give a false "clean" record. It writes the baseline
 with the sqll tool record and the sqll results of REPORT, and calculates
 `totals`, `compared`, and `pairs` again. The other fields and results stay
-those of the baseline. It prints each changed sqll result: the file, the
+those of the baseline. It prints a line for a changed sqll version and
+for changed sqll settings, then each changed sqll result: the file, the
 old and the new status and unparsable data, the direction, and if the new
 result is the sqlfluff result of the file, and then the harness commit
 of REPORT. For each machine of REPORT that is not the machine of the
 baseline (for a merged REPORT, the machine of each shard), it first prints
 a line with each changed machine field: the baseline keeps its machine
 record, but its `pairs` then compare sqll times of one machine with the
-times of the other tools of another machine.
+times of the other tools of another machine. The baseline also keeps its
+`timer` record. The clock and the rusage source are fixed in the code;
+only the overhead samples change with the machine, so the machine line
+covers this.
 
 ## Profiles
 
