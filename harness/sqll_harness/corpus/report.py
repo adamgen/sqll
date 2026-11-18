@@ -6,6 +6,11 @@ derived fields of each result, the totals, the compared totals, and the
 pairs again from the samples and the inputs, so a report cannot have other
 numbers.
 
+compared (docs/decisions/s9-corpus.md, "sqll results", decision 4) uses
+only the tools of COMPARED_TOOLS (sqlfluff, sqlfluff[rs], and sqruff), also
+in a report with sqll results. Thus its numbers stay comparable with the
+recorded baseline.
+
 pairs (docs/decisions/s9-corpus.md, "sqll results", decision 4: the speed
 tables of G3): sqll to sqlfluff and sqll to sqruff, on the files where both
 tools of the pair are ok. A report has the field only if it has sqll and
@@ -54,6 +59,9 @@ TIMED_STATUSES = (OK, UNPARSABLE, NO_REFERENCE)
 PARSE_EXITS = (0, 1)
 # The wall time ratios of the compared totals are to this tool.
 RATIO_BASE = "sqlfluff"
+# The tools of the compared totals: sqll is not one of them (its speed is in
+# the pairs).
+COMPARED_TOOLS = ("sqlfluff", "sqlfluff-rs", "sqruff")
 REFERENCE_OK = "ok"
 REFERENCE_FAILED = "failed"
 
@@ -209,10 +217,11 @@ def _ratio(a: float, b: float) -> float | None:
 
 
 def compared(results: list[dict], tools: Iterable[str], inputs: Mapping) -> dict:
-    """Return the totals over the files where each tool is ok: the file
-    count, the input bytes, and for each tool the sums of the median wall
-    and CPU times, the bytes per second, and the ratios to RATIO_BASE."""
-    tools = sorted(tools)
+    """Return the totals over the files where each tool of tools that is in
+    COMPARED_TOOLS is ok: the file count, the input bytes, and for each of
+    these tools the sums of the median wall and CPU times, the bytes per
+    second, and the ratios to RATIO_BASE."""
+    tools = sorted(t for t in tools if t in COMPARED_TOOLS)
     ok = {(r["file"], r["tool"]): r for r in results if r["status"] == OK}
     files = sorted(f for f in inputs if tools and all((f, t) in ok for t in tools))
     size = sum(inputs[f]["bytes"] for f in files)
@@ -449,8 +458,18 @@ def _check(c: _Checker, report, profiles: Mapping[str, dict]) -> None:
     c.want("results", keys == sorted(keys), "not sorted by file and tool")
     want_totals = totals(results, tools)
     c.want("totals", _same(report["totals"], want_totals), f"not {want_totals}")
+    have = report["compared"]
+    named = have.get("tools") if isinstance(have, dict) else None
+    other = (
+        [t for t in named if t not in COMPARED_TOOLS] if isinstance(named, list) else []
+    )
+    c.want(
+        "compared",
+        not other,
+        f"names {other}: only {', '.join(COMPARED_TOOLS)} are compared",
+    )
     want = compared(results, tools, inputs)
-    c.want("compared", _same(report["compared"], want), f"not {want}")
+    c.want("compared", _same(have, want), f"not {want}")
     _check_pairs(c, report, pairs(results, tools, inputs))
 
 

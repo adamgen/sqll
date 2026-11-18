@@ -10,6 +10,11 @@ and write the report.
 merge REPORT... [--expect FILE] [--out FILE]: merge the shard reports.
 check REPORT [--baseline FILE [--full]]: check the schema and completeness
 of a report, and its stable data against the baseline.
+rebase --tool sqll BASELINE REPORT --out FILE: write the baseline with the
+sqll tool record and the sqll results of the full report REPORT, and print
+each changed sqll result and the harness commit of REPORT
+(docs/decisions/s9-corpus.md, "sqll results", decision 3). It fails closed
+on each other change, and on a REPORT from a harness worktree with changes.
 notices [--manifest FILE] [--cache DIR] [--out DIR]: write the manifest and
 the license and notice files of all sources to one folder (default
 out/corpus-notices), for a CI artifact with a report.
@@ -21,7 +26,7 @@ cache with git), and write it to --manifest, or with --check compare it with
 
 validate, fetch, and notices write a JSON object on stdout. Exit code 2 if the
 manifest is not valid, or if a fetch, run, or merge cannot start or
-complete; 1 if a report has an error.
+complete; 1 if a report has an error or rebase refuses a change.
 """
 
 import argparse
@@ -57,7 +62,17 @@ def _shard(text: str) -> tuple[int, int]:
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="python -m sqll_harness.corpus")
     commands = parser.add_subparsers(dest="command", required=True)
-    for name in ("validate", "fetch", "notices", "run", "merge", "check", "select"):
+    names = (
+        "validate",
+        "fetch",
+        "notices",
+        "run",
+        "merge",
+        "check",
+        "rebase",
+        "select",
+    )
+    for name in names:
         sub = commands.add_parser(name)
         sub.add_argument("--manifest", type=Path, default=MANIFEST)
     commands.add_parser("tables").add_argument("report", type=Path)
@@ -102,6 +117,18 @@ def _parser() -> argparse.ArgumentParser:
         "--full",
         action="store_true",
         help="Also need the profile and each result of the baseline.",
+    )
+    rebase_parser = commands.choices["rebase"]
+    rebase_parser.add_argument(
+        "--tool",
+        required=True,
+        choices=corpus_baseline.REBASE_TOOLS,
+        help="The tool whose record and results change.",
+    )
+    rebase_parser.add_argument("baseline", type=Path)
+    rebase_parser.add_argument("report", type=Path, help="A full report.")
+    rebase_parser.add_argument(
+        "--out", type=Path, required=True, help="The new baseline to write."
     )
     select_parser = commands.choices["select"]
     select_parser.add_argument(
@@ -216,6 +243,33 @@ def check_command(args: argparse.Namespace, manifest) -> int:
     return 0
 
 
+def rebase_command(args: argparse.Namespace, manifest) -> int:
+    try:
+        base = corpus_report.load(args.baseline)
+        rep = corpus_report.load(args.report)
+    except (OSError, ValueError) as exc:
+        return _error(str(exc))
+    try:
+        new, lines = corpus_baseline.rebase(base, rep, args.tool, manifest)
+    except corpus_baseline.RebaseError as exc:
+        print(f"FAIL: {exc}")
+        return 1
+    corpus_report.write(new, args.out)
+    for line in lines:
+        print(line)
+    print(
+        f"harness: the {args.tool} results of {args.report} come from the harness "
+        f"commit {rep['harness']['commit']} (clean); {args.out} keeps the harness "
+        f"record of {args.baseline} (commit {base['harness']['commit']})."
+    )
+    changed = sum(1 for line in lines if line.startswith(f"{args.tool} "))
+    print(
+        f"{args.out}: the baseline {args.baseline} with the {args.tool} record and "
+        f"results of {args.report}; {changed} {args.tool} results changed."
+    )
+    return 0
+
+
 def tables_command(args: argparse.Namespace) -> int:
     try:
         rep = corpus_report.load(args.report)
@@ -274,6 +328,8 @@ def main(argv: list[str] | None = None) -> int:
             return merge_command(args, manifest)
         if args.command == "check":
             return check_command(args, manifest)
+        if args.command == "rebase":
+            return rebase_command(args, manifest)
         if args.command == "validate":
             out = {
                 "manifest": str(args.manifest),
