@@ -310,6 +310,48 @@ def test_s4_owns_its_records_scripts_and_tests():
         assert ownership.owner(path, TRACKS) == owner, path
 
 
+def test_s5_owns_its_records_scripts_and_tests():
+    # The rule parity track owns its design records, scripts, and harness
+    # tests (docs/decisions/s5-rules.md). The records, scripts, and tests
+    # of the other tracks do not change owner.
+    for path in (
+        "docs/decisions/s5-rules.md",
+        "scripts/s5/parity",
+        "scripts/s5/speed",
+        "scripts/s5/a/b.py",
+        "harness/tests/test_s5_parity.py",
+    ):
+        assert ownership.owner(path, TRACKS) == "S5", path
+        ok, text = ownership.check("claude/s5", [], [path], TRACKS)
+        assert ok, text
+        ok, text = ownership.check("claude/s4", [], [path], TRACKS)
+        assert not ok, text
+        ok, text = ownership.check("claude/s4", ["cross-track"], [path], TRACKS)
+        assert ok, text
+    for path, owner in (
+        ("docs/decisions/s4-parity.md", "S4"),
+        ("docs/decisions/s6-templaters.md", "S6"),
+        ("docs/decisions/s3b-core.md", "core"),
+        ("scripts/s4/parity", "S4"),
+        ("scripts/s6/inventory.py", "S6"),
+        ("scripts/speed-check", "core"),
+        ("scripts/sqlfluff-rule-oracle", "core"),
+        ("scripts/sqlfluff-autofix-oracle", "core"),
+        ("harness/tests/test_s5.py", "core"),
+        ("harness/tests/test_s4_parity.py", "S4"),
+        ("harness/tests/test_s6_scope.py", "S6"),
+        ("harness/tests/test_ownership.py", "core"),
+        ("crates/sqll_rules/src/lib.rs", "S5"),
+        ("crates/sqll_rules/Cargo.toml", "core"),
+        ("crates/sqll_lint/src/lib.rs", "core"),
+        ("tracks.yml", "core"),
+    ):
+        assert ownership.owner(path, TRACKS) == owner, path
+    for path in ("tracks.yml", "harness/tests/test_ownership.py"):
+        ok, text = ownership.check("claude/s5", [], [path], TRACKS)
+        assert not ok, text
+
+
 def test_core_owns_each_cargo_toml_and_build_rs():
     tracked = _tracked_files()
     for package in _packages():
