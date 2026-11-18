@@ -28836,25 +28836,17 @@
  },
  "compared": {
   "tools": [
-   "sqlfluff",
-   "sqll"
+   "sqlfluff"
   ],
-  "files": 39,
-  "bytes": 7934578,
+  "files": 57,
+  "bytes": 8150666,
   "results": {
    "sqlfluff": {
-    "wall_s": 561.428156,
-    "cpu_s": 553.920089,
-    "bytes_per_s": 14132.84659,
+    "wall_s": 578.403068,
+    "cpu_s": 570.417424,
+    "bytes_per_s": 14091.67145,
     "wall_ratio": 1.0,
     "cpu_ratio": 1.0
-   },
-   "sqll": {
-    "wall_s": 14.402902,
-    "cpu_s": 13.92198,
-    "bytes_per_s": 550901.339188,
-    "wall_ratio": 0.025654,
-    "cpu_ratio": 0.025134
    }
   }
  },
