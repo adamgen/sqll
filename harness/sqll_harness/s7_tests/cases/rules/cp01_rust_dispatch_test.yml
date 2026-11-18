@@ -1,0 +1,42 @@
+# S7 black-box cases (docs/decisions/s7-tests-design.md, "Case format").
+# A derived work of the sqlfluff tests: copyright (c) 2018-2026 Alan
+# Cruickshank, MIT License.
+# test__use_rust_rules_requires_rust_parser expects a SQLFluffUserError that
+# matches "use_rust_parser" from FluffConfig.from_string(config). The trace
+# records the error and runs "lint -" in a new folder with the config string
+# as the .sqlfluff file. The CLI loads that file with FluffConfig.from_root,
+# raises the same error, and gives it as "Error loading config: ..." on stdout
+# with exit code 2. Thus the trace oracle maps the error to this case. The 2
+# other calls of the test (use_rust_rules=auto with use_rust_parser=False, and
+# use_rust_rules=True with use_rust_parser=auto) have no assert and no error.
+# The case sets each key of the sqlfluff-rs layer, so sqlfluff-rs runs it with
+# no layer (the design record, "Case runner").
+# The other 38 nodes of this file are excluded (exclusions.yml, decision 3):
+# T8 (Rust dispatch tests cp01, cp03, cp04: classification and conversion;
+# goal: each Rust dispatch node is converted or excluded by decision 3) of S7
+# (CLI and config parity: the sqlfluff CLI, config, and Python rule tests as
+# black-box cases; sqll passes 100% of the converted cases; cases that need the
+# Jinja templater move to the Jinja templater stone) converts this node.
+source:
+  project: sqlfluff
+  version: 4.4.0
+  commit: 0348222a3bcdb0226563f7349c5a39beb0641955
+  file: test/rules/cp01_rust_dispatch_test.py
+license: MIT
+nodes:
+  - node: test/rules/cp01_rust_dispatch_test.py::test__use_rust_rules_requires_rust_parser
+    asserts:
+      L161:raises: ["rejected:exit_code", "rejected:stdout.contains[0]"]
+    cases:
+      - name: rejected
+        run: cli
+        argv: [lint, "-"]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect=ansi\nuse_rust_parser=False\nuse_rust_rules=True\n"
+        stdin: ""
+        checks:
+          exit_code: 2
+          stdout:
+            contains:
+              - "Error loading config: use_rust_rules is enabled but use_rust_parser is disabled. Rust-native rules require the Rust parser (they read its parse arena), so this combination does nothing. Set use_rust_parser to 'auto' or 'True', or disable use_rust_rules.\n"

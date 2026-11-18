@@ -89,6 +89,13 @@ LT01_JINJA = (
     "::test_lt01_alias_alignment_templated_siblings"
 )
 TEMPLATED = "test/rules/std_roundtrip_test.py::test__cli__command__fix_templated[LT01]"
+# Nodes of T8 (Rust dispatch tests cp01, cp03, cp04: classification and
+# conversion): an error of FluffConfig.from_string, a spy node, and a mock
+# node (python-internal; skipped with no Rust parser).
+CP01 = "test/rules/cp01_rust_dispatch_test.py"
+RUST_CONFIG_ERROR = f"{CP01}::test__use_rust_rules_requires_rust_parser"
+CP01_SPY = f"{CP01}::test__cp01_dispatch__engages_rust_only_when_enabled"
+CP01_MOCK = f"{CP01}::test__dispatch__rust_error_is_recoverable"
 
 
 def check(tool="sqlfluff", trace=None, nodes=None, report=None, records=NONE):
@@ -127,28 +134,42 @@ def test_the_oracle_agrees_with_each_converted_case(tool):
     assert [n["id"] for n in result["nodes"]] == report_ids
     assert report_ids == [n.id for n in CASES.nodes]
     # The 15 pilot nodes of T2, the 23 rule nodes of T6, the 2 proof nodes
-    # of T16, the 2 proof nodes of T17, the 49 rule nodes of T7, and the 15
-    # Jinja rule nodes of T18.
-    assert result["counts"]["agree"] == result["counts"]["nodes"] == 106
+    # of T16, the 2 proof nodes of T17, the 49 rule nodes of T7, the 15
+    # Jinja rule nodes of T18, and the 1 Rust dispatch node of T8.
+    assert result["counts"]["agree"] == result["counts"]["nodes"] == 107
     status = {n["id"]: n["results"][tool]["status"] for n in REPORT["nodes"]}
     for node in result["nodes"]:
         assert node["trace"] == status[node["id"]], node["id"]
         assert node["pytest"] == {"pass": "passed", "fail": "failed"}[node["trace"]]
         assert node["errors"] == []
-    # Each assert of the source tests: 213 (97 before T7, 184 before T18),
-    # each cited by a check.
-    assert result["counts"]["asserts"] == 213
+    # Each assert of the source tests: 214 (97 before T7, 184 before T18,
+    # 213 before T8), each cited by a check.
+    assert result["counts"]["asserts"] == 214
     assert result["counts"]["not_reproduced"] == 0
     internal = [e["id"] for e in REPORT["excluded"] if e["class"] == "python-internal"]
     assert [n["id"] for n in result["python_internal"]] == internal
-    assert internal == [
+    # The 9 mock and spy nodes of T8: Linter string calls with a
+    # unittest.mock patch of sqlfluffrs; with sqlfluff (no Rust parser),
+    # each skips.
+    rust = [n for n in internal if "_rust_dispatch_test.py::" in n]
+    assert len(rust) == 9
+    assert [n for n in internal if n not in rust] == [
         INTERNAL,
         AM09_INTERNAL,
         JJ01_INTERNAL,
         ST06_INTERNAL,
         GLOBAL_CONFIG_INTERNAL,
     ]
-    assert all(n["calls"] == {} for n in result["python_internal"])
+    for item in result["python_internal"]:
+        if item["id"] not in rust:
+            assert item["calls"] == {}, item
+        elif tool == "sqlfluff":
+            assert item["pytest"] == "skipped" and item["calls"] == {}, item
+            assert item["skip_reason"] == oracle.RUST_ONLY_SKIP
+        else:
+            assert item["pytest"] == "passed", item
+            assert set(item["calls"]) == {"linter_string"}, item
+            assert all(m.startswith("sqlfluffrs.") for m in item["mocks"]), item
 
 
 def test_the_sqlfluff_rs_failure_is_the_report_failure():
@@ -790,6 +811,36 @@ TRACE_MUTATIONS = [
         "an error call in the folder /tmp/x",
     ),
     (
+        "a FluffConfig.from_string error that the CLI gives from another function",
+        lambda t: _call(t, RUST_CONFIG_ERROR)["cli"]["errors"][0].update(
+            function="FluffConfig.from_string"
+        ),
+        "case rejected: the CLI does not give the same error",
+    ),
+    (
+        "a FluffConfig.from_string error with no CLI input",
+        lambda t: _call(t, RUST_CONFIG_ERROR).pop("cli")
+        and _call(t, RUST_CONFIG_ERROR)["inputs"].update(no_cli_input="overrides"),
+        "case rejected: the error",
+    ),
+    (
+        "a FluffConfig.from_string error with another config file",
+        lambda t: _call(t, RUST_CONFIG_ERROR)["cli"]["files"].update(
+            {".sqlfluff": "[sqlfluff]\n"}
+        ),
+        "case rejected: input files",
+    ),
+    (
+        "python-internal node that skips for another reason",
+        lambda t: _node(t, CP01_SPY).update(skip_reason="Skipped: other"),
+        "the pytest outcome is skipped",
+    ),
+    (
+        "python-internal node that skips with a traced call",
+        lambda t: _node(t, CP01_SPY)["calls"].append(_call(t, LT03)),
+        "skipped with",
+    ),
+    (
         "python-internal node with an error call that maps",
         lambda t: _node(t, INTERNAL)["calls"].append(_call(t, REJECTED)),
         "class python-internal, but the error",
@@ -869,6 +920,21 @@ def test_rust_trace_mutations_make_the_oracle_fail():
     assert errors_with(result, "--rust: the parse runs are"), result["errors"]
     result = check("sqlfluff-rs", trace=TRACES["sqlfluff"])
     assert errors_with(result, "the trace is not of the tool sqlfluff-rs")
+    # T8: a mock or spy node can have Linter string calls only with a
+    # unittest.mock patch, and only sqlfluff (no Rust parser) can skip it.
+    for node_id in (CP01_SPY, CP01_MOCK):
+        assert _node(TRACES["sqlfluff-rs"], node_id)["mocks"]
+        trace = _trace(lambda t, n=node_id: _node(t, n).pop("mocks"), "sqlfluff-rs")
+        result = check("sqlfluff-rs", trace=trace)
+        assert errors_with(
+            result,
+            "linter_string calls and the node patches nothing with unittest.mock",
+        ), result["errors"]
+    skipped = copy.deepcopy(TRACES["sqlfluff"]["nodes"][CP01_SPY])
+    assert skipped["outcome"] == "skipped"
+    trace = _trace(lambda t: t["nodes"].update({CP01_SPY: skipped}), "sqlfluff-rs")
+    result = check("sqlfluff-rs", trace=trace)
+    assert errors_with(result, "the pytest outcome is skipped"), result["errors"]
 
 
 def test_a_failed_node_can_stop_before_its_last_call():
@@ -2084,7 +2150,7 @@ def test_trace_step_maps_the_calls_of_t17(tmp_path):
         "test_linter_error": "case lint: the CLI does not give the same error: the"
         " test gets \"KeyError: 'Unknown dialect'\" from Linter, the CLI run gets []",
         "test_config_error": "of FluffConfig; the oracle maps only an error of"
-        " ['RuleSet.get_rulepack', 'Linter']",
+        " ['RuleSet.get_rulepack', 'Linter', 'FluffConfig.from_string']",
         "test_rulepack_error_unknown_key": "the config model:"
         " rules:capitalisation.functions:capitalisation_policy: the map knows only"
         " the keys of the default config",
@@ -2440,6 +2506,161 @@ def test_trace_step_maps_the_calls_of_t18(tmp_path):
         node = _tree_node(root, name + test, [_cli_case("lint", ["lint"], 0)])
         errors = oracle.check_node(node, traced[name + test], "pass", root, []).errors
         assert any(error in e for e in errors), (test, errors)
+
+
+# T8 (Rust dispatch tests cp01, cp03, cp04: classification and conversion):
+# the trace step and the oracle on an error of FluffConfig.from_string, on a
+# mock or spy node (python-internal), and on a node that skips with no Rust
+# parser, with the oracle tools. Each call that the maps do not know is an
+# error with a message.
+
+TREE_T8 = """
+import os
+from unittest import mock
+
+import pytest
+from sqlfluff.core import FluffConfig, Linter
+from sqlfluff.core.errors import SQLFluffUserError
+
+BAD = "[sqlfluff]\\ndialect=ansi\\nuse_rust_parser=False\\nuse_rust_rules=True\\n"
+GOOD = "[sqlfluff]\\ndialect=ansi\\nrules=LT01\\n"
+
+
+def test_string_error():
+    with pytest.raises(SQLFluffUserError, match="use_rust_parser"):
+        FluffConfig.from_string(BAD)
+
+
+def test_string_error_overrides():
+    with pytest.raises(SQLFluffUserError):
+        FluffConfig.from_string(BAD, overrides={"dialect": "ansi"})
+
+
+def test_spy():
+    with mock.patch("os.getloadavg", wraps=os.getloadavg) as spy:
+        Linter(config=FluffConfig.from_string(GOOD)).lint_string("SELECT 1\\n")
+    assert not spy.called
+
+
+def test_no_mock():
+    assert Linter(config=FluffConfig.from_string(GOOD)).lint_string("SELECT 1\\n")
+
+
+@pytest.mark.skipif(True, reason="Rust parser not available")
+def test_rust_only():
+    pass
+
+
+@pytest.mark.skipif(True, reason="another reason")
+def test_other_skip():
+    pass
+"""
+T8_ERROR = (
+    "SQLFluffUserError: use_rust_rules is enabled but use_rust_parser is"
+    " disabled. Rust-native rules require the Rust parser (they read its parse"
+    " arena), so this combination does nothing. Set use_rust_parser to 'auto' or"
+    " 'True', or disable use_rust_rules."
+)
+T8_BAD = "[sqlfluff]\ndialect=ansi\nuse_rust_parser=False\nuse_rust_rules=True\n"
+
+
+@needs_oracles
+def test_trace_step_maps_the_calls_of_t8(tmp_path, monkeypatch, capsys):
+    root = tmp_path / "root"
+    (root / "test").mkdir(parents=True)
+    (root / "test" / "t8_test.py").write_text(TREE_T8)
+    name = "test/t8_test.py::"
+    names = [
+        line[4:].split("(")[0]
+        for line in TREE_T8.splitlines()
+        if line.startswith("def test_")
+    ]
+    out = tmp_path / "trace.json"
+    python = tools_dir() / "sqlfluff-oracle" / "bin" / "python"
+    proc = subprocess.run(
+        [str(python), str(SCRIPTS / "trace-nodes"), "--out", str(out)]
+        + ["--root", str(root)]
+        + [name + n for n in names],
+        capture_output=True,
+        text=True,
+        env=_env(tmp_path),
+        check=False,
+    )
+    assert proc.returncode == 0, proc.stderr[-3000:]
+    trace = json.loads(out.read_text())
+    traced = trace["nodes"]
+    assert oracle.trace_errors(trace, "sqlfluff", [name + n for n in names]) == []
+    assert {n: traced[name + n]["outcome"] for n in names} == {
+        "test_string_error": "passed",
+        "test_string_error_overrides": "passed",
+        "test_spy": "passed",
+        "test_no_mock": "passed",
+        "test_rust_only": "skipped",
+        "test_other_skip": "skipped",
+    }
+
+    # The error of FluffConfig.from_string: the config string is the
+    # .sqlfluff file, and the CLI loads it with FluffConfig.from_root.
+    error = traced[name + "test_string_error"]["calls"][0]
+    assert error["error"] == T8_ERROR
+    assert error["inputs"]["function"] == "FluffConfig.from_string"
+    assert error["cli"]["errors"] == [
+        {"function": "FluffConfig.from_root", "error": T8_ERROR}
+    ]
+    case = _cli_case(
+        "rejected",
+        ["lint", "-"],
+        2,
+        cwd="tmp",
+        stdin="",
+        files={".sqlfluff": T8_BAD},
+        checks={"stdout": {"contains": ["Error loading config: use_rust_rules"]}},
+    )
+    node = _tree_node(root, name + "test_string_error", [case])
+    result = oracle.check_node(
+        node, traced[name + "test_string_error"], "pass", root, []
+    )
+    assert result.errors == [] and result.trace == "pass", result.errors
+    assert _run_tree_oracle(monkeypatch, tmp_path, root, trace, [node]) == 0
+    assert '"agree": 1' in capsys.readouterr().out
+    changed = copy.deepcopy(node)
+    changed.cases[0].checks["stdout"]["contains"] = ["User Error"]
+    assert _run_tree_oracle(monkeypatch, tmp_path, root, trace, [changed]) == 1
+    assert "check 2" in capsys.readouterr().err
+    # With overrides, the trace has no CLI input: the oracle refuses it.
+    overrides = traced[name + "test_string_error_overrides"]
+    assert "cli" not in overrides["calls"][0]
+    node = _tree_node(root, name + "test_string_error_overrides", [case])
+    errors = oracle.check_node(node, overrides, "pass", root, []).errors
+    assert any("FluffConfig.from_string with overrides" in e for e in errors), errors
+
+    # A spy node is python-internal: it has a Linter string call and a mock.
+    spy = traced[name + "test_spy"]
+    assert spy["mocks"] == ["os.getloadavg"]
+    assert [c["kind"] for c in spy["calls"]] == ["linter_string"]
+    assert oracle.check_internal(name + "test_spy", spy)["errors"] == []
+    # A node with a Linter string call and no mock is not python-internal.
+    errors = oracle.check_internal(name + "test_no_mock", traced[name + "test_no_mock"])
+    assert errors["errors"] == [
+        "class python-internal, but the trace has 1 linter_string calls and the"
+        " node patches nothing with unittest.mock"
+    ]
+    # A node that skips with no Rust parser: only with the tool sqlfluff.
+    rust_only = traced[name + "test_rust_only"]
+    assert rust_only["skip_reason"] == oracle.RUST_ONLY_SKIP
+    result = oracle.check_internal(name + "test_rust_only", rust_only, "sqlfluff")
+    assert result["errors"] == [] and result["skip_reason"] == oracle.RUST_ONLY_SKIP
+    result = oracle.check_internal(name + "test_rust_only", rust_only, "sqlfluff-rs")
+    assert result["errors"] == [
+        "the pytest outcome is skipped; the trace of a node that does not pass can"
+        " be incomplete"
+    ]
+    other = traced[name + "test_other_skip"]
+    assert other["skip_reason"] == "Skipped: another reason"
+    errors = oracle.check_internal(name + "test_other_skip", other, "sqlfluff")[
+        "errors"
+    ]
+    assert errors and errors[0].startswith("the pytest outcome is skipped")
 
 
 S7CONFIG_CHECK = """

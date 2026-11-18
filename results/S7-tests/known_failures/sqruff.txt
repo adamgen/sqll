@@ -12,6 +12,7 @@ test/cli/commands_test.py::test__cli__command_no_dialect[command4]  # no_dialect
 test/cli/commands_test.py::test__cli__command_version  # version: unsupported: sqlfluff CLI command 'version' (the case has no sqruff translation); version_verbose: unsupported: sqlfluff CLI command 'version' (the case has no sqruff translation)
 test/core/config/fluffconfig_test.py::test__config__glob_exclude_config_tests  # glob_exclude: unsupported: sqlfluff CLI command 'lint' (the case has no sqruff translation)
 test/core/config/fluffconfig_test.py::test__config__glob_include_config_tests  # glob_include: unsupported: sqlfluff CLI command 'lint' (the case has no sqruff translation)
+test/rules/cp01_rust_dispatch_test.py::test__use_rust_rules_requires_rust_parser  # rejected: unsupported: sqlfluff CLI command 'lint' (the case has no sqruff translation)
 test/rules/std_AL04_test.py::test__rules__std_AL04_complex  # complex: unsupported: rule all
 test/rules/std_AL04_test.py::test__rules__std_AL04_one_aliases_one_duplicate  # one_aliases_one_duplicate: unsupported: rule all
 test/rules/std_AL04_test.py::test__rules__std_AL04_one_aliases_two_duplicate  # one_aliases_two_duplicate: unsupported: rule all

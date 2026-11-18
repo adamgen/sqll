@@ -15,13 +15,19 @@ warmup run gives the status:
 - no_reference: a templated file with no sqlfluff render. The leaf text is
   not compared, so no tool gets ok on it.
 - invalid: a crash, a panic, a timeout, no tree, a leaf text that is not
-  the input, or another exit code.
-- unsupported: the adapter refuses a setting (for example the dialect).
+  the input, or another exit code. With no tree, the reason also has the
+  "PRS: " stderr line of the tool, if there is one (for example the
+  iteration limit of the parser).
+- unsupported: the adapter refuses a setting (for example the dialect), or
+  a tool of FAIL_CLOSED fails closed: its exit code and a stderr line
+  "Error: unsupported: ..." (docs/decisions/s9-corpus.md, "sqll results",
+  decision 2). Such a result has no samples.
 - error: the harness cannot run or check the tool.
 
 A file of the manifest is in shard i % N + 1, where i is its index (from 0)
 in the files of the profile. No code here knows a tool name, except the
-corpus layer of a tool (TOOL_LAYERS) and the tools that join later (LATER).
+corpus layer of a tool (TOOL_LAYERS), the tools that fail closed
+(FAIL_CLOSED), and the tools that join later (LATER).
 Thus a new tool needs only its bench registry entry.
 """
 
@@ -73,6 +79,17 @@ TOOL_LAYERS: dict[str, dict[str, Any]] = {
 # yet. sqll is in the registry from S3 (T13); its corpus results come after
 # S3b (status/S9.md). That task removes it here and records a new baseline.
 LATER = frozenset({"sqll"})
+# docs/decisions/s9-corpus.md, "sqll results", decision 2: a tool that stops
+# with this exit code and a stderr line "Error: unsupported: ..." fails
+# closed on an item that it cannot do (for example sqll on a templated file
+# until S11). The result is unsupported, and its reason is the message of
+# the tool ("unsupported: ..."). The same output of another tool is invalid.
+FAIL_CLOSED = {"sqll": 2}
+_UNSUPPORTED_LINE = re.compile(r"^Error: (unsupported: .*\S)", re.M)
+# docs/decisions/s9-corpus.md, "sqll results", decision 1: the parse error
+# line of a tool with no tree (for example "PRS: Parser exceeded maximum
+# iteration limit (3000000). ...").
+_PRS_LINE = re.compile(r"^PRS: .*\S", re.M)
 # docs/decisions/s9-corpus.md, "Templated files": the render settings. The
 # dbt builtins, and no template variable, macro path, or library path: the
 # selection takes only files that need nothing more (jinja_names.py).
@@ -196,10 +213,11 @@ def check_run(
     try:
         record = adapter.read_tree(run.stdout.read_bytes(), INPUT_FILE)
         if record is None:
-            return f"no parse tree (exit code {code})", None
+            return no_tree(f"no parse tree (exit code {code})", text), None
         leaf_text, count, size = tree_facts(record)
     except (ValueError, TypeError, KeyError, IndexError) as exc:
-        return f"no parse tree (exit code {code}): {exc!r}"[:REASON_TEXT], None
+        reason = f"no parse tree (exit code {code}): {exc!r}"[:REASON_TEXT]
+        return no_tree(reason, text), None
     if expected is not None:
         got, want = normalize(leaf_text), normalize(expected)
         if got != want:
@@ -214,6 +232,37 @@ def check_run(
         {"count": count, "bytes": size},
     )
     return None, found
+
+
+def no_tree(reason: str, stderr: str) -> str:
+    """Return the reason of a run with no tree, with the first "PRS: " line
+    of stderr if it has one."""
+    m = _PRS_LINE.search(stderr)
+    return f"{reason}; {m[0][:REASON_TEXT]}" if m else reason
+
+
+def fail_closed(adapter: BenchAdapter, m: Measurement) -> str | None:
+    """Return the message of the tool ("unsupported: ...") if the tool is in
+    FAIL_CLOSED and its warmup run stopped with that exit code and a line
+    "Error: unsupported: ..." on stderr. Else None: then the result is
+    invalid, as for each other exit code that is not a parse exit code."""
+    code = FAIL_CLOSED.get(adapter.name)
+    warmup = m.warmup
+    if (
+        code is None
+        or m.status != timer.INVALID
+        or warmup is None
+        or warmup.sample.timed_out
+        or warmup.sample.exit_code != code
+        or len(m.samples) != 1
+    ):
+        return None
+    try:
+        text = warmup.stderr.read_bytes().decode("utf8", errors="replace")
+    except OSError:
+        return None
+    found = _UNSUPPORTED_LINE.search(_ANSI.sub("", text))
+    return found[1][: 2 * REASON_TEXT] if found else None
 
 
 # The jobs of one file.
@@ -329,9 +378,14 @@ def measure_file(
     out = []
     for adapter, fj in jobs:
         m = by_tool.get(fj.tool)
+        closed = None if m is None else fail_closed(adapter, m)
         if m is None:
             m = Measurement(fj.status, fj.reason, [], None)
             status, reason = fj.status, fj.reason
+        elif closed is not None:
+            # As an adapter that refuses a setting: no samples, no stats.
+            status, reason = report.UNSUPPORTED, closed
+            m = Measurement(timer.UNSUPPORTED, closed, [], None)
         else:
             status, reason = _status(adapter, fj, m, no_reference)
         unparsable = fj.found.unparsable if fj.found else None
@@ -629,9 +683,15 @@ def summary_lines(rep: Mapping[str, Any]) -> list[str]:
             + "".join(f"{counts[s]:>14}" for s in report.STATUSES)
         )
     c = rep["compared"]
-    lines.append(
-        f"compared: {c['files']} files where each tool is ok, {c['bytes']} bytes"
-    )
+    if c["tools"]:
+        lines.append(
+            f"compared: {c['files']} files where each of {', '.join(c['tools'])} "
+            f"is ok, {c['bytes']} bytes"
+        )
+    else:
+        lines.append(
+            f"compared: no tool of {', '.join(report.COMPARED_TOOLS)} in the report"
+        )
     for tool, t in c["results"].items():
         rate = "-" if t["bytes_per_s"] is None else f"{t['bytes_per_s']:.0f} B/s"
         ratio = "-" if t["wall_ratio"] is None else f"{t['wall_ratio']:.3f}"

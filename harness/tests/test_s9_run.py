@@ -22,7 +22,7 @@ from sqll_harness.adapters.base import EmptyHome, isolated_env
 from sqll_harness.bench import registry
 from sqll_harness.bench.adapter import BenchAdapter
 from sqll_harness.bench.sqll import SqllBench
-from sqll_harness.bench.timer import Policy, Sample, sample_stats
+from sqll_harness.bench.timer import Measurement, Policy, Run, Sample, sample_stats
 from sqll_harness.bench.tools import SqlfluffBench, SqlfluffRsBench, SqruffBench
 from sqll_harness.corpus import __main__ as corpus_main
 from sqll_harness.corpus import baseline, report
@@ -33,6 +33,18 @@ from sqll_harness.tools import ToolInfo
 COMMIT = "0123456789abcdef0123456789abcdef01234567"
 KIB = 1024
 LICENSE = b"MIT License\n\nCopyright (c) Example Holder\n"
+
+# The stderr lines of sqll when it fails closed (docs/decisions/s9-corpus.md,
+# "sqll results", decision 2) and when the parser stops (decision 1).
+CLOSED = (
+    "Error: unsupported: templater jinja for an empty file or a file with a Jinja tag "
+    '("{{", "{%", or "{#"). sqll has no Jinja templater yet (S11). Use the raw '
+    "templater (--templater raw)."
+)
+PRS = (
+    "PRS: Parser exceeded maximum iteration limit (3000000). This may be caused "
+    "by runaway parser logic or a very complex SQL query."
+)
 
 STUB = r"""
 import json, os, sys, time
@@ -75,6 +87,13 @@ if mode == "exit1":
     code = 1
 if mode == "exit2":
     sys.exit(2)
+if mode == "closed":
+    sys.stderr.write("note: a line before\n" + CLOSED + "\n")
+    sys.exit(2)
+if mode in ("prs", "prs_garbage"):
+    sys.stderr.write("note: a line before\n" + PRS + "\nnote: a line after\n")
+    print("null" if mode == "prs" else "not json")
+    sys.exit(1)
 if mode == "garbage":
     print("not json")
     sys.exit(0)
@@ -84,6 +103,10 @@ if mode in ("null0", "null1"):
 print(json.dumps({"file": tree}))
 sys.exit(code)
 """
+
+
+def stub_script() -> str:
+    return f"CLOSED = {CLOSED!r}\nPRS = {PRS!r}\n" + STUB
 
 
 class Stub(BenchAdapter):
@@ -150,6 +173,8 @@ def sql(size: int, mode=None, line=b"SELECT 1;\n", tag="") -> bytes:
 CASES = [
     ("models/bad_render.sql", "ok", "jinja", 9 * KIB, "ansi"),
     ("models/tmpl.sql", "ok", "jinja", 9 * KIB, "ansi"),
+    ("sql/closed.sql", "sqll=closed", "raw", 17 * KIB, "ansi"),
+    ("sql/closed_all.sql", "closed", "raw", 17 * KIB, "ansi"),
     ("sql/crlf.sql", None, "raw", 17 * KIB, "ansi"),
     ("sql/drop.sql", "drop", "raw", 17 * KIB, "ansi"),
     ("sql/exit1.sql", "exit1", "raw", 17 * KIB, "ansi"),
@@ -160,6 +185,8 @@ CASES = [
     ("sql/null1.sql", "null1", "raw", 17 * KIB, "ansi"),
     ("sql/ok.sql", None, "raw", 17 * KIB, "ansi"),
     ("sql/panic.sql", "sqruff=panic", "raw", 17 * KIB, "ansi"),
+    ("sql/prs.sql", "prs", "raw", 17 * KIB, "ansi"),
+    ("sql/prs_garbage.sql", "prs_garbage", "raw", 17 * KIB, "ansi"),
     ("sql/soql.sql", None, "raw", 17 * KIB, "soql"),
     ("sql/timeout.sql", "sqlfluff=timeout", "raw", 17 * KIB, "ansi"),
     ("sql/traceback.sql", "traceback", "raw", 17 * KIB, "ansi"),
@@ -242,7 +269,7 @@ class Env:
     def __init__(self, tmp: Path, mp: pytest.MonkeyPatch, tools=(StubSqlfluff,)):
         self.tmp = tmp
         script = tmp / "stub.py"
-        script.write_text(STUB, encoding="utf8")
+        script.write_text(stub_script(), encoding="utf8")
         self.registry = {}
         for cls in tools:
             self.registry[cls.name] = type(cls.__name__, (cls,), {"script": script})
@@ -448,6 +475,9 @@ EXPECTED = {
     # path: {tool: status}; a tool that is not given has the status of "*".
     "models/bad_render.sql": {"*": "no_reference"},
     "models/tmpl.sql": {"*": "ok"},
+    # Only sqll fails closed (FAIL_CLOSED).
+    "sql/closed.sql": {"*": "ok", "sqll": "unsupported"},
+    "sql/closed_all.sql": {"*": "invalid", "sqll": "unsupported"},
     "sql/crlf.sql": {"*": "ok"},
     "sql/drop.sql": {"*": "invalid"},
     "sql/exit1.sql": {"*": "invalid"},
@@ -457,6 +487,8 @@ EXPECTED = {
     "sql/null1.sql": {"*": "invalid"},
     "sql/ok.sql": {"*": "ok"},
     "sql/panic.sql": {"*": "ok", "sqruff": "invalid"},
+    "sql/prs.sql": {"*": "invalid"},
+    "sql/prs_garbage.sql": {"*": "invalid"},
     "sql/soql.sql": {"*": "ok", "sqruff": "unsupported"},
     "sql/timeout.sql": {"*": "ok", "sqlfluff": "invalid"},
     "sql/traceback.sql": {"*": "invalid"},
@@ -503,6 +535,127 @@ def test_the_smoke_run_gives_the_status_of_each_file_and_tool(smoke):
 )
 def test_each_status_has_its_reason(smoke, path, tool, reason):
     assert by_key(smoke["rep"])[(path, tool)]["reason"].startswith(reason)
+
+
+# sqll fails closed (docs/decisions/s9-corpus.md, "sqll results", decision 2).
+
+
+def test_sqll_that_fails_closed_gives_unsupported_with_no_samples(smoke):
+    """Exit code 2 and a line "Error: unsupported: ..." of sqll: the status
+    unsupported, the sqll message as the reason, and no samples and no
+    stats."""
+    assert smoke["errors"] == []
+    rows = by_key(smoke["rep"])
+    for path in ("sql/closed.sql", "sql/closed_all.sql"):
+        r = rows[(path, "sqll")]
+        assert r["status"] == "unsupported"
+        assert r["reason"] == CLOSED.removeprefix("Error: ")
+        assert r["samples"] == [] and r["runs"] == {"warmup": 0, "timed": 0}
+        assert r["stats"] is None and r["unparsable"] is None
+        assert r["exit_code"] is None and r["max_rss_kib"] is None
+        assert r["bytes_per_s"] is None
+    assert smoke["rep"]["totals"]["sqll"]["unsupported"] == 2
+
+
+def test_exit_code_2_with_no_unsupported_line_stays_invalid(smoke):
+    """Fail closed: exit code 2 alone is not unsupported."""
+    r = by_key(smoke["rep"])[("sql/exit2.sql", "sqll")]
+    assert r["status"] == "invalid" and r["exit_code"] == 2
+    assert r["reason"] == "warmup run: exit code 2, expected 0, 1"
+    assert len(r["samples"]) == 1
+
+
+def test_only_a_tool_that_fails_closed_gets_unsupported(smoke):
+    """The same exit code and line of another tool is invalid."""
+    assert corpus_run.FAIL_CLOSED == {"sqll": 2}
+    rows = by_key(smoke["rep"])
+    for tool in ("sqlfluff", "sqruff"):
+        r = rows[("sql/closed_all.sql", tool)]
+        assert r["status"] == "invalid" and r["exit_code"] == 2
+        assert r["reason"].startswith("warmup run: exit code 2, expected 0, 1; ")
+        assert CLOSED in r["reason"]
+
+
+def _measurement(tmp_path, code: int, stderr: str, timed_out=False):
+    folder = tmp_path / "warmup"
+    folder.mkdir()
+    run = Run(Sample("warmup", 0.1, 0.1, 0.0, 10, code, timed_out), folder)
+    run.stderr.write_text(stderr, encoding="utf8")
+    return Measurement("invalid", "warmup run: x", [run.sample], None, run)
+
+
+@pytest.mark.parametrize(
+    "code, stderr, timed_out, want",
+    [
+        (2, CLOSED + "\n", False, CLOSED.removeprefix("Error: ")),
+        (2, f"\x1b[31m{CLOSED}\x1b[0m\n", False, CLOSED.removeprefix("Error: ")),
+        (2, "Error: unsupported: rules all\nmore\n", False, "unsupported: rules all"),
+        (2, "Error: no such file\n", False, None),
+        (2, "x Error: unsupported: y\n", False, None),
+        (2, "", False, None),
+        (1, CLOSED, False, None),
+        (101, CLOSED, False, None),
+        (2, CLOSED, True, None),
+    ],
+)
+def test_fail_closed_needs_the_exit_code_and_the_line(
+    tmp_path, code, stderr, timed_out, want
+):
+    m = _measurement(tmp_path, code, stderr, timed_out)
+    sqll = type("S", (StubSqll,), {"script": tmp_path / "stub.py"})()
+    fluff = type("F", (StubSqlfluff,), {"script": tmp_path / "stub.py"})()
+    assert corpus_run.fail_closed(sqll, m) == want
+    assert corpus_run.fail_closed(fluff, m) is None
+
+
+def test_fail_closed_needs_an_invalid_warmup_run_only(tmp_path):
+    m = _measurement(tmp_path, 2, CLOSED)
+    sqll = type("S", (StubSqll,), {"script": tmp_path / "stub.py"})()
+    assert corpus_run.fail_closed(sqll, m) is not None
+    two = Measurement(m.status, m.reason, [*m.samples, m.samples[0]], None, m.warmup)
+    assert corpus_run.fail_closed(sqll, two) is None
+    other = Measurement("error", m.reason, m.samples, None, m.warmup)
+    assert corpus_run.fail_closed(sqll, other) is None
+    assert corpus_run.fail_closed(sqll, Measurement("invalid", "x", [], None)) is None
+
+
+# The "PRS: " line (docs/decisions/s9-corpus.md, "sqll results", decision 1).
+
+
+def test_the_reason_of_a_run_with_no_tree_has_the_prs_line(smoke):
+    rows = by_key(smoke["rep"])
+    for tool in ("sqlfluff", "sqll", "sqruff"):
+        r = rows[("sql/prs.sql", tool)]
+        assert r["status"] == "invalid"
+        assert r["reason"] == f"warmup run: no parse tree (exit code 1); {PRS}"
+        r = rows[("sql/prs_garbage.sql", tool)]
+        assert r["reason"].startswith("warmup run: no parse tree (exit code 1): ")
+        assert r["reason"].endswith(f"; {PRS}")
+
+
+def test_a_run_with_no_tree_and_no_prs_line_keeps_the_old_reason(smoke):
+    rows = by_key(smoke["rep"])
+    for tool in ("sqlfluff", "sqll", "sqruff"):
+        r = rows[("sql/null1.sql", tool)]
+        assert r["reason"] == "warmup run: no parse tree (exit code 1)"
+        r = rows[("sql/null0.sql", tool)]
+        assert r["reason"] == "warmup run: no parse tree (exit code 0)"
+
+
+@pytest.mark.parametrize(
+    "stderr, want",
+    [
+        ("", "R"),
+        ("note\n", "R"),
+        (f"a\n{PRS}\nb\n", f"R; {PRS}"),
+        (f"{PRS}\r\n", f"R; {PRS}"),
+        ("PRS: first\nPRS: second\n", "R; PRS: first"),
+        ("x PRS: not at the start\n", "R"),
+        ("PRS: " + "y" * 400, "R; PRS: " + "y" * 295),
+    ],
+)
+def test_no_tree_adds_the_first_prs_line(stderr, want):
+    assert corpus_run.no_tree("R", stderr) == want
 
 
 def test_an_unparsable_tree_gives_the_count_and_bytes(smoke):
@@ -560,10 +713,21 @@ def test_templated_files_get_the_jinja_settings_and_the_reference(smoke):
 
 
 def test_the_compared_totals_use_only_files_where_each_tool_is_ok(smoke):
+    """compared has only the tools of report.COMPARED_TOOLS: the run has
+    sqll, but compared has no sqll and does not need sqll to be ok
+    (docs/decisions/s9-corpus.md, "sqll results", decision 4)."""
     rep = smoke["rep"]
-    ok_all = [p for p, s in EXPECTED.items() if s["*"] == "ok" and set(s) == {"*"}]
+    compared = ("sqlfluff", "sqruff")
+    ok_all = [
+        p
+        for p, s in EXPECTED.items()
+        if all(s.get(t, s["*"]) == "ok" for t in compared)
+    ]
     c = rep["compared"]
-    assert c["files"] == len(ok_all) == 3
+    assert c["tools"] == list(compared)
+    assert "sqll" not in c["results"]
+    assert "sql/closed.sql" in ok_all
+    assert c["files"] == len(ok_all) == 4
     assert c["bytes"] == sum(len(FILES[p]) for p in ok_all)
     rows = by_key(rep)
     for tool, t in c["results"].items():
@@ -583,7 +747,12 @@ def test_a_new_tool_runs_each_file_through_the_registry_alone(smoke):
     assert got == sorted(files) and len(files) == len(CASES) - 1
     assert rep["scope"]["tools"] == ["sqlfluff", "sqll", "sqruff"]
     assert rep["tools"]["sqll"]["version"] == "1.0"
-    assert all(r["runs"]["warmup"] == 1 for r in rep["results"] if r["tool"] == "sqll")
+    # Each file runs; an unsupported result (sqll fails closed) keeps no
+    # sample (docs/decisions/s9-corpus.md, "sqll results", decision 2).
+    mine = [r for r in rep["results"] if r["tool"] == "sqll"]
+    closed = {r["file"] for r in mine if r["status"] == "unsupported"}
+    assert closed == {"demo/sql/closed.sql", "demo/sql/closed_all.sql"}
+    assert all(r["runs"]["warmup"] == 1 for r in mine if r["file"] not in closed)
     assert "sqll" not in smoke["manifest"].text.decode()
     for templater in ("raw", "jinja"):
         core = rep["tools"]["sqll"]["settings"][templater]["core"]
