@@ -3446,13 +3446,13 @@
    "id": "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__engages_rust_only_when_enabled",
    "group": "rules",
    "class": "python-internal",
-   "reason": "A spy (mock.patch of sqlfluffrs.cp01_violations) checks that the Rust detection runs only with use_rust_rules True; the CLI does not show it (decision 3)."
+   "reason": "A spy (mock.patch of sqlfluffrs.cp01_violations) checks that the Rust detection runs only with use_rust_rules True; the CLI does not show it (decision 3); for the result, not the detection, the S1 data cases cover CP01: CP01.yml has 29 cases, 16 with fix_str."
   },
   {
    "id": "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__regex_ignore_falls_back_to_python",
    "group": "rules",
    "class": "python-internal",
-   "reason": "A spy (mock.patch of sqlfluffrs.cp01_violations) checks that ignore_words_regex does not call the Rust detection; the CLI does not show it (decision 3)."
+   "reason": "A spy (mock.patch of sqlfluffrs.cp01_violations) checks that ignore_words_regex does not call the Rust detection; the CLI does not show it (decision 3); for the result, not the detection, the S1 data cases cover CP01: CP01.yml has 29 cases, 16 with fix_str."
   },
   {
    "id": "test/rules/cp01_rust_dispatch_test.py::test__dispatch__rule_without_rust_path_falls_back",
@@ -3470,7 +3470,7 @@
    "id": "test/rules/cp01_rust_dispatch_test.py::test__dispatch__rust_error_is_recoverable",
    "group": "rules",
    "class": "python-internal",
-   "reason": "A mock (mock.patch of sqlfluffrs.cp01_violations with a RuntimeError) makes the Rust detection fail; the CLI cannot make this error (decision 3)."
+   "reason": "A mock (mock.patch of sqlfluffrs.cp01_violations with a RuntimeError) makes the Rust detection fail; the CLI cannot make this error (decision 3); for the result, not the detection, the S1 data cases cover CP01: CP01.yml has 29 cases, 16 with fix_str."
   },
   {
    "id": "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__fix_parity[select sum(a) as aa, SUM(b) as bb from foo-consistent]",
@@ -3692,19 +3692,19 @@
    "id": "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__engages_rust_only_when_enabled",
    "group": "rules",
    "class": "python-internal",
-   "reason": "A spy (mock.patch of sqlfluffrs.cp03_violations) checks that the Rust detection runs only with use_rust_rules True; the CLI does not show it (decision 3)."
+   "reason": "A spy (mock.patch of sqlfluffrs.cp03_violations) checks that the Rust detection runs only with use_rust_rules True; the CLI does not show it (decision 3); for the result, not the detection, the S1 data cases cover CP03: CP03.yml has 17 cases, 8 with fix_str."
   },
   {
    "id": "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__regex_ignore_falls_back_to_python",
    "group": "rules",
    "class": "python-internal",
-   "reason": "A spy (mock.patch of sqlfluffrs.cp03_violations) checks that ignore_words_regex does not call the Rust detection; the CLI does not show it (decision 3)."
+   "reason": "A spy (mock.patch of sqlfluffrs.cp03_violations) checks that ignore_words_regex does not call the Rust detection; the CLI does not show it (decision 3); for the result, not the detection, the S1 data cases cover CP03: CP03.yml has 17 cases, 8 with fix_str."
   },
   {
    "id": "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__not_hijacked_by_cp01_rust_path",
    "group": "rules",
    "class": "python-internal",
-   "reason": "2 spies (mock.patch of sqlfluffrs.cp01_violations and cp03_violations) check which Rust detection runs; the CLI does not show it (decision 3)."
+   "reason": "2 spies (mock.patch of sqlfluffrs.cp01_violations and cp03_violations) check which Rust detection runs; the CLI does not show it (decision 3); for the result, not the detection, the S1 data cases cover CP03: CP03.yml has 17 cases, 8 with fix_str."
   },
   {
    "id": "test/rules/cp04_rust_dispatch_test.py::test__cp04_dispatch__fix_parity[select TRUE, false, NULL, a is not NULL from t-consistent]",
@@ -3836,19 +3836,19 @@
    "id": "test/rules/cp04_rust_dispatch_test.py::test__cp04_dispatch__engages_rust_only_when_enabled",
    "group": "rules",
    "class": "python-internal",
-   "reason": "A spy (mock.patch of sqlfluffrs.cp04_violations) checks that the Rust detection runs only with use_rust_rules True; the CLI does not show it (decision 3)."
+   "reason": "A spy (mock.patch of sqlfluffrs.cp04_violations) checks that the Rust detection runs only with use_rust_rules True; the CLI does not show it (decision 3); for the result, not the detection, the S1 data cases cover CP04: CP04.yml has 5 cases, 4 with fix_str."
   },
   {
    "id": "test/rules/cp04_rust_dispatch_test.py::test__cp04_dispatch__regex_ignore_falls_back_to_python",
    "group": "rules",
    "class": "python-internal",
-   "reason": "A spy (mock.patch of sqlfluffrs.cp04_violations) checks that ignore_words_regex does not call the Rust detection; the CLI does not show it (decision 3)."
+   "reason": "A spy (mock.patch of sqlfluffrs.cp04_violations) checks that ignore_words_regex does not call the Rust detection; the CLI does not show it (decision 3); for the result, not the detection, the S1 data cases cover CP04: CP04.yml has 5 cases, 4 with fix_str."
   },
   {
    "id": "test/rules/cp04_rust_dispatch_test.py::test__cp04_dispatch__not_hijacked_by_cp01_rust_path",
    "group": "rules",
    "class": "python-internal",
-   "reason": "2 spies (mock.patch of sqlfluffrs.cp01_violations and cp04_violations) check which Rust detection runs; the CLI does not show it (decision 3)."
+   "reason": "2 spies (mock.patch of sqlfluffrs.cp01_violations and cp04_violations) check which Rust detection runs; the CLI does not show it (decision 3); for the result, not the detection, the S1 data cases cover CP04: CP04.yml has 5 cases, 4 with fix_str."
   },
   {
    "id": "test/rules/std_AM09_test.py::test__rules__std_AM09_eval_short_circuit_on_non_select_segment",

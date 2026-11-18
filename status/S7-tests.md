@@ -834,10 +834,10 @@ rule cases ([results/s1/summary.json](../results/s1/summary.json)).
 | `ignore_words_parity` (cp01, cp03, cp04) | 3 | `engine-comparison` | The same, with `ignore_words` | `CP01.yml`, `CP03.yml`, `CP04.yml` (as above) |
 | `test__dispatch__rule_without_rust_path_falls_back` | 1 | `engine-comparison` | The same for LT01, a rule with no Rust path | The 9 `LT01-*.yml` files: 188 cases, 82 with `fix_str` |
 | `test__dispatch__cp02_inherits_eval_rust_and_falls_back` | 1 | `engine-comparison` | The same for CP02, a rule with no Rust path of its own | `CP02.yml`: 48 cases, 25 with `fix_str` |
-| `engages_rust_only_when_enabled` (cp01, cp03, cp04) | 3 | `python-internal` | A spy (`mock.patch` of `sqlfluffrs.cp0N_violations`) checks if the Rust detection runs | None: the CLI does not show which detection runs |
-| `regex_ignore_falls_back_to_python` (cp01, cp03, cp04) | 3 | `python-internal` | A spy checks that `ignore_words_regex` does not call the Rust detection | None |
-| `not_hijacked_by_cp01_rust_path` (cp03, cp04) | 2 | `python-internal` | 2 spies check which Rust detection runs | None |
-| `test__dispatch__rust_error_is_recoverable` | 1 | `python-internal` | A mock makes the Rust detection raise `RuntimeError` | None: the CLI cannot make this error |
+| `engages_rust_only_when_enabled` (cp01, cp03, cp04) | 3 | `python-internal` | A spy (`mock.patch` of `sqlfluffrs.cp0N_violations`) checks if the Rust detection runs | `CP01.yml`, `CP03.yml`, `CP04.yml` (as above); they cover the result of the rule, not which detection runs, and the CLI does not show it |
+| `regex_ignore_falls_back_to_python` (cp01, cp03, cp04) | 3 | `python-internal` | A spy checks that `ignore_words_regex` does not call the Rust detection | `CP01.yml`, `CP03.yml`, `CP04.yml` (as above), for the result |
+| `not_hijacked_by_cp01_rust_path` (cp03, cp04) | 2 | `python-internal` | 2 spies check which Rust detection runs | `CP03.yml`, `CP04.yml` (as above), for the result |
+| `test__dispatch__rust_error_is_recoverable` | 1 | `python-internal` | A mock makes the Rust detection raise `RuntimeError` | `CP01.yml` (as above), for the result; the CLI cannot make this error |
 
 - Converted (1 node, 1 case):
   `cp01_rust_dispatch_test.py::test__use_rust_rules_requires_rust_parser`. Its
@@ -902,8 +902,15 @@ rule cases ([results/s1/summary.json](../results/s1/summary.json)).
 - Speed: `scripts/verify --s7` (machine lock) gives `s7-run` 30.0 s and
   `s7-oracle` 15.6 s; at T18 (PR #109) they were 31.3 s and 16.1 s. The 1 new
   case for each tool and the 10 new traced nodes are in the noise. No tool
-  code changes, so no benchmark changes; the pull request gives the `bench
-  compare` result.
+  code changes and no benchmark input changes (each changed path is a path
+  of the S7-tests track: the S7 harness, its tests, its script, its results,
+  and its documents), so no benchmark changes.
+- Review round 1 (2026-11-18): the acceptance of T8 asks for the S1 data
+  counts in each reason. The 9 `python-internal` reasons did not give them.
+  Each now gives the counts of the rule of its file (for the result of the
+  rule, not for the detection that the spy checks), and
+  `test_each_rust_dispatch_exclusion_gives_its_reason` checks the counts for
+  the 2 classes. Only these 9 reasons of `report.json` change.
 
 ## Recorded results
 

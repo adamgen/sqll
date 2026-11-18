@@ -153,11 +153,10 @@ def test_each_rust_dispatch_exclusion_gives_its_reason():
             continue
         reason = entry.reason or ""
         assert reason.strip() and "\n" not in reason, node
-        assert reason.endswith("(decision 3).") or "(decision 3);" in reason, node
-        if entry.cls != "engine-comparison":
-            assert re.search(r"mock\.patch of sqlfluffrs\.cp0[134]_violations", reason)
-            continue
-        # The S1 data cases that cover the same rule, with their counts.
+        assert "(decision 3);" in reason, node
+        # The S1 data cases that cover the same rule, with their counts. A
+        # mock or spy node gives them too: they cover the result of the rule,
+        # not which detection runs.
         rule = re.search(r"the S1 data cases cover (\w+):", reason)[1]
         n, fixes = _rule_cases(rule)
         files = RULE_FILES[rule]
@@ -166,6 +165,10 @@ def test_each_rust_dispatch_exclusion_gives_its_reason():
         else:
             where = f"the {len(files)} LT01-*.yml files have"
         assert f"cover {rule}: {where} {n} cases, {fixes} with fix_str." in reason, node
+        assert rule == _rule_of(node), node
+        if entry.cls != "engine-comparison":
+            assert re.search(r"mock\.patch of sqlfluffrs\.cp0[134]_violations", reason)
+            continue
         compared = re.search(r"True and False for (\w+)", reason)[1]
         assert compared == rule == _rule_of(node), node
 
