@@ -177,6 +177,22 @@
      "errors": []
     },
     {
+     "id": "test/rules/cp01_rust_dispatch_test.py::test__use_rust_rules_requires_rust_parser",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "rejected",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
      "id": "test/rules/std_AL04_test.py::test__rules__std_AL04_one_aliases_one_duplicate",
      "pytest": "passed",
      "trace": "pass",
@@ -2013,6 +2029,72 @@
      "id": "test/cli/commands_test.py::test__get_filtered_parse_violations_caches_rulepack_per_config",
      "pytest": "passed",
      "calls": {},
+     "mocks": [
+      "Linter.get_rulepack"
+     ],
+     "errors": []
+    },
+    {
+     "id": "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__engages_rust_only_when_enabled",
+     "pytest": "skipped",
+     "calls": {},
+     "skip_reason": "Skipped: Rust parser not available",
+     "errors": []
+    },
+    {
+     "id": "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__regex_ignore_falls_back_to_python",
+     "pytest": "skipped",
+     "calls": {},
+     "skip_reason": "Skipped: Rust parser not available",
+     "errors": []
+    },
+    {
+     "id": "test/rules/cp01_rust_dispatch_test.py::test__dispatch__rust_error_is_recoverable",
+     "pytest": "skipped",
+     "calls": {},
+     "skip_reason": "Skipped: Rust parser not available",
+     "errors": []
+    },
+    {
+     "id": "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__engages_rust_only_when_enabled",
+     "pytest": "skipped",
+     "calls": {},
+     "skip_reason": "Skipped: Rust parser not available",
+     "errors": []
+    },
+    {
+     "id": "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__regex_ignore_falls_back_to_python",
+     "pytest": "skipped",
+     "calls": {},
+     "skip_reason": "Skipped: Rust parser not available",
+     "errors": []
+    },
+    {
+     "id": "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__not_hijacked_by_cp01_rust_path",
+     "pytest": "skipped",
+     "calls": {},
+     "skip_reason": "Skipped: Rust parser not available",
+     "errors": []
+    },
+    {
+     "id": "test/rules/cp04_rust_dispatch_test.py::test__cp04_dispatch__engages_rust_only_when_enabled",
+     "pytest": "skipped",
+     "calls": {},
+     "skip_reason": "Skipped: Rust parser not available",
+     "errors": []
+    },
+    {
+     "id": "test/rules/cp04_rust_dispatch_test.py::test__cp04_dispatch__regex_ignore_falls_back_to_python",
+     "pytest": "skipped",
+     "calls": {},
+     "skip_reason": "Skipped: Rust parser not available",
+     "errors": []
+    },
+    {
+     "id": "test/rules/cp04_rust_dispatch_test.py::test__cp04_dispatch__not_hijacked_by_cp01_rust_path",
+     "pytest": "skipped",
+     "calls": {},
+     "skip_reason": "Skipped: Rust parser not available",
      "errors": []
     },
     {
@@ -2041,12 +2123,12 @@
     }
    ],
    "counts": {
-    "nodes": 106,
-    "agree": 106,
-    "pass": 106,
+    "nodes": 107,
+    "agree": 107,
+    "pass": 107,
     "fail": 0,
-    "python_internal": 5,
-    "asserts": 213,
+    "python_internal": 14,
+    "asserts": 214,
     "not_reproduced": 0
    },
    "errors": []
@@ -2222,6 +2304,22 @@
      "errors": []
     },
     {
+     "id": "test/rules/cp01_rust_dispatch_test.py::test__use_rust_rules_requires_rust_parser",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "rejected",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
      "id": "test/rules/std_AL04_test.py::test__rules__std_AL04_one_aliases_one_duplicate",
      "pytest": "passed",
      "trace": "pass",
@@ -4058,6 +4156,113 @@
      "id": "test/cli/commands_test.py::test__get_filtered_parse_violations_caches_rulepack_per_config",
      "pytest": "passed",
      "calls": {},
+     "mocks": [
+      "Linter.get_rulepack"
+     ],
+     "errors": []
+    },
+    {
+     "id": "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__engages_rust_only_when_enabled",
+     "pytest": "passed",
+     "calls": {
+      "linter_string": 2
+     },
+     "mocks": [
+      "sqlfluffrs.cp01_violations",
+      "sqlfluffrs.cp01_violations"
+     ],
+     "errors": []
+    },
+    {
+     "id": "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__regex_ignore_falls_back_to_python",
+     "pytest": "passed",
+     "calls": {
+      "linter_string": 1
+     },
+     "mocks": [
+      "sqlfluffrs.cp01_violations"
+     ],
+     "errors": []
+    },
+    {
+     "id": "test/rules/cp01_rust_dispatch_test.py::test__dispatch__rust_error_is_recoverable",
+     "pytest": "passed",
+     "calls": {
+      "linter_string": 1
+     },
+     "mocks": [
+      "sqlfluffrs.cp01_violations"
+     ],
+     "errors": []
+    },
+    {
+     "id": "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__engages_rust_only_when_enabled",
+     "pytest": "passed",
+     "calls": {
+      "linter_string": 2
+     },
+     "mocks": [
+      "sqlfluffrs.cp03_violations",
+      "sqlfluffrs.cp03_violations"
+     ],
+     "errors": []
+    },
+    {
+     "id": "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__regex_ignore_falls_back_to_python",
+     "pytest": "passed",
+     "calls": {
+      "linter_string": 1
+     },
+     "mocks": [
+      "sqlfluffrs.cp03_violations"
+     ],
+     "errors": []
+    },
+    {
+     "id": "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__not_hijacked_by_cp01_rust_path",
+     "pytest": "passed",
+     "calls": {
+      "linter_string": 1
+     },
+     "mocks": [
+      "sqlfluffrs.cp01_violations",
+      "sqlfluffrs.cp03_violations"
+     ],
+     "errors": []
+    },
+    {
+     "id": "test/rules/cp04_rust_dispatch_test.py::test__cp04_dispatch__engages_rust_only_when_enabled",
+     "pytest": "passed",
+     "calls": {
+      "linter_string": 2
+     },
+     "mocks": [
+      "sqlfluffrs.cp04_violations",
+      "sqlfluffrs.cp04_violations"
+     ],
+     "errors": []
+    },
+    {
+     "id": "test/rules/cp04_rust_dispatch_test.py::test__cp04_dispatch__regex_ignore_falls_back_to_python",
+     "pytest": "passed",
+     "calls": {
+      "linter_string": 1
+     },
+     "mocks": [
+      "sqlfluffrs.cp04_violations"
+     ],
+     "errors": []
+    },
+    {
+     "id": "test/rules/cp04_rust_dispatch_test.py::test__cp04_dispatch__not_hijacked_by_cp01_rust_path",
+     "pytest": "passed",
+     "calls": {
+      "linter_string": 1
+     },
+     "mocks": [
+      "sqlfluffrs.cp01_violations",
+      "sqlfluffrs.cp04_violations"
+     ],
      "errors": []
     },
     {
@@ -4086,12 +4291,12 @@
     }
    ],
    "counts": {
-    "nodes": 106,
-    "agree": 106,
-    "pass": 105,
+    "nodes": 107,
+    "agree": 107,
+    "pass": 106,
     "fail": 1,
-    "python_internal": 5,
-    "asserts": 213,
+    "python_internal": 14,
+    "asserts": 214,
     "not_reproduced": 0
    },
    "errors": []

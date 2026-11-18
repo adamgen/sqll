@@ -8,7 +8,7 @@
  "pytest_exit_code": 1,
  "root_config": {},
  "parse_runs": {
-  "RustParser": 180,
+  "RustParser": 203,
   "Parser": 0
  },
  "collection_errors": {},
@@ -414,6 +414,48 @@
        }
       ],
       "exit_code": 1
+     }
+    }
+   ],
+   "untraced": [],
+   "processes": []
+  },
+  "test/rules/cp01_rust_dispatch_test.py::test__use_rust_rules_requires_rust_parser": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "error",
+     "error": "SQLFluffUserError: use_rust_rules is enabled but use_rust_parser is disabled. Rust-native rules require the Rust parser (they read its parse arena), so this combination does nothing. Set use_rust_parser to 'auto' or 'True', or disable use_rust_rules.",
+     "inputs": {
+      "function": "FluffConfig.from_string",
+      "cli_input": {
+       "files": {
+        ".sqlfluff": "[sqlfluff]\ndialect=ansi\nuse_rust_parser=False\nuse_rust_rules=True\n"
+       }
+      },
+      "cwd": "{sqlfluff}"
+     },
+     "cli": {
+      "argv": [
+       "lint",
+       "-"
+      ],
+      "stdin": "",
+      "files": {
+       ".sqlfluff": "[sqlfluff]\ndialect=ansi\nuse_rust_parser=False\nuse_rust_rules=True\n"
+      },
+      "exit_code": 2,
+      "stdout": "Error loading config: use_rust_rules is enabled but use_rust_parser is disabled. Rust-native rules require the Rust parser (they read its parse arena), so this combination does nothing. Set use_rust_parser to 'auto' or 'True', or disable use_rust_rules.\n",
+      "stderr": "",
+      "files_after": {
+       ".sqlfluff": "[sqlfluff]\ndialect=ansi\nuse_rust_parser=False\nuse_rust_rules=True\n"
+      },
+      "errors": [
+       {
+        "function": "FluffConfig.from_root",
+        "error": "SQLFluffUserError: use_rust_rules is enabled but use_rust_parser is disabled. Rust-native rules require the Rust parser (they read its parse arena), so this combination does nothing. Set use_rust_parser to 'auto' or 'True', or disable use_rust_rules."
+       }
+      ]
      }
     }
    ],
@@ -20827,6 +20869,1561 @@
    "untraced_linter": [
     "a Linter render (Linter.render_string)",
     "a Linter parse (Linter.parse_rendered)"
+   ],
+   "mocks": [
+    "Linter.get_rulepack"
+   ]
+  },
+  "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__engages_rust_only_when_enabled": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "linter_string",
+     "inputs": {
+      "method": "lint_string",
+      "sql": "SeLeCt 1 FROM t",
+      "options": {
+       "fname": "<string input>",
+       "fix": true,
+       "config": null,
+       "encoding": "utf8"
+      },
+      "linter": {
+       "config": {
+        "method": "from_string",
+        "args": {
+         "config_string": "[sqlfluff]\ndialect=ansi\nrules=CP01\nuse_rust_parser=True\nuse_rust_rules=True\n[sqlfluff:rules:capitalisation.keywords]\ncapitalisation_policy=consistent\n"
+        }
+       }
+      },
+      "config_changed": false,
+      "cwd": "{sqlfluff}",
+      "config_file": {
+       "text": "[sqlfluff]\ndialect = ansi\nrules = CP01\n"
+      },
+      "config_proof": []
+     },
+     "outputs": {
+      "records": [
+       {
+        "filepath": "<string input>",
+        "violations": [
+         {
+          "start_line_no": 1,
+          "start_line_pos": 1,
+          "code": "CP01",
+          "description": "Keywords must be consistent.",
+          "name": "capitalisation.keywords",
+          "warning": false,
+          "fixes": [
+           {
+            "type": "replace",
+            "edit": "SELECT",
+            "start_line_no": 1,
+            "start_line_pos": 1,
+            "start_file_pos": 0,
+            "end_line_no": 1,
+            "end_line_pos": 7,
+            "end_file_pos": 6
+           }
+          ],
+          "start_file_pos": 0,
+          "end_line_no": 1,
+          "end_line_pos": 7,
+          "end_file_pos": 6
+         }
+        ],
+        "statistics": {
+         "source_chars": 15,
+         "templated_chars": 15,
+         "segments": 22,
+         "raw_segments": 12
+        }
+       }
+      ],
+      "violations": 1,
+      "tmp_prs": 0,
+      "fixable": 1,
+      "unfixable": 0,
+      "fixed": "SELECT 1 FROM t",
+      "lint": {
+       "records": [
+        {
+         "filepath": "<string input>",
+         "violations": [
+          {
+           "start_line_no": 1,
+           "start_line_pos": 1,
+           "code": "CP01",
+           "description": "Keywords must be consistent.",
+           "name": "capitalisation.keywords",
+           "warning": false,
+           "fixes": [
+            {
+             "type": "replace",
+             "edit": "SELECT",
+             "start_line_no": 1,
+             "start_line_pos": 1,
+             "start_file_pos": 0,
+             "end_line_no": 1,
+             "end_line_pos": 7,
+             "end_file_pos": 6
+            }
+           ],
+           "start_file_pos": 0,
+           "end_line_no": 1,
+           "end_line_pos": 7,
+           "end_file_pos": 6
+          }
+         ],
+         "statistics": {
+          "source_chars": 15,
+          "templated_chars": 15,
+          "segments": 22,
+          "raw_segments": 12
+         }
+        }
+       ],
+       "violations": 1,
+       "tmp_prs": 0,
+       "fixable": 1,
+       "unfixable": 0
+      }
+     }
+    },
+    {
+     "kind": "linter_string",
+     "inputs": {
+      "method": "lint_string",
+      "sql": "SeLeCt 1 FROM t",
+      "options": {
+       "fname": "<string input>",
+       "fix": true,
+       "config": null,
+       "encoding": "utf8"
+      },
+      "linter": {
+       "config": {
+        "method": "from_string",
+        "args": {
+         "config_string": "[sqlfluff]\ndialect=ansi\nrules=CP01\nuse_rust_parser=True\nuse_rust_rules=False\n[sqlfluff:rules:capitalisation.keywords]\ncapitalisation_policy=consistent\n"
+        }
+       }
+      },
+      "config_changed": false,
+      "cwd": "{sqlfluff}",
+      "config_file": {
+       "text": "[sqlfluff]\ndialect = ansi\nrules = CP01\nuse_rust_rules = False\n"
+      },
+      "config_proof": []
+     },
+     "outputs": {
+      "records": [
+       {
+        "filepath": "<string input>",
+        "violations": [
+         {
+          "start_line_no": 1,
+          "start_line_pos": 1,
+          "code": "CP01",
+          "description": "Keywords must be consistently upper case.",
+          "name": "capitalisation.keywords",
+          "warning": false,
+          "fixes": [
+           {
+            "type": "replace",
+            "edit": "SELECT",
+            "start_line_no": 1,
+            "start_line_pos": 1,
+            "start_file_pos": 0,
+            "end_line_no": 1,
+            "end_line_pos": 7,
+            "end_file_pos": 6
+           }
+          ],
+          "start_file_pos": 0,
+          "end_line_no": 1,
+          "end_line_pos": 7,
+          "end_file_pos": 6
+         }
+        ],
+        "statistics": {
+         "source_chars": 15,
+         "templated_chars": 15,
+         "segments": 22,
+         "raw_segments": 12
+        }
+       }
+      ],
+      "violations": 1,
+      "tmp_prs": 0,
+      "fixable": 1,
+      "unfixable": 0,
+      "fixed": "SELECT 1 FROM t",
+      "lint": {
+       "records": [
+        {
+         "filepath": "<string input>",
+         "violations": [
+          {
+           "start_line_no": 1,
+           "start_line_pos": 1,
+           "code": "CP01",
+           "description": "Keywords must be consistently upper case.",
+           "name": "capitalisation.keywords",
+           "warning": false,
+           "fixes": [
+            {
+             "type": "replace",
+             "edit": "SELECT",
+             "start_line_no": 1,
+             "start_line_pos": 1,
+             "start_file_pos": 0,
+             "end_line_no": 1,
+             "end_line_pos": 7,
+             "end_file_pos": 6
+            }
+           ],
+           "start_file_pos": 0,
+           "end_line_no": 1,
+           "end_line_pos": 7,
+           "end_file_pos": 6
+          }
+         ],
+         "statistics": {
+          "source_chars": 15,
+          "templated_chars": 15,
+          "segments": 22,
+          "raw_segments": 12
+         }
+        }
+       ],
+       "violations": 1,
+       "tmp_prs": 0,
+       "fixable": 1,
+       "unfixable": 0
+      }
+     }
+    }
+   ],
+   "untraced": [],
+   "processes": [],
+   "mocks": [
+    "sqlfluffrs.cp01_violations",
+    "sqlfluffrs.cp01_violations"
+   ]
+  },
+  "test/rules/cp01_rust_dispatch_test.py::test__cp01_dispatch__regex_ignore_falls_back_to_python": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "linter_string",
+     "inputs": {
+      "method": "lint_string",
+      "sql": "select a from t",
+      "options": {
+       "fname": "<string input>",
+       "fix": true,
+       "config": null,
+       "encoding": "utf8"
+      },
+      "linter": {
+       "config": {
+        "method": "from_string",
+        "args": {
+         "config_string": "[sqlfluff]\ndialect=ansi\nrules=CP01\nuse_rust_parser=True\nuse_rust_rules=True\n[sqlfluff:rules:capitalisation.keywords]\ncapitalisation_policy=upper\nignore_words_regex=^x\n"
+        }
+       }
+      },
+      "config_changed": false,
+      "cwd": "{sqlfluff}",
+      "config_file": {
+       "text": "[sqlfluff]\ndialect = ansi\nrules = CP01\n\n[sqlfluff:rules:capitalisation.keywords]\ncapitalisation_policy = upper\nignore_words_regex = ^x\n"
+      },
+      "config_proof": []
+     },
+     "outputs": {
+      "records": [
+       {
+        "filepath": "<string input>",
+        "violations": [
+         {
+          "start_line_no": 1,
+          "start_line_pos": 1,
+          "code": "CP01",
+          "description": "Keywords must be upper case.",
+          "name": "capitalisation.keywords",
+          "warning": false,
+          "fixes": [
+           {
+            "type": "replace",
+            "edit": "SELECT",
+            "start_line_no": 1,
+            "start_line_pos": 1,
+            "start_file_pos": 0,
+            "end_line_no": 1,
+            "end_line_pos": 7,
+            "end_file_pos": 6
+           }
+          ],
+          "start_file_pos": 0,
+          "end_line_no": 1,
+          "end_line_pos": 7,
+          "end_file_pos": 6
+         },
+         {
+          "start_line_no": 1,
+          "start_line_pos": 10,
+          "code": "CP01",
+          "description": "Keywords must be upper case.",
+          "name": "capitalisation.keywords",
+          "warning": false,
+          "fixes": [
+           {
+            "type": "replace",
+            "edit": "FROM",
+            "start_line_no": 1,
+            "start_line_pos": 10,
+            "start_file_pos": 9,
+            "end_line_no": 1,
+            "end_line_pos": 14,
+            "end_file_pos": 13
+           }
+          ],
+          "start_file_pos": 9,
+          "end_line_no": 1,
+          "end_line_pos": 14,
+          "end_file_pos": 13
+         }
+        ],
+        "statistics": {
+         "source_chars": 15,
+         "templated_chars": 15,
+         "segments": 23,
+         "raw_segments": 12
+        }
+       }
+      ],
+      "violations": 2,
+      "tmp_prs": 0,
+      "fixable": 2,
+      "unfixable": 0,
+      "fixed": "SELECT a FROM t",
+      "lint": {
+       "records": [
+        {
+         "filepath": "<string input>",
+         "violations": [
+          {
+           "start_line_no": 1,
+           "start_line_pos": 1,
+           "code": "CP01",
+           "description": "Keywords must be upper case.",
+           "name": "capitalisation.keywords",
+           "warning": false,
+           "fixes": [
+            {
+             "type": "replace",
+             "edit": "SELECT",
+             "start_line_no": 1,
+             "start_line_pos": 1,
+             "start_file_pos": 0,
+             "end_line_no": 1,
+             "end_line_pos": 7,
+             "end_file_pos": 6
+            }
+           ],
+           "start_file_pos": 0,
+           "end_line_no": 1,
+           "end_line_pos": 7,
+           "end_file_pos": 6
+          },
+          {
+           "start_line_no": 1,
+           "start_line_pos": 10,
+           "code": "CP01",
+           "description": "Keywords must be upper case.",
+           "name": "capitalisation.keywords",
+           "warning": false,
+           "fixes": [
+            {
+             "type": "replace",
+             "edit": "FROM",
+             "start_line_no": 1,
+             "start_line_pos": 10,
+             "start_file_pos": 9,
+             "end_line_no": 1,
+             "end_line_pos": 14,
+             "end_file_pos": 13
+            }
+           ],
+           "start_file_pos": 9,
+           "end_line_no": 1,
+           "end_line_pos": 14,
+           "end_file_pos": 13
+          }
+         ],
+         "statistics": {
+          "source_chars": 15,
+          "templated_chars": 15,
+          "segments": 23,
+          "raw_segments": 12
+         }
+        }
+       ],
+       "violations": 2,
+       "tmp_prs": 0,
+       "fixable": 2,
+       "unfixable": 0
+      }
+     }
+    }
+   ],
+   "untraced": [],
+   "processes": [],
+   "mocks": [
+    "sqlfluffrs.cp01_violations"
+   ]
+  },
+  "test/rules/cp01_rust_dispatch_test.py::test__dispatch__rust_error_is_recoverable": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "linter_string",
+     "inputs": {
+      "method": "lint_string",
+      "sql": "SeLeCt 1",
+      "options": {
+       "fname": "<string input>",
+       "fix": false,
+       "config": null,
+       "encoding": "utf8"
+      },
+      "linter": {
+       "config": {
+        "method": "from_string",
+        "args": {
+         "config_string": "[sqlfluff]\ndialect=ansi\nrules=CP01\nuse_rust_parser=True\nuse_rust_rules=True\n"
+        }
+       }
+      },
+      "config_changed": false,
+      "cwd": "{sqlfluff}",
+      "config_file": {
+       "text": "[sqlfluff]\ndialect = ansi\nrules = CP01\n"
+      },
+      "config_proof": []
+     },
+     "outputs": {
+      "records": [
+       {
+        "filepath": "<string input>",
+        "violations": [
+         {
+          "start_line_no": 1,
+          "start_line_pos": 1,
+          "code": "CP01",
+          "description": "Unexpected exception: boom;\nCould you open an issue at https://github.com/sqlfluff/sqlfluff/issues ?\nYou can ignore this exception for now, by adding '-- noqa: CP01' at the end\nof line 1\n",
+          "name": "capitalisation.keywords",
+          "warning": false,
+          "fixes": [],
+          "start_file_pos": 0,
+          "end_line_no": 1,
+          "end_line_pos": 9,
+          "end_file_pos": 8
+         }
+        ],
+        "statistics": {
+         "source_chars": 8,
+         "templated_chars": 8,
+         "segments": 11,
+         "raw_segments": 6
+        }
+       }
+      ],
+      "violations": 1,
+      "tmp_prs": 0,
+      "fixable": 0,
+      "unfixable": 1
+     }
+    }
+   ],
+   "untraced": [],
+   "processes": [],
+   "mocks": [
+    "sqlfluffrs.cp01_violations"
+   ]
+  },
+  "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__engages_rust_only_when_enabled": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "linter_string",
+     "inputs": {
+      "method": "lint_string",
+      "sql": "select SuM(a), MIN(b) from t",
+      "options": {
+       "fname": "<string input>",
+       "fix": true,
+       "config": null,
+       "encoding": "utf8"
+      },
+      "linter": {
+       "config": {
+        "method": "from_string",
+        "args": {
+         "config_string": "[sqlfluff]\ndialect=ansi\nrules=CP03\nuse_rust_parser=True\nuse_rust_rules=True\n[sqlfluff:rules:capitalisation.functions]\nextended_capitalisation_policy=consistent\n"
+        }
+       }
+      },
+      "config_changed": false,
+      "cwd": "{sqlfluff}",
+      "config_file": {
+       "text": "[sqlfluff]\ndialect = ansi\nrules = CP03\n"
+      },
+      "config_proof": []
+     },
+     "outputs": {
+      "records": [
+       {
+        "filepath": "<string input>",
+        "violations": [
+         {
+          "start_line_no": 1,
+          "start_line_pos": 8,
+          "code": "CP03",
+          "description": "Function names must be consistent.",
+          "name": "capitalisation.functions",
+          "warning": false,
+          "fixes": [
+           {
+            "type": "replace",
+            "edit": "SUM",
+            "start_line_no": 1,
+            "start_line_pos": 8,
+            "start_file_pos": 7,
+            "end_line_no": 1,
+            "end_line_pos": 11,
+            "end_file_pos": 10
+           }
+          ],
+          "start_file_pos": 7,
+          "end_line_no": 1,
+          "end_line_pos": 11,
+          "end_file_pos": 10
+         }
+        ],
+        "statistics": {
+         "source_chars": 28,
+         "templated_chars": 28,
+         "segments": 48,
+         "raw_segments": 25
+        }
+       }
+      ],
+      "violations": 1,
+      "tmp_prs": 0,
+      "fixable": 1,
+      "unfixable": 0,
+      "fixed": "select SUM(a), MIN(b) from t",
+      "lint": {
+       "records": [
+        {
+         "filepath": "<string input>",
+         "violations": [
+          {
+           "start_line_no": 1,
+           "start_line_pos": 8,
+           "code": "CP03",
+           "description": "Function names must be consistent.",
+           "name": "capitalisation.functions",
+           "warning": false,
+           "fixes": [
+            {
+             "type": "replace",
+             "edit": "SUM",
+             "start_line_no": 1,
+             "start_line_pos": 8,
+             "start_file_pos": 7,
+             "end_line_no": 1,
+             "end_line_pos": 11,
+             "end_file_pos": 10
+            }
+           ],
+           "start_file_pos": 7,
+           "end_line_no": 1,
+           "end_line_pos": 11,
+           "end_file_pos": 10
+          }
+         ],
+         "statistics": {
+          "source_chars": 28,
+          "templated_chars": 28,
+          "segments": 48,
+          "raw_segments": 25
+         }
+        }
+       ],
+       "violations": 1,
+       "tmp_prs": 0,
+       "fixable": 1,
+       "unfixable": 0
+      }
+     }
+    },
+    {
+     "kind": "linter_string",
+     "inputs": {
+      "method": "lint_string",
+      "sql": "select SuM(a), MIN(b) from t",
+      "options": {
+       "fname": "<string input>",
+       "fix": true,
+       "config": null,
+       "encoding": "utf8"
+      },
+      "linter": {
+       "config": {
+        "method": "from_string",
+        "args": {
+         "config_string": "[sqlfluff]\ndialect=ansi\nrules=CP03\nuse_rust_parser=True\nuse_rust_rules=False\n[sqlfluff:rules:capitalisation.functions]\nextended_capitalisation_policy=consistent\n"
+        }
+       }
+      },
+      "config_changed": false,
+      "cwd": "{sqlfluff}",
+      "config_file": {
+       "text": "[sqlfluff]\ndialect = ansi\nrules = CP03\nuse_rust_rules = False\n"
+      },
+      "config_proof": []
+     },
+     "outputs": {
+      "records": [
+       {
+        "filepath": "<string input>",
+        "violations": [
+         {
+          "start_line_no": 1,
+          "start_line_pos": 8,
+          "code": "CP03",
+          "description": "Function names must be consistently upper case.",
+          "name": "capitalisation.functions",
+          "warning": false,
+          "fixes": [
+           {
+            "type": "replace",
+            "edit": "SUM",
+            "start_line_no": 1,
+            "start_line_pos": 8,
+            "start_file_pos": 7,
+            "end_line_no": 1,
+            "end_line_pos": 11,
+            "end_file_pos": 10
+           }
+          ],
+          "start_file_pos": 7,
+          "end_line_no": 1,
+          "end_line_pos": 11,
+          "end_file_pos": 10
+         }
+        ],
+        "statistics": {
+         "source_chars": 28,
+         "templated_chars": 28,
+         "segments": 48,
+         "raw_segments": 25
+        }
+       }
+      ],
+      "violations": 1,
+      "tmp_prs": 0,
+      "fixable": 1,
+      "unfixable": 0,
+      "fixed": "select SUM(a), MIN(b) from t",
+      "lint": {
+       "records": [
+        {
+         "filepath": "<string input>",
+         "violations": [
+          {
+           "start_line_no": 1,
+           "start_line_pos": 8,
+           "code": "CP03",
+           "description": "Function names must be consistently upper case.",
+           "name": "capitalisation.functions",
+           "warning": false,
+           "fixes": [
+            {
+             "type": "replace",
+             "edit": "SUM",
+             "start_line_no": 1,
+             "start_line_pos": 8,
+             "start_file_pos": 7,
+             "end_line_no": 1,
+             "end_line_pos": 11,
+             "end_file_pos": 10
+            }
+           ],
+           "start_file_pos": 7,
+           "end_line_no": 1,
+           "end_line_pos": 11,
+           "end_file_pos": 10
+          }
+         ],
+         "statistics": {
+          "source_chars": 28,
+          "templated_chars": 28,
+          "segments": 48,
+          "raw_segments": 25
+         }
+        }
+       ],
+       "violations": 1,
+       "tmp_prs": 0,
+       "fixable": 1,
+       "unfixable": 0
+      }
+     }
+    }
+   ],
+   "untraced": [],
+   "processes": [],
+   "mocks": [
+    "sqlfluffrs.cp03_violations",
+    "sqlfluffrs.cp03_violations"
+   ]
+  },
+  "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__regex_ignore_falls_back_to_python": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "linter_string",
+     "inputs": {
+      "method": "lint_string",
+      "sql": "select sum(a) from t",
+      "options": {
+       "fname": "<string input>",
+       "fix": true,
+       "config": null,
+       "encoding": "utf8"
+      },
+      "linter": {
+       "config": {
+        "method": "from_string",
+        "args": {
+         "config_string": "[sqlfluff]\ndialect=ansi\nrules=CP03\nuse_rust_parser=True\nuse_rust_rules=True\n[sqlfluff:rules:capitalisation.functions]\nextended_capitalisation_policy=upper\nignore_words_regex=^x\n"
+        }
+       }
+      },
+      "config_changed": false,
+      "cwd": "{sqlfluff}",
+      "config_file": {
+       "text": "[sqlfluff]\ndialect = ansi\nrules = CP03\n\n[sqlfluff:rules:capitalisation.functions]\nextended_capitalisation_policy = upper\nignore_words_regex = ^x\n"
+      },
+      "config_proof": []
+     },
+     "outputs": {
+      "records": [
+       {
+        "filepath": "<string input>",
+        "violations": [
+         {
+          "start_line_no": 1,
+          "start_line_pos": 8,
+          "code": "CP03",
+          "description": "Function names must be upper case.",
+          "name": "capitalisation.functions",
+          "warning": false,
+          "fixes": [
+           {
+            "type": "replace",
+            "edit": "SUM",
+            "start_line_no": 1,
+            "start_line_pos": 8,
+            "start_file_pos": 7,
+            "end_line_no": 1,
+            "end_line_pos": 11,
+            "end_file_pos": 10
+           }
+          ],
+          "start_file_pos": 7,
+          "end_line_no": 1,
+          "end_line_pos": 11,
+          "end_file_pos": 10
+         }
+        ],
+        "statistics": {
+         "source_chars": 20,
+         "templated_chars": 20,
+         "segments": 33,
+         "raw_segments": 17
+        }
+       }
+      ],
+      "violations": 1,
+      "tmp_prs": 0,
+      "fixable": 1,
+      "unfixable": 0,
+      "fixed": "select SUM(a) from t",
+      "lint": {
+       "records": [
+        {
+         "filepath": "<string input>",
+         "violations": [
+          {
+           "start_line_no": 1,
+           "start_line_pos": 8,
+           "code": "CP03",
+           "description": "Function names must be upper case.",
+           "name": "capitalisation.functions",
+           "warning": false,
+           "fixes": [
+            {
+             "type": "replace",
+             "edit": "SUM",
+             "start_line_no": 1,
+             "start_line_pos": 8,
+             "start_file_pos": 7,
+             "end_line_no": 1,
+             "end_line_pos": 11,
+             "end_file_pos": 10
+            }
+           ],
+           "start_file_pos": 7,
+           "end_line_no": 1,
+           "end_line_pos": 11,
+           "end_file_pos": 10
+          }
+         ],
+         "statistics": {
+          "source_chars": 20,
+          "templated_chars": 20,
+          "segments": 33,
+          "raw_segments": 17
+         }
+        }
+       ],
+       "violations": 1,
+       "tmp_prs": 0,
+       "fixable": 1,
+       "unfixable": 0
+      }
+     }
+    }
+   ],
+   "untraced": [],
+   "processes": [],
+   "mocks": [
+    "sqlfluffrs.cp03_violations"
+   ]
+  },
+  "test/rules/cp03_rust_dispatch_test.py::test__cp03_dispatch__not_hijacked_by_cp01_rust_path": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "linter_string",
+     "inputs": {
+      "method": "lint_string",
+      "sql": "select sum(a), MAX(b) from t",
+      "options": {
+       "fname": "<string input>",
+       "fix": true,
+       "config": null,
+       "encoding": "utf8"
+      },
+      "linter": {
+       "config": {
+        "method": "from_string",
+        "args": {
+         "config_string": "[sqlfluff]\ndialect=ansi\nrules=CP03\nuse_rust_parser=True\nuse_rust_rules=True\n[sqlfluff:rules:capitalisation.functions]\nextended_capitalisation_policy=consistent\n"
+        }
+       }
+      },
+      "config_changed": false,
+      "cwd": "{sqlfluff}",
+      "config_file": {
+       "text": "[sqlfluff]\ndialect = ansi\nrules = CP03\n"
+      },
+      "config_proof": []
+     },
+     "outputs": {
+      "records": [
+       {
+        "filepath": "<string input>",
+        "violations": [
+         {
+          "start_line_no": 1,
+          "start_line_pos": 16,
+          "code": "CP03",
+          "description": "Function names must be consistent.",
+          "name": "capitalisation.functions",
+          "warning": false,
+          "fixes": [
+           {
+            "type": "replace",
+            "edit": "max",
+            "start_line_no": 1,
+            "start_line_pos": 16,
+            "start_file_pos": 15,
+            "end_line_no": 1,
+            "end_line_pos": 19,
+            "end_file_pos": 18
+           }
+          ],
+          "start_file_pos": 15,
+          "end_line_no": 1,
+          "end_line_pos": 19,
+          "end_file_pos": 18
+         }
+        ],
+        "statistics": {
+         "source_chars": 28,
+         "templated_chars": 28,
+         "segments": 48,
+         "raw_segments": 25
+        }
+       }
+      ],
+      "violations": 1,
+      "tmp_prs": 0,
+      "fixable": 1,
+      "unfixable": 0,
+      "fixed": "select sum(a), max(b) from t",
+      "lint": {
+       "records": [
+        {
+         "filepath": "<string input>",
+         "violations": [
+          {
+           "start_line_no": 1,
+           "start_line_pos": 16,
+           "code": "CP03",
+           "description": "Function names must be consistent.",
+           "name": "capitalisation.functions",
+           "warning": false,
+           "fixes": [
+            {
+             "type": "replace",
+             "edit": "max",
+             "start_line_no": 1,
+             "start_line_pos": 16,
+             "start_file_pos": 15,
+             "end_line_no": 1,
+             "end_line_pos": 19,
+             "end_file_pos": 18
+            }
+           ],
+           "start_file_pos": 15,
+           "end_line_no": 1,
+           "end_line_pos": 19,
+           "end_file_pos": 18
+          }
+         ],
+         "statistics": {
+          "source_chars": 28,
+          "templated_chars": 28,
+          "segments": 48,
+          "raw_segments": 25
+         }
+        }
+       ],
+       "violations": 1,
+       "tmp_prs": 0,
+       "fixable": 1,
+       "unfixable": 0
+      }
+     }
+    }
+   ],
+   "untraced": [],
+   "processes": [],
+   "mocks": [
+    "sqlfluffrs.cp01_violations",
+    "sqlfluffrs.cp03_violations"
+   ]
+  },
+  "test/rules/cp04_rust_dispatch_test.py::test__cp04_dispatch__engages_rust_only_when_enabled": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "linter_string",
+     "inputs": {
+      "method": "lint_string",
+      "sql": "select TrUe, FaLsE from t",
+      "options": {
+       "fname": "<string input>",
+       "fix": true,
+       "config": null,
+       "encoding": "utf8"
+      },
+      "linter": {
+       "config": {
+        "method": "from_string",
+        "args": {
+         "config_string": "[sqlfluff]\ndialect=ansi\nrules=CP04\nuse_rust_parser=True\nuse_rust_rules=True\n[sqlfluff:rules:capitalisation.literals]\ncapitalisation_policy=consistent\n"
+        }
+       }
+      },
+      "config_changed": false,
+      "cwd": "{sqlfluff}",
+      "config_file": {
+       "text": "[sqlfluff]\ndialect = ansi\nrules = CP04\n"
+      },
+      "config_proof": []
+     },
+     "outputs": {
+      "records": [
+       {
+        "filepath": "<string input>",
+        "violations": [
+         {
+          "start_line_no": 1,
+          "start_line_pos": 8,
+          "code": "CP04",
+          "description": "Boolean/null literals must be consistent.",
+          "name": "capitalisation.literals",
+          "warning": false,
+          "fixes": [
+           {
+            "type": "replace",
+            "edit": "TRUE",
+            "start_line_no": 1,
+            "start_line_pos": 8,
+            "start_file_pos": 7,
+            "end_line_no": 1,
+            "end_line_pos": 12,
+            "end_file_pos": 11
+           }
+          ],
+          "start_file_pos": 7,
+          "end_line_no": 1,
+          "end_line_pos": 12,
+          "end_file_pos": 11
+         },
+         {
+          "start_line_no": 1,
+          "start_line_pos": 14,
+          "code": "CP04",
+          "description": "Boolean/null literals must be consistent.",
+          "name": "capitalisation.literals",
+          "warning": false,
+          "fixes": [
+           {
+            "type": "replace",
+            "edit": "FALSE",
+            "start_line_no": 1,
+            "start_line_pos": 14,
+            "start_file_pos": 13,
+            "end_line_no": 1,
+            "end_line_pos": 19,
+            "end_file_pos": 18
+           }
+          ],
+          "start_file_pos": 13,
+          "end_line_no": 1,
+          "end_line_pos": 19,
+          "end_file_pos": 18
+         }
+        ],
+        "statistics": {
+         "source_chars": 25,
+         "templated_chars": 25,
+         "segments": 26,
+         "raw_segments": 15
+        }
+       }
+      ],
+      "violations": 2,
+      "tmp_prs": 0,
+      "fixable": 2,
+      "unfixable": 0,
+      "fixed": "select TRUE, FALSE from t",
+      "lint": {
+       "records": [
+        {
+         "filepath": "<string input>",
+         "violations": [
+          {
+           "start_line_no": 1,
+           "start_line_pos": 8,
+           "code": "CP04",
+           "description": "Boolean/null literals must be consistent.",
+           "name": "capitalisation.literals",
+           "warning": false,
+           "fixes": [
+            {
+             "type": "replace",
+             "edit": "TRUE",
+             "start_line_no": 1,
+             "start_line_pos": 8,
+             "start_file_pos": 7,
+             "end_line_no": 1,
+             "end_line_pos": 12,
+             "end_file_pos": 11
+            }
+           ],
+           "start_file_pos": 7,
+           "end_line_no": 1,
+           "end_line_pos": 12,
+           "end_file_pos": 11
+          },
+          {
+           "start_line_no": 1,
+           "start_line_pos": 14,
+           "code": "CP04",
+           "description": "Boolean/null literals must be consistent.",
+           "name": "capitalisation.literals",
+           "warning": false,
+           "fixes": [
+            {
+             "type": "replace",
+             "edit": "FALSE",
+             "start_line_no": 1,
+             "start_line_pos": 14,
+             "start_file_pos": 13,
+             "end_line_no": 1,
+             "end_line_pos": 19,
+             "end_file_pos": 18
+            }
+           ],
+           "start_file_pos": 13,
+           "end_line_no": 1,
+           "end_line_pos": 19,
+           "end_file_pos": 18
+          }
+         ],
+         "statistics": {
+          "source_chars": 25,
+          "templated_chars": 25,
+          "segments": 26,
+          "raw_segments": 15
+         }
+        }
+       ],
+       "violations": 2,
+       "tmp_prs": 0,
+       "fixable": 2,
+       "unfixable": 0
+      }
+     }
+    },
+    {
+     "kind": "linter_string",
+     "inputs": {
+      "method": "lint_string",
+      "sql": "select TrUe, FaLsE from t",
+      "options": {
+       "fname": "<string input>",
+       "fix": true,
+       "config": null,
+       "encoding": "utf8"
+      },
+      "linter": {
+       "config": {
+        "method": "from_string",
+        "args": {
+         "config_string": "[sqlfluff]\ndialect=ansi\nrules=CP04\nuse_rust_parser=True\nuse_rust_rules=False\n[sqlfluff:rules:capitalisation.literals]\ncapitalisation_policy=consistent\n"
+        }
+       }
+      },
+      "config_changed": false,
+      "cwd": "{sqlfluff}",
+      "config_file": {
+       "text": "[sqlfluff]\ndialect = ansi\nrules = CP04\nuse_rust_rules = False\n"
+      },
+      "config_proof": []
+     },
+     "outputs": {
+      "records": [
+       {
+        "filepath": "<string input>",
+        "violations": [
+         {
+          "start_line_no": 1,
+          "start_line_pos": 8,
+          "code": "CP04",
+          "description": "Boolean/null literals must be consistently upper case.",
+          "name": "capitalisation.literals",
+          "warning": false,
+          "fixes": [
+           {
+            "type": "replace",
+            "edit": "TRUE",
+            "start_line_no": 1,
+            "start_line_pos": 8,
+            "start_file_pos": 7,
+            "end_line_no": 1,
+            "end_line_pos": 12,
+            "end_file_pos": 11
+           }
+          ],
+          "start_file_pos": 7,
+          "end_line_no": 1,
+          "end_line_pos": 12,
+          "end_file_pos": 11
+         },
+         {
+          "start_line_no": 1,
+          "start_line_pos": 14,
+          "code": "CP04",
+          "description": "Boolean/null literals must be consistently upper case.",
+          "name": "capitalisation.literals",
+          "warning": false,
+          "fixes": [
+           {
+            "type": "replace",
+            "edit": "FALSE",
+            "start_line_no": 1,
+            "start_line_pos": 14,
+            "start_file_pos": 13,
+            "end_line_no": 1,
+            "end_line_pos": 19,
+            "end_file_pos": 18
+           }
+          ],
+          "start_file_pos": 13,
+          "end_line_no": 1,
+          "end_line_pos": 19,
+          "end_file_pos": 18
+         }
+        ],
+        "statistics": {
+         "source_chars": 25,
+         "templated_chars": 25,
+         "segments": 26,
+         "raw_segments": 15
+        }
+       }
+      ],
+      "violations": 2,
+      "tmp_prs": 0,
+      "fixable": 2,
+      "unfixable": 0,
+      "fixed": "select TRUE, FALSE from t",
+      "lint": {
+       "records": [
+        {
+         "filepath": "<string input>",
+         "violations": [
+          {
+           "start_line_no": 1,
+           "start_line_pos": 8,
+           "code": "CP04",
+           "description": "Boolean/null literals must be consistently upper case.",
+           "name": "capitalisation.literals",
+           "warning": false,
+           "fixes": [
+            {
+             "type": "replace",
+             "edit": "TRUE",
+             "start_line_no": 1,
+             "start_line_pos": 8,
+             "start_file_pos": 7,
+             "end_line_no": 1,
+             "end_line_pos": 12,
+             "end_file_pos": 11
+            }
+           ],
+           "start_file_pos": 7,
+           "end_line_no": 1,
+           "end_line_pos": 12,
+           "end_file_pos": 11
+          },
+          {
+           "start_line_no": 1,
+           "start_line_pos": 14,
+           "code": "CP04",
+           "description": "Boolean/null literals must be consistently upper case.",
+           "name": "capitalisation.literals",
+           "warning": false,
+           "fixes": [
+            {
+             "type": "replace",
+             "edit": "FALSE",
+             "start_line_no": 1,
+             "start_line_pos": 14,
+             "start_file_pos": 13,
+             "end_line_no": 1,
+             "end_line_pos": 19,
+             "end_file_pos": 18
+            }
+           ],
+           "start_file_pos": 13,
+           "end_line_no": 1,
+           "end_line_pos": 19,
+           "end_file_pos": 18
+          }
+         ],
+         "statistics": {
+          "source_chars": 25,
+          "templated_chars": 25,
+          "segments": 26,
+          "raw_segments": 15
+         }
+        }
+       ],
+       "violations": 2,
+       "tmp_prs": 0,
+       "fixable": 2,
+       "unfixable": 0
+      }
+     }
+    }
+   ],
+   "untraced": [],
+   "processes": [],
+   "mocks": [
+    "sqlfluffrs.cp04_violations",
+    "sqlfluffrs.cp04_violations"
+   ]
+  },
+  "test/rules/cp04_rust_dispatch_test.py::test__cp04_dispatch__regex_ignore_falls_back_to_python": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "linter_string",
+     "inputs": {
+      "method": "lint_string",
+      "sql": "select true from t",
+      "options": {
+       "fname": "<string input>",
+       "fix": true,
+       "config": null,
+       "encoding": "utf8"
+      },
+      "linter": {
+       "config": {
+        "method": "from_string",
+        "args": {
+         "config_string": "[sqlfluff]\ndialect=ansi\nrules=CP04\nuse_rust_parser=True\nuse_rust_rules=True\n[sqlfluff:rules:capitalisation.literals]\ncapitalisation_policy=upper\nignore_words_regex=^x\n"
+        }
+       }
+      },
+      "config_changed": false,
+      "cwd": "{sqlfluff}",
+      "config_file": {
+       "text": "[sqlfluff]\ndialect = ansi\nrules = CP04\n\n[sqlfluff:rules:capitalisation.literals]\ncapitalisation_policy = upper\nignore_words_regex = ^x\n"
+      },
+      "config_proof": []
+     },
+     "outputs": {
+      "records": [
+       {
+        "filepath": "<string input>",
+        "violations": [
+         {
+          "start_line_no": 1,
+          "start_line_pos": 8,
+          "code": "CP04",
+          "description": "Boolean/null literals must be upper case.",
+          "name": "capitalisation.literals",
+          "warning": false,
+          "fixes": [
+           {
+            "type": "replace",
+            "edit": "TRUE",
+            "start_line_no": 1,
+            "start_line_pos": 8,
+            "start_file_pos": 7,
+            "end_line_no": 1,
+            "end_line_pos": 12,
+            "end_file_pos": 11
+           }
+          ],
+          "start_file_pos": 7,
+          "end_line_no": 1,
+          "end_line_pos": 12,
+          "end_file_pos": 11
+         }
+        ],
+        "statistics": {
+         "source_chars": 18,
+         "templated_chars": 18,
+         "segments": 22,
+         "raw_segments": 12
+        }
+       }
+      ],
+      "violations": 1,
+      "tmp_prs": 0,
+      "fixable": 1,
+      "unfixable": 0,
+      "fixed": "select TRUE from t",
+      "lint": {
+       "records": [
+        {
+         "filepath": "<string input>",
+         "violations": [
+          {
+           "start_line_no": 1,
+           "start_line_pos": 8,
+           "code": "CP04",
+           "description": "Boolean/null literals must be upper case.",
+           "name": "capitalisation.literals",
+           "warning": false,
+           "fixes": [
+            {
+             "type": "replace",
+             "edit": "TRUE",
+             "start_line_no": 1,
+             "start_line_pos": 8,
+             "start_file_pos": 7,
+             "end_line_no": 1,
+             "end_line_pos": 12,
+             "end_file_pos": 11
+            }
+           ],
+           "start_file_pos": 7,
+           "end_line_no": 1,
+           "end_line_pos": 12,
+           "end_file_pos": 11
+          }
+         ],
+         "statistics": {
+          "source_chars": 18,
+          "templated_chars": 18,
+          "segments": 22,
+          "raw_segments": 12
+         }
+        }
+       ],
+       "violations": 1,
+       "tmp_prs": 0,
+       "fixable": 1,
+       "unfixable": 0
+      }
+     }
+    }
+   ],
+   "untraced": [],
+   "processes": [],
+   "mocks": [
+    "sqlfluffrs.cp04_violations"
+   ]
+  },
+  "test/rules/cp04_rust_dispatch_test.py::test__cp04_dispatch__not_hijacked_by_cp01_rust_path": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "linter_string",
+     "inputs": {
+      "method": "lint_string",
+      "sql": "select true, FALSE, null from t",
+      "options": {
+       "fname": "<string input>",
+       "fix": true,
+       "config": null,
+       "encoding": "utf8"
+      },
+      "linter": {
+       "config": {
+        "method": "from_string",
+        "args": {
+         "config_string": "[sqlfluff]\ndialect=ansi\nrules=CP04\nuse_rust_parser=True\nuse_rust_rules=True\n[sqlfluff:rules:capitalisation.literals]\ncapitalisation_policy=consistent\n"
+        }
+       }
+      },
+      "config_changed": false,
+      "cwd": "{sqlfluff}",
+      "config_file": {
+       "text": "[sqlfluff]\ndialect = ansi\nrules = CP04\n"
+      },
+      "config_proof": []
+     },
+     "outputs": {
+      "records": [
+       {
+        "filepath": "<string input>",
+        "violations": [
+         {
+          "start_line_no": 1,
+          "start_line_pos": 14,
+          "code": "CP04",
+          "description": "Boolean/null literals must be consistent.",
+          "name": "capitalisation.literals",
+          "warning": false,
+          "fixes": [
+           {
+            "type": "replace",
+            "edit": "false",
+            "start_line_no": 1,
+            "start_line_pos": 14,
+            "start_file_pos": 13,
+            "end_line_no": 1,
+            "end_line_pos": 19,
+            "end_file_pos": 18
+           }
+          ],
+          "start_file_pos": 13,
+          "end_line_no": 1,
+          "end_line_pos": 19,
+          "end_file_pos": 18
+         }
+        ],
+        "statistics": {
+         "source_chars": 31,
+         "templated_chars": 31,
+         "segments": 30,
+         "raw_segments": 18
+        }
+       }
+      ],
+      "violations": 1,
+      "tmp_prs": 0,
+      "fixable": 1,
+      "unfixable": 0,
+      "fixed": "select true, false, null from t",
+      "lint": {
+       "records": [
+        {
+         "filepath": "<string input>",
+         "violations": [
+          {
+           "start_line_no": 1,
+           "start_line_pos": 14,
+           "code": "CP04",
+           "description": "Boolean/null literals must be consistent.",
+           "name": "capitalisation.literals",
+           "warning": false,
+           "fixes": [
+            {
+             "type": "replace",
+             "edit": "false",
+             "start_line_no": 1,
+             "start_line_pos": 14,
+             "start_file_pos": 13,
+             "end_line_no": 1,
+             "end_line_pos": 19,
+             "end_file_pos": 18
+            }
+           ],
+           "start_file_pos": 13,
+           "end_line_no": 1,
+           "end_line_pos": 19,
+           "end_file_pos": 18
+          }
+         ],
+         "statistics": {
+          "source_chars": 31,
+          "templated_chars": 31,
+          "segments": 30,
+          "raw_segments": 18
+         }
+        }
+       ],
+       "violations": 1,
+       "tmp_prs": 0,
+       "fixable": 1,
+       "unfixable": 0
+      }
+     }
+    }
+   ],
+   "untraced": [],
+   "processes": [],
+   "mocks": [
+    "sqlfluffrs.cp01_violations",
+    "sqlfluffrs.cp04_violations"
    ]
   },
   "test/rules/std_AM09_test.py::test__rules__std_AM09_eval_short_circuit_on_non_select_segment": {
