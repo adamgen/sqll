@@ -1,0 +1,478 @@
+{
+ "kind": "sqll-s7-tests-trace",
+ "format": 1,
+ "sqlfluff": "4.4.0",
+ "sqlfluffrs": null,
+ "rust": false,
+ "pytest": "9.1.1",
+ "pytest_exit_code": 0,
+ "root_config": {},
+ "parse_runs": null,
+ "collection_errors": {},
+ "nodes": {
+  "test/templater_calls_test.py::test_map_placeholder": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "templater",
+     "inputs": {
+      "templater": "placeholder",
+      "class": "sqlfluff.core.templaters.placeholder.PlaceholderTemplater",
+      "context": {
+       "param_style": "colon",
+       "a": "1"
+      },
+      "in_str": "SELECT :a FROM t\n",
+      "fname": "test",
+      "config": {
+       "method": "FluffConfig",
+       "args": {
+        "overrides": {
+         "dialect": "ansi"
+        }
+       }
+      },
+      "cwd": "{sqlfluff}",
+      "config_file": {
+       "text": "[sqlfluff]\ndialect = ansi\ntemplater = placeholder\n\n[sqlfluff:templater:placeholder]\nparam_style = colon\na = 1\n"
+      },
+      "unsupported": []
+     },
+     "outputs": {
+      "templated": "SELECT 1 FROM t\n",
+      "violations": []
+     },
+     "cases": [
+      {
+       "argv": [
+        "parse",
+        "-f",
+        "json",
+        "case.sql"
+       ],
+       "exit_code": 0,
+       "stdout": "[{\"filepath\": \"case.sql\", \"segments\": {\"file\": {\"statement\": {\"select_statement\": {\"select_clause\": {\"keyword\": \"SELECT\", \"whitespace\": \" \", \"select_clause_element\": {\"numeric_literal\": \"1\"}}, \"whitespace\": \" \", \"from_clause\": {\"keyword\": \"FROM\", \"whitespace\": \" \", \"from_expression\": {\"from_expression_element\": {\"table_expression\": {\"table_reference\": {\"naked_identifier\": \"t\"}}}}}}}, \"newline\": \"\\n\"}}}]\n",
+       "stderr": "",
+       "files": {
+        ".sqlfluff": "[sqlfluff]\ndialect = ansi\ntemplater = placeholder\n\n[sqlfluff:templater:placeholder]\nparam_style = colon\na = 1\n",
+        "case.sql": "SELECT :a FROM t\n"
+       },
+       "outer_config": {}
+      },
+      {
+       "argv": [
+        "parse",
+        "-f",
+        "json",
+        "-m",
+        "case.sql"
+       ],
+       "exit_code": 0,
+       "stdout": "[{\"filepath\": \"case.sql\", \"segments\": {\"start_line_no\": 1, \"start_line_pos\": 1, \"start_file_pos\": 0, \"end_line_no\": 2, \"end_line_pos\": 1, \"end_file_pos\": 17, \"file\": [{\"start_line_no\": 1, \"start_line_pos\": 1, \"start_file_pos\": 0, \"end_line_no\": 1, \"end_line_pos\": 17, \"end_file_pos\": 16, \"statement\": {\"start_line_no\": 1, \"start_line_pos\": 1, \"start_file_pos\": 0, \"end_line_no\": 1, \"end_line_pos\": 17, \"end_file_pos\": 16, \"select_statement\": [{\"start_line_no\": 1, \"start_line_pos\": 1, \"start_file_pos\": 0, \"end_line_no\": 1, \"end_line_pos\": 10, \"end_file_pos\": 9, \"select_clause\": [{\"start_line_no\": 1, \"start_line_pos\": 1, \"start_file_pos\": 0, \"end_line_no\": 1, \"end_line_pos\": 7, \"end_file_pos\": 6, \"keyword\": \"SELECT\"}, {\"start_line_no\": 1, \"start_line_pos\": 7, \"start_file_pos\": 6, \"end_line_no\": 1, \"end_line_pos\": 7, \"end_file_pos\": 6, \"indent\": \"\"}, {\"start_line_no\": 1, \"start_line_pos\": 7, \"start_file_pos\": 6, \"end_line_no\": 1, \"end_line_pos\": 8, \"end_file_pos\": 7, \"whitespace\": \" \"}, {\"start_line_no\": 1, \"start_line_pos\": 8, \"start_file_pos\": 7, \"end_line_no\": 1, \"end_line_pos\": 10, \"end_file_pos\": 9, \"select_clause_element\": {\"start_line_no\": 1, \"start_line_pos\": 8, \"start_file_pos\": 7, \"end_line_no\": 1, \"end_line_pos\": 10, \"end_file_pos\": 9, \"numeric_literal\": \"1\"}}, {\"start_line_no\": 1, \"start_line_pos\": 10, \"start_file_pos\": 9, \"end_line_no\": 1, \"end_line_pos\": 10, \"end_file_pos\": 9, \"dedent\": \"\"}]}, {\"start_line_no\": 1, \"start_line_pos\": 10, \"start_file_pos\": 9, \"end_line_no\": 1, \"end_line_pos\": 11, \"end_file_pos\": 10, \"whitespace\": \" \"}, {\"start_line_no\": 1, \"start_line_pos\": 11, \"start_file_pos\": 10, \"end_line_no\": 1, \"end_line_pos\": 17, \"end_file_pos\": 16, \"from_clause\": [{\"start_line_no\": 1, \"start_line_pos\": 11, \"start_file_pos\": 10, \"end_line_no\": 1, \"end_line_pos\": 15, \"end_file_pos\": 14, \"keyword\": \"FROM\"}, {\"start_line_no\": 1, \"start_line_pos\": 15, \"start_file_pos\": 14, \"end_line_no\": 1, \"end_line_pos\": 16, \"end_file_pos\": 15, \"whitespace\": \" \"}, {\"start_line_no\": 1, \"start_line_pos\": 16, \"start_file_pos\": 15, \"end_line_no\": 1, \"end_line_pos\": 17, \"end_file_pos\": 16, \"from_expression\": [{\"start_line_no\": 1, \"start_line_pos\": 16, \"start_file_pos\": 15, \"end_line_no\": 1, \"end_line_pos\": 16, \"end_file_pos\": 15, \"indent\": \"\"}, {\"start_line_no\": 1, \"start_line_pos\": 16, \"start_file_pos\": 15, \"end_line_no\": 1, \"end_line_pos\": 17, \"end_file_pos\": 16, \"from_expression_element\": {\"start_line_no\": 1, \"start_line_pos\": 16, \"start_file_pos\": 15, \"end_line_no\": 1, \"end_line_pos\": 17, \"end_file_pos\": 16, \"table_expression\": {\"start_line_no\": 1, \"start_line_pos\": 16, \"start_file_pos\": 15, \"end_line_no\": 1, \"end_line_pos\": 17, \"end_file_pos\": 16, \"table_reference\": {\"start_line_no\": 1, \"start_line_pos\": 16, \"start_file_pos\": 15, \"end_line_no\": 1, \"end_line_pos\": 17, \"end_file_pos\": 16, \"naked_identifier\": \"t\"}}}}, {\"start_line_no\": 1, \"start_line_pos\": 17, \"start_file_pos\": 16, \"end_line_no\": 1, \"end_line_pos\": 17, \"end_file_pos\": 16, \"dedent\": \"\"}]}]}]}}, {\"start_line_no\": 1, \"start_line_pos\": 17, \"start_file_pos\": 16, \"end_line_no\": 2, \"end_line_pos\": 1, \"end_file_pos\": 17, \"newline\": \"\\n\"}, {\"start_line_no\": 2, \"start_line_pos\": 1, \"start_file_pos\": 17, \"end_line_no\": 2, \"end_line_pos\": 1, \"end_file_pos\": 17, \"end_of_file\": \"\"}]}}]\n",
+       "stderr": "",
+       "files": {
+        ".sqlfluff": "[sqlfluff]\ndialect = ansi\ntemplater = placeholder\n\n[sqlfluff:templater:placeholder]\nparam_style = colon\na = 1\n",
+        "case.sql": "SELECT :a FROM t\n"
+       },
+       "outer_config": {}
+      }
+     ],
+     "proof": []
+    }
+   ],
+   "untraced": [],
+   "processes": []
+  },
+  "test/templater_calls_test.py::test_map_python_no_config": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "templater",
+     "inputs": {
+      "templater": "python",
+      "class": "sqlfluff.core.templaters.python.PythonTemplater",
+      "context": {
+       "tbl": "my_table"
+      },
+      "in_str": "SELECT * FROM {tbl}",
+      "fname": "test",
+      "config": null,
+      "cwd": "{sqlfluff}",
+      "config_file": {
+       "text": "[sqlfluff]\ndialect = ansi\ntemplater = python\n\n[sqlfluff:templater:python:context]\ntbl = my_table\n"
+      },
+      "unsupported": []
+     },
+     "outputs": {
+      "templated": "SELECT * FROM my_table",
+      "violations": []
+     },
+     "cases": [
+      {
+       "argv": [
+        "parse",
+        "-f",
+        "json",
+        "case.sql"
+       ],
+       "exit_code": 0,
+       "stdout": "[{\"filepath\": \"case.sql\", \"segments\": {\"file\": {\"statement\": {\"select_statement\": {\"select_clause\": {\"keyword\": \"SELECT\", \"whitespace\": \" \", \"select_clause_element\": {\"wildcard_expression\": {\"wildcard_identifier\": {\"star\": \"*\"}}}}, \"whitespace\": \" \", \"from_clause\": {\"keyword\": \"FROM\", \"whitespace\": \" \", \"from_expression\": {\"from_expression_element\": {\"table_expression\": {\"table_reference\": {\"naked_identifier\": \"my_table\"}}}}}}}}}}]\n",
+       "stderr": "",
+       "files": {
+        ".sqlfluff": "[sqlfluff]\ndialect = ansi\ntemplater = python\n\n[sqlfluff:templater:python:context]\ntbl = my_table\n",
+        "case.sql": "SELECT * FROM {tbl}"
+       },
+       "outer_config": {}
+      },
+      {
+       "argv": [
+        "parse",
+        "-f",
+        "json",
+        "-m",
+        "case.sql"
+       ],
+       "exit_code": 0,
+       "stdout": "[{\"filepath\": \"case.sql\", \"segments\": {\"start_line_no\": 1, \"start_line_pos\": 1, \"start_file_pos\": 0, \"end_line_no\": 1, \"end_line_pos\": 20, \"end_file_pos\": 19, \"file\": [{\"start_line_no\": 1, \"start_line_pos\": 1, \"start_file_pos\": 0, \"end_line_no\": 1, \"end_line_pos\": 20, \"end_file_pos\": 19, \"statement\": {\"start_line_no\": 1, \"start_line_pos\": 1, \"start_file_pos\": 0, \"end_line_no\": 1, \"end_line_pos\": 20, \"end_file_pos\": 19, \"select_statement\": [{\"start_line_no\": 1, \"start_line_pos\": 1, \"start_file_pos\": 0, \"end_line_no\": 1, \"end_line_pos\": 9, \"end_file_pos\": 8, \"select_clause\": [{\"start_line_no\": 1, \"start_line_pos\": 1, \"start_file_pos\": 0, \"end_line_no\": 1, \"end_line_pos\": 7, \"end_file_pos\": 6, \"keyword\": \"SELECT\"}, {\"start_line_no\": 1, \"start_line_pos\": 7, \"start_file_pos\": 6, \"end_line_no\": 1, \"end_line_pos\": 7, \"end_file_pos\": 6, \"indent\": \"\"}, {\"start_line_no\": 1, \"start_line_pos\": 7, \"start_file_pos\": 6, \"end_line_no\": 1, \"end_line_pos\": 8, \"end_file_pos\": 7, \"whitespace\": \" \"}, {\"start_line_no\": 1, \"start_line_pos\": 8, \"start_file_pos\": 7, \"end_line_no\": 1, \"end_line_pos\": 9, \"end_file_pos\": 8, \"select_clause_element\": {\"start_line_no\": 1, \"start_line_pos\": 8, \"start_file_pos\": 7, \"end_line_no\": 1, \"end_line_pos\": 9, \"end_file_pos\": 8, \"wildcard_expression\": {\"start_line_no\": 1, \"start_line_pos\": 8, \"start_file_pos\": 7, \"end_line_no\": 1, \"end_line_pos\": 9, \"end_file_pos\": 8, \"wildcard_identifier\": {\"start_line_no\": 1, \"start_line_pos\": 8, \"start_file_pos\": 7, \"end_line_no\": 1, \"end_line_pos\": 9, \"end_file_pos\": 8, \"star\": \"*\"}}}}, {\"start_line_no\": 1, \"start_line_pos\": 9, \"start_file_pos\": 8, \"end_line_no\": 1, \"end_line_pos\": 9, \"end_file_pos\": 8, \"dedent\": \"\"}]}, {\"start_line_no\": 1, \"start_line_pos\": 9, \"start_file_pos\": 8, \"end_line_no\": 1, \"end_line_pos\": 10, \"end_file_pos\": 9, \"whitespace\": \" \"}, {\"start_line_no\": 1, \"start_line_pos\": 10, \"start_file_pos\": 9, \"end_line_no\": 1, \"end_line_pos\": 20, \"end_file_pos\": 19, \"from_clause\": [{\"start_line_no\": 1, \"start_line_pos\": 10, \"start_file_pos\": 9, \"end_line_no\": 1, \"end_line_pos\": 14, \"end_file_pos\": 13, \"keyword\": \"FROM\"}, {\"start_line_no\": 1, \"start_line_pos\": 14, \"start_file_pos\": 13, \"end_line_no\": 1, \"end_line_pos\": 15, \"end_file_pos\": 14, \"whitespace\": \" \"}, {\"start_line_no\": 1, \"start_line_pos\": 15, \"start_file_pos\": 14, \"end_line_no\": 1, \"end_line_pos\": 20, \"end_file_pos\": 19, \"from_expression\": [{\"start_line_no\": 1, \"start_line_pos\": 15, \"start_file_pos\": 14, \"end_line_no\": 1, \"end_line_pos\": 15, \"end_file_pos\": 14, \"indent\": \"\"}, {\"start_line_no\": 1, \"start_line_pos\": 15, \"start_file_pos\": 14, \"end_line_no\": 1, \"end_line_pos\": 20, \"end_file_pos\": 19, \"from_expression_element\": {\"start_line_no\": 1, \"start_line_pos\": 15, \"start_file_pos\": 14, \"end_line_no\": 1, \"end_line_pos\": 20, \"end_file_pos\": 19, \"table_expression\": {\"start_line_no\": 1, \"start_line_pos\": 15, \"start_file_pos\": 14, \"end_line_no\": 1, \"end_line_pos\": 20, \"end_file_pos\": 19, \"table_reference\": {\"start_line_no\": 1, \"start_line_pos\": 15, \"start_file_pos\": 14, \"end_line_no\": 1, \"end_line_pos\": 20, \"end_file_pos\": 19, \"naked_identifier\": \"my_table\"}}}}, {\"start_line_no\": 1, \"start_line_pos\": 20, \"start_file_pos\": 19, \"end_line_no\": 1, \"end_line_pos\": 20, \"end_file_pos\": 19, \"dedent\": \"\"}]}]}]}}, {\"start_line_no\": 1, \"start_line_pos\": 20, \"start_file_pos\": 19, \"end_line_no\": 1, \"end_line_pos\": 20, \"end_file_pos\": 19, \"end_of_file\": \"\"}]}}]\n",
+       "stderr": "",
+       "files": {
+        ".sqlfluff": "[sqlfluff]\ndialect = ansi\ntemplater = python\n\n[sqlfluff:templater:python:context]\ntbl = my_table\n",
+        "case.sql": "SELECT * FROM {tbl}"
+       },
+       "outer_config": {}
+      }
+     ],
+     "proof": []
+    }
+   ],
+   "untraced": [],
+   "processes": []
+  },
+  "test/templater_calls_test.py::test_map_value_error": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "templater",
+     "inputs": {
+      "templater": "placeholder",
+      "class": "sqlfluff.core.templaters.placeholder.PlaceholderTemplater",
+      "context": {
+       "param_style": "nope"
+      },
+      "in_str": "SELECT 1",
+      "fname": "test",
+      "config": null,
+      "cwd": "{sqlfluff}",
+      "config_file": {
+       "text": "[sqlfluff]\ndialect = ansi\ntemplater = placeholder\n\n[sqlfluff:templater:placeholder]\nparam_style = nope\n"
+      },
+      "unsupported": []
+     },
+     "raised": "ValueError: Unknown param_style \"nope\", available are: ['colon', 'colon_optional_quotes', 'colon_nospaces', 'numeric_colon', 'pyformat', 'dollar', 'dollar_surround', 'flyway_var', 'question_mark', 'numeric_dollar', 'percent', 'ampersand']",
+     "error_kind": "other_error",
+     "cases": [
+      {
+       "argv": [
+        "parse",
+        "-f",
+        "json",
+        "case.sql"
+       ],
+       "exit_code": 1,
+       "stdout": "",
+       "stderr": "ValueError: Unknown param_style \"nope\", available are: ['colon', 'colon_optional_quotes', 'colon_nospaces', 'numeric_colon', 'pyformat', 'dollar', 'dollar_surround', 'flyway_var', 'question_mark', 'numeric_dollar', 'percent', 'ampersand']\n",
+       "exception": "ValueError: Unknown param_style \"nope\", available are: ['colon', 'colon_optional_quotes', 'colon_nospaces', 'numeric_colon', 'pyformat', 'dollar', 'dollar_surround', 'flyway_var', 'question_mark', 'numeric_dollar', 'percent', 'ampersand']",
+       "files": {
+        ".sqlfluff": "[sqlfluff]\ndialect = ansi\ntemplater = placeholder\n\n[sqlfluff:templater:placeholder]\nparam_style = nope\n",
+        "case.sql": "SELECT 1"
+       },
+       "outer_config": {}
+      }
+     ],
+     "proof": []
+    }
+   ],
+   "untraced": [],
+   "processes": []
+  },
+  "test/templater_calls_test.py::test_map_templater_error": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "templater",
+     "inputs": {
+      "templater": "python",
+      "class": "sqlfluff.core.templaters.python.PythonTemplater",
+      "context": {
+       "other": "x"
+      },
+      "in_str": "SELECT {missing}",
+      "fname": "test",
+      "config": null,
+      "cwd": "{sqlfluff}",
+      "config_file": {
+       "text": "[sqlfluff]\ndialect = ansi\ntemplater = python\n\n[sqlfluff:templater:python:context]\nother = x\n"
+      },
+      "unsupported": []
+     },
+     "raised": "SQLTemplaterError: Failure in Python templating: 'missing'. Have you configured your variables? https://docs.sqlfluff.com/en/stable/perma/variables.html",
+     "error_kind": "templater_error",
+     "cases": [
+      {
+       "argv": [
+        "lint",
+        "-f",
+        "json",
+        "case.sql"
+       ],
+       "exit_code": 1,
+       "stdout": "[{\"filepath\": \"case.sql\", \"violations\": [{\"start_line_no\": 0, \"start_line_pos\": 0, \"code\": \"TMP\", \"description\": \"Failure in Python templating: 'missing'. Have you configured your variables? https://docs.sqlfluff.com/en/stable/perma/variables.html\", \"name\": \"\", \"warning\": false}], \"statistics\": {\"source_chars\": 0, \"templated_chars\": 0, \"segments\": 0, \"raw_segments\": 0}, \"timings\": {\"templating\": 0.00016947499989328207, \"lexing\": 0.0, \"parsing\": 0.0, \"linting\": 2.935900010925252e-05}}]\n",
+       "stderr": "",
+       "files": {
+        ".sqlfluff": "[sqlfluff]\ndialect = ansi\ntemplater = python\n\n[sqlfluff:templater:python:context]\nother = x\n",
+        "case.sql": "SELECT {missing}"
+       },
+       "outer_config": {}
+      }
+     ],
+     "proof": []
+    }
+   ],
+   "untraced": [],
+   "processes": []
+  },
+  "test/templater_calls_test.py::test_map_skip_file": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "templater",
+     "inputs": {
+      "templater": "python",
+      "class": "sqlfluff.core.templaters.python.PythonTemplater",
+      "context": {},
+      "in_str": "SELECT 1",
+      "fname": "test",
+      "config": {
+       "method": "FluffConfig",
+       "args": {
+        "overrides": {
+         "dialect": "ansi",
+         "large_file_skip_char_limit": 2
+        }
+       }
+      },
+      "cwd": "{sqlfluff}",
+      "config_file": {
+       "text": "[sqlfluff]\ndialect = ansi\nlarge_file_skip_char_limit = 2\ntemplater = python\n"
+      },
+      "unsupported": []
+     },
+     "raised": "SQLFluffSkipFile: Length of file 'test' is over 2 characters. Skipping to avoid parser lock. Users can increase this limit in their config by setting the 'large_file_skip_char_limit' value, or disable by setting it to zero.",
+     "error_kind": "skip_file",
+     "cases": [
+      {
+       "argv": [
+        "parse",
+        "-f",
+        "json",
+        "case.sql"
+       ],
+       "exit_code": 0,
+       "stdout": "[{\"filepath\": \"case.sql\", \"segments\": null}]\n",
+       "stderr": "WARNING    The config value large_file_skip_char_limit was found set. This feature will be removed in a future release, please use the more efficient 'large_file_skip_byte_limit' instead. \nWARNING    Length of file 'case.sql' is over 2 characters. Skipping to avoid parser lock. Users can increase this limit in their config by setting the 'large_file_skip_char_limit' value, or disable by setting it to zero. \n",
+       "files": {
+        ".sqlfluff": "[sqlfluff]\ndialect = ansi\nlarge_file_skip_char_limit = 2\ntemplater = python\n",
+        "case.sql": "SELECT 1"
+       },
+       "outer_config": {}
+      }
+     ],
+     "proof": []
+    }
+   ],
+   "untraced": [],
+   "processes": []
+  },
+  "test/templater_calls_test.py::test_refuse_jinja": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "templater",
+     "inputs": {
+      "templater": "jinja",
+      "class": "sqlfluff.core.templaters.jinja.JinjaTemplater",
+      "context": {},
+      "in_str": "SELECT 1",
+      "fname": "test",
+      "config": {
+       "method": "FluffConfig",
+       "args": {
+        "overrides": {
+         "dialect": "ansi"
+        }
+       }
+      },
+      "cwd": "{sqlfluff}",
+      "unsupported": [
+       "the templater JinjaTemplater"
+      ]
+     },
+     "outputs": {
+      "templated": "SELECT 1",
+      "violations": []
+     }
+    }
+   ],
+   "untraced": [],
+   "processes": []
+  },
+  "test/templater_calls_test.py::test_refuse_not_a_literal": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "templater",
+     "inputs": {
+      "templater": "placeholder",
+      "class": "sqlfluff.core.templaters.placeholder.PlaceholderTemplater",
+      "context": {
+       "param_style": "colon",
+       "d": "<datetime.date(2020, 1, 1)>"
+      },
+      "in_str": "SELECT :d",
+      "fname": "test",
+      "config": null,
+      "cwd": "{sqlfluff}",
+      "config_file": {
+       "error": "the context is not a literal"
+      },
+      "unsupported": [
+       "a context value that is not a literal: {'param_style': 'colon', 'd': datetime.date(2020, 1, 1)}"
+      ]
+     },
+     "outputs": {
+      "templated": "SELECT 2020-01-01",
+      "violations": []
+     }
+    }
+   ],
+   "untraced": [],
+   "processes": []
+  },
+  "test/templater_calls_test.py::test_refuse_config_from_kwargs": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "templater",
+     "inputs": {
+      "templater": "python",
+      "class": "sqlfluff.core.templaters.python.PythonTemplater",
+      "context": {
+       "tbl": "t"
+      },
+      "in_str": "SELECT * FROM {tbl}",
+      "fname": "test",
+      "config": {
+       "method": "from_kwargs",
+       "args": {
+        "dialect": "ansi"
+       }
+      },
+      "cwd": "{sqlfluff}",
+      "config_file": {
+       "text": "[sqlfluff]\ndialect = ansi\ntemplater = python\n\n[sqlfluff:templater:python:context]\ntbl = t\n"
+      },
+      "unsupported": [
+       "a config from {'method': 'from_kwargs', 'args': {'dialect': 'ansi'}}; the map knows only FluffConfig(overrides=...)"
+      ]
+     },
+     "outputs": {
+      "templated": "SELECT * FROM t",
+      "violations": []
+     }
+    }
+   ],
+   "untraced": [],
+   "processes": []
+  },
+  "test/templater_calls_test.py::test_refuse_untraced_method": {
+   "outcome": "passed",
+   "calls": [],
+   "untraced": [
+    "a templater method (PythonTemplater.get_context)",
+    "a templater method (RawTemplater.get_context)"
+   ],
+   "processes": []
+  },
+  "test/templater_calls_test.py::test_map_python_empty": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "templater",
+     "inputs": {
+      "templater": "python",
+      "class": "sqlfluff.core.templaters.python.PythonTemplater",
+      "context": {
+       "foo": "bar"
+      },
+      "in_str": "",
+      "fname": "test",
+      "config": null,
+      "cwd": "{sqlfluff}",
+      "config_file": {
+       "text": "[sqlfluff]\ndialect = ansi\ntemplater = python\n\n[sqlfluff:templater:python:context]\nfoo = bar\n"
+      },
+      "unsupported": []
+     },
+     "outputs": {
+      "templated": "",
+      "violations": []
+     },
+     "cases": [
+      {
+       "argv": [
+        "parse",
+        "-f",
+        "json",
+        "case.sql"
+       ],
+       "exit_code": 0,
+       "stdout": "[{\"filepath\": \"case.sql\", \"segments\": {\"file\": null}}]\n",
+       "stderr": "",
+       "files": {
+        ".sqlfluff": "[sqlfluff]\ndialect = ansi\ntemplater = python\n\n[sqlfluff:templater:python:context]\nfoo = bar\n",
+        "case.sql": ""
+       },
+       "outer_config": {}
+      },
+      {
+       "argv": [
+        "parse",
+        "-f",
+        "json",
+        "-m",
+        "case.sql"
+       ],
+       "exit_code": 0,
+       "stdout": "[{\"filepath\": \"case.sql\", \"segments\": {\"start_line_no\": 1, \"start_line_pos\": 1, \"start_file_pos\": 0, \"end_line_no\": 1, \"end_line_pos\": 1, \"end_file_pos\": 0, \"file\": {\"start_line_no\": 1, \"start_line_pos\": 1, \"start_file_pos\": 0, \"end_line_no\": 1, \"end_line_pos\": 1, \"end_file_pos\": 0, \"end_of_file\": \"\"}}}]\n",
+       "stderr": "",
+       "files": {
+        ".sqlfluff": "[sqlfluff]\ndialect = ansi\ntemplater = python\n\n[sqlfluff:templater:python:context]\nfoo = bar\n",
+        "case.sql": ""
+       },
+       "outer_config": {}
+      }
+     ],
+     "proof": []
+    }
+   ],
+   "untraced": [],
+   "processes": []
+  }
+ },
+ "outside": {
+  "nodes": [],
+  "calls": [],
+  "untraced": [],
+  "processes": []
+ }
+}

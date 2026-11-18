@@ -336,15 +336,40 @@ The 25 internal nodes call internal functions of the Python templater
   gives no position keys now (`harness/sqll.md`). The sqll option is in
   `crates/sqll_cli`. That path is a path of the track S7-sqll (the track
   that makes sqll pass the converted S7 cases (the sqll part of S7)). Thus
-  T9 (the templated text and source slices of sqll equal those of sqlfluff)
-  of S6 (templater parity: sqll passes 100% of the placeholder and Python
-  format-string templater fixtures that do not need a Python runtime) is
-  cross-track.
+  T9 (sqll `parse -f json -m` gives the source position of each leaf, as
+  sqlfluff does) of S6 (templater parity: sqll passes 100% of the
+  placeholder and Python format-string templater fixtures that do not need
+  a Python runtime) is cross-track. Its path is
+  `crates/sqll_cli/src/parse/output.rs`.
 - The trace oracle needs one more call map, from
   `<Templater>(override_context=C).process(in_str=S, config=F)` to a CLI
   case. The case has S as the file, and C and F in the config. A test that
   expects an error maps to the exit code and to the `TMP` violation or the
   error text.
+- T2 (the case runner and the trace oracle of the test conversion run the
+  cases of this stone with its scope file) of S6 (templater parity: sqll
+  passes 100% of the placeholder and Python format-string templater
+  fixtures that do not need a Python runtime) made this form. The scope
+  file is `harness/sqll_harness/s6/scope.py`; `sqll-harness s7 run --scope
+  s6` runs the case files of `harness/sqll_harness/s6/cases/` for sqlfluff,
+  sqruff, and sqll, and `scripts/s7-tests/oracle --scope s6` proves them.
+  The case format has the checks `templated` and `source_slices`. The map
+  and its proof are in [s7-tests-design.md](s7-tests-design.md), "Trace
+  oracle" (templater call) and "Limits of the oracle" (item 10). The case
+  files are `core/templaters/placeholder_test.yml` and
+  `core/templaters/python_test.yml`, the paths of their test files. The
+  SQL file of a case is `case.sql`. A call that returns gives 2 cases (the
+  templated text and the source slices); a `SQLTemplaterError` gives a
+  `lint -f json` case (the `TMP` violation); each other error gives a
+  `parse -f json` case (the stderr). Data (2026-11-17, `trace-nodes
+  --templaters` on the 54 black-box nodes): the map gives cases for each
+  call of the 54 nodes, and the proof of each call has no difference. 4
+  nodes raise a `SQLTemplaterError` and map to `lint` with the default
+  rules. sqll refuses a rule that it does not have (`harness/sqll.md`);
+  thus T8 (sqll passes the 28 black-box python cases) of S6 (templater
+  parity: sqll passes 100% of the placeholder and Python format-string
+  templater fixtures that do not need a Python runtime) also needs the
+  `TMP` violation of sqll for the default rule set.
 - Alternative: compare with the output of `sqlfluff render`. sqll has no
   `render` command before S7 (CLI and config parity: the sqlfluff CLI,
   config, and Python rule tests as black-box cases; sqll passes 100% of the

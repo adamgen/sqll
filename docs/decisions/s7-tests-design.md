@@ -172,6 +172,14 @@ nodes:
   `contains`, `not_contains`, or `json`; `files` (cli, `cwd: tmp`): the
   content of each changed or new file; `violations` (cli `lint -f json`
   output, or api `lint`); `fixed` (api `fix`).
+- Parse tree checks (cli; added by T2 of S6, templater parity, see "Scope
+  files"): `templated` is the text of the leaves of `parse -f json` output
+  in order (the templated text); `source_slices` is `[raw, start_file_pos,
+  end_file_pos]` of each leaf of `parse -f json -m` output (the meta
+  segments too). The loader refuses `templated` with `-m` (the text of a
+  placeholder meta segment is its source) and `source_slices` without
+  `-m` (no positions). Output with no parse tree (`segments` null) fails
+  the check.
 - A `violations` check: `select` (key: value, or key: `{contains: text}`),
   then `count`, `min_count`, or `records` (one partial violation for each
   selected violation, in order). `exact: true` makes each record give all
@@ -185,6 +193,23 @@ nodes:
   exclusion list), an unknown key, a repeated YAML key, a case with no
   checks, a cli case with no `exit_code`, and `files` or `{tmp}` (in
   `argv` or `sqruff`) without `cwd: tmp`.
+
+## Scope files
+
+`sqll_harness/s7_tests/scopes.py`. A scope file gives the nodes, the case
+files, the suites, the tools, and the not-reproduced record of a run of
+`sqll-harness s7 run --scope NAME` and of `scripts/s7-tests/oracle --scope
+NAME`. The default `s7` is this design. `s6` is the scope of S6 (templater
+parity: sqll passes 100% of the placeholder and Python format-string
+templater fixtures that do not need a Python runtime),
+`sqll_harness/s6/scope.py`: the black-box nodes of `results/S6/scope.json`,
+the cases of `sqll_harness/s6/cases/`, the suites `s6_placeholder` and
+`s6_python`, the tools sqlfluff, sqruff, and sqll, the oracle tool
+sqlfluff, no exclusion list, and no not-reproduced record. The scope data
+of another stone gives its suites and tools in the keys `suites` and
+`tools`; the loader, the runner, and the report read them there. There is
+one runner and one oracle (S6 design item 4). `s7 merge`, `s7 summarize`,
+and the CI jobs use only the S7 scope.
 
 ## Exclusion list
 
@@ -409,6 +434,40 @@ with the original sqlfluff tests. T3 made it.
     a black-box case marked for the Jinja templater stone)). The oracle maps
     the call only if that run gives each output of the call: exit code,
     stdout, stderr, files, and exception.
+  - Templater call (scope `s6`, `trace-nodes --templaters`):
+    `<Templater>(override_context=C).process(in_str=S, fname=N, config=F)`
+    of the placeholder or the python templater. The cases are `cwd: tmp`
+    cases with the files `case.sql` (S) and `.sqlfluff`: the values of F
+    that are not the default (F `FluffConfig(overrides=...)` only; no F:
+    `dialect = ansi`, because the CLI needs a dialect), `templater = <name>`,
+    and C in `[sqlfluff:templater:placeholder]` or
+    `[sqlfluff:templater:python:context]` (`s7config.templater_text`). The
+    argv depends on the result of the call: a result gives 2 cases, `parse
+    -f json case.sql` (the templated text) and `parse -f json -m case.sql`
+    (the source slices); a `SQLTemplaterError` gives `lint -f json
+    case.sql` (the `TMP` violation); a `SQLFluffSkipFile` and each other
+    error give `parse -f json case.sql` (the stderr and the exit code). The
+    trace runs these cases with `CliRunner` in a new folder and records
+    their outputs; an uncaught exception adds the last line of its
+    traceback to the stderr, as the binary prints it. The proof: the
+    templater call of each CLI run must give the templated file of the call
+    (source text, templated text, `sliced_file`, `raw_sliced`, and the
+    violations), or the same error with the file name replaced; for a
+    `SQLFluffSkipFile` the run has no templater call and its stderr has the
+    text of the error. The map refuses another templater, a positional
+    argument, a formatter, a context value that is not a literal, a config
+    from another source, a config that the model does not map, a proof with
+    a difference, and a folder above the case folder with a sqlfluff
+    config. A `get_context` or `slice_file` call of a templater outside each
+    traced call is an untraced call. For a call that returns, the `parse -f
+    json` case must have a `templated` check and the `parse -f json -m`
+    case must have a `source_slices` check (else the oracle fails closed),
+    and the value of the `templated` check must be the templated text that
+    the call returned (the trace output `templated`). In the parse tree, a
+    segment with no children has the value null and gives no leaf
+    (sqlfluff `BaseSegment.structural_simplify`); for example, `parse -f
+    json` of an empty file gives `{"file": null}` and the templated text
+    `""`.
   - Simple API with no config: an `api` case (T3).
   - Linter path call: `lint -f json P` (T3), or, for a config from
     overrides only, `lint -f json --dialect D --rules R --exclude-rules E
@@ -712,12 +771,16 @@ defaults (`FluffConfig.from_root` in the folder, with an empty home).
    changes process state outside its result: the `sqlfluff` loggers
    (`propagate=False`, a log handler, levels) and the globals of colorama
    (`colorama.init`). The trace saves this state before the run and restores
-   it after (a node of the T17 test tree checks it). These calls read no
+   it after (a node of the T17 test tree checks it). The CLI runs of the
+   templater map (limit 10, scope `s6`) save and restore the same state
+   (the teardown of each node of the test tree of the templater map,
+   `harness/tests/fixtures/s6/tree/`, checks it). These calls read no
    file of the submodule, and the test does not see their results.
 6. In process. The trace runs the CLI in the pytest process
    (`CliRunner`), not as a binary. Check 3 compares the binary run of the
    runner with it only by the node status.
-7. Tools and classes. The oracle checks sqlfluff and `sqlfluff[rs]`. It
+7. Tools and classes. The oracle checks sqlfluff and `sqlfluff[rs]` (the
+   scope `s6`: only sqlfluff). It
    does not check sqruff, the `sqruff` translations, or the classes
    `needs-python-runtime`, `engine-comparison`, and `environment`. The
    review of the exclusion list checks them. For the Rust dispatch nodes, a
@@ -742,6 +805,16 @@ defaults (`FluffConfig.from_root` in the folder, with an empty home).
    results do not change. After a local trace of other nodes, remove the
    files that `scripts/check-submodule` lists before the next oracle run. A
    later task can add a check that does this.
+10. Templater map (scope `s6`). The proof compares the templater call of
+    the CLI run with the call of the test; the parse and the lint of the
+    CLI run are not a part of the test. The CLI runs in the pytest process
+    (limit 6); the stderr of an uncaught exception is a model (its last
+    traceback line). The `dialect = ansi` of a call with no config is a
+    model that the proof checks only for the templater output. A
+    `process()` call does not lint. A `lint` case (the map of a
+    `SQLTemplaterError`) runs the default rules of its config; its checks
+    are the exit code and the violations that `select` gives with the code
+    `TMP`.
 
 ## Results and ownership
 

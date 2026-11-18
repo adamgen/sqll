@@ -3,6 +3,10 @@ the S7 suites (docs/decisions/s7-tests-design.md, "Case runner", "Report",
 "Known failures", and "CI").
 
 s7 run: run the S7 suites through the tool binaries and write the S7 report.
+With --scope s6 it runs the suites of the scope file of S6 (templater
+parity) instead: the case files of harness/sqll_harness/s6/cases/ for the
+tools of that scope (sqll_harness.s7_tests.scopes). There is one runner for
+all scopes.
 
 It loads each case file and the exclusion list, and checks that a check
 cites each assert of each converted source test or that a row of the
@@ -33,7 +37,8 @@ from pathlib import Path
 from typing import Any
 
 from ..paths import REPO_ROOT, SQLFLUFF_ROOT
-from .suites import SUITES, TOOLS, groups
+from . import scopes
+from .suites import TOOLS, groups
 
 DEFAULT_OUT = REPO_ROOT / "out" / "s7-tests" / "report.json"
 DEFAULT_SUMMARY = REPO_ROOT / "out" / "s7-tests" / "summary.json"
@@ -52,24 +57,36 @@ def add_parser(sub: Any) -> None:
         help="Run the S7 suites through the tool binaries and write the S7 report.",
     )
     run.add_argument(
+        "--scope",
+        choices=list(scopes.SCOPES),
+        default=scopes.DEFAULT,
+        help="The scope file: s7 (default, results/S7-tests/scope.json) or s6 "
+        "(the black-box nodes of results/S6/scope.json).",
+    )
+    run.add_argument(
         "--suite",
         action="append",
-        choices=list(SUITES),
-        help="Suite to run. Repeat for more suites. Default: all S7 suites.",
+        choices=scopes.all_suites(),
+        help="Suite to run. Repeat for more suites. Default: all suites of the scope.",
     )
     run.add_argument(
         "--tool",
         action="append",
-        choices=list(TOOLS),
-        help="Tool to run. Repeat for more tools. Default: all S7 tools.",
+        choices=scopes.all_tools(),
+        help="Tool to run. Repeat for more tools. Default: all tools of the scope.",
     )
     run.add_argument("--jobs", type=int, default=4)
-    run.add_argument("--out", type=Path, default=DEFAULT_OUT)
+    run.add_argument(
+        "--out",
+        type=Path,
+        help=f"Default: {DEFAULT_OUT.relative_to(REPO_ROOT)} (out/s6/report.json "
+        "for the scope s6).",
+    )
     run.add_argument(
         "--require-pass",
         action="append",
         default=[],
-        choices=list(TOOLS),
+        choices=scopes.all_tools(),
         help="Exit code 1 if this tool does not pass each node.",
     )
     run.add_argument(
@@ -159,17 +176,23 @@ def _known_failures(
     return 0
 
 
-def summary_lines(data: dict[str, Any]) -> list[str]:
-    """The counts and the parity of a report, as text."""
+def summary_lines(
+    data: dict[str, Any], label: str = "S7", exclusions: bool = True
+) -> list[str]:
+    """The counts and the parity of a report, as text. label: the name of
+    the scope (S7 or S6). exclusions: False for a scope with no exclusion
+    list; then there is no "excluded by class" line (the classes are those
+    of the S7 exclusion list)."""
     c = data["counts"]
-    classes = ", ".join(f"{k} {v}" for k, v in c["excluded_by_class"].items())
     lines = [
-        f"S7 suites: {' '.join(data['suites'])}",
+        f"{label} suites: {' '.join(data['suites'])}",
         f"in scope {c['in_scope']}, converted {c['converted']}, excluded "
         f"{c['excluded']}, not yet converted {c['not_yet_converted']}, needs "
         f"Jinja (S11) {c['needs_jinja']}",
-        f"excluded by class: {classes}",
     ]
+    if exclusions:
+        classes = ", ".join(f"{k} {v}" for k, v in c["excluded_by_class"].items())
+        lines.append(f"excluded by class: {classes}")
     for tool, p in data["parity"].items():
         lines.append(
             f"{tool}: {p['passed']} of {p['nodes']} nodes passed, {p['failed']} "
@@ -184,23 +207,36 @@ def run(args: argparse.Namespace) -> int:
     from ..adapters import ADAPTERS
     from . import caseformat, oracle, report, runner
 
-    tools = list(dict.fromkeys(args.tool or TOOLS))
-    suites = sorted(set(args.suite or SUITES))
+    scope = scopes.get(args.scope)
+    tools = list(dict.fromkeys(args.tool or scope.tools))
+    suites = sorted(set(args.suite or scope.suites))
+    other = [f"--tool {t}" for t in tools if t not in scope.tools]
+    other += [f"--suite {s}" for s in suites if s not in scope.suites]
+    if other:
+        print(
+            f"error: {', '.join(other)}: not of the scope {scope.name} (tools"
+            f" {list(scope.tools)}, suites {list(scope.suites)})",
+            file=sys.stderr,
+        )
+        return 2
     missing = sorted(set(args.require_pass) - set(tools))
     if missing:
         print(
             f"error: --require-pass {missing} needs --tool {missing}", file=sys.stderr
         )
         return 2
+    out = args.out or (
+        DEFAULT_OUT if scope.name == scopes.DEFAULT else scope.out_dir / "report.json"
+    )
 
     try:
-        cases = caseformat.load()
+        cases = scope.load_cases()
     except caseformat.CaseFormatError as exc:
         for line in exc.errors:
             print(f"error: {line}", file=sys.stderr)
         return 2
     errors = oracle.coverage_errors(
-        cases.nodes, SQLFLUFF_ROOT, oracle.load_not_reproduced()
+        cases.nodes, SQLFLUFF_ROOT, scope.load_not_reproduced()
     )
     for line in errors:
         print(f"error: {line}", file=sys.stderr)
@@ -216,14 +252,16 @@ def run(args: argparse.Namespace) -> int:
     adapters = {t: ADAPTERS[t]() for t in tools}
     versions = {t: a.version() for t, a in adapters.items()}
 
-    keep = groups(suites)
+    keep = groups(suites, cases.scope)
     nodes = [n for n in cases.nodes if n.group in keep]
-    results = runner.run_nodes(nodes, tools, args.jobs, adapters)
+    results = runner.run_nodes(
+        nodes, tools, args.jobs, adapters, known_tools=scope.tools
+    )
     data = report.build(cases, results, versions, suites)
-    report.write(data, args.out)
-    for line in summary_lines(data):
+    report.write(data, out)
+    for line in summary_lines(data, scope.name.upper(), scope.exclusions):
         print(line)
-    print(f"report: {args.out}")
+    print(f"report: {out}")
 
     status = 0
     check = subprocess.run(
@@ -258,7 +296,7 @@ def run(args: argparse.Namespace) -> int:
         if want != data:
             print(
                 f"error: the report is not {args.check} for the suites {suites} "
-                f"and the tools {tools}; compare it with {args.out}",
+                f"and the tools {tools}; compare it with {out}",
                 file=sys.stderr,
             )
             status = 1

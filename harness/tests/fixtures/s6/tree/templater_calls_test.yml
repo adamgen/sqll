@@ -1,0 +1,183 @@
+# The cases of the fixture test tree test/templater_calls_test.py
+# (harness/tests/test_s6_harness.py). The test_map_* nodes have the cases
+# that the templater map gives; the oracle must agree with them. Each
+# test_refuse_* node has one case; the oracle must refuse its call.
+source:
+  project: sqlfluff
+  version: 4.4.0
+  commit: 0348222a3bcdb0226563f7349c5a39beb0641955
+  file: test/templater_calls_test.py
+license: MIT
+nodes:
+  - node: test/templater_calls_test.py::test_map_placeholder
+    asserts:
+      L31: ["templated:templated"]
+    cases:
+      - name: templated
+        run: cli
+        argv: [parse, -f, json, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = placeholder\n\n[sqlfluff:templater:placeholder]\nparam_style = colon\na = 1\n"
+          case.sql: "SELECT :a FROM t\n"
+        checks:
+          exit_code: 0
+          templated: "SELECT 1 FROM t\n"
+      - name: slices
+        run: cli
+        argv: [parse, -f, json, -m, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = placeholder\n\n[sqlfluff:templater:placeholder]\nparam_style = colon\na = 1\n"
+          case.sql: "SELECT :a FROM t\n"
+        checks:
+          exit_code: 0
+          # The leaf "1" has the source slice of ":a" (7 to 9).
+          source_slices:
+            - ["SELECT", 0, 6]
+            - ["", 6, 6]
+            - [" ", 6, 7]
+            - ["1", 7, 9]
+            - ["", 9, 9]
+            - [" ", 9, 10]
+            - ["FROM", 10, 14]
+            - [" ", 14, 15]
+            - ["", 15, 15]
+            - ["t", 15, 16]
+            - ["", 16, 16]
+            - ["\n", 16, 17]
+            - ["", 17, 17]
+  - node: test/templater_calls_test.py::test_map_python_no_config
+    asserts:
+      L37: ["templated:templated"]
+    cases:
+      # A call with no config: the case gives dialect = ansi.
+      - name: templated
+        run: cli
+        argv: [parse, -f, json, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = python\n\n[sqlfluff:templater:python:context]\ntbl = my_table\n"
+          case.sql: "SELECT * FROM {tbl}"
+        checks:
+          exit_code: 0
+          templated: "SELECT * FROM my_table"
+      - name: slices
+        run: cli
+        argv: [parse, -f, json, -m, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = python\n\n[sqlfluff:templater:python:context]\ntbl = my_table\n"
+          case.sql: "SELECT * FROM {tbl}"
+        checks:
+          exit_code: 0
+          source_slices:
+            - ["SELECT", 0, 6]
+            - ["", 6, 6]
+            - [" ", 6, 7]
+            - ["*", 7, 8]
+            - ["", 8, 8]
+            - [" ", 8, 9]
+            - ["FROM", 9, 13]
+            - [" ", 13, 14]
+            - ["", 14, 14]
+            - ["my_table", 14, 19]
+            - ["", 19, 19]
+            - ["", 19, 19]
+  - node: test/templater_calls_test.py::test_map_value_error
+    asserts:
+      L42:raises: ["error:exit_code", "error:stderr.contains[0]"]
+    cases:
+      - name: error
+        run: cli
+        argv: [parse, -f, json, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = placeholder\n\n[sqlfluff:templater:placeholder]\nparam_style = nope\n"
+          case.sql: SELECT 1
+        checks:
+          exit_code: 1
+          stderr:
+            contains: ["ValueError: Unknown param_style \"nope\""]
+  - node: test/templater_calls_test.py::test_map_templater_error
+    asserts:
+      L48:raises: ["tmp:exit_code", "tmp:violations[0]"]
+    cases:
+      - name: tmp
+        run: cli
+        argv: [lint, -f, json, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = python\n\n[sqlfluff:templater:python:context]\nother = x\n"
+          case.sql: "SELECT {missing}"
+        checks:
+          exit_code: 1
+          violations:
+            - select: {code: TMP}
+              records:
+                - description: {contains: "Failure in Python templating: 'missing'."}
+  - node: test/templater_calls_test.py::test_map_skip_file
+    asserts:
+      L54:raises: ["skip:stderr.contains[0]"]
+      L56: ["skip:stderr.contains[0]"]
+    cases:
+      - name: skip
+        run: cli
+        argv: [parse, -f, json, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\nlarge_file_skip_char_limit = 2\ntemplater = python\n"
+          case.sql: SELECT 1
+        checks:
+          exit_code: 0
+          stdout:
+            json: [{filepath: case.sql, segments: null}]
+          stderr:
+            contains: ["Length of file 'case.sql' is over 2 characters."]
+  - node: test/templater_calls_test.py::test_refuse_jinja
+    asserts:
+      L62: ["x:exit_code"]
+    cases:
+      - {name: x, run: cli, argv: [parse, -f, json, case.sql], cwd: tmp, checks: {exit_code: 0}}
+  - node: test/templater_calls_test.py::test_refuse_not_a_literal
+    asserts:
+      L70: ["x:exit_code"]
+    cases:
+      - {name: x, run: cli, argv: [parse, -f, json, case.sql], cwd: tmp, checks: {exit_code: 0}}
+  - node: test/templater_calls_test.py::test_refuse_config_from_kwargs
+    asserts:
+      L77: ["x:exit_code"]
+    cases:
+      - {name: x, run: cli, argv: [parse, -f, json, case.sql], cwd: tmp, checks: {exit_code: 0}}
+  - node: test/templater_calls_test.py::test_refuse_untraced_method
+    asserts:
+      L82: ["x:exit_code"]
+    cases:
+      - {name: x, run: cli, argv: [parse, -f, json, case.sql], cwd: tmp, checks: {exit_code: 0}}
+  - node: test/templater_calls_test.py::test_map_python_empty
+    asserts:
+      L89: ["templated:templated"]
+    cases:
+      # An empty file. "parse -f json" gives {"file": null} (a segment with
+      # no children); with -m, the tree has the end_of_file meta segment.
+      - name: templated
+        run: cli
+        argv: [parse, -f, json, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = python\n\n[sqlfluff:templater:python:context]\nfoo = bar\n"
+          case.sql: ""
+        checks:
+          exit_code: 0
+          templated: ""
+      - name: slices
+        run: cli
+        argv: [parse, -f, json, -m, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = python\n\n[sqlfluff:templater:python:context]\nfoo = bar\n"
+          case.sql: ""
+        checks:
+          exit_code: 0
+          source_slices:
+            - ["", 0, 0]

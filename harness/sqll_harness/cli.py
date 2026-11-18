@@ -2,6 +2,9 @@
 bench (inputs | reference | run | merge | check | compare) |
 s7 (run | merge | summarize | known-failures).
 
+"s7 run --scope s6" runs the cases of the scope file of S6 (templater
+parity) with the same runner (sqll_harness.s7_tests.scopes).
+
 See harness/README.md.
 """
 

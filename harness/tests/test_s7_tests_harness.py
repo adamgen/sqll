@@ -21,7 +21,7 @@ from conftest import needs_all_tools
 from sqll_harness import cli
 from sqll_harness.cases import ERROR, FAIL, PASS
 from sqll_harness.paths import REPO_ROOT, SQLFLUFF_ROOT
-from sqll_harness.s7_tests import caseformat, command, oracle, report, suites
+from sqll_harness.s7_tests import caseformat, command, oracle, report, scopes, suites
 from sqll_harness.s7_tests.report import ReportError
 from sqll_harness.s7_tests.runner import CaseOutcome, NodeOutcome
 from sqll_harness.suites import SUITES as S1_SUITES
@@ -60,11 +60,30 @@ def test_cli_parses_s7_run():
     )
     assert (args.command, args.s7_command) == ("s7", "run")
     assert args.suite == ["s7_cli"] and args.tool == ["sqruff"] and args.jobs == 2
-    assert args.out == command.DEFAULT_OUT
+    # No --out: run() writes command.DEFAULT_OUT for the scope s7 (the
+    # default scope), and out/s6/report.json for the scope s6.
+    assert args.scope == "s7" and args.out is None
     with pytest.raises(SystemExit):
         cli._parser().parse_args(["s7", "run", "--suite", "rules"])
     with pytest.raises(SystemExit):
-        cli._parser().parse_args(["s7", "run", "--tool", "sqll"])
+        cli._parser().parse_args(["s7", "run", "--scope", "s8"])
+
+
+def test_s7_run_refuses_a_tool_or_a_suite_of_another_scope(monkeypatch, capsys):
+    # sqll and the S6 suites are choices of the parser (the scope s6 has
+    # them), but not of the S7 scope: the run stops with exit code 2 before
+    # it loads the cases or checks a tool.
+    def no_load():
+        raise AssertionError("the cases must not load")
+
+    monkeypatch.setattr(caseformat, "load", no_load)
+    assert cli.main(["s7", "run", "--tool", "sqll"]) == 2
+    assert "--tool sqll: not of the scope s7" in capsys.readouterr().err
+    assert cli.main(["s7", "run", "--suite", "s6_python"]) == 2
+    assert "--suite s6_python: not of the scope s7" in capsys.readouterr().err
+    argv = ["s7", "run", "--scope", "s6", "--tool", "sqlfluff-rs"]
+    assert cli.main(argv) == 2
+    assert "--tool sqlfluff-rs: not of the scope s6" in capsys.readouterr().err
 
 
 def test_require_pass_needs_the_tool(capsys):
@@ -214,6 +233,16 @@ def test_summary_lines_give_the_counts_apart_from_parity():
         "engine-comparison 92, environment 0"
     )
     assert lines[3].startswith("sqlfluff: 91 of 91 nodes passed, 0 failed, 0 error")
+
+
+def test_summary_lines_of_a_scope_with_no_exclusion_list():
+    # The scope s6 has no exclusion list: the S7 classes give no data.
+    assert scopes.get("s7").exclusions is True
+    assert scopes.get("s6").exclusions is False
+    lines = command.summary_lines(RECORDED, "S7", exclusions=False)
+    full = command.summary_lines(RECORDED)
+    assert full[2].startswith("excluded by class: ")
+    assert lines == [*full[:2], *full[3:]]
 
 
 # Each assert of a converted test: a check cites it, or a row has it.

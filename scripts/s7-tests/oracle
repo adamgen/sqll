@@ -21,6 +21,12 @@ and runs scripts/check-submodule.
 With --trace TOOL=FILE, it checks a saved trace and does not run the tool.
 With --write, it also writes the result and the traces to results/S7-tests/.
 
+With --scope s6, it checks the cases of the scope file of S6 (templater
+parity; sqll_harness/s6/scope.py) with the same checks: the tool is
+sqlfluff, trace-nodes also traces the templater calls (--templaters), the
+report has no default (give --report), the result goes to out/s6/, and
+--write writes results/S6/.
+
 Exit code 1 if the oracle does not agree (each error is on stderr), if the
 submodule changed, or if the result is not the --check file.
 """
@@ -34,7 +40,7 @@ import tempfile
 from pathlib import Path
 
 from sqll_harness.paths import REPO_ROOT, SQLFLUFF_ROOT, sqlfluff_ref, tools_dir
-from sqll_harness.s7_tests import caseformat, oracle
+from sqll_harness.s7_tests import caseformat, oracle, scopes
 
 RESULTS = REPO_ROOT / "results" / "S7-tests"
 DEFAULT_REPORT = RESULTS / "report.json"
@@ -50,9 +56,12 @@ def trace_file(folder: Path, tool: str) -> Path:
     return folder / f"oracle-trace-{tool}.json"
 
 
-def run_trace(tool: str, nodes: list[str], out: Path, root: Path) -> None:
+def run_trace(
+    tool: str, nodes: list[str], out: Path, root: Path, extra: tuple[str, ...] = ()
+) -> None:
     """Run trace-nodes with the oracle Python of the tool. HOME is an empty
-    folder, as for the harness adapters."""
+    folder, as for the harness adapters. extra: the trace options of the
+    scope."""
     venv, flags = ORACLE_PYTHON[tool]
     python = tools_dir() / venv / "bin" / "python"
     if not python.exists():
@@ -66,7 +75,7 @@ def run_trace(tool: str, nodes: list[str], out: Path, root: Path) -> None:
         env.update(
             {"HOME": home, "XDG_CONFIG_HOME": home, "PYTHONDONTWRITEBYTECODE": "1"}
         )
-        cmd = [str(python), str(TRACE_NODES), *flags, "--out", str(out)]
+        cmd = [str(python), str(TRACE_NODES), *flags, *extra, "--out", str(out)]
         cmd += ["--root", str(root), *nodes]
         proc = subprocess.run(cmd, env=env, check=False)
     if proc.returncode != 0:
@@ -76,12 +85,18 @@ def run_trace(tool: str, nodes: list[str], out: Path, root: Path) -> None:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument(
+        "--scope",
+        choices=list(scopes.SCOPES),
+        default=scopes.DEFAULT,
+        help="the scope file (default: s7)",
+    )
+    parser.add_argument(
         "--tool",
         action="append",
         choices=oracle.TOOLS,
         help="a tool to check (repeat it; default: each tool)",
     )
-    parser.add_argument("--report", type=Path, default=DEFAULT_REPORT)
+    parser.add_argument("--report", type=Path)
     parser.add_argument(
         "--trace",
         action="append",
@@ -89,13 +104,27 @@ def main(argv: list[str] | None = None) -> int:
         metavar="TOOL=FILE",
         help="check this saved trace of TOOL; do not run the tool",
     )
-    parser.add_argument("--out", type=Path, default=DEFAULT_OUT)
-    parser.add_argument("--write", action="store_true", help=f"also write {RESULTS}")
+    parser.add_argument("--out", type=Path)
+    parser.add_argument(
+        "--write", action="store_true", help="also write the results of the scope"
+    )
     parser.add_argument(
         "--check", type=Path, help="exit code 1 if the result is not this file"
     )
     args = parser.parse_args(argv)
-    tools = args.tool or list(oracle.TOOLS)
+    scope = scopes.get(args.scope)
+    s7 = scope.name == scopes.DEFAULT
+    results = RESULTS if s7 else scope.results_dir
+    if args.report is None:
+        if not s7:
+            parser.error(f"--scope {scope.name} needs --report")
+        args.report = DEFAULT_REPORT
+    if args.out is None:
+        args.out = DEFAULT_OUT if s7 else scope.out_dir / "oracle.json"
+    tools = args.tool or list(scope.oracle_tools)
+    other = sorted(set(tools) - set(scope.oracle_tools))
+    if other:
+        parser.error(f"the scope {scope.name} has no oracle of the tools {other}")
     saved = {}
     for item in args.trace:
         tool, _, path = item.partition("=")
@@ -111,14 +140,14 @@ def main(argv: list[str] | None = None) -> int:
         )
         return 2
     try:
-        cases = caseformat.load()
+        cases = scope.load_cases()
     except caseformat.CaseFormatError as exc:
         for line in exc.errors:
             print(f"error: {line}", file=sys.stderr)
         return 2
     report = json.loads(args.report.read_text(encoding="utf8"))
     converted, internal = oracle.requested_nodes(report)
-    not_reproduced = oracle.load_not_reproduced()
+    not_reproduced = scope.load_not_reproduced()
 
     out_dir = args.out.parent
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -128,7 +157,7 @@ def main(argv: list[str] | None = None) -> int:
         path = saved.get(tool)
         if path is None:
             path = trace_file(out_dir, tool)
-            run_trace(tool, converted + internal, path, SQLFLUFF_ROOT)
+            run_trace(tool, converted + internal, path, SQLFLUFF_ROOT, scope.trace_args)
         traces[tool] = json.loads(path.read_text(encoding="utf8"))
         by_tool[tool] = oracle.check_tool(
             tool, traces[tool], cases.nodes, report, SQLFLUFF_ROOT, not_reproduced
@@ -146,12 +175,12 @@ def main(argv: list[str] | None = None) -> int:
         print(f"{tool}: {json.dumps(result['counts'])}")
     print(f"not reproduced: {json.dumps(data['not_reproduced'])}")
     if args.write:
-        (RESULTS / "oracle.json").write_text(text, encoding="utf8")
+        (results / "oracle.json").write_text(text, encoding="utf8")
         for tool, trace in traces.items():
-            trace_file(RESULTS, tool).write_text(
+            trace_file(results, tool).write_text(
                 json.dumps(trace, indent=1) + "\n", encoding="utf8"
             )
-        print(f"wrote {RESULTS.relative_to(REPO_ROOT)}/oracle*.json")
+        print(f"wrote {results.relative_to(REPO_ROOT)}/oracle*.json")
     check = subprocess.run(
         [str(REPO_ROOT / "scripts" / "check-submodule"), "after the S7 oracle"],
         check=False,
