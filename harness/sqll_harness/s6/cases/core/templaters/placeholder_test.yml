@@ -11,6 +11,118 @@ source:
   file: test/core/templaters/placeholder_test.py
 license: MIT
 nodes:
+  - node: test/core/templaters/placeholder_test.py::test__templater_raw
+    asserts:
+      L14: ["templated:templated"]
+    cases:
+      # The templated SQL has an unparsable section in the ansi dialect:
+      # parse gives the tree and exit code 1.
+      - name: templated
+        run: cli
+        argv: [parse, -f, json, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = placeholder\n\n[sqlfluff:templater:placeholder]\nparam_style = colon\n"
+          case.sql: "SELECT * FROM {{blah}} WHERE %(gnepr)s OR e~':'"
+        checks:
+          exit_code: 1
+          templated: "SELECT * FROM {{blah}} WHERE %(gnepr)s OR e~':'"
+      - name: slices
+        run: cli
+        argv: [parse, -f, json, -m, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = placeholder\n\n[sqlfluff:templater:placeholder]\nparam_style = colon\n"
+          case.sql: "SELECT * FROM {{blah}} WHERE %(gnepr)s OR e~':'"
+        checks:
+          exit_code: 1
+          source_slices:
+            - ["SELECT", 0, 6]
+            - ["", 6, 6]
+            - [" ", 6, 7]
+            - ["*", 7, 8]
+            - ["", 8, 8]
+            - [" ", 8, 9]
+            - ["FROM", 9, 13]
+            - [" ", 13, 14]
+            - ["{", 14, 15]
+            - ["{", 15, 16]
+            - ["blah", 16, 20]
+            - ["}", 20, 21]
+            - ["}", 21, 22]
+            - [" ", 22, 23]
+            - ["WHERE", 23, 28]
+            - [" ", 28, 29]
+            - ["%", 29, 30]
+            - ["(", 30, 31]
+            - ["gnepr", 31, 36]
+            - [")", 36, 37]
+            - ["s", 37, 38]
+            - [" ", 38, 39]
+            - ["OR", 39, 41]
+            - [" ", 41, 42]
+            - ["e", 42, 43]
+            - ["~", 43, 44]
+            - ["':'", 44, 47]
+            - ["", 47, 47]
+  - node: test/core/templaters/placeholder_test.py::test__templater_param_style[no_changes]
+    asserts:
+      L422: ["templated:templated"]
+    cases:
+      - name: templated
+        run: cli
+        argv: [parse, -f, json, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = placeholder\n\n[sqlfluff:templater:placeholder]\nunused = 7777\nparam_style = colon\n"
+          case.sql: "SELECT * FROM f, o, o WHERE a < 10\n\n"
+        checks:
+          exit_code: 0
+          templated: "SELECT * FROM f, o, o WHERE a < 10\n\n"
+      - name: slices
+        run: cli
+        argv: [parse, -f, json, -m, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = placeholder\n\n[sqlfluff:templater:placeholder]\nunused = 7777\nparam_style = colon\n"
+          case.sql: "SELECT * FROM f, o, o WHERE a < 10\n\n"
+        checks:
+          exit_code: 0
+          source_slices:
+            - ["SELECT", 0, 6]
+            - ["", 6, 6]
+            - [" ", 6, 7]
+            - ["*", 7, 8]
+            - ["", 8, 8]
+            - [" ", 8, 9]
+            - ["FROM", 9, 13]
+            - [" ", 13, 14]
+            - ["", 14, 14]
+            - ["f", 14, 15]
+            - ["", 15, 15]
+            - [",", 15, 16]
+            - [" ", 16, 17]
+            - ["", 17, 17]
+            - ["o", 17, 18]
+            - ["", 18, 18]
+            - [",", 18, 19]
+            - [" ", 19, 20]
+            - ["", 20, 20]
+            - ["o", 20, 21]
+            - ["", 21, 21]
+            - [" ", 21, 22]
+            - ["WHERE", 22, 27]
+            - ["", 27, 27]
+            - [" ", 27, 28]
+            - ["a", 28, 29]
+            - [" ", 29, 30]
+            - ["<", 30, 31]
+            - [" ", 31, 32]
+            - ["10", 32, 34]
+            - ["", 34, 34]
+            - ["\n", 34, 35]
+            - ["\n", 35, 36]
+            - ["", 36, 36]
   - node: test/core/templaters/placeholder_test.py::test__templater_param_style[colon_simple_substitution]
     asserts:
       L422: ["templated:templated"]
@@ -77,6 +189,1398 @@ nodes:
             - ["\n", 125, 126]
             - ["            ", 126, 138]
             - ["", 138, 138]
+  - node: test/core/templaters/placeholder_test.py::test__templater_param_style[colon_accept_block_at_end]
+    asserts:
+      L422: ["templated:templated"]
+    cases:
+      - name: templated
+        run: cli
+        argv: [parse, -f, json, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = placeholder\n\n[sqlfluff:templater:placeholder]\nuser_id = 42\nstart_date = '2021-10-01'\ncity_ids = (1, 2, 3, 45)\nparam_style = colon\n"
+          case.sql: "\n            SELECT user_mail, city_id\n            FROM users_data\n            WHERE userid = :user_id AND date > :start_date"
+        checks:
+          exit_code: 0
+          templated: "\n            SELECT user_mail, city_id\n            FROM users_data\n            WHERE userid = 42 AND date > '2021-10-01'"
+      - name: slices
+        run: cli
+        argv: [parse, -f, json, -m, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = placeholder\n\n[sqlfluff:templater:placeholder]\nuser_id = 42\nstart_date = '2021-10-01'\ncity_ids = (1, 2, 3, 45)\nparam_style = colon\n"
+          case.sql: "\n            SELECT user_mail, city_id\n            FROM users_data\n            WHERE userid = :user_id AND date > :start_date"
+        checks:
+          exit_code: 0
+          source_slices:
+            - ["\n", 0, 1]
+            - ["            ", 1, 13]
+            - ["SELECT", 13, 19]
+            - ["", 19, 19]
+            - [" ", 19, 20]
+            - ["user_mail", 20, 29]
+            - [",", 29, 30]
+            - [" ", 30, 31]
+            - ["city_id", 31, 38]
+            - ["", 38, 38]
+            - ["\n", 38, 39]
+            - ["            ", 39, 51]
+            - ["FROM", 51, 55]
+            - [" ", 55, 56]
+            - ["", 56, 56]
+            - ["users_data", 56, 66]
+            - ["", 66, 66]
+            - ["\n", 66, 67]
+            - ["            ", 67, 79]
+            - ["WHERE", 79, 84]
+            - ["", 84, 84]
+            - [" ", 84, 85]
+            - ["userid", 85, 91]
+            - [" ", 91, 92]
+            - ["=", 92, 93]
+            - [" ", 93, 94]
+            - ["42", 94, 102]
+            - [" ", 102, 103]
+            - ["AND", 103, 106]
+            - [" ", 106, 107]
+            - ["date", 107, 111]
+            - [" ", 111, 112]
+            - [">", 112, 113]
+            - [" ", 113, 114]
+            - ["'2021-10-01'", 114, 125]
+            - ["", 125, 125]
+            - ["", 125, 125]
+  - node: test/core/templaters/placeholder_test.py::test__templater_param_style[colon_tuple_substitution]
+    asserts:
+      L422: ["templated:templated"]
+    cases:
+      - name: templated
+        run: cli
+        argv: [parse, -f, json, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = placeholder\n\n[sqlfluff:templater:placeholder]\nuser_id = 42\nstart_date = '2021-10-01'\ncity_ids = (1, 2, 3, 45)\nparam_style = colon\n"
+          case.sql: "\n            SELECT user_mail, city_id\n            FROM users_data\n            WHERE (city_id) IN :city_ids\n            AND date > '2020-10-01'\n            "
+        checks:
+          exit_code: 0
+          templated: "\n            SELECT user_mail, city_id\n            FROM users_data\n            WHERE (city_id) IN (1, 2, 3, 45)\n            AND date > '2020-10-01'\n            "
+      - name: slices
+        run: cli
+        argv: [parse, -f, json, -m, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = placeholder\n\n[sqlfluff:templater:placeholder]\nuser_id = 42\nstart_date = '2021-10-01'\ncity_ids = (1, 2, 3, 45)\nparam_style = colon\n"
+          case.sql: "\n            SELECT user_mail, city_id\n            FROM users_data\n            WHERE (city_id) IN :city_ids\n            AND date > '2020-10-01'\n            "
+        checks:
+          exit_code: 0
+          source_slices:
+            - ["\n", 0, 1]
+            - ["            ", 1, 13]
+            - ["SELECT", 13, 19]
+            - ["", 19, 19]
+            - [" ", 19, 20]
+            - ["user_mail", 20, 29]
+            - [",", 29, 30]
+            - [" ", 30, 31]
+            - ["city_id", 31, 38]
+            - ["", 38, 38]
+            - ["\n", 38, 39]
+            - ["            ", 39, 51]
+            - ["FROM", 51, 55]
+            - [" ", 55, 56]
+            - ["", 56, 56]
+            - ["users_data", 56, 66]
+            - ["", 66, 66]
+            - ["\n", 66, 67]
+            - ["            ", 67, 79]
+            - ["WHERE", 79, 84]
+            - ["", 84, 84]
+            - [" ", 84, 85]
+            - ["(", 85, 86]
+            - ["", 86, 86]
+            - ["city_id", 86, 93]
+            - ["", 93, 93]
+            - [")", 93, 94]
+            - [" ", 94, 95]
+            - ["IN", 95, 97]
+            - [" ", 97, 98]
+            - ["(", 98, 107]
+            - ["", 98, 98]
+            - ["1", 98, 107]
+            - [",", 98, 107]
+            - [" ", 98, 107]
+            - ["2", 98, 107]
+            - [",", 98, 107]
+            - [" ", 98, 107]
+            - ["3", 98, 107]
+            - [",", 98, 107]
+            - [" ", 98, 107]
+            - ["45", 98, 107]
+            - ["", 98, 98]
+            - [")", 98, 107]
+            - ["\n", 107, 108]
+            - ["            ", 108, 120]
+            - ["AND", 120, 123]
+            - [" ", 123, 124]
+            - ["date", 124, 128]
+            - [" ", 128, 129]
+            - [">", 129, 130]
+            - [" ", 130, 131]
+            - ["'2020-10-01'", 131, 143]
+            - ["", 143, 143]
+            - ["\n", 143, 144]
+            - ["            ", 144, 156]
+            - ["", 156, 156]
+  - node: test/core/templaters/placeholder_test.py::test__templater_param_style[colon_quoted]
+    asserts:
+      L422: ["templated:templated"]
+    cases:
+      - name: templated
+        run: cli
+        argv: [parse, -f, json, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = placeholder\n\n[sqlfluff:templater:placeholder]\nuser_id = 42\ncustom_column = PascalCaseColumn\nstart_date = 2021-10-01\nparam_style = colon_optional_quotes\n"
+          case.sql: "\n            SELECT user_mail, city_id, :\"custom_column\"\n            FROM users_data\n            WHERE userid = :user_id AND date > :'start_date'\n            "
+        checks:
+          exit_code: 0
+          templated: "\n            SELECT user_mail, city_id, \"PascalCaseColumn\"\n            FROM users_data\n            WHERE userid = 42 AND date > '2021-10-01'\n            "
+      - name: slices
+        run: cli
+        argv: [parse, -f, json, -m, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = placeholder\n\n[sqlfluff:templater:placeholder]\nuser_id = 42\ncustom_column = PascalCaseColumn\nstart_date = 2021-10-01\nparam_style = colon_optional_quotes\n"
+          case.sql: "\n            SELECT user_mail, city_id, :\"custom_column\"\n            FROM users_data\n            WHERE userid = :user_id AND date > :'start_date'\n            "
+        checks:
+          exit_code: 0
+          source_slices:
+            - ["\n", 0, 1]
+            - ["            ", 1, 13]
+            - ["SELECT", 13, 19]
+            - ["", 19, 19]
+            - [" ", 19, 20]
+            - ["user_mail", 20, 29]
+            - [",", 29, 30]
+            - [" ", 30, 31]
+            - ["city_id", 31, 38]
+            - [",", 38, 39]
+            - [" ", 39, 40]
+            - ["\"PascalCaseColumn\"", 40, 56]
+            - ["", 56, 56]
+            - ["\n", 56, 57]
+            - ["            ", 57, 69]
+            - ["FROM", 69, 73]
+            - [" ", 73, 74]
+            - ["", 74, 74]
+            - ["users_data", 74, 84]
+            - ["", 84, 84]
+            - ["\n", 84, 85]
+            - ["            ", 85, 97]
+            - ["WHERE", 97, 102]
+            - ["", 102, 102]
+            - [" ", 102, 103]
+            - ["userid", 103, 109]
+            - [" ", 109, 110]
+            - ["=", 110, 111]
+            - [" ", 111, 112]
+            - ["42", 112, 120]
+            - [" ", 120, 121]
+            - ["AND", 121, 124]
+            - [" ", 124, 125]
+            - ["date", 125, 129]
+            - [" ", 129, 130]
+            - [">", 130, 131]
+            - [" ", 131, 132]
+            - ["'2021-10-01'", 132, 145]
+            - ["", 145, 145]
+            - ["\n", 145, 146]
+            - ["            ", 146, 158]
+            - ["", 158, 158]
+  - node: test/core/templaters/placeholder_test.py::test__templater_param_style[colon_quoted_embedded_colons_ignored]
+    asserts:
+      L422: ["templated:templated"]
+    cases:
+      - name: templated
+        run: cli
+        argv: [parse, -f, json, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = placeholder\n\n[sqlfluff:templater:placeholder]\nuser_id = 42\nparam_style = colon_optional_quotes\n"
+          case.sql: "\n            SELECT '2021-10-01 12:30:00'::timestamp, tags[1:3]\n            FROM users_data\n            WHERE userid = :user_id AND note = 'a\\:b'\n            "
+        checks:
+          exit_code: 0
+          templated: "\n            SELECT '2021-10-01 12:30:00'::timestamp, tags[1:3]\n            FROM users_data\n            WHERE userid = 42 AND note = 'a\\:b'\n            "
+      - name: slices
+        run: cli
+        argv: [parse, -f, json, -m, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = placeholder\n\n[sqlfluff:templater:placeholder]\nuser_id = 42\nparam_style = colon_optional_quotes\n"
+          case.sql: "\n            SELECT '2021-10-01 12:30:00'::timestamp, tags[1:3]\n            FROM users_data\n            WHERE userid = :user_id AND note = 'a\\:b'\n            "
+        checks:
+          exit_code: 0
+          source_slices:
+            - ["\n", 0, 1]
+            - ["            ", 1, 13]
+            - ["SELECT", 13, 19]
+            - ["", 19, 19]
+            - [" ", 19, 20]
+            - ["'2021-10-01 12:30:00'", 20, 41]
+            - ["::", 41, 43]
+            - ["timestamp", 43, 52]
+            - [",", 52, 53]
+            - [" ", 53, 54]
+            - ["tags", 54, 58]
+            - ["[", 58, 59]
+            - ["", 59, 59]
+            - ["1", 59, 60]
+            - [":", 60, 61]
+            - ["3", 61, 62]
+            - ["", 62, 62]
+            - ["]", 62, 63]
+            - ["", 63, 63]
+            - ["\n", 63, 64]
+            - ["            ", 64, 76]
+            - ["FROM", 76, 80]
+            - [" ", 80, 81]
+            - ["", 81, 81]
+            - ["users_data", 81, 91]
+            - ["", 91, 91]
+            - ["\n", 91, 92]
+            - ["            ", 92, 104]
+            - ["WHERE", 104, 109]
+            - ["", 109, 109]
+            - [" ", 109, 110]
+            - ["userid", 110, 116]
+            - [" ", 116, 117]
+            - ["=", 117, 118]
+            - [" ", 118, 119]
+            - ["42", 119, 127]
+            - [" ", 127, 128]
+            - ["AND", 128, 131]
+            - [" ", 131, 132]
+            - ["note", 132, 136]
+            - [" ", 136, 137]
+            - ["=", 137, 138]
+            - [" ", 138, 139]
+            - ["'a\\:b'", 139, 145]
+            - ["", 145, 145]
+            - ["\n", 145, 146]
+            - ["            ", 146, 158]
+            - ["", 158, 158]
+  - node: test/core/templaters/placeholder_test.py::test__templater_param_style[colon_nospaces]
+    asserts:
+      L422: ["templated:templated"]
+    cases:
+      - name: templated
+        run: cli
+        argv: [parse, -f, json, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = placeholder\n\n[sqlfluff:templater:placeholder]\ntable_suffix = 42\nparam_style = colon_nospaces\n"
+          case.sql: "\n            SELECT user_mail, city_id\n            FROM users_data:table_suffix\n            "
+        checks:
+          exit_code: 0
+          templated: "\n            SELECT user_mail, city_id\n            FROM users_data42\n            "
+      - name: slices
+        run: cli
+        argv: [parse, -f, json, -m, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = placeholder\n\n[sqlfluff:templater:placeholder]\ntable_suffix = 42\nparam_style = colon_nospaces\n"
+          case.sql: "\n            SELECT user_mail, city_id\n            FROM users_data:table_suffix\n            "
+        checks:
+          exit_code: 0
+          source_slices:
+            - ["\n", 0, 1]
+            - ["            ", 1, 13]
+            - ["SELECT", 13, 19]
+            - ["", 19, 19]
+            - [" ", 19, 20]
+            - ["user_mail", 20, 29]
+            - [",", 29, 30]
+            - [" ", 30, 31]
+            - ["city_id", 31, 38]
+            - ["", 38, 38]
+            - ["\n", 38, 39]
+            - ["            ", 39, 51]
+            - ["FROM", 51, 55]
+            - [" ", 55, 56]
+            - ["", 56, 56]
+            - ["users_data42", 56, 79]
+            - ["", 79, 79]
+            - ["\n", 79, 80]
+            - ["            ", 80, 92]
+            - ["", 92, 92]
+  - node: test/core/templaters/placeholder_test.py::test__templater_param_style[colon_nospaces_double_colon_ignored]
+    asserts:
+      L422: ["templated:templated"]
+    cases:
+      - name: templated
+        run: cli
+        argv: [parse, -f, json, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = placeholder\n\n[sqlfluff:templater:placeholder]\ntable_suffix = 42\nparam_style = colon_nospaces\n"
+          case.sql: "\n            SELECT user_mail, city_id, joined::date\n            FROM users_data:table_suffix\n            "
+        checks:
+          exit_code: 0
+          templated: "\n            SELECT user_mail, city_id, joined::date\n            FROM users_data42\n            "
+      - name: slices
+        run: cli
+        argv: [parse, -f, json, -m, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = placeholder\n\n[sqlfluff:templater:placeholder]\ntable_suffix = 42\nparam_style = colon_nospaces\n"
+          case.sql: "\n            SELECT user_mail, city_id, joined::date\n            FROM users_data:table_suffix\n            "
+        checks:
+          exit_code: 0
+          source_slices:
+            - ["\n", 0, 1]
+            - ["            ", 1, 13]
+            - ["SELECT", 13, 19]
+            - ["", 19, 19]
+            - [" ", 19, 20]
+            - ["user_mail", 20, 29]
+            - [",", 29, 30]
+            - [" ", 30, 31]
+            - ["city_id", 31, 38]
+            - [",", 38, 39]
+            - [" ", 39, 40]
+            - ["joined", 40, 46]
+            - ["::", 46, 48]
+            - ["date", 48, 52]
+            - ["", 52, 52]
+            - ["\n", 52, 53]
+            - ["            ", 53, 65]
+            - ["FROM", 65, 69]
+            - [" ", 69, 70]
+            - ["", 70, 70]
+            - ["users_data42", 70, 93]
+            - ["", 93, 93]
+            - ["\n", 93, 94]
+            - ["            ", 94, 106]
+            - ["", 106, 106]
+  - node: test/core/templaters/placeholder_test.py::test__templater_param_style[colon_double_colon_cast]
+    asserts:
+      L422: ["templated:templated"]
+    cases:
+      - name: templated
+        run: cli
+        argv: [parse, -f, json, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = placeholder\n\n[sqlfluff:templater:placeholder]\nuser_id = 42\ncity_name = 'London'\nparam_style = colon\n"
+          case.sql: "\n            SELECT user_mail, city_id\n            FROM users_data\n            WHERE userid = :user_id AND city = :city_name::text\n            "
+        checks:
+          exit_code: 0
+          templated: "\n            SELECT user_mail, city_id\n            FROM users_data\n            WHERE userid = 42 AND city = 'London'::text\n            "
+      - name: slices
+        run: cli
+        argv: [parse, -f, json, -m, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = placeholder\n\n[sqlfluff:templater:placeholder]\nuser_id = 42\ncity_name = 'London'\nparam_style = colon\n"
+          case.sql: "\n            SELECT user_mail, city_id\n            FROM users_data\n            WHERE userid = :user_id AND city = :city_name::text\n            "
+        checks:
+          exit_code: 0
+          source_slices:
+            - ["\n", 0, 1]
+            - ["            ", 1, 13]
+            - ["SELECT", 13, 19]
+            - ["", 19, 19]
+            - [" ", 19, 20]
+            - ["user_mail", 20, 29]
+            - [",", 29, 30]
+            - [" ", 30, 31]
+            - ["city_id", 31, 38]
+            - ["", 38, 38]
+            - ["\n", 38, 39]
+            - ["            ", 39, 51]
+            - ["FROM", 51, 55]
+            - [" ", 55, 56]
+            - ["", 56, 56]
+            - ["users_data", 56, 66]
+            - ["", 66, 66]
+            - ["\n", 66, 67]
+            - ["            ", 67, 79]
+            - ["WHERE", 79, 84]
+            - ["", 84, 84]
+            - [" ", 84, 85]
+            - ["userid", 85, 91]
+            - [" ", 91, 92]
+            - ["=", 92, 93]
+            - [" ", 93, 94]
+            - ["42", 94, 102]
+            - [" ", 102, 103]
+            - ["AND", 103, 106]
+            - [" ", 106, 107]
+            - ["city", 107, 111]
+            - [" ", 111, 112]
+            - ["=", 112, 113]
+            - [" ", 113, 114]
+            - ["'London'", 114, 124]
+            - ["::", 124, 126]
+            - ["text", 126, 130]
+            - ["", 130, 130]
+            - ["\n", 130, 131]
+            - ["            ", 131, 143]
+            - ["", 143, 143]
+  - node: test/core/templaters/placeholder_test.py::test__templater_param_style[question_mark]
+    asserts:
+      L422: ["templated:templated"]
+    cases:
+      - name: templated
+        run: cli
+        argv: [parse, -f, json, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = placeholder\n\n[sqlfluff:templater:placeholder]\n1 = (1, 2, 3, 45)\n2 = '2020-10-01'\nparam_style = question_mark\n"
+          case.sql: "\n            SELECT user_mail, city_id\n            FROM users_data\n            WHERE (city_id) IN ?\n            AND date > ?\n            "
+        checks:
+          exit_code: 0
+          templated: "\n            SELECT user_mail, city_id\n            FROM users_data\n            WHERE (city_id) IN (1, 2, 3, 45)\n            AND date > '2020-10-01'\n            "
+      - name: slices
+        run: cli
+        argv: [parse, -f, json, -m, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = placeholder\n\n[sqlfluff:templater:placeholder]\n1 = (1, 2, 3, 45)\n2 = '2020-10-01'\nparam_style = question_mark\n"
+          case.sql: "\n            SELECT user_mail, city_id\n            FROM users_data\n            WHERE (city_id) IN ?\n            AND date > ?\n            "
+        checks:
+          exit_code: 0
+          source_slices:
+            - ["\n", 0, 1]
+            - ["            ", 1, 13]
+            - ["SELECT", 13, 19]
+            - ["", 19, 19]
+            - [" ", 19, 20]
+            - ["user_mail", 20, 29]
+            - [",", 29, 30]
+            - [" ", 30, 31]
+            - ["city_id", 31, 38]
+            - ["", 38, 38]
+            - ["\n", 38, 39]
+            - ["            ", 39, 51]
+            - ["FROM", 51, 55]
+            - [" ", 55, 56]
+            - ["", 56, 56]
+            - ["users_data", 56, 66]
+            - ["", 66, 66]
+            - ["\n", 66, 67]
+            - ["            ", 67, 79]
+            - ["WHERE", 79, 84]
+            - ["", 84, 84]
+            - [" ", 84, 85]
+            - ["(", 85, 86]
+            - ["", 86, 86]
+            - ["city_id", 86, 93]
+            - ["", 93, 93]
+            - [")", 93, 94]
+            - [" ", 94, 95]
+            - ["IN", 95, 97]
+            - [" ", 97, 98]
+            - ["(", 98, 99]
+            - ["", 98, 98]
+            - ["1", 98, 99]
+            - [",", 98, 99]
+            - [" ", 98, 99]
+            - ["2", 98, 99]
+            - [",", 98, 99]
+            - [" ", 98, 99]
+            - ["3", 98, 99]
+            - [",", 98, 99]
+            - [" ", 98, 99]
+            - ["45", 98, 99]
+            - ["", 98, 98]
+            - [")", 98, 99]
+            - ["\n", 99, 100]
+            - ["            ", 100, 112]
+            - ["AND", 112, 115]
+            - [" ", 115, 116]
+            - ["date", 116, 120]
+            - [" ", 120, 121]
+            - [">", 121, 122]
+            - [" ", 122, 123]
+            - ["'2020-10-01'", 123, 124]
+            - ["", 124, 124]
+            - ["\n", 124, 125]
+            - ["            ", 125, 137]
+            - ["", 137, 137]
+  - node: test/core/templaters/placeholder_test.py::test__templater_param_style[numeric_colon]
+    asserts:
+      L422: ["templated:templated"]
+    cases:
+      - name: templated
+        run: cli
+        argv: [parse, -f, json, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = placeholder\n\n[sqlfluff:templater:placeholder]\n1 = (1, 2, 3, 45)\n45 = '2020-10-01'\nparam_style = numeric_colon\n"
+          case.sql: "\n            SELECT user_mail, city_id\n            FROM users_data\n            WHERE (city_id) IN :1\n            AND date > :45\n            "
+        checks:
+          exit_code: 0
+          templated: "\n            SELECT user_mail, city_id\n            FROM users_data\n            WHERE (city_id) IN (1, 2, 3, 45)\n            AND date > '2020-10-01'\n            "
+      - name: slices
+        run: cli
+        argv: [parse, -f, json, -m, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = placeholder\n\n[sqlfluff:templater:placeholder]\n1 = (1, 2, 3, 45)\n45 = '2020-10-01'\nparam_style = numeric_colon\n"
+          case.sql: "\n            SELECT user_mail, city_id\n            FROM users_data\n            WHERE (city_id) IN :1\n            AND date > :45\n            "
+        checks:
+          exit_code: 0
+          source_slices:
+            - ["\n", 0, 1]
+            - ["            ", 1, 13]
+            - ["SELECT", 13, 19]
+            - ["", 19, 19]
+            - [" ", 19, 20]
+            - ["user_mail", 20, 29]
+            - [",", 29, 30]
+            - [" ", 30, 31]
+            - ["city_id", 31, 38]
+            - ["", 38, 38]
+            - ["\n", 38, 39]
+            - ["            ", 39, 51]
+            - ["FROM", 51, 55]
+            - [" ", 55, 56]
+            - ["", 56, 56]
+            - ["users_data", 56, 66]
+            - ["", 66, 66]
+            - ["\n", 66, 67]
+            - ["            ", 67, 79]
+            - ["WHERE", 79, 84]
+            - ["", 84, 84]
+            - [" ", 84, 85]
+            - ["(", 85, 86]
+            - ["", 86, 86]
+            - ["city_id", 86, 93]
+            - ["", 93, 93]
+            - [")", 93, 94]
+            - [" ", 94, 95]
+            - ["IN", 95, 97]
+            - [" ", 97, 98]
+            - ["(", 98, 100]
+            - ["", 98, 98]
+            - ["1", 98, 100]
+            - [",", 98, 100]
+            - [" ", 98, 100]
+            - ["2", 98, 100]
+            - [",", 98, 100]
+            - [" ", 98, 100]
+            - ["3", 98, 100]
+            - [",", 98, 100]
+            - [" ", 98, 100]
+            - ["45", 98, 100]
+            - ["", 98, 98]
+            - [")", 98, 100]
+            - ["\n", 100, 101]
+            - ["            ", 101, 113]
+            - ["AND", 113, 116]
+            - [" ", 116, 117]
+            - ["date", 117, 121]
+            - [" ", 121, 122]
+            - [">", 122, 123]
+            - [" ", 123, 124]
+            - ["'2020-10-01'", 124, 127]
+            - ["", 127, 127]
+            - ["\n", 127, 128]
+            - ["            ", 128, 140]
+            - ["", 140, 140]
+  - node: test/core/templaters/placeholder_test.py::test__templater_param_style[pyformat]
+    asserts:
+      L422: ["templated:templated"]
+    cases:
+      - name: templated
+        run: cli
+        argv: [parse, -f, json, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = placeholder\n\n[sqlfluff:templater:placeholder]\ncity_id = (1, 2, 3, 45)\ndate = '2020-10-01'\nlimit = 15\nsomeflag = False\nparam_style = pyformat\n"
+          case.sql: "\n            SELECT user_mail, city_id\n            FROM users_data\n            WHERE (city_id) IN %(city_id)s\n            AND date > %(date)s\n            AND someflag = %(someflag)s\n            LIMIT %(limit)s\n            "
+        checks:
+          exit_code: 0
+          templated: "\n            SELECT user_mail, city_id\n            FROM users_data\n            WHERE (city_id) IN (1, 2, 3, 45)\n            AND date > '2020-10-01'\n            AND someflag = False\n            LIMIT 15\n            "
+      - name: slices
+        run: cli
+        argv: [parse, -f, json, -m, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = placeholder\n\n[sqlfluff:templater:placeholder]\ncity_id = (1, 2, 3, 45)\ndate = '2020-10-01'\nlimit = 15\nsomeflag = False\nparam_style = pyformat\n"
+          case.sql: "\n            SELECT user_mail, city_id\n            FROM users_data\n            WHERE (city_id) IN %(city_id)s\n            AND date > %(date)s\n            AND someflag = %(someflag)s\n            LIMIT %(limit)s\n            "
+        checks:
+          exit_code: 0
+          source_slices:
+            - ["\n", 0, 1]
+            - ["            ", 1, 13]
+            - ["SELECT", 13, 19]
+            - ["", 19, 19]
+            - [" ", 19, 20]
+            - ["user_mail", 20, 29]
+            - [",", 29, 30]
+            - [" ", 30, 31]
+            - ["city_id", 31, 38]
+            - ["", 38, 38]
+            - ["\n", 38, 39]
+            - ["            ", 39, 51]
+            - ["FROM", 51, 55]
+            - [" ", 55, 56]
+            - ["", 56, 56]
+            - ["users_data", 56, 66]
+            - ["", 66, 66]
+            - ["\n", 66, 67]
+            - ["            ", 67, 79]
+            - ["WHERE", 79, 84]
+            - ["", 84, 84]
+            - [" ", 84, 85]
+            - ["(", 85, 86]
+            - ["", 86, 86]
+            - ["city_id", 86, 93]
+            - ["", 93, 93]
+            - [")", 93, 94]
+            - [" ", 94, 95]
+            - ["IN", 95, 97]
+            - [" ", 97, 98]
+            - ["(", 98, 109]
+            - ["", 98, 98]
+            - ["1", 98, 109]
+            - [",", 98, 109]
+            - [" ", 98, 109]
+            - ["2", 98, 109]
+            - [",", 98, 109]
+            - [" ", 98, 109]
+            - ["3", 98, 109]
+            - [",", 98, 109]
+            - [" ", 98, 109]
+            - ["45", 98, 109]
+            - ["", 98, 98]
+            - [")", 98, 109]
+            - ["\n", 109, 110]
+            - ["            ", 110, 122]
+            - ["AND", 122, 125]
+            - [" ", 125, 126]
+            - ["date", 126, 130]
+            - [" ", 130, 131]
+            - [">", 131, 132]
+            - [" ", 132, 133]
+            - ["'2020-10-01'", 133, 141]
+            - ["\n", 141, 142]
+            - ["            ", 142, 154]
+            - ["AND", 154, 157]
+            - [" ", 157, 158]
+            - ["someflag", 158, 166]
+            - [" ", 166, 167]
+            - ["=", 167, 168]
+            - [" ", 168, 169]
+            - ["False", 169, 181]
+            - ["", 181, 181]
+            - ["\n", 181, 182]
+            - ["            ", 182, 194]
+            - ["LIMIT", 194, 199]
+            - ["", 199, 199]
+            - [" ", 199, 200]
+            - ["15", 200, 209]
+            - ["", 209, 209]
+            - ["\n", 209, 210]
+            - ["            ", 210, 222]
+            - ["", 222, 222]
+  - node: test/core/templaters/placeholder_test.py::test__templater_param_style[dollar]
+    asserts:
+      L422: ["templated:templated"]
+    cases:
+      - name: templated
+        run: cli
+        argv: [parse, -f, json, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = placeholder\n\n[sqlfluff:templater:placeholder]\ncity_id = (1, 2, 3, 45)\ndate = '2020-10-01'\nparam_style = dollar\n"
+          case.sql: "\n            SELECT user_mail, city_id\n            FROM users_data\n            WHERE (city_id) IN $city_id\n            AND date > $date\n            OR date = ${date}\n            "
+        checks:
+          exit_code: 0
+          templated: "\n            SELECT user_mail, city_id\n            FROM users_data\n            WHERE (city_id) IN (1, 2, 3, 45)\n            AND date > '2020-10-01'\n            OR date = '2020-10-01'\n            "
+      - name: slices
+        run: cli
+        argv: [parse, -f, json, -m, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = placeholder\n\n[sqlfluff:templater:placeholder]\ncity_id = (1, 2, 3, 45)\ndate = '2020-10-01'\nparam_style = dollar\n"
+          case.sql: "\n            SELECT user_mail, city_id\n            FROM users_data\n            WHERE (city_id) IN $city_id\n            AND date > $date\n            OR date = ${date}\n            "
+        checks:
+          exit_code: 0
+          source_slices:
+            - ["\n", 0, 1]
+            - ["            ", 1, 13]
+            - ["SELECT", 13, 19]
+            - ["", 19, 19]
+            - [" ", 19, 20]
+            - ["user_mail", 20, 29]
+            - [",", 29, 30]
+            - [" ", 30, 31]
+            - ["city_id", 31, 38]
+            - ["", 38, 38]
+            - ["\n", 38, 39]
+            - ["            ", 39, 51]
+            - ["FROM", 51, 55]
+            - [" ", 55, 56]
+            - ["", 56, 56]
+            - ["users_data", 56, 66]
+            - ["", 66, 66]
+            - ["\n", 66, 67]
+            - ["            ", 67, 79]
+            - ["WHERE", 79, 84]
+            - ["", 84, 84]
+            - [" ", 84, 85]
+            - ["(", 85, 86]
+            - ["", 86, 86]
+            - ["city_id", 86, 93]
+            - ["", 93, 93]
+            - [")", 93, 94]
+            - [" ", 94, 95]
+            - ["IN", 95, 97]
+            - [" ", 97, 98]
+            - ["(", 98, 106]
+            - ["", 98, 98]
+            - ["1", 98, 106]
+            - [",", 98, 106]
+            - [" ", 98, 106]
+            - ["2", 98, 106]
+            - [",", 98, 106]
+            - [" ", 98, 106]
+            - ["3", 98, 106]
+            - [",", 98, 106]
+            - [" ", 98, 106]
+            - ["45", 98, 106]
+            - ["", 98, 98]
+            - [")", 98, 106]
+            - ["\n", 106, 107]
+            - ["            ", 107, 119]
+            - ["AND", 119, 122]
+            - [" ", 122, 123]
+            - ["date", 123, 127]
+            - [" ", 127, 128]
+            - [">", 128, 129]
+            - [" ", 129, 130]
+            - ["'2020-10-01'", 130, 135]
+            - ["\n", 135, 136]
+            - ["            ", 136, 148]
+            - ["OR", 148, 150]
+            - [" ", 150, 151]
+            - ["date", 151, 155]
+            - [" ", 155, 156]
+            - ["=", 156, 157]
+            - [" ", 157, 158]
+            - ["'2020-10-01'", 158, 165]
+            - ["", 165, 165]
+            - ["\n", 165, 166]
+            - ["            ", 166, 178]
+            - ["", 178, 178]
+  - node: test/core/templaters/placeholder_test.py::test__templater_param_style[numeric_dollar]
+    asserts:
+      L422: ["templated:templated"]
+    cases:
+      - name: templated
+        run: cli
+        argv: [parse, -f, json, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = placeholder\n\n[sqlfluff:templater:placeholder]\n12 = (1, 2, 3, 45)\n90 = '2020-10-01'\nparam_style = numeric_dollar\n"
+          case.sql: "\n            SELECT user_mail, city_id\n            FROM users_data\n            WHERE (city_id) IN $12\n            AND date > $90\n            "
+        checks:
+          exit_code: 0
+          templated: "\n            SELECT user_mail, city_id\n            FROM users_data\n            WHERE (city_id) IN (1, 2, 3, 45)\n            AND date > '2020-10-01'\n            "
+      - name: slices
+        run: cli
+        argv: [parse, -f, json, -m, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = placeholder\n\n[sqlfluff:templater:placeholder]\n12 = (1, 2, 3, 45)\n90 = '2020-10-01'\nparam_style = numeric_dollar\n"
+          case.sql: "\n            SELECT user_mail, city_id\n            FROM users_data\n            WHERE (city_id) IN $12\n            AND date > $90\n            "
+        checks:
+          exit_code: 0
+          source_slices:
+            - ["\n", 0, 1]
+            - ["            ", 1, 13]
+            - ["SELECT", 13, 19]
+            - ["", 19, 19]
+            - [" ", 19, 20]
+            - ["user_mail", 20, 29]
+            - [",", 29, 30]
+            - [" ", 30, 31]
+            - ["city_id", 31, 38]
+            - ["", 38, 38]
+            - ["\n", 38, 39]
+            - ["            ", 39, 51]
+            - ["FROM", 51, 55]
+            - [" ", 55, 56]
+            - ["", 56, 56]
+            - ["users_data", 56, 66]
+            - ["", 66, 66]
+            - ["\n", 66, 67]
+            - ["            ", 67, 79]
+            - ["WHERE", 79, 84]
+            - ["", 84, 84]
+            - [" ", 84, 85]
+            - ["(", 85, 86]
+            - ["", 86, 86]
+            - ["city_id", 86, 93]
+            - ["", 93, 93]
+            - [")", 93, 94]
+            - [" ", 94, 95]
+            - ["IN", 95, 97]
+            - [" ", 97, 98]
+            - ["(", 98, 101]
+            - ["", 98, 98]
+            - ["1", 98, 101]
+            - [",", 98, 101]
+            - [" ", 98, 101]
+            - ["2", 98, 101]
+            - [",", 98, 101]
+            - [" ", 98, 101]
+            - ["3", 98, 101]
+            - [",", 98, 101]
+            - [" ", 98, 101]
+            - ["45", 98, 101]
+            - ["", 98, 98]
+            - [")", 98, 101]
+            - ["\n", 101, 102]
+            - ["            ", 102, 114]
+            - ["AND", 114, 117]
+            - [" ", 117, 118]
+            - ["date", 118, 122]
+            - [" ", 122, 123]
+            - [">", 123, 124]
+            - [" ", 124, 125]
+            - ["'2020-10-01'", 125, 128]
+            - ["", 128, 128]
+            - ["\n", 128, 129]
+            - ["            ", 129, 141]
+            - ["", 141, 141]
+  - node: test/core/templaters/placeholder_test.py::test__templater_param_style[numeric_dollar_with_braces]
+    asserts:
+      L422: ["templated:templated"]
+    cases:
+      - name: templated
+        run: cli
+        argv: [parse, -f, json, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = placeholder\n\n[sqlfluff:templater:placeholder]\n12 = (1, 2, 3, 45)\n90 = '2020-10-01'\nparam_style = numeric_dollar\n"
+          case.sql: "\n            SELECT user_mail, city_id\n            FROM users_data\n            WHERE (city_id) IN ${12}\n            AND date > ${90}\n            "
+        checks:
+          exit_code: 0
+          templated: "\n            SELECT user_mail, city_id\n            FROM users_data\n            WHERE (city_id) IN (1, 2, 3, 45)\n            AND date > '2020-10-01'\n            "
+      - name: slices
+        run: cli
+        argv: [parse, -f, json, -m, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = placeholder\n\n[sqlfluff:templater:placeholder]\n12 = (1, 2, 3, 45)\n90 = '2020-10-01'\nparam_style = numeric_dollar\n"
+          case.sql: "\n            SELECT user_mail, city_id\n            FROM users_data\n            WHERE (city_id) IN ${12}\n            AND date > ${90}\n            "
+        checks:
+          exit_code: 0
+          source_slices:
+            - ["\n", 0, 1]
+            - ["            ", 1, 13]
+            - ["SELECT", 13, 19]
+            - ["", 19, 19]
+            - [" ", 19, 20]
+            - ["user_mail", 20, 29]
+            - [",", 29, 30]
+            - [" ", 30, 31]
+            - ["city_id", 31, 38]
+            - ["", 38, 38]
+            - ["\n", 38, 39]
+            - ["            ", 39, 51]
+            - ["FROM", 51, 55]
+            - [" ", 55, 56]
+            - ["", 56, 56]
+            - ["users_data", 56, 66]
+            - ["", 66, 66]
+            - ["\n", 66, 67]
+            - ["            ", 67, 79]
+            - ["WHERE", 79, 84]
+            - ["", 84, 84]
+            - [" ", 84, 85]
+            - ["(", 85, 86]
+            - ["", 86, 86]
+            - ["city_id", 86, 93]
+            - ["", 93, 93]
+            - [")", 93, 94]
+            - [" ", 94, 95]
+            - ["IN", 95, 97]
+            - [" ", 97, 98]
+            - ["(", 98, 103]
+            - ["", 98, 98]
+            - ["1", 98, 103]
+            - [",", 98, 103]
+            - [" ", 98, 103]
+            - ["2", 98, 103]
+            - [",", 98, 103]
+            - [" ", 98, 103]
+            - ["3", 98, 103]
+            - [",", 98, 103]
+            - [" ", 98, 103]
+            - ["45", 98, 103]
+            - ["", 98, 98]
+            - [")", 98, 103]
+            - ["\n", 103, 104]
+            - ["            ", 104, 116]
+            - ["AND", 116, 119]
+            - [" ", 119, 120]
+            - ["date", 120, 124]
+            - [" ", 124, 125]
+            - [">", 125, 126]
+            - [" ", 126, 127]
+            - ["'2020-10-01'", 127, 132]
+            - ["", 132, 132]
+            - ["\n", 132, 133]
+            - ["            ", 133, 145]
+            - ["", 145, 145]
+  - node: test/core/templaters/placeholder_test.py::test__templater_param_style[numeric_dollar_with_braces_and_string]
+    asserts:
+      L422: ["templated:templated"]
+    cases:
+      - name: templated
+        run: cli
+        argv: [parse, -f, json, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = placeholder\n\n[sqlfluff:templater:placeholder]\n12 = test@example.com\n90 = '2020-10-01'\nparam_style = numeric_dollar\n"
+          case.sql: "\n            SELECT user_mail, city_id\n            FROM users_data\n            WHERE user_mail = '${12}'\n            AND date > ${90}\n            "
+        checks:
+          exit_code: 0
+          templated: "\n            SELECT user_mail, city_id\n            FROM users_data\n            WHERE user_mail = 'test@example.com'\n            AND date > '2020-10-01'\n            "
+      - name: slices
+        run: cli
+        argv: [parse, -f, json, -m, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = placeholder\n\n[sqlfluff:templater:placeholder]\n12 = test@example.com\n90 = '2020-10-01'\nparam_style = numeric_dollar\n"
+          case.sql: "\n            SELECT user_mail, city_id\n            FROM users_data\n            WHERE user_mail = '${12}'\n            AND date > ${90}\n            "
+        checks:
+          exit_code: 0
+          source_slices:
+            - ["\n", 0, 1]
+            - ["            ", 1, 13]
+            - ["SELECT", 13, 19]
+            - ["", 19, 19]
+            - [" ", 19, 20]
+            - ["user_mail", 20, 29]
+            - [",", 29, 30]
+            - [" ", 30, 31]
+            - ["city_id", 31, 38]
+            - ["", 38, 38]
+            - ["\n", 38, 39]
+            - ["            ", 39, 51]
+            - ["FROM", 51, 55]
+            - [" ", 55, 56]
+            - ["", 56, 56]
+            - ["users_data", 56, 66]
+            - ["", 66, 66]
+            - ["\n", 66, 67]
+            - ["            ", 67, 79]
+            - ["WHERE", 79, 84]
+            - ["", 84, 84]
+            - [" ", 84, 85]
+            - ["user_mail", 85, 94]
+            - [" ", 94, 95]
+            - ["=", 95, 96]
+            - [" ", 96, 97]
+            - ["'test@example.com'", 97, 104]
+            - ["\n", 104, 105]
+            - ["            ", 105, 117]
+            - ["AND", 117, 120]
+            - [" ", 120, 121]
+            - ["date", 121, 125]
+            - [" ", 125, 126]
+            - [">", 126, 127]
+            - [" ", 127, 128]
+            - ["'2020-10-01'", 128, 133]
+            - ["", 133, 133]
+            - ["\n", 133, 134]
+            - ["            ", 134, 146]
+            - ["", 146, 146]
+  - node: test/core/templaters/placeholder_test.py::test__templater_param_style[dollar_surround]
+    asserts:
+      L422: ["templated:templated"]
+    cases:
+      - name: templated
+        run: cli
+        argv: [parse, -f, json, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = placeholder\n\n[sqlfluff:templater:placeholder]\n12 = test@example.com\n90 = '2020-10-01'\nparam_style = dollar_surround\n"
+          case.sql: "\n            SELECT user_mail, city_id\n            FROM users_data\n            WHERE user_mail = '$12$'\n            AND date > $90$\n            "
+        checks:
+          exit_code: 0
+          templated: "\n            SELECT user_mail, city_id\n            FROM users_data\n            WHERE user_mail = 'test@example.com'\n            AND date > '2020-10-01'\n            "
+      - name: slices
+        run: cli
+        argv: [parse, -f, json, -m, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = placeholder\n\n[sqlfluff:templater:placeholder]\n12 = test@example.com\n90 = '2020-10-01'\nparam_style = dollar_surround\n"
+          case.sql: "\n            SELECT user_mail, city_id\n            FROM users_data\n            WHERE user_mail = '$12$'\n            AND date > $90$\n            "
+        checks:
+          exit_code: 0
+          source_slices:
+            - ["\n", 0, 1]
+            - ["            ", 1, 13]
+            - ["SELECT", 13, 19]
+            - ["", 19, 19]
+            - [" ", 19, 20]
+            - ["user_mail", 20, 29]
+            - [",", 29, 30]
+            - [" ", 30, 31]
+            - ["city_id", 31, 38]
+            - ["", 38, 38]
+            - ["\n", 38, 39]
+            - ["            ", 39, 51]
+            - ["FROM", 51, 55]
+            - [" ", 55, 56]
+            - ["", 56, 56]
+            - ["users_data", 56, 66]
+            - ["", 66, 66]
+            - ["\n", 66, 67]
+            - ["            ", 67, 79]
+            - ["WHERE", 79, 84]
+            - ["", 84, 84]
+            - [" ", 84, 85]
+            - ["user_mail", 85, 94]
+            - [" ", 94, 95]
+            - ["=", 95, 96]
+            - [" ", 96, 97]
+            - ["'test@example.com'", 97, 103]
+            - ["\n", 103, 104]
+            - ["            ", 104, 116]
+            - ["AND", 116, 119]
+            - [" ", 119, 120]
+            - ["date", 120, 124]
+            - [" ", 124, 125]
+            - [">", 125, 126]
+            - [" ", 126, 127]
+            - ["'2020-10-01'", 127, 131]
+            - ["", 131, 131]
+            - ["\n", 131, 132]
+            - ["            ", 132, 144]
+            - ["", 144, 144]
+  - node: test/core/templaters/placeholder_test.py::test__templater_param_style[percent]
+    asserts:
+      L422: ["templated:templated"]
+    cases:
+      - name: templated
+        run: cli
+        argv: [parse, -f, json, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = placeholder\n\n[sqlfluff:templater:placeholder]\n1 = (1, 2, 3, 45)\n2 = '2020-10-01'\nparam_style = percent\n"
+          case.sql: "\n            SELECT user_mail, city_id\n            FROM users_data\n            WHERE (city_id) IN %s\n            AND date > %s\n            "
+        checks:
+          exit_code: 0
+          templated: "\n            SELECT user_mail, city_id\n            FROM users_data\n            WHERE (city_id) IN (1, 2, 3, 45)\n            AND date > '2020-10-01'\n            "
+      - name: slices
+        run: cli
+        argv: [parse, -f, json, -m, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = placeholder\n\n[sqlfluff:templater:placeholder]\n1 = (1, 2, 3, 45)\n2 = '2020-10-01'\nparam_style = percent\n"
+          case.sql: "\n            SELECT user_mail, city_id\n            FROM users_data\n            WHERE (city_id) IN %s\n            AND date > %s\n            "
+        checks:
+          exit_code: 0
+          source_slices:
+            - ["\n", 0, 1]
+            - ["            ", 1, 13]
+            - ["SELECT", 13, 19]
+            - ["", 19, 19]
+            - [" ", 19, 20]
+            - ["user_mail", 20, 29]
+            - [",", 29, 30]
+            - [" ", 30, 31]
+            - ["city_id", 31, 38]
+            - ["", 38, 38]
+            - ["\n", 38, 39]
+            - ["            ", 39, 51]
+            - ["FROM", 51, 55]
+            - [" ", 55, 56]
+            - ["", 56, 56]
+            - ["users_data", 56, 66]
+            - ["", 66, 66]
+            - ["\n", 66, 67]
+            - ["            ", 67, 79]
+            - ["WHERE", 79, 84]
+            - ["", 84, 84]
+            - [" ", 84, 85]
+            - ["(", 85, 86]
+            - ["", 86, 86]
+            - ["city_id", 86, 93]
+            - ["", 93, 93]
+            - [")", 93, 94]
+            - [" ", 94, 95]
+            - ["IN", 95, 97]
+            - [" ", 97, 98]
+            - ["(", 98, 100]
+            - ["", 98, 98]
+            - ["1", 98, 100]
+            - [",", 98, 100]
+            - [" ", 98, 100]
+            - ["2", 98, 100]
+            - [",", 98, 100]
+            - [" ", 98, 100]
+            - ["3", 98, 100]
+            - [",", 98, 100]
+            - [" ", 98, 100]
+            - ["45", 98, 100]
+            - ["", 98, 98]
+            - [")", 98, 100]
+            - ["\n", 100, 101]
+            - ["            ", 101, 113]
+            - ["AND", 113, 116]
+            - [" ", 116, 117]
+            - ["date", 117, 121]
+            - [" ", 121, 122]
+            - [">", 122, 123]
+            - [" ", 123, 124]
+            - ["'2020-10-01'", 124, 126]
+            - ["", 126, 126]
+            - ["\n", 126, 127]
+            - ["            ", 127, 139]
+            - ["", 139, 139]
+  - node: test/core/templaters/placeholder_test.py::test__templater_param_style[ampersand]
+    asserts:
+      L422: ["templated:templated"]
+    cases:
+      # The templated SQL has an unparsable section in the ansi dialect:
+      # parse gives the tree and exit code 1.
+      - name: templated
+        run: cli
+        argv: [parse, -f, json, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = placeholder\n\n[sqlfluff:templater:placeholder]\nenv = PRD\nuser_id = 42\nstart_date = '2021-10-01'\nparam_style = ampersand\n"
+          case.sql: "\n            USE DATABASE &{env}_MARKETING;\n            USE SCHEMA &&EMEA;\n            SELECT user_mail, city_id\n            FROM users_data\n            WHERE userid = &user_id AND date > &{start_date}\n            "
+        checks:
+          exit_code: 1
+          templated: "\n            USE DATABASE PRD_MARKETING;\n            USE SCHEMA &&EMEA;\n            SELECT user_mail, city_id\n            FROM users_data\n            WHERE userid = 42 AND date > '2021-10-01'\n            "
+      - name: slices
+        run: cli
+        argv: [parse, -f, json, -m, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = placeholder\n\n[sqlfluff:templater:placeholder]\nenv = PRD\nuser_id = 42\nstart_date = '2021-10-01'\nparam_style = ampersand\n"
+          case.sql: "\n            USE DATABASE &{env}_MARKETING;\n            USE SCHEMA &&EMEA;\n            SELECT user_mail, city_id\n            FROM users_data\n            WHERE userid = &user_id AND date > &{start_date}\n            "
+        checks:
+          exit_code: 1
+          source_slices:
+            - ["\n", 0, 1]
+            - ["            ", 1, 13]
+            - ["USE", 13, 16]
+            - [" ", 16, 17]
+            - ["DATABASE", 17, 25]
+            - [" ", 25, 26]
+            - ["PRD_MARKETING", 26, 42]
+            - [";", 42, 43]
+            - ["\n", 43, 44]
+            - ["            ", 44, 56]
+            - ["USE", 56, 59]
+            - [" ", 59, 60]
+            - ["SCHEMA", 60, 66]
+            - [" ", 66, 67]
+            - ["&", 67, 68]
+            - ["&", 68, 69]
+            - ["EMEA", 69, 73]
+            - [";", 73, 74]
+            - ["\n", 74, 75]
+            - ["            ", 75, 87]
+            - ["SELECT", 87, 93]
+            - [" ", 93, 94]
+            - ["user_mail", 94, 103]
+            - [",", 103, 104]
+            - [" ", 104, 105]
+            - ["city_id", 105, 112]
+            - ["\n", 112, 113]
+            - ["            ", 113, 125]
+            - ["FROM", 125, 129]
+            - [" ", 129, 130]
+            - ["users_data", 130, 140]
+            - ["\n", 140, 141]
+            - ["            ", 141, 153]
+            - ["WHERE", 153, 158]
+            - [" ", 158, 159]
+            - ["userid", 159, 165]
+            - [" ", 165, 166]
+            - ["=", 166, 167]
+            - [" ", 167, 168]
+            - ["42", 168, 176]
+            - [" ", 176, 177]
+            - ["AND", 177, 180]
+            - [" ", 180, 181]
+            - ["date", 181, 185]
+            - [" ", 185, 186]
+            - [">", 186, 187]
+            - [" ", 187, 188]
+            - ["'2021-10-01'", 188, 201]
+            - ["\n", 201, 202]
+            - ["            ", 202, 214]
+            - ["", 214, 214]
+  - node: test/core/templaters/placeholder_test.py::test__templater_param_style[flyway_var0]
+    asserts:
+      L422: ["templated:templated"]
+    cases:
+      # The test gives the id flyway_var 2 times: pytest makes the ids
+      # flyway_var0 and flyway_var1.
+      - name: templated
+        run: cli
+        argv: [parse, -f, json, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = placeholder\n\n[sqlfluff:templater:placeholder]\nflyway:database = test_db\nparam_style = flyway_var\n"
+          case.sql: "USE ${flyway:database}.test_schema;"
+        checks:
+          exit_code: 0
+          templated: "USE test_db.test_schema;"
+      - name: slices
+        run: cli
+        argv: [parse, -f, json, -m, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = placeholder\n\n[sqlfluff:templater:placeholder]\nflyway:database = test_db\nparam_style = flyway_var\n"
+          case.sql: "USE ${flyway:database}.test_schema;"
+        checks:
+          exit_code: 0
+          source_slices:
+            - ["USE", 0, 3]
+            - [" ", 3, 4]
+            - ["test_db", 4, 22]
+            - [".", 22, 23]
+            - ["test_schema", 23, 34]
+            - [";", 34, 35]
+            - ["", 35, 35]
+  - node: test/core/templaters/placeholder_test.py::test__templater_param_style[flyway_var1]
+    asserts:
+      L422: ["templated:templated"]
+    cases:
+      # The templated SQL has an unparsable section in the ansi dialect:
+      # parse gives the tree and exit code 1.
+      - name: templated
+        run: cli
+        argv: [parse, -f, json, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = placeholder\n\n[sqlfluff:templater:placeholder]\nenv_name = staging\nparam_style = flyway_var\n"
+          case.sql: "SELECT metadata$filename, $1 FROM @stg_data_export_${env_name};"
+        checks:
+          exit_code: 1
+          templated: "SELECT metadata$filename, $1 FROM @stg_data_export_staging;"
+      - name: slices
+        run: cli
+        argv: [parse, -f, json, -m, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = placeholder\n\n[sqlfluff:templater:placeholder]\nenv_name = staging\nparam_style = flyway_var\n"
+          case.sql: "SELECT metadata$filename, $1 FROM @stg_data_export_${env_name};"
+        checks:
+          exit_code: 1
+          source_slices:
+            - ["SELECT", 0, 6]
+            - ["", 6, 6]
+            - [" ", 6, 7]
+            - ["metadata", 7, 15]
+            - ["", 15, 15]
+            - ["$filename,", 15, 25]
+            - [" ", 25, 26]
+            - ["$1", 26, 28]
+            - [" ", 28, 29]
+            - ["FROM", 29, 33]
+            - [" ", 33, 34]
+            - ["@stg_data_export_staging;", 34, 63]
+            - ["", 63, 63]
+  - node: test/core/templaters/placeholder_test.py::test__templater_param_style[params_not_specified]
+    asserts:
+      L422: ["templated:templated"]
+    cases:
+      # The templated SQL has an unparsable section in the ansi dialect:
+      # parse gives the tree and exit code 1.
+      - name: templated
+        run: cli
+        argv: [parse, -f, json, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = placeholder\n\n[sqlfluff:templater:placeholder]\nparam_style = flyway_var\n"
+          case.sql: "SELECT metadata$filename, $1 FROM @stg_data_export_${env_name};"
+        checks:
+          exit_code: 1
+          templated: "SELECT metadata$filename, $1 FROM @stg_data_export_env_name;"
+      - name: slices
+        run: cli
+        argv: [parse, -f, json, -m, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = placeholder\n\n[sqlfluff:templater:placeholder]\nparam_style = flyway_var\n"
+          case.sql: "SELECT metadata$filename, $1 FROM @stg_data_export_${env_name};"
+        checks:
+          exit_code: 1
+          source_slices:
+            - ["SELECT", 0, 6]
+            - ["", 6, 6]
+            - [" ", 6, 7]
+            - ["metadata", 7, 15]
+            - ["", 15, 15]
+            - ["$filename,", 15, 25]
+            - [" ", 25, 26]
+            - ["$1", 26, 28]
+            - [" ", 28, 29]
+            - ["FROM", 29, 33]
+            - [" ", 33, 34]
+            - ["@stg_data_export_env_name;", 34, 63]
+            - ["", 63, 63]
+  - node: test/core/templaters/placeholder_test.py::test__templater_custom_regex
+    asserts:
+      L435: ["templated:templated"]
+    cases:
+      - name: templated
+        run: cli
+        argv: [parse, -f, json, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = placeholder\n\n[sqlfluff:templater:placeholder]\nparam_regex = __(?P<param_name>[\\w_]+)__\nmy_name = john\n"
+          case.sql: "SELECT bla FROM blob WHERE id = __my_name__"
+        checks:
+          exit_code: 0
+          templated: "SELECT bla FROM blob WHERE id = john"
+      - name: slices
+        run: cli
+        argv: [parse, -f, json, -m, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = placeholder\n\n[sqlfluff:templater:placeholder]\nparam_regex = __(?P<param_name>[\\w_]+)__\nmy_name = john\n"
+          case.sql: "SELECT bla FROM blob WHERE id = __my_name__"
+        checks:
+          exit_code: 0
+          source_slices:
+            - ["SELECT", 0, 6]
+            - ["", 6, 6]
+            - [" ", 6, 7]
+            - ["bla", 7, 10]
+            - ["", 10, 10]
+            - [" ", 10, 11]
+            - ["FROM", 11, 15]
+            - [" ", 15, 16]
+            - ["", 16, 16]
+            - ["blob", 16, 20]
+            - ["", 20, 20]
+            - [" ", 20, 21]
+            - ["WHERE", 21, 26]
+            - ["", 26, 26]
+            - [" ", 26, 27]
+            - ["id", 27, 29]
+            - [" ", 29, 30]
+            - ["=", 30, 31]
+            - [" ", 31, 32]
+            - ["john", 32, 43]
+            - ["", 43, 43]
+            - ["", 43, 43]
   - node: test/core/templaters/placeholder_test.py::test__templater_setup
     asserts:
       L441:raises: ["no_style:exit_code", "no_style:stderr.contains[0]"]
@@ -105,3 +1609,19 @@ nodes:
           exit_code: 1
           stderr:
             contains: ["ValueError: Either param_style or param_regex must be provided, not both"]
+  - node: test/core/templaters/placeholder_test.py::test__templater_styles
+    asserts:
+      L462:raises: ["unknown:exit_code", "unknown:stderr.contains[0]"]
+    cases:
+      # A ValueError of the templater: the CLI stops with the traceback.
+      - name: unknown
+        run: cli
+        argv: [parse, -f, json, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = placeholder\n\n[sqlfluff:templater:placeholder]\nparam_style = pperccent\n"
+          case.sql: "SELECT 2+2"
+        checks:
+          exit_code: 1
+          stderr:
+            contains: ["ValueError: Unknown param_style \"pperccent\""]
