@@ -110,13 +110,13 @@ def test_the_suite_reports_add_up_to_the_recorded_report():
     for tool, parity in RECORDED["parity"].items():
         for key in ("nodes", "passed", "failed", "error"):
             assert sum(p["parity"][tool][key] for p in parts) == parity[key]
-    # The recorded results of T8 (status/S7-tests.md, "Recorded results").
+    # The recorded results of T22 (status/S7-tests.md, "Recorded results").
     passed = {t: p["passed"] for t, p in RECORDED["parity"].items()}
-    assert passed == {"sqlfluff": 91, "sqlfluff-rs": 90, "sqruff": 8}
+    assert passed == {"sqlfluff": 96, "sqlfluff-rs": 95, "sqruff": 8}
     assert {t: p["nodes"] for t, p in RECORDED["parity"].items()} == {
-        "sqlfluff": 91,
-        "sqlfluff-rs": 91,
-        "sqruff": 91,
+        "sqlfluff": 96,
+        "sqlfluff-rs": 96,
+        "sqruff": 96,
     }
     # The 16 converted nodes that need Jinja and move to S11.
     jinja = {t: (p["nodes"], p["passed"]) for t, p in RECORDED["s11_jinja"].items()}

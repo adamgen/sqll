@@ -8,7 +8,7 @@
  "pytest_exit_code": 1,
  "root_config": {},
  "parse_runs": {
-  "RustParser": 203,
+  "RustParser": 216,
   "Parser": 0
  },
  "collection_errors": {},
@@ -2645,6 +2645,597 @@
    "untraced": [],
    "processes": []
   },
+  "test/rules/std_AL09_CP02_RF06_combo_test.py::test__rules__std_AL09_CP02_RF06[rules3-ansi-\\nselect\\n    a,\\n    b,\\n    \"C\" as c,\\n    \"d\" as d,\\n    \"E\" as e,\\n    \"f\" as f,\\n    g as \"G\",\\n    h,\\n    i\\nfrom foo\\n-post_fix_errors3]": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "linter_string",
+     "inputs": {
+      "method": "lint_string",
+      "sql": "\nselect\n    a as A,\n    B as b,\n    \"C\" as C,\n    \"d\" as d,\n    \"E\" as e,\n    \"f\" as F,\n    g as \"G\",\n    h as h,\n    I as I\nfrom foo\n",
+      "options": {
+       "fname": "<string input>",
+       "fix": true,
+       "config": null,
+       "encoding": "utf8"
+      },
+      "linter": {
+       "dialect": "ansi",
+       "rules": [
+        "AL09",
+        "CP02"
+       ],
+       "config": null,
+       "kwargs_config": {
+        "values": {
+         "dialect": "ansi",
+         "rules": "AL09,CP02"
+        },
+        "extra_config_path": null,
+        "ignore_local_config": false,
+        "proof": []
+       }
+      },
+      "config_changed": false,
+      "cwd": "{sqlfluff}",
+      "config_file": {
+       "text": "[sqlfluff]\ndialect = ansi\nrules = AL09,CP02\n"
+      },
+      "config_proof": []
+     },
+     "outputs": {
+      "records": [
+       {
+        "filepath": "<string input>",
+        "violations": [
+         {
+          "start_line_no": 3,
+          "start_line_pos": 5,
+          "code": "AL09",
+          "description": "Ambiguous self alias. Either remove unnecessary alias, or quote alias/reference to make case change explicit.",
+          "name": "aliasing.self_alias.column",
+          "warning": false,
+          "fixes": [],
+          "start_file_pos": 12,
+          "end_line_no": 3,
+          "end_line_pos": 6,
+          "end_file_pos": 13
+         },
+         {
+          "start_line_no": 3,
+          "start_line_pos": 10,
+          "code": "CP02",
+          "description": "Unquoted identifiers must be consistently lower case.",
+          "name": "capitalisation.identifiers",
+          "warning": false,
+          "fixes": [
+           {
+            "type": "replace",
+            "edit": "a",
+            "start_line_no": 3,
+            "start_line_pos": 10,
+            "start_file_pos": 17,
+            "end_line_no": 3,
+            "end_line_pos": 11,
+            "end_file_pos": 18
+           }
+          ],
+          "start_file_pos": 17,
+          "end_line_no": 3,
+          "end_line_pos": 11,
+          "end_file_pos": 18
+         },
+         {
+          "start_line_no": 4,
+          "start_line_pos": 5,
+          "code": "AL09",
+          "description": "Ambiguous self alias. Either remove unnecessary alias, or quote alias/reference to make case change explicit.",
+          "name": "aliasing.self_alias.column",
+          "warning": false,
+          "fixes": [],
+          "start_file_pos": 24,
+          "end_line_no": 4,
+          "end_line_pos": 6,
+          "end_file_pos": 25
+         },
+         {
+          "start_line_no": 4,
+          "start_line_pos": 5,
+          "code": "CP02",
+          "description": "Unquoted identifiers must be consistently lower case.",
+          "name": "capitalisation.identifiers",
+          "warning": false,
+          "fixes": [
+           {
+            "type": "replace",
+            "edit": "b",
+            "start_line_no": 4,
+            "start_line_pos": 5,
+            "start_file_pos": 24,
+            "end_line_no": 4,
+            "end_line_pos": 6,
+            "end_file_pos": 25
+           }
+          ],
+          "start_file_pos": 24,
+          "end_line_no": 4,
+          "end_line_pos": 6,
+          "end_file_pos": 25
+         },
+         {
+          "start_line_no": 5,
+          "start_line_pos": 12,
+          "code": "CP02",
+          "description": "Unquoted identifiers must be consistently lower case.",
+          "name": "capitalisation.identifiers",
+          "warning": false,
+          "fixes": [
+           {
+            "type": "replace",
+            "edit": "c",
+            "start_line_no": 5,
+            "start_line_pos": 12,
+            "start_file_pos": 43,
+            "end_line_no": 5,
+            "end_line_pos": 13,
+            "end_file_pos": 44
+           }
+          ],
+          "start_file_pos": 43,
+          "end_line_no": 5,
+          "end_line_pos": 13,
+          "end_file_pos": 44
+         },
+         {
+          "start_line_no": 8,
+          "start_line_pos": 12,
+          "code": "CP02",
+          "description": "Unquoted identifiers must be consistently lower case.",
+          "name": "capitalisation.identifiers",
+          "warning": false,
+          "fixes": [
+           {
+            "type": "replace",
+            "edit": "f",
+            "start_line_no": 8,
+            "start_line_pos": 12,
+            "start_file_pos": 85,
+            "end_line_no": 8,
+            "end_line_pos": 13,
+            "end_file_pos": 86
+           }
+          ],
+          "start_file_pos": 85,
+          "end_line_no": 8,
+          "end_line_pos": 13,
+          "end_file_pos": 86
+         },
+         {
+          "start_line_no": 10,
+          "start_line_pos": 5,
+          "code": "AL09",
+          "description": "Column should not be self-aliased.",
+          "name": "aliasing.self_alias.column",
+          "warning": false,
+          "fixes": [
+           {
+            "type": "delete",
+            "edit": "",
+            "start_line_no": 10,
+            "start_line_pos": 6,
+            "start_file_pos": 107,
+            "end_line_no": 10,
+            "end_line_pos": 7,
+            "end_file_pos": 108
+           },
+           {
+            "type": "delete",
+            "edit": "",
+            "start_line_no": 10,
+            "start_line_pos": 7,
+            "start_file_pos": 108,
+            "end_line_no": 10,
+            "end_line_pos": 11,
+            "end_file_pos": 112
+           }
+          ],
+          "start_file_pos": 106,
+          "end_line_no": 10,
+          "end_line_pos": 6,
+          "end_file_pos": 107
+         },
+         {
+          "start_line_no": 11,
+          "start_line_pos": 5,
+          "code": "AL09",
+          "description": "Column should not be self-aliased.",
+          "name": "aliasing.self_alias.column",
+          "warning": false,
+          "fixes": [
+           {
+            "type": "delete",
+            "edit": "",
+            "start_line_no": 11,
+            "start_line_pos": 6,
+            "start_file_pos": 119,
+            "end_line_no": 11,
+            "end_line_pos": 7,
+            "end_file_pos": 120
+           },
+           {
+            "type": "delete",
+            "edit": "",
+            "start_line_no": 11,
+            "start_line_pos": 7,
+            "start_file_pos": 120,
+            "end_line_no": 11,
+            "end_line_pos": 11,
+            "end_file_pos": 124
+           }
+          ],
+          "start_file_pos": 118,
+          "end_line_no": 11,
+          "end_line_pos": 6,
+          "end_file_pos": 119
+         },
+         {
+          "start_line_no": 11,
+          "start_line_pos": 5,
+          "code": "CP02",
+          "description": "Unquoted identifiers must be consistently lower case.",
+          "name": "capitalisation.identifiers",
+          "warning": false,
+          "fixes": [
+           {
+            "type": "replace",
+            "edit": "i",
+            "start_line_no": 11,
+            "start_line_pos": 5,
+            "start_file_pos": 118,
+            "end_line_no": 11,
+            "end_line_pos": 6,
+            "end_file_pos": 119
+           }
+          ],
+          "start_file_pos": 118,
+          "end_line_no": 11,
+          "end_line_pos": 6,
+          "end_file_pos": 119
+         }
+        ],
+        "statistics": {
+         "source_chars": 134,
+         "templated_chars": 134,
+         "segments": 114,
+         "raw_segments": 77
+        }
+       }
+      ],
+      "violations": 9,
+      "tmp_prs": 0,
+      "fixable": 7,
+      "unfixable": 2,
+      "fixed": "\nselect\n    a,\n    b,\n    \"C\" as c,\n    \"d\" as d,\n    \"E\" as e,\n    \"f\" as f,\n    g as \"G\",\n    h,\n    i\nfrom foo\n",
+      "lint": {
+       "records": [
+        {
+         "filepath": "<string input>",
+         "violations": [
+          {
+           "start_line_no": 3,
+           "start_line_pos": 5,
+           "code": "AL09",
+           "description": "Ambiguous self alias. Either remove unnecessary alias, or quote alias/reference to make case change explicit.",
+           "name": "aliasing.self_alias.column",
+           "warning": false,
+           "fixes": [],
+           "start_file_pos": 12,
+           "end_line_no": 3,
+           "end_line_pos": 6,
+           "end_file_pos": 13
+          },
+          {
+           "start_line_no": 3,
+           "start_line_pos": 10,
+           "code": "CP02",
+           "description": "Unquoted identifiers must be consistently lower case.",
+           "name": "capitalisation.identifiers",
+           "warning": false,
+           "fixes": [
+            {
+             "type": "replace",
+             "edit": "a",
+             "start_line_no": 3,
+             "start_line_pos": 10,
+             "start_file_pos": 17,
+             "end_line_no": 3,
+             "end_line_pos": 11,
+             "end_file_pos": 18
+            }
+           ],
+           "start_file_pos": 17,
+           "end_line_no": 3,
+           "end_line_pos": 11,
+           "end_file_pos": 18
+          },
+          {
+           "start_line_no": 4,
+           "start_line_pos": 5,
+           "code": "AL09",
+           "description": "Ambiguous self alias. Either remove unnecessary alias, or quote alias/reference to make case change explicit.",
+           "name": "aliasing.self_alias.column",
+           "warning": false,
+           "fixes": [],
+           "start_file_pos": 24,
+           "end_line_no": 4,
+           "end_line_pos": 6,
+           "end_file_pos": 25
+          },
+          {
+           "start_line_no": 4,
+           "start_line_pos": 5,
+           "code": "CP02",
+           "description": "Unquoted identifiers must be consistently lower case.",
+           "name": "capitalisation.identifiers",
+           "warning": false,
+           "fixes": [
+            {
+             "type": "replace",
+             "edit": "b",
+             "start_line_no": 4,
+             "start_line_pos": 5,
+             "start_file_pos": 24,
+             "end_line_no": 4,
+             "end_line_pos": 6,
+             "end_file_pos": 25
+            }
+           ],
+           "start_file_pos": 24,
+           "end_line_no": 4,
+           "end_line_pos": 6,
+           "end_file_pos": 25
+          },
+          {
+           "start_line_no": 5,
+           "start_line_pos": 12,
+           "code": "CP02",
+           "description": "Unquoted identifiers must be consistently lower case.",
+           "name": "capitalisation.identifiers",
+           "warning": false,
+           "fixes": [
+            {
+             "type": "replace",
+             "edit": "c",
+             "start_line_no": 5,
+             "start_line_pos": 12,
+             "start_file_pos": 43,
+             "end_line_no": 5,
+             "end_line_pos": 13,
+             "end_file_pos": 44
+            }
+           ],
+           "start_file_pos": 43,
+           "end_line_no": 5,
+           "end_line_pos": 13,
+           "end_file_pos": 44
+          },
+          {
+           "start_line_no": 8,
+           "start_line_pos": 12,
+           "code": "CP02",
+           "description": "Unquoted identifiers must be consistently lower case.",
+           "name": "capitalisation.identifiers",
+           "warning": false,
+           "fixes": [
+            {
+             "type": "replace",
+             "edit": "f",
+             "start_line_no": 8,
+             "start_line_pos": 12,
+             "start_file_pos": 85,
+             "end_line_no": 8,
+             "end_line_pos": 13,
+             "end_file_pos": 86
+            }
+           ],
+           "start_file_pos": 85,
+           "end_line_no": 8,
+           "end_line_pos": 13,
+           "end_file_pos": 86
+          },
+          {
+           "start_line_no": 10,
+           "start_line_pos": 5,
+           "code": "AL09",
+           "description": "Column should not be self-aliased.",
+           "name": "aliasing.self_alias.column",
+           "warning": false,
+           "fixes": [
+            {
+             "type": "delete",
+             "edit": "",
+             "start_line_no": 10,
+             "start_line_pos": 6,
+             "start_file_pos": 107,
+             "end_line_no": 10,
+             "end_line_pos": 7,
+             "end_file_pos": 108
+            },
+            {
+             "type": "delete",
+             "edit": "",
+             "start_line_no": 10,
+             "start_line_pos": 7,
+             "start_file_pos": 108,
+             "end_line_no": 10,
+             "end_line_pos": 11,
+             "end_file_pos": 112
+            }
+           ],
+           "start_file_pos": 106,
+           "end_line_no": 10,
+           "end_line_pos": 6,
+           "end_file_pos": 107
+          },
+          {
+           "start_line_no": 11,
+           "start_line_pos": 5,
+           "code": "AL09",
+           "description": "Column should not be self-aliased.",
+           "name": "aliasing.self_alias.column",
+           "warning": false,
+           "fixes": [
+            {
+             "type": "delete",
+             "edit": "",
+             "start_line_no": 11,
+             "start_line_pos": 6,
+             "start_file_pos": 119,
+             "end_line_no": 11,
+             "end_line_pos": 7,
+             "end_file_pos": 120
+            },
+            {
+             "type": "delete",
+             "edit": "",
+             "start_line_no": 11,
+             "start_line_pos": 7,
+             "start_file_pos": 120,
+             "end_line_no": 11,
+             "end_line_pos": 11,
+             "end_file_pos": 124
+            }
+           ],
+           "start_file_pos": 118,
+           "end_line_no": 11,
+           "end_line_pos": 6,
+           "end_file_pos": 119
+          },
+          {
+           "start_line_no": 11,
+           "start_line_pos": 5,
+           "code": "CP02",
+           "description": "Unquoted identifiers must be consistently lower case.",
+           "name": "capitalisation.identifiers",
+           "warning": false,
+           "fixes": [
+            {
+             "type": "replace",
+             "edit": "i",
+             "start_line_no": 11,
+             "start_line_pos": 5,
+             "start_file_pos": 118,
+             "end_line_no": 11,
+             "end_line_pos": 6,
+             "end_file_pos": 119
+            }
+           ],
+           "start_file_pos": 118,
+           "end_line_no": 11,
+           "end_line_pos": 6,
+           "end_file_pos": 119
+          },
+          {
+           "start_line_no": 11,
+           "start_line_pos": 10,
+           "code": "CP02",
+           "description": "Unquoted identifiers must be consistently lower case.",
+           "name": "capitalisation.identifiers",
+           "warning": false,
+           "fixes": [
+            {
+             "type": "replace",
+             "edit": "i",
+             "start_line_no": 11,
+             "start_line_pos": 10,
+             "start_file_pos": 123,
+             "end_line_no": 11,
+             "end_line_pos": 11,
+             "end_file_pos": 124
+            }
+           ],
+           "start_file_pos": 123,
+           "end_line_no": 11,
+           "end_line_pos": 11,
+           "end_file_pos": 124
+          }
+         ],
+         "statistics": {
+          "source_chars": 134,
+          "templated_chars": 134,
+          "segments": 146,
+          "raw_segments": 101
+         }
+        }
+       ],
+       "violations": 10,
+       "tmp_prs": 0,
+       "fixable": 8,
+       "unfixable": 2
+      }
+     },
+     "reads": [
+      "fix_string"
+     ]
+    },
+    {
+     "kind": "linter_string",
+     "inputs": {
+      "method": "lint_string",
+      "sql": "\nselect\n    a,\n    b,\n    \"C\" as c,\n    \"d\" as d,\n    \"E\" as e,\n    \"f\" as f,\n    g as \"G\",\n    h,\n    i\nfrom foo\n",
+      "options": {
+       "fname": "<string input>",
+       "fix": false,
+       "config": null,
+       "encoding": "utf8"
+      },
+      "linter": {
+       "dialect": "ansi",
+       "rules": [
+        "AL09",
+        "CP02"
+       ],
+       "config": null,
+       "kwargs_config": {
+        "values": {
+         "dialect": "ansi",
+         "rules": "AL09,CP02"
+        },
+        "extra_config_path": null,
+        "ignore_local_config": false,
+        "proof": []
+       }
+      },
+      "config_changed": false,
+      "cwd": "{sqlfluff}",
+      "config_file": {
+       "text": "[sqlfluff]\ndialect = ansi\nrules = AL09,CP02\n"
+      },
+      "config_proof": []
+     },
+     "outputs": {
+      "records": [
+       {
+        "filepath": "<string input>",
+        "violations": [],
+        "statistics": {
+         "source_chars": 114,
+         "templated_chars": 114,
+         "segments": 114,
+         "raw_segments": 77
+        }
+       }
+      ],
+      "violations": 0,
+      "tmp_prs": 0,
+      "fixable": 0,
+      "unfixable": 0
+     }
+    }
+   ],
+   "untraced": [],
+   "processes": []
+  },
   "test/rules/std_AL09_CP02_RF06_combo_test.py::test__rules__std_AL09_CP02_RF06[rules4-ansi-\\nselect\\n    a as A,\\n    B as b,\\n    C,\\n    \"d\" as d,\\n    E as e,\\n    \"f\" as F,\\n    g as G,\\n    h,\\n    I\\nfrom foo\\n-post_fix_errors4]": {
    "outcome": "passed",
    "calls": [
@@ -3721,6 +4312,2265 @@
          "templated_chars": 128,
          "segments": 146,
          "raw_segments": 101
+        }
+       }
+      ],
+      "violations": 0,
+      "tmp_prs": 0,
+      "fixable": 0,
+      "unfixable": 0
+     }
+    }
+   ],
+   "untraced": [],
+   "processes": []
+  },
+  "test/rules/std_AL09_CP02_RF06_combo_test.py::test__rules__std_AL09_CP02_RF06[rules6-ansi-\\nselect\\n    a,\\n    b,\\n    c,\\n    \"d\" as d,\\n    e,\\n    \"f\" as f,\\n    g,\\n    h,\\n    i\\nfrom foo\\n-post_fix_errors6]": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "linter_string",
+     "inputs": {
+      "method": "lint_string",
+      "sql": "\nselect\n    a as A,\n    B as b,\n    \"C\" as C,\n    \"d\" as d,\n    \"E\" as e,\n    \"f\" as F,\n    g as \"G\",\n    h as h,\n    I as I\nfrom foo\n",
+      "options": {
+       "fname": "<string input>",
+       "fix": true,
+       "config": null,
+       "encoding": "utf8"
+      },
+      "linter": {
+       "dialect": "ansi",
+       "rules": [
+        "AL09",
+        "CP02",
+        "RF06"
+       ],
+       "config": null,
+       "kwargs_config": {
+        "values": {
+         "dialect": "ansi",
+         "rules": "AL09,CP02,RF06"
+        },
+        "extra_config_path": null,
+        "ignore_local_config": false,
+        "proof": []
+       }
+      },
+      "config_changed": false,
+      "cwd": "{sqlfluff}",
+      "config_file": {
+       "text": "[sqlfluff]\ndialect = ansi\nrules = AL09,CP02,RF06\n"
+      },
+      "config_proof": []
+     },
+     "outputs": {
+      "records": [
+       {
+        "filepath": "<string input>",
+        "violations": [
+         {
+          "start_line_no": 3,
+          "start_line_pos": 5,
+          "code": "AL09",
+          "description": "Ambiguous self alias. Either remove unnecessary alias, or quote alias/reference to make case change explicit.",
+          "name": "aliasing.self_alias.column",
+          "warning": false,
+          "fixes": [],
+          "start_file_pos": 12,
+          "end_line_no": 3,
+          "end_line_pos": 6,
+          "end_file_pos": 13
+         },
+         {
+          "start_line_no": 3,
+          "start_line_pos": 10,
+          "code": "CP02",
+          "description": "Unquoted identifiers must be consistently lower case.",
+          "name": "capitalisation.identifiers",
+          "warning": false,
+          "fixes": [
+           {
+            "type": "replace",
+            "edit": "a",
+            "start_line_no": 3,
+            "start_line_pos": 10,
+            "start_file_pos": 17,
+            "end_line_no": 3,
+            "end_line_pos": 11,
+            "end_file_pos": 18
+           }
+          ],
+          "start_file_pos": 17,
+          "end_line_no": 3,
+          "end_line_pos": 11,
+          "end_file_pos": 18
+         },
+         {
+          "start_line_no": 4,
+          "start_line_pos": 5,
+          "code": "AL09",
+          "description": "Ambiguous self alias. Either remove unnecessary alias, or quote alias/reference to make case change explicit.",
+          "name": "aliasing.self_alias.column",
+          "warning": false,
+          "fixes": [],
+          "start_file_pos": 24,
+          "end_line_no": 4,
+          "end_line_pos": 6,
+          "end_file_pos": 25
+         },
+         {
+          "start_line_no": 4,
+          "start_line_pos": 5,
+          "code": "CP02",
+          "description": "Unquoted identifiers must be consistently lower case.",
+          "name": "capitalisation.identifiers",
+          "warning": false,
+          "fixes": [
+           {
+            "type": "replace",
+            "edit": "b",
+            "start_line_no": 4,
+            "start_line_pos": 5,
+            "start_file_pos": 24,
+            "end_line_no": 4,
+            "end_line_pos": 6,
+            "end_file_pos": 25
+           }
+          ],
+          "start_file_pos": 24,
+          "end_line_no": 4,
+          "end_line_pos": 6,
+          "end_file_pos": 25
+         },
+         {
+          "start_line_no": 5,
+          "start_line_pos": 5,
+          "code": "RF06",
+          "description": "Unnecessary quoted identifier \"C\".",
+          "name": "references.quoting",
+          "warning": false,
+          "fixes": [
+           {
+            "type": "replace",
+            "edit": "C",
+            "start_line_no": 5,
+            "start_line_pos": 5,
+            "start_file_pos": 36,
+            "end_line_no": 5,
+            "end_line_pos": 8,
+            "end_file_pos": 39
+           }
+          ],
+          "start_file_pos": 36,
+          "end_line_no": 5,
+          "end_line_pos": 8,
+          "end_file_pos": 39
+         },
+         {
+          "start_line_no": 5,
+          "start_line_pos": 12,
+          "code": "CP02",
+          "description": "Unquoted identifiers must be consistently lower case.",
+          "name": "capitalisation.identifiers",
+          "warning": false,
+          "fixes": [
+           {
+            "type": "replace",
+            "edit": "c",
+            "start_line_no": 5,
+            "start_line_pos": 12,
+            "start_file_pos": 43,
+            "end_line_no": 5,
+            "end_line_pos": 13,
+            "end_file_pos": 44
+           }
+          ],
+          "start_file_pos": 43,
+          "end_line_no": 5,
+          "end_line_pos": 13,
+          "end_file_pos": 44
+         },
+         {
+          "start_line_no": 7,
+          "start_line_pos": 5,
+          "code": "RF06",
+          "description": "Unnecessary quoted identifier \"E\".",
+          "name": "references.quoting",
+          "warning": false,
+          "fixes": [
+           {
+            "type": "replace",
+            "edit": "E",
+            "start_line_no": 7,
+            "start_line_pos": 5,
+            "start_file_pos": 64,
+            "end_line_no": 7,
+            "end_line_pos": 8,
+            "end_file_pos": 67
+           }
+          ],
+          "start_file_pos": 64,
+          "end_line_no": 7,
+          "end_line_pos": 8,
+          "end_file_pos": 67
+         },
+         {
+          "start_line_no": 8,
+          "start_line_pos": 12,
+          "code": "CP02",
+          "description": "Unquoted identifiers must be consistently lower case.",
+          "name": "capitalisation.identifiers",
+          "warning": false,
+          "fixes": [
+           {
+            "type": "replace",
+            "edit": "f",
+            "start_line_no": 8,
+            "start_line_pos": 12,
+            "start_file_pos": 85,
+            "end_line_no": 8,
+            "end_line_pos": 13,
+            "end_file_pos": 86
+           }
+          ],
+          "start_file_pos": 85,
+          "end_line_no": 8,
+          "end_line_pos": 13,
+          "end_file_pos": 86
+         },
+         {
+          "start_line_no": 9,
+          "start_line_pos": 10,
+          "code": "RF06",
+          "description": "Unnecessary quoted identifier \"G\".",
+          "name": "references.quoting",
+          "warning": false,
+          "fixes": [
+           {
+            "type": "replace",
+            "edit": "G",
+            "start_line_no": 9,
+            "start_line_pos": 10,
+            "start_file_pos": 97,
+            "end_line_no": 9,
+            "end_line_pos": 13,
+            "end_file_pos": 100
+           }
+          ],
+          "start_file_pos": 97,
+          "end_line_no": 9,
+          "end_line_pos": 13,
+          "end_file_pos": 100
+         },
+         {
+          "start_line_no": 10,
+          "start_line_pos": 5,
+          "code": "AL09",
+          "description": "Column should not be self-aliased.",
+          "name": "aliasing.self_alias.column",
+          "warning": false,
+          "fixes": [
+           {
+            "type": "delete",
+            "edit": "",
+            "start_line_no": 10,
+            "start_line_pos": 6,
+            "start_file_pos": 107,
+            "end_line_no": 10,
+            "end_line_pos": 7,
+            "end_file_pos": 108
+           },
+           {
+            "type": "delete",
+            "edit": "",
+            "start_line_no": 10,
+            "start_line_pos": 7,
+            "start_file_pos": 108,
+            "end_line_no": 10,
+            "end_line_pos": 11,
+            "end_file_pos": 112
+           }
+          ],
+          "start_file_pos": 106,
+          "end_line_no": 10,
+          "end_line_pos": 6,
+          "end_file_pos": 107
+         },
+         {
+          "start_line_no": 11,
+          "start_line_pos": 5,
+          "code": "AL09",
+          "description": "Column should not be self-aliased.",
+          "name": "aliasing.self_alias.column",
+          "warning": false,
+          "fixes": [
+           {
+            "type": "delete",
+            "edit": "",
+            "start_line_no": 11,
+            "start_line_pos": 6,
+            "start_file_pos": 119,
+            "end_line_no": 11,
+            "end_line_pos": 7,
+            "end_file_pos": 120
+           },
+           {
+            "type": "delete",
+            "edit": "",
+            "start_line_no": 11,
+            "start_line_pos": 7,
+            "start_file_pos": 120,
+            "end_line_no": 11,
+            "end_line_pos": 11,
+            "end_file_pos": 124
+           }
+          ],
+          "start_file_pos": 118,
+          "end_line_no": 11,
+          "end_line_pos": 6,
+          "end_file_pos": 119
+         },
+         {
+          "start_line_no": 11,
+          "start_line_pos": 5,
+          "code": "CP02",
+          "description": "Unquoted identifiers must be consistently lower case.",
+          "name": "capitalisation.identifiers",
+          "warning": false,
+          "fixes": [
+           {
+            "type": "replace",
+            "edit": "i",
+            "start_line_no": 11,
+            "start_line_pos": 5,
+            "start_file_pos": 118,
+            "end_line_no": 11,
+            "end_line_pos": 6,
+            "end_file_pos": 119
+           }
+          ],
+          "start_file_pos": 118,
+          "end_line_no": 11,
+          "end_line_pos": 6,
+          "end_file_pos": 119
+         }
+        ],
+        "statistics": {
+         "source_chars": 134,
+         "templated_chars": 134,
+         "segments": 90,
+         "raw_segments": 59
+        }
+       }
+      ],
+      "violations": 12,
+      "tmp_prs": 0,
+      "fixable": 10,
+      "unfixable": 2,
+      "fixed": "\nselect\n    a,\n    b,\n    c,\n    \"d\" as d,\n    e,\n    \"f\" as f,\n    g,\n    h,\n    i\nfrom foo\n",
+      "lint": {
+       "records": [
+        {
+         "filepath": "<string input>",
+         "violations": [
+          {
+           "start_line_no": 3,
+           "start_line_pos": 5,
+           "code": "AL09",
+           "description": "Ambiguous self alias. Either remove unnecessary alias, or quote alias/reference to make case change explicit.",
+           "name": "aliasing.self_alias.column",
+           "warning": false,
+           "fixes": [],
+           "start_file_pos": 12,
+           "end_line_no": 3,
+           "end_line_pos": 6,
+           "end_file_pos": 13
+          },
+          {
+           "start_line_no": 3,
+           "start_line_pos": 10,
+           "code": "CP02",
+           "description": "Unquoted identifiers must be consistently lower case.",
+           "name": "capitalisation.identifiers",
+           "warning": false,
+           "fixes": [
+            {
+             "type": "replace",
+             "edit": "a",
+             "start_line_no": 3,
+             "start_line_pos": 10,
+             "start_file_pos": 17,
+             "end_line_no": 3,
+             "end_line_pos": 11,
+             "end_file_pos": 18
+            }
+           ],
+           "start_file_pos": 17,
+           "end_line_no": 3,
+           "end_line_pos": 11,
+           "end_file_pos": 18
+          },
+          {
+           "start_line_no": 4,
+           "start_line_pos": 5,
+           "code": "AL09",
+           "description": "Ambiguous self alias. Either remove unnecessary alias, or quote alias/reference to make case change explicit.",
+           "name": "aliasing.self_alias.column",
+           "warning": false,
+           "fixes": [],
+           "start_file_pos": 24,
+           "end_line_no": 4,
+           "end_line_pos": 6,
+           "end_file_pos": 25
+          },
+          {
+           "start_line_no": 4,
+           "start_line_pos": 5,
+           "code": "CP02",
+           "description": "Unquoted identifiers must be consistently lower case.",
+           "name": "capitalisation.identifiers",
+           "warning": false,
+           "fixes": [
+            {
+             "type": "replace",
+             "edit": "b",
+             "start_line_no": 4,
+             "start_line_pos": 5,
+             "start_file_pos": 24,
+             "end_line_no": 4,
+             "end_line_pos": 6,
+             "end_file_pos": 25
+            }
+           ],
+           "start_file_pos": 24,
+           "end_line_no": 4,
+           "end_line_pos": 6,
+           "end_file_pos": 25
+          },
+          {
+           "start_line_no": 5,
+           "start_line_pos": 5,
+           "code": "RF06",
+           "description": "Unnecessary quoted identifier \"C\".",
+           "name": "references.quoting",
+           "warning": false,
+           "fixes": [
+            {
+             "type": "replace",
+             "edit": "C",
+             "start_line_no": 5,
+             "start_line_pos": 5,
+             "start_file_pos": 36,
+             "end_line_no": 5,
+             "end_line_pos": 8,
+             "end_file_pos": 39
+            }
+           ],
+           "start_file_pos": 36,
+           "end_line_no": 5,
+           "end_line_pos": 8,
+           "end_file_pos": 39
+          },
+          {
+           "start_line_no": 5,
+           "start_line_pos": 12,
+           "code": "CP02",
+           "description": "Unquoted identifiers must be consistently lower case.",
+           "name": "capitalisation.identifiers",
+           "warning": false,
+           "fixes": [
+            {
+             "type": "replace",
+             "edit": "c",
+             "start_line_no": 5,
+             "start_line_pos": 12,
+             "start_file_pos": 43,
+             "end_line_no": 5,
+             "end_line_pos": 13,
+             "end_file_pos": 44
+            }
+           ],
+           "start_file_pos": 43,
+           "end_line_no": 5,
+           "end_line_pos": 13,
+           "end_file_pos": 44
+          },
+          {
+           "start_line_no": 7,
+           "start_line_pos": 5,
+           "code": "RF06",
+           "description": "Unnecessary quoted identifier \"E\".",
+           "name": "references.quoting",
+           "warning": false,
+           "fixes": [
+            {
+             "type": "replace",
+             "edit": "E",
+             "start_line_no": 7,
+             "start_line_pos": 5,
+             "start_file_pos": 64,
+             "end_line_no": 7,
+             "end_line_pos": 8,
+             "end_file_pos": 67
+            }
+           ],
+           "start_file_pos": 64,
+           "end_line_no": 7,
+           "end_line_pos": 8,
+           "end_file_pos": 67
+          },
+          {
+           "start_line_no": 8,
+           "start_line_pos": 12,
+           "code": "CP02",
+           "description": "Unquoted identifiers must be consistently lower case.",
+           "name": "capitalisation.identifiers",
+           "warning": false,
+           "fixes": [
+            {
+             "type": "replace",
+             "edit": "f",
+             "start_line_no": 8,
+             "start_line_pos": 12,
+             "start_file_pos": 85,
+             "end_line_no": 8,
+             "end_line_pos": 13,
+             "end_file_pos": 86
+            }
+           ],
+           "start_file_pos": 85,
+           "end_line_no": 8,
+           "end_line_pos": 13,
+           "end_file_pos": 86
+          },
+          {
+           "start_line_no": 9,
+           "start_line_pos": 10,
+           "code": "RF06",
+           "description": "Unnecessary quoted identifier \"G\".",
+           "name": "references.quoting",
+           "warning": false,
+           "fixes": [
+            {
+             "type": "replace",
+             "edit": "G",
+             "start_line_no": 9,
+             "start_line_pos": 10,
+             "start_file_pos": 97,
+             "end_line_no": 9,
+             "end_line_pos": 13,
+             "end_file_pos": 100
+            }
+           ],
+           "start_file_pos": 97,
+           "end_line_no": 9,
+           "end_line_pos": 13,
+           "end_file_pos": 100
+          },
+          {
+           "start_line_no": 10,
+           "start_line_pos": 5,
+           "code": "AL09",
+           "description": "Column should not be self-aliased.",
+           "name": "aliasing.self_alias.column",
+           "warning": false,
+           "fixes": [
+            {
+             "type": "delete",
+             "edit": "",
+             "start_line_no": 10,
+             "start_line_pos": 6,
+             "start_file_pos": 107,
+             "end_line_no": 10,
+             "end_line_pos": 7,
+             "end_file_pos": 108
+            },
+            {
+             "type": "delete",
+             "edit": "",
+             "start_line_no": 10,
+             "start_line_pos": 7,
+             "start_file_pos": 108,
+             "end_line_no": 10,
+             "end_line_pos": 11,
+             "end_file_pos": 112
+            }
+           ],
+           "start_file_pos": 106,
+           "end_line_no": 10,
+           "end_line_pos": 6,
+           "end_file_pos": 107
+          },
+          {
+           "start_line_no": 11,
+           "start_line_pos": 5,
+           "code": "AL09",
+           "description": "Column should not be self-aliased.",
+           "name": "aliasing.self_alias.column",
+           "warning": false,
+           "fixes": [
+            {
+             "type": "delete",
+             "edit": "",
+             "start_line_no": 11,
+             "start_line_pos": 6,
+             "start_file_pos": 119,
+             "end_line_no": 11,
+             "end_line_pos": 7,
+             "end_file_pos": 120
+            },
+            {
+             "type": "delete",
+             "edit": "",
+             "start_line_no": 11,
+             "start_line_pos": 7,
+             "start_file_pos": 120,
+             "end_line_no": 11,
+             "end_line_pos": 11,
+             "end_file_pos": 124
+            }
+           ],
+           "start_file_pos": 118,
+           "end_line_no": 11,
+           "end_line_pos": 6,
+           "end_file_pos": 119
+          },
+          {
+           "start_line_no": 11,
+           "start_line_pos": 5,
+           "code": "CP02",
+           "description": "Unquoted identifiers must be consistently lower case.",
+           "name": "capitalisation.identifiers",
+           "warning": false,
+           "fixes": [
+            {
+             "type": "replace",
+             "edit": "i",
+             "start_line_no": 11,
+             "start_line_pos": 5,
+             "start_file_pos": 118,
+             "end_line_no": 11,
+             "end_line_pos": 6,
+             "end_file_pos": 119
+            }
+           ],
+           "start_file_pos": 118,
+           "end_line_no": 11,
+           "end_line_pos": 6,
+           "end_file_pos": 119
+          },
+          {
+           "start_line_no": 11,
+           "start_line_pos": 10,
+           "code": "CP02",
+           "description": "Unquoted identifiers must be consistently lower case.",
+           "name": "capitalisation.identifiers",
+           "warning": false,
+           "fixes": [
+            {
+             "type": "replace",
+             "edit": "i",
+             "start_line_no": 11,
+             "start_line_pos": 10,
+             "start_file_pos": 123,
+             "end_line_no": 11,
+             "end_line_pos": 11,
+             "end_file_pos": 124
+            }
+           ],
+           "start_file_pos": 123,
+           "end_line_no": 11,
+           "end_line_pos": 11,
+           "end_file_pos": 124
+          }
+         ],
+         "statistics": {
+          "source_chars": 134,
+          "templated_chars": 134,
+          "segments": 146,
+          "raw_segments": 101
+         }
+        }
+       ],
+       "violations": 13,
+       "tmp_prs": 0,
+       "fixable": 11,
+       "unfixable": 2
+      }
+     },
+     "reads": [
+      "fix_string"
+     ]
+    },
+    {
+     "kind": "linter_string",
+     "inputs": {
+      "method": "lint_string",
+      "sql": "\nselect\n    a,\n    b,\n    c,\n    \"d\" as d,\n    e,\n    \"f\" as f,\n    g,\n    h,\n    i\nfrom foo\n",
+      "options": {
+       "fname": "<string input>",
+       "fix": false,
+       "config": null,
+       "encoding": "utf8"
+      },
+      "linter": {
+       "dialect": "ansi",
+       "rules": [
+        "AL09",
+        "CP02",
+        "RF06"
+       ],
+       "config": null,
+       "kwargs_config": {
+        "values": {
+         "dialect": "ansi",
+         "rules": "AL09,CP02,RF06"
+        },
+        "extra_config_path": null,
+        "ignore_local_config": false,
+        "proof": []
+       }
+      },
+      "config_changed": false,
+      "cwd": "{sqlfluff}",
+      "config_file": {
+       "text": "[sqlfluff]\ndialect = ansi\nrules = AL09,CP02,RF06\n"
+      },
+      "config_proof": []
+     },
+     "outputs": {
+      "records": [
+       {
+        "filepath": "<string input>",
+        "violations": [],
+        "statistics": {
+         "source_chars": 93,
+         "templated_chars": 93,
+         "segments": 90,
+         "raw_segments": 59
+        }
+       }
+      ],
+      "violations": 0,
+      "tmp_prs": 0,
+      "fixable": 0,
+      "unfixable": 0
+     }
+    }
+   ],
+   "untraced": [],
+   "processes": []
+  },
+  "test/rules/std_AL09_CP02_RF06_combo_test.py::test__rules__std_AL09_CP02_RF06[rules7-postgres-\\nselect\\n    a,\\n    b,\\n    \"C\" as c,\\n    d,\\n    \"E\" as e,\\n    f,\\n    g as \"G\",\\n    h,\\n    i\\nfrom foo\\n-post_fix_errors7]": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "linter_string",
+     "inputs": {
+      "method": "lint_string",
+      "sql": "\nselect\n    a as A,\n    B as b,\n    \"C\" as C,\n    \"d\" as d,\n    \"E\" as e,\n    \"f\" as F,\n    g as \"G\",\n    h as h,\n    I as I\nfrom foo\n",
+      "options": {
+       "fname": "<string input>",
+       "fix": true,
+       "config": null,
+       "encoding": "utf8"
+      },
+      "linter": {
+       "dialect": "postgres",
+       "rules": [
+        "AL09",
+        "CP02",
+        "RF06"
+       ],
+       "config": null,
+       "kwargs_config": {
+        "values": {
+         "dialect": "postgres",
+         "rules": "AL09,CP02,RF06"
+        },
+        "extra_config_path": null,
+        "ignore_local_config": false,
+        "proof": []
+       }
+      },
+      "config_changed": false,
+      "cwd": "{sqlfluff}",
+      "config_file": {
+       "text": "[sqlfluff]\ndialect = postgres\nrules = AL09,CP02,RF06\n"
+      },
+      "config_proof": []
+     },
+     "outputs": {
+      "records": [
+       {
+        "filepath": "<string input>",
+        "violations": [
+         {
+          "start_line_no": 3,
+          "start_line_pos": 5,
+          "code": "AL09",
+          "description": "Ambiguous self alias. Either remove unnecessary alias, or quote alias/reference to make case change explicit.",
+          "name": "aliasing.self_alias.column",
+          "warning": false,
+          "fixes": [],
+          "start_file_pos": 12,
+          "end_line_no": 3,
+          "end_line_pos": 6,
+          "end_file_pos": 13
+         },
+         {
+          "start_line_no": 3,
+          "start_line_pos": 10,
+          "code": "CP02",
+          "description": "Unquoted identifiers must be consistently lower case.",
+          "name": "capitalisation.identifiers",
+          "warning": false,
+          "fixes": [
+           {
+            "type": "replace",
+            "edit": "a",
+            "start_line_no": 3,
+            "start_line_pos": 10,
+            "start_file_pos": 17,
+            "end_line_no": 3,
+            "end_line_pos": 11,
+            "end_file_pos": 18
+           }
+          ],
+          "start_file_pos": 17,
+          "end_line_no": 3,
+          "end_line_pos": 11,
+          "end_file_pos": 18
+         },
+         {
+          "start_line_no": 4,
+          "start_line_pos": 5,
+          "code": "AL09",
+          "description": "Ambiguous self alias. Either remove unnecessary alias, or quote alias/reference to make case change explicit.",
+          "name": "aliasing.self_alias.column",
+          "warning": false,
+          "fixes": [],
+          "start_file_pos": 24,
+          "end_line_no": 4,
+          "end_line_pos": 6,
+          "end_file_pos": 25
+         },
+         {
+          "start_line_no": 4,
+          "start_line_pos": 5,
+          "code": "CP02",
+          "description": "Unquoted identifiers must be consistently lower case.",
+          "name": "capitalisation.identifiers",
+          "warning": false,
+          "fixes": [
+           {
+            "type": "replace",
+            "edit": "b",
+            "start_line_no": 4,
+            "start_line_pos": 5,
+            "start_file_pos": 24,
+            "end_line_no": 4,
+            "end_line_pos": 6,
+            "end_file_pos": 25
+           }
+          ],
+          "start_file_pos": 24,
+          "end_line_no": 4,
+          "end_line_pos": 6,
+          "end_file_pos": 25
+         },
+         {
+          "start_line_no": 5,
+          "start_line_pos": 12,
+          "code": "CP02",
+          "description": "Unquoted identifiers must be consistently lower case.",
+          "name": "capitalisation.identifiers",
+          "warning": false,
+          "fixes": [
+           {
+            "type": "replace",
+            "edit": "c",
+            "start_line_no": 5,
+            "start_line_pos": 12,
+            "start_file_pos": 43,
+            "end_line_no": 5,
+            "end_line_pos": 13,
+            "end_file_pos": 44
+           }
+          ],
+          "start_file_pos": 43,
+          "end_line_no": 5,
+          "end_line_pos": 13,
+          "end_file_pos": 44
+         },
+         {
+          "start_line_no": 6,
+          "start_line_pos": 5,
+          "code": "RF06",
+          "description": "Unnecessary quoted identifier \"d\".",
+          "name": "references.quoting",
+          "warning": false,
+          "fixes": [
+           {
+            "type": "replace",
+            "edit": "d",
+            "start_line_no": 6,
+            "start_line_pos": 5,
+            "start_file_pos": 50,
+            "end_line_no": 6,
+            "end_line_pos": 8,
+            "end_file_pos": 53
+           }
+          ],
+          "start_file_pos": 50,
+          "end_line_no": 6,
+          "end_line_pos": 8,
+          "end_file_pos": 53
+         },
+         {
+          "start_line_no": 8,
+          "start_line_pos": 5,
+          "code": "RF06",
+          "description": "Unnecessary quoted identifier \"f\".",
+          "name": "references.quoting",
+          "warning": false,
+          "fixes": [
+           {
+            "type": "replace",
+            "edit": "f",
+            "start_line_no": 8,
+            "start_line_pos": 5,
+            "start_file_pos": 78,
+            "end_line_no": 8,
+            "end_line_pos": 8,
+            "end_file_pos": 81
+           }
+          ],
+          "start_file_pos": 78,
+          "end_line_no": 8,
+          "end_line_pos": 8,
+          "end_file_pos": 81
+         },
+         {
+          "start_line_no": 8,
+          "start_line_pos": 12,
+          "code": "CP02",
+          "description": "Unquoted identifiers must be consistently lower case.",
+          "name": "capitalisation.identifiers",
+          "warning": false,
+          "fixes": [
+           {
+            "type": "replace",
+            "edit": "f",
+            "start_line_no": 8,
+            "start_line_pos": 12,
+            "start_file_pos": 85,
+            "end_line_no": 8,
+            "end_line_pos": 13,
+            "end_file_pos": 86
+           }
+          ],
+          "start_file_pos": 85,
+          "end_line_no": 8,
+          "end_line_pos": 13,
+          "end_file_pos": 86
+         },
+         {
+          "start_line_no": 10,
+          "start_line_pos": 5,
+          "code": "AL09",
+          "description": "Column should not be self-aliased.",
+          "name": "aliasing.self_alias.column",
+          "warning": false,
+          "fixes": [
+           {
+            "type": "delete",
+            "edit": "",
+            "start_line_no": 10,
+            "start_line_pos": 6,
+            "start_file_pos": 107,
+            "end_line_no": 10,
+            "end_line_pos": 7,
+            "end_file_pos": 108
+           },
+           {
+            "type": "delete",
+            "edit": "",
+            "start_line_no": 10,
+            "start_line_pos": 7,
+            "start_file_pos": 108,
+            "end_line_no": 10,
+            "end_line_pos": 11,
+            "end_file_pos": 112
+           }
+          ],
+          "start_file_pos": 106,
+          "end_line_no": 10,
+          "end_line_pos": 6,
+          "end_file_pos": 107
+         },
+         {
+          "start_line_no": 11,
+          "start_line_pos": 5,
+          "code": "AL09",
+          "description": "Column should not be self-aliased.",
+          "name": "aliasing.self_alias.column",
+          "warning": false,
+          "fixes": [
+           {
+            "type": "delete",
+            "edit": "",
+            "start_line_no": 11,
+            "start_line_pos": 6,
+            "start_file_pos": 119,
+            "end_line_no": 11,
+            "end_line_pos": 7,
+            "end_file_pos": 120
+           },
+           {
+            "type": "delete",
+            "edit": "",
+            "start_line_no": 11,
+            "start_line_pos": 7,
+            "start_file_pos": 120,
+            "end_line_no": 11,
+            "end_line_pos": 11,
+            "end_file_pos": 124
+           }
+          ],
+          "start_file_pos": 118,
+          "end_line_no": 11,
+          "end_line_pos": 6,
+          "end_file_pos": 119
+         },
+         {
+          "start_line_no": 11,
+          "start_line_pos": 5,
+          "code": "CP02",
+          "description": "Unquoted identifiers must be consistently lower case.",
+          "name": "capitalisation.identifiers",
+          "warning": false,
+          "fixes": [
+           {
+            "type": "replace",
+            "edit": "i",
+            "start_line_no": 11,
+            "start_line_pos": 5,
+            "start_file_pos": 118,
+            "end_line_no": 11,
+            "end_line_pos": 6,
+            "end_file_pos": 119
+           }
+          ],
+          "start_file_pos": 118,
+          "end_line_no": 11,
+          "end_line_pos": 6,
+          "end_file_pos": 119
+         }
+        ],
+        "statistics": {
+         "source_chars": 134,
+         "templated_chars": 134,
+         "segments": 98,
+         "raw_segments": 65
+        }
+       }
+      ],
+      "violations": 11,
+      "tmp_prs": 0,
+      "fixable": 9,
+      "unfixable": 2,
+      "fixed": "\nselect\n    a,\n    b,\n    \"C\" as c,\n    d,\n    \"E\" as e,\n    f,\n    g as \"G\",\n    h,\n    i\nfrom foo\n",
+      "lint": {
+       "records": [
+        {
+         "filepath": "<string input>",
+         "violations": [
+          {
+           "start_line_no": 3,
+           "start_line_pos": 5,
+           "code": "AL09",
+           "description": "Ambiguous self alias. Either remove unnecessary alias, or quote alias/reference to make case change explicit.",
+           "name": "aliasing.self_alias.column",
+           "warning": false,
+           "fixes": [],
+           "start_file_pos": 12,
+           "end_line_no": 3,
+           "end_line_pos": 6,
+           "end_file_pos": 13
+          },
+          {
+           "start_line_no": 3,
+           "start_line_pos": 10,
+           "code": "CP02",
+           "description": "Unquoted identifiers must be consistently lower case.",
+           "name": "capitalisation.identifiers",
+           "warning": false,
+           "fixes": [
+            {
+             "type": "replace",
+             "edit": "a",
+             "start_line_no": 3,
+             "start_line_pos": 10,
+             "start_file_pos": 17,
+             "end_line_no": 3,
+             "end_line_pos": 11,
+             "end_file_pos": 18
+            }
+           ],
+           "start_file_pos": 17,
+           "end_line_no": 3,
+           "end_line_pos": 11,
+           "end_file_pos": 18
+          },
+          {
+           "start_line_no": 4,
+           "start_line_pos": 5,
+           "code": "AL09",
+           "description": "Ambiguous self alias. Either remove unnecessary alias, or quote alias/reference to make case change explicit.",
+           "name": "aliasing.self_alias.column",
+           "warning": false,
+           "fixes": [],
+           "start_file_pos": 24,
+           "end_line_no": 4,
+           "end_line_pos": 6,
+           "end_file_pos": 25
+          },
+          {
+           "start_line_no": 4,
+           "start_line_pos": 5,
+           "code": "CP02",
+           "description": "Unquoted identifiers must be consistently lower case.",
+           "name": "capitalisation.identifiers",
+           "warning": false,
+           "fixes": [
+            {
+             "type": "replace",
+             "edit": "b",
+             "start_line_no": 4,
+             "start_line_pos": 5,
+             "start_file_pos": 24,
+             "end_line_no": 4,
+             "end_line_pos": 6,
+             "end_file_pos": 25
+            }
+           ],
+           "start_file_pos": 24,
+           "end_line_no": 4,
+           "end_line_pos": 6,
+           "end_file_pos": 25
+          },
+          {
+           "start_line_no": 5,
+           "start_line_pos": 12,
+           "code": "CP02",
+           "description": "Unquoted identifiers must be consistently lower case.",
+           "name": "capitalisation.identifiers",
+           "warning": false,
+           "fixes": [
+            {
+             "type": "replace",
+             "edit": "c",
+             "start_line_no": 5,
+             "start_line_pos": 12,
+             "start_file_pos": 43,
+             "end_line_no": 5,
+             "end_line_pos": 13,
+             "end_file_pos": 44
+            }
+           ],
+           "start_file_pos": 43,
+           "end_line_no": 5,
+           "end_line_pos": 13,
+           "end_file_pos": 44
+          },
+          {
+           "start_line_no": 6,
+           "start_line_pos": 5,
+           "code": "RF06",
+           "description": "Unnecessary quoted identifier \"d\".",
+           "name": "references.quoting",
+           "warning": false,
+           "fixes": [
+            {
+             "type": "replace",
+             "edit": "d",
+             "start_line_no": 6,
+             "start_line_pos": 5,
+             "start_file_pos": 50,
+             "end_line_no": 6,
+             "end_line_pos": 8,
+             "end_file_pos": 53
+            }
+           ],
+           "start_file_pos": 50,
+           "end_line_no": 6,
+           "end_line_pos": 8,
+           "end_file_pos": 53
+          },
+          {
+           "start_line_no": 8,
+           "start_line_pos": 5,
+           "code": "RF06",
+           "description": "Unnecessary quoted identifier \"f\".",
+           "name": "references.quoting",
+           "warning": false,
+           "fixes": [
+            {
+             "type": "replace",
+             "edit": "f",
+             "start_line_no": 8,
+             "start_line_pos": 5,
+             "start_file_pos": 78,
+             "end_line_no": 8,
+             "end_line_pos": 8,
+             "end_file_pos": 81
+            }
+           ],
+           "start_file_pos": 78,
+           "end_line_no": 8,
+           "end_line_pos": 8,
+           "end_file_pos": 81
+          },
+          {
+           "start_line_no": 8,
+           "start_line_pos": 12,
+           "code": "CP02",
+           "description": "Unquoted identifiers must be consistently lower case.",
+           "name": "capitalisation.identifiers",
+           "warning": false,
+           "fixes": [
+            {
+             "type": "replace",
+             "edit": "f",
+             "start_line_no": 8,
+             "start_line_pos": 12,
+             "start_file_pos": 85,
+             "end_line_no": 8,
+             "end_line_pos": 13,
+             "end_file_pos": 86
+            }
+           ],
+           "start_file_pos": 85,
+           "end_line_no": 8,
+           "end_line_pos": 13,
+           "end_file_pos": 86
+          },
+          {
+           "start_line_no": 10,
+           "start_line_pos": 5,
+           "code": "AL09",
+           "description": "Column should not be self-aliased.",
+           "name": "aliasing.self_alias.column",
+           "warning": false,
+           "fixes": [
+            {
+             "type": "delete",
+             "edit": "",
+             "start_line_no": 10,
+             "start_line_pos": 6,
+             "start_file_pos": 107,
+             "end_line_no": 10,
+             "end_line_pos": 7,
+             "end_file_pos": 108
+            },
+            {
+             "type": "delete",
+             "edit": "",
+             "start_line_no": 10,
+             "start_line_pos": 7,
+             "start_file_pos": 108,
+             "end_line_no": 10,
+             "end_line_pos": 11,
+             "end_file_pos": 112
+            }
+           ],
+           "start_file_pos": 106,
+           "end_line_no": 10,
+           "end_line_pos": 6,
+           "end_file_pos": 107
+          },
+          {
+           "start_line_no": 11,
+           "start_line_pos": 5,
+           "code": "AL09",
+           "description": "Column should not be self-aliased.",
+           "name": "aliasing.self_alias.column",
+           "warning": false,
+           "fixes": [
+            {
+             "type": "delete",
+             "edit": "",
+             "start_line_no": 11,
+             "start_line_pos": 6,
+             "start_file_pos": 119,
+             "end_line_no": 11,
+             "end_line_pos": 7,
+             "end_file_pos": 120
+            },
+            {
+             "type": "delete",
+             "edit": "",
+             "start_line_no": 11,
+             "start_line_pos": 7,
+             "start_file_pos": 120,
+             "end_line_no": 11,
+             "end_line_pos": 11,
+             "end_file_pos": 124
+            }
+           ],
+           "start_file_pos": 118,
+           "end_line_no": 11,
+           "end_line_pos": 6,
+           "end_file_pos": 119
+          },
+          {
+           "start_line_no": 11,
+           "start_line_pos": 5,
+           "code": "CP02",
+           "description": "Unquoted identifiers must be consistently lower case.",
+           "name": "capitalisation.identifiers",
+           "warning": false,
+           "fixes": [
+            {
+             "type": "replace",
+             "edit": "i",
+             "start_line_no": 11,
+             "start_line_pos": 5,
+             "start_file_pos": 118,
+             "end_line_no": 11,
+             "end_line_pos": 6,
+             "end_file_pos": 119
+            }
+           ],
+           "start_file_pos": 118,
+           "end_line_no": 11,
+           "end_line_pos": 6,
+           "end_file_pos": 119
+          },
+          {
+           "start_line_no": 11,
+           "start_line_pos": 10,
+           "code": "CP02",
+           "description": "Unquoted identifiers must be consistently lower case.",
+           "name": "capitalisation.identifiers",
+           "warning": false,
+           "fixes": [
+            {
+             "type": "replace",
+             "edit": "i",
+             "start_line_no": 11,
+             "start_line_pos": 10,
+             "start_file_pos": 123,
+             "end_line_no": 11,
+             "end_line_pos": 11,
+             "end_file_pos": 124
+            }
+           ],
+           "start_file_pos": 123,
+           "end_line_no": 11,
+           "end_line_pos": 11,
+           "end_file_pos": 124
+          }
+         ],
+         "statistics": {
+          "source_chars": 134,
+          "templated_chars": 134,
+          "segments": 146,
+          "raw_segments": 101
+         }
+        }
+       ],
+       "violations": 12,
+       "tmp_prs": 0,
+       "fixable": 10,
+       "unfixable": 2
+      }
+     },
+     "reads": [
+      "fix_string"
+     ]
+    },
+    {
+     "kind": "linter_string",
+     "inputs": {
+      "method": "lint_string",
+      "sql": "\nselect\n    a,\n    b,\n    \"C\" as c,\n    d,\n    \"E\" as e,\n    f,\n    g as \"G\",\n    h,\n    i\nfrom foo\n",
+      "options": {
+       "fname": "<string input>",
+       "fix": false,
+       "config": null,
+       "encoding": "utf8"
+      },
+      "linter": {
+       "dialect": "postgres",
+       "rules": [
+        "AL09",
+        "CP02",
+        "RF06"
+       ],
+       "config": null,
+       "kwargs_config": {
+        "values": {
+         "dialect": "postgres",
+         "rules": "AL09,CP02,RF06"
+        },
+        "extra_config_path": null,
+        "ignore_local_config": false,
+        "proof": []
+       }
+      },
+      "config_changed": false,
+      "cwd": "{sqlfluff}",
+      "config_file": {
+       "text": "[sqlfluff]\ndialect = postgres\nrules = AL09,CP02,RF06\n"
+      },
+      "config_proof": []
+     },
+     "outputs": {
+      "records": [
+       {
+        "filepath": "<string input>",
+        "violations": [],
+        "statistics": {
+         "source_chars": 100,
+         "templated_chars": 100,
+         "segments": 98,
+         "raw_segments": 65
+        }
+       }
+      ],
+      "violations": 0,
+      "tmp_prs": 0,
+      "fixable": 0,
+      "unfixable": 0
+     }
+    }
+   ],
+   "untraced": [],
+   "processes": []
+  },
+  "test/rules/std_AL09_CP02_RF06_combo_test.py::test__rules__std_AL09_CP02_RF06[rules8-duckdb-\\nselect\\n    a,\\n    b,\\n    c,\\n    d,\\n    e,\\n    f,\\n    g,\\n    h,\\n    i\\nfrom foo\\n-post_fix_errors8]": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "linter_string",
+     "inputs": {
+      "method": "lint_string",
+      "sql": "\nselect\n    a as A,\n    B as b,\n    \"C\" as C,\n    \"d\" as d,\n    \"E\" as e,\n    \"f\" as F,\n    g as \"G\",\n    h as h,\n    I as I\nfrom foo\n",
+      "options": {
+       "fname": "<string input>",
+       "fix": true,
+       "config": null,
+       "encoding": "utf8"
+      },
+      "linter": {
+       "dialect": "duckdb",
+       "rules": [
+        "AL09",
+        "CP02",
+        "RF06"
+       ],
+       "config": null,
+       "kwargs_config": {
+        "values": {
+         "dialect": "duckdb",
+         "rules": "AL09,CP02,RF06"
+        },
+        "extra_config_path": null,
+        "ignore_local_config": false,
+        "proof": []
+       }
+      },
+      "config_changed": false,
+      "cwd": "{sqlfluff}",
+      "config_file": {
+       "text": "[sqlfluff]\ndialect = duckdb\nrules = AL09,CP02,RF06\n"
+      },
+      "config_proof": []
+     },
+     "outputs": {
+      "records": [
+       {
+        "filepath": "<string input>",
+        "violations": [
+         {
+          "start_line_no": 3,
+          "start_line_pos": 5,
+          "code": "AL09",
+          "description": "Ambiguous self alias. Either remove unnecessary alias, or quote alias/reference to make case change explicit.",
+          "name": "aliasing.self_alias.column",
+          "warning": false,
+          "fixes": [],
+          "start_file_pos": 12,
+          "end_line_no": 3,
+          "end_line_pos": 6,
+          "end_file_pos": 13
+         },
+         {
+          "start_line_no": 3,
+          "start_line_pos": 10,
+          "code": "CP02",
+          "description": "Unquoted identifiers must be consistently lower case.",
+          "name": "capitalisation.identifiers",
+          "warning": false,
+          "fixes": [
+           {
+            "type": "replace",
+            "edit": "a",
+            "start_line_no": 3,
+            "start_line_pos": 10,
+            "start_file_pos": 17,
+            "end_line_no": 3,
+            "end_line_pos": 11,
+            "end_file_pos": 18
+           }
+          ],
+          "start_file_pos": 17,
+          "end_line_no": 3,
+          "end_line_pos": 11,
+          "end_file_pos": 18
+         },
+         {
+          "start_line_no": 4,
+          "start_line_pos": 5,
+          "code": "AL09",
+          "description": "Ambiguous self alias. Either remove unnecessary alias, or quote alias/reference to make case change explicit.",
+          "name": "aliasing.self_alias.column",
+          "warning": false,
+          "fixes": [],
+          "start_file_pos": 24,
+          "end_line_no": 4,
+          "end_line_pos": 6,
+          "end_file_pos": 25
+         },
+         {
+          "start_line_no": 4,
+          "start_line_pos": 5,
+          "code": "CP02",
+          "description": "Unquoted identifiers must be consistently lower case.",
+          "name": "capitalisation.identifiers",
+          "warning": false,
+          "fixes": [
+           {
+            "type": "replace",
+            "edit": "b",
+            "start_line_no": 4,
+            "start_line_pos": 5,
+            "start_file_pos": 24,
+            "end_line_no": 4,
+            "end_line_pos": 6,
+            "end_file_pos": 25
+           }
+          ],
+          "start_file_pos": 24,
+          "end_line_no": 4,
+          "end_line_pos": 6,
+          "end_file_pos": 25
+         },
+         {
+          "start_line_no": 5,
+          "start_line_pos": 5,
+          "code": "RF06",
+          "description": "Unnecessary quoted identifier \"C\".",
+          "name": "references.quoting",
+          "warning": false,
+          "fixes": [
+           {
+            "type": "replace",
+            "edit": "C",
+            "start_line_no": 5,
+            "start_line_pos": 5,
+            "start_file_pos": 36,
+            "end_line_no": 5,
+            "end_line_pos": 8,
+            "end_file_pos": 39
+           }
+          ],
+          "start_file_pos": 36,
+          "end_line_no": 5,
+          "end_line_pos": 8,
+          "end_file_pos": 39
+         },
+         {
+          "start_line_no": 5,
+          "start_line_pos": 12,
+          "code": "CP02",
+          "description": "Unquoted identifiers must be consistently lower case.",
+          "name": "capitalisation.identifiers",
+          "warning": false,
+          "fixes": [
+           {
+            "type": "replace",
+            "edit": "c",
+            "start_line_no": 5,
+            "start_line_pos": 12,
+            "start_file_pos": 43,
+            "end_line_no": 5,
+            "end_line_pos": 13,
+            "end_file_pos": 44
+           }
+          ],
+          "start_file_pos": 43,
+          "end_line_no": 5,
+          "end_line_pos": 13,
+          "end_file_pos": 44
+         },
+         {
+          "start_line_no": 6,
+          "start_line_pos": 5,
+          "code": "RF06",
+          "description": "Unnecessary quoted identifier \"d\".",
+          "name": "references.quoting",
+          "warning": false,
+          "fixes": [
+           {
+            "type": "replace",
+            "edit": "d",
+            "start_line_no": 6,
+            "start_line_pos": 5,
+            "start_file_pos": 50,
+            "end_line_no": 6,
+            "end_line_pos": 8,
+            "end_file_pos": 53
+           }
+          ],
+          "start_file_pos": 50,
+          "end_line_no": 6,
+          "end_line_pos": 8,
+          "end_file_pos": 53
+         },
+         {
+          "start_line_no": 7,
+          "start_line_pos": 5,
+          "code": "RF06",
+          "description": "Unnecessary quoted identifier \"E\".",
+          "name": "references.quoting",
+          "warning": false,
+          "fixes": [
+           {
+            "type": "replace",
+            "edit": "E",
+            "start_line_no": 7,
+            "start_line_pos": 5,
+            "start_file_pos": 64,
+            "end_line_no": 7,
+            "end_line_pos": 8,
+            "end_file_pos": 67
+           }
+          ],
+          "start_file_pos": 64,
+          "end_line_no": 7,
+          "end_line_pos": 8,
+          "end_file_pos": 67
+         },
+         {
+          "start_line_no": 8,
+          "start_line_pos": 5,
+          "code": "RF06",
+          "description": "Unnecessary quoted identifier \"f\".",
+          "name": "references.quoting",
+          "warning": false,
+          "fixes": [
+           {
+            "type": "replace",
+            "edit": "f",
+            "start_line_no": 8,
+            "start_line_pos": 5,
+            "start_file_pos": 78,
+            "end_line_no": 8,
+            "end_line_pos": 8,
+            "end_file_pos": 81
+           }
+          ],
+          "start_file_pos": 78,
+          "end_line_no": 8,
+          "end_line_pos": 8,
+          "end_file_pos": 81
+         },
+         {
+          "start_line_no": 8,
+          "start_line_pos": 12,
+          "code": "CP02",
+          "description": "Unquoted identifiers must be consistently lower case.",
+          "name": "capitalisation.identifiers",
+          "warning": false,
+          "fixes": [
+           {
+            "type": "replace",
+            "edit": "f",
+            "start_line_no": 8,
+            "start_line_pos": 12,
+            "start_file_pos": 85,
+            "end_line_no": 8,
+            "end_line_pos": 13,
+            "end_file_pos": 86
+           }
+          ],
+          "start_file_pos": 85,
+          "end_line_no": 8,
+          "end_line_pos": 13,
+          "end_file_pos": 86
+         },
+         {
+          "start_line_no": 9,
+          "start_line_pos": 10,
+          "code": "RF06",
+          "description": "Unnecessary quoted identifier \"G\".",
+          "name": "references.quoting",
+          "warning": false,
+          "fixes": [
+           {
+            "type": "replace",
+            "edit": "G",
+            "start_line_no": 9,
+            "start_line_pos": 10,
+            "start_file_pos": 97,
+            "end_line_no": 9,
+            "end_line_pos": 13,
+            "end_file_pos": 100
+           }
+          ],
+          "start_file_pos": 97,
+          "end_line_no": 9,
+          "end_line_pos": 13,
+          "end_file_pos": 100
+         },
+         {
+          "start_line_no": 10,
+          "start_line_pos": 5,
+          "code": "AL09",
+          "description": "Column should not be self-aliased.",
+          "name": "aliasing.self_alias.column",
+          "warning": false,
+          "fixes": [
+           {
+            "type": "delete",
+            "edit": "",
+            "start_line_no": 10,
+            "start_line_pos": 6,
+            "start_file_pos": 107,
+            "end_line_no": 10,
+            "end_line_pos": 7,
+            "end_file_pos": 108
+           },
+           {
+            "type": "delete",
+            "edit": "",
+            "start_line_no": 10,
+            "start_line_pos": 7,
+            "start_file_pos": 108,
+            "end_line_no": 10,
+            "end_line_pos": 11,
+            "end_file_pos": 112
+           }
+          ],
+          "start_file_pos": 106,
+          "end_line_no": 10,
+          "end_line_pos": 6,
+          "end_file_pos": 107
+         },
+         {
+          "start_line_no": 11,
+          "start_line_pos": 5,
+          "code": "AL09",
+          "description": "Column should not be self-aliased.",
+          "name": "aliasing.self_alias.column",
+          "warning": false,
+          "fixes": [
+           {
+            "type": "delete",
+            "edit": "",
+            "start_line_no": 11,
+            "start_line_pos": 6,
+            "start_file_pos": 119,
+            "end_line_no": 11,
+            "end_line_pos": 7,
+            "end_file_pos": 120
+           },
+           {
+            "type": "delete",
+            "edit": "",
+            "start_line_no": 11,
+            "start_line_pos": 7,
+            "start_file_pos": 120,
+            "end_line_no": 11,
+            "end_line_pos": 11,
+            "end_file_pos": 124
+           }
+          ],
+          "start_file_pos": 118,
+          "end_line_no": 11,
+          "end_line_pos": 6,
+          "end_file_pos": 119
+         },
+         {
+          "start_line_no": 11,
+          "start_line_pos": 5,
+          "code": "CP02",
+          "description": "Unquoted identifiers must be consistently lower case.",
+          "name": "capitalisation.identifiers",
+          "warning": false,
+          "fixes": [
+           {
+            "type": "replace",
+            "edit": "i",
+            "start_line_no": 11,
+            "start_line_pos": 5,
+            "start_file_pos": 118,
+            "end_line_no": 11,
+            "end_line_pos": 6,
+            "end_file_pos": 119
+           }
+          ],
+          "start_file_pos": 118,
+          "end_line_no": 11,
+          "end_line_pos": 6,
+          "end_file_pos": 119
+         }
+        ],
+        "statistics": {
+         "source_chars": 134,
+         "templated_chars": 134,
+         "segments": 74,
+         "raw_segments": 47
+        }
+       }
+      ],
+      "violations": 14,
+      "tmp_prs": 0,
+      "fixable": 12,
+      "unfixable": 2,
+      "fixed": "\nselect\n    a,\n    b,\n    c,\n    d,\n    e,\n    f,\n    g,\n    h,\n    i\nfrom foo\n",
+      "lint": {
+       "records": [
+        {
+         "filepath": "<string input>",
+         "violations": [
+          {
+           "start_line_no": 3,
+           "start_line_pos": 5,
+           "code": "AL09",
+           "description": "Ambiguous self alias. Either remove unnecessary alias, or quote alias/reference to make case change explicit.",
+           "name": "aliasing.self_alias.column",
+           "warning": false,
+           "fixes": [],
+           "start_file_pos": 12,
+           "end_line_no": 3,
+           "end_line_pos": 6,
+           "end_file_pos": 13
+          },
+          {
+           "start_line_no": 3,
+           "start_line_pos": 10,
+           "code": "CP02",
+           "description": "Unquoted identifiers must be consistently lower case.",
+           "name": "capitalisation.identifiers",
+           "warning": false,
+           "fixes": [
+            {
+             "type": "replace",
+             "edit": "a",
+             "start_line_no": 3,
+             "start_line_pos": 10,
+             "start_file_pos": 17,
+             "end_line_no": 3,
+             "end_line_pos": 11,
+             "end_file_pos": 18
+            }
+           ],
+           "start_file_pos": 17,
+           "end_line_no": 3,
+           "end_line_pos": 11,
+           "end_file_pos": 18
+          },
+          {
+           "start_line_no": 4,
+           "start_line_pos": 5,
+           "code": "AL09",
+           "description": "Ambiguous self alias. Either remove unnecessary alias, or quote alias/reference to make case change explicit.",
+           "name": "aliasing.self_alias.column",
+           "warning": false,
+           "fixes": [],
+           "start_file_pos": 24,
+           "end_line_no": 4,
+           "end_line_pos": 6,
+           "end_file_pos": 25
+          },
+          {
+           "start_line_no": 4,
+           "start_line_pos": 5,
+           "code": "CP02",
+           "description": "Unquoted identifiers must be consistently lower case.",
+           "name": "capitalisation.identifiers",
+           "warning": false,
+           "fixes": [
+            {
+             "type": "replace",
+             "edit": "b",
+             "start_line_no": 4,
+             "start_line_pos": 5,
+             "start_file_pos": 24,
+             "end_line_no": 4,
+             "end_line_pos": 6,
+             "end_file_pos": 25
+            }
+           ],
+           "start_file_pos": 24,
+           "end_line_no": 4,
+           "end_line_pos": 6,
+           "end_file_pos": 25
+          },
+          {
+           "start_line_no": 5,
+           "start_line_pos": 5,
+           "code": "RF06",
+           "description": "Unnecessary quoted identifier \"C\".",
+           "name": "references.quoting",
+           "warning": false,
+           "fixes": [
+            {
+             "type": "replace",
+             "edit": "C",
+             "start_line_no": 5,
+             "start_line_pos": 5,
+             "start_file_pos": 36,
+             "end_line_no": 5,
+             "end_line_pos": 8,
+             "end_file_pos": 39
+            }
+           ],
+           "start_file_pos": 36,
+           "end_line_no": 5,
+           "end_line_pos": 8,
+           "end_file_pos": 39
+          },
+          {
+           "start_line_no": 5,
+           "start_line_pos": 12,
+           "code": "CP02",
+           "description": "Unquoted identifiers must be consistently lower case.",
+           "name": "capitalisation.identifiers",
+           "warning": false,
+           "fixes": [
+            {
+             "type": "replace",
+             "edit": "c",
+             "start_line_no": 5,
+             "start_line_pos": 12,
+             "start_file_pos": 43,
+             "end_line_no": 5,
+             "end_line_pos": 13,
+             "end_file_pos": 44
+            }
+           ],
+           "start_file_pos": 43,
+           "end_line_no": 5,
+           "end_line_pos": 13,
+           "end_file_pos": 44
+          },
+          {
+           "start_line_no": 6,
+           "start_line_pos": 5,
+           "code": "RF06",
+           "description": "Unnecessary quoted identifier \"d\".",
+           "name": "references.quoting",
+           "warning": false,
+           "fixes": [
+            {
+             "type": "replace",
+             "edit": "d",
+             "start_line_no": 6,
+             "start_line_pos": 5,
+             "start_file_pos": 50,
+             "end_line_no": 6,
+             "end_line_pos": 8,
+             "end_file_pos": 53
+            }
+           ],
+           "start_file_pos": 50,
+           "end_line_no": 6,
+           "end_line_pos": 8,
+           "end_file_pos": 53
+          },
+          {
+           "start_line_no": 7,
+           "start_line_pos": 5,
+           "code": "RF06",
+           "description": "Unnecessary quoted identifier \"E\".",
+           "name": "references.quoting",
+           "warning": false,
+           "fixes": [
+            {
+             "type": "replace",
+             "edit": "E",
+             "start_line_no": 7,
+             "start_line_pos": 5,
+             "start_file_pos": 64,
+             "end_line_no": 7,
+             "end_line_pos": 8,
+             "end_file_pos": 67
+            }
+           ],
+           "start_file_pos": 64,
+           "end_line_no": 7,
+           "end_line_pos": 8,
+           "end_file_pos": 67
+          },
+          {
+           "start_line_no": 8,
+           "start_line_pos": 5,
+           "code": "RF06",
+           "description": "Unnecessary quoted identifier \"f\".",
+           "name": "references.quoting",
+           "warning": false,
+           "fixes": [
+            {
+             "type": "replace",
+             "edit": "f",
+             "start_line_no": 8,
+             "start_line_pos": 5,
+             "start_file_pos": 78,
+             "end_line_no": 8,
+             "end_line_pos": 8,
+             "end_file_pos": 81
+            }
+           ],
+           "start_file_pos": 78,
+           "end_line_no": 8,
+           "end_line_pos": 8,
+           "end_file_pos": 81
+          },
+          {
+           "start_line_no": 8,
+           "start_line_pos": 12,
+           "code": "CP02",
+           "description": "Unquoted identifiers must be consistently lower case.",
+           "name": "capitalisation.identifiers",
+           "warning": false,
+           "fixes": [
+            {
+             "type": "replace",
+             "edit": "f",
+             "start_line_no": 8,
+             "start_line_pos": 12,
+             "start_file_pos": 85,
+             "end_line_no": 8,
+             "end_line_pos": 13,
+             "end_file_pos": 86
+            }
+           ],
+           "start_file_pos": 85,
+           "end_line_no": 8,
+           "end_line_pos": 13,
+           "end_file_pos": 86
+          },
+          {
+           "start_line_no": 9,
+           "start_line_pos": 10,
+           "code": "RF06",
+           "description": "Unnecessary quoted identifier \"G\".",
+           "name": "references.quoting",
+           "warning": false,
+           "fixes": [
+            {
+             "type": "replace",
+             "edit": "G",
+             "start_line_no": 9,
+             "start_line_pos": 10,
+             "start_file_pos": 97,
+             "end_line_no": 9,
+             "end_line_pos": 13,
+             "end_file_pos": 100
+            }
+           ],
+           "start_file_pos": 97,
+           "end_line_no": 9,
+           "end_line_pos": 13,
+           "end_file_pos": 100
+          },
+          {
+           "start_line_no": 10,
+           "start_line_pos": 5,
+           "code": "AL09",
+           "description": "Column should not be self-aliased.",
+           "name": "aliasing.self_alias.column",
+           "warning": false,
+           "fixes": [
+            {
+             "type": "delete",
+             "edit": "",
+             "start_line_no": 10,
+             "start_line_pos": 6,
+             "start_file_pos": 107,
+             "end_line_no": 10,
+             "end_line_pos": 7,
+             "end_file_pos": 108
+            },
+            {
+             "type": "delete",
+             "edit": "",
+             "start_line_no": 10,
+             "start_line_pos": 7,
+             "start_file_pos": 108,
+             "end_line_no": 10,
+             "end_line_pos": 11,
+             "end_file_pos": 112
+            }
+           ],
+           "start_file_pos": 106,
+           "end_line_no": 10,
+           "end_line_pos": 6,
+           "end_file_pos": 107
+          },
+          {
+           "start_line_no": 11,
+           "start_line_pos": 5,
+           "code": "AL09",
+           "description": "Column should not be self-aliased.",
+           "name": "aliasing.self_alias.column",
+           "warning": false,
+           "fixes": [
+            {
+             "type": "delete",
+             "edit": "",
+             "start_line_no": 11,
+             "start_line_pos": 6,
+             "start_file_pos": 119,
+             "end_line_no": 11,
+             "end_line_pos": 7,
+             "end_file_pos": 120
+            },
+            {
+             "type": "delete",
+             "edit": "",
+             "start_line_no": 11,
+             "start_line_pos": 7,
+             "start_file_pos": 120,
+             "end_line_no": 11,
+             "end_line_pos": 11,
+             "end_file_pos": 124
+            }
+           ],
+           "start_file_pos": 118,
+           "end_line_no": 11,
+           "end_line_pos": 6,
+           "end_file_pos": 119
+          },
+          {
+           "start_line_no": 11,
+           "start_line_pos": 5,
+           "code": "CP02",
+           "description": "Unquoted identifiers must be consistently lower case.",
+           "name": "capitalisation.identifiers",
+           "warning": false,
+           "fixes": [
+            {
+             "type": "replace",
+             "edit": "i",
+             "start_line_no": 11,
+             "start_line_pos": 5,
+             "start_file_pos": 118,
+             "end_line_no": 11,
+             "end_line_pos": 6,
+             "end_file_pos": 119
+            }
+           ],
+           "start_file_pos": 118,
+           "end_line_no": 11,
+           "end_line_pos": 6,
+           "end_file_pos": 119
+          },
+          {
+           "start_line_no": 11,
+           "start_line_pos": 10,
+           "code": "CP02",
+           "description": "Unquoted identifiers must be consistently lower case.",
+           "name": "capitalisation.identifiers",
+           "warning": false,
+           "fixes": [
+            {
+             "type": "replace",
+             "edit": "i",
+             "start_line_no": 11,
+             "start_line_pos": 10,
+             "start_file_pos": 123,
+             "end_line_no": 11,
+             "end_line_pos": 11,
+             "end_file_pos": 124
+            }
+           ],
+           "start_file_pos": 123,
+           "end_line_no": 11,
+           "end_line_pos": 11,
+           "end_file_pos": 124
+          }
+         ],
+         "statistics": {
+          "source_chars": 134,
+          "templated_chars": 134,
+          "segments": 146,
+          "raw_segments": 101
+         }
+        }
+       ],
+       "violations": 15,
+       "tmp_prs": 0,
+       "fixable": 13,
+       "unfixable": 2
+      }
+     },
+     "reads": [
+      "fix_string"
+     ]
+    },
+    {
+     "kind": "linter_string",
+     "inputs": {
+      "method": "lint_string",
+      "sql": "\nselect\n    a,\n    b,\n    c,\n    d,\n    e,\n    f,\n    g,\n    h,\n    i\nfrom foo\n",
+      "options": {
+       "fname": "<string input>",
+       "fix": false,
+       "config": null,
+       "encoding": "utf8"
+      },
+      "linter": {
+       "dialect": "duckdb",
+       "rules": [
+        "AL09",
+        "CP02",
+        "RF06"
+       ],
+       "config": null,
+       "kwargs_config": {
+        "values": {
+         "dialect": "duckdb",
+         "rules": "AL09,CP02,RF06"
+        },
+        "extra_config_path": null,
+        "ignore_local_config": false,
+        "proof": []
+       }
+      },
+      "config_changed": false,
+      "cwd": "{sqlfluff}",
+      "config_file": {
+       "text": "[sqlfluff]\ndialect = duckdb\nrules = AL09,CP02,RF06\n"
+      },
+      "config_proof": []
+     },
+     "outputs": {
+      "records": [
+       {
+        "filepath": "<string input>",
+        "violations": [],
+        "statistics": {
+         "source_chars": 79,
+         "templated_chars": 79,
+         "segments": 74,
+         "raw_segments": 47
         }
        }
       ],
@@ -20853,6 +23703,52 @@
        {
         "function": "RuleSet.get_rulepack",
         "error": "SQLFluffUserError: Invalid option 'blah' for extended_capitalisation_policy configuration. Must be one of ['consistent', 'upper', 'lower', 'pascal', 'capitalise', 'snake', 'camel']"
+       }
+      ]
+     }
+    }
+   ],
+   "untraced": [],
+   "processes": []
+  },
+  "test/rules/std_test.py::test_improper_configs_are_rejected[rule_config_dict7]": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "error",
+     "error": "SQLFluffUserError: Invalid option 'blah' for capitalisation_policy configuration. Must be one of ['consistent', 'upper', 'lower', 'capitalise']",
+     "inputs": {
+      "function": "RuleSet.get_rulepack",
+      "config_file": {
+       "text": "[sqlfluff]\ndialect = ansi\n\n[sqlfluff:rules:capitalisation.functions]\ncapitalisation_policy = blah\n"
+      },
+      "config_proof": [],
+      "cli_input": {
+       "files": {
+        ".sqlfluff": "[sqlfluff]\ndialect = ansi\n\n[sqlfluff:rules:capitalisation.functions]\ncapitalisation_policy = blah\n"
+       }
+      },
+      "cwd": "{sqlfluff}"
+     },
+     "cli": {
+      "argv": [
+       "lint",
+       "-"
+      ],
+      "stdin": "",
+      "files": {
+       ".sqlfluff": "[sqlfluff]\ndialect = ansi\n\n[sqlfluff:rules:capitalisation.functions]\ncapitalisation_policy = blah\n"
+      },
+      "exit_code": 2,
+      "stdout": "",
+      "stderr": "\nUser Error: Invalid option 'blah' for capitalisation_policy configuration. Must be one of ['consistent', 'upper', 'lower', 'capitalise']\n",
+      "files_after": {
+       ".sqlfluff": "[sqlfluff]\ndialect = ansi\n\n[sqlfluff:rules:capitalisation.functions]\ncapitalisation_policy = blah\n"
+      },
+      "errors": [
+       {
+        "function": "RuleSet.get_rulepack",
+        "error": "SQLFluffUserError: Invalid option 'blah' for capitalisation_policy configuration. Must be one of ['consistent', 'upper', 'lower', 'capitalise']"
        }
       ]
      }
