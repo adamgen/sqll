@@ -11,7 +11,10 @@ from sqll_harness.paths import REPO_ROOT
 
 MANIFEST = load()
 BASE = report.load(baseline.BASELINE)
+# The 3 tools of the approval of 2026-11-01. The sqll results are in the
+# same baseline (T13); test_s9_baseline.py checks them.
 TOOLS = ["sqlfluff", "sqlfluff-rs", "sqruff"]
+ALL_TOOLS = ["sqlfluff", "sqlfluff-rs", "sqll", "sqruff"]
 STATUS = (REPO_ROOT / "status" / "S9.md").read_text(encoding="utf8")
 DECISION = (REPO_ROOT / "docs" / "decisions" / "s9-corpus.md").read_text(
     encoding="utf8"
@@ -113,10 +116,22 @@ def test_the_report_proof_has_the_numbers_of_the_baseline():
     results = BASE["results"]
     timed = [r for r in results if r["status"] in report.TIMED_STATUSES]
     other = [r for r in results if r["status"] not in report.TIMED_STATUSES]
-    assert f"{len(results)} results = {len(BASE['inputs'])} files x 3 tools" in proof
+    invalid = [r for r in other if r["status"] == report.INVALID]
+    unsupported = [r for r in other if r["status"] == report.UNSUPPORTED]
+    assert sorted(BASE["tools"]) == ALL_TOOLS
+    assert (
+        f"{len(results)} results = {len(BASE['inputs'])} files x {len(ALL_TOOLS)} tools"
+    ) in proof
     assert f"{len(timed)} results have a tree and the timing stats" in proof
-    assert f"The other {len(other)} are `invalid`" in proof
-    assert {r["status"] for r in other} == {report.INVALID}
+    assert f"The other {len(other)}: {len(invalid)} are `invalid`" in proof
+    assert f"{len(unsupported)} are `unsupported`" in proof
+    assert len(invalid) + len(unsupported) == len(other)
+    # Only sqll fails closed, and only on the Jinja files (decision 2).
+    jinja = {f.id for f in MANIFEST.files if f.templater == JINJA}
+    assert {(r["tool"], r["file"]) for r in unsupported} == {("sqll", f) for f in jinja}
+    for r in unsupported:
+        assert not r["samples"] and r["reason"], r["file"]
+    other = invalid
     for r in timed:
         assert r["stats"]["wall_s"]["median"] > 0 and r["bytes_per_s"] > 0
     for r in other:
@@ -219,12 +234,15 @@ def test_the_s3_input_has_the_details_of_the_baseline():
 
 
 def _no_tree() -> list[dict]:
-    """The results that stop at max_parse_depth: the record gives the tool
-    message of each ("S9 results")."""
+    """The results of the 3 tools of the T8 decision that stop at
+    max_parse_depth: the record gives the tool message of each ("S9
+    results"). test_s9_baseline.py checks the sqll results."""
     return [
         r
         for r in BASE["results"]
-        if r["status"] == report.INVALID and "no parse tree" in (r["reason"] or "")
+        if r["tool"] in TOOLS
+        and r["status"] == report.INVALID
+        and "no parse tree" in (r["reason"] or "")
     ]
 
 
@@ -257,5 +275,5 @@ def test_the_t8_decision_keeps_max_parse_depth():
     uses the default (600) of the pinned sqlfluff, as the record says."""
     assert "T8 decision: S9 keeps `max_parse_depth = 600`" in _words(DECISION)
     assert "S9 keeps `max_parse_depth = 600`" in _words(STATUS)
-    for tool in TOOLS:
+    for tool in ALL_TOOLS:
         assert "max_parse_depth" not in repr(BASE["tools"][tool]["settings"])

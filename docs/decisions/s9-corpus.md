@@ -332,6 +332,22 @@ in the baseline: sqlfluff and `sqlfluff[rs]` on `DatabaseBackup.sql` and
 `stg_crawlers_data__ipinfo.sql`. The S3 track gets them as input
 (status/S9.md, "Input for S3").
 
+T13 (goal of the task: the sqll results are in the corpus report: sqll is
+removed from LATER, one controlled full run of the 4 tools gives the new
+results/S9/baseline.json, and status/S9.md has the tables of the
+statuses, the pairs, and the slower files with a reason or an issue for
+each), the controlled full run of the 4 tools (2026-11-20, the new
+`results/S9/baseline.json`, status/S9.md "S9 results"): no run has a
+timeout. The longest run is 98.3 s (sqlfluff, `Chinook_PostgreSql.sql`).
+Max RSS: 1142 MiB (sqlfluff), 2023 MiB (`sqlfluff[rs]`), 847 MiB (sqll),
+590 MiB (sqruff), each on `Chinook_PostgreSql.sql`. These are tool values:
+they are above the harness RSS of the run (251044 KiB). 566 of the 656
+results have exactly 251044 KiB, and the 19 `unsupported` results have no
+sample (Core issue [#38](https://github.com/adamgen/sqll/issues/38)). The
+settings do not change: sqll stops at `max_parse_depth` on
+`DatabaseBackup.sql` and `MaintenanceSolution.sql`, as sqlfluff, with the
+message "PRS: Maximum parse depth exceeded (limit 600)".
+
 ## Code, CI, and sqll
 
 - Reuse: the S2 timer and `Policy`, the bench adapters and registry, the
@@ -353,7 +369,8 @@ in the baseline: sqlfluff and `sqlfluff[rs]` on `DatabaseBackup.sql` and
   the corpus files. T3 proves this with a test-double tool. The bench
   registry has sqll from S3 (T13), so the corpus run leaves it out by
   default until then (`LATER` in `corpus/run.py`). The sqll task of S9
-  removes it from `LATER` and records a new baseline.
+  (T13, "Profiles") removed it from `LATER` (now empty) and recorded the
+  new baseline of the 4 tools.
 
 ## sqll results
 
@@ -679,6 +696,14 @@ calculates it from the samples of `results/S9/baseline.json`
 under the job timeout of 60 min. The sqll times are from the host, not
 from a CI runner. The task of the new baseline records the shard times of
 its CI run.
+
+Data of the new baseline (T13, "Profiles"; the sum of the wall time of
+all samples of each shard; 3 tools, sqll, and both): shard 1 476.6 s,
+13.7 s, 490.3 s; shard 2 638.3 s, 20.7 s, 659.0 s; shard 3 638.4 s,
+24.5 s, 662.9 s; shard 4 801.9 s, 31.0 s, 832.9 s; shard 5 739.7 s,
+23.6 s, 763.3 s; shard 6 674.2 s, 20.2 s, 694.3 s. The longest shard has
+832.9 s of tool runs, of which sqll has 31.0 s (3.7%). status/S9.md ("S9
+results") has the times of the 6 shard jobs of a CI run with sqll.
 
 ### Tasks
 
