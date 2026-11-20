@@ -368,8 +368,9 @@ message "PRS: Maximum parse depth exceeded (limit 600)".
 - sqll joins after S3b with its bench registry entry, with no change to
   the corpus files. T3 proves this with a test-double tool. The bench
   registry has sqll from S3 (T13), so the corpus run leaves it out by
-  default until then (`LATER` in `corpus/run.py`). The sqll task of S9
-  (T13, "Profiles") removed it from `LATER` (now empty) and recorded the
+  default until then (`LATER` in `corpus/run.py`). The sqll task,
+  T13 (goal of the task: the sqll results are in the corpus report: sqll is removed from LATER, one controlled full run of the 4 tools gives the new results/S9/baseline.json, and status/S9.md has the tables of the statuses, the pairs, and the slower files with a reason or an issue for each) of S9 (external corpus: large, complex SQL files from public sources, with their source and license; the report shows parse success and speed for each file, for each tool)
+  ("Profiles"), removed it from `LATER` (now empty) and recorded the
   new baseline of the 4 tools.
 
 ## sqll results
@@ -697,7 +698,7 @@ under the job timeout of 60 min. The sqll times are from the host, not
 from a CI runner. The task of the new baseline records the shard times of
 its CI run.
 
-Data of the new baseline (T13, "Profiles"; the sum of the wall time of
+Data of the new baseline (T13 (goal of the task: the sqll results are in the corpus report: sqll is removed from LATER, one controlled full run of the 4 tools gives the new results/S9/baseline.json, and status/S9.md has the tables of the statuses, the pairs, and the slower files with a reason or an issue for each) of S9 (external corpus: large, complex SQL files from public sources, with their source and license; the report shows parse success and speed for each file, for each tool), "Profiles"; the sum of the wall time of
 all samples of each shard; 3 tools, sqll, and both): shard 1 476.6 s,
 13.7 s, 490.3 s; shard 2 638.3 s, 20.7 s, 659.0 s; shard 3 638.4 s,
 24.5 s, 662.9 s; shard 4 801.9 s, 31.0 s, 832.9 s; shard 5 739.7 s,
