@@ -113,6 +113,7 @@ from collections import Counter
 from pathlib import Path
 from typing import Any
 
+import yaml
 from sqll_harness import known_failures
 from sqll_harness.adapters import config_files
 from sqll_harness.paths import REPO_ROOT
@@ -331,8 +332,11 @@ def load_fixtures(
             raise InputError(f"fixtures: {base}: no such folder")
         try:
             cases = suite.discover(sqlfluff_root)
-        except (OSError, ValueError) as exc:
-            raise InputError(f"fixtures: {base}: {exc}") from exc
+        except (OSError, ValueError, yaml.YAMLError) as exc:
+            # A pinned fixture that is not valid YAML is an input that is not
+            # valid: exit code 2 with the JSON output, not a traceback.
+            text = " ".join(str(exc).split())
+            raise InputError(f"fixtures: {base}: {text}") from exc
         if not cases:
             raise InputError(f"fixtures: {base}: no {name} case (no data)")
         found.append(cases)

@@ -1171,6 +1171,24 @@ def test_a_rule_file_that_is_not_valid(tmp_path):
     assert any("no 'rule' key" in e for e in result["errors"]), result["errors"]
 
 
+@pytest.mark.parametrize(
+    "text",
+    [
+        "rule: AA03\ntest_a: [\n",  # a flow sequence with no end
+        "rule: AA03\n\ttest_a: x\n",  # a tab as indentation
+    ],
+)
+def test_a_rule_file_that_is_not_valid_yaml(tmp_path, text):
+    """A pinned fixture that is not valid YAML gives exit code 2 and the
+    JSON output, not a traceback."""
+    fixtures = dict(FIXTURES)
+    fixtures[RULE_DIR / "AA03.yml"] = text
+    repo = Repo(tmp_path, fixtures)
+    rc, result = repo.run()
+    assert_error(rc, result, "fixtures: ")
+    assert any("AA03" in e or "line" in e for e in result["errors"]), result["errors"]
+
+
 def test_no_pinned_commit(tmp_path):
     folder = tmp_path / "not-a-repo"
     folder.mkdir()
@@ -1313,6 +1331,14 @@ def test_the_record_is_a_real_run_of_the_check():
     assert "scripts/build-sqll" in steps
 
 
+def test_the_record_is_a_run_of_the_current_script():
+    """The record gives the sha256 of the script of its run. A change to
+    scripts/s5/parity makes this test fail until a new real run is
+    recorded."""
+    data = record()
+    assert data["script_sha256"] == hashlib.sha256(SCRIPT.read_bytes()).hexdigest()
+
+
 def test_the_record_gives_the_numbers_of_the_task():
     """The acceptance of T2: rules 2527 (38 pass, 169 Jinja, 13 templater,
     2307 gap), autofix 61 (0 pass, 21 Jinja, 40 gap)."""
@@ -1381,6 +1407,9 @@ SPLIT = {
 }
 
 
+STATE = r"Not started|(In work|In progress|In review|Done)( \(PR #\d+[^|]*\))?"
+
+
 def test_status_records_the_split_tasks_with_their_goals():
     rows = status_rows()
     for task, parts in SPLIT.items():
@@ -1390,6 +1419,8 @@ def test_status_records_the_split_tasks_with_their_goals():
             assert len(cells) == 4, part
             # The goal column of each split row is not empty.
             assert len(cells[2]) > 20, part
-            assert cells[3] == "Not started", part
+            # The state of each split row is a state of a task; a split
+            # task can start, so the test accepts each state.
+            assert re.fullmatch(STATE, cells[3]), (part, cells[3])
     order = list(rows)
     assert order == sorted(order, key=lambda t: (int(t[1:].rstrip("abc")), t))

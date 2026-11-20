@@ -8,7 +8,39 @@
  "start": "2026-11-20T18:52:52Z",
  "end": "2026-11-20T18:57:04Z",
  "command": "uv run --frozen --project harness python scripts/s5/parity --report out/report.json --oracle out/oracle.jsonl --autofix-oracle out/autofix-oracle.jsonl --out out/s5-parity.json",
- "script_sha256": "5d159f088ea775c19b3a74e0ae64f381739df25146dd9cb6b26ee957a8b80f27",
+ "script_sha256": "8291a0b7d7417c76267f53b6f73b7784f210155340a2c2bd1b006adb76e143b6",
+ "script_rerun": {
+  "date": "2026-11-20",
+  "reason": "Review finding N1 of PR #113: load_fixtures now catches yaml.YAMLError (exit code 2 with the JSON output, not a traceback). This changed the script, so the parity step ran again with the changed script on the same checkout (main 7ab4c39 with the script not yet committed) and on the same inputs as the first run. The build, the harness run, and the 2 oracle runs did not run again.",
+  "machine_lock": "flock /tmp/sqll-machine.lock",
+  "start": "2026-11-20T20:33:11Z",
+  "end": "2026-11-20T20:33:13Z",
+  "script_sha256_before": "5d159f088ea775c19b3a74e0ae64f381739df25146dd9cb6b26ee957a8b80f27",
+  "inputs_sha256": {
+   "report": "5b4c16f8a8ee32618d9156ee41a3ce842f1667314f081fc824364247f1c9b18b",
+   "oracle": "e6d57ad01e999db7ceb3e19f397d5dfa70f0f5e42f8e1194f8cfdf003d0e1519",
+   "autofix_oracle": "da124b2d4fe43fcb78a88fefc7298a97775349ed9655579eb3b2f22f734db33c"
+  },
+  "steps": [
+   {
+    "command": "scripts/check-submodule \"before the rerun\"",
+    "exit_code": 0
+   },
+   {
+    "command": "the command of this record",
+    "exit_code": 0
+   },
+   {
+    "command": "the command of this record with --exit",
+    "exit_code": 1
+   },
+   {
+    "command": "scripts/check-submodule \"after the rerun\"",
+    "exit_code": 0
+   }
+  ],
+  "result": "The output of each of the 2 runs is byte for byte equal to the output of the same command in the first run (cmp exit code 0). The field \"output\" and the field \"exit_mode_run\" of this record do not change."
+ },
  "exit_code": 0,
  "exit_mode_run": {
   "command": "the same command with --exit",
