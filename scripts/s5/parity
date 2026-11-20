@@ -1,0 +1,885 @@
+#!/usr/bin/env python3
+"""The parity check of S5 (rule parity: sqll passes 100% of the rule
+fixtures, lint and fix; cases that need the Jinja templater move to the
+Jinja templater stone).
+
+Design record: docs/decisions/s5-rules.md, sections 3 ("The case classes")
+and 4 ("The gap rule"). Task T2 (goal of the task: each rule and autofix
+case of the pinned sqlfluff has one class from the data, and the check fails
+closed) of S5 made this check.
+
+  uv run --frozen --project harness python scripts/s5/parity \\
+      [--root DIR] [--report FILE] [--oracle FILE] [--autofix-oracle FILE] \\
+      [--jinja-raw FILE] [--known-failures FILE] [--out FILE] [--exit]
+
+The inputs. A default path is relative to --root (default: the root of this
+repository):
+
+  --report          the harness report (default: out/report.json). The check
+                    uses the "rules" and "autofix" cases of the tool "sqll".
+  --oracle          the output of scripts/sqlfluff-rule-oracle (default:
+                    out/oracle.jsonl), one JSON line for each case: {"id",
+                    "status", "reason"}.
+  --autofix-oracle  the output of scripts/sqlfluff-autofix-oracle (default:
+                    out/autofix-oracle.jsonl), in the same format.
+  --jinja-raw       the Jinja as raw record (default:
+                    results/S3b/C14-jinja-raw.json).
+  --known-failures  the known failures of sqll (default:
+                    known_failures/sqll.txt).
+  fixtures          rules.discover() and autofix.discover() of the harness
+                    (harness/sqll_harness/suites/) on
+                    <root>/third_party/sqlfluff.
+  pinned commit     git rev-parse HEAD:third_party/sqlfluff in <root>.
+  submodule         <root>/scripts/check-submodule, and the HEAD of the
+                    checkout of the submodule.
+
+The class of each case (design record, section 3). First, the fixture class
+comes only from the pinned fixtures and the Jinja as raw record:
+
+  - templater: the templater of the case (rule case: core.templater of its
+    configs; autofix case: core.templater of the .sqlfluff file of its
+    folder; default jinja) is placeholder or python.
+  - jinja: the templater is jinja, and a SQL text has a Jinja tag (a start
+    string of the case config; default "{{", "{%", "{#"), or the config has
+    a Jinja templater setting (a "templater" section, or core.library_path).
+  - other: the templater is raw, or it is jinja and the sha256 of each SQL
+    text is in the "equal" list of the Jinja as raw record.
+  - no fixture class: each other case (an unknown templater, a jinja text
+    with no tag that is not in the record, a case that a note of the record
+    names, or a case whose files the check cannot read). Then the case has
+    no class.
+
+The SQL texts of a rule case are pass_str, fail_str, and fix_str (only with
+a fail_str), as the rules suite writes them. The SQL text of an autofix case
+is its before.sql. Then the class:
+
+  "jinja: S11"        the fixture class is jinja (exit: S11, the Jinja
+                      templater stone).
+  "pass"              sqll passes the case in the report, and the oracle
+                      passes it.
+  "templater of S6"   the fixture class is templater, and the case is not a
+                      pass (exit: this stone, after S6 (templater parity)).
+  "gap"               each other case: the fixture class is other and the
+                      case is not a pass, or sqll passes the case and the
+                      oracle does not.
+  no class            the fixture class is not known, the report has no sqll
+                      result of the case, the report or the oracle gives
+                      "skip", or the oracle output has no line of the case.
+
+Exit code 1 (fail) on each failure of the items below:
+
+  1. Each case has one class: "no_class" (each case with no class),
+     "report_extra" and "oracle_extra" (a case id that the fixtures do not
+     have).
+  2. Each case that sqll passes passes in the oracle: "oracle_mismatch".
+  3. The count of each recorded class is the recorded count: "count".
+     RECORDED has the counts of the design record, section 3: rules 2527
+     cases (fixture classes jinja 169, templater 13), autofix 61 cases
+     (jinja 21, templater 0). The check compares the fixture classes,
+     because a case of the templater class that sqll passes becomes a pass.
+  4. known_failures/sqll.txt has a line for each rules and autofix case that
+     sqll does not pass, and no other rules or autofix line:
+     "known_failures_missing", "known_failures_stale".
+  5. The report sqlfluff_ref and the commit of the Jinja as raw record are
+     the pinned commit, and the submodule has no change: "sqlfluff_ref",
+     "jinja_raw_commit", "submodule".
+  6. With --exit only: no gap (the exit of this stone, design record,
+     section 4): "gap" (each case of the class "gap" or "templater of S6").
+     With no --exit, the output gives this item with "enforced": false.
+
+Exit code 2 if an input is missing or not valid (the list "errors"). The
+check never passes with no data: a report with no sqll case of a suite, an
+oracle output with no line, a record with no text, or no fixture case is
+not valid.
+
+Output: one JSON object on stdout, and in --out if it is given. It has the
+counts of each class for each suite, for each rule file, and for each
+autofix dialect ("by_group"), the result of each item, each failure, and
+for each case ("cases"): its class, its fixture class, why (the reason of
+the fixture class, or of no class), the sqll status of the report, the
+oracle status, and if known_failures/sqll.txt has a line of it. The
+--recorded option is only for the tests of this check, which use a small
+set of fixtures; CI does not give it.
+"""
+
+import argparse
+import configparser
+import hashlib
+import json
+import re
+import subprocess
+import sys
+from collections import Counter
+from pathlib import Path
+from typing import Any
+
+from sqll_harness import known_failures
+from sqll_harness.adapters import config_files
+from sqll_harness.paths import REPO_ROOT
+from sqll_harness.suites import autofix, rules
+
+FORMAT = 1
+TOOL = "sqll"
+SUITES = (rules.NAME, autofix.NAME)
+SUBMODULE = Path("third_party") / "sqlfluff"
+CHECK_SUBMODULE = Path("scripts") / "check-submodule"
+DEFAULT_REPORT = Path("out") / "report.json"
+DEFAULT_ORACLE = Path("out") / "oracle.jsonl"
+DEFAULT_AUTOFIX_ORACLE = Path("out") / "autofix-oracle.jsonl"
+DEFAULT_JINJA_RAW = Path("results") / "S3b" / "C14-jinja-raw.json"
+DEFAULT_KNOWN_FAILURES = Path("known_failures") / f"{TOOL}.txt"
+JINJA_RAW_KIND = "sqll-s3b-c14-jinja-raw"
+JINJA_RAW_FORMAT = 1
+REPORT_STATUSES = ("pass", "fail", "error", "skip")
+ORACLE_STATUSES = ("pass", "fail", "skip")
+COMMIT = re.compile(r"[0-9a-f]{40}")
+SHA256 = re.compile(r"[0-9a-f]{64}")
+
+# The templaters of sqlfluff that the check knows. The default is jinja.
+DEFAULT_TEMPLATER = "jinja"
+TEMPLATER_CLASS_TEMPLATERS = ("placeholder", "python")
+# The default start strings of the Jinja tags. A case config can set others
+# in its templater.jinja section (rules.JINJA_START_STRINGS).
+JINJA_START_STRINGS = rules.JINJA_START_STRINGS
+
+# The classes (design record, section 3).
+PASS = "pass"
+JINJA = "jinja: S11"
+TEMPLATER = "templater of S6"
+GAP = "gap"
+NO_CLASS = "no class"
+CLASSES = (PASS, JINJA, TEMPLATER, GAP, NO_CLASS)
+# The fixture classes.
+F_JINJA = "jinja"
+F_TEMPLATER = "templater"
+F_OTHER = "other"
+FIXTURE_CLASSES = (F_JINJA, F_TEMPLATER, F_OTHER)
+
+# The recorded counts: design record docs/decisions/s5-rules.md, section 3.
+# A change of these counts is a change of the design record.
+RECORDED = {
+    rules.NAME: {"cases": 2527, F_JINJA: 169, F_TEMPLATER: 13},
+    autofix.NAME: {"cases": 61, F_JINJA: 21, F_TEMPLATER: 0},
+}
+
+# The items, and the failures of each item.
+ITEMS = {
+    1: ("Each case has one class", ("no_class", "report_extra", "oracle_extra")),
+    2: ("Each case that sqll passes passes in the oracle", ("oracle_mismatch",)),
+    3: (
+        "The count of each recorded class is the recorded count"
+        " (design record, section 3)",
+        ("count",),
+    ),
+    4: (
+        "known_failures/sqll.txt lists each rules and autofix case that sqll"
+        " does not pass, and no other rules or autofix case",
+        ("known_failures_missing", "known_failures_stale"),
+    ),
+    5: (
+        "The report sqlfluff_ref and the commit of the Jinja as raw record are"
+        " the pinned commit, and the submodule has no change",
+        ("sqlfluff_ref", "jinja_raw_commit", "submodule"),
+    ),
+    6: (
+        "No gap: sqll passes each case that is not in the Jinja class"
+        " (the exit of this stone; enforced only with --exit)",
+        ("gap",),
+    ),
+}
+EXIT_ITEM = 6
+FAILURES = tuple(name for _, names in ITEMS.values() for name in names)
+
+
+class InputError(Exception):
+    """An input is missing or not valid."""
+
+
+def git(root: Path, *args: str) -> str:
+    return subprocess.run(
+        ["git", "-C", str(root), *args],
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout.strip()
+
+
+def read_text(path: Path, name: str) -> str:
+    if not path.is_file():
+        raise InputError(f"{name}: {path}: no such file")
+    try:
+        return path.read_text(encoding="utf8")
+    except (OSError, UnicodeDecodeError) as exc:
+        raise InputError(f"{name}: {path}: cannot read: {exc}") from exc
+
+
+def read_json(path: Path, name: str) -> Any:
+    try:
+        return json.loads(read_text(path, name))
+    except json.JSONDecodeError as exc:
+        raise InputError(f"{name}: {path}: not valid JSON: {exc}") from exc
+
+
+# The inputs.
+
+
+def load_report(path: Path) -> tuple[str, dict[str, dict[str, str]]]:
+    """Return the sqlfluff_ref and {suite: {case id: status}} of the sqll
+    rules and autofix cases of the report."""
+    data = read_json(path, "report")
+    if not isinstance(data, dict):
+        raise InputError(f"report: {path}: not a JSON object")
+    ref = data.get("sqlfluff_ref")
+    if not isinstance(ref, str) or not ref:
+        raise InputError(f"report: {path}: no sqlfluff_ref text")
+    cases = data.get("cases")
+    if not isinstance(cases, list):
+        raise InputError(f"report: {path}: no cases list")
+    found: dict[str, dict[str, str]] = {suite: {} for suite in SUITES}
+    for n, case in enumerate(cases):
+        where = f"report: {path}: case {n}"
+        if not isinstance(case, dict):
+            raise InputError(f"{where}: not a JSON object")
+        for key in ("id", "suite", "tool", "status"):
+            if not isinstance(case.get(key), str):
+                raise InputError(f"{where}: no {key} text")
+        if case["suite"] not in SUITES or case["tool"] != TOOL:
+            continue
+        where = f"report: {path}: case {case['id']}"
+        if case["status"] not in REPORT_STATUSES:
+            raise InputError(f"{where}: status {case['status']!r} is not known")
+        if not case["id"].startswith(f"{case['suite']}/"):
+            raise InputError(f"{where}: the id is not in the suite {case['suite']}")
+        if case["id"] in found[case["suite"]]:
+            raise InputError(f"{where}: duplicate id")
+        found[case["suite"]][case["id"]] = case["status"]
+    for suite, statuses in found.items():
+        if not statuses:
+            raise InputError(f"report: {path}: no {suite} case of {TOOL} (no data)")
+    return ref, found
+
+
+def load_oracle(path: Path, name: str, suite: str) -> dict[str, str]:
+    """Return {case id: status} of an oracle output."""
+    oracle: dict[str, str] = {}
+    for lineno, line in enumerate(read_text(path, name).splitlines(), 1):
+        if not line.strip():
+            continue
+        where = f"{name}: {path}:{lineno}"
+        try:
+            record = json.loads(line)
+        except json.JSONDecodeError as exc:
+            raise InputError(f"{where}: not valid JSON: {exc}") from exc
+        if not isinstance(record, dict) or not isinstance(record.get("id"), str):
+            raise InputError(f"{where}: no id text")
+        if not record["id"].startswith(f"{suite}/"):
+            raise InputError(f"{where}: {record['id']} is not a {suite} case")
+        status = record.get("status")
+        if status not in ORACLE_STATUSES:
+            raise InputError(f"{where}: status {status!r} is not known")
+        if record["id"] in oracle:
+            raise InputError(f"{where}: duplicate id {record['id']}")
+        oracle[record["id"]] = status
+    if not oracle:
+        raise InputError(f"{name}: {path}: no case (no data)")
+    return oracle
+
+
+def load_jinja_raw(path: Path) -> tuple[str, frozenset[str], list[str]]:
+    """Return the sqlfluff commit, the equal texts (sha256), and the notes of
+    the Jinja as raw record."""
+    data = read_json(path, "jinja raw record")
+    where = f"jinja raw record: {path}"
+    if not isinstance(data, dict):
+        raise InputError(f"{where}: not a JSON object")
+    if data.get("kind") != JINJA_RAW_KIND or data.get("format") != JINJA_RAW_FORMAT:
+        raise InputError(
+            f"{where}: kind {data.get('kind')!r} format {data.get('format')!r},"
+            f" not {JINJA_RAW_KIND!r} format {JINJA_RAW_FORMAT}"
+        )
+    sqlfluff = data.get("sqlfluff")
+    commit = sqlfluff.get("commit") if isinstance(sqlfluff, dict) else None
+    if not isinstance(commit, str) or not COMMIT.fullmatch(commit):
+        raise InputError(f"{where}: no sqlfluff commit")
+    equal = data.get("equal")
+    if not isinstance(equal, list) or not all(
+        isinstance(t, str) and SHA256.fullmatch(t) for t in equal
+    ):
+        raise InputError(f"{where}: equal is not a list of sha256 texts")
+    if not equal:
+        raise InputError(f"{where}: no equal text (no data)")
+    notes = data.get("notes")
+    if not isinstance(notes, list) or not all(isinstance(n, str) for n in notes):
+        raise InputError(f"{where}: notes is not a list of texts")
+    return commit, frozenset(equal), notes
+
+
+def load_known_failures(path: Path) -> dict[str, str]:
+    try:
+        return known_failures.parse(read_text(path, "known failures"), str(path))
+    except known_failures.KnownFailuresError as exc:
+        raise InputError(f"known failures: {exc}") from exc
+
+
+def load_fixtures(
+    sqlfluff_root: Path,
+) -> tuple[list[rules.RuleCase], list[autofix.AutofixCase]]:
+    found = []
+    for name, suite in (("rules", rules), ("autofix", autofix)):
+        base = sqlfluff_root / suite.FIXTURE_DIR
+        if not base.is_dir():
+            raise InputError(f"fixtures: {base}: no such folder")
+        try:
+            cases = suite.discover(sqlfluff_root)
+        except (OSError, ValueError) as exc:
+            raise InputError(f"fixtures: {base}: {exc}") from exc
+        if not cases:
+            raise InputError(f"fixtures: {base}: no {name} case (no data)")
+        found.append(cases)
+    return found[0], found[1]
+
+
+def pinned_commit(root: Path) -> str:
+    spec = f"HEAD:{SUBMODULE.as_posix()}"
+    try:
+        commit = git(root, "rev-parse", "--verify", "--quiet", spec)
+    except (OSError, subprocess.CalledProcessError) as exc:
+        raise InputError(
+            f"pinned commit: git rev-parse {spec} in {root}: {exc}"
+        ) from exc
+    if not COMMIT.fullmatch(commit):
+        raise InputError(f"pinned commit: {spec} in {root} is {commit!r}")
+    return commit
+
+
+def submodule_failures(root: Path, pinned: str) -> list[str]:
+    """Run scripts/check-submodule, and compare the HEAD of the checkout of
+    the submodule with the pinned commit."""
+    script = root / CHECK_SUBMODULE
+    if not script.is_file():
+        raise InputError(f"submodule: {script}: no such file")
+    try:
+        done = subprocess.run(
+            ["sh", str(script), "in the S5 parity check"],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+    except OSError as exc:
+        raise InputError(f"submodule: cannot run {script}: {exc}") from exc
+    if done.returncode != 0:
+        text = "; ".join(
+            line.strip()
+            for line in (done.stderr + done.stdout).splitlines()
+            if line.strip()
+        )
+        return [f"{CHECK_SUBMODULE.as_posix()} exit {done.returncode}: {text}"]
+    try:
+        head = git(root / SUBMODULE, "rev-parse", "HEAD")
+    except (OSError, subprocess.CalledProcessError) as exc:
+        return [f"the HEAD of {SUBMODULE.as_posix()} is not known: {exc}"]
+    if head != pinned:
+        return [
+            f"the checkout of {SUBMODULE.as_posix()} is {head}, not the pinned"
+            f" commit {pinned}"
+        ]
+    return []
+
+
+# The fixture class of each case.
+
+
+def sha256(text: str) -> str:
+    return hashlib.sha256(text.encode("utf8")).hexdigest()
+
+
+def templater_of(config: Any) -> str:
+    """core.templater of a config (default jinja, as sqlfluff)."""
+    core = config.get("core") if isinstance(config, dict) else None
+    if not isinstance(core, dict):
+        return DEFAULT_TEMPLATER
+    return str(core.get("templater", DEFAULT_TEMPLATER)).strip()
+
+
+def jinja_tags(config: Any) -> list[str]:
+    """The default start strings, and each start string of the config."""
+    tags = list(JINJA_START_STRINGS.values())
+    templater = config.get("templater") if isinstance(config, dict) else None
+    jinja = templater.get("jinja") if isinstance(templater, dict) else None
+    if isinstance(jinja, dict):
+        for key in JINJA_START_STRINGS:
+            value = jinja.get(key)
+            if isinstance(value, str) and value and value not in tags:
+                tags.append(value)
+    return tags
+
+
+def jinja_setting(config: Any) -> str | None:
+    """The Jinja templater setting of a config, or None."""
+    if not isinstance(config, dict):
+        return None
+    if "templater" in config:
+        return "a templater section"
+    core = config.get("core")
+    if isinstance(core, dict) and "library_path" in core:
+        return "core.library_path"
+    return None
+
+
+def fixture_class(
+    texts: dict[str, str], config: Any, equal: frozenset[str]
+) -> tuple[str | None, str]:
+    """Return the fixture class of a case and why. texts: {name: SQL text}."""
+    templater = templater_of(config)
+    if templater in TEMPLATER_CLASS_TEMPLATERS:
+        return F_TEMPLATER, f"core.templater {templater}"
+    if templater == "raw":
+        return F_OTHER, "core.templater raw"
+    if templater != DEFAULT_TEMPLATER:
+        return None, f"core.templater {templater!r} is not known"
+    for name, text in texts.items():
+        for tag in jinja_tags(config):
+            if tag in text:
+                return F_JINJA, f"the Jinja tag {tag!r} in {name}"
+    setting = jinja_setting(config)
+    if setting:
+        return F_JINJA, f"the Jinja templater setting {setting}"
+    missing = [name for name, text in texts.items() if sha256(text) not in equal]
+    if missing:
+        return None, (
+            f"jinja with no Jinja tag, but {', '.join(missing)} is not a text of"
+            " the Jinja as raw record"
+        )
+    return F_OTHER, "jinja, and each text is in the Jinja as raw record"
+
+
+def rule_texts(case: rules.RuleCase) -> dict[str, str]:
+    """The SQL texts of a rule case, as the rules suite writes them: an empty
+    string is no string, and fix_str only with a fail_str."""
+    texts = {
+        "pass_str": case.pass_str,
+        "fail_str": case.fail_str,
+        "fix_str": case.fix_str if case.fail_str else None,
+    }
+    return {name: text for name, text in texts.items() if text}
+
+
+def rule_fixture_class(
+    case: rules.RuleCase, equal: frozenset[str]
+) -> tuple[str | None, str]:
+    if case.skip:
+        return None, f"the case has skip: {case.skip}"
+    return fixture_class(rule_texts(case), case.configs, equal)
+
+
+def autofix_fixture_class(
+    case: autofix.AutofixCase, equal: frozenset[str]
+) -> tuple[str | None, str]:
+    """The text is before.sql, and the config is the .sqlfluff file of the
+    case folder, as the autofix test writes them."""
+    try:
+        before = autofix.read_text(case.folder / "before.sql")
+        path = case.folder / autofix.CONFIG_NAME
+        config = config_files.read_ini(autofix.read_text(path)) if path.exists() else {}
+    except (OSError, UnicodeDecodeError, ValueError, configparser.Error) as exc:
+        return None, f"cannot read the case: {type(exc).__name__}: {exc}"
+    return fixture_class({"before.sql": before}, config, equal)
+
+
+def note_ids(notes: list[str]) -> list[str]:
+    """The input ids of the notes of the record ("<id>: <text>")."""
+    return [note.split(": ", 1)[0] for note in notes]
+
+
+def noted(case_id: str, ids: list[str]) -> bool:
+    """A rule input id is <case id>/<pass|fail|fixed>; an autofix input id is
+    the case id."""
+    return any(i == case_id or i.startswith(f"{case_id}/") for i in ids)
+
+
+# The classes.
+
+
+def classify(
+    fixtures: dict[str, list[tuple[str, str, str | None, str]]],
+    report: dict[str, dict[str, str]],
+    oracles: dict[str, dict[str, str]],
+    known: dict[str, str],
+    notes: list[str],
+) -> tuple[dict[str, dict], dict[str, list[str]]]:
+    """Return {case id: entry} and the failures of items 1, 2, 4, and 6.
+
+    fixtures: {suite: [(case id, group, fixture class, why)]}. The group is
+    the rule file or the autofix dialect.
+    """
+    ids = note_ids(notes)
+    cases: dict[str, dict] = {}
+    failures: dict[str, list[str]] = {
+        "no_class": [],
+        "report_extra": [],
+        "oracle_extra": [],
+        "oracle_mismatch": [],
+        "known_failures_missing": [],
+        "known_failures_stale": [],
+        "gap": [],
+    }
+    for suite, items in fixtures.items():
+        sqll = report[suite]
+        oracle = oracles[suite]
+        discovered = {case_id for case_id, *_ in items}
+        failures["report_extra"] += sorted(set(sqll) - discovered)
+        failures["oracle_extra"] += sorted(set(oracle) - discovered)
+        for case_id, group, fclass, why in items:
+            status = sqll.get(case_id)
+            verdict = oracle.get(case_id)
+            if fclass is not None and noted(case_id, ids):
+                fclass, why = None, "a note of the Jinja as raw record names the case"
+            # Each sqll pass must pass in the oracle, in each class.
+            mismatch = status == "pass" and verdict != "pass"
+            if mismatch:
+                failures["oracle_mismatch"].append(
+                    f"{case_id}: sqll passes the case, but the oracle gives"
+                    f" {verdict or 'no line'}"
+                )
+            if fclass is None:
+                cls, reason = NO_CLASS, why
+            elif fclass == F_JINJA:
+                cls, reason = JINJA, why
+            elif status is None:
+                cls, reason = NO_CLASS, "the report has no sqll result of the case"
+            elif verdict is None:
+                cls, reason = NO_CLASS, "the oracle output has no line of the case"
+            elif "skip" in (status, verdict):
+                cls, reason = NO_CLASS, f"sqll {status}, oracle {verdict}"
+            elif status == "pass" and verdict == "pass":
+                cls, reason = PASS, "sqll and the oracle pass the case"
+            elif mismatch:
+                cls, reason = (
+                    GAP,
+                    f"sqll passes the case, but the oracle gives {verdict}",
+                )
+            elif fclass == F_TEMPLATER:
+                cls, reason = TEMPLATER, why
+            else:
+                cls, reason = GAP, f"sqll {status}"
+            if cls == NO_CLASS:
+                failures["no_class"].append(f"{case_id}: {reason}")
+            if cls in (GAP, TEMPLATER):
+                failures["gap"].append(case_id)
+            if status is not None and status != "pass" and case_id not in known:
+                failures["known_failures_missing"].append(case_id)
+            if status == "pass" and case_id in known:
+                failures["known_failures_stale"].append(
+                    f"{case_id}: sqll passes the case"
+                )
+            cases[case_id] = {
+                "suite": suite,
+                "group": group,
+                "class": cls,
+                "fixture_class": fclass,
+                "why": reason if cls == NO_CLASS else why,
+                "sqll": status,
+                "oracle": verdict,
+                "known_failure": case_id in known,
+            }
+    for case_id in sorted(known):
+        suite = case_id.split("/", 1)[0]
+        if suite in SUITES and case_id not in cases:
+            failures["known_failures_stale"].append(f"{case_id}: no such case")
+    return cases, failures
+
+
+def suite_counts(cases: dict[str, dict], suite: str) -> dict:
+    mine = [c for c in cases.values() if c["suite"] == suite]
+    classes = Counter(c["class"] for c in mine)
+    fixture = Counter(c["fixture_class"] for c in mine)
+    passed = [c for c in mine if c["sqll"] == "pass"]
+    return {
+        "cases": len(mine),
+        "classes": {name: classes[name] for name in CLASSES},
+        "fixture_classes": {
+            **{name: fixture[name] for name in FIXTURE_CLASSES},
+            "none": fixture[None],
+        },
+        "sqll_passed": len(passed),
+        "passed_in_oracle": sum(c["oracle"] == "pass" for c in passed),
+        "known_failures_lines": sum(c["known_failure"] for c in mine),
+    }
+
+
+def group_counts(cases: dict[str, dict], suite: str) -> dict[str, dict[str, int]]:
+    """The counts of each class for each rule file or autofix dialect."""
+    groups: dict[str, dict[str, int]] = {}
+    for case in cases.values():
+        if case["suite"] != suite:
+            continue
+        entry = groups.setdefault(
+            case["group"], {"cases": 0, **{name: 0 for name in CLASSES}}
+        )
+        entry["cases"] += 1
+        entry[case["class"]] += 1
+    return dict(sorted(groups.items()))
+
+
+def count_failures(counts: dict[str, dict], recorded: dict[str, dict]) -> list[str]:
+    out = []
+    for suite, want in recorded.items():
+        got = counts[suite]
+        for name, number in want.items():
+            have = got["cases"] if name == "cases" else got["fixture_classes"][name]
+            if have != number:
+                out.append(f"{suite} {name}: {have}, the recorded count is {number}")
+    return out
+
+
+def shown(path: Path, root: Path) -> str:
+    """Give a path relative to the root if it is in the root."""
+    try:
+        return path.resolve().relative_to(root.resolve()).as_posix()
+    except ValueError:
+        return str(path)
+
+
+def load_recorded(path: Path) -> dict[str, dict[str, int]]:
+    data = read_json(path, "recorded counts")
+    names = ("cases", F_JINJA, F_TEMPLATER)
+    if (
+        not isinstance(data, dict)
+        or set(data) != set(SUITES)
+        or not all(
+            isinstance(v, dict)
+            and set(v) == set(names)
+            and all(isinstance(n, int) and not isinstance(n, bool) for n in v.values())
+            for v in data.values()
+        )
+    ):
+        raise InputError(
+            f"recorded counts: {path}: not {{suite: {{{', '.join(names)}: int}}}}"
+            f" for the suites {', '.join(SUITES)}"
+        )
+    return data
+
+
+def check(args: argparse.Namespace) -> dict:
+    root = args.root
+    paths = {
+        "report": args.report or root / DEFAULT_REPORT,
+        "oracle": args.oracle or root / DEFAULT_ORACLE,
+        "autofix_oracle": args.autofix_oracle or root / DEFAULT_AUTOFIX_ORACLE,
+        "jinja_raw": args.jinja_raw or root / DEFAULT_JINJA_RAW,
+        "known_failures": args.known_failures or root / DEFAULT_KNOWN_FAILURES,
+    }
+    result: dict = {
+        "format": FORMAT,
+        "check": "S5 parity (docs/decisions/s5-rules.md, sections 3 and 4)",
+        "status": "error",
+        "exit_code": 2,
+        "exit_mode": bool(args.exit),
+        "commit": None,
+        "pinned_commit": None,
+        "report_sqlfluff_ref": None,
+        "jinja_raw_commit": None,
+        "inputs": {
+            **{name: shown(path, root) for name, path in paths.items()},
+            "fixtures": [
+                shown(root / SUBMODULE / suite.FIXTURE_DIR, root)
+                for suite in (rules, autofix)
+            ],
+        },
+        "recorded": None,
+        "counts": None,
+        "by_group": None,
+        "items": None,
+        "failures": None,
+        "errors": [],
+        "cases": None,
+    }
+    loaded: dict = {}
+    steps = {
+        "report": lambda: load_report(paths["report"]),
+        "oracle": lambda: load_oracle(paths["oracle"], "oracle", rules.NAME),
+        "autofix_oracle": lambda: load_oracle(
+            paths["autofix_oracle"], "autofix oracle", autofix.NAME
+        ),
+        "jinja_raw": lambda: load_jinja_raw(paths["jinja_raw"]),
+        "known": lambda: load_known_failures(paths["known_failures"]),
+        "fixtures": lambda: load_fixtures(root / SUBMODULE),
+        "pinned": lambda: pinned_commit(root),
+        "recorded": lambda: load_recorded(args.recorded) if args.recorded else RECORDED,
+    }
+    for name, step in steps.items():
+        try:
+            loaded[name] = step()
+        except InputError as exc:
+            result["errors"].append(str(exc))
+    if "pinned" in loaded:
+        result["pinned_commit"] = loaded["pinned"]
+        try:
+            loaded["submodule"] = submodule_failures(root, loaded["pinned"])
+        except InputError as exc:
+            result["errors"].append(str(exc))
+    try:
+        result["commit"] = git(root, "rev-parse", "HEAD")
+    except (OSError, subprocess.CalledProcessError):
+        pass
+    if "report" in loaded:
+        result["report_sqlfluff_ref"] = loaded["report"][0]
+    if "jinja_raw" in loaded:
+        result["jinja_raw_commit"] = loaded["jinja_raw"][0]
+    if "recorded" in loaded:
+        result["recorded"] = loaded["recorded"]
+    if result["errors"]:
+        return result
+
+    ref, report = loaded["report"]
+    jinja_commit, equal, notes = loaded["jinja_raw"]
+    rule_cases, autofix_cases = loaded["fixtures"]
+    fixtures = {
+        rules.NAME: [
+            (case.id, case.id.split("/")[1], *rule_fixture_class(case, equal))
+            for case in rule_cases
+        ],
+        autofix.NAME: [
+            (case.id, case.dialect, *autofix_fixture_class(case, equal))
+            for case in autofix_cases
+        ],
+    }
+    oracles = {rules.NAME: loaded["oracle"], autofix.NAME: loaded["autofix_oracle"]}
+    cases, failures = classify(fixtures, report, oracles, loaded["known"], notes)
+    counts = {suite: suite_counts(cases, suite) for suite in SUITES}
+    pinned = loaded["pinned"]
+    failures["count"] = count_failures(counts, loaded["recorded"])
+    failures["sqlfluff_ref"] = (
+        []
+        if ref == pinned
+        else [
+            f"the report sqlfluff_ref {ref} is not the pinned commit {pinned}"
+            f" (HEAD:{SUBMODULE.as_posix()})"
+        ]
+    )
+    failures["jinja_raw_commit"] = (
+        []
+        if jinja_commit == pinned
+        else [
+            f"the sqlfluff commit {jinja_commit} of the Jinja as raw record is"
+            f" not the pinned commit {pinned}"
+        ]
+    )
+    failures["submodule"] = loaded["submodule"]
+    failures = {name: failures[name] for name in FAILURES}
+
+    result["counts"] = counts
+    result["by_group"] = {suite: group_counts(cases, suite) for suite in SUITES}
+    result["items"] = [
+        {
+            "item": number,
+            "rule": rule,
+            "enforced": number != EXIT_ITEM or bool(args.exit),
+            "ok": not any(failures[name] for name in names),
+            "failures": {name: len(failures[name]) for name in names},
+        }
+        for number, (rule, names) in ITEMS.items()
+    ]
+    result["failures"] = failures
+    # The suite and the group are in the case id.
+    result["cases"] = {
+        case_id: {k: v for k, v in entry.items() if k not in ("suite", "group")}
+        for case_id, entry in cases.items()
+    }
+    ok = all(item["ok"] for item in result["items"] if item["enforced"])
+    result["status"] = "pass" if ok else "fail"
+    result["exit_code"] = 0 if ok else 1
+    return result
+
+
+def summary_line(result: dict) -> str:
+    if result["status"] == "error":
+        return f"S5 parity: error: {len(result['errors'])} input error(s)"
+    parts = []
+    for suite in SUITES:
+        c = result["counts"][suite]
+        classes = ", ".join(f"{name} {c['classes'][name]}" for name in CLASSES)
+        parts.append(f"{suite} {c['cases']} ({classes})")
+    failed = [
+        str(item["item"])
+        for item in result["items"]
+        if item["enforced"] and not item["ok"]
+    ]
+    return (
+        f"S5 parity: {result['status']}: "
+        + "; ".join(parts)
+        + (f"; failed items: {', '.join(failed)}" if failed else "")
+    )
+
+
+def dumps(result: dict) -> str:
+    """JSON with an indent, but one line for each case and each group."""
+    lines = ["{"]
+    keys = list(result)
+    for n, key in enumerate(keys):
+        end = "," if n < len(keys) - 1 else ""
+        value = result[key]
+        if key in ("cases", "by_group") and isinstance(value, dict):
+            lines.append(f" {json.dumps(key)}: {{")
+            items = list(value.items())
+            for m, (name, entry) in enumerate(items):
+                sep = "," if m < len(items) - 1 else ""
+                if key == "by_group":
+                    groups = list(entry.items())
+                    lines.append(f"  {json.dumps(name)}: {{")
+                    for g, (group, counts) in enumerate(groups):
+                        gsep = "," if g < len(groups) - 1 else ""
+                        lines.append(
+                            f"   {json.dumps(group)}: {json.dumps(counts)}{gsep}"
+                        )
+                    lines.append(f"  }}{sep}")
+                else:
+                    lines.append(f"  {json.dumps(name)}: {json.dumps(entry)}{sep}")
+            lines.append(f" }}{end}")
+        else:
+            text = json.dumps(value, indent=1).replace("\n", "\n ")
+            lines.append(f" {json.dumps(key)}: {text}{end}")
+    lines.append("}")
+    return "\n".join(lines) + "\n"
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(
+        description="The parity check of S5 (rule parity: sqll passes 100% of"
+        " the rule fixtures, lint and fix; cases that need the Jinja templater"
+        " move to the Jinja templater stone)."
+    )
+    parser.add_argument("--root", type=Path, default=REPO_ROOT)
+    parser.add_argument("--report", type=Path)
+    parser.add_argument("--oracle", type=Path)
+    parser.add_argument("--autofix-oracle", type=Path)
+    parser.add_argument("--jinja-raw", type=Path)
+    parser.add_argument("--known-failures", type=Path)
+    parser.add_argument("--out", type=Path)
+    parser.add_argument(
+        "--exit",
+        action="store_true",
+        help="Also fail on each gap (the exit of this stone).",
+    )
+    parser.add_argument(
+        "--recorded",
+        type=Path,
+        help="Only for the tests of this check: a JSON file with other"
+        " recorded counts.",
+    )
+    args = parser.parse_args(argv)
+    args.root = args.root.resolve()
+    result = check(args)
+    text = dumps(result)
+    sys.stdout.write(text)
+    if args.out:
+        args.out.parent.mkdir(parents=True, exist_ok=True)
+        args.out.write_text(text, encoding="utf8")
+    print(summary_line(result), file=sys.stderr)
+    for error in result["errors"]:
+        print(f"error: {error}", file=sys.stderr)
+    return result["exit_code"]
+
+
+if __name__ == "__main__":
+    sys.exit(main())
