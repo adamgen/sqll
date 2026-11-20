@@ -12,7 +12,7 @@ file from the config of the Linter:
 - config_text(): each value of the config that is not the value of the
   default config, as an ini text. It fails closed (ConfigMapError) on a key
   that the default config does not have and that is not an extra key
-  (EXTRA_KEYS), on a value that is not a scalar, on a path key, and on a
+  (EXTRA_KEYS: T18 and T22), on a value that is not a scalar, on a path key, and on a
   value that does not load again as the same value.
 - differences(): the keys with different values in 2 snapshots. The trace
   loads the text as the CLI does and records these differences (the proof);
@@ -48,7 +48,7 @@ DERIVED = frozenset(
 # the config file (sqlfluff.core.config.file.RESOLVE_PATH_SUFFIXES).
 PATH_SUFFIXES = ("_path", "_dir")
 # The keys that the default config does not have and that the map knows
-# (T18): a key matches a pattern of the same length, and "*" matches each
+# (T18 and T22): a key matches a pattern of the same length, and "*" matches each
 # name. sqlfluff reads them only with get_section, so a config file gives
 # them as the same value (the proof checks each one):
 # - the Jinja context (JinjaTemplater.get_context);
@@ -75,10 +75,20 @@ LAYOUT_KEYS = (
     "keyword_line_position_exclusions",
     "alignment_coordinate_space",
 )
+# - the capitalisation_policy of the functions (T22): the default config
+#   does not have it, because the rule capitalisation.functions (CP03) reads
+#   extended_capitalisation_policy. RuleSet.get_rulepack reads the section of
+#   each rule with get_section: it checks the value
+#   (_validate_config_options; test_improper_configs_are_rejected
+#   [rule_config_dict7] expects its error) and gives each key of the section
+#   to the rule as an attribute. Only this one key: capitalisation_policy in
+#   another section that the default config does not give it (for example
+#   capitalisation.types) is still an error.
 EXTRA_KEYS = (
     ("templater", "jinja", "context", "*"),
     *(("templater", "jinja", key) for key in JINJA_DELIMITERS),
     *(("layout", "type", "*", key) for key in LAYOUT_KEYS),
+    ("rules", "capitalisation.functions", "capitalisation_policy"),
 )
 _KEY = re.compile(r"^[A-Za-z0-9_]+$")
 _SECTION = re.compile(r"^[A-Za-z0-9_.]+$")

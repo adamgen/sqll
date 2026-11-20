@@ -57,6 +57,11 @@ oracles do. It records, for each node:
   and the keys that FluffConfig(overrides=...) does not give. A Linter made
   with dialect, rules, or exclude_rules (and no config) records the same
   model of its config ("kwargs_config" of the Linter inputs).
+- reads (T22): a Linter.lint_string call with fix=True whose violations are
+  not the violations of the lint run of the trace also records each read of
+  its result by the node after the call (watch_reads): each attribute, for
+  example "fix_string" or "violations", and each special method, for
+  example "__iter__".
 - processes: each program start, fork, and new Python process (the audit
   events and trace/sitecustomize.py, as scripts/s7-tests/config-readers).
   The trace does not record calls in another process.
@@ -337,7 +342,12 @@ class Tracer:
                     inner = self.inner.pop()
                     if inner is not None:
                         call["inner"] = inner
-                    sink.append(plain(call))
+                    record = plain(call)
+                    if "reads" in context:
+                        # The reads of the result after the call (T22): the
+                        # list fills while the node runs on.
+                        record["reads"] = context["reads"]
+                    sink.append(record)
 
             return wrapper
 
@@ -530,6 +540,94 @@ def file_outputs(linted_file) -> dict:
         "fixable": linted_file.num_violations(types=SQLLintError, fixable=True),
         "unfixable": linted_file.num_violations(types=SQLLintError, fixable=False),
     }
+
+
+def without_fixes(records: list[dict]) -> list[list[dict]]:
+    """The violations of lint records with no fixes (the oracle compares the
+    violations of a fix run and of a lint run so)."""
+    return [
+        [{k: v for k, v in v.items() if k != "fixes"} for v in r["violations"]]
+        for r in records
+    ]
+
+
+# The special methods of a watched result: each is a read of the result
+# (tuple data, comparison, text, copy, and pickle).
+WATCHED_SPECIAL = (
+    "__iter__",
+    "__getitem__",
+    "__len__",
+    "__contains__",
+    "__eq__",
+    "__ne__",
+    "__lt__",
+    "__le__",
+    "__gt__",
+    "__ge__",
+    "__hash__",
+    "__add__",
+    "__mul__",
+    "__rmul__",
+    "__repr__",
+    "__str__",
+    "__format__",
+    "__reduce__",
+    "__reduce_ex__",
+    "__getnewargs__",
+    "__bool__",
+)
+
+
+def watch_reads(result) -> list[str]:
+    """Record each read of a result after its call (T22). The result gets a
+    subclass of its class, with no other change. Each attribute that the
+    node reads (also a method or a field, for example "violations") and each
+    special method of WATCHED_SPECIAL adds its name to the returned list.
+    A read in a method of the result that the node called (for example the
+    tree in fix_string) is a part of that call and adds nothing. The trace
+    reads the result before it watches it."""
+    reads: list[str] = []
+    depth = [0]
+    cls = type(result)
+
+    def record(name: str) -> None:
+        if depth[0] == 0:
+            reads.append(name)
+
+    def inside(fn):
+        @functools.wraps(fn)
+        def run(*args, **kwargs):
+            depth[0] += 1
+            try:
+                return fn(*args, **kwargs)
+            finally:
+                depth[0] -= 1
+
+        return run
+
+    def get(self, name):
+        value = object.__getattribute__(self, name)
+        if depth[0]:
+            return value
+        record(name)
+        return inside(value) if inspect.ismethod(value) else value
+
+    def special(name: str):
+        base = getattr(cls, name)
+
+        def method(self, *args, **kwargs):
+            record(name)
+            return inside(base)(self, *args, **kwargs)
+
+        method.__name__ = name
+        return method
+
+    namespace = {"__slots__": (), "__getattribute__": get, "__module__": cls.__module__}
+    for name in WATCHED_SPECIAL:
+        if getattr(cls, name, None) is not None:
+            namespace[name] = special(name)
+    result.__class__ = type(cls.__name__, (cls,), namespace)
+    return reads
 
 
 def install(tracer: Tracer) -> None:
@@ -953,6 +1051,14 @@ def install(tracer: Tracer) -> None:
                 out["lint"] = file_outputs(
                     context["linter"].lint_string(context["sql"], **options)
                 )
+                if name == "lint_string" and without_fixes(
+                    out["records"]
+                ) != without_fixes(out["lint"]["records"]):
+                    # T22: the lint command cannot show these violations.
+                    # The oracle maps the call to its fix case only if the
+                    # node reads no violation of the result: the trace
+                    # records each read of the result after the call.
+                    context["reads"] = watch_reads(result)
             return out
 
         return tracer.traced("linter_string", inputs, outputs, nested_in=("api",))(
