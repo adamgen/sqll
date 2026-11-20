@@ -1138,6 +1138,10 @@ def test_the_real_tools_give_a_report_with_no_schema_error(tmp_path, capsys):
     path, files = real_case(tmp_path)
     out = tmp_path / "real.json"
     argv = ["run", "--manifest", path, "--cache", tmp_path / "cache"]
+    # The 3 installed tools. The sqll binary comes from the build job, so
+    # this test (CI job lint) names the tools; corpus-smoke runs sqll.
+    for tool in ("sqlfluff", "sqlfluff-rs", "sqruff"):
+        argv += ["--tool", tool]
     code = corpus_main.main([*map(str, argv), "--profile", "smoke", "--out", str(out)])
     text = capsys.readouterr().out
     assert code == 0, text
