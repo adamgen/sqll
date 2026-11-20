@@ -136,7 +136,7 @@ def test_the_report_lists_each_excluded_node_with_its_class():
     counts = RECORDED["counts"]
     assert (counts["in_scope"], counts["converted"], counts["excluded"]) == (
         643,
-        107,
+        112,
         108,
     )
 
@@ -225,14 +225,14 @@ def test_select_suites_refuses_a_suite_that_the_report_does_not_have():
 def test_summary_lines_give_the_counts_apart_from_parity():
     lines = command.summary_lines(RECORDED)
     assert lines[1] == (
-        "in scope 643, converted 107, excluded 108, not yet converted 428, "
+        "in scope 643, converted 112, excluded 108, not yet converted 423, "
         "needs Jinja (S11) 16"
     )
     assert lines[2] == (
         "excluded by class: python-internal 14, needs-python-runtime 2, "
         "engine-comparison 92, environment 0"
     )
-    assert lines[3].startswith("sqlfluff: 91 of 91 nodes passed, 0 failed, 0 error")
+    assert lines[3].startswith("sqlfluff: 96 of 96 nodes passed, 0 failed, 0 error")
 
 
 def test_summary_lines_of_a_scope_with_no_exclusion_list():

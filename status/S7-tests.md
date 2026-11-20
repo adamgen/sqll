@@ -1009,7 +1009,14 @@ excluded.
   reason of one line).
 - The other nodes of the recorded result before T22, and their traces, do
   not change: the recorded traces add only the 5 nodes.
-- Speed: SPEED_T22
+- Speed: `scripts/verify --s7` (machine lock) gives `s7-run` 42.7 s and
+  `s7-oracle` 21.1 s. At T8 (PR #110), this file gives 30.0 s and 15.6 s, and
+  the last local run of T8 (head `c7b3e9f`) gave 37.9 s and 24.5 s: the time
+  of one run changes by more than the 5 new nodes add. The 5 nodes add 9
+  cases for each tool (each a CLI run) and 5 traced nodes for each oracle
+  tool. No tool code, adapter, or benchmark input changes (each changed path
+  is a path of the S7-tests track), so no benchmark changes; the pull request
+  gives the `bench compare` result.
 
 ## Recorded results
 

@@ -147,16 +147,17 @@ def test_the_oracle_agrees_with_each_converted_case(tool):
     assert report_ids == [n.id for n in CASES.nodes]
     # The 15 pilot nodes of T2, the 23 rule nodes of T6, the 2 proof nodes
     # of T16, the 2 proof nodes of T17, the 49 rule nodes of T7, the 15
-    # Jinja rule nodes of T18, and the 1 Rust dispatch node of T8.
-    assert result["counts"]["agree"] == result["counts"]["nodes"] == 107
+    # Jinja rule nodes of T18, the 1 Rust dispatch node of T8, and the 5 rule
+    # nodes of T22.
+    assert result["counts"]["agree"] == result["counts"]["nodes"] == 112
     status = {n["id"]: n["results"][tool]["status"] for n in REPORT["nodes"]}
     for node in result["nodes"]:
         assert node["trace"] == status[node["id"]], node["id"]
         assert node["pytest"] == {"pass": "passed", "fail": "failed"}[node["trace"]]
         assert node["errors"] == []
-    # Each assert of the source tests: 214 (97 before T7, 184 before T18,
-    # 213 before T8), each cited by a check.
-    assert result["counts"]["asserts"] == 214
+    # Each assert of the source tests: 223 (97 before T7, 184 before T18,
+    # 213 before T8, 214 before T22), each cited by a check.
+    assert result["counts"]["asserts"] == 223
     assert result["counts"]["not_reproduced"] == 0
     internal = [e["id"] for e in REPORT["excluded"] if e["class"] == "python-internal"]
     assert [n["id"] for n in result["python_internal"]] == internal
