@@ -319,6 +319,27 @@
      "errors": []
     },
     {
+     "id": "test/rules/std_AL09_CP02_RF06_combo_test.py::test__rules__std_AL09_CP02_RF06[rules3-ansi-\\nselect\\n    a,\\n    b,\\n    \"C\" as c,\\n    \"d\" as d,\\n    \"E\" as e,\\n    \"f\" as f,\\n    g as \"G\",\\n    h,\\n    i\\nfrom foo\\n-post_fix_errors3]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "fix",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "lint_fixed",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 2,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
      "id": "test/rules/std_AL09_CP02_RF06_combo_test.py::test__rules__std_AL09_CP02_RF06[rules4-ansi-\\nselect\\n    a as A,\\n    B as b,\\n    C,\\n    \"d\" as d,\\n    E as e,\\n    \"f\" as F,\\n    g as G,\\n    h,\\n    I\\nfrom foo\\n-post_fix_errors4]",
      "pytest": "passed",
      "trace": "pass",
@@ -355,6 +376,69 @@
        "status": "pass",
        "reason": ""
       },
+      {
+       "name": "fix",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "lint_fixed",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 2,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_AL09_CP02_RF06_combo_test.py::test__rules__std_AL09_CP02_RF06[rules6-ansi-\\nselect\\n    a,\\n    b,\\n    c,\\n    \"d\" as d,\\n    e,\\n    \"f\" as f,\\n    g,\\n    h,\\n    i\\nfrom foo\\n-post_fix_errors6]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "fix",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "lint_fixed",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 2,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_AL09_CP02_RF06_combo_test.py::test__rules__std_AL09_CP02_RF06[rules7-postgres-\\nselect\\n    a,\\n    b,\\n    \"C\" as c,\\n    d,\\n    \"E\" as e,\\n    f,\\n    g as \"G\",\\n    h,\\n    i\\nfrom foo\\n-post_fix_errors7]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "fix",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "lint_fixed",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 2,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_AL09_CP02_RF06_combo_test.py::test__rules__std_AL09_CP02_RF06[rules8-duckdb-\\nselect\\n    a,\\n    b,\\n    c,\\n    d,\\n    e,\\n    f,\\n    g,\\n    h,\\n    i\\nfrom foo\\n-post_fix_errors8]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
       {
        "name": "fix",
        "status": "pass",
@@ -2022,6 +2106,22 @@
      "asserts": 1,
      "not_reproduced": 0,
      "errors": []
+    },
+    {
+     "id": "test/rules/std_test.py::test_improper_configs_are_rejected[rule_config_dict7]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "rejected",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
     }
    ],
    "python_internal": [
@@ -2123,12 +2223,12 @@
     }
    ],
    "counts": {
-    "nodes": 107,
-    "agree": 107,
-    "pass": 107,
+    "nodes": 112,
+    "agree": 112,
+    "pass": 112,
     "fail": 0,
     "python_internal": 14,
-    "asserts": 214,
+    "asserts": 223,
     "not_reproduced": 0
    },
    "errors": []
@@ -2446,6 +2546,27 @@
      "errors": []
     },
     {
+     "id": "test/rules/std_AL09_CP02_RF06_combo_test.py::test__rules__std_AL09_CP02_RF06[rules3-ansi-\\nselect\\n    a,\\n    b,\\n    \"C\" as c,\\n    \"d\" as d,\\n    \"E\" as e,\\n    \"f\" as f,\\n    g as \"G\",\\n    h,\\n    i\\nfrom foo\\n-post_fix_errors3]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "fix",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "lint_fixed",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 2,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
      "id": "test/rules/std_AL09_CP02_RF06_combo_test.py::test__rules__std_AL09_CP02_RF06[rules4-ansi-\\nselect\\n    a as A,\\n    B as b,\\n    C,\\n    \"d\" as d,\\n    E as e,\\n    \"f\" as F,\\n    g as G,\\n    h,\\n    I\\nfrom foo\\n-post_fix_errors4]",
      "pytest": "passed",
      "trace": "pass",
@@ -2482,6 +2603,69 @@
        "status": "pass",
        "reason": ""
       },
+      {
+       "name": "fix",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "lint_fixed",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 2,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_AL09_CP02_RF06_combo_test.py::test__rules__std_AL09_CP02_RF06[rules6-ansi-\\nselect\\n    a,\\n    b,\\n    c,\\n    \"d\" as d,\\n    e,\\n    \"f\" as f,\\n    g,\\n    h,\\n    i\\nfrom foo\\n-post_fix_errors6]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "fix",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "lint_fixed",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 2,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_AL09_CP02_RF06_combo_test.py::test__rules__std_AL09_CP02_RF06[rules7-postgres-\\nselect\\n    a,\\n    b,\\n    \"C\" as c,\\n    d,\\n    \"E\" as e,\\n    f,\\n    g as \"G\",\\n    h,\\n    i\\nfrom foo\\n-post_fix_errors7]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "fix",
+       "status": "pass",
+       "reason": ""
+      },
+      {
+       "name": "lint_fixed",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 2,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/rules/std_AL09_CP02_RF06_combo_test.py::test__rules__std_AL09_CP02_RF06[rules8-duckdb-\\nselect\\n    a,\\n    b,\\n    c,\\n    d,\\n    e,\\n    f,\\n    g,\\n    h,\\n    i\\nfrom foo\\n-post_fix_errors8]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
       {
        "name": "fix",
        "status": "pass",
@@ -4149,6 +4333,22 @@
      "asserts": 1,
      "not_reproduced": 0,
      "errors": []
+    },
+    {
+     "id": "test/rules/std_test.py::test_improper_configs_are_rejected[rule_config_dict7]",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "rejected",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
     }
    ],
    "python_internal": [
@@ -4291,12 +4491,12 @@
     }
    ],
    "counts": {
-    "nodes": 107,
-    "agree": 107,
-    "pass": 106,
+    "nodes": 112,
+    "agree": 112,
+    "pass": 111,
     "fail": 1,
     "python_internal": 14,
-    "asserts": 214,
+    "asserts": 223,
     "not_reproduced": 0
    },
    "errors": []

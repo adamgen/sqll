@@ -24,9 +24,15 @@
 # dispatch and not Jinja, are black-box cases) of S7 (CLI and config parity:
 # the sqlfluff CLI, config, and Python rule tests as black-box cases; sqll
 # passes 100% of the converted cases; cases that need the Jinja templater move
-# to the Jinja templater stone) converts the other nodes. The node
-# rule_config_dict7 is not converted: the config model does not have the key
-# rules:capitalisation.functions:capitalisation_policy (status/S7-tests.md).
+# to the Jinja templater stone) converts the other nodes but
+# rule_config_dict7. T22 (convert the rule tests, part 3; goal: each other rule
+# node, not Rust dispatch, is a black-box case or is excluded with a class) of
+# S7 (CLI and config parity: the sqlfluff CLI, config, and Python rule tests
+# as black-box cases; sqll passes 100% of the converted cases; cases that need
+# the Jinja templater move to the Jinja templater stone) converts
+# rule_config_dict7: the key rules:capitalisation.functions:
+# capitalisation_policy, which the default config does not have, is an extra
+# key of the config model (status/S7-tests.md).
 source:
   project: sqlfluff
   version: 4.4.0
@@ -380,3 +386,21 @@ nodes:
           stderr:
             contains:
               - "User Error: Invalid option 'blah' for extended_capitalisation_policy configuration."
+  - node: "test/rules/std_test.py::test_improper_configs_are_rejected[rule_config_dict7]"
+    asserts:
+      L106:raises: ["rejected:exit_code", "rejected:stderr.contains[0]"]
+    cases:
+      # The key capitalisation_policy of capitalisation.functions is an extra
+      # key of the config model (T22): the default config does not have it.
+      - name: rejected
+        run: cli
+        argv: [lint, "-"]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\n\n[sqlfluff:rules:capitalisation.functions]\ncapitalisation_policy = blah\n"
+        stdin: ""
+        checks:
+          exit_code: 2
+          stderr:
+            contains:
+              - "User Error: Invalid option 'blah' for capitalisation_policy configuration."

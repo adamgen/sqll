@@ -481,7 +481,20 @@ with the original sqlfluff tests. T3 made it.
     stdin S and the file `.sqlfluff` of the config model (see "Config
     model"). With `fix=True` it gives 2 cases: that lint case, then `fix
     -`. The violations of a fix run must be the violations of a lint run
-    (the trace runs the lint too), else it is an error. Outputs (a model of
+    (the trace runs the lint too), else it is an error, but for this map of
+    T22 (convert the rule tests, part 3; goal: each other rule node, not
+    Rust dispatch, is a black-box case or is excluded with a class): a
+    `Linter.lint_string` call with `fix=True` whose violations are not those
+    of a lint run gives only the `fix -` case. The lint command cannot show
+    the violations of the fix run, so the node must not read them. Thus the
+    trace watches the result of such a call (`watch_reads` of
+    `trace-nodes`: the result gets a subclass of its class that records
+    each attribute and each special method that the node reads after the
+    call, `reads`), and the oracle maps the call only if the node reads only
+    `fix_string` (the fixed SQL, the stdout of `fix -`). A read of another
+    attribute (for example `violations` or `check_tuples`) or of a special
+    method (for example `__iter__` or `__eq__`), a trace with no `reads`,
+    and such a call of `lint_string_wrapped` are errors. Outputs (a model of
     `sqlfluff.cli.commands`, as the Linter path map): lint exit code 1 if
     the file has a violation, else 0; the lint records with the file name
     `stdin`; fix stdout the fixed SQL if a violation is fixable, else S;
@@ -630,7 +643,21 @@ with the original sqlfluff tests. T3 made it.
   Linter string call and no mock, and a skip with the Rust reason and with
   another reason), and the mutation tests refuse a changed function or file
   of the CLI run of that error, a mock node with no `mocks`, and a skip with
-  another reason, with a traced call, or with `sqlfluff-rs`.
+  another reason, with a traced call, or with `sqlfluff-rs`. For T22
+  (convert the rule tests, part 3; goal: each other rule node, not Rust
+  dispatch, is a black-box case or is excluded with a class), the config
+  model test has the key `capitalisation_policy` of the functions and 2
+  refused keys, a test runs trace-nodes on a fifth test tree (a fix run with
+  other violations than a lint run that reads only `fix_string`, a fix run
+  with the same violations, the error of the functions key, and 6 refused
+  calls: a read of `violations`, of `check_tuples`, and of `__iter__`, a
+  `lint_string_wrapped` fix run, the key in another section, and another key
+  of the functions), and the oracle script gives exit code 0 on that trace,
+  and exit code 1 for a changed input of each map and for each refused call.
+  On the recorded traces, the oracle script gives exit code 1 for a changed
+  input of each new case, a lint case of the fix-only call, a read of
+  `violations` or `__iter__`, no `reads`, a `lint_string_wrapped` call, and
+  the key in another section.
 
 ### Config model
 
@@ -660,7 +687,16 @@ defaults (`FluffConfig.from_root` in the folder, with an empty home).
   (`[sqlfluff:layout:type:<type>]`, the keys of
   `ALLOWABLE_LAYOUT_CONFIG_KEYS` of sqlfluff, for example `align_scope`).
   sqlfluff reads them with `get_section`. The proof checks each value as for
-  the other keys.
+  the other keys. T22 (convert the rule tests, part 3; goal: each other rule
+  node, not Rust dispatch, is a black-box case or is excluded with a class)
+  adds 1 extra key: `capitalisation_policy` of
+  `[sqlfluff:rules:capitalisation.functions]`. The rule
+  `capitalisation.functions` (CP03) reads `extended_capitalisation_policy`,
+  so the default config does not have it. `RuleSet.get_rulepack` reads the
+  section of each rule with `get_section`, checks the value, and gives each
+  key of the section to the rule. `capitalisation_policy` in another section
+  that the default config does not give it (for example
+  `capitalisation.types`) is still an error.
 - It fails closed on: a key that the default config does not have and that
   is not an extra key, a missing default key, a value that is not a
   scalar (for example a list or a Python object), a key that ends with
@@ -718,6 +754,13 @@ defaults (`FluffConfig.from_root` in the folder, with an empty home).
      `FluffConfig(overrides=<them>)`.
    - Linter string: `lint_string` and `lint_string_wrapped` of a Linter
      with only a config, with the default options, in the submodule root.
+     With `fix=True`, the violations of the fix run must be those of a lint
+     run, or (T22) the call is `lint_string` and the node reads only
+     `fix_string` of the result. The trace sees only the reads through the
+     result object (each attribute and each special method of the list in
+     `trace-nodes`). A read inside a method of the result that the node
+     calls is a part of that call: the map allows only `fix_string`, whose
+     text is the stdout of the fix case.
      The map from the config to the `.sqlfluff` file is the recorded config
      model, and the trace proves it for each call. The exit codes and the
      fix stdout are a model of the lint and fix commands, as for the Linter
@@ -743,7 +786,8 @@ defaults (`FluffConfig.from_root` in the folder, with an empty home).
      Linter call. Other Python calls of the test are not traced; the
      assert citations (limit 3) are the check for them.
 2. Order. The cases of call i follow the cases of call i - 1: a Linter
-   string call with `fix=True` gives 2 cases, each other call 1. A node
+   string call with `fix=True` gives 2 cases (only the fix case if its
+   violations are not those of a lint run, T22), each other call 1. A node
    with more cases from its calls than cases is an error.
 3. Meaning. The oracle checks that each assert has a citation to a check
    that exists. It does not check that the check means the same as the

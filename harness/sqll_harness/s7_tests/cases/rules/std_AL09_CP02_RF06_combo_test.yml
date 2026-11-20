@@ -16,9 +16,18 @@
 # nodes, not Rust dispatch and not Jinja, are black-box cases) of S7 (CLI and
 # config parity: the sqlfluff CLI, config, and Python rule tests as black-box
 # cases; sqll passes 100% of the converted cases; cases that need the Jinja
-# templater move to the Jinja templater stone) converts 5 other nodes. The
-# nodes rules3, rules6, rules7, and rules8 are not converted: the violations
-# of their fix run are not those of a lint run (status/S7-tests.md).
+# templater move to the Jinja templater stone) converts 5 other nodes. T22
+# (convert the rule tests, part 3; goal: each other rule node, not Rust
+# dispatch, is a black-box case or is excluded with a class) of S7 (CLI and
+# config parity: the sqlfluff CLI, config, and Python rule tests as black-box
+# cases; sqll passes 100% of the converted cases; cases that need the Jinja
+# templater move to the Jinja templater stone) converts the nodes rules3,
+# rules6, rules7, and rules8. The violations of their fix run are not those of
+# a lint run (the lint run has 1 more CP02 violation, at line 11, position
+# 10), so the lint command cannot show them. The trace records each read of the result of the fix run after
+# the call: the node reads only fix_string(). Thus the fix call maps only to
+# its fix case, and these nodes have no lint case of the input
+# (status/S7-tests.md).
 source:
   project: sqlfluff
   version: 4.4.0
@@ -134,6 +143,37 @@ nodes:
           exit_code: 0
           violations:
             - records: []
+  - node: "test/rules/std_AL09_CP02_RF06_combo_test.py::test__rules__std_AL09_CP02_RF06[rules3-ansi-\\nselect\\n    a,\\n    b,\\n    \"C\" as c,\\n    \"d\" as d,\\n    \"E\" as e,\\n    \"f\" as f,\\n    g as \"G\",\\n    h,\\n    i\\nfrom foo\\n-post_fix_errors3]"
+    asserts:
+      L246: ["fix:stdout.equals"]
+      L251: ["lint_fixed:violations[0]"]
+    cases:
+      # The violations of the fix run are not those of a lint run: the
+      # call maps only to its fix case (T22). The node reads only
+      # fix_string() of the result (the trace records its reads).
+      - name: fix
+        run: cli
+        argv: [fix, "-"]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\nrules = AL09,CP02\n"
+        stdin: "\nselect\n    a as A,\n    B as b,\n    \"C\" as C,\n    \"d\" as d,\n    \"E\" as e,\n    \"f\" as F,\n    g as \"G\",\n    h as h,\n    I as I\nfrom foo\n"
+        checks:
+          # 2 AL09 violations of the fix run have no fix: the fix command
+          # gives exit code 1.
+          exit_code: 1
+          stdout: {equals: "\nselect\n    a,\n    b,\n    \"C\" as c,\n    \"d\" as d,\n    \"E\" as e,\n    \"f\" as f,\n    g as \"G\",\n    h,\n    i\nfrom foo\n"}
+      - name: lint_fixed
+        run: cli
+        argv: [lint, -f, json, "-"]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\nrules = AL09,CP02\n"
+        stdin: "\nselect\n    a,\n    b,\n    \"C\" as c,\n    \"d\" as d,\n    \"E\" as e,\n    \"f\" as f,\n    g as \"G\",\n    h,\n    i\nfrom foo\n"
+        checks:
+          exit_code: 0
+          violations:
+            - records: []
   - node: "test/rules/std_AL09_CP02_RF06_combo_test.py::test__rules__std_AL09_CP02_RF06[rules4-ansi-\\nselect\\n    a as A,\\n    B as b,\\n    C,\\n    \"d\" as d,\\n    E as e,\\n    \"f\" as F,\\n    g as G,\\n    h,\\n    I\\nfrom foo\\n-post_fix_errors4]"
     asserts:
       L246: ["fix:stdout.equals"]
@@ -204,6 +244,99 @@ nodes:
         files:
           .sqlfluff: "[sqlfluff]\ndialect = ansi\nrules = CP02,RF06\n"
         stdin: "\nselect\n    a as a,\n    b as b,\n    c as c,\n    \"d\" as d,\n    e as e,\n    \"f\" as f,\n    g as g,\n    h as h,\n    i as i\nfrom foo\n"
+        checks:
+          exit_code: 0
+          violations:
+            - records: []
+  - node: "test/rules/std_AL09_CP02_RF06_combo_test.py::test__rules__std_AL09_CP02_RF06[rules6-ansi-\\nselect\\n    a,\\n    b,\\n    c,\\n    \"d\" as d,\\n    e,\\n    \"f\" as f,\\n    g,\\n    h,\\n    i\\nfrom foo\\n-post_fix_errors6]"
+    asserts:
+      L246: ["fix:stdout.equals"]
+      L251: ["lint_fixed:violations[0]"]
+    cases:
+      # The violations of the fix run are not those of a lint run: the
+      # call maps only to its fix case (T22). The node reads only
+      # fix_string() of the result (the trace records its reads).
+      - name: fix
+        run: cli
+        argv: [fix, "-"]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\nrules = AL09,CP02,RF06\n"
+        stdin: "\nselect\n    a as A,\n    B as b,\n    \"C\" as C,\n    \"d\" as d,\n    \"E\" as e,\n    \"f\" as F,\n    g as \"G\",\n    h as h,\n    I as I\nfrom foo\n"
+        checks:
+          # 2 AL09 violations of the fix run have no fix: the fix command
+          # gives exit code 1.
+          exit_code: 1
+          stdout: {equals: "\nselect\n    a,\n    b,\n    c,\n    \"d\" as d,\n    e,\n    \"f\" as f,\n    g,\n    h,\n    i\nfrom foo\n"}
+      - name: lint_fixed
+        run: cli
+        argv: [lint, -f, json, "-"]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\nrules = AL09,CP02,RF06\n"
+        stdin: "\nselect\n    a,\n    b,\n    c,\n    \"d\" as d,\n    e,\n    \"f\" as f,\n    g,\n    h,\n    i\nfrom foo\n"
+        checks:
+          exit_code: 0
+          violations:
+            - records: []
+  - node: "test/rules/std_AL09_CP02_RF06_combo_test.py::test__rules__std_AL09_CP02_RF06[rules7-postgres-\\nselect\\n    a,\\n    b,\\n    \"C\" as c,\\n    d,\\n    \"E\" as e,\\n    f,\\n    g as \"G\",\\n    h,\\n    i\\nfrom foo\\n-post_fix_errors7]"
+    asserts:
+      L246: ["fix:stdout.equals"]
+      L251: ["lint_fixed:violations[0]"]
+    cases:
+      # The violations of the fix run are not those of a lint run: the
+      # call maps only to its fix case (T22). The node reads only
+      # fix_string() of the result (the trace records its reads).
+      - name: fix
+        run: cli
+        argv: [fix, "-"]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = postgres\nrules = AL09,CP02,RF06\n"
+        stdin: "\nselect\n    a as A,\n    B as b,\n    \"C\" as C,\n    \"d\" as d,\n    \"E\" as e,\n    \"f\" as F,\n    g as \"G\",\n    h as h,\n    I as I\nfrom foo\n"
+        checks:
+          # 2 AL09 violations of the fix run have no fix: the fix command
+          # gives exit code 1.
+          exit_code: 1
+          stdout: {equals: "\nselect\n    a,\n    b,\n    \"C\" as c,\n    d,\n    \"E\" as e,\n    f,\n    g as \"G\",\n    h,\n    i\nfrom foo\n"}
+      - name: lint_fixed
+        run: cli
+        argv: [lint, -f, json, "-"]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = postgres\nrules = AL09,CP02,RF06\n"
+        stdin: "\nselect\n    a,\n    b,\n    \"C\" as c,\n    d,\n    \"E\" as e,\n    f,\n    g as \"G\",\n    h,\n    i\nfrom foo\n"
+        checks:
+          exit_code: 0
+          violations:
+            - records: []
+  - node: "test/rules/std_AL09_CP02_RF06_combo_test.py::test__rules__std_AL09_CP02_RF06[rules8-duckdb-\\nselect\\n    a,\\n    b,\\n    c,\\n    d,\\n    e,\\n    f,\\n    g,\\n    h,\\n    i\\nfrom foo\\n-post_fix_errors8]"
+    asserts:
+      L246: ["fix:stdout.equals"]
+      L251: ["lint_fixed:violations[0]"]
+    cases:
+      # The violations of the fix run are not those of a lint run: the
+      # call maps only to its fix case (T22). The node reads only
+      # fix_string() of the result (the trace records its reads).
+      - name: fix
+        run: cli
+        argv: [fix, "-"]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = duckdb\nrules = AL09,CP02,RF06\n"
+        stdin: "\nselect\n    a as A,\n    B as b,\n    \"C\" as C,\n    \"d\" as d,\n    \"E\" as e,\n    \"f\" as F,\n    g as \"G\",\n    h as h,\n    I as I\nfrom foo\n"
+        checks:
+          # 2 AL09 violations of the fix run have no fix: the fix command
+          # gives exit code 1.
+          exit_code: 1
+          stdout: {equals: "\nselect\n    a,\n    b,\n    c,\n    d,\n    e,\n    f,\n    g,\n    h,\n    i\nfrom foo\n"}
+      - name: lint_fixed
+        run: cli
+        argv: [lint, -f, json, "-"]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = duckdb\nrules = AL09,CP02,RF06\n"
+        stdin: "\nselect\n    a,\n    b,\n    c,\n    d,\n    e,\n    f,\n    g,\n    h,\n    i\nfrom foo\n"
         checks:
           exit_code: 0
           violations:
