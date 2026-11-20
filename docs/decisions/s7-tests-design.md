@@ -403,7 +403,13 @@ with the original sqlfluff tests. T3 made it.
   `tmp_path` and `tmpdir`). T8 (Rust dispatch tests cp01, cp03, cp04:
   classification and conversion) adds the target of each `unittest.mock`
   patch of a node (`mocks`), and the reason of a skip (`skip_reason`). These
-  keys are in a node only if they have a value.
+  keys are in a node only if they have a value. T19 (trace oracle and case
+  runner, extension 4; goal: the trace oracle maps and proves each config
+  call of the config nodes that a CLI command shows, and fails closed on each
+  other call) adds the CLI input of the error of each FluffConfig
+  construction that the CLI can get (see "Maps"), records the errors of
+  `FluffConfig.verify_dialect_specified` in the CLI run of a proof, and
+  records the CLI run of a simple-API parse with a config (`cli`).
 - Maps (T16: trace oracle and case runner, extension 1; goal: the trace
   oracle maps and proves the calls that the remaining rule nodes use, and
   fails closed on each other call). `oracle.map_call` gives the cases of a
@@ -544,8 +550,48 @@ with the original sqlfluff tests. T3 made it.
     `FluffConfig.from_root`, so the first error of the CLI run must be an
     error of `FluffConfig.from_root` with the same exception type and
     message. With overrides, the trace has no CLI input and the oracle
-    refuses the call. Each other FluffConfig construction is still
-    refused.
+    refuses the call (T19 changes this, see below). Each other FluffConfig
+    construction is still refused.
+  - Maps of T19 (trace oracle and case runner, extension 4; goal: the trace
+    oracle maps and proves each config call of the config nodes that a CLI
+    command shows, and fails closed on each other call):
+  - Error of a FluffConfig construction: the CLI input of
+    `FluffConfig(configs=C, overrides=O)` is a `.sqlfluff` file with each
+    value of C, and each value of O in `[sqlfluff]` over them
+    (`s7config.input_text`: scalar values only, no path key, names that an
+    ini file can give; a key that the default config does not have is
+    allowed, because the error can be about it). The CLI input of
+    `FluffConfig.from_kwargs(dialect, rules, exclude_rules)` is the lint
+    options `--dialect`, `--rules`, and `--exclude-rules` (as for Linter
+    arguments, T17). The overrides of `FluffConfig.from_string(S,
+    overrides=O)` are lint options too (a CLI option is an override), if
+    each key is `dialect`, `rules`, or `exclude_rules` with a text. Each CLI
+    command loads its config with `FluffConfig.from_root`
+    (`require_dialect=False`) and checks the dialect later with
+    `FluffConfig.verify_dialect_specified`. Thus the first error of the CLI
+    run (`lint [options] -` with an empty stdin) must be an error of one of
+    these 2 functions with the same type and message. One difference is
+    allowed, only for `FluffConfig`: where the message of the test names
+    the configs or the overrides (`'<provided configs>'`, `'<provided
+    overrides>'`), the message of the CLI names the file of the case
+    (`'{tmp}/.sqlfluff'`). The trace writes `{tmp}` for the folder of the
+    run in each error. Proof nodes:
+    `test__config__validate_configs_indirect` (`FluffConfig(configs=...)`
+    with a removed value: exit code 2 and `Error loading config: Config
+    file '{tmp}/.sqlfluff' set an outdated config value ...` on stdout) and
+    `test__config_missing_dialect` (`FluffConfig.from_kwargs()`: exit code 2
+    and `User Error: No dialect was specified. ...` on stderr).
+  - Simple-API parse with a config (`sqlfluff.parse(sql, config=C)`):
+    sqlfluff then uses only C and calls `Linter(config=C).parse_string`. The
+    case is `parse -f json -` with stdin `sql` in a `cwd: tmp` case with
+    the `.sqlfluff` file of the config model of C (with its proof, as for a
+    Linter string call). The trace runs that case in process (`cli`), and
+    the oracle maps the call only if the call returned and the parse tree
+    of the CLI run is the tree that the call returned (`[{"filepath":
+    "stdin", "segments": <the tree>}]`). The outputs of the case are those
+    of that run. No converted node uses this map yet: the one config node
+    with the call (`test__api__immutable_config`) asserts that the config
+    object does not change, which a CLI command does not show.
 - Nodes: each converted node and each `python-internal` node of the runner
   report (`results/S7-tests/report.json`).
 - Checks for each tool (`sqll_harness/s7_tests/oracle.py`):
@@ -590,7 +636,14 @@ with the original sqlfluff tests. T3 made it.
   and `stdin_filename` with their defaults, and any `fix`); a Linter
   argument other than `config`, `dialect`, `rules`, and `exclude_rules`;
   Linter arguments with a config, or with no proof of their config, or
-  with overrides that are not the arguments (T17); a test helper that the
+  with overrides that are not the arguments (T17); an error of
+  `FluffConfig.from_path` or `from_root` (config files, T19), of
+  `FluffConfig` with `extra_config_path`, `ignore_local_config`, or
+  `plugin_manager`, of `FluffConfig.from_string` with another override, and
+  of a construction whose inputs the config model cannot give (T19); a
+  simple-API parse with a config that raised, with `config_path`, with a
+  config that the model does not map, or whose CLI run gives another tree
+  (T19); a test helper that the
   map does not know, or with no inner call, more than one, or another
   call than its arguments give (T17); an error call of another function,
   with no CLI input, or whose CLI run does not give the same error first
@@ -657,7 +710,25 @@ with the original sqlfluff tests. T3 made it.
   On the recorded traces, the oracle script gives exit code 1 for a changed
   input of each new case, a lint case of the fix-only call, a read of
   `violations` or `__iter__`, no `reads`, a `lint_string_wrapped` call, and
-  the key in another section.
+  the key in another section. For T19 (trace oracle and case runner,
+  extension 4), the config model test has `input_text` and its refusals, a
+  test runs trace-nodes on a sixth test tree with each tool (sqlfluff and
+  `sqlfluff[rs]`): 5 nodes that map (the error of
+  `FluffConfig(configs=...)`, of `FluffConfig(overrides=...)`, of
+  `FluffConfig.from_kwargs(rules=...)`, and of `FluffConfig.from_string`
+  with a `dialect` override, and a simple-API parse with a config) and 11
+  refused calls (an error of `from_path`, of `from_root`, of `FluffConfig`
+  with `extra_config_path`, of a config with a list value, of `from_string`
+  with another override, an error that the CLI gives in another way, an
+  error of `verify_dialect_specified` outside a construction, a parse that
+  raised, a parse with `config_path`, a parse with a key that the model does
+  not know, and a config that returned, which has no traced call). The
+  oracle script gives exit code 0 on that trace, and exit code 1 for a
+  changed input of each map, for another parse tree, and for each refused
+  call. On the recorded traces of the 2 proof nodes, the oracle script gives
+  exit code 1 for a changed config file, a changed lint option, a CLI error
+  that names another file, from another function, or not first, the names
+  of the configs in an error of `from_kwargs`, and no CLI input.
 
 ### Config model
 
@@ -775,10 +846,41 @@ defaults (`FluffConfig.from_root` in the folder, with an empty home).
      Linter construction, outside each traced call, whose config the trace
      can give to the CLI, and only if the CLI run gives the same error
      first. The case is `lint -` with an empty stdin; the map does not
-     prove that other commands give the error. An error of a FluffConfig
-     construction is recorded and refused. An error of another function
-     is not traced: the node has no call for it, and the assert citations
-     (limit 3) are the check.
+     prove that other commands give the error. An error of another
+     function is not traced: the node has no call for it, and the assert
+     citations (limit 3) are the check.
+   - Error of a FluffConfig construction (T8 and T19: trace oracle and case
+     runner, extension 4): only `FluffConfig` (configs and overrides),
+     `from_kwargs`, and `from_string` (with no override, or with the
+     overrides `dialect`, `rules`, and `exclude_rules`). The `.sqlfluff`
+     file of `FluffConfig` is a model of its inputs, not a proof of a
+     config: the construction gives no config. The proof is the error of
+     the CLI run: the same type and message (the first line), from
+     `FluffConfig.from_root` or `FluffConfig.verify_dialect_specified`. The
+     map allows one difference of the message: the name of the configs or
+     the overrides of `FluffConfig` in the test, and the name of the file
+     of the case in the CLI. An error of `from_path` or `from_root` (config
+     files of a folder tree) is recorded and refused: the trace gives no
+     folder tree to the CLI.
+   - Simple-API parse with a config (T19): `sqlfluff.parse` with `sql` and
+     `config` (the simple API ignores `dialect`), no `config_path`, in the
+     submodule root. The proof is the CLI run in process (limit 6): its
+     parse tree must be the tree that the call returned. A call that raised
+     (`APIParsingError`) is refused: the parse command gives a tree with
+     unparsable parts and no such error.
+   - A FluffConfig loader call that returns (for example
+     `FluffConfig.from_string`, `from_path`, `from_kwargs`, or
+     `FluffConfig(...)`) is not a traced call (T19). The test reads the
+     config object in Python (`get`, `get_section`, and the templater
+     object). The CLI shows such a config only by its effect on a command
+     (the Linter maps of T3, T16, and T17) or in the verbose output (`-vv`,
+     "Raw Config"), which prints each key of the internal config of sqlfluff
+     (for example `rust_parser_max_iterations`) and is not a behavior of the
+     config files. Thus a case of such a node has no traced call, and the
+     oracle fails closed on it (limit 2). The other functions of the config
+     tests (the loader functions of `sqlfluff.core.config.loader`,
+     `validate_config_dict`, `iter_intermediate_paths`, `paths_from_path`)
+     are not traced either.
    - Each other call that raises, or a CLI command that ends with an
      exception other than `SystemExit`, is a failed check. Thus a node
      that expects such an exception is an error now.
@@ -815,7 +917,11 @@ defaults (`FluffConfig.from_root` in the folder, with an empty home).
    changes process state outside its result: the `sqlfluff` loggers
    (`propagate=False`, a log handler, levels) and the globals of colorama
    (`colorama.init`). The trace saves this state before the run and restores
-   it after (a node of the T17 test tree checks it). The CLI runs of the
+   it after (a node of the T17 test tree checks it). T19 (trace oracle and
+   case runner, extension 4) adds the same CLI run (`lint [options] -`) for
+   an error of a FluffConfig construction, and a run of `parse -f json -` in
+   a new folder for each simple-API parse with a config, with the same save
+   and restore. The CLI runs of the
    templater map (limit 10, scope `s6`) save and restore the same state
    (the teardown of each node of the test tree of the templater map,
    `harness/tests/fixtures/s6/tree/`, checks it). These calls read no

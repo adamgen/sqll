@@ -58,3 +58,51 @@ nodes:
               min_count: 1
             - select: {code: AM04}
               count: 0
+  # T19 (trace oracle and case runner, extension 4; goal: the trace oracle
+  # maps and proves each config call of the config nodes that a CLI command
+  # shows, and fails closed on each other call): 2 proof nodes of the error
+  # map of a FluffConfig construction. The trace records the error and runs
+  # "lint -" in a new folder with the inputs of the construction: the configs
+  # (with the overrides in [sqlfluff]) as the .sqlfluff file, or the
+  # arguments of FluffConfig.from_kwargs as lint options. The CLI gives the
+  # same error first, so the trace oracle maps the error to the case.
+  #
+  # FluffConfig(configs=...) with the removed value rules:L003:
+  # lint_templated_tokens. The CLI loads the .sqlfluff file with
+  # FluffConfig.from_root; its message names that file where the message of
+  # the test names '<provided configs>'.
+  - node: test/core/config/fluffconfig_test.py::test__config__validate_configs_indirect
+    asserts:
+      L247:raises: ["outdated:exit_code", "outdated:stdout.contains[0]"]
+    cases:
+      - name: outdated
+        run: cli
+        argv: [lint, "-"]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\n\n[sqlfluff:rules:L003]\nlint_templated_tokens = True\n"
+        stdin: ""
+        checks:
+          exit_code: 2
+          stdout:
+            contains:
+              - "Error loading config: Config file '{tmp}/.sqlfluff' set an outdated config value rules:L003:lint_templated_tokens.\n"
+  # FluffConfig.from_kwargs() with no dialect. Each CLI command loads its
+  # config with require_dialect=False and checks the dialect later
+  # (FluffConfig.verify_dialect_specified): the same error, as a user error
+  # on stderr with exit code 2.
+  - node: test/core/config/fluffconfig_test.py::test__config_missing_dialect
+    asserts:
+      L239:raises: ["no_dialect:exit_code", "no_dialect:stderr.contains[0]"]
+      L241: ["no_dialect:stderr.contains[0]"]
+    cases:
+      - name: no_dialect
+        run: cli
+        argv: [lint, "-"]
+        cwd: tmp
+        stdin: ""
+        checks:
+          exit_code: 2
+          stderr:
+            contains:
+              - "User Error: No dialect was specified. You must configure a dialect or specify one on the command line using --dialect after the command."

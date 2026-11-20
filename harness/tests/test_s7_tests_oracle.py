@@ -108,6 +108,13 @@ FIX_RUN = (
     "the violations of the fix run are not the violations of a lint run; the"
     " lint command cannot show them"
 )
+# The proof nodes of T19 (trace oracle and case runner, extension 4): an
+# error of FluffConfig(configs=...), whose CLI message names the .sqlfluff
+# file of the case, and an error of FluffConfig.from_kwargs() that the CLI
+# gives from its dialect check.
+FLUFFCONFIG = "test/core/config/fluffconfig_test.py"
+OUTDATED = f"{FLUFFCONFIG}::test__config__validate_configs_indirect"
+NO_DIALECT = f"{FLUFFCONFIG}::test__config_missing_dialect"
 
 
 def check(tool="sqlfluff", trace=None, nodes=None, report=None, records=NONE):
@@ -147,17 +154,17 @@ def test_the_oracle_agrees_with_each_converted_case(tool):
     assert report_ids == [n.id for n in CASES.nodes]
     # The 15 pilot nodes of T2, the 23 rule nodes of T6, the 2 proof nodes
     # of T16, the 2 proof nodes of T17, the 49 rule nodes of T7, the 15
-    # Jinja rule nodes of T18, the 1 Rust dispatch node of T8, and the 5 rule
-    # nodes of T22.
-    assert result["counts"]["agree"] == result["counts"]["nodes"] == 112
+    # Jinja rule nodes of T18, the 1 Rust dispatch node of T8, the 5 rule
+    # nodes of T22, and the 2 config proof nodes of T19.
+    assert result["counts"]["agree"] == result["counts"]["nodes"] == 114
     status = {n["id"]: n["results"][tool]["status"] for n in REPORT["nodes"]}
     for node in result["nodes"]:
         assert node["trace"] == status[node["id"]], node["id"]
         assert node["pytest"] == {"pass": "passed", "fail": "failed"}[node["trace"]]
         assert node["errors"] == []
-    # Each assert of the source tests: 223 (97 before T7, 184 before T18,
-    # 213 before T8, 214 before T22), each cited by a check.
-    assert result["counts"]["asserts"] == 223
+    # Each assert of the source tests: 226 (97 before T7, 184 before T18,
+    # 213 before T8, 214 before T22, 223 before T19), each cited by a check.
+    assert result["counts"]["asserts"] == 226
     assert result["counts"]["not_reproduced"] == 0
     internal = [e["id"] for e in REPORT["excluded"] if e["class"] == "python-internal"]
     assert [n["id"] for n in result["python_internal"]] == internal
@@ -229,6 +236,23 @@ def test_design_record_gives_the_limits():
         "8. `--rust`",
     ):
         assert item in section, item
+    # T19 (trace oracle and case runner, extension 4): each new map in "Trace
+    # oracle", and its limits.
+    words = " ".join(section.split())
+    for text in (
+        "Error of a FluffConfig construction (T8 and T19",
+        "Simple-API parse with a config (T19)",
+        "A FluffConfig loader call that returns",
+    ):
+        assert text in words, text
+    oracle_section = DESIGN[DESIGN.index("## Trace oracle") :]
+    oracle_words = " ".join(oracle_section[: oracle_section.index("\n## ")].split())
+    for text in (
+        "Maps of T19",
+        "Error of a FluffConfig construction: the CLI input of",
+        "Simple-API parse with a config (`sqlfluff.parse(sql, config=C)`)",
+    ):
+        assert text in oracle_words, text
 
 
 # Mutations of a case. Each one must make the oracle fail.
@@ -822,8 +846,8 @@ TRACE_MUTATIONS = [
     ),
     (
         "an error of a function that the map does not know",
-        lambda t: _call(t, REJECTED)["inputs"].update(function="FluffConfig"),
-        "of FluffConfig; the oracle maps only an error of",
+        lambda t: _call(t, REJECTED)["inputs"].update(function="FluffConfig.from_path"),
+        "of FluffConfig.from_path; the oracle maps only an error of",
     ),
     (
         "an error with no CLI input",
@@ -1202,6 +1226,32 @@ def test_a_changed_map_case_makes_the_oracle_exit_1(
     assert len(errors) == len(oracle.TOOLS), errors
 
 
+# T19: a changed config of a FluffConfig error, and a lint option that the
+# arguments of FluffConfig.from_kwargs do not give.
+MAP_EXIT_MUTATIONS += [
+    (
+        "a changed config of a FluffConfig error",
+        OUTDATED,
+        lambda n: n.cases[0].files.update(
+            {".sqlfluff": "[sqlfluff]\ndialect = ansi\ntemplater = raw\n"}
+        ),
+        "case outdated: input files",
+    ),
+    (
+        "a lint option of a FluffConfig.from_kwargs error",
+        NO_DIALECT,
+        lambda n: setattr(n.cases[0], "argv", ["lint", "--rules", "LT01", "-"]),
+        "case no_dialect: input argv",
+    ),
+    (
+        "a config file of a FluffConfig.from_kwargs error",
+        NO_DIALECT,
+        lambda n: n.cases[0].files.update({".sqlfluff": "[sqlfluff]\nrules = LT01\n"}),
+        "case no_dialect: input files",
+    ),
+]
+
+
 # An unmapped call gives exit code 1 and a message: a config with a key that
 # the map does not know (trace-nodes records the error, see
 # test_trace_step_maps_the_calls_of_t16), and a Linter method that the
@@ -1312,6 +1362,83 @@ UNMAPPED = [
         " RuleSet.get_rulepack: the config model:"
         " rules:capitalisation.types:capitalisation_policy: the map knows only"
         " the keys of the default config and the extra keys",
+    ),
+]
+
+
+_OUTDATED_ERROR = _call(TRACES["sqlfluff"], OUTDATED)["error"]
+_NO_DIALECT_ERROR = _call(TRACES["sqlfluff"], NO_DIALECT)["error"]
+
+
+def _cli_error(node_id, **change):
+    def run(trace):
+        error = _call(trace, node_id)["cli"]["errors"][0]
+        for key, value in change.items():
+            error[key] = value(error[key]) if callable(value) else value
+
+    return run
+
+
+# T19: an error of a FluffConfig construction that the CLI gives with another
+# file name, from a function that does not load or check the config, or not
+# first; and one with no CLI input.
+UNMAPPED += [
+    (
+        "a FluffConfig error that names another file in the CLI run",
+        _cli_error(OUTDATED, error=lambda e: e.replace(".sqlfluff", "setup.cfg")),
+        f"error: sqlfluff: {OUTDATED}: case outdated: the CLI does not give the"
+        f" same error: the test gets {_OUTDATED_ERROR!r} from FluffConfig, the CLI"
+        " run gets [{'function': 'FluffConfig.from_root', 'error':"
+        f" {_OUTDATED_ERROR.replace('<provided configs>', '{tmp}/setup.cfg')!r}}}]",
+    ),
+    (
+        "a FluffConfig error that the CLI gives from another function",
+        _cli_error(NO_DIALECT, function="Linter"),
+        f"error: sqlfluff: {NO_DIALECT}: case no_dialect: the CLI does not give the"
+        f" same error: the test gets {_NO_DIALECT_ERROR!r} from"
+        " FluffConfig.from_kwargs, the CLI run gets [{'function': 'Linter',"
+        f" 'error': {_NO_DIALECT_ERROR!r}}}]",
+    ),
+    (
+        "a FluffConfig error that the CLI does not give first",
+        lambda t: _call(t, NO_DIALECT)["cli"]["errors"].insert(
+            0, {"function": "FluffConfig.from_root", "error": "SQLFluffUserError: x"}
+        ),
+        f"error: sqlfluff: {NO_DIALECT}: case no_dialect: the CLI does not give the"
+        f" same error: the test gets {_NO_DIALECT_ERROR!r} from"
+        " FluffConfig.from_kwargs, the CLI run gets [{'function':"
+        " 'FluffConfig.from_root', 'error': 'SQLFluffUserError: x'},"
+        " {'function': 'FluffConfig.verify_dialect_specified', 'error':"
+        f" {_NO_DIALECT_ERROR!r}}}]",
+    ),
+    (
+        "the name of the configs in the error of FluffConfig.from_kwargs",
+        lambda t: _call(t, NO_DIALECT).update(
+            error="SQLFluffUserError: Config file '<provided configs>' x"
+        )
+        or _cli_error(
+            NO_DIALECT,
+            function="FluffConfig.from_root",
+            error="SQLFluffUserError: Config file '{tmp}/.sqlfluff' x",
+        )(t),
+        f"error: sqlfluff: {NO_DIALECT}: case no_dialect: the CLI does not give the"
+        " same error: the test gets \"SQLFluffUserError: Config file '<provided"
+        " configs>' x\" from FluffConfig.from_kwargs, the CLI run gets"
+        " [{'function': 'FluffConfig.from_root', 'error': \"SQLFluffUserError:"
+        " Config file '{tmp}/.sqlfluff' x\"}]",
+    ),
+    (
+        "a FluffConfig error with no CLI input",
+        lambda t: _call(t, OUTDATED).pop("cli")
+        and _call(t, OUTDATED)["inputs"].update(
+            no_cli_input="FluffConfig.from_path failed: the trace gives the CLI"
+            " only the inputs of FluffConfig, from_kwargs, and from_string, not"
+            " config files"
+        ),
+        f"error: sqlfluff: {OUTDATED}: case outdated: the error {_OUTDATED_ERROR!r}"
+        " of FluffConfig: FluffConfig.from_path failed: the trace gives the CLI"
+        " only the inputs of FluffConfig, from_kwargs, and from_string, not config"
+        " files",
     ),
 ]
 
@@ -2245,8 +2372,17 @@ def test_trace_step_maps_the_calls_of_t17(tmp_path):
         " other than config, dialect, rules, and exclude_rules",
         "test_linter_error": "case lint: the CLI does not give the same error: the"
         " test gets \"KeyError: 'Unknown dialect'\" from Linter, the CLI run gets []",
-        "test_config_error": "of FluffConfig; the oracle maps only an error of"
-        " ['RuleSet.get_rulepack', 'Linter', 'FluffConfig.from_string']",
+        # T19 (trace oracle and case runner, extension 4) maps an error of
+        # FluffConfig, but this one only if the CLI gives it first: the test
+        # gets the dialect error, the CLI (require_dialect=False) gets the
+        # templater error.
+        "test_config_error": "case lint: the CLI does not give the same error: the"
+        " test gets 'SQLFluffUserError: No dialect was specified. You must"
+        " configure a dialect or specify one on the command line using --dialect"
+        " after the command. Available dialects:' from FluffConfig, the CLI run"
+        " gets [{'function': 'FluffConfig.from_root', 'error':"
+        " \"SQLFluffUserError: Requested templater 'nope' which is not currently"
+        ' available. Try one of raw, jinja, python, placeholder"}]',
         "test_rulepack_error_unknown_key": "the config model:"
         " rules:capitalisation.types:capitalisation_policy: the map knows only"
         " the keys of the default config",
@@ -2294,8 +2430,12 @@ def test_trace_step_maps_the_calls_of_t17(tmp_path):
         data = {**helper_data, "calls": [call]}
         errors = oracle.check_node(node, data, "pass", root, []).errors
         assert error in errors, (error, errors)
+    # T19 gives the configs of a FluffConfig error to the CLI as a .sqlfluff
+    # file (before T19: no CLI input).
     config_error = traced[name + "test_config_error"]["calls"][0]["inputs"]
-    assert config_error["no_cli_input"].startswith("the FluffConfig construction")
+    assert config_error["cli_input"] == {
+        "files": {".sqlfluff": "[sqlfluff]\ntemplater = nope\n"}
+    }
     # The CLI run of the Linter error gave exit code 2 with no Linter error.
     linter_error = traced[name + "test_linter_error"]["calls"][0]["cli"]
     assert linter_error["argv"] == ["lint", "--dialect", "not_a_dialect", "-"]
@@ -2723,12 +2863,20 @@ def test_trace_step_maps_the_calls_of_t8(tmp_path, monkeypatch, capsys):
     changed.cases[0].checks["stdout"]["contains"] = ["User Error"]
     assert _run_tree_oracle(monkeypatch, tmp_path, root, trace, [changed]) == 1
     assert "check 2" in capsys.readouterr().err
-    # With overrides, the trace has no CLI input: the oracle refuses it.
+    # With overrides: T8 refused them. T19 (trace oracle and case runner,
+    # extension 4) gives the overrides dialect, rules, and exclude_rules as
+    # lint options (a CLI option is an override); the test tree of T19 has
+    # the refusal of each other override.
     overrides = traced[name + "test_string_error_overrides"]
-    assert "cli" not in overrides["calls"][0]
+    assert overrides["calls"][0]["cli"]["argv"] == ["lint", "--dialect", "ansi", "-"]
+    with_options = copy.deepcopy(case)
+    with_options.argv = ["lint", "--dialect", "ansi", "-"]
+    node = _tree_node(root, name + "test_string_error_overrides", [with_options])
+    result = oracle.check_node(node, overrides, "pass", root, [])
+    assert result.errors == [] and result.trace == "pass", result.errors
     node = _tree_node(root, name + "test_string_error_overrides", [case])
     errors = oracle.check_node(node, overrides, "pass", root, []).errors
-    assert any("FluffConfig.from_string with overrides" in e for e in errors), errors
+    assert any("case rejected: input argv" in e for e in errors), errors
 
     # A spy node is python-internal: it has a Linter string call and a mock.
     spy = traced[name + "test_spy"]
@@ -3047,6 +3195,376 @@ def test_the_oracle_script_on_the_maps_of_t22(tmp_path, monkeypatch, capsys):
         assert f"error: sqlfluff: {name}{test}: " in err and error in err, err
 
 
+# T19 (trace oracle and case runner, extension 4; goal: the trace oracle maps
+# and proves each config call of the config nodes that a CLI command shows,
+# and fails closed on each other call): the trace step and the oracle on a
+# sixth test tree, with the oracle tools. An error of a FluffConfig
+# construction maps to "lint [options] -" in a folder with the .sqlfluff file
+# of its inputs, if the CLI run gives the same error first; a simple-API
+# parse with a config maps to "parse -f json -", if the parse tree of the CLI
+# run is the tree of the call. Each other config call is an error with a
+# message.
+
+TREE_T19 = """
+import pytest
+import sqlfluff
+from sqlfluff.core import FluffConfig
+from sqlfluff.core.errors import SQLFluffUserError
+
+OUTDATED = {
+    "core": {"dialect": "ansi"},
+    "rules": {"L003": {"lint_templated_tokens": True}},
+}
+BAD_TEMPLATER = "[sqlfluff]\\ntemplater = nope\\n"
+BAD_FILE = "[sqlfluff]\\ndialect = ansi\\ntemplater = nope\\n"
+ANSI = {"dialect": "ansi"}
+SQL = "SELECT a  FROM b\\n"
+
+
+def test_configs_error():
+    with pytest.raises(SQLFluffUserError):
+        FluffConfig(configs=OUTDATED)
+
+
+def test_overrides_error():
+    with pytest.raises(SQLFluffUserError):
+        FluffConfig(configs={"core": ANSI}, overrides={"templater": "nope"})
+
+
+def test_kwargs_error():
+    with pytest.raises(SQLFluffUserError):
+        FluffConfig.from_kwargs(rules=["LT01", "LT02"])
+
+
+def test_string_overrides_error():
+    with pytest.raises(SQLFluffUserError):
+        FluffConfig.from_string(BAD_TEMPLATER, overrides={"dialect": "ansi"})
+
+
+def test_parse_config():
+    config = FluffConfig(overrides={"dialect": "ansi"})
+    assert sqlfluff.parse(SQL, config=config)
+
+
+def test_path_error(tmp_path):
+    (tmp_path / ".sqlfluff").write_text(BAD_FILE)
+    with pytest.raises(SQLFluffUserError):
+        FluffConfig.from_path(str(tmp_path))
+
+
+def test_root_error(tmp_path, monkeypatch):
+    (tmp_path / ".sqlfluff").write_text(BAD_FILE)
+    monkeypatch.chdir(tmp_path)
+    with pytest.raises(SQLFluffUserError):
+        FluffConfig.from_root()
+
+
+def test_extra_config_path():
+    with pytest.raises(SQLFluffUserError):
+        FluffConfig(overrides={"templater": "nope"}, extra_config_path="x.cfg")
+
+
+def test_list_value():
+    with pytest.raises(SQLFluffUserError):
+        core = {"dialect": "ansi", "templater": "nope", "ignore": ["parsing"]}
+        FluffConfig(configs={"core": core})
+
+
+def test_string_other_override():
+    with pytest.raises(SQLFluffUserError):
+        overrides = {"dialect": "ansi", "max_line_length": 10}
+        FluffConfig.from_string(BAD_TEMPLATER, overrides=overrides)
+
+
+def test_other_cli_error():
+    with pytest.raises(KeyError):
+        FluffConfig.from_kwargs(dialect="not_a_dialect")
+
+
+def test_verify_outside():
+    config = FluffConfig(require_dialect=False)
+    with pytest.raises(SQLFluffUserError):
+        config.verify_dialect_specified()
+
+
+def test_parse_raises():
+    with pytest.raises(sqlfluff.api.APIParsingError):
+        sqlfluff.parse("SELECT (", config=FluffConfig(overrides=ANSI))
+
+
+def test_parse_config_path():
+    config = FluffConfig(overrides={"dialect": "ansi"})
+    assert sqlfluff.parse(SQL, config=config, config_path="x.cfg")
+
+
+def test_parse_unknown_key():
+    config = FluffConfig(configs={"core": {"dialect": "ansi", "not_a_key": 1}})
+    assert sqlfluff.parse(SQL, config=config)
+
+
+def test_returned_config():
+    config = FluffConfig.from_string("[sqlfluff]\\ndialect = mysql\\n")
+    assert config.get("dialect") == "mysql"
+"""
+T19_OUTDATED = (
+    "[sqlfluff]\ndialect = ansi\n\n"
+    "[sqlfluff:rules:L003]\nlint_templated_tokens = True\n"
+)
+T19_TEMPLATER = "Requested templater 'nope' which is not currently available."
+T19_DIALECT = "User Error: No dialect was specified."
+T19_PARSE_CONFIG = "[sqlfluff]\ndialect = ansi\n"
+T19_FILES_ONLY = (
+    "failed: the trace gives the CLI only the inputs of FluffConfig, from_kwargs,"
+    " and from_string, not config files"
+)
+T19_REFUSED = {
+    "test_path_error": "of FluffConfig.from_path; the oracle maps only an error of"
+    f" {list(oracle.ERROR_FUNCTIONS)} (FluffConfig.from_path {T19_FILES_ONLY})",
+    "test_root_error": "of FluffConfig.from_root; the oracle maps only an error of"
+    f" {list(oracle.ERROR_FUNCTIONS)} (FluffConfig.from_root {T19_FILES_ONLY})",
+    "test_extra_config_path": "of FluffConfig: the FluffConfig arguments"
+    " ['extra_config_path']: the trace gives the CLI only configs and overrides",
+    "test_list_value": "of FluffConfig: the config model: core:ignore: the value"
+    " ['parsing'] is not a scalar",
+    "test_string_other_override": "of FluffConfig.from_string:"
+    " FluffConfig.from_string with the overrides ['max_line_length']: the lint"
+    " options give only dialect, rules, and exclude_rules as texts",
+    "test_other_cli_error": "the CLI does not give the same error: the test gets"
+    " \"KeyError: 'Unknown dialect'\" from FluffConfig.from_kwargs, the CLI run"
+    " gets []",
+    "test_verify_outside": "of FluffConfig.verify_dialect_specified; the oracle maps"
+    " only an error of",
+    "test_parse_raises": "the simple-API parse with a config raised APIParsingError:",
+    "test_parse_config_path": "simple-API argument config_path='x.cfg' with a"
+    " config; the oracle maps only the default",
+    "test_parse_unknown_key": "the config of the simple-API parse: core:not_a_key:"
+    " the map knows only the keys of the default config and the extra keys",
+    "test_returned_config": "cases with no traced call: ['x']",
+}
+
+
+def _t19_good() -> dict[str, list[caseformat.Case]]:
+    def error_case(name, argv, stream, text, files=None):
+        return _cli_case(
+            name,
+            argv,
+            2,
+            cwd="tmp",
+            stdin="",
+            files=files or {},
+            checks={stream: {"contains": [text]}},
+        )
+
+    return {
+        # The configs as the .sqlfluff file: the CLI message names that file.
+        "test_configs_error": [
+            error_case(
+                "outdated",
+                ["lint", "-"],
+                "stdout",
+                "Error loading config: Config file '{tmp}/.sqlfluff' set an"
+                " outdated config value rules:L003:lint_templated_tokens.",
+                {".sqlfluff": T19_OUTDATED},
+            )
+        ],
+        # The overrides in [sqlfluff] over the configs.
+        "test_overrides_error": [
+            error_case(
+                "templater",
+                ["lint", "-"],
+                "stdout",
+                T19_TEMPLATER,
+                {".sqlfluff": "[sqlfluff]\ndialect = ansi\ntemplater = nope\n"},
+            )
+        ],
+        # The arguments of from_kwargs as lint options; the CLI checks the
+        # dialect later.
+        "test_kwargs_error": [
+            error_case(
+                "no_dialect",
+                ["lint", "--rules", "LT01,LT02", "-"],
+                "stderr",
+                T19_DIALECT,
+            )
+        ],
+        # The config string as the .sqlfluff file, its overrides as options.
+        "test_string_overrides_error": [
+            error_case(
+                "templater",
+                ["lint", "--dialect", "ansi", "-"],
+                "stdout",
+                T19_TEMPLATER,
+                {".sqlfluff": "[sqlfluff]\ntemplater = nope\n"},
+            )
+        ],
+        # A simple-API parse with a config.
+        "test_parse_config": [
+            _cli_case(
+                "parse",
+                ["parse", "-f", "json", "-"],
+                0,
+                cwd="tmp",
+                stdin="SELECT a  FROM b\n",
+                files={".sqlfluff": T19_PARSE_CONFIG},
+                checks={"stdout": {"contains": ['"select_clause"']}},
+            )
+        ],
+    }
+
+
+def _t19_trace(tmp_path, tool="sqlfluff") -> tuple[Path, str, dict]:
+    root = tmp_path / "root"
+    (root / "test").mkdir(parents=True, exist_ok=True)
+    (root / "test" / "t19_test.py").write_text(TREE_T19)
+    name = "test/t19_test.py::"
+    names = [
+        line[4:].split("(")[0]
+        for line in TREE_T19.splitlines()
+        if line.startswith("def test_")
+    ]
+    out = tmp_path / f"trace-{tool}.json"
+    python = tools_dir() / f"{tool}-oracle" / "bin" / "python"
+    flags = ["--rust"] if tool == oracle.RUST_TOOL else []
+    proc = subprocess.run(
+        [str(python), str(SCRIPTS / "trace-nodes"), *flags, "--out", str(out)]
+        + ["--root", str(root)]
+        + [name + n for n in names],
+        capture_output=True,
+        text=True,
+        env=_env(tmp_path),
+        check=False,
+    )
+    assert proc.returncode == 0, proc.stderr[-3000:]
+    trace = json.loads(out.read_text())
+    outcomes = {n: trace["nodes"][name + n]["outcome"] for n in names}
+    assert outcomes == dict.fromkeys(names, "passed")
+    assert oracle.trace_errors(trace, tool, [name + n for n in names]) == []
+    return root, name, trace
+
+
+@needs_oracles
+@pytest.mark.parametrize("tool", oracle.TOOLS)
+def test_trace_step_maps_the_calls_of_t19(tmp_path, tool):
+    root, name, trace = _t19_trace(tmp_path, tool)
+    traced = trace["nodes"]
+    for test, cases in _t19_good().items():
+        node = _tree_node(root, name + test, cases)
+        result = oracle.check_node(node, traced[name + test], "pass", root, [])
+        assert result.errors == [] and result.trace == "pass", (test, result.errors)
+    # The CLI runs of the proofs: the function of each first error.
+    first = {
+        test: traced[name + test]["calls"][0]["cli"]["errors"][:1]
+        for test in [
+            "test_configs_error",
+            "test_overrides_error",
+            "test_kwargs_error",
+            "test_string_overrides_error",
+        ]
+    }
+    assert {t: [e["function"] for e in errors] for t, errors in first.items()} == {
+        "test_configs_error": ["FluffConfig.from_root"],
+        "test_overrides_error": ["FluffConfig.from_root"],
+        "test_kwargs_error": ["FluffConfig.verify_dialect_specified"],
+        "test_string_overrides_error": ["FluffConfig.from_root"],
+    }
+    # The CLI message names the .sqlfluff file of the case; the test message
+    # names the configs.
+    configs = traced[name + "test_configs_error"]["calls"][0]
+    assert "'<provided configs>'" in configs["error"]
+    assert first["test_configs_error"][0]["error"] == configs["error"].replace(
+        "<provided configs>", "{tmp}/.sqlfluff"
+    )
+    parse = traced[name + "test_parse_config"]["calls"][0]
+    assert parse["cli"]["argv"] == ["parse", "-f", "json", "-"]
+    assert json.loads(parse["cli"]["stdout"]) == [
+        {"filepath": "stdin", "segments": parse["outputs"]}
+    ]
+    # Each config call that a CLI command does not show is an error with a
+    # message.
+    for test, error in T19_REFUSED.items():
+        node = _tree_node(root, name + test, [_cli_case("x", ["lint", "-"], 2)])
+        errors = oracle.check_node(node, traced[name + test], "pass", root, []).errors
+        assert any(error in e for e in errors), (test, errors)
+
+
+# A changed input of each map of T19 gives exit code 1 with a message, also a
+# changed proof of the parse map.
+T19_EXIT_MUTATIONS = [
+    (
+        "configs of FluffConfig",
+        "test_configs_error",
+        lambda c: c.files.update({".sqlfluff": T19_OUTDATED.replace("L003", "L004")}),
+        "case outdated: input files",
+    ),
+    (
+        "overrides of FluffConfig",
+        "test_overrides_error",
+        lambda c: c.argv.insert(1, "--dialect"),
+        "case templater: input argv",
+    ),
+    (
+        "arguments of FluffConfig.from_kwargs",
+        "test_kwargs_error",
+        lambda c: c.argv.__setitem__(2, "LT01"),
+        "case no_dialect: input argv",
+    ),
+    (
+        "overrides of FluffConfig.from_string",
+        "test_string_overrides_error",
+        lambda c: c.argv.__delitem__(slice(1, 3)),
+        "case templater: input argv",
+    ),
+    (
+        "SQL of a simple-API parse",
+        "test_parse_config",
+        lambda c: setattr(c, "stdin", "SELECT a FROM b\n"),
+        "case parse: input stdin",
+    ),
+    (
+        "config of a simple-API parse",
+        "test_parse_config",
+        lambda c: c.files.update({".sqlfluff": "[sqlfluff]\ndialect = mysql\n"}),
+        "case parse: input files",
+    ),
+]
+
+
+@needs_oracles
+def test_the_oracle_script_on_the_maps_of_t19(tmp_path, monkeypatch, capsys):
+    root, name, trace = _t19_trace(tmp_path)
+    good = _t19_good()
+
+    def nodes():
+        return [_tree_node(root, name + t, copy.deepcopy(c)) for t, c in good.items()]
+
+    assert _run_tree_oracle(monkeypatch, tmp_path, root, trace, nodes()) == 0
+    out = capsys.readouterr()
+    assert "error:" not in out.err
+    assert f'"agree": {len(good)}' in out.out
+    for _, test, change, error in T19_EXIT_MUTATIONS:
+        changed = nodes()
+        node = next(n for n in changed if n.id == name + test)
+        change(node.cases[0])
+        assert _run_tree_oracle(monkeypatch, tmp_path, root, trace, changed) == 1
+        lines = capsys.readouterr().err.splitlines()
+        assert f"error: sqlfluff: {name}{test}: {error}" in "\n".join(lines), lines
+    # The parse tree of the CLI run must be the tree of the call.
+    changed = copy.deepcopy(trace)
+    changed["nodes"][name + "test_parse_config"]["calls"][0]["outputs"] = {"file": None}
+    assert _run_tree_oracle(monkeypatch, tmp_path, root, changed, nodes()) == 1
+    err = capsys.readouterr().err
+    assert (
+        f"error: sqlfluff: {name}test_parse_config: case parse: the parse tree of"
+        " the CLI run is not the parse tree that the simple-API parse returned"
+    ) in err, err
+    # Each config call that a CLI command does not show.
+    for test, error in T19_REFUSED.items():
+        node = _tree_node(root, name + test, [_cli_case("x", ["lint", "-"], 2)])
+        assert _run_tree_oracle(monkeypatch, tmp_path, root, trace, [node]) == 1
+        err = capsys.readouterr().err
+        assert f"error: sqlfluff: {name}{test}: " in err and error in err, err
+
+
 S7CONFIG_CHECK = """
 import json
 import sys
@@ -3081,6 +3599,13 @@ def extra(*path, value="v"):
         target = target.setdefault(key, {})
     target[path[-1]] = value
     return out
+
+
+def inputs(configs, overrides):
+    try:
+        return s7config.input_text(configs, overrides)
+    except s7config.ConfigMapError as exc:
+        return "error: " + str(exc)
 
 
 missing = change()
@@ -3122,6 +3647,18 @@ print(json.dumps({
     "list": text(change({"rules": ["a"]})),
     "missing": text(missing),
     "differences": s7config.differences(REF, change({"dialect": "ansi"})),
+    # T19: the inputs of a FluffConfig construction that failed.
+    "inputs": inputs(
+        {"core": {"dialect": "ansi", "templater": "x"}, "rules": {"L003": {"a": True}}},
+        {"templater": "nope"},
+    ),
+    "inputs none": inputs(None, None),
+    "inputs overrides only": inputs(None, {"dialect": "ansi"}),
+    "inputs list": inputs({"core": {"ignore": ["parsing"]}}, None),
+    "inputs path": inputs({"templater": {"jinja": {"library_path": "x"}}}, None),
+    "inputs top key": inputs({"dialect": "ansi"}, None),
+    "inputs not a mapping": inputs(None, ["dialect"]),
+    "inputs name": inputs({"core": {"a b": 1}}, None),
 }))
 """
 
@@ -3191,6 +3728,26 @@ def test_config_model(tmp_path):
         "error: the config has no value for the default keys ['rules:x.y:name']"
     )
     assert out["differences"] == ["core:dialect"]
+    # T19: each value of the configs, and the overrides in [sqlfluff] over
+    # them; a key that the default config does not have is allowed (the proof
+    # is the error of the CLI run).
+    assert out["inputs"] == (
+        "[sqlfluff]\ndialect = ansi\ntemplater = nope\n\n"
+        "[sqlfluff:rules:L003]\na = True\n"
+    )
+    assert out["inputs none"] == ""
+    assert out["inputs overrides only"] == "[sqlfluff]\ndialect = ansi\n"
+    assert out["inputs list"] == (
+        "error: core:ignore: the value ['parsing'] is not a scalar"
+    )
+    assert out["inputs path"].startswith(
+        "error: templater:jinja:library_path: a path key"
+    )
+    assert out["inputs top key"] == "error: dialect: not a key of a config section"
+    assert out["inputs not a mapping"] == (
+        "error: the overrides ['dialect'] are not a mapping"
+    )
+    assert out["inputs name"] == "error: core:a b: a name that an ini file cannot give"
 
 
 def test_status_file_gives_the_recorded_result():

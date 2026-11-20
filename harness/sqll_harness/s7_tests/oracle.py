@@ -26,6 +26,13 @@ case.sql and the .sqlfluff file of the context and the config. The trace
 runs these cases and proves that the templater result of each run is the
 result of the call.
 
+T19 (trace oracle and case runner, extension 4) maps an error of a
+FluffConfig construction (FluffConfig, from_kwargs, from_string with
+overrides) to "lint [options] -" with the .sqlfluff file of its inputs, if
+the CLI run gives the same error first, and a simple-API parse with a config
+to "parse -f json -", if the parse tree of the CLI run is the tree of the
+call. Each other config call is an error.
+
 A node of the class python-internal must pass and have no traced CLI or
 simple-API call; a Linter or test helper call is allowed only in a mock or
 spy node (decision 3), and with the tool sqlfluff the node can skip with no
@@ -179,16 +186,28 @@ HELPER_CALLS = {
         "config": "fluff_config",
     },
 }
+# The functions of the CLI that load and check its config: each command loads
+# it with FluffConfig.from_root (require_dialect=False) and checks the dialect
+# later with FluffConfig.verify_dialect_specified (T19).
+CONFIG_CHECKS = ("FluffConfig.from_root", "FluffConfig.verify_dialect_specified")
 # The functions whose error the oracle maps to a CLI case, if the CLI run of
-# the trace gives the same error (an error call), each with the function of
-# the CLI run that must give it. The CLI loads its config with
-# FluffConfig.from_root; a config string of FluffConfig.from_string is its
-# .sqlfluff file (T8).
+# the trace gives the same error (an error call), each with the functions of
+# the CLI run that can give it. A config string of FluffConfig.from_string is
+# its .sqlfluff file (T8), and its overrides are lint options (T19). The
+# configs and overrides of FluffConfig are a .sqlfluff file, and the arguments
+# of FluffConfig.from_kwargs are lint options (T19: trace oracle and case
+# runner, extension 4).
 ERROR_FUNCTIONS = {
-    "RuleSet.get_rulepack": "RuleSet.get_rulepack",
-    "Linter": "Linter",
-    "FluffConfig.from_string": "FluffConfig.from_root",
+    "RuleSet.get_rulepack": ("RuleSet.get_rulepack",),
+    "Linter": ("Linter",),
+    "FluffConfig.from_string": CONFIG_CHECKS,
+    "FluffConfig": CONFIG_CHECKS,
+    "FluffConfig.from_kwargs": CONFIG_CHECKS,
 }
+# The names that FluffConfig gives to its configs and overrides in an error
+# message (validate_config_dict). The CLI loads them from the .sqlfluff file
+# of the case, so its message names that file (T19).
+INPUT_NAMES = ("<provided configs>", "<provided overrides>")
 # The skip reason of a node that needs sqlfluffrs (the Rust dispatch tests).
 # A python-internal node can have it with the tool sqlfluff (T8).
 RUST_ONLY_SKIP = "Skipped: Rust parser not available"
@@ -558,6 +577,8 @@ def _api(call: dict[str, Any]) -> list[Mapped | OracleError]:
     if inputs["cwd"] != ROOT_MARK:
         raise OracleError(f"a simple-API call in the folder {inputs['cwd']}")
     if inputs.get("config") is not None:
+        if inputs["function"] == "parse":
+            return _api_parse(call)
         return _api_config(call)
     for key in ("config_path", "fix_even_unparsable"):
         if inputs.get(key) is not None:
@@ -629,6 +650,84 @@ def _api_config(call: dict[str, Any]) -> list[Mapped | OracleError]:
                 " of the CLI model"
             )
     return [mapped]
+
+
+# The argv of the case of a simple-API parse with a config (T19).
+PARSE_ARGV = ("parse", "-f", "json", "-")
+
+
+def _api_parse(call: dict[str, Any]) -> list[Mapped]:
+    """A simple-API parse with a config (T19: trace oracle and case runner,
+    extension 4). sqlfluff.api.simple then uses only the config (not dialect
+    or config_path) and calls Linter(config=config).parse_string(sql). The
+    case is "parse -f json -" with the SQL on stdin in a temporary folder with
+    the .sqlfluff file of the config model. The trace ran that case in
+    process (cli); the map holds only if the config model maps the config,
+    the CLI loads that file as the same config, the call returned, and the
+    parse tree of the CLI run is the tree that the call returned."""
+    inputs = call["inputs"]
+    if inputs.get("config_path") is not None:
+        raise OracleError(
+            f"simple-API argument config_path={inputs['config_path']!r} with a"
+            " config; the oracle maps only the default"
+        )
+    model = inputs.get("config_file")
+    if model is None:
+        raise OracleError("a simple-API parse with a config has no config model")
+    if "error" in model:
+        raise OracleError(f"the config of the simple-API parse: {model['error']}")
+    if inputs["config_proof"]:
+        raise OracleError(
+            f"the CLI config from the {CONFIG_FILE} file is not the config of the"
+            f" call: the keys {inputs['config_proof']} are different"
+        )
+    sql = inputs["sql"]
+    if not isinstance(sql, str) or "\r" in sql:
+        raise OracleError(
+            "the SQL is not text with no carriage return; the CLI reads stdin as text"
+        )
+    if "raised" in call:
+        raise OracleError(
+            f"the simple-API parse with a config raised {call['raised']}; the"
+            " parse command shows no such error"
+        )
+    proof = call.get("cli")
+    if proof is None or "outputs" not in call:
+        raise OracleError("the trace has no CLI run of the simple-API parse")
+    if "error" in proof:
+        raise OracleError(f"the CLI run of the simple-API parse: {proof['error']}")
+    files = {CONFIG_FILE: model["text"]} if model["text"] else {}
+    if proof["argv"] != list(PARSE_ARGV) or proof["files"] != files:
+        raise OracleError(
+            f"the trace ran {proof['argv']} with the files {sorted(proof['files'])},"
+            f" not the case of the map"
+        )
+    want = [{"filepath": STDIN_FNAME, "segments": call["outputs"]}]
+    try:
+        got = json.loads(proof["stdout"])
+    except ValueError:
+        got = None
+    if proof.get("exception") or proof["stdin"] != sql or got != want:
+        raise OracleError(
+            "the parse tree of the CLI run is not the parse tree that the"
+            " simple-API parse returned"
+        )
+    mapped = {
+        "run": "cli",
+        "argv": list(PARSE_ARGV),
+        "stdin": sql,
+        "cwd": "tmp",
+        "files": files,
+    }
+    outputs = {
+        "exit_code": proof["exit_code"],
+        "stdout": proof["stdout"],
+        "stderr": proof["stderr"],
+        "records": None,
+        "files": proof["files_after"],
+        "exception": None,
+    }
+    return [Mapped("simple-API call", mapped, outputs)]
 
 
 # The templater map. The templaters that the map knows, the SQL file of a
@@ -766,19 +865,38 @@ def _helper(call: dict[str, Any]) -> list[Mapped | OracleError]:
     return out
 
 
+def _same_error(function: str, error: str, cli_error: Any) -> bool:
+    """True if the CLI run gives the error of the test: the same type and
+    message. For a FluffConfig construction (T19), the message of the CLI can
+    name its config file ({tmp}/.sqlfluff) where the message of the test names
+    the configs or the overrides (INPUT_NAMES): the case gives them in that
+    file."""
+    if cli_error == error:
+        return True
+    if function != "FluffConfig" or not isinstance(cli_error, str):
+        return False
+    case_file = f"'{TMP_MARK}/{CONFIG_FILE}'"
+    return any(
+        f"'{name}'" in error and error.replace(f"'{name}'", case_file, 1) == cli_error
+        for name in INPUT_NAMES
+    )
+
+
 def _error(call: dict[str, Any]) -> list[Mapped | OracleError]:
     """An error call: a function of ERROR_FUNCTIONS that raised outside each
     traced call (for example in pytest.raises). It is the CLI case "lint
     [options] -" with an empty stdin in a temporary folder with the
-    .sqlfluff file of the config, only if the CLI run of the trace raised
-    the same error (type and message) in the same function first."""
+    .sqlfluff file of the config, only if the first error of the CLI run of
+    the trace is the same error (type and message, _same_error) of a CLI
+    function of ERROR_FUNCTIONS for that function."""
     inputs = call["inputs"]
     function = inputs["function"]
     error = call["error"]
     if function not in ERROR_FUNCTIONS:
+        reason = inputs.get("no_cli_input")
         raise OracleError(
             f"the error {error!r} of {function}; the oracle maps only an error"
-            f" of {list(ERROR_FUNCTIONS)}"
+            f" of {list(ERROR_FUNCTIONS)}" + (f" ({reason})" if reason else "")
         )
     if inputs["cwd"] != ROOT_MARK:
         raise OracleError(f"an error call in the folder {inputs['cwd']}")
@@ -787,8 +905,10 @@ def _error(call: dict[str, Any]) -> list[Mapped | OracleError]:
         reason = inputs.get("no_cli_input", "the trace has no CLI run")
         raise OracleError(f"the error {error!r} of {function}: {reason}")
     errors = proof["errors"]
-    cli_function = ERROR_FUNCTIONS[function]
-    if not errors or errors[0] != {"function": cli_function, "error": error}:
+    first = errors[0] if errors else {}
+    if first.get("function") not in ERROR_FUNCTIONS[function] or not _same_error(
+        function, error, first.get("error")
+    ):
         raise OracleError(
             f"the CLI does not give the same error: the test gets {error!r} from"
             f" {function}, the CLI run gets {errors}"

@@ -70,7 +70,7 @@ def test_sqlfluff_has_no_known_failure():
 def test_the_other_tools_have_their_failures_with_a_reason():
     assert set(known.load(KNOWN, "sqlfluff-rs", SCOPE)) == {DIRECTED}
     sqruff = known.load(KNOWN, "sqruff", SCOPE)
-    assert len(sqruff) == 104 and DIALECT in sqruff
+    assert len(sqruff) == 106 and DIALECT in sqruff
     assert (
         "Keywords must be consistent."
         in known.load(KNOWN, "sqlfluff-rs", SCOPE)[DIRECTED]
