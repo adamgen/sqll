@@ -811,10 +811,52 @@ def _error(call: dict[str, Any]) -> list[Mapped | OracleError]:
     return [Mapped("error call", mapped, outputs)]
 
 
+# The reads of the result of a fix run with other violations than a lint run
+# that the map allows (T22): fix_string, which gives the fixed SQL of the fix
+# case. Each other read (for example violations, check_tuples, or
+# __iter__) can read the violations of the fix run.
+FIX_ONLY_READS = frozenset({"fix_string"})
+
+
+def _fix_only(call: dict[str, Any]) -> bool:
+    """True if a Linter string call with fix=True maps only to its fix case
+    (T22): the violations of the fix run are not the violations of a lint run
+    (the lint command cannot show them), the call is Linter.lint_string, and
+    the trace shows that the node reads only FIX_ONLY_READS of the result
+    after the call. False if the violations are the same (or the call has no
+    outputs). OracleError for each other call."""
+    out = call.get("outputs")
+    if out is None or "lint" not in out:
+        return False
+    if _without_fixes(out["records"]) == _without_fixes(out["lint"]["records"]):
+        return False
+    where = (
+        "the violations of the fix run are not the violations of a lint run;"
+        " the lint command cannot show them"
+    )
+    method = call["inputs"]["method"]
+    if method != "lint_string":
+        raise OracleError(
+            f"{where}, and the trace watches the reads only of the result of"
+            f" Linter.lint_string, not of Linter.{method}"
+        )
+    reads = call.get("reads")
+    if not isinstance(reads, list):
+        raise OracleError(f"{where}, and the trace has no reads of the result")
+    other = sorted(set(reads) - FIX_ONLY_READS)
+    if other:
+        raise OracleError(
+            f"{where}, and the node reads {other} of the result; the map allows"
+            f" only {sorted(FIX_ONLY_READS)}"
+        )
+    return True
+
+
 def map_call(call: dict[str, Any]) -> list[Mapped | OracleError]:
     """The cases of a traced call, in order. A Linter string call with fix
-    gives 2 cases (lint, then fix); each other call gives 1. An item that is
-    an OracleError is a case that the oracle cannot map."""
+    gives 2 cases (lint, then fix), or only the fix case (_fix_only, T22);
+    each other call gives 1. An item that is an OracleError is a case that
+    the oracle cannot map."""
     if "inputs_error" in call:
         raise OracleError(
             f"the trace could not read the inputs: {call['inputs_error']}"
@@ -825,8 +867,11 @@ def map_call(call: dict[str, Any]) -> list[Mapped | OracleError]:
     if kind == "linter":
         return _linter_path(call)
     if kind == "linter_string":
-        fix = call["inputs"]["options"].get("fix")
-        return _linter_string(call, ("lint", "fix") if fix else ("lint",))
+        if not call["inputs"]["options"].get("fix"):
+            return _linter_string(call, ("lint",))
+        if _fix_only(call):
+            return _linter_string(call, ("fix",))
+        return _linter_string(call, ("lint", "fix"))
     if kind == "api":
         return _api(call)
     if kind == "templater":

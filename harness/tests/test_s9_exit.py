@@ -20,8 +20,11 @@ DECISION = (REPO_ROOT / "docs" / "decisions" / "s9-corpus.md").read_text(
     encoding="utf8"
 )
 STATE = (
-    "- State: S9 approved (human owner, 2026-11-01) for sqlfluff, "
-    "`sqlfluff[rs]`, and sqruff. The sqll results come after S3b"
+    "- State: S9 (external corpus: large, complex SQL files from public "
+    "sources, with their source and license; the report shows parse "
+    "success and speed for each file, for each tool) approved (human "
+    "owner, 2026-11-01) for sqlfluff, `sqlfluff[rs]`, and sqruff. The sqll "
+    "results are in the baseline"
 )
 LARGE = 500_000
 BY_KEY = {(r["file"], r["tool"]): r for r in BASE["results"]}
