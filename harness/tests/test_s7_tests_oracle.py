@@ -96,6 +96,18 @@ CP01 = "test/rules/cp01_rust_dispatch_test.py"
 RUST_CONFIG_ERROR = f"{CP01}::test__use_rust_rules_requires_rust_parser"
 CP01_SPY = f"{CP01}::test__cp01_dispatch__engages_rust_only_when_enabled"
 CP01_MOCK = f"{CP01}::test__dispatch__rust_error_is_recoverable"
+# Nodes of T22 (convert the rule tests, part 3): a Linter string call with
+# fix=True whose violations are not those of a lint run (it maps only to its
+# fix case), and an error call with the capitalisation_policy of the
+# functions (an extra key of the config model).
+FIX_ONLY = next(n.id for n in CASES.nodes if "std_AL09_CP02_RF06[rules3-" in n.id)
+REJECTED_FUNCTIONS = (
+    "test/rules/std_test.py::test_improper_configs_are_rejected[rule_config_dict7]"
+)
+FIX_RUN = (
+    "the violations of the fix run are not the violations of a lint run; the"
+    " lint command cannot show them"
+)
 
 
 def check(tool="sqlfluff", trace=None, nodes=None, report=None, records=NONE):
@@ -135,16 +147,17 @@ def test_the_oracle_agrees_with_each_converted_case(tool):
     assert report_ids == [n.id for n in CASES.nodes]
     # The 15 pilot nodes of T2, the 23 rule nodes of T6, the 2 proof nodes
     # of T16, the 2 proof nodes of T17, the 49 rule nodes of T7, the 15
-    # Jinja rule nodes of T18, and the 1 Rust dispatch node of T8.
-    assert result["counts"]["agree"] == result["counts"]["nodes"] == 107
+    # Jinja rule nodes of T18, the 1 Rust dispatch node of T8, and the 5 rule
+    # nodes of T22.
+    assert result["counts"]["agree"] == result["counts"]["nodes"] == 112
     status = {n["id"]: n["results"][tool]["status"] for n in REPORT["nodes"]}
     for node in result["nodes"]:
         assert node["trace"] == status[node["id"]], node["id"]
         assert node["pytest"] == {"pass": "passed", "fail": "failed"}[node["trace"]]
         assert node["errors"] == []
-    # Each assert of the source tests: 214 (97 before T7, 184 before T18,
-    # 213 before T8), each cited by a check.
-    assert result["counts"]["asserts"] == 214
+    # Each assert of the source tests: 223 (97 before T7, 184 before T18,
+    # 213 before T8, 214 before T22), each cited by a check.
+    assert result["counts"]["asserts"] == 223
     assert result["counts"]["not_reproduced"] == 0
     internal = [e["id"] for e in REPORT["excluded"] if e["class"] == "python-internal"]
     assert [n["id"] for n in result["python_internal"]] == internal
@@ -292,6 +305,24 @@ def _layout_key(node):
 def _folder_config(node):
     files = node.cases[0].files
     files[".sqlfluff"] = files[".sqlfluff"].replace("another_table", "a_table")
+
+
+def _functions_policy(node):
+    files = node.cases[0].files
+    files[".sqlfluff"] = files[".sqlfluff"].replace(
+        "capitalisation.functions", "capitalisation.types"
+    )
+
+
+def _fix_only_stdin(node):
+    node.cases[0].stdin = node.cases[0].stdin.replace("I as I", "I")
+
+
+def _lint_case_of_fix_only(node):
+    lint = copy.deepcopy(node.cases[0])
+    lint.name, lint.argv = "lint", ["lint", "-f", "json", "-"]
+    lint.checks = {"exit_code": 1}
+    node.cases.insert(0, lint)
 
 
 CASE_MUTATIONS = [
@@ -1131,6 +1162,27 @@ MAP_EXIT_MUTATIONS = [
         _folder_config,
         "case lint_before: input files",
     ),
+    # T22: the capitalisation_policy of the functions, and a fix run with
+    # other violations than a lint run (only the fix case: a lint case of the
+    # call is an error).
+    (
+        "a changed rule section of the capitalisation_policy",
+        REJECTED_FUNCTIONS,
+        _functions_policy,
+        "case rejected: input files",
+    ),
+    (
+        "a changed stdin of a fix run with other violations",
+        FIX_ONLY,
+        _fix_only_stdin,
+        "case fix: input stdin",
+    ),
+    (
+        "a lint case of a fix run with other violations",
+        FIX_ONLY,
+        _lint_case_of_fix_only,
+        "case lint: input argv",
+    ),
 ]
 
 
@@ -1217,6 +1269,49 @@ UNMAPPED = [
         f"error: sqlfluff: {TEMPLATED}: case lint_after: the temporary folder"
         " has the config or ignore files ['.sqlfluff']; the run of the call in"
         " the folder gives other outputs: ['exit_code', 'files']",
+    ),
+    # T22: a fix run with other violations than a lint run whose result the
+    # node reads in another way than fix_string, with no reads in the trace,
+    # or of Linter.lint_string_wrapped; and the capitalisation_policy in a
+    # rule section that the map does not know.
+    (
+        "a read of the violations of a fix run with other violations",
+        lambda t: _call(t, FIX_ONLY)["reads"].append("violations"),
+        f"error: sqlfluff: {FIX_ONLY}: case fix: {FIX_RUN}, and the node reads"
+        " ['violations'] of the result; the map allows only ['fix_string']",
+    ),
+    (
+        "a special method of the result of a fix run with other violations",
+        lambda t: _call(t, FIX_ONLY)["reads"].append("__iter__"),
+        f"error: sqlfluff: {FIX_ONLY}: case fix: {FIX_RUN}, and the node reads"
+        " ['__iter__'] of the result; the map allows only ['fix_string']",
+    ),
+    (
+        "a fix run with other violations and no reads",
+        lambda t: _call(t, FIX_ONLY).pop("reads"),
+        f"error: sqlfluff: {FIX_ONLY}: case fix: {FIX_RUN}, and the trace has no"
+        " reads of the result",
+    ),
+    (
+        "a fix run with other violations of Linter.lint_string_wrapped",
+        lambda t: _call(t, FIX_ONLY)["inputs"].update(method="lint_string_wrapped"),
+        f"error: sqlfluff: {FIX_ONLY}: case fix: {FIX_RUN}, and the trace watches"
+        " the reads only of the result of Linter.lint_string, not of"
+        " Linter.lint_string_wrapped",
+    ),
+    (
+        "the capitalisation_policy in another rule section",
+        lambda t: _call(t, REJECTED_FUNCTIONS).pop("cli")
+        and _call(t, REJECTED_FUNCTIONS)["inputs"].update(
+            no_cli_input="the config model: rules:capitalisation.types:"
+            "capitalisation_policy: the map knows only the keys of the default"
+            " config and the extra keys"
+        ),
+        f"error: sqlfluff: {REJECTED_FUNCTIONS}: case rejected: the error"
+        f" {_call(TRACES['sqlfluff'], REJECTED_FUNCTIONS)['error']!r} of"
+        " RuleSet.get_rulepack: the config model:"
+        " rules:capitalisation.types:capitalisation_policy: the map knows only"
+        " the keys of the default config and the extra keys",
     ),
 ]
 
@@ -1996,8 +2091,9 @@ def test_config_error():
 
 
 def test_rulepack_error_unknown_key():
+    # T22 maps capitalisation_policy only in capitalisation.functions.
     config = FluffConfig(
-        configs={"rules": {"capitalisation.functions": {"capitalisation_policy": "x"}}},
+        configs={"rules": {"capitalisation.types": {"capitalisation_policy": "x"}}},
         overrides={"dialect": "ansi"},
     )
     with pytest.raises(ValueError):
@@ -2152,7 +2248,7 @@ def test_trace_step_maps_the_calls_of_t17(tmp_path):
         "test_config_error": "of FluffConfig; the oracle maps only an error of"
         " ['RuleSet.get_rulepack', 'Linter', 'FluffConfig.from_string']",
         "test_rulepack_error_unknown_key": "the config model:"
-        " rules:capitalisation.functions:capitalisation_policy: the map knows only"
+        " rules:capitalisation.types:capitalisation_policy: the map knows only"
         " the keys of the default config",
     }
     for test, error in refused.items():
@@ -2663,6 +2759,294 @@ def test_trace_step_maps_the_calls_of_t8(tmp_path, monkeypatch, capsys):
     assert errors and errors[0].startswith("the pytest outcome is skipped")
 
 
+# T22 (convert the rule tests, part 3; goal: each other rule node, not Rust
+# dispatch, is a black-box case or is excluded with a class): the trace step
+# and the oracle on a fifth test tree. A Linter.lint_string call with
+# fix=True whose violations are not those of a lint run maps only to its fix
+# case if the node reads only fix_string() of the result; the
+# capitalisation_policy of the functions is an extra key of the config
+# model. Each other call is an error with a message.
+
+TREE_T22 = """
+import pytest
+from sqlfluff.core import FluffConfig, Linter
+from sqlfluff.core.rules import get_ruleset
+
+SQL = "select a, I as I from b\\n"
+FIXED = "select a, i from b\\n"
+
+
+def linter():
+    return Linter(dialect="ansi", rules=["AL09", "CP02"])
+
+
+def rulepack(section, **values):
+    config = FluffConfig(
+        configs={"rules": {section: values}}, overrides={"dialect": "ansi"}
+    )
+    with pytest.raises(ValueError):
+        get_ruleset().get_rulepack(config)
+
+
+def test_fix_only():
+    result = linter().lint_string(SQL, fix=True)
+    fixed, _ = result.fix_string()
+    assert fixed == FIXED
+    assert linter().lint_string(fixed).check_tuples() == []
+
+
+def test_same_violations():
+    linter = Linter(dialect="ansi", rules=["LT01"])
+    result = linter.lint_string("SELECT a  FROM b\\n", fix=True)
+    assert result.fix_string()[0] == "SELECT a FROM b\\n"
+
+
+def test_functions_policy():
+    rulepack("capitalisation.functions", capitalisation_policy="blah")
+
+
+def test_reads_violations():
+    result = linter().lint_string(SQL, fix=True)
+    assert len(result.violations) == 2
+
+
+def test_reads_check_tuples():
+    result = linter().lint_string(SQL, fix=True)
+    assert result.check_tuples() == [("AL09", 1, 11), ("CP02", 1, 11)]
+
+
+def test_unpacks_the_result():
+    path, *_ = linter().lint_string(SQL, fix=True)
+    assert path == "<string input>"
+
+
+def test_wrapped():
+    result = linter().lint_string_wrapped(SQL, fix=True)
+    assert result.paths[0].files[0].fix_string()[0] == FIXED
+
+
+def test_types_policy():
+    rulepack("capitalisation.types", capitalisation_policy="blah")
+
+
+def test_functions_other_key():
+    rulepack("capitalisation.functions", capitalisation_policy="blah", not_a_key="x")
+"""
+T22_SQL = "select a, I as I from b\n"
+T22_FIXED = "select a, i from b\n"
+T22_CONFIG = "[sqlfluff]\ndialect = ansi\nrules = AL09,CP02\n"
+T22_ERROR_CONFIG = (
+    "[sqlfluff]\ndialect = ansi\n\n"
+    "[sqlfluff:rules:capitalisation.functions]\ncapitalisation_policy = blah\n"
+)
+T22_REFUSED = {
+    "test_reads_violations": f"case fix: {FIX_RUN}, and the node reads"
+    " ['violations'] of the result; the map allows only ['fix_string']",
+    "test_reads_check_tuples": f"case fix: {FIX_RUN}, and the node reads"
+    " ['check_tuples'] of the result; the map allows only ['fix_string']",
+    "test_unpacks_the_result": f"case fix: {FIX_RUN}, and the node reads"
+    " ['__iter__'] of the result; the map allows only ['fix_string']",
+    "test_wrapped": f"case fix: {FIX_RUN}, and the trace watches the reads only"
+    " of the result of Linter.lint_string, not of Linter.lint_string_wrapped",
+    "test_types_policy": "the config model:"
+    " rules:capitalisation.types:capitalisation_policy: the map knows only the"
+    " keys of the default config and the extra keys",
+    "test_functions_other_key": "the config model:"
+    " rules:capitalisation.functions:not_a_key: the map knows only the keys of"
+    " the default config and the extra keys",
+}
+
+
+def _t22_good() -> dict[str, list[caseformat.Case]]:
+    def stdin_case(name, argv, exit_code, sql, config, **checks):
+        return _cli_case(
+            name,
+            argv,
+            exit_code,
+            stdin=sql,
+            cwd="tmp",
+            files={".sqlfluff": config},
+            checks=checks,
+        )
+
+    return {
+        # The fix call maps only to its fix case; then the lint of the fixed
+        # SQL.
+        "test_fix_only": [
+            stdin_case(
+                "fix",
+                ["fix", "-"],
+                0,
+                T22_SQL,
+                T22_CONFIG,
+                stdout={"equals": T22_FIXED},
+            ),
+            stdin_case(
+                "lint_fixed",
+                ["lint", "-f", "json", "-"],
+                0,
+                T22_FIXED,
+                T22_CONFIG,
+                violations=[{"records": []}],
+            ),
+        ],
+        # The same violations: the lint case and the fix case, as before T22.
+        "test_same_violations": [
+            stdin_case("lint", ["lint", "-f", "json", "-"], 1, TREE_SQL, T17_CONFIG),
+            stdin_case(
+                "fix",
+                ["fix", "-"],
+                0,
+                TREE_SQL,
+                T17_CONFIG,
+                stdout={"equals": TREE_FIXED},
+            ),
+        ],
+        # The capitalisation_policy of the functions in an error call.
+        "test_functions_policy": [
+            _cli_case(
+                "rejected",
+                ["lint", "-"],
+                2,
+                cwd="tmp",
+                stdin="",
+                files={".sqlfluff": T22_ERROR_CONFIG},
+                checks={
+                    "stderr": {
+                        "contains": [
+                            "User Error: Invalid option 'blah' for"
+                            " capitalisation_policy configuration."
+                        ]
+                    }
+                },
+            )
+        ],
+    }
+
+
+def _t22_trace(tmp_path) -> tuple[Path, str, dict]:
+    root = tmp_path / "root"
+    (root / "test").mkdir(parents=True)
+    (root / "test" / "t22_test.py").write_text(TREE_T22)
+    name = "test/t22_test.py::"
+    names = [
+        line[4:].split("(")[0]
+        for line in TREE_T22.splitlines()
+        if line.startswith("def test_")
+    ]
+    out = tmp_path / "trace.json"
+    python = tools_dir() / "sqlfluff-oracle" / "bin" / "python"
+    proc = subprocess.run(
+        [str(python), str(SCRIPTS / "trace-nodes"), "--out", str(out)]
+        + ["--root", str(root)]
+        + [name + n for n in names],
+        capture_output=True,
+        text=True,
+        env=_env(tmp_path),
+        check=False,
+    )
+    assert proc.returncode == 0, proc.stderr[-3000:]
+    trace = json.loads(out.read_text())
+    outcomes = {n: trace["nodes"][name + n]["outcome"] for n in names}
+    assert outcomes == dict.fromkeys(names, "passed")
+    assert oracle.trace_errors(trace, "sqlfluff", [name + n for n in names]) == []
+    return root, name, trace
+
+
+@needs_oracles
+def test_trace_step_maps_the_calls_of_t22(tmp_path):
+    root, name, trace = _t22_trace(tmp_path)
+    traced = trace["nodes"]
+    good = _t22_good()
+    for test, cases in good.items():
+        node = _tree_node(root, name + test, cases)
+        result = oracle.check_node(node, traced[name + test], "pass", root, [])
+        assert result.errors == [] and result.trace == "pass", (test, result.errors)
+    # The reads of each watched result: only a fix run with other violations
+    # than its lint run is watched.
+    reads = {
+        test: [c.get("reads") for c in data["calls"]]
+        for test, data in ((t, traced[name + t]) for t in [*good, *T22_REFUSED])
+    }
+    assert reads == {
+        "test_fix_only": [["fix_string"], None],
+        "test_same_violations": [None],
+        "test_functions_policy": [None],
+        "test_reads_violations": [["violations"]],
+        "test_reads_check_tuples": [["check_tuples"]],
+        "test_unpacks_the_result": [["__iter__"]],
+        "test_wrapped": [None],
+        "test_types_policy": [None],
+        "test_functions_other_key": [None],
+    }
+    fix = traced[name + "test_fix_only"]["calls"][0]["outputs"]
+    assert fix["records"] != fix["lint"]["records"]
+    error = traced[name + "test_functions_policy"]["calls"][0]
+    assert error["cli"]["errors"] == [
+        {"function": "RuleSet.get_rulepack", "error": error["error"]}
+    ]
+    # Each call that the maps do not know is an error with a message.
+    for test, error in T22_REFUSED.items():
+        node = _tree_node(root, name + test, [_cli_case("fix", ["fix", "-"], 0)])
+        errors = oracle.check_node(node, traced[name + test], "pass", root, []).errors
+        assert any(error in e for e in errors), (test, errors)
+
+
+# A changed input of each map of T22 gives exit code 1 with a message.
+T22_EXIT_MUTATIONS = [
+    (
+        "fix run with other violations",
+        "test_fix_only",
+        0,
+        lambda c: setattr(c, "stdin", T22_FIXED),
+        "case fix: input stdin",
+    ),
+    (
+        "a lint case of a fix run with other violations",
+        "test_fix_only",
+        0,
+        lambda c: setattr(c, "argv", ["lint", "-f", "json", "-"]),
+        "case fix: input argv",
+    ),
+    (
+        "capitalisation_policy of the functions",
+        "test_functions_policy",
+        0,
+        lambda c: c.files.update(
+            {".sqlfluff": T22_ERROR_CONFIG.replace("functions", "types")}
+        ),
+        "case rejected: input files",
+    ),
+]
+
+
+@needs_oracles
+def test_the_oracle_script_on_the_maps_of_t22(tmp_path, monkeypatch, capsys):
+    root, name, trace = _t22_trace(tmp_path)
+    good = _t22_good()
+
+    def nodes():
+        return [_tree_node(root, name + t, copy.deepcopy(c)) for t, c in good.items()]
+
+    assert _run_tree_oracle(monkeypatch, tmp_path, root, trace, nodes()) == 0
+    out = capsys.readouterr()
+    assert "error:" not in out.err
+    assert f'"agree": {len(good)}' in out.out
+    for _, test, index, change, error in T22_EXIT_MUTATIONS:
+        changed = nodes()
+        node = next(n for n in changed if n.id == name + test)
+        change(node.cases[index])
+        assert _run_tree_oracle(monkeypatch, tmp_path, root, trace, changed) == 1
+        lines = capsys.readouterr().err.splitlines()
+        assert f"error: sqlfluff: {name}{test}: {error}" in "\n".join(lines), lines
+    # An unmapped call: each refused node of the tree with a case.
+    for test, error in T22_REFUSED.items():
+        node = _tree_node(root, name + test, [_cli_case("fix", ["fix", "-"], 0)])
+        assert _run_tree_oracle(monkeypatch, tmp_path, root, trace, [node]) == 1
+        err = capsys.readouterr().err
+        assert f"error: sqlfluff: {name}{test}: " in err and error in err, err
+
+
 S7CONFIG_CHECK = """
 import json
 import sys
@@ -2718,6 +3102,15 @@ print(json.dumps({
     ),
     "number text in context": text(
         extra("templater", "jinja", "context", "n", value="123")
+    ),
+    "functions policy": text(
+        extra("rules", "capitalisation.functions", "capitalisation_policy")
+    ),
+    "types policy": text(
+        extra("rules", "capitalisation.types", "capitalisation_policy")
+    ),
+    "other functions key": text(
+        extra("rules", "capitalisation.functions", "not_a_key")
     ),
     "same": text(change()),
     "derived": text(change({"color": True})),
@@ -2776,6 +3169,17 @@ def test_config_model(tmp_path):
     )
     assert out["number text in context"] == (
         "error: templater:jinja:context:n: the text '123' loads as another value"
+    )
+    # T22: the capitalisation_policy of the functions maps; the same key in
+    # another rule section, and another key of the functions, are errors.
+    assert out["functions policy"] == (
+        "[sqlfluff:rules:capitalisation.functions]\ncapitalisation_policy = v\n"
+    )
+    assert out["types policy"] == (
+        f"error: rules:capitalisation.types:capitalisation_policy: {unknown}"
+    )
+    assert out["other functions key"] == (
+        f"error: rules:capitalisation.functions:not_a_key: {unknown}"
     )
     assert out["path"].startswith("error: core:a_path: a path key")
     assert out["loads as another value"] == (
