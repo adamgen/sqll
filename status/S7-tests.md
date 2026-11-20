@@ -50,8 +50,8 @@ The S7-tests track writes this file (PROCESS.md, "Tracks").
     #110.
 
   T22 (convert the rule tests, part 3; goal: each other rule node, not Rust
-  dispatch, is a black-box case or is excluded with a class) is in review. The
-  other 10 tasks are not started. The table "S7-tests tasks" gives each task
+  dispatch, is a black-box case or is excluded with a class) is in review (PR
+  #112). The other 10 tasks are not started. The table "S7-tests tasks" gives each task
   with its goal, in the order of the plan.
 - The S7 test conversion needs only S1 (binary test harness: run the
   sqlfluff test fixtures through a binary, not through function calls;
@@ -138,7 +138,7 @@ The rows of the table are in the order of the plan.
 | T17 | Trace oracle and case runner, extension 2: Linter arguments `dialect`, `rules`, and `exclude_rules`; the test helper `assert_rule_raises_violations_in_file`; an error of `RuleSet.get_rulepack` or of a Linter construction that the CLI gives; at most 2 proof nodes | The trace oracle maps and proves the calls of the remaining rule nodes that T16 did not map, and fails closed on each other call | Done (PR #101) |
 | T7 | Convert the rule tests, part 2: the rule nodes of 14 source files that are not simple-API nodes, not Rust dispatch, and not Jinja nodes (for example the nodes that give a config, or that call `Linter`); it uses the maps of T16 and T17 | The other rule nodes, not Rust dispatch and not Jinja, are black-box cases | Done (PR #105) |
 | T18 | Convert the rule tests, part 3, the Jinja rule nodes: `std_JJ01_test.py` (5), `std_LT01_jinja_alignment_test.py` (8), the 2 `templated_*` nodes of `std_ST12_test.py`, and the 2 `test__cli__command__fix_templated` nodes of `std_roundtrip_test.py`; with the maps that they need: the extra keys of the config model (the Jinja context and delimiters, the keys of a layout type) and a config file in a temporary folder of a CLI call in the sqlfluff root | Each rule node that needs the Jinja templater is a black-box case marked for the Jinja templater stone | Done (PR #109) |
-| T22 | Convert the rule tests, part 3: the 5 other rule nodes that the oracle refuses (`test_improper_configs_are_rejected[rule_config_dict7]` and 4 `test__rules__std_AL09_CP02_RF06` nodes), with the 2 maps that they need: the `capitalisation_policy` of functions (a key that the default config does not have), and a fix run whose violations are not those of a lint run | Each other rule node, not Rust dispatch, is a black-box case or is excluded with a class | In review |
+| T22 | Convert the rule tests, part 3: the 5 other rule nodes that the oracle refuses (`test_improper_configs_are_rejected[rule_config_dict7]` and 4 `test__rules__std_AL09_CP02_RF06` nodes), with the 2 maps that they need: the `capitalisation_policy` of functions (a key that the default config does not have), and a fix run whose violations are not those of a lint run | Each other rule node, not Rust dispatch, is a black-box case or is excluded with a class | In review (PR #112) |
 | T8 | Rust dispatch tests (cp01, cp03, cp04): classification and conversion; with the maps that the nodes need: an error of `FluffConfig.from_string` that the CLI shows, a mock or spy node as `python-internal`, and a case that sets each key of the `sqlfluff-rs` layer | Each Rust dispatch node is converted or excluded by decision 3 | Done (PR #110) |
 | T19 | Trace oracle and case runner, extension 4: the config calls of the `config` and `config_fixtures` nodes (FluffConfig loaders and errors) that a CLI command shows | The trace oracle maps and proves each config call of the config nodes that a CLI command shows, and fails closed on each other call | Not started |
 | T9 | Convert the config tests: the config fixture tests (users of `test/fixtures/config`) and the other config tests (`test/core/config`); it needs the maps of T19 | The 140 nodes of `config` and `config_fixtures` are black-box cases or excluded with a class | Not started |
@@ -1015,8 +1015,11 @@ excluded.
   of one run changes by more than the 5 new nodes add. The 5 nodes add 9
   cases for each tool (each a CLI run) and 5 traced nodes for each oracle
   tool. No tool code, adapter, or benchmark input changes (each changed path
-  is a path of the S7-tests track), so no benchmark changes; the pull request
-  gives the `bench compare` result.
+  is a path of the S7-tests track), so no benchmark changes. `sqll-harness
+  bench compare` of 2 full-profile reports (dialect ansi, sqlfluff and
+  sqruff; BASE main `7ab4c39`, NEW `c5e2afd`; this machine, serial, machine
+  lock): 20 compared, slower 0, faster 0, same 19, not valid in both 1
+  (sqruff `fix/ansi/large`: warmup timeout in both).
 
 ## Recorded results
 
