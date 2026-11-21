@@ -114,6 +114,7 @@ import speed_profile  # noqa: E402
 import sqlfluffrs_probe as probe  # noqa: E402
 
 from sqll_harness import paths  # noqa: E402
+from sqll_harness.adapters import sqll as sqll_adapter  # noqa: E402
 from sqll_harness.bench import compare  # noqa: E402
 from sqll_harness.bench import definitions as bench_definitions  # noqa: E402
 from sqll_harness.bench import inputs as bench_inputs  # noqa: E402
@@ -192,9 +193,10 @@ def dump(data: Any) -> str:
 
 
 @contextmanager
-def machine_lock(path: Path = LOCK_FILE) -> Iterator[str]:
-    """Hold the machine lock. Yield how. Refused if another process holds
-    it: the script does not wait."""
+def machine_lock(path: Path | None = None) -> Iterator[str]:
+    """Hold the machine lock (default: LOCK_FILE). Yield how. Refused if
+    another process holds it: the script does not wait."""
+    path = path or LOCK_FILE
     if speed_check.held_by_parent(path):
         yield "held by a parent process"
         return
@@ -509,23 +511,133 @@ def run_inside(scratch: Path, lock: Path) -> None:
 # run: the builds (host).
 
 
-def docker_argv(scratch: Path, image: str, lock: Path = LOCK_FILE) -> list[str]:
-    """The session container: as scripts/speed-check (no network, the
-    repository read-only), with the machine lock read-only and this script."""
-    argv = speed_check.docker_argv(scratch, image)
-    tail = argv.index(image)
-    mounts = ["-v", f"{lock}:{C_LOCK}:ro"]
-    head = argv[:tail] + mounts
-    return (
-        head
-        + [image, C_PYTHON, "scripts/s5/speed", "run-inside"]
-        + [
-            "--scratch",
-            C_SCRATCH,
-            "--lock",
-            C_LOCK,
-        ]
+# The files that make a sqll binary: the source of the source hash
+# (sqll_adapter.source_hash), the pinned sqlfluff (the dialect tables), and
+# the build script.
+BUILD_INPUTS = (
+    *sqll_adapter.SOURCE_FILES,
+    *sqll_adapter.SOURCE_DIRS,
+    "third_party/sqlfluff",
+    "scripts/build-sqll",
+)
+
+
+def same_build(st: probe.Steps, base: str, head: str) -> bool:
+    """True if BASE and HEAD have the same build inputs (git diff)."""
+    proc = st.run(
+        "BASE and HEAD: the build inputs",
+        ["git", "diff", "--quiet", base, head, "--", *BUILD_INPUTS],
+        ROOT,
+        check=False,
     )
+    if proc.returncode not in (0, 1):
+        raise Refused(f"git diff of the build inputs: exit code {proc.returncode}")
+    return proc.returncode == 0
+
+
+def root_is(st: probe.Steps, commit: str) -> bool:
+    """True if the checkout of this script is the commit, with no change of
+    a tracked file."""
+    now = speed_check.git(st, "the commit of the checkout", "rev-parse", "HEAD")
+    changes = speed_check.git(
+        st, "the changes of the checkout", "status", "--porcelain", "-uno"
+    )
+    return now == commit and not changes
+
+
+def build_head(st: probe.Steps, scratch: Path, commit: str) -> tuple[dict, Path]:
+    """Build sqll at HEAD. Return the build record and the source folder.
+    If the checkout of this script is HEAD with no change, the build is
+    there (scripts/build-sqll keeps its cargo output, so a second build is
+    fast); else in a new worktree (speed_check.build_role)."""
+    if not root_is(st, commit):
+        record = speed_check.build_role(st, scratch, "head", commit)
+        return record | {"source": "$SCRATCH/src/head"}, scratch / "src" / "head"
+    start = time.perf_counter()
+    st.run(
+        "head: scripts/build-sqll",
+        [ROOT / "scripts" / "build-sqll"],
+        ROOT,
+        set_env={"SQLL_TOOLS_DIR": str(paths.tools_dir())},
+        unset=("SQLL_TABLES_DIR", "CARGO_TARGET_DIR", "SQLL_BIN"),
+        log=scratch / "logs" / "head-build.log",
+    )
+    record = speed_check.collect_binary(ROOT, scratch / "bin" / "head")
+    return record | {
+        "build_s": round(time.perf_counter() - start, 1),
+        "source": "$REPO",
+    }, ROOT
+
+
+def build_base(
+    st: probe.Steps, scratch: Path, commit: str, head: str, head_source: Path
+) -> tuple[dict, Path]:
+    """Build sqll at BASE. Return the build record and the source folder. If
+    BASE and HEAD have the same build inputs, the BASE binary is a copy of
+    the HEAD binary; else a new worktree (speed_check.build_role)."""
+    if not same_build(st, commit, head):
+        record = speed_check.build_role(st, scratch, "base", commit)
+        return record | {"source": "$SCRATCH/src/base"}, scratch / "src" / "base"
+    folder = scratch / "bin" / "base"
+    folder.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(scratch / "bin" / "head" / "sqll", folder / "sqll")
+    record = speed_check.binary_record(folder / "sqll")
+    return record | {
+        "build_s": 0.0,
+        "source": "the HEAD build: BASE and HEAD have the same build inputs "
+        f"({', '.join(BUILD_INPUTS)}; git diff)",
+    }, head_source
+
+
+def container_path(scratch: Path, path: Path) -> str:
+    """The path in the container: the scratch folder is C_SCRATCH; the
+    repository has its host path."""
+    if path.is_relative_to(scratch):
+        return f"{C_SCRATCH}/{path.relative_to(scratch).as_posix()}".rstrip("/")
+    if path.is_relative_to(ROOT):
+        return str(path)
+    raise Refused(f"{path} is not in the scratch folder or the repository")
+
+
+def docker_argv(
+    scratch: Path,
+    image: str,
+    sources: Mapping[str, Path] | None = None,
+    lock: Path | None = None,
+) -> list[str]:
+    """The session container, as that of scripts/speed-check: no network,
+    the repository and its git data read-only, the scratch folder, and the
+    binaries and source folders of BASE and HEAD (sources: role -> source
+    folder; default: the worktrees of speed_check.build_role). Also the
+    machine lock (default: LOCK_FILE), read-only."""
+    lock = lock or LOCK_FILE
+    sources = sources or {r: scratch / "src" / r for r in ROLES}
+    argv = ["docker", "run", "--rm", "--network", "none"]
+    argv += ["-v", f"{ROOT}:{ROOT}:ro", "-v", f"{scratch}:{C_SCRATCH}"]
+    common = Path(
+        subprocess.run(
+            ["git", "rev-parse", "--path-format=absolute", "--git-common-dir"],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout.strip()
+    )
+    if not common.is_relative_to(ROOT):
+        # A linked worktree: its git data is in the common git folder.
+        argv += ["-v", f"{common}:{common}:ro"]
+    argv += ["-v", f"{lock}:{C_LOCK}:ro"]
+    env = {
+        "PYTHONPATH": f"{ROOT}/harness",
+        "SQLL_BIN": f"{C_SCRATCH}/bin/head/sqll",
+        sqll_adapter.SOURCE_ENV: container_path(scratch, sources["head"]),
+        sqll_adapter.BASE_BINARY_ENV: f"{C_SCRATCH}/bin/base/sqll",
+        sqll_adapter.BASE_SOURCE_ENV: container_path(scratch, sources["base"]),
+    }
+    for k, v in env.items():
+        argv += ["-e", f"{k}={v}"]
+    argv += ["-w", str(ROOT), image, C_PYTHON, "scripts/s5/speed", "run-inside"]
+    return argv + ["--scratch", C_SCRATCH, "--lock", C_LOCK]
 
 
 def run(
@@ -547,17 +659,18 @@ def run(
         docker = speed_check.output(
             st, "docker version", ["docker", "version", "-f", "{{.Server.Version}}"]
         )
-        builds = {}
+        builds, sources = {}, {}
         try:
-            for role in ROLES:
-                builds[role] = speed_check.build_role(
-                    st, scratch, role, commits[role]["commit"]
-                )
+            head = commits["head"]["commit"]
+            builds["head"], sources["head"] = build_head(st, scratch, head)
+            builds["base"], sources["base"] = build_base(
+                st, scratch, commits["base"]["commit"], head, sources["head"]
+            )
             load_before, waited = probe.wait_idle(IDLE_TIMEOUT_S)
             session_start = time.perf_counter()
             st.run(
                 "session",
-                docker_argv(scratch, image),
+                docker_argv(scratch, image, sources),
                 ROOT,
                 log=scratch / "logs" / "session.log",
                 timeout=SESSION_TIMEOUT_S,
