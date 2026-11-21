@@ -23,9 +23,9 @@
  },
  "counts": {
   "in_scope": 643,
-  "converted": 112,
+  "converted": 114,
   "excluded": 108,
-  "not_yet_converted": 423,
+  "not_yet_converted": 421,
   "needs_jinja": 16,
   "groups": {
    "cli": {
@@ -42,9 +42,9 @@
    },
    "config": {
     "in_scope": 137,
-    "converted": 2,
+    "converted": 4,
     "excluded": 0,
-    "not_yet_converted": 135
+    "not_yet_converted": 133
    },
    "config_fixtures": {
     "in_scope": 3,
@@ -62,27 +62,27 @@
  },
  "parity": {
   "sqlfluff": {
-   "nodes": 96,
-   "passed": 96,
+   "nodes": 98,
+   "passed": 98,
    "failed": 0,
    "error": 0,
    "percent_of_converted": 100.0,
-   "percent_of_in_scope": 14.93
+   "percent_of_in_scope": 15.24
   },
   "sqlfluff-rs": {
-   "nodes": 96,
-   "passed": 95,
+   "nodes": 98,
+   "passed": 97,
    "failed": 1,
    "error": 0,
-   "percent_of_converted": 98.96,
-   "percent_of_in_scope": 14.77
+   "percent_of_converted": 98.98,
+   "percent_of_in_scope": 15.09
   },
   "sqruff": {
-   "nodes": 96,
+   "nodes": 98,
    "passed": 8,
-   "failed": 88,
+   "failed": 90,
    "error": 0,
-   "percent_of_converted": 8.33,
+   "percent_of_converted": 8.16,
    "percent_of_in_scope": 1.24
   }
  },
@@ -387,6 +387,60 @@
      "failed_cases": [
       {
        "name": "glob_include",
+       "status": "fail",
+       "reason": "unsupported: sqlfluff CLI command 'lint' (the case has no sqruff translation)"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "test/core/config/fluffconfig_test.py::test__config_missing_dialect",
+   "group": "config",
+   "case_file": "core/config/fluffconfig_test.yml",
+   "cases": 1,
+   "needs_jinja": false,
+   "results": {
+    "sqlfluff": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqlfluff-rs": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqruff": {
+     "status": "fail",
+     "failed_cases": [
+      {
+       "name": "no_dialect",
+       "status": "fail",
+       "reason": "unsupported: sqlfluff CLI command 'lint' (the case has no sqruff translation)"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "test/core/config/fluffconfig_test.py::test__config__validate_configs_indirect",
+   "group": "config",
+   "case_file": "core/config/fluffconfig_test.yml",
+   "cases": 1,
+   "needs_jinja": false,
+   "results": {
+    "sqlfluff": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqlfluff-rs": {
+     "status": "pass",
+     "failed_cases": []
+    },
+    "sqruff": {
+     "status": "fail",
+     "failed_cases": [
+      {
+       "name": "outdated",
        "status": "fail",
        "reason": "unsupported: sqlfluff CLI command 'lint' (the case has no sqruff translation)"
       }

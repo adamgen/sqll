@@ -34,8 +34,20 @@ oracles do. It records, for each node:
   runs "lint -" with that input and an empty stdin in a new folder, in
   process, and records the outputs and the errors of the same functions in
   that CLI run (the proof that the CLI gives the same error). For an error
-  of FluffConfig.from_string with no overrides (T8), the CLI input is its
-  config string as the .sqlfluff file.
+  of FluffConfig.from_string (T8), the CLI input is its config string as the
+  .sqlfluff file, and its overrides dialect, rules, and exclude_rules as lint
+  options (T19). T19 (trace oracle and case runner, extension 4) adds the
+  CLI input of the other FluffConfig constructions: the configs and
+  overrides of FluffConfig as a .sqlfluff file (s7config.input_text), and the
+  arguments of FluffConfig.from_kwargs as lint options. An error of
+  FluffConfig.from_path or from_root (config files) has no CLI input. In the
+  CLI run, the errors of FluffConfig.verify_dialect_specified (the dialect
+  check of each CLI command) are recorded too, and the run folder is {tmp}
+  in each error.
+- A simple-API parse with a config (T19) also records the .sqlfluff text of
+  the config model of its config and the proof of it (as a Linter string
+  call does), and "cli": the run of "parse -f json -" with the SQL on stdin
+  in a new folder with that file, in process.
 - mocks (only if not empty): the target of each unittest.mock patch in the
   node (T8). skip_reason: the reason of a skipped node.
 - untraced: each sqlfluff CLI command (click Command.main, get_config of
@@ -347,6 +359,9 @@ class Tracer:
                         # The reads of the result after the call (T22): the
                         # list fills while the node runs on.
                         record["reads"] = context["reads"]
+                    if "proof_run" in context:
+                        # The CLI run of the proof of the call (T19).
+                        record["cli"] = plain(context["proof_run"])
                     sink.append(record)
 
             return wrapper
@@ -434,8 +449,14 @@ class Tracer:
         functions in the run."""
         from sqlfluff.cli import commands
 
-        files = cli_input.get("files", {})
         argv = [*cli_input.get("options", []), "-"]
+        return self.run_cli(commands.lint, argv, "", cli_input.get("files", {}))
+
+    def run_cli(self, command, argv: list[str], stdin: str, files: dict) -> dict:
+        """Run a CLI command with the argv and stdin in a new folder with the
+        files, in process (the CLI run of a proof). The outputs, and the errors
+        of the watched functions in the run; the folder is {tmp} in each
+        output and error."""
         folder = MKDTEMP(prefix="s7-error-")
         old = os.getcwd()
         self.proof_errors = []
@@ -445,17 +466,20 @@ class Tracer:
                 Path(folder, name).write_text(text, encoding="utf8")
             os.chdir(folder)
             with self.scope(PROOF):
-                result = self.invoke(CliRunner(), commands.lint, argv, input="")
+                result = self.invoke(CliRunner(), command, argv, input=stdin)
             os.chdir(old)
             out = {
-                "argv": ["lint", *argv],
-                "stdin": "",
+                "argv": [command.name, *argv],
+                "stdin": stdin,
                 "files": files,
                 "exit_code": result.exit_code,
                 "stdout": result.stdout.replace(folder, TMP_MARK),
                 "stderr": result.stderr.replace(folder, TMP_MARK),
                 "files_after": read_tree(folder),
-                "errors": list(self.proof_errors),
+                "errors": [
+                    {**e, "error": e["error"].replace(folder, TMP_MARK)}
+                    for e in self.proof_errors
+                ],
             }
             if result.exception is not None and not isinstance(
                 result.exception, SystemExit
@@ -630,9 +654,11 @@ def watch_reads(result) -> list[str]:
     return reads
 
 
-def install(tracer: Tracer) -> None:
+def install(tracer: Tracer, config_sig: inspect.Signature) -> None:
     """Patch the CLI runner, the simple API, the Linter, FluffConfig, the
-    RuleSet, the test helpers, and tempfile.mkdtemp."""
+    RuleSet, the test helpers, and tempfile.mkdtemp. config_sig: the
+    signature of FluffConfig.__init__ of sqlfluff (not of the wrapper of
+    force_rust)."""
     import sqlfluff
     import sqlfluff.api
     import sqlfluff.api.simple as simple
@@ -829,12 +855,38 @@ def install(tracer: Tracer) -> None:
             bound = sig.bind(*args, **kwargs)
             bound.apply_defaults()
             data = dict(bound.arguments)
-            # With a config, the call records its Linter string call.
-            context["nest"] = data.get("config") is not None
-            data["config"] = config_source(data.get("config"))
-            return {"function": name, **data, "cwd": tracer.cwd()}
+            config = data.get("config")
+            # With a config, a lint or fix call records its Linter string
+            # call. A parse call with a config (T19) records the config model
+            # of its config, as a Linter string call does.
+            context["nest"] = config is not None and name != "parse"
+            data["config"] = config_source(config)
+            out = {"function": name, **data, "cwd": tracer.cwd()}
+            if config is not None and name == "parse":
+                model = tracer.config_model(config)
+                context.update(parse_model=model, sql=data["sql"])
+                out.update(model)
+            return out
 
-        return tracer.traced("api", inputs, lambda context, r: plain(r))(original)
+        def outputs(context, result):
+            if "parse_model" in context:
+                context["proof_run"] = parse_proof(context)
+            return plain(result)
+
+        return tracer.traced("api", inputs, outputs)(original)
+
+    def parse_proof(context) -> dict:
+        """The proof of a simple-API parse with a config (T19): "parse -f json
+        -" with the SQL on stdin in a new folder with the .sqlfluff file of the
+        config model, in process. The oracle maps the call only if the parse
+        tree of that run is the tree that the call returned."""
+        model = context["parse_model"]
+        if "error" in model["config_file"]:
+            return {"error": model["config_file"]["error"]}
+        text = model["config_file"]["text"]
+        files = {s7config.CONFIG_FILE: text} if text else {}
+        argv = ["-f", "json", "-"]
+        return tracer.run_cli(commands.parse, argv, context["sql"], files)
 
     for name in ("lint", "fix", "parse"):
         wrapped = api(name)
@@ -861,22 +913,98 @@ def install(tracer: Tracer) -> None:
             " no config to give to the CLI"
         }
 
+    def files_config(name: str):
+        def describe(*args, **kwargs) -> dict:
+            return {
+                "no_cli_input": f"FluffConfig.{name} failed: the trace gives the"
+                " CLI only the inputs of FluffConfig, from_kwargs, and"
+                " from_string, not config files"
+            }
+
+        return describe
+
+    # The CLI input of a FluffConfig construction that failed (T19: trace
+    # oracle and case runner, extension 4). The oracle maps the error only if
+    # the CLI run with that input gives the same error first.
+    def kwargs_options(data) -> list[str]:
+        """The lint options of dialect, rules, and exclude_rules (a CLI option
+        is an override; FluffConfig.from_kwargs joins a list with commas)."""
+        options = []
+        for key in LINTER_KWARGS:
+            value = data.get(key)
+            if value:
+                text = value if key == "dialect" else ",".join(value)
+                options += ["--" + key.replace("_", "-"), text]
+        return options
+
+    def init_config(self, *args, **kwargs) -> dict:
+        """FluffConfig(configs, overrides): the .sqlfluff file of the
+        configs, with the overrides in [sqlfluff]."""
+        data = config_sig.bind(self, *args, **kwargs).arguments
+        others = [
+            key
+            for key in ("extra_config_path", "ignore_local_config", "plugin_manager")
+            if data.get(key)
+        ]
+        if others:
+            return {
+                "no_cli_input": f"the FluffConfig arguments {others}: the trace"
+                " gives the CLI only configs and overrides"
+            }
+        try:
+            text = s7config.input_text(data.get("configs"), data.get("overrides"))
+        except s7config.ConfigMapError as exc:
+            return {"no_cli_input": f"the config model: {exc}"}
+        return {"cli_input": {"files": {s7config.CONFIG_FILE: text} if text else {}}}
+
+    kwargs_sig = inspect.signature(FluffConfig.from_kwargs.__func__)
+
+    def kwargs_config(cls, *args, **kwargs) -> dict:
+        """FluffConfig.from_kwargs: its arguments as lint options."""
+        data = kwargs_sig.bind(cls, *args, **kwargs).arguments
+        return {"cli_input": {"options": kwargs_options(data)}}
+
     string_sig = inspect.signature(FluffConfig.from_string.__func__)
 
     def string_config(cls, *args, **kwargs) -> dict:
         """FluffConfig.from_string that failed (T8): its config string is the
-        CLI input, as a .sqlfluff file. With overrides, the trace has none."""
+        CLI input, as a .sqlfluff file. Its overrides (T19) are lint options:
+        only dialect, rules, and exclude_rules, each a text."""
         data = string_sig.bind(cls, *args, **kwargs).arguments
-        if data.get("overrides"):
-            return {
-                "no_cli_input": "FluffConfig.from_string with overrides: the"
-                " trace gives only a config string to the CLI"
-            }
         text = data["config_string"]
-        return {"cli_input": {"files": {s7config.CONFIG_FILE: text}}}
+        overrides = data.get("overrides") or {}
+        other = sorted(
+            k
+            for k, v in overrides.items()
+            if k not in LINTER_KWARGS or not isinstance(v, str) or not v
+        )
+        if other:
+            return {
+                "no_cli_input": f"FluffConfig.from_string with the overrides {other}:"
+                " the lint options give only dialect, rules, and exclude_rules"
+                " as texts"
+            }
+        options = []
+        for key in LINTER_KWARGS:
+            if key in overrides:
+                options += ["--" + key.replace("_", "-"), overrides[key]]
+        cli_input = {"files": {s7config.CONFIG_FILE: text}}
+        if options:
+            cli_input["options"] = options
+        return {"cli_input": cli_input}
 
-    describe = {"from_string": string_config}
-    FluffConfig.__init__ = tracer.errors("FluffConfig", no_config)(config_init)
+    describe = {
+        "from_string": string_config,
+        "from_kwargs": kwargs_config,
+        "from_path": files_config("from_path"),
+        "from_root": files_config("from_root"),
+    }
+    FluffConfig.__init__ = tracer.errors("FluffConfig", init_config)(config_init)
+    # The CLI checks the dialect after it loads its config (require_dialect is
+    # False in each command): watch that check in the CLI run of a proof.
+    FluffConfig.verify_dialect_specified = tracer.errors(
+        "FluffConfig.verify_dialect_specified", no_config
+    )(FluffConfig.verify_dialect_specified)
     for name in ("from_path", "from_root", "from_kwargs", "from_string"):
         method = getattr(FluffConfig, name).__func__
         sig = inspect.signature(method)
@@ -942,13 +1070,7 @@ def install(tracer: Tracer) -> None:
             if any(data.get(k) for k in LINTER_KWARGS):
                 return {**out, "no_cli_input": "a config and Linter arguments"}
             return {**out, **config_input(config)}
-        options = []
-        for key in LINTER_KWARGS:
-            value = data.get(key)
-            if value:
-                text = value if key == "dialect" else ",".join(value)
-                options += ["--" + key.replace("_", "-"), text]
-        return {**out, "cli_input": {"options": options}}
+        return {**out, "cli_input": {"options": kwargs_options(data)}}
 
     Linter.__init__ = tracer.errors("Linter", linter_error)(new_linter_init)
 
@@ -1452,13 +1574,18 @@ class Recorder:
 def run(
     root: Path, nodes: list[str], rust: bool, log: Path, templaters: bool = False
 ) -> dict:
+    from sqlfluff.core.config import FluffConfig
+
+    # The parameters of FluffConfig.__init__ (T19), before force_rust wraps it
+    # with (self, configs=None, *args, **kwargs).
+    init_sig = inspect.signature(FluffConfig.__init__)
     runs = None
     if rust:
         from sqlfluff_oracle import force_rust
 
         runs = force_rust()
     tracer = Tracer(root)
-    install(tracer)
+    install(tracer, init_sig)
     if templaters:
         install_templaters(tracer)
     forks: Counter = Counter()

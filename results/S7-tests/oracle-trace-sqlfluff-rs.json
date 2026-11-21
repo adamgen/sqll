@@ -420,6 +420,84 @@
    "untraced": [],
    "processes": []
   },
+  "test/core/config/fluffconfig_test.py::test__config_missing_dialect": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "error",
+     "error": "SQLFluffUserError: No dialect was specified. You must configure a dialect or specify one on the command line using --dialect after the command. Available dialects:",
+     "inputs": {
+      "function": "FluffConfig.from_kwargs",
+      "cli_input": {
+       "options": []
+      },
+      "cwd": "{sqlfluff}"
+     },
+     "cli": {
+      "argv": [
+       "lint",
+       "-"
+      ],
+      "stdin": "",
+      "files": {},
+      "exit_code": 2,
+      "stdout": "",
+      "stderr": "\nUser Error: No dialect was specified. You must configure a dialect or specify one on the command line using --dialect after the command. Available dialects:\nansi, athena, bigquery, clickhouse, databricks, db2, doris, duckdb, exasol, flink, greenplum, hive, impala, mariadb, materialize, mysql, oracle, postgres, redshift, snowflake, soql, sparksql, sqlite, starrocks, teradata, trino, tsql, vertica\n",
+      "files_after": {},
+      "errors": [
+       {
+        "function": "FluffConfig.verify_dialect_specified",
+        "error": "SQLFluffUserError: No dialect was specified. You must configure a dialect or specify one on the command line using --dialect after the command. Available dialects:"
+       }
+      ]
+     }
+    }
+   ],
+   "untraced": [],
+   "processes": []
+  },
+  "test/core/config/fluffconfig_test.py::test__config__validate_configs_indirect": {
+   "outcome": "passed",
+   "calls": [
+    {
+     "kind": "error",
+     "error": "SQLFluffUserError: Config file '<provided configs>' set an outdated config value rules:L003:lint_templated_tokens.",
+     "inputs": {
+      "function": "FluffConfig",
+      "cli_input": {
+       "files": {
+        ".sqlfluff": "[sqlfluff]\ndialect = ansi\n\n[sqlfluff:rules:L003]\nlint_templated_tokens = True\n"
+       }
+      },
+      "cwd": "{sqlfluff}"
+     },
+     "cli": {
+      "argv": [
+       "lint",
+       "-"
+      ],
+      "stdin": "",
+      "files": {
+       ".sqlfluff": "[sqlfluff]\ndialect = ansi\n\n[sqlfluff:rules:L003]\nlint_templated_tokens = True\n"
+      },
+      "exit_code": 2,
+      "stdout": "Error loading config: Config file '{tmp}/.sqlfluff' set an outdated config value rules:L003:lint_templated_tokens.\n\nNo longer used.\n\nSee https://docs.sqlfluff.com/en/stable/perma/configuration.html for more details.\n",
+      "stderr": "",
+      "files_after": {
+       ".sqlfluff": "[sqlfluff]\ndialect = ansi\n\n[sqlfluff:rules:L003]\nlint_templated_tokens = True\n"
+      },
+      "errors": [
+       {
+        "function": "FluffConfig.from_root",
+        "error": "SQLFluffUserError: Config file '{tmp}/.sqlfluff' set an outdated config value rules:L003:lint_templated_tokens."
+       }
+      ]
+     }
+    }
+   ],
+   "untraced": [],
+   "processes": []
+  },
   "test/rules/cp01_rust_dispatch_test.py::test__use_rust_rules_requires_rust_parser": {
    "outcome": "passed",
    "calls": [
