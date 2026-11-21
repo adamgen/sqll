@@ -758,21 +758,35 @@ def test_rebase_takes_only_sqll(env3, base3, capsys):
         baseline.rebase({}, {}, "sqruff", None)
 
 
-def test_rebase_refuses_the_recorded_baseline_of_3_tools(capsys, tmp_path):
-    """The recorded baseline has no sqll results (sqll is in LATER): rebase
-    fails closed until a complete baseline of the 4 tools."""
-    out = tmp_path / "never.json"
-    code = corpus_main.main(
-        [
-            "rebase",
-            "--tool",
-            "sqll",
-            str(baseline.BASELINE),
-            str(baseline.BASELINE),
-            "--out",
-            str(out),
-        ]
+def test_rebase_of_the_recorded_baseline_of_the_4_tools(capsys, tmp_path, monkeypatch):
+    """The recorded baseline has the sqll results (status/S9.md, "S9
+    results"): rebase of the baseline on itself changes no result. The same
+    baseline without sqll (as the recorded baseline before the sqll results,
+    with sqll in LATER) fails closed."""
+    base = str(baseline.BASELINE)
+    out = tmp_path / "same.json"
+    assert (
+        corpus_main.main(["rebase", "--tool", "sqll", base, base, "--out", str(out)])
+        == 0
     )
-    assert code == 1
+    assert capsys.readouterr().out.splitlines()[-1] == (
+        f"{out}: the baseline {base} with the sqll record and results of {base}; "
+        "0 sqll results changed."
+    )
+    old = report.load(baseline.BASELINE)
+    new = report.load(out)
+    assert [stable(r) for r in new["results"]] == [stable(r) for r in old["results"]]
+    assert new[report.PAIRS] == old[report.PAIRS]
+    monkeypatch.setattr(corpus_run, "LATER", frozenset({"sqll"}))
+    three = copy.deepcopy(old)
+    three["tools"] = {t: v for t, v in old["tools"].items() if t != "sqll"}
+    three["scope"] = {"tools": sorted(three["tools"]), "shard": None}
+    three = rebuild(three, results=[r for r in old["results"] if r["tool"] != "sqll"])
+    assert report.PAIRS not in three
+    path = tmp_path / "three.json"
+    report.write(three, path)
+    never = tmp_path / "never.json"
+    args = ["rebase", "--tool", "sqll", str(path), base, "--out", str(never)]
+    assert corpus_main.main(args) == 1
     assert "baseline: no sqll results" in capsys.readouterr().out
-    assert not out.exists()
+    assert not never.exists()
