@@ -2,7 +2,10 @@
 
 Status: design (T1); run and report (T3); untemplated content (T4);
 templated content (T5); recorded results (T6); CI (T7); exit (T8); the
-plan of the sqll results ("sqll results"). Scope: STONES.md S9;
+plan of the sqll results ("sqll results"); the exit for sqll (T14 (goal
+of the task: the exit of the stone for sqll: the proof of each exit
+criterion for the 4 tools, and the request for the approval): status/S9.md,
+"S9 exit"). Scope: STONES.md S9;
 CONSTITUTION.md G1.3, G3, G4.2, G4.3, G4.5. "Measured": `parse` runs of
 the `scripts/setup` tools on 2026-10-28 (4 CPUs, 16 GiB, machine lock),
 in a new folder with no config file above it. PR #29 (T1) and the T3 pull
