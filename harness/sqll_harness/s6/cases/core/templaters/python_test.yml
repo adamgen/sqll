@@ -11,6 +11,42 @@ source:
   file: test/core/templaters/python_test.py
 license: MIT
 nodes:
+  - node: test/core/templaters/python_test.py::test__templater_python
+    asserts:
+      L21: ["templated:templated"]
+    cases:
+      - name: templated
+        run: cli
+        argv: [parse, -f, json, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = python\n\n[sqlfluff:templater:python:context]\nblah = foo\n"
+          case.sql: "SELECT * FROM {blah}"
+        checks:
+          exit_code: 0
+          templated: "SELECT * FROM foo"
+      - name: slices
+        run: cli
+        argv: [parse, -f, json, -m, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = python\n\n[sqlfluff:templater:python:context]\nblah = foo\n"
+          case.sql: "SELECT * FROM {blah}"
+        checks:
+          exit_code: 0
+          source_slices:
+            - ["SELECT", 0, 6]
+            - ["", 6, 6]
+            - [" ", 6, 7]
+            - ["*", 7, 8]
+            - ["", 8, 8]
+            - [" ", 8, 9]
+            - ["FROM", 9, 13]
+            - [" ", 13, 14]
+            - ["", 14, 14]
+            - ["foo", 14, 20]
+            - ["", 20, 20]
+            - ["", 20, 20]
   - node: test/core/templaters/python_test.py::test__templater_python_error
     asserts:
       L28:raises: ["missing:exit_code", "missing:violations[0]"]
@@ -29,3 +65,945 @@ nodes:
             - select: {code: TMP}
               records:
                 - description: {contains: "Failure in Python templating: 'blah'."}
+  - node: test/core/templaters/python_test.py::test__templater_python_large_file_check
+    asserts:
+      L489:raises: ["skip:stdout.json", "skip:stderr.contains[0]"]
+      L498: ["skip:stderr.contains[0]"]
+    cases:
+      # The first process() call has no config. The case gives the dialect
+      # ansi, because the CLI needs a dialect. The call returns the input.
+      - name: templated
+        run: cli
+        argv: [parse, -f, json, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = python\n"
+          case.sql: "SELECT 1"
+        checks:
+          exit_code: 0
+          templated: "SELECT 1"
+      - name: slices
+        run: cli
+        argv: [parse, -f, json, -m, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = python\n"
+          case.sql: "SELECT 1"
+        checks:
+          exit_code: 0
+          source_slices:
+            - ["SELECT", 0, 6]
+            - ["", 6, 6]
+            - [" ", 6, 7]
+            - ["1", 7, 8]
+            - ["", 8, 8]
+            - ["", 8, 8]
+      # A SQLFluffSkipFile: the CLI skips the file with a warning, gives
+      # no parse tree, and exit code 0.
+      - name: skip
+        run: cli
+        argv: [parse, -f, json, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\nlarge_file_skip_char_limit = 2\ntemplater = python\n"
+          case.sql: "SELECT 1"
+        checks:
+          exit_code: 0
+          stdout:
+            json: [{filepath: case.sql, segments: null}]
+          stderr:
+            contains: ["Length of file 'case.sql' is over 2 characters."]
+  - node: test/core/templaters/python_test.py::test__templater_python_dot_notation_variables[-]
+    asserts:
+      L567: ["templated:templated"]
+    cases:
+      - name: templated
+        run: cli
+        argv: [parse, -f, json, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = python\n\n[sqlfluff:templater:python:context]\nfoo = bar\nnum = 123\nsqlfluff = {'foo.bar': 'foobar', 'foo.label': 'café', 'self.number': 42, 'obj.schema': 'my_schema', 'obj.table': 'my_table'}\n"
+          case.sql: ""
+        checks:
+          exit_code: 0
+          templated: ""
+      - name: slices
+        run: cli
+        argv: [parse, -f, json, -m, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = python\n\n[sqlfluff:templater:python:context]\nfoo = bar\nnum = 123\nsqlfluff = {'foo.bar': 'foobar', 'foo.label': 'café', 'self.number': 42, 'obj.schema': 'my_schema', 'obj.table': 'my_table'}\n"
+          case.sql: ""
+        checks:
+          exit_code: 0
+          source_slices:
+            - ["", 0, 0]
+  - node: "test/core/templaters/python_test.py::test__templater_python_dot_notation_variables[SELECT * FROM {foo.bar}-SELECT * FROM foobar]"
+    asserts:
+      L567: ["templated:templated"]
+    cases:
+      - name: templated
+        run: cli
+        argv: [parse, -f, json, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = python\n\n[sqlfluff:templater:python:context]\nfoo = bar\nnum = 123\nsqlfluff = {'foo.bar': 'foobar', 'foo.label': 'café', 'self.number': 42, 'obj.schema': 'my_schema', 'obj.table': 'my_table'}\n"
+          case.sql: "SELECT * FROM {foo.bar}"
+        checks:
+          exit_code: 0
+          templated: "SELECT * FROM foobar"
+      - name: slices
+        run: cli
+        argv: [parse, -f, json, -m, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = python\n\n[sqlfluff:templater:python:context]\nfoo = bar\nnum = 123\nsqlfluff = {'foo.bar': 'foobar', 'foo.label': 'café', 'self.number': 42, 'obj.schema': 'my_schema', 'obj.table': 'my_table'}\n"
+          case.sql: "SELECT * FROM {foo.bar}"
+        checks:
+          exit_code: 0
+          source_slices:
+            - ["SELECT", 0, 6]
+            - ["", 6, 6]
+            - [" ", 6, 7]
+            - ["*", 7, 8]
+            - ["", 8, 8]
+            - [" ", 8, 9]
+            - ["FROM", 9, 13]
+            - [" ", 13, 14]
+            - ["", 14, 14]
+            - ["foobar", 14, 23]
+            - ["", 23, 23]
+            - ["", 23, 23]
+  - node: "test/core/templaters/python_test.py::test__templater_python_dot_notation_variables[SELECT {foo} FROM {foo.bar}-SELECT bar FROM foobar]"
+    asserts:
+      L567: ["templated:templated"]
+    cases:
+      - name: templated
+        run: cli
+        argv: [parse, -f, json, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = python\n\n[sqlfluff:templater:python:context]\nfoo = bar\nnum = 123\nsqlfluff = {'foo.bar': 'foobar', 'foo.label': 'café', 'self.number': 42, 'obj.schema': 'my_schema', 'obj.table': 'my_table'}\n"
+          case.sql: "SELECT {foo} FROM {foo.bar}"
+        checks:
+          exit_code: 0
+          templated: "SELECT bar FROM foobar"
+      - name: slices
+        run: cli
+        argv: [parse, -f, json, -m, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = python\n\n[sqlfluff:templater:python:context]\nfoo = bar\nnum = 123\nsqlfluff = {'foo.bar': 'foobar', 'foo.label': 'café', 'self.number': 42, 'obj.schema': 'my_schema', 'obj.table': 'my_table'}\n"
+          case.sql: "SELECT {foo} FROM {foo.bar}"
+        checks:
+          exit_code: 0
+          source_slices:
+            - ["SELECT", 0, 6]
+            - ["", 6, 6]
+            - [" ", 6, 7]
+            - ["bar", 7, 12]
+            - ["", 12, 12]
+            - [" ", 12, 13]
+            - ["FROM", 13, 17]
+            - [" ", 17, 18]
+            - ["", 18, 18]
+            - ["foobar", 18, 27]
+            - ["", 27, 27]
+            - ["", 27, 27]
+  - node: "test/core/templaters/python_test.py::test__templater_python_dot_notation_variables[SELECT {num:.2f} FROM blah-SELECT 123.00 FROM blah]"
+    asserts:
+      L567: ["templated:templated"]
+    cases:
+      - name: templated
+        run: cli
+        argv: [parse, -f, json, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = python\n\n[sqlfluff:templater:python:context]\nfoo = bar\nnum = 123\nsqlfluff = {'foo.bar': 'foobar', 'foo.label': 'café', 'self.number': 42, 'obj.schema': 'my_schema', 'obj.table': 'my_table'}\n"
+          case.sql: "SELECT {num:.2f} FROM blah"
+        checks:
+          exit_code: 0
+          templated: "SELECT 123.00 FROM blah"
+      - name: slices
+        run: cli
+        argv: [parse, -f, json, -m, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = python\n\n[sqlfluff:templater:python:context]\nfoo = bar\nnum = 123\nsqlfluff = {'foo.bar': 'foobar', 'foo.label': 'café', 'self.number': 42, 'obj.schema': 'my_schema', 'obj.table': 'my_table'}\n"
+          case.sql: "SELECT {num:.2f} FROM blah"
+        checks:
+          exit_code: 0
+          source_slices:
+            - ["SELECT", 0, 6]
+            - ["", 6, 6]
+            - [" ", 6, 7]
+            - ["123.00", 7, 16]
+            - ["", 16, 16]
+            - [" ", 16, 17]
+            - ["FROM", 17, 21]
+            - [" ", 21, 22]
+            - ["", 22, 22]
+            - ["blah", 22, 26]
+            - ["", 26, 26]
+            - ["", 26, 26]
+  - node: "test/core/templaters/python_test.py::test__templater_python_dot_notation_variables[SELECT {self.number:.1f} FROM blah-SELECT 42.0 FROM blah]"
+    asserts:
+      L567: ["templated:templated"]
+    cases:
+      - name: templated
+        run: cli
+        argv: [parse, -f, json, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = python\n\n[sqlfluff:templater:python:context]\nfoo = bar\nnum = 123\nsqlfluff = {'foo.bar': 'foobar', 'foo.label': 'café', 'self.number': 42, 'obj.schema': 'my_schema', 'obj.table': 'my_table'}\n"
+          case.sql: "SELECT {self.number:.1f} FROM blah"
+        checks:
+          exit_code: 0
+          templated: "SELECT 42.0 FROM blah"
+      - name: slices
+        run: cli
+        argv: [parse, -f, json, -m, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = python\n\n[sqlfluff:templater:python:context]\nfoo = bar\nnum = 123\nsqlfluff = {'foo.bar': 'foobar', 'foo.label': 'café', 'self.number': 42, 'obj.schema': 'my_schema', 'obj.table': 'my_table'}\n"
+          case.sql: "SELECT {self.number:.1f} FROM blah"
+        checks:
+          exit_code: 0
+          source_slices:
+            - ["SELECT", 0, 6]
+            - ["", 6, 6]
+            - [" ", 6, 7]
+            - ["42.0", 7, 24]
+            - ["", 24, 24]
+            - [" ", 24, 25]
+            - ["FROM", 25, 29]
+            - [" ", 29, 30]
+            - ["", 30, 30]
+            - ["blah", 30, 34]
+            - ["", 34, 34]
+            - ["", 34, 34]
+  - node: "test/core/templaters/python_test.py::test__templater_python_dot_notation_variables[SELECT * FROM {obj.schema}.{obj.table}-SELECT * FROM my_schema.my_table]"
+    asserts:
+      L567: ["templated:templated"]
+    cases:
+      - name: templated
+        run: cli
+        argv: [parse, -f, json, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = python\n\n[sqlfluff:templater:python:context]\nfoo = bar\nnum = 123\nsqlfluff = {'foo.bar': 'foobar', 'foo.label': 'café', 'self.number': 42, 'obj.schema': 'my_schema', 'obj.table': 'my_table'}\n"
+          case.sql: "SELECT * FROM {obj.schema}.{obj.table}"
+        checks:
+          exit_code: 0
+          templated: "SELECT * FROM my_schema.my_table"
+      - name: slices
+        run: cli
+        argv: [parse, -f, json, -m, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = python\n\n[sqlfluff:templater:python:context]\nfoo = bar\nnum = 123\nsqlfluff = {'foo.bar': 'foobar', 'foo.label': 'café', 'self.number': 42, 'obj.schema': 'my_schema', 'obj.table': 'my_table'}\n"
+          case.sql: "SELECT * FROM {obj.schema}.{obj.table}"
+        checks:
+          exit_code: 0
+          source_slices:
+            - ["SELECT", 0, 6]
+            - ["", 6, 6]
+            - [" ", 6, 7]
+            - ["*", 7, 8]
+            - ["", 8, 8]
+            - [" ", 8, 9]
+            - ["FROM", 9, 13]
+            - [" ", 13, 14]
+            - ["", 14, 14]
+            - ["my_schema", 14, 38]
+            - [".", 14, 38]
+            - ["my_table", 14, 38]
+            - ["", 38, 38]
+            - ["", 38, 38]
+  - node: "test/core/templaters/python_test.py::test__templater_python_dot_notation_variables[SELECT {foo!r}-SELECT 'bar']"
+    asserts:
+      L567: ["templated:templated"]
+    cases:
+      - name: templated
+        run: cli
+        argv: [parse, -f, json, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = python\n\n[sqlfluff:templater:python:context]\nfoo = bar\nnum = 123\nsqlfluff = {'foo.bar': 'foobar', 'foo.label': 'café', 'self.number': 42, 'obj.schema': 'my_schema', 'obj.table': 'my_table'}\n"
+          case.sql: "SELECT {foo!r}"
+        checks:
+          exit_code: 0
+          templated: "SELECT 'bar'"
+      - name: slices
+        run: cli
+        argv: [parse, -f, json, -m, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = python\n\n[sqlfluff:templater:python:context]\nfoo = bar\nnum = 123\nsqlfluff = {'foo.bar': 'foobar', 'foo.label': 'café', 'self.number': 42, 'obj.schema': 'my_schema', 'obj.table': 'my_table'}\n"
+          case.sql: "SELECT {foo!r}"
+        checks:
+          exit_code: 0
+          source_slices:
+            - ["SELECT", 0, 6]
+            - ["", 6, 6]
+            - [" ", 6, 7]
+            - ["'bar'", 7, 14]
+            - ["", 14, 14]
+            - ["", 14, 14]
+  - node: "test/core/templaters/python_test.py::test__templater_python_dot_notation_variables[SELECT {foo.bar!s}-SELECT foobar]"
+    asserts:
+      L567: ["templated:templated"]
+    cases:
+      - name: templated
+        run: cli
+        argv: [parse, -f, json, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = python\n\n[sqlfluff:templater:python:context]\nfoo = bar\nnum = 123\nsqlfluff = {'foo.bar': 'foobar', 'foo.label': 'café', 'self.number': 42, 'obj.schema': 'my_schema', 'obj.table': 'my_table'}\n"
+          case.sql: "SELECT {foo.bar!s}"
+        checks:
+          exit_code: 0
+          templated: "SELECT foobar"
+      - name: slices
+        run: cli
+        argv: [parse, -f, json, -m, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = python\n\n[sqlfluff:templater:python:context]\nfoo = bar\nnum = 123\nsqlfluff = {'foo.bar': 'foobar', 'foo.label': 'café', 'self.number': 42, 'obj.schema': 'my_schema', 'obj.table': 'my_table'}\n"
+          case.sql: "SELECT {foo.bar!s}"
+        checks:
+          exit_code: 0
+          source_slices:
+            - ["SELECT", 0, 6]
+            - ["", 6, 6]
+            - [" ", 6, 7]
+            - ["foobar", 7, 18]
+            - ["", 18, 18]
+            - ["", 18, 18]
+  - node: "test/core/templaters/python_test.py::test__templater_python_dot_notation_variables[SELECT {foo.bar!r}-SELECT 'foobar']"
+    asserts:
+      L567: ["templated:templated"]
+    cases:
+      - name: templated
+        run: cli
+        argv: [parse, -f, json, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = python\n\n[sqlfluff:templater:python:context]\nfoo = bar\nnum = 123\nsqlfluff = {'foo.bar': 'foobar', 'foo.label': 'café', 'self.number': 42, 'obj.schema': 'my_schema', 'obj.table': 'my_table'}\n"
+          case.sql: "SELECT {foo.bar!r}"
+        checks:
+          exit_code: 0
+          templated: "SELECT 'foobar'"
+      - name: slices
+        run: cli
+        argv: [parse, -f, json, -m, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = python\n\n[sqlfluff:templater:python:context]\nfoo = bar\nnum = 123\nsqlfluff = {'foo.bar': 'foobar', 'foo.label': 'café', 'self.number': 42, 'obj.schema': 'my_schema', 'obj.table': 'my_table'}\n"
+          case.sql: "SELECT {foo.bar!r}"
+        checks:
+          exit_code: 0
+          source_slices:
+            - ["SELECT", 0, 6]
+            - ["", 6, 6]
+            - [" ", 6, 7]
+            - ["'foobar'", 7, 18]
+            - ["", 18, 18]
+            - ["", 18, 18]
+  - node: "test/core/templaters/python_test.py::test__templater_python_dot_notation_variables[SELECT {foo.label!a}-SELECT 'caf\\\\xe9']"
+    asserts:
+      L567: ["templated:templated"]
+    cases:
+      - name: templated
+        run: cli
+        argv: [parse, -f, json, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = python\n\n[sqlfluff:templater:python:context]\nfoo = bar\nnum = 123\nsqlfluff = {'foo.bar': 'foobar', 'foo.label': 'café', 'self.number': 42, 'obj.schema': 'my_schema', 'obj.table': 'my_table'}\n"
+          case.sql: "SELECT {foo.label!a}"
+        checks:
+          exit_code: 0
+          templated: "SELECT 'caf\\xe9'"
+      - name: slices
+        run: cli
+        argv: [parse, -f, json, -m, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = python\n\n[sqlfluff:templater:python:context]\nfoo = bar\nnum = 123\nsqlfluff = {'foo.bar': 'foobar', 'foo.label': 'café', 'self.number': 42, 'obj.schema': 'my_schema', 'obj.table': 'my_table'}\n"
+          case.sql: "SELECT {foo.label!a}"
+        checks:
+          exit_code: 0
+          source_slices:
+            - ["SELECT", 0, 6]
+            - ["", 6, 6]
+            - [" ", 6, 7]
+            - ["'caf\\xe9'", 7, 20]
+            - ["", 20, 20]
+            - ["", 20, 20]
+  - node: "test/core/templaters/python_test.py::test__templater_python_dot_notation_variables[SELECT {foo.bar!r:>10}-SELECT   'foobar']"
+    asserts:
+      L567: ["templated:templated"]
+    cases:
+      - name: templated
+        run: cli
+        argv: [parse, -f, json, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = python\n\n[sqlfluff:templater:python:context]\nfoo = bar\nnum = 123\nsqlfluff = {'foo.bar': 'foobar', 'foo.label': 'café', 'self.number': 42, 'obj.schema': 'my_schema', 'obj.table': 'my_table'}\n"
+          case.sql: "SELECT {foo.bar!r:>10}"
+        checks:
+          exit_code: 0
+          templated: "SELECT   'foobar'"
+      - name: slices
+        run: cli
+        argv: [parse, -f, json, -m, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = python\n\n[sqlfluff:templater:python:context]\nfoo = bar\nnum = 123\nsqlfluff = {'foo.bar': 'foobar', 'foo.label': 'café', 'self.number': 42, 'obj.schema': 'my_schema', 'obj.table': 'my_table'}\n"
+          case.sql: "SELECT {foo.bar!r:>10}"
+        checks:
+          exit_code: 0
+          source_slices:
+            - ["SELECT", 0, 6]
+            - ["", 6, 6]
+            - [" ", 6, 7]
+            - ["  ", 8, 22]
+            - ["'foobar'", 7, 22]
+            - ["", 22, 22]
+            - ["", 22, 22]
+  - node: "test/core/templaters/python_test.py::test__templater_python_dot_notation_variables[SELECT {self.number!s:0>4}-SELECT 0042]"
+    asserts:
+      L567: ["templated:templated"]
+    cases:
+      - name: templated
+        run: cli
+        argv: [parse, -f, json, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = python\n\n[sqlfluff:templater:python:context]\nfoo = bar\nnum = 123\nsqlfluff = {'foo.bar': 'foobar', 'foo.label': 'café', 'self.number': 42, 'obj.schema': 'my_schema', 'obj.table': 'my_table'}\n"
+          case.sql: "SELECT {self.number!s:0>4}"
+        checks:
+          exit_code: 0
+          templated: "SELECT 0042"
+      - name: slices
+        run: cli
+        argv: [parse, -f, json, -m, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = python\n\n[sqlfluff:templater:python:context]\nfoo = bar\nnum = 123\nsqlfluff = {'foo.bar': 'foobar', 'foo.label': 'café', 'self.number': 42, 'obj.schema': 'my_schema', 'obj.table': 'my_table'}\n"
+          case.sql: "SELECT {self.number!s:0>4}"
+        checks:
+          exit_code: 0
+          source_slices:
+            - ["SELECT", 0, 6]
+            - ["", 6, 6]
+            - [" ", 6, 7]
+            - ["0042", 7, 26]
+            - ["", 26, 26]
+            - ["", 26, 26]
+  - node: "test/core/templaters/python_test.py::test__templater_python_dot_notation_fail[context0-magic key 'sqlfluff' missing from context.  This key is required for template variables containing '.'.]"
+    asserts:
+      L591:raises: ["missing:exit_code", "missing:violations[0]"]
+      L593: ["missing:violations[0].records[0]"]
+    cases:
+      # A SQLTemplaterError: the TMP violation of lint. Its description
+      # has the error_string of the test.
+      - name: missing
+        run: cli
+        argv: [lint, -f, json, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = python\n"
+          case.sql: "SELECT * FROM {foo.bar}"
+        checks:
+          exit_code: 1
+          violations:
+            - select: {code: TMP}
+              records:
+                - description: {contains: "magic key 'sqlfluff' missing from context.  This key is required for template variables containing '.'."}
+  - node: "test/core/templaters/python_test.py::test__templater_python_dot_notation_fail[context1-'foo.bar' key missing from 'sqlfluff' dict in context. Template variables containing '.' are required to use the 'sqlfluff' magic fixed context key.]"
+    asserts:
+      L591:raises: ["missing:exit_code", "missing:violations[0]"]
+      L593: ["missing:violations[0].records[0]"]
+    cases:
+      # A SQLTemplaterError: the TMP violation of lint. Its description
+      # has the error_string of the test.
+      - name: missing
+        run: cli
+        argv: [lint, -f, json, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = python\n\n[sqlfluff:templater:python:context]\nsqlfluff = {'a': 'b'}\n"
+          case.sql: "SELECT * FROM {foo.bar}"
+        checks:
+          exit_code: 1
+          violations:
+            - select: {code: TMP}
+              records:
+                - description: {contains: "'foo.bar' key missing from 'sqlfluff' dict in context. Template variables containing '.' are required to use the 'sqlfluff' magic fixed context key."}
+  - node: "test/core/templaters/python_test.py::test__templater_python_ignore_templating[SELECT * FROM {start_date}--None-None-expected_violation0]"
+    # L704 to L706 are in the else branch of the test, which does not
+    # run for this parameter (expected_violation is set). They cite the
+    # TMP violation: the call raises and returns no templated file.
+    asserts:
+      L698:raises: ["missing:exit_code", "missing:violations[0]"]
+      L704: ["missing:violations[0]"]
+      L705: ["missing:violations[0]"]
+      L706: ["missing:violations[0]"]
+    cases:
+      # A SQLTemplaterError: the TMP violation of lint.
+      - name: missing
+        run: cli
+        argv: [lint, -f, json, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\ntemplater = python\n"
+          case.sql: "SELECT * FROM {start_date}"
+        checks:
+          exit_code: 1
+          violations:
+            - select: {code: TMP}
+              records:
+                - description: {contains: "Failure in Python templating: 'start_date'."}
+  - node: "test/core/templaters/python_test.py::test__templater_python_ignore_templating[SELECT * FROM {start_date}-templating-None-SELECT * FROM start_date-None]"
+    # L698 is in the if branch of the test, which does not run for this
+    # parameter (expected_violation is None). It cites the exit code 0
+    # of parse: the call does not raise. ignore = templating hides a
+    # templater violation from the CLI; the trace oracle proves that
+    # the templater call of the CLI run gives no violation (L706).
+    asserts:
+      L698:raises: ["templated:exit_code"]
+      L704: ["templated:exit_code", "templated:templated"]
+      L705: ["templated:templated"]
+      L706: ["templated:exit_code"]
+    cases:
+      - name: templated
+        run: cli
+        argv: [parse, -f, json, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\nignore = templating\ntemplater = python\n"
+          case.sql: "SELECT * FROM {start_date}"
+        checks:
+          exit_code: 0
+          templated: "SELECT * FROM start_date"
+      - name: slices
+        run: cli
+        argv: [parse, -f, json, -m, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\nignore = templating\ntemplater = python\n"
+          case.sql: "SELECT * FROM {start_date}"
+        checks:
+          exit_code: 0
+          source_slices:
+            - ["SELECT", 0, 6]
+            - ["", 6, 6]
+            - [" ", 6, 7]
+            - ["*", 7, 8]
+            - ["", 8, 8]
+            - [" ", 8, 9]
+            - ["FROM", 9, 13]
+            - [" ", 13, 14]
+            - ["", 14, 14]
+            - ["start_date", 14, 26]
+            - ["", 26, 26]
+            - ["", 26, 26]
+  - node: "test/core/templaters/python_test.py::test__templater_python_ignore_templating[SELECT * FROM {foo.bar}-templating-None-SELECT * FROM foo_bar-None]"
+    # L698 is in the if branch of the test, which does not run for this
+    # parameter (expected_violation is None). It cites the exit code 0
+    # of parse: the call does not raise. ignore = templating hides a
+    # templater violation from the CLI; the trace oracle proves that
+    # the templater call of the CLI run gives no violation (L706).
+    asserts:
+      L698:raises: ["templated:exit_code"]
+      L704: ["templated:exit_code", "templated:templated"]
+      L705: ["templated:templated"]
+      L706: ["templated:exit_code"]
+    cases:
+      - name: templated
+        run: cli
+        argv: [parse, -f, json, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\nignore = templating\ntemplater = python\n"
+          case.sql: "SELECT * FROM {foo.bar}"
+        checks:
+          exit_code: 0
+          templated: "SELECT * FROM foo_bar"
+      - name: slices
+        run: cli
+        argv: [parse, -f, json, -m, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\nignore = templating\ntemplater = python\n"
+          case.sql: "SELECT * FROM {foo.bar}"
+        checks:
+          exit_code: 0
+          source_slices:
+            - ["SELECT", 0, 6]
+            - ["", 6, 6]
+            - [" ", 6, 7]
+            - ["*", 7, 8]
+            - ["", 8, 8]
+            - [" ", 8, 9]
+            - ["FROM", 9, 13]
+            - [" ", 13, 14]
+            - ["", 14, 14]
+            - ["foo_bar", 14, 23]
+            - ["", 23, 23]
+            - ["", 23, 23]
+  - node: "test/core/templaters/python_test.py::test__templater_python_ignore_templating[SELECT * FROM {foo.bar!s}-templating-None-SELECT * FROM foo_bar-None]"
+    # L698 is in the if branch of the test, which does not run for this
+    # parameter (expected_violation is None). It cites the exit code 0
+    # of parse: the call does not raise. ignore = templating hides a
+    # templater violation from the CLI; the trace oracle proves that
+    # the templater call of the CLI run gives no violation (L706).
+    asserts:
+      L698:raises: ["templated:exit_code"]
+      L704: ["templated:exit_code", "templated:templated"]
+      L705: ["templated:templated"]
+      L706: ["templated:exit_code"]
+    cases:
+      - name: templated
+        run: cli
+        argv: [parse, -f, json, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\nignore = templating\ntemplater = python\n"
+          case.sql: "SELECT * FROM {foo.bar!s}"
+        checks:
+          exit_code: 0
+          templated: "SELECT * FROM foo_bar"
+      - name: slices
+        run: cli
+        argv: [parse, -f, json, -m, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\nignore = templating\ntemplater = python\n"
+          case.sql: "SELECT * FROM {foo.bar!s}"
+        checks:
+          exit_code: 0
+          source_slices:
+            - ["SELECT", 0, 6]
+            - ["", 6, 6]
+            - [" ", 6, 7]
+            - ["*", 7, 8]
+            - ["", 8, 8]
+            - [" ", 8, 9]
+            - ["FROM", 9, 13]
+            - [" ", 13, 14]
+            - ["", 14, 14]
+            - ["foo_bar", 14, 25]
+            - ["", 25, 25]
+            - ["", 25, 25]
+  - node: "test/core/templaters/python_test.py::test__templater_python_ignore_templating[SELECT * FROM {foo.bar!r}-templating-None-SELECT * FROM foo_bar-None]"
+    # L698 is in the if branch of the test, which does not run for this
+    # parameter (expected_violation is None). It cites the exit code 0
+    # of parse: the call does not raise. ignore = templating hides a
+    # templater violation from the CLI; the trace oracle proves that
+    # the templater call of the CLI run gives no violation (L706).
+    asserts:
+      L698:raises: ["templated:exit_code"]
+      L704: ["templated:exit_code", "templated:templated"]
+      L705: ["templated:templated"]
+      L706: ["templated:exit_code"]
+    cases:
+      - name: templated
+        run: cli
+        argv: [parse, -f, json, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\nignore = templating\ntemplater = python\n"
+          case.sql: "SELECT * FROM {foo.bar!r}"
+        checks:
+          exit_code: 0
+          templated: "SELECT * FROM foo_bar"
+      - name: slices
+        run: cli
+        argv: [parse, -f, json, -m, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\nignore = templating\ntemplater = python\n"
+          case.sql: "SELECT * FROM {foo.bar!r}"
+        checks:
+          exit_code: 0
+          source_slices:
+            - ["SELECT", 0, 6]
+            - ["", 6, 6]
+            - [" ", 6, 7]
+            - ["*", 7, 8]
+            - ["", 8, 8]
+            - [" ", 8, 9]
+            - ["FROM", 9, 13]
+            - [" ", 13, 14]
+            - ["", 14, 14]
+            - ["foo_bar", 14, 25]
+            - ["", 25, 25]
+            - ["", 25, 25]
+  - node: "test/core/templaters/python_test.py::test__templater_python_ignore_templating[SELECT * FROM {foo.bar!a}-templating-None-SELECT * FROM foo_bar-None]"
+    # L698 is in the if branch of the test, which does not run for this
+    # parameter (expected_violation is None). It cites the exit code 0
+    # of parse: the call does not raise. ignore = templating hides a
+    # templater violation from the CLI; the trace oracle proves that
+    # the templater call of the CLI run gives no violation (L706).
+    asserts:
+      L698:raises: ["templated:exit_code"]
+      L704: ["templated:exit_code", "templated:templated"]
+      L705: ["templated:templated"]
+      L706: ["templated:exit_code"]
+    cases:
+      - name: templated
+        run: cli
+        argv: [parse, -f, json, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\nignore = templating\ntemplater = python\n"
+          case.sql: "SELECT * FROM {foo.bar!a}"
+        checks:
+          exit_code: 0
+          templated: "SELECT * FROM foo_bar"
+      - name: slices
+        run: cli
+        argv: [parse, -f, json, -m, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\nignore = templating\ntemplater = python\n"
+          case.sql: "SELECT * FROM {foo.bar!a}"
+        checks:
+          exit_code: 0
+          source_slices:
+            - ["SELECT", 0, 6]
+            - ["", 6, 6]
+            - [" ", 6, 7]
+            - ["*", 7, 8]
+            - ["", 8, 8]
+            - [" ", 8, 9]
+            - ["FROM", 9, 13]
+            - [" ", 13, 14]
+            - ["", 14, 14]
+            - ["foo_bar", 14, 25]
+            - ["", 25, 25]
+            - ["", 25, 25]
+  - node: "test/core/templaters/python_test.py::test__templater_python_ignore_templating[SELECT * FROM {foo.bar}-templating-context6-SELECT * FROM foo_bar-None]"
+    # L698 is in the if branch of the test, which does not run for this
+    # parameter (expected_violation is None). It cites the exit code 0
+    # of parse: the call does not raise. ignore = templating hides a
+    # templater violation from the CLI; the trace oracle proves that
+    # the templater call of the CLI run gives no violation (L706).
+    asserts:
+      L698:raises: ["templated:exit_code"]
+      L704: ["templated:exit_code", "templated:templated"]
+      L705: ["templated:templated"]
+      L706: ["templated:exit_code"]
+    cases:
+      - name: templated
+        run: cli
+        argv: [parse, -f, json, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\nignore = templating\ntemplater = python\n\n[sqlfluff:templater:python:context]\nsqlfluff = {'existing.key': 'val'}\n"
+          case.sql: "SELECT * FROM {foo.bar}"
+        checks:
+          exit_code: 0
+          templated: "SELECT * FROM foo_bar"
+      - name: slices
+        run: cli
+        argv: [parse, -f, json, -m, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\nignore = templating\ntemplater = python\n\n[sqlfluff:templater:python:context]\nsqlfluff = {'existing.key': 'val'}\n"
+          case.sql: "SELECT * FROM {foo.bar}"
+        checks:
+          exit_code: 0
+          source_slices:
+            - ["SELECT", 0, 6]
+            - ["", 6, 6]
+            - [" ", 6, 7]
+            - ["*", 7, 8]
+            - ["", 8, 8]
+            - [" ", 8, 9]
+            - ["FROM", 9, 13]
+            - [" ", 13, 14]
+            - ["", 14, 14]
+            - ["foo_bar", 14, 23]
+            - ["", 23, 23]
+            - ["", 23, 23]
+  - node: "test/core/templaters/python_test.py::test__templater_python_ignore_templating[SELECT * FROM {foo.bar!r}-templating-context7-SELECT * FROM foo_bar-None]"
+    # L698 is in the if branch of the test, which does not run for this
+    # parameter (expected_violation is None). It cites the exit code 0
+    # of parse: the call does not raise. ignore = templating hides a
+    # templater violation from the CLI; the trace oracle proves that
+    # the templater call of the CLI run gives no violation (L706).
+    asserts:
+      L698:raises: ["templated:exit_code"]
+      L704: ["templated:exit_code", "templated:templated"]
+      L705: ["templated:templated"]
+      L706: ["templated:exit_code"]
+    cases:
+      - name: templated
+        run: cli
+        argv: [parse, -f, json, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\nignore = templating\ntemplater = python\n\n[sqlfluff:templater:python:context]\nsqlfluff = {'existing.key': 'val'}\n"
+          case.sql: "SELECT * FROM {foo.bar!r}"
+        checks:
+          exit_code: 0
+          templated: "SELECT * FROM foo_bar"
+      - name: slices
+        run: cli
+        argv: [parse, -f, json, -m, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\nignore = templating\ntemplater = python\n\n[sqlfluff:templater:python:context]\nsqlfluff = {'existing.key': 'val'}\n"
+          case.sql: "SELECT * FROM {foo.bar!r}"
+        checks:
+          exit_code: 0
+          source_slices:
+            - ["SELECT", 0, 6]
+            - ["", 6, 6]
+            - [" ", 6, 7]
+            - ["*", 7, 8]
+            - ["", 8, 8]
+            - [" ", 8, 9]
+            - ["FROM", 9, 13]
+            - [" ", 13, 14]
+            - ["", 14, 14]
+            - ["foo_bar", 14, 25]
+            - ["", 25, 25]
+            - ["", 25, 25]
+  - node: "test/core/templaters/python_test.py::test__templater_python_ignore_templating[SELECT * FROM {foo.bar!a}-templating-context8-SELECT * FROM foo_bar-None]"
+    # L698 is in the if branch of the test, which does not run for this
+    # parameter (expected_violation is None). It cites the exit code 0
+    # of parse: the call does not raise. ignore = templating hides a
+    # templater violation from the CLI; the trace oracle proves that
+    # the templater call of the CLI run gives no violation (L706).
+    asserts:
+      L698:raises: ["templated:exit_code"]
+      L704: ["templated:exit_code", "templated:templated"]
+      L705: ["templated:templated"]
+      L706: ["templated:exit_code"]
+    cases:
+      - name: templated
+        run: cli
+        argv: [parse, -f, json, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\nignore = templating\ntemplater = python\n\n[sqlfluff:templater:python:context]\nsqlfluff = {'existing.key': 'val'}\n"
+          case.sql: "SELECT * FROM {foo.bar!a}"
+        checks:
+          exit_code: 0
+          templated: "SELECT * FROM foo_bar"
+      - name: slices
+        run: cli
+        argv: [parse, -f, json, -m, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\nignore = templating\ntemplater = python\n\n[sqlfluff:templater:python:context]\nsqlfluff = {'existing.key': 'val'}\n"
+          case.sql: "SELECT * FROM {foo.bar!a}"
+        checks:
+          exit_code: 0
+          source_slices:
+            - ["SELECT", 0, 6]
+            - ["", 6, 6]
+            - [" ", 6, 7]
+            - ["*", 7, 8]
+            - ["", 8, 8]
+            - [" ", 8, 9]
+            - ["FROM", 9, 13]
+            - [" ", 13, 14]
+            - ["", 14, 14]
+            - ["foo_bar", 14, 25]
+            - ["", 25, 25]
+            - ["", 25, 25]
+  - node: "test/core/templaters/python_test.py::test__templater_python_ignore_templating[SELECT * FROM {foo.bar!r:>10}-templating-context9-SELECT * FROM    foo_bar-None]"
+    # L698 is in the if branch of the test, which does not run for this
+    # parameter (expected_violation is None). It cites the exit code 0
+    # of parse: the call does not raise. ignore = templating hides a
+    # templater violation from the CLI; the trace oracle proves that
+    # the templater call of the CLI run gives no violation (L706).
+    asserts:
+      L698:raises: ["templated:exit_code"]
+      L704: ["templated:exit_code", "templated:templated"]
+      L705: ["templated:templated"]
+      L706: ["templated:exit_code"]
+    cases:
+      - name: templated
+        run: cli
+        argv: [parse, -f, json, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\nignore = templating\ntemplater = python\n\n[sqlfluff:templater:python:context]\nsqlfluff = {'existing.key': 'val'}\n"
+          case.sql: "SELECT * FROM {foo.bar!r:>10}"
+        checks:
+          exit_code: 0
+          templated: "SELECT * FROM    foo_bar"
+      - name: slices
+        run: cli
+        argv: [parse, -f, json, -m, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\nignore = templating\ntemplater = python\n\n[sqlfluff:templater:python:context]\nsqlfluff = {'existing.key': 'val'}\n"
+          case.sql: "SELECT * FROM {foo.bar!r:>10}"
+        checks:
+          exit_code: 0
+          source_slices:
+            - ["SELECT", 0, 6]
+            - ["", 6, 6]
+            - [" ", 6, 7]
+            - ["*", 7, 8]
+            - ["", 8, 8]
+            - [" ", 8, 9]
+            - ["FROM", 9, 13]
+            - [" ", 13, 14]
+            - ["   ", 15, 29]
+            - ["", 14, 14]
+            - ["foo_bar", 14, 29]
+            - ["", 29, 29]
+            - ["", 29, 29]
+  - node: "test/core/templaters/python_test.py::test__templater_python_ignore_templating[SELECT * FROM {foo.bar!a:>10}-templating-context10-SELECT * FROM    foo_bar-None]"
+    # L698 is in the if branch of the test, which does not run for this
+    # parameter (expected_violation is None). It cites the exit code 0
+    # of parse: the call does not raise. ignore = templating hides a
+    # templater violation from the CLI; the trace oracle proves that
+    # the templater call of the CLI run gives no violation (L706).
+    asserts:
+      L698:raises: ["templated:exit_code"]
+      L704: ["templated:exit_code", "templated:templated"]
+      L705: ["templated:templated"]
+      L706: ["templated:exit_code"]
+    cases:
+      - name: templated
+        run: cli
+        argv: [parse, -f, json, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\nignore = templating\ntemplater = python\n\n[sqlfluff:templater:python:context]\nsqlfluff = {'existing.key': 'val'}\n"
+          case.sql: "SELECT * FROM {foo.bar!a:>10}"
+        checks:
+          exit_code: 0
+          templated: "SELECT * FROM    foo_bar"
+      - name: slices
+        run: cli
+        argv: [parse, -f, json, -m, case.sql]
+        cwd: tmp
+        files:
+          .sqlfluff: "[sqlfluff]\ndialect = ansi\nignore = templating\ntemplater = python\n\n[sqlfluff:templater:python:context]\nsqlfluff = {'existing.key': 'val'}\n"
+          case.sql: "SELECT * FROM {foo.bar!a:>10}"
+        checks:
+          exit_code: 0
+          source_slices:
+            - ["SELECT", 0, 6]
+            - ["", 6, 6]
+            - [" ", 6, 7]
+            - ["*", 7, 8]
+            - ["", 8, 8]
+            - [" ", 8, 9]
+            - ["FROM", 9, 13]
+            - [" ", 13, 14]
+            - ["   ", 15, 29]
+            - ["", 14, 14]
+            - ["foo_bar", 14, 29]
+            - ["", 29, 29]
+            - ["", 29, 29]

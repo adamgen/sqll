@@ -534,9 +534,9 @@ def test_s6_owns_its_paths():
 
 # Paths that a task changes (the design record, "Port", "Black-box form",
 # and "Speed"; the status file, column "Description"). Each task of the
-# tasks table has an entry, in the order of the tasks table. The paths of T1,
-# T2, and T3 are the paths of their pull requests. The file names of the tasks
-# after T3 are examples; their owners are the data that the test checks.
+# tasks table has an entry, in the order of the tasks table. The paths of T1
+# to T4 are the paths of their pull requests. The file names of the tasks
+# after T4 are examples; their owners are the data that the test checks.
 CASES = "harness/sqll_harness/s6/cases/core/templaters"
 TASK_PATHS = {
     "T1": [
@@ -587,7 +587,12 @@ TASK_PATHS = {
         "harness/tests/test_s6_scope.py",
         "status/S6.md",
     ],
-    "T4": [f"{CASES}/python_test.yml", "harness/tests/test_s6_cases.py"],
+    "T4": [
+        f"{CASES}/python_test.yml",
+        "harness/tests/test_s6_cases.py",
+        "harness/tests/test_s6_scope.py",
+        "status/S6.md",
+    ],
     # CI jobs and the ruff lint step (core), the matrix fragment, the
     # known-failure lists, and the results of this stone.
     "T5": [
