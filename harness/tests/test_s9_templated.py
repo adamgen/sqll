@@ -315,6 +315,10 @@ def test_each_tool_parses_the_render_of_a_templated_file(tmp_path, capsys):
     path, data = templated_case(tmp_path)
     out = tmp_path / "templated.json"
     argv = ["run", "--manifest", path, "--cache", tmp_path / "cache"]
+    # The 3 installed tools. The sqll binary comes from the build job, so
+    # this test (CI job lint) names the tools; corpus-smoke runs sqll.
+    for tool in ("sqlfluff", "sqlfluff-rs", "sqruff"):
+        argv += ["--tool", tool]
     code = corpus_main.main([*map(str, argv), "--profile", "smoke", "--out", str(out)])
     text = capsys.readouterr().out
     assert code == 0, text

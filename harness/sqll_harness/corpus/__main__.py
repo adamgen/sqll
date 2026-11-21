@@ -100,7 +100,7 @@ def _parser() -> argparse.ArgumentParser:
         action="append",
         choices=registry.names(),
         help="A tool of the bench registry (repeat it). Default: all, except"
-        " the tools that join later (sqll).",
+        " the tools that join later (run.LATER; now none).",
     )
     run_parser.add_argument("--cache", help=cache_help)
     run_parser.add_argument("--out", type=Path, default=corpus_report.DEFAULT_REPORT)
