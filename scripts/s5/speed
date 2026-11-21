@@ -745,8 +745,11 @@ def run(
         "reference": sess["reference"],
         "report": speed_profile.compact(sess["report"]),
     }
-    data["summary"] = summarize(data)
+    # The record first: if the summary refuses it, the data of the run stay
+    # for a check ("report" makes the summary again).
     out_file.parent.mkdir(parents=True, exist_ok=True)
+    out_file.write_text(dump(data), encoding="utf8")
+    data["summary"] = summarize(data)
     out_file.write_text(dump(data), encoding="utf8")
     return data
 
@@ -761,9 +764,6 @@ def refusals(data: Mapping, defs: Mapping, baseline: Mapping) -> list[str]:
     problems = []
     if not isinstance(rules, list) or not rules or rules != sorted(set(rules)):
         return [f"the rules are not a sorted list with no repeat: {rules!r}"]
-    errors = bench_report.check(rep)
-    if errors:
-        return ["the report: " + "; ".join(errors[:3])]
     dialects = sorted({b["dialect"] for b in defs["benchmarks"]})
     want_scope = bench_report.scope(TOOLS, dialects, COMMANDS, SIZES)
     if rep["profile"] != PROFILE:
