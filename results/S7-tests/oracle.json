@@ -177,6 +177,38 @@
      "errors": []
     },
     {
+     "id": "test/core/config/fluffconfig_test.py::test__config_missing_dialect",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "no_dialect",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 2,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/core/config/fluffconfig_test.py::test__config__validate_configs_indirect",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "outdated",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
      "id": "test/rules/cp01_rust_dispatch_test.py::test__use_rust_rules_requires_rust_parser",
      "pytest": "passed",
      "trace": "pass",
@@ -2223,12 +2255,12 @@
     }
    ],
    "counts": {
-    "nodes": 112,
-    "agree": 112,
-    "pass": 112,
+    "nodes": 114,
+    "agree": 114,
+    "pass": 114,
     "fail": 0,
     "python_internal": 14,
-    "asserts": 223,
+    "asserts": 226,
     "not_reproduced": 0
    },
    "errors": []
@@ -2400,6 +2432,38 @@
       }
      ],
      "asserts": 5,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/core/config/fluffconfig_test.py::test__config_missing_dialect",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "no_dialect",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 2,
+     "not_reproduced": 0,
+     "errors": []
+    },
+    {
+     "id": "test/core/config/fluffconfig_test.py::test__config__validate_configs_indirect",
+     "pytest": "passed",
+     "trace": "pass",
+     "report": "pass",
+     "cases": [
+      {
+       "name": "outdated",
+       "status": "pass",
+       "reason": ""
+      }
+     ],
+     "asserts": 1,
      "not_reproduced": 0,
      "errors": []
     },
@@ -4491,12 +4555,12 @@
     }
    ],
    "counts": {
-    "nodes": 112,
-    "agree": 112,
-    "pass": 111,
+    "nodes": 114,
+    "agree": 114,
+    "pass": 113,
     "fail": 1,
     "python_internal": 14,
-    "asserts": 223,
+    "asserts": 226,
     "not_reproduced": 0
    },
    "errors": []

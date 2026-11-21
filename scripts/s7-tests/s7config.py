@@ -17,6 +17,9 @@ file from the config of the Linter:
 - differences(): the keys with different values in 2 snapshots. The trace
   loads the text as the CLI does and records these differences (the proof);
   the oracle accepts the map only if there is none.
+- input_text(): the .sqlfluff text of the configs and overrides of a
+  FluffConfig construction that failed (T19: trace oracle and case runner,
+  extension 4). The proof of that map is the error of the CLI run.
 - templater_text(): the .sqlfluff text of a templater process() call (the
   templater map of S6, templater parity; docs/decisions/s6-templaters.md,
   "Black-box form"): the config of the call with core.templater, and the
@@ -211,6 +214,39 @@ def config_text(effective: dict[str, Any], reference: dict[str, Any]) -> str:
     """The .sqlfluff text that gives the effective config over the reference
     (the default config). Empty if they are the same."""
     return sections_text(config_sections(effective, reference))
+
+
+def input_text(configs: Any, overrides: Any) -> str:
+    """The .sqlfluff text of the inputs of a FluffConfig construction that
+    failed (T19): each value of configs, and each override in [sqlfluff] over
+    them (FluffConfig puts the overrides over the configs). The construction
+    gives no config, so the text has no proof of a config; the proof of the
+    error map is the error of the CLI run. It fails closed (ConfigMapError) on
+    inputs that are not mappings, on a value that is not a scalar, on a path
+    key, and on a name that an ini file cannot give. A key that the default
+    config does not have is allowed: the error can be about it."""
+    for name, value in (("configs", configs), ("overrides", overrides)):
+        if value is not None and not isinstance(value, dict):
+            raise ConfigMapError(f"the {name} {value!r} are not a mapping")
+    data = snapshot(configs or {})
+    if overrides:
+        core = data.setdefault("core", {})
+        if not isinstance(core, dict) or OBJECT in core:
+            raise ConfigMapError(f"core: the value {core!r} is not a section")
+        core.update(snapshot(overrides))
+    sections: dict[str, list[str]] = {}
+    for path, value in leaves(data):
+        where = ":".join(path)
+        if len(path) < 2 or (path[0] == "core" and len(path) != 2):
+            raise ConfigMapError(f"{where}: not a key of a config section")
+        key = path[-1]
+        if key.lower().endswith(PATH_SUFFIXES):
+            raise ConfigMapError(f"{where}: a path key (resolved relative to a file)")
+        if not _KEY.match(key) or not all(_SECTION.match(p) for p in path[:-1]):
+            raise ConfigMapError(f"{where}: a name that an ini file cannot give")
+        section = "sqlfluff" if path[0] == "core" else "sqlfluff:" + ":".join(path[:-1])
+        sections.setdefault(section, []).append(f"{key} = {value_text(path, value)}\n")
+    return sections_text(sections)
 
 
 # The templater map of S6 (templater parity; docs/decisions/s6-templaters.md,
