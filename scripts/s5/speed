@@ -1,0 +1,1102 @@
+#!/usr/bin/env python3
+"""The speed script of S5 (rule parity: sqll passes 100% of the rule
+fixtures, lint and fix; cases that need the Jinja templater move to the Jinja
+templater stone).
+
+Design record: docs/decisions/s5-rules.md, section 5 ("The speed rule for
+each pull request"). Task T3 (goal of the task: each pull request of this
+track that changes the lint and fix path gives the HEAD / BASE, HEAD /
+sqlfluff, and HEAD / sqruff ratios of the lint and fix benchmarks for the
+rules that sqll has) of S5 made this script.
+
+  uv run --frozen --project harness python scripts/s5/speed run --label LABEL \\
+      --scratch DIR [--base REF] [--head REF] [--image IMAGE]
+  uv run --frozen --project harness python scripts/s5/speed report \\
+      --label LABEL [--check]
+
+The S2 benchmarks select all rules ("rules = all"), and sqll fails closed on
+a rule that it does not have. Thus their lint and fix benchmarks of sqll are
+"unsupported" until sqll has the 79 rules (harness/bench.md, "Add a tool").
+This script runs the same benchmark inputs and settings with only the rules
+that sqll has at BASE:
+
+1. run takes the machine lock (/tmp/sqll-machine.lock; PROCESS.md,
+   "Tracks", rule 7). It also accepts the lock from a parent "flock"
+   command. If another process holds the lock, it stops (exit code 2): it
+   does not wait. Use "flock /tmp/sqll-machine.lock scripts/s5/speed ..."
+   to wait for the lock.
+2. HEAD is the commit of --head (default: HEAD). BASE is the commit of
+   --base (default: the merge base of HEAD and origin/main). For BASE, then
+   HEAD: a git worktree, its submodule, and its own scripts/build-sqll, as
+   scripts/speed-check does (its functions build_role and resolve).
+3. One container of the CI image (no network, serial; the S2 method, as
+   scripts/speed-check): the subcommand run-inside. It stops (exit code 2)
+   if the machine lock of the host (mounted read-only) is free. Then:
+   a. The tool check of each tool ("sqll-harness tools").
+   b. The rules: the rules that sqll has at BASE ("sqll rules" of the BASE
+      binary). Each tool must have each of them: sqll at HEAD ("sqll
+      rules"), sqlfluff ("sqlfluff rules"), and sqruff ("sqruff rules").
+      Else it stops: the tools cannot run the same rules.
+   c. The settings of each tool: the S2 settings (harness/bench.md,
+      "Settings") with core.rules = the rules, separated by ",".
+   d. The inputs: the build of the S2 benchmark inputs must be that of the
+      definitions (harness/sqll_harness/bench/definitions.json). Else it
+      stops.
+   e. The reference: the S2 sqlfluff reference (the rule codes of lint, and
+      if fix changes the file) has all rules, so it is made again with the
+      rules: sqlfluff lints and fixes each input once, with the checks of
+      harness/bench.md, "Validity". A run that is not valid, or a rule code
+      that the rules do not have, stops it.
+   f. The lint and fix benchmarks of the 28 dialects and 3 sizes (168
+      benchmarks), with the full profile, for sqll (HEAD), sqll-base
+      (BASE), sqlfluff, and sqruff. The tools run in turn for each repeat.
+      The validity checks compare each tool with the reference of step e.
+4. The record goes to results/S5/speed/LABEL.json: the commits, the builds,
+   the rules, the rules of each tool, the reference, the report, the steps,
+   and the summary.
+
+report reads only the committed record and makes the summary again. With
+--check, it writes nothing and fails if the file is not the new text.
+
+The summary. For each benchmark: the median wall time of each tool, and 3
+ratios (ratio = the median wall time of HEAD / that of the other tool, 4
+digits; null if a result is not valid): HEAD / BASE, HEAD / sqlfluff, and
+HEAD / sqruff. HEAD / BASE also has the compare entry of "sqll-harness bench
+compare" (the noise limit of harness/bench.md, "Slowdowns"). The groups (by
+command and size, and the total) give the ratio of the sums of each pair.
+The slower benchmarks:
+
+  head_base       HEAD is slower than BASE (above the noise limit).
+  failure         BASE is valid and HEAD is not.
+  head_not_valid  HEAD is not valid.
+  sqlfluff        HEAD / sqlfluff is 1 or more (G3: faster than sqlfluff on
+                  each benchmark).
+  sqruff          HEAD / sqruff is more than 1 (G3: not slower than sqruff
+                  on any benchmark).
+  sqruff_total    HEAD / sqruff of the total is 1 or more, or there is no
+                  pair (G3: faster than sqruff on the total).
+
+A benchmark where BASE, sqlfluff, or sqruff is not valid has no ratio for
+that tool. It is in "no_pair" with the status and the reason.
+
+Exit codes: 0 if there is no slower benchmark. 1 if there is one (the pull
+request gives the reason; PROCESS.md, rule 8), or if report --check finds a
+difference. 2 if there is no result: the machine lock is not taken, a tool
+cannot run the same rules, an input is missing or is not that of the
+definitions, a step failed, or the record does not agree with itself, the
+definitions, or the S2 baseline (results/s2/baseline.json).
+"""
+
+import argparse
+import copy
+import fcntl
+import importlib.machinery
+import importlib.util
+import json
+import os
+import re
+import shutil
+import statistics
+import subprocess
+import sys
+import tempfile
+import time
+from collections.abc import Iterable, Iterator, Mapping
+from contextlib import contextmanager
+from dataclasses import asdict
+from pathlib import Path
+from typing import Any
+
+ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT / "harness"))
+sys.path.insert(0, str(ROOT / "scripts" / "s3"))
+import speed_profile  # noqa: E402
+import sqlfluffrs_probe as probe  # noqa: E402
+
+from sqll_harness import paths  # noqa: E402
+from sqll_harness.adapters import sqll as sqll_adapter  # noqa: E402
+from sqll_harness.bench import compare  # noqa: E402
+from sqll_harness.bench import definitions as bench_definitions  # noqa: E402
+from sqll_harness.bench import inputs as bench_inputs  # noqa: E402
+from sqll_harness.bench import registry as bench_registry  # noqa: E402
+from sqll_harness.bench import report as bench_report  # noqa: E402
+from sqll_harness.bench import run as bench_run  # noqa: E402
+from sqll_harness.bench.adapter import (  # noqa: E402
+    FIX,
+    LINT,
+    PARSE,
+    BenchAdapter,
+    ConfigAbove,
+    Context,
+    settings,
+)
+from sqll_harness.bench.inputs import START  # noqa: E402
+from sqll_harness.bench.sqll import SqllBaseBench, SqllBench  # noqa: E402
+from sqll_harness.bench.timer import PROFILES, VALID, overhead  # noqa: E402
+from sqll_harness.paths import SQLFLUFF_ROOT  # noqa: E402
+
+
+def _load(name: str, path: Path):
+    loader = importlib.machinery.SourceFileLoader(name, str(path))
+    spec = importlib.util.spec_from_loader(name, loader)
+    module = importlib.util.module_from_spec(spec)
+    loader.exec_module(module)
+    return module
+
+
+# scripts/speed-check (the speed check of the track that owns the shared
+# core): the builds of BASE and HEAD, and the lock of a parent process.
+speed_check = _load("speed_check", ROOT / "scripts" / "speed-check")
+
+SPEED_DIR = ROOT / "results" / "S5" / "speed"
+BASELINE_FILE = ROOT / "results" / "s2" / "baseline.json"
+KIND = "sqll-s5-speed"
+FORMAT = 1
+HEAD, BASE = "sqll", "sqll-base"
+OTHERS = ("sqlfluff", "sqruff")
+TOOLS = tuple(sorted((HEAD, BASE, *OTHERS)))
+COMMANDS = (LINT, FIX)
+PROFILE = "full"
+SIZES = tuple(bench_inputs.SIZES)
+ROLES = {"base": BASE, "head": HEAD}
+PAIRS = {"head_base": BASE, "head_sqlfluff": "sqlfluff", "head_sqruff": "sqruff"}
+LABEL = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.-]*")
+RULE_CODE = re.compile(r"[A-Z]{2}\d{2}")
+# A rule line of "sqlfluff rules --nocolor": "CP01: [capitalisation.keywords] ...".
+SQLFLUFF_RULE_LINE = re.compile(r"^([A-Z]{2}\d{2}): \[", re.MULTILINE)
+LOCK_FILE = Path("/tmp/sqll-machine.lock")
+C_LOCK = "/run/sqll-machine.lock"
+C_SCRATCH = speed_check.C_SCRATCH
+C_PYTHON = speed_check.C_PYTHON
+IDLE_TIMEOUT_S = 1800
+SESSION_TIMEOUT_S = 4 * 3600
+DIGITS = 4
+_SCRIPT = "uv run --frozen --project harness python scripts/s5/speed"
+
+
+class Refused(Exception):
+    """There is no result: the lock, the rules, an input, a step, or the
+    data do not agree."""
+
+
+def label_file(label: str) -> Path:
+    if not LABEL.fullmatch(label):
+        raise Refused(f"not a label: {label!r}")
+    return SPEED_DIR / f"{label}.json"
+
+
+def dump(data: Any) -> str:
+    return probe.dump(data)
+
+
+# The machine lock.
+
+
+@contextmanager
+def machine_lock(path: Path | None = None) -> Iterator[str]:
+    """Hold the machine lock (default: LOCK_FILE). Yield how. Refused if
+    another process holds it: the script does not wait."""
+    path = path or LOCK_FILE
+    if speed_check.held_by_parent(path):
+        yield "held by a parent process"
+        return
+    fd = os.open(path, os.O_RDWR | os.O_CREAT, 0o666)
+    try:
+        try:
+            fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            raise Refused(
+                f"the machine lock {path} is held by another process. Wait with: "
+                f"flock {path} scripts/s5/speed ..."
+            ) from None
+        yield "taken by scripts/s5/speed"
+    finally:
+        os.close(fd)
+
+
+def lock_is_held(path: Path) -> bool:
+    """True if a process holds the flock of path. If no process holds it,
+    the check takes it and gives it back at once."""
+    try:
+        fd = os.open(path, os.O_RDONLY)
+    except OSError:
+        return False
+    try:
+        fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except BlockingIOError:
+        return True
+    finally:
+        os.close(fd)
+    return False
+
+
+# The rules.
+
+
+def sqlfluff_rule_codes(text: str) -> frozenset[str]:
+    """The rule codes of the output of "sqlfluff rules --nocolor"."""
+    return frozenset(SQLFLUFF_RULE_LINE.findall(text))
+
+
+def select_rules(base_has: Iterable[str]) -> list[str]:
+    """The rules of the run: each rule that sqll has at BASE, sorted.
+    Refused if there is none, or if one is not a rule code."""
+    rules = sorted(set(base_has))
+    if not rules:
+        raise Refused(f"{BASE} has no rule")
+    bad = [r for r in rules if not RULE_CODE.fullmatch(r)]
+    if bad:
+        raise Refused(f"{BASE}: not a rule code: {', '.join(bad)}")
+    return rules
+
+
+def check_rules(rules: list[str], has: Mapping[str, Iterable[str]]) -> None:
+    """Refused if a tool of TOOLS does not have each rule: then the tools
+    cannot run the same rules."""
+    problems = []
+    for tool in TOOLS:
+        if tool not in has:
+            problems.append(f"{tool}: no rule list")
+            continue
+        missing = [r for r in rules if r not in set(has[tool])]
+        if missing:
+            problems.append(f"{tool} does not have the rules {', '.join(missing)}")
+    if problems:
+        raise Refused("the tools cannot run the same rules: " + "; ".join(problems))
+
+
+def tool_rules(adapter: BenchAdapter) -> frozenset[str]:
+    """The rule codes that a tool has, from its own command."""
+    if adapter.name in (HEAD, BASE):
+        return adapter.s1.rules()[0]
+    if adapter.name == "sqruff":
+        return frozenset(adapter.s1.info["rules"])
+    if adapter.name == "sqlfluff":
+        with tempfile.TemporaryDirectory(prefix="sqll-s5-rules-") as tmp:
+            proc = subprocess.run(
+                [str(adapter.s1.binary), "rules", "--nocolor"],
+                cwd=tmp,
+                capture_output=True,
+                text=True,
+                env=adapter.env(),
+                timeout=120,
+            )
+        if proc.returncode != 0:
+            raise Refused(f"sqlfluff rules: exit code {proc.returncode}")
+        return sqlfluff_rule_codes(proc.stdout)
+    raise Refused(f"no rule list for the tool {adapter.name}")
+
+
+def rules_setting(rules: list[str]) -> str:
+    return ",".join(rules)
+
+
+class ParseWithAllRules:
+    """sqll parse refuses a core.rules setting that is not the default
+    (crates/sqll_config/src/parse.rs: "sqlfluff parse reads the rule
+    settings; sqll has no rules yet (S5)"). A parse runs no rule. Thus the
+    parse check of a lint or fix run of sqll (harness/bench.md, "Validity")
+    runs sqll parse with the S2 settings (rules = all), as the S2 parse
+    benchmarks do. lint and fix run with the rules of the settings."""
+
+    def job(self, benchmark, ctx, folder=None):
+        if benchmark["command"] not in (START, PARSE):
+            return super().job(benchmark, ctx, folder)
+        saved = self.base_settings
+        self.base_settings = settings()
+        try:
+            return super().job(benchmark, ctx, folder)
+        finally:
+            self.base_settings = saved
+
+
+class SqllRulesBench(ParseWithAllRules, SqllBench):
+    """The benchmark adapter of sqll at HEAD for this script."""
+
+
+class SqllBaseRulesBench(ParseWithAllRules, SqllBaseBench):
+    """The benchmark adapter of sqll at BASE for this script."""
+
+
+def adapter_of(tool: str) -> BenchAdapter:
+    """The benchmark adapter of a tool for this script."""
+    if tool == HEAD:
+        return SqllRulesBench()
+    if tool == BASE:
+        return SqllBaseRulesBench()
+    return bench_registry.get(tool)
+
+
+def with_rules(adapter: BenchAdapter, rules: list[str]) -> BenchAdapter:
+    """Give the adapter the S2 settings with only these rules."""
+    adapter.base_settings["core"]["rules"] = rules_setting(rules)
+    return adapter
+
+
+def settings_rules(settings: Mapping[str, Any]) -> list[str]:
+    """The rules of the settings of a tool (core.rules)."""
+    value = settings.get("core", {}).get("rules")
+    if not isinstance(value, str):
+        return []
+    return [r.strip() for r in value.split(",") if r.strip()]
+
+
+def expected_settings(baseline: Mapping, tool: str, rules: list[str]) -> dict:
+    """The S2 settings of a tool in the baseline, with only these rules."""
+    source = HEAD if tool == BASE else tool
+    settings = copy.deepcopy(baseline["tools"][source]["settings"])
+    settings["core"]["rules"] = rules_setting(rules)
+    return settings
+
+
+# The reference.
+
+
+def make_reference(
+    adapter: BenchAdapter,
+    defs: Mapping[str, Any],
+    inputs_dir: Path,
+    work: Path,
+    names: list[str],
+    rules: list[str],
+    timeout_s: float = PROFILES[PROFILE].timeout_s,
+) -> tuple[dict, list[str]]:
+    """The sqlfluff reference of the inputs with the rules, as
+    sqll_harness.bench.reference.make makes it with all rules. Return
+    (reference, errors)."""
+    if adapter.name != bench_definitions.REFERENCE_TOOL:
+        raise Refused(f"the reference tool is sqlfluff, not {adapter.name}")
+    ctx = Context(defs, inputs_dir, work, timeout_s, record_reference=True)
+    entries, errors = {}, []
+    for name in names:
+        dialect = name.split("/")[0]
+        reason = ctx.validity(adapter, FIX, dialect, name)
+        if reason:
+            errors.append(f"{name}: {reason}")
+            continue
+        lint = ctx.work[(adapter.name, LINT, dialect, name)]
+        fix = ctx.work[(adapter.name, FIX, dialect, name)]
+        extra = sorted(set(lint["codes"]) - set(rules))
+        if extra:
+            errors.append(f"{name}: rule codes that the rules do not have: {extra}")
+            continue
+        entries[name] = {
+            "sha256": defs["inputs"][name]["sha256"],
+            "lint_codes": lint["codes"],
+            "fix_changes": fix["changed"],
+        }
+    return {"sqlfluff_version": adapter.version(), "inputs": entries}, errors
+
+
+# run-inside (in the CI image).
+
+
+def build_inputs(sqlfluff_root: Path, defs: Mapping[str, Any], out: Path) -> None:
+    """Build the inputs. Refused if an input is missing or is not that of
+    the definitions."""
+    try:
+        built = bench_inputs.build(sqlfluff_root)
+    except (bench_inputs.BuildError, OSError) as exc:
+        raise Refused(f"the inputs: {exc}") from None
+    errors = bench_definitions.check(defs, built)
+    if errors:
+        raise Refused(
+            "the inputs are not those of the definitions: " + "; ".join(errors[:5])
+        )
+    bench_inputs.write(built, out)
+
+
+def session(
+    scratch: Path,
+    *,
+    adapters: Mapping[str, BenchAdapter] | None = None,
+    dialects: list[str] | None = None,
+    profile: str = PROFILE,
+    sqlfluff_root: Path = SQLFLUFF_ROOT,
+    defs: Mapping[str, Any] | None = None,
+    progress=bench_run.progress_to_stderr,
+) -> dict:
+    """The rules, the reference, and the benchmarks. Return the session
+    record. Refused if the tools cannot run the same rules, or if an input
+    is missing. A test can give other adapters, dialects, or profile; the
+    summary refuses a record that is not of the full scope."""
+    if adapters is None:
+        errors = bench_run.check_tools(list(TOOLS))
+        if errors:
+            raise Refused("the tool check: " + "; ".join(errors))
+        adapters = {t: adapter_of(t) for t in TOOLS}
+    if sorted(adapters) != list(TOOLS):
+        raise Refused(f"the tools are {sorted(adapters)}, not {list(TOOLS)}")
+    wrong = [t for t, a in adapters.items() if a.name != t]
+    if wrong:
+        raise Refused(f"the adapter of {', '.join(wrong)} has another name")
+    has = {tool: sorted(tool_rules(a)) for tool, a in adapters.items()}
+    rules = select_rules(has[BASE])
+    check_rules(rules, has)
+    for adapter in adapters.values():
+        with_rules(adapter, rules)
+    defs = dict(defs if defs is not None else bench_definitions.load())
+    try:
+        scope, benchmarks = bench_run.plan(
+            defs,
+            tools=list(TOOLS),
+            profile=profile,
+            dialects=dialects,
+            commands=list(COMMANDS),
+        )
+    except bench_run.RunError as exc:
+        raise Refused(str(exc)) from None
+    work = scratch / "work"
+    if work.exists():
+        shutil.rmtree(work)
+    inputs_dir = work / "inputs"
+    build_inputs(sqlfluff_root, defs, inputs_dir)
+    used = sorted({b["input"] for b in benchmarks})
+    timeout_s = PROFILES[profile].timeout_s
+    reference, errors = make_reference(
+        adapters["sqlfluff"],
+        defs,
+        inputs_dir,
+        work / "reference",
+        used,
+        rules,
+        timeout_s,
+    )
+    if errors:
+        raise Refused(
+            f"no sqlfluff reference with the rules {rules_setting(rules)}: "
+            + "; ".join(errors[:5])
+        )
+    defs["reference"] = reference
+    ctx = Context(defs, inputs_dir, work / "runs", timeout_s)
+    timer_entry = overhead(work / "overhead")
+    results = bench_run.run_benchmarks(
+        benchmarks, list(adapters.values()), ctx, profile, progress
+    )
+    rep = bench_report.build(
+        sqlfluff_ref=paths.sqlfluff_ref(sqlfluff_root),
+        profile=profile,
+        machine=bench_report.machine(),
+        harness=bench_report.harness(),
+        timer=timer_entry,
+        scope=scope,
+        tools={
+            a.name: {"version": a.version(), "settings": a.config(None)}
+            for a in adapters.values()
+        },
+        inputs={n: {k: defs["inputs"][n][k] for k in bench_report.INPUT} for n in used},
+        results=results,
+    )
+    return {
+        "rules": rules,
+        "tool_rules": {
+            tool: {
+                "has": has[tool],
+                "ran": settings_rules(adapters[tool].config(None)),
+            }
+            for tool in TOOLS
+        },
+        "reference": reference,
+        "report": rep,
+    }
+
+
+def run_inside(scratch: Path, lock: Path) -> None:
+    if not lock_is_held(lock):
+        raise Refused(f"the machine lock {lock} is free: run this script with run")
+    data = session(scratch)
+    (scratch / "session.json").write_text(dump(data), "utf8")
+
+
+# run: the builds (host).
+
+
+# The files that make a sqll binary: the source of the source hash
+# (sqll_adapter.source_hash), the pinned sqlfluff (the dialect tables), and
+# the build script.
+BUILD_INPUTS = (
+    *sqll_adapter.SOURCE_FILES,
+    *sqll_adapter.SOURCE_DIRS,
+    "third_party/sqlfluff",
+    "scripts/build-sqll",
+)
+
+
+def same_build(st: probe.Steps, base: str, head: str, root: Path = ROOT) -> bool:
+    """True if BASE and HEAD have the same build inputs (git diff)."""
+    proc = st.run(
+        "BASE and HEAD: the build inputs",
+        ["git", "diff", "--quiet", base, head, "--", *BUILD_INPUTS],
+        root,
+        check=False,
+    )
+    if proc.returncode not in (0, 1):
+        raise Refused(f"git diff of the build inputs: exit code {proc.returncode}")
+    return proc.returncode == 0
+
+
+def root_is(st: probe.Steps, commit: str, root: Path = ROOT) -> bool:
+    """True if the checkout (default: that of this script) is the commit,
+    with no change of a tracked file."""
+    now = st.run("the commit of the checkout", ["git", "rev-parse", "HEAD"], root)
+    changes = st.run(
+        "the changes of the checkout",
+        ["git", "status", "--porcelain", "--untracked-files=no"],
+        root,
+    )
+    return now.stdout.strip() == commit and not changes.stdout.strip()
+
+
+def build_head(st: probe.Steps, scratch: Path, commit: str) -> tuple[dict, Path]:
+    """Build sqll at HEAD. Return the build record and the source folder.
+    If the checkout of this script is HEAD with no change, the build is
+    there: if its binary of scripts/build-sqll (out/sqll/bin/sqll) has the
+    source hash and the version of the checkout, that binary; else a new
+    scripts/build-sqll (it keeps its cargo output, so a second build is
+    fast). Else the build is in a new worktree (speed_check.build_role)."""
+    if not root_is(st, commit):
+        record = speed_check.build_role(st, scratch, "head", commit)
+        return record | {"source": "$SCRATCH/src/head"}, scratch / "src" / "head"
+    try:
+        record = speed_check.collect_binary(ROOT, scratch / "bin" / "head")
+    except (speed_check.Refused, OSError):
+        pass
+    else:
+        return record | {
+            "build_s": 0.0,
+            "source": "$REPO: the binary of scripts/build-sqll in the checkout "
+            "(out/sqll/bin/sqll) has the source hash and the version of HEAD",
+        }, ROOT
+    start = time.perf_counter()
+    st.run(
+        "head: scripts/build-sqll",
+        [ROOT / "scripts" / "build-sqll"],
+        ROOT,
+        set_env={"SQLL_TOOLS_DIR": str(paths.tools_dir())},
+        unset=("SQLL_TABLES_DIR", "CARGO_TARGET_DIR", "SQLL_BIN"),
+        log=scratch / "logs" / "head-build.log",
+    )
+    record = speed_check.collect_binary(ROOT, scratch / "bin" / "head")
+    return record | {
+        "build_s": round(time.perf_counter() - start, 1),
+        "source": "$REPO",
+    }, ROOT
+
+
+def build_base(
+    st: probe.Steps, scratch: Path, commit: str, head: str, head_source: Path
+) -> tuple[dict, Path]:
+    """Build sqll at BASE. Return the build record and the source folder. If
+    BASE and HEAD have the same build inputs, the BASE binary is a copy of
+    the HEAD binary; else a new worktree (speed_check.build_role)."""
+    if not same_build(st, commit, head):
+        record = speed_check.build_role(st, scratch, "base", commit)
+        return record | {"source": "$SCRATCH/src/base"}, scratch / "src" / "base"
+    folder = scratch / "bin" / "base"
+    folder.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(scratch / "bin" / "head" / "sqll", folder / "sqll")
+    record = speed_check.binary_record(folder / "sqll")
+    return record | {
+        "build_s": 0.0,
+        "source": "the HEAD build: BASE and HEAD have the same build inputs "
+        f"({', '.join(BUILD_INPUTS)}; git diff)",
+    }, head_source
+
+
+def container_path(scratch: Path, path: Path) -> str:
+    """The path in the container: the scratch folder is C_SCRATCH; the
+    repository has its host path."""
+    if path.is_relative_to(scratch):
+        return f"{C_SCRATCH}/{path.relative_to(scratch).as_posix()}".rstrip("/")
+    if path.is_relative_to(ROOT):
+        return str(path)
+    raise Refused(f"{path} is not in the scratch folder or the repository")
+
+
+def docker_argv(
+    scratch: Path,
+    image: str,
+    sources: Mapping[str, Path] | None = None,
+    lock: Path | None = None,
+) -> list[str]:
+    """The session container, as that of scripts/speed-check: no network,
+    the repository and its git data read-only, the scratch folder, and the
+    binaries and source folders of BASE and HEAD (sources: role -> source
+    folder; default: the worktrees of speed_check.build_role). Also the
+    machine lock (default: LOCK_FILE), read-only."""
+    lock = lock or LOCK_FILE
+    sources = sources or {r: scratch / "src" / r for r in ROLES}
+    argv = ["docker", "run", "--rm", "--network", "none"]
+    argv += ["-v", f"{ROOT}:{ROOT}:ro", "-v", f"{scratch}:{C_SCRATCH}"]
+    common = Path(
+        subprocess.run(
+            ["git", "rev-parse", "--path-format=absolute", "--git-common-dir"],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout.strip()
+    )
+    if not common.is_relative_to(ROOT):
+        # A linked worktree: its git data is in the common git folder.
+        argv += ["-v", f"{common}:{common}:ro"]
+    argv += ["-v", f"{lock}:{C_LOCK}:ro"]
+    env = {
+        "PYTHONPATH": f"{ROOT}/harness",
+        "SQLL_BIN": f"{C_SCRATCH}/bin/head/sqll",
+        sqll_adapter.SOURCE_ENV: container_path(scratch, sources["head"]),
+        sqll_adapter.BASE_BINARY_ENV: f"{C_SCRATCH}/bin/base/sqll",
+        sqll_adapter.BASE_SOURCE_ENV: container_path(scratch, sources["base"]),
+    }
+    for k, v in env.items():
+        argv += ["-e", f"{k}={v}"]
+    argv += ["-w", str(ROOT), image, C_PYTHON, "scripts/s5/speed", "run-inside"]
+    return argv + ["--scratch", C_SCRATCH, "--lock", C_LOCK]
+
+
+def run(
+    label: str, scratch: Path, head_ref: str, base_ref: str | None, image: str | None
+) -> dict:
+    out_file = label_file(label)
+    scratch = scratch.absolute()
+    if scratch.exists() and any(scratch.iterdir()):
+        raise Refused(f"the scratch folder is not empty: {scratch}")
+    with machine_lock() as lock:
+        scratch.mkdir(parents=True, exist_ok=True)
+        st = probe.Steps(scratch)
+        started = time.perf_counter()
+        commits = speed_check.resolve(st, head_ref, base_ref)
+        image = image or probe.ci_image()
+        image_id = speed_check.output(
+            st, "CI image id", ["docker", "image", "inspect", "-f", "{{.Id}}", image]
+        )
+        docker = speed_check.output(
+            st, "docker version", ["docker", "version", "-f", "{{.Server.Version}}"]
+        )
+        builds, sources = {}, {}
+        try:
+            head = commits["head"]["commit"]
+            builds["head"], sources["head"] = build_head(st, scratch, head)
+            builds["base"], sources["base"] = build_base(
+                st, scratch, commits["base"]["commit"], head, sources["head"]
+            )
+            load_before, waited = probe.wait_idle(IDLE_TIMEOUT_S)
+            session_start = time.perf_counter()
+            st.run(
+                "session",
+                docker_argv(scratch, image, sources),
+                ROOT,
+                log=scratch / "logs" / "session.log",
+                timeout=SESSION_TIMEOUT_S,
+            )
+            session_s = round(time.perf_counter() - session_start, 1)
+            load_after = probe.read_load()
+        finally:
+            speed_check.remove_worktrees(st, scratch)
+        if load_after[1] > probe.MAX_SESSION_LOAD:
+            raise Refused(
+                f"the 5-minute load average after the session is {load_after[1]}: "
+                "other processes ran during the serial session"
+            )
+        st.run(
+            "check the submodule after",
+            [ROOT / "scripts" / "check-submodule", "after the S5 speed script"],
+            ROOT,
+        )
+    sess = json.loads((scratch / "session.json").read_text("utf8"))
+    errors = bench_report.check(sess["report"])
+    if errors:
+        raise Refused("the session report: " + "; ".join(errors[:3]))
+    command = f"{_SCRIPT} run --label {label}"
+    command += f" --base {base_ref}" if base_ref else ""
+    command += f" --head {head_ref} --scratch $SCRATCH"
+    data = {
+        "kind": KIND,
+        "format": FORMAT,
+        "label": label,
+        "command": command,
+        "base": commits["base"] | builds["base"],
+        "head": commits["head"] | builds["head"],
+        "method": {
+            "text": "docs/decisions/s5-rules.md, section 5: the S2 method (the CI "
+            "image in docker, one container, serial, no network, no other load; "
+            "the full profile; the tools run in turn for each repeat). The lint "
+            f"and fix benchmarks of {', '.join(TOOLS)}, with only the rules that "
+            "sqll has at BASE.",
+            "image": image,
+            "image_id": image_id,
+            "docker": docker,
+            "host": bench_report.machine(),
+            "machine_lock": f"{LOCK_FILE}: {lock}",
+            "load_rule": f"the session starts when the 1-minute load average is "
+            f"below {probe.IDLE_LOAD}; after it, the 5-minute load average must be "
+            f"at most {probe.MAX_SESSION_LOAD}",
+            "load": {"before": load_before, "after": load_after, "idle_wait_s": waited},
+        },
+        "time_s": {
+            "build_base": builds["base"]["build_s"],
+            "build_head": builds["head"]["build_s"],
+            "session": session_s,
+            "total": round(time.perf_counter() - started, 1),
+        },
+        "steps": st.entries,
+        "rules": sess["rules"],
+        "tool_rules": sess["tool_rules"],
+        "reference": sess["reference"],
+        "report": speed_profile.compact(sess["report"]),
+    }
+    # The record first: if the summary refuses it, the data of the run stay
+    # for a check ("report" makes the summary again).
+    out_file.parent.mkdir(parents=True, exist_ok=True)
+    out_file.write_text(dump(data), encoding="utf8")
+    data["summary"] = summarize(data)
+    out_file.write_text(dump(data), encoding="utf8")
+    return data
+
+
+# The summary.
+
+
+def refusals(data: Mapping, defs: Mapping, baseline: Mapping) -> list[str]:
+    """Each reason why the record cannot give a result."""
+    rep = data["report"]
+    rules = data["rules"]
+    problems = []
+    if not isinstance(rules, list) or not rules or rules != sorted(set(rules)):
+        return [f"the rules are not a sorted list with no repeat: {rules!r}"]
+    dialects = sorted({b["dialect"] for b in defs["benchmarks"]})
+    want_scope = bench_report.scope(TOOLS, dialects, COMMANDS, SIZES)
+    if rep["profile"] != PROFILE:
+        problems.append(f"the profile is {rep['profile']}, not {PROFILE}")
+    if rep["scope"] != want_scope:
+        problems.append(f"the scope is {rep['scope']}, not {want_scope}")
+        return problems
+    if sorted(rep["tools"]) != list(TOOLS):
+        problems.append(f"the tools are {sorted(rep['tools'])}, not {list(TOOLS)}")
+        return problems
+    problems += bench_run.incomplete(rep, defs)
+    # The rules of each tool: it has each rule, and its settings have only
+    # the rules.
+    if data["tool_rules"][BASE]["has"] != rules:
+        problems.append(f"the rules are not those that {BASE} has")
+    for tool in TOOLS:
+        record = data["tool_rules"][tool]
+        missing = sorted(set(rules) - set(record["has"]))
+        if missing:
+            problems.append(f"{tool} does not have the rules {', '.join(missing)}")
+        settings = rep["tools"][tool]["settings"]
+        if record["ran"] != rules or settings_rules(settings) != rules:
+            problems.append(f"{tool}: the settings do not have only the rules")
+        if settings != expected_settings(baseline, tool, rules):
+            problems.append(
+                f"{tool}: the settings are not the S2 settings with the rules"
+            )
+    for role, tool in ROLES.items():
+        if rep["tools"][tool]["version"] != data[role]["version"]:
+            problems.append(f"{tool}: the version is not that of the {role} build")
+    for tool in OTHERS:
+        if rep["tools"][tool]["version"] != baseline["tools"][tool]["version"]:
+            problems.append(f"{tool}: the version is not that of the baseline")
+    # The reference: one entry for each input, made by the pinned sqlfluff
+    # with the rules.
+    ref = data["reference"]
+    if ref.get("sqlfluff_version") != rep["tools"]["sqlfluff"]["version"]:
+        problems.append("the reference is not of the sqlfluff of the report")
+    entries = ref.get("inputs") or {}
+    if sorted(entries) != sorted(rep["inputs"]):
+        problems.append("the reference does not have exactly the inputs of the report")
+    for name, entry in sorted(entries.items()):
+        if entry.get("sha256") != rep["inputs"].get(name, {}).get("sha256"):
+            problems.append(f"reference {name}: made for another input (sha256)")
+        extra = sorted(set(entry.get("lint_codes") or []) - set(rules))
+        if extra:
+            problems.append(f"reference {name}: codes {extra} are not of the rules")
+    return problems
+
+
+def ratio(head: float | None, other: float | None) -> float | None:
+    """HEAD / other, 4 digits. None if a value is missing or other is 0."""
+    if head is None or other is None or other == 0:
+        return None
+    return round(head / other, DIGITS)
+
+
+def _median(result: Mapping | None) -> float | None:
+    if result is None or result["status"] != VALID:
+        return None
+    return result["stats"]["wall_s"]["median"]
+
+
+def group_of(bid: str) -> str:
+    """lint/ansi/small -> lint/small."""
+    command, _, size = bid.split("/")
+    return f"{command}/{size}"
+
+
+def sort_key(bid: str) -> tuple:
+    command, dialect, size = bid.split("/")
+    return (COMMANDS.index(command), SIZES.index(size), dialect)
+
+
+def rows(rep: Mapping) -> list[dict]:
+    """One row for each benchmark of the report: the status and the median
+    wall time of each tool, the 3 ratios, and the compare entry of HEAD /
+    BASE."""
+    by_key = {(r["id"], r["tool"]): r for r in rep["results"]}
+    ids = sorted({i for i, t in by_key if t == HEAD}, key=sort_key)
+    out = []
+    for bid in ids:
+        results = {t: by_key.get((bid, t)) for t in TOOLS}
+        head = results[HEAD]
+        wall = {t: _median(r) for t, r in results.items()}
+        base = results[BASE]
+        entry = compare.benchmark_entry(base, head) if base is not None else None
+        command, dialect, size = bid.split("/")
+        out.append(
+            {
+                "id": bid,
+                "command": command,
+                "dialect": dialect,
+                "size": size,
+                "status": {
+                    t: None if r is None else r["status"] for t, r in results.items()
+                },
+                "wall_s": wall,
+                "ratio": {k: ratio(wall[HEAD], wall[t]) for k, t in PAIRS.items()},
+                "head_base": None
+                if entry is None
+                else {k: entry[k] for k in ("change", "wall", "cpu")},
+            }
+        )
+    return out
+
+
+def _pair_group(members: list[dict], tool: str) -> dict:
+    pairs = [
+        r
+        for r in members
+        if r["wall_s"][HEAD] is not None and r["wall_s"][tool] is not None
+    ]
+    ratios = sorted(
+        x
+        for x in (ratio(r["wall_s"][HEAD], r["wall_s"][tool]) for r in pairs)
+        if x is not None
+    )
+    head = round(sum(r["wall_s"][HEAD] for r in pairs), 6)
+    other = round(sum(r["wall_s"][tool] for r in pairs), 6)
+    return {
+        "pairs": len(pairs),
+        "wall_s": {"head": head, tool: other},
+        "ratio": {
+            "total": ratio(head, other) if pairs else None,
+            "min": ratios[0] if ratios else None,
+            "median": round(statistics.median(ratios), DIGITS) if ratios else None,
+            "max": ratios[-1] if ratios else None,
+        },
+    }
+
+
+def groups(table: list[dict]) -> list[dict]:
+    names = [f"{c}/{s}" for c in COMMANDS for s in SIZES]
+    out = []
+    for name in (*names, "total"):
+        members = [r for r in table if name == "total" or group_of(r["id"]) == name]
+        out.append(
+            {
+                "group": name,
+                "benchmarks": len(members),
+                **{k: _pair_group(members, t) for k, t in PAIRS.items()},
+            }
+        )
+    return out
+
+
+def slower(table: list[dict], total: Mapping) -> dict:
+    sqruff_total = total["head_sqruff"]["ratio"]["total"]
+    return {
+        "head_base": [
+            r["id"]
+            for r in table
+            if r["head_base"] and r["head_base"]["change"] == compare.SLOWER
+        ],
+        "failure": [
+            r["id"]
+            for r in table
+            if r["head_base"] and r["head_base"]["change"] == compare.FAILURE
+        ],
+        "head_not_valid": [r["id"] for r in table if r["status"][HEAD] != VALID],
+        "sqlfluff": [
+            r["id"]
+            for r in table
+            if r["ratio"]["head_sqlfluff"] is not None
+            and r["ratio"]["head_sqlfluff"] >= 1
+        ],
+        "sqruff": [
+            r["id"]
+            for r in table
+            if r["ratio"]["head_sqruff"] is not None and r["ratio"]["head_sqruff"] > 1
+        ],
+        "sqruff_total": sqruff_total is None or sqruff_total >= 1,
+    }
+
+
+def no_pair(rep: Mapping, table: list[dict]) -> dict:
+    """For each other tool: each benchmark where it is not valid (and HEAD
+    is), with its status and reason."""
+    by_key = {(r["id"], r["tool"]): r for r in rep["results"]}
+    out = {}
+    for key, tool in PAIRS.items():
+        out[key] = [
+            {
+                "id": r["id"],
+                "status": r["status"][tool],
+                "reason": (by_key.get((r["id"], tool)) or {}).get("reason"),
+            }
+            for r in table
+            if r["status"][HEAD] == VALID and r["status"][tool] != VALID
+        ]
+    return out
+
+
+def summarize(data: Mapping) -> dict:
+    """The summary of a record. Refused if the record cannot give a result."""
+    defs = bench_definitions.load()
+    baseline = json.loads(BASELINE_FILE.read_text("utf8"))
+    try:
+        problems = refusals(data, defs, baseline)
+    except (KeyError, TypeError, AttributeError, ValueError) as exc:
+        raise Refused(f"the record is not complete: {exc!r}") from None
+    if problems:
+        more = f" and {len(problems) - 5} more" if len(problems) > 5 else ""
+        raise Refused("; ".join(problems[:5]) + more)
+    rep = data["report"]
+    table = rows(rep)
+    grouped = groups(table)
+    slow = slower(table, grouped[-1])
+    ok = not any(v for v in slow.values())
+    return {
+        "base": data["base"]["commit"],
+        "head": data["head"]["commit"],
+        "same_source": data["base"]["source_sha256"] == data["head"]["source_sha256"],
+        "rules": data["rules"],
+        "tool_rules": {t: data["tool_rules"][t]["ran"] for t in TOOLS},
+        "formula": {
+            "ratio": "the median wall time of HEAD / that of the other tool "
+            f"({DIGITS} digits); null if a result is not valid",
+            "head_base": "also the compare entry of 'sqll-harness bench compare': "
+            "HEAD / BASE of the median wall time and of the median CPU time; a "
+            "metric is slower if its ratio is more than 1 + the noise limit "
+            "(harness/bench.md, 'Slowdowns'); a benchmark is slower if a metric "
+            "is slower",
+            "groups": "the ratio of the sums of the medians of the benchmarks "
+            "where both tools are valid",
+            "slower": "head_base: slower than BASE; failure: BASE is valid and "
+            "HEAD is not; head_not_valid: HEAD is not valid; sqlfluff: HEAD / "
+            "sqlfluff is 1 or more; sqruff: HEAD / sqruff is more than 1; "
+            "sqruff_total: HEAD / sqruff of the total is 1 or more, or there is "
+            "no pair",
+        },
+        "noise": asdict(compare.NOISE),
+        "benchmarks": table,
+        "groups": grouped,
+        "slower": slow,
+        "no_pair": no_pair(rep, table),
+        "ok": ok,
+        "exit_code": 0 if ok else 1,
+    }
+
+
+def _fmt(x: float | None) -> str:
+    return "-" if x is None else f"{x:.4f}"
+
+
+def summary_lines(data: Mapping) -> list[str]:
+    s = data["summary"]
+    lines = [
+        f"BASE {s['base'][:12]}, HEAD {s['head'][:12]}"
+        + (" (the same sqll source)" if s["same_source"] else ""),
+        f"rules: {', '.join(s['rules'])} (each tool ran these rules)",
+        "group: HEAD/BASE, HEAD/sqlfluff, HEAD/sqruff (ratio of the sums; pairs)",
+    ]
+    for g in s["groups"]:
+        cells = [f"{_fmt(g[k]['ratio']['total'])} ({g[k]['pairs']})" for k in PAIRS]
+        lines.append(f"  {g['group']}: {', '.join(cells)}")
+    for key, ids in s["slower"].items():
+        if key == "sqruff_total":
+            if ids:
+                lines.append("  slower sqruff_total: HEAD is not faster on the total")
+            continue
+        lines += [f"  slower {key}: {i}" for i in ids]
+    for key, items in s["no_pair"].items():
+        lines += [f"  no pair {key}: {n['id']} ({n['status']})" for n in items]
+    lines.append("ok" if s["ok"] else "SLOWER: the pull request gives the reason")
+    return lines
+
+
+def report(label: str, check: bool) -> int:
+    path = label_file(label)
+    if not path.is_file():
+        raise Refused(f"{probe.rel(path)} does not exist")
+    data = json.loads(path.read_text("utf8"))
+    if (
+        data.get("kind") != KIND
+        or data.get("format") != FORMAT
+        or data.get("label") != label
+    ):
+        raise Refused(f"{probe.rel(path)} is not the S5 speed record of {label}")
+    new = {k: v for k, v in data.items() if k != "summary"}
+    new["summary"] = summarize(new)
+    text = dump(new)
+    print("\n".join(summary_lines(new)))
+    if check:
+        if path.read_text("utf8") != text:
+            print(f"{probe.rel(path)} is not the summary of its record")
+            return 1
+        print(f"{probe.rel(path)} is up to date")
+    else:
+        path.write_text(text, encoding="utf8")
+        print(f"wrote {probe.rel(path)}")
+    return new["summary"]["exit_code"]
+
+
+def main(argv: list[str] | None = None) -> int:
+    p = argparse.ArgumentParser(prog="scripts/s5/speed")
+    sub = p.add_subparsers(dest="command", required=True)
+    r = sub.add_parser("run", help="Build BASE and HEAD and run the benchmarks.")
+    r.add_argument("--label", required=True)
+    r.add_argument("--scratch", type=Path, required=True)
+    r.add_argument("--head", default="HEAD")
+    r.add_argument("--base", default=None, help="Default: merge-base HEAD origin/main.")
+    r.add_argument("--image", default=None, help="Default: sqll-ci:<ci/image_tag.py>.")
+    ri = sub.add_parser("run-inside", help="(In the CI image) the benchmarks.")
+    ri.add_argument("--scratch", type=Path, required=True)
+    ri.add_argument("--lock", type=Path, required=True)
+    rp = sub.add_parser("report", help="Make the summary again from the record.")
+    rp.add_argument("--label", required=True)
+    rp.add_argument("--check", action="store_true")
+    args = p.parse_args(argv)
+    try:
+        if args.command == "run":
+            data = run(args.label, args.scratch, args.head, args.base, args.image)
+            print("\n".join(summary_lines(data)))
+            print(f"wrote {probe.rel(label_file(args.label))}")
+            return data["summary"]["exit_code"]
+        if args.command == "run-inside":
+            run_inside(args.scratch, args.lock)
+            return 0
+        return report(args.label, args.check)
+    except (
+        Refused,
+        speed_check.Refused,
+        probe.DataError,
+        bench_run.RunError,
+        ConfigAbove,
+        OSError,
+        subprocess.SubprocessError,
+    ) as exc:
+        print(f"s5/speed: error: {exc}", file=sys.stderr)
+        return 2
+
+
+if __name__ == "__main__":
+    sys.exit(main())

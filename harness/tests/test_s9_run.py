@@ -799,10 +799,24 @@ def test_the_smoke_run_of_the_test_double_has_the_pairs(smoke):
     assert rep["pairs"][0]["files"] == 5 and rep["pairs"][1]["files"] == 4
 
 
+def test_sqll_is_a_default_tool_of_the_corpus_run(tmp_path, monkeypatch):
+    """The sqll results are in the baseline (status/S9.md, "S9 results"):
+    LATER is empty, so a run with no --tool runs each tool of the bench
+    registry, sqll too."""
+    assert corpus_run.LATER == frozenset()
+    assert corpus_run.tool_names() == registry.names()
+    assert corpus_run.tool_names() == ["sqlfluff", "sqlfluff-rs", "sqll", "sqruff"]
+    env = Env(tmp_path, monkeypatch, TOOLS3)
+    assert env.run("default.json", "--profile", "smoke") == 0
+    rep = env.load("default.json")
+    assert rep["scope"]["tools"] == ["sqlfluff", "sqll", "sqruff"]
+    assert {r["tool"] for r in rep["results"]} == {"sqlfluff", "sqll", "sqruff"}
+
+
 def test_a_tool_that_joins_later_runs_only_when_asked(tmp_path, monkeypatch):
-    """The real sqll is in the bench registry from S3 T13, but the corpus
-    runs it only with --tool until its results after S3b (LATER)."""
-    assert corpus_run.LATER == frozenset({"sqll"})
+    """A tool of the bench registry in LATER runs only with --tool, until
+    the task of its results removes it from LATER (as sqll before its
+    results)."""
     env = Env(tmp_path, monkeypatch, TOOLS3)
     monkeypatch.setattr(corpus_run, "LATER", frozenset({"sqll"}))
     assert corpus_run.tool_names() == ["sqlfluff", "sqruff"]
@@ -1124,6 +1138,10 @@ def test_the_real_tools_give_a_report_with_no_schema_error(tmp_path, capsys):
     path, files = real_case(tmp_path)
     out = tmp_path / "real.json"
     argv = ["run", "--manifest", path, "--cache", tmp_path / "cache"]
+    # The 3 installed tools. The sqll binary comes from the build job, so
+    # this test (CI job lint) names the tools; corpus-smoke runs sqll.
+    for tool in ("sqlfluff", "sqlfluff-rs", "sqruff"):
+        argv += ["--tool", tool]
     code = corpus_main.main([*map(str, argv), "--profile", "smoke", "--out", str(out)])
     text = capsys.readouterr().out
     assert code == 0, text
