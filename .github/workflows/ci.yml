@@ -463,6 +463,21 @@ jobs:
             --out out/autofix-oracle.jsonl --passes-of sqll
           scripts/check-submodule "after the comparison"
 
+      # The parity gate of S5 (rule parity: sqll passes 100% of the rule
+      # fixtures, lint and fix; cases that need the Jinja templater move to
+      # the Jinja templater stone; docs/decisions/s5-rules.md, sections 3
+      # and 4). It reads the merged report and the outputs of the 2 oracle
+      # steps above. Exit code 1 on a sqll pass that the oracle does not
+      # pass, on a case with no class, on a class count that is not the
+      # recorded count, and on a known-failure line that is missing or
+      # stale; exit code 2 if an input is missing or not valid. The gaps of
+      # this stone do not fail it (no --exit).
+      - name: Check the S5 rule parity
+        run: >-
+          uv run --frozen --project harness python scripts/s5/parity
+          --report out/report.json --oracle out/oracle.jsonl
+          --autofix-oracle out/autofix-oracle.jsonl --out out/s5-parity.json
+
       # The sqlfluff test of each templater case must give the same status,
       # and must pass each case that sqll passes (S3b C14).
       - name: Compare the templater results with the sqlfluff test
@@ -502,6 +517,7 @@ jobs:
             out/summary.json
             out/oracle.jsonl
             out/autofix-oracle.jsonl
+            out/s5-parity.json
             out/templater-oracle.jsonl
             out/rs-oracle.jsonl
             out/rs-autofix-oracle.jsonl
