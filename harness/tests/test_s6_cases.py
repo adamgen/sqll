@@ -425,9 +425,11 @@ def context_value(text: str) -> Any:
 
 def python_context(text: str) -> dict[str, Any]:
     """The context of the python templater from a .sqlfluff file. Fail closed
-    (ContextError) on a value that needs a Python runtime: a value that
-    ast.literal_eval of a config value cannot make, Python code, or an
-    object address (scripts/s6/s6common.py, runtime_needs)."""
+    (ContextError) on a value that is not in the S6 literal set, or that has
+    an object address (scripts/s6/s6common.py, runtime_needs). The S6
+    literal set (s6common.literal_ok) is stricter than ast.literal_eval: a
+    dict key must be a str. Thus {1: 'a'} fails closed, although
+    ast.literal_eval can make it."""
     parser = configparser.ConfigParser(delimiters="=", interpolation=None)
     parser.optionxform = str  # type: ignore[assignment,method-assign]
     parser.read_string(text)
@@ -436,7 +438,9 @@ def python_context(text: str) -> dict[str, Any]:
     context = {k: context_value(v) for k, v in parser[PY_SECTION].items()}
     errors = s6common.runtime_needs([context])
     errors += [
-        f"not a literal: {k}" for k, v in context.items() if not s6common.literal_ok(v)
+        f"not in the S6 literal set: {k}"
+        for k, v in context.items()
+        if not s6common.literal_ok(v)
     ]
     if errors:
         raise ContextError("; ".join(sorted(set(errors))))
@@ -790,8 +794,11 @@ def test_python_context_reads_the_values_as_sqlfluff_does():
 @pytest.mark.parametrize(
     "line,error",
     [
-        ("x = {1: 'a'}", "not a literal: x"),
-        ("x = {'a': {1: 'b'}}", "not a literal: x"),
+        # ast.literal_eval can make these 2 values. The S6 literal set
+        # (s6common.literal_ok) accepts only str dict keys, so they fail.
+        ("x = {1: 'a'}", "not in the S6 literal set: x"),
+        ("x = {'a': {1: 'b'}}", "not in the S6 literal set: x"),
+        # These 2 values have a text with an object address.
         ("x = <object at 0x7f3a12345678>", "object address: input0.x"),
         ("x = {'a': '<f at 0x7f3a12345678>'}", "object address: input0.x.a"),
     ],
