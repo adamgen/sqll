@@ -76,9 +76,10 @@ TOOL_LAYERS: dict[str, dict[str, Any]] = {
     "sqll": {"core": {"rust_parser_max_iterations": RUST_ITERATIONS}},
 }
 # The tools of the bench registry that the corpus does not run by default
-# yet. sqll is in the registry from S3 (T13); its corpus results come after
-# S3b (status/S9.md). That task removes it here and records a new baseline.
-LATER = frozenset({"sqll"})
+# yet. A new tool of the registry can wait here until the task of its
+# results removes it and records a new baseline. Empty: sqll left it in the
+# task of the sqll results (status/S9.md), and the baseline has the 4 tools.
+LATER: frozenset[str] = frozenset()
 # docs/decisions/s9-corpus.md, "sqll results", decision 2: a tool that stops
 # with this exit code and a stderr line "Error: unsupported: ..." fails
 # closed on an item that it cannot do (for example sqll on a templated file

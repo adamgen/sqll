@@ -1,7 +1,8 @@
 """The recorded S9 baseline (results/S9/baseline.json): the report of the
-controlled full corpus run (T6). It must pass the schema check and the
-baseline rules, have one result for each manifest file and tool with the
-input records of the manifest, and status/S9.md must show its data."""
+controlled full corpus run of the 4 tools (T13, the sqll results; T6 had the
+first 3 tools). It must pass the schema check and the baseline rules, have
+one result for each manifest file and tool with the input records of the
+manifest, and status/S9.md must show its data."""
 
 import copy
 import json
@@ -11,6 +12,7 @@ from collections import Counter
 
 import pytest
 
+from sqll_harness.adapters import sqll as sqll_adapter
 from sqll_harness.bench import registry
 from sqll_harness.corpus import __main__ as corpus_main
 from sqll_harness.corpus import baseline, report, tables
@@ -20,8 +22,14 @@ from sqll_harness.paths import REPO_ROOT
 
 MANIFEST = load()
 BASE = report.load(baseline.BASELINE)
-TOOLS = ["sqlfluff", "sqlfluff-rs", "sqruff"]
-VERSIONS = {"sqlfluff": "4.4.0", "sqlfluff-rs": "4.4.0", "sqruff": "0.41.0"}
+TOOLS = ["sqlfluff", "sqlfluff-rs", "sqll", "sqruff"]
+COMPARED = list(report.COMPARED_TOOLS)
+VERSIONS = {
+    "sqlfluff": "4.4.0",
+    "sqlfluff-rs": "4.4.0",
+    "sqll": sqll_adapter.expected_version(),
+    "sqruff": "0.41.0",
+}
 STATUS = (REPO_ROOT / "status" / "S9.md").read_text(encoding="utf8")
 DECISION = (REPO_ROOT / "docs" / "decisions" / "s9-corpus.md").read_text(
     encoding="utf8"
@@ -42,7 +50,7 @@ def test_the_baseline_is_a_full_run_of_all_tools_and_files():
     assert BASE["profile"] == "full"
     assert BASE["parts"] is None and BASE["scope"]["shard"] is None
     assert BASE["scope"]["tools"] == TOOLS == corpus_run.tool_names()
-    assert registry.names() == sorted([*TOOLS, *corpus_run.LATER])
+    assert registry.names() == TOOLS and corpus_run.LATER == frozenset()
     assert BASE["harness"]["clean"] is True
     assert re.fullmatch(r"[0-9a-f]{40}", BASE["harness"]["commit"])
     assert BASE["policy"] == corpus_run.PROFILES["full"].as_dict()
@@ -78,7 +86,7 @@ def test_the_baseline_has_one_result_for_each_file_and_tool():
     keys = Counter((r["file"], r["tool"]) for r in BASE["results"])
     assert set(keys.values()) == {1}
     assert set(keys) == {(f.id, t) for f in MANIFEST.files for t in TOOLS}
-    assert len(keys) == 164 * 3
+    assert len(keys) == 164 * 4
     for r in BASE["results"]:
         if r["status"] in report.TIMED_STATUSES:
             assert r["stats"] is not None and r["bytes_per_s"] is not None
@@ -92,7 +100,7 @@ def test_check_full_passes_on_the_baseline(capsys):
         == 0
     )
     out = capsys.readouterr().out
-    assert f"The stable data of {164 * 3} results is that of the baseline" in out
+    assert f"The stable data of {164 * 4} results is that of the baseline" in out
     assert "The report has the profile and each result of the baseline." in out
 
 
@@ -133,6 +141,7 @@ def test_a_shard_of_the_baseline_has_no_drift_and_merges_to_it():
     merged = corpus_run.merge([(str(k), p) for k, p in enumerate(parts)], MANIFEST)
     assert merged["results"] == BASE["results"]
     assert merged["compared"] == BASE["compared"]
+    assert merged[report.PAIRS] == BASE[report.PAIRS]
     assert baseline.missing(merged, BASE) == []
 
 
@@ -164,7 +173,7 @@ def _rows(header: str) -> list[list[str]]:
 
 def test_status_has_the_tables_of_the_baseline():
     blocks = tables.markdown(BASE).strip("\n").split("\n\n")
-    assert len(blocks) == 4
+    assert len(blocks) == 6
     for block in blocks:
         assert f"\n\n{block}\n\n" in STATUS, block.splitlines()[0]
 
@@ -194,7 +203,7 @@ def test_status_counts_are_the_baseline():
 def test_status_compared_totals_are_the_baseline():
     rows = _rows(tables.COMPARED_HEADER)
     ok = {(r["file"], r["tool"]): r for r in BASE["results"] if r["status"] == "ok"}
-    files = [f for f in BASE["inputs"] if all((f, t) in ok for t in TOOLS)]
+    files = [f for f in BASE["inputs"] if all((f, t) in ok for t in COMPARED)]
     size = sum(BASE["inputs"][f]["bytes"] for f in files)
     assert files, "no file where each tool is ok"
     sums = {
@@ -202,9 +211,9 @@ def test_status_compared_totals_are_the_baseline():
             sum(ok[(f, t)]["stats"][k]["median"] for f in files)
             for k in ("wall_s", "cpu_s")
         ]
-        for t in TOOLS
+        for t in COMPARED
     }
-    for row, tool in zip(rows, TOOLS, strict=True):
+    for row, tool in zip(rows, COMPARED, strict=True):
         wall, cpu = sums[tool]
         assert row[:3] == [tool, str(len(files)), str(size)]
         assert abs(float(row[3]) - wall) < 0.001
@@ -258,6 +267,78 @@ def test_status_lists_the_reason_of_each_result_that_is_not_ok():
     assert len(listed) == len(set(listed)) and set(listed) == want
 
 
+# The sqll results (status/S9.md, "S9 results"; the decision record, "sqll
+# results", decisions 2 and 4).
+
+
+def _outcome(r: dict) -> tuple:
+    return r["status"], r["unparsable"]
+
+
+def test_status_names_each_sqll_result_that_is_not_the_sqlfluff_result():
+    """The target of sqll is the sqlfluff result. On a Jinja file, sqll
+    fails closed until the Jinja templater stone (decision 2); each other
+    difference has an issue to the owning track."""
+    by_key = {(r["file"], r["tool"]): r for r in BASE["results"]}
+    raw = [f.id for f in MANIFEST.files if f.templater != JINJA]
+    jinja = [f.id for f in MANIFEST.files if f.templater == JINJA]
+    other = [
+        f
+        for f in raw
+        if _outcome(by_key[(f, "sqll")]) != _outcome(by_key[(f, "sqlfluff")])
+    ]
+    text = _words(_section("S9 results"))
+    assert (
+        f"sqll gives the sqlfluff result (the status and the unparsable count "
+        f"and bytes) on {len(raw) - len(other)} of the {len(raw)} untemplated files"
+    ) in text
+    for f in other:
+        line = next(x for x in STATUS.splitlines() if f"`{f}`" in x and "sqll" in x)
+        assert "issues/" in line, f
+    reasons = {by_key[(f, "sqll")]["reason"] for f in jinja}
+    assert all(by_key[(f, "sqll")]["status"] == report.UNSUPPORTED for f in jinja)
+    assert len(reasons) == 1
+    (reason,) = reasons
+    assert reason.startswith("unsupported: templater jinja ")
+    assert f"On the {len(jinja)} Jinja files, sqll gives `unsupported`" in text
+    assert _words(reason) in text
+    # Where sqlfluff stops at max_parse_depth, sqll stops with the same limit.
+    for f in raw:
+        if by_key[(f, "sqll")]["status"] == report.INVALID:
+            assert (
+                "PRS: Maximum parse depth exceeded (limit 600)"
+                in (by_key[(f, "sqll")]["reason"])
+            ), f
+
+
+def test_status_gives_a_reason_or_an_issue_for_each_slow_file():
+    """Decision 4: each file where sqll is not faster than sqlfluff, or is
+    slower than sqruff (wall or CPU, no noise margin), has a reason or an
+    issue to the owning track."""
+    pairs = BASE[report.PAIRS]
+    assert [(p["tool"], p["other"]) for p in pairs] == [
+        ("sqll", "sqlfluff"),
+        ("sqll", "sqruff"),
+    ]
+    text = _words(_section("S9 results"))
+    slow = [(p["other"], s["file"]) for p in pairs for s in p["slow_files"]]
+    for other, f in slow:
+        line = next(
+            x for x in STATUS.splitlines() if f"`{f}`" in x and f"sqll to {other}" in x
+        )
+        assert "issues/" in line or "Reason:" in line, (other, f)
+    if not slow:
+        assert "No file is in the list of slow files of a pair" in text
+    for p in pairs:
+        assert p["wall_ratio"] is not None and p["cpu_ratio"] is not None
+
+
+def _section(title: str) -> str:
+    start = STATUS.index(f"\n## {title}\n")
+    end = STATUS.find("\n## ", start + 1)
+    return STATUS[start:] if end < 0 else STATUS[start:end]
+
+
 # The records of max RSS and max_parse_depth (status/S9.md, the decision
 # record).
 
@@ -269,17 +350,26 @@ def _words(text: str) -> str:
 def test_the_records_name_the_harness_rss_floor_of_max_rss():
     """The timer value is at least the harness RSS (Core issue #38). The
     most frequent value is that floor; only values above it are tool values."""
-    values = Counter(r["max_rss_kib"] for r in BASE["results"])
+    measured = [r for r in BASE["results"] if r["max_rss_kib"] is not None]
+    # Only a result with no sample (unsupported) has no max RSS.
+    assert all(
+        r["status"] == report.UNSUPPORTED and not r["samples"]
+        for r in BASE["results"]
+        if r["max_rss_kib"] is None
+    )
+    values = Counter(r["max_rss_kib"] for r in measured)
     (floor, count), (_, second) = values.most_common(2)
     assert count > 10 * second
     total = len(BASE["results"])
+    no_sample = total - len(measured)
     for text in (STATUS, DECISION):
         text = _words(text)
         assert f"{count} of the {total} results have exactly" in text
         assert f"{floor} KiB" in text
+        assert f"the {no_sample} `unsupported` results have no sample" in text
         assert "issues/38" in text
     for tool in TOOLS:
-        top = max(r["max_rss_kib"] for r in BASE["results"] if r["tool"] == tool)
+        top = max(r["max_rss_kib"] for r in measured if r["tool"] == tool)
         assert top > floor
         assert f"{top // 1024} MiB" in DECISION
 
