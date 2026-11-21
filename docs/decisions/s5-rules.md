@@ -225,6 +225,53 @@ wrong to make it fast) applies to each pull request of this track.
   rule 8; `harness/bench.md`, "Slowdowns"). If the script needs a change
   of the benchmark harness, that change goes through the track that owns
   the shared core.
+- The method of `scripts/s5/speed` (T3 (goal of the task: each pull
+  request of this track that changes the lint and fix path gives the HEAD
+  / BASE, HEAD / sqlfluff, and HEAD / sqruff ratios of the lint and fix
+  benchmarks for the rules that sqll has) of this stone; the docstring of
+  the script has the full method). It uses the benchmark harness as it is
+  (no change of a path of the track that owns the shared core):
+  1. The machine lock: the script takes it, or a parent `flock` command
+     holds it. If another process holds it, the script stops (exit code
+     2). The session in the container stops if the lock is free.
+  2. The builds and the session: as `scripts/speed-check` (the CI image,
+     one container, serial, no network, the full profile). If the
+     checkout is HEAD with no change of a tracked file, the HEAD binary is
+     the binary of `scripts/build-sqll` in the checkout when its source
+     hash and version are those of HEAD (else a new build there). If BASE
+     and HEAD have the same build inputs (`git diff` of `Cargo.toml`,
+     `Cargo.lock`, `rust-toolchain.toml`, `LICENSE`, `crates`,
+     `third_party/sqlfluff`, and `scripts/build-sqll`), the BASE binary
+     is a copy of the HEAD binary. Else each is a new worktree build, as
+     in `scripts/speed-check`.
+  3. The rules: each rule that `sqll rules` of the BASE binary gives. sqll
+     at HEAD (`sqll rules`), sqlfluff (`sqlfluff rules`), and sqruff
+     (`sqruff rules`) must have each of them, else the script stops (exit
+     code 2). Each tool gets the S2 settings with `core.rules` = these
+     rules. Known limit: the pinned sqruff has no CV13 and no TQ01. When
+     sqll has one of them at BASE, the script stops, and this track
+     records a decision before the next speed run of a lint and fix
+     change.
+  4. The reference: the sqlfluff reference of the S2 definitions has all
+     rules. Thus the script makes it again with the rules (sqlfluff lints
+     and fixes each input once, with the checks of `harness/bench.md`,
+     "Validity"). Each lint and fix run of each tool must give the rule
+     codes and the fix change of this reference. A sqlfluff run that is
+     not valid, or a code of another rule, stops the script.
+  5. `sqll parse` refuses a `core.rules` setting that is not the default
+     (`crates/sqll_config/src/parse.rs`). A parse runs no rule. Thus the
+     parse check of a lint or fix run of sqll (`harness/bench.md`,
+     "Validity") runs `sqll parse` with the S2 settings (`rules = all`),
+     as the S2 parse benchmarks do. The lint and fix runs have the rules.
+  6. The record: `results/S5/speed/<label>.json`. For each of the 168
+     lint and fix benchmarks (28 dialects, 3 sizes): the median wall time
+     of each tool and the 3 ratios (the median wall time of HEAD / that of
+     the other tool). HEAD / BASE also has the compare entry of
+     `sqll-harness bench compare` (the noise limit). The lists of slower
+     benchmarks: HEAD slower than BASE, HEAD not valid, HEAD / sqlfluff
+     1 or more, HEAD / sqruff more than 1, and HEAD / sqruff of the total
+     1 or more. Exit code 1 if a list is not empty: the pull request gives
+     the reason.
 - A pull request that also changes the parse path runs
   `scripts/speed-check` (the start and parse benchmarks). Its record goes
   to `results/S3b/speed/`, a path of the track that owns the shared core,
