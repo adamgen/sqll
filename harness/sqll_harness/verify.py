@@ -456,6 +456,9 @@ RS_PY = '"$SQLL_TOOLS_DIR/sqlfluff-rs-oracle/bin/python"'
 LINT_SUBMODULE = "lint: Check that the sqlfluff submodule is clean"
 DIALECT_ORACLE = "out/dialect-oracle-sqlfluff.jsonl"
 S4_PARITY = "out/s4-parity.json"
+RULE_ORACLE = "out/oracle.jsonl"
+AUTOFIX_ORACLE = "out/autofix-oracle.jsonl"
+S5_PARITY = "out/s5-parity.json"
 AFTER = 'scripts/check-submodule "after the comparison"'
 
 
@@ -742,20 +745,40 @@ def checks(jobs: int | None = None) -> list[Check]:
             "oracle-rules",
             _oracle(
                 "sqlfluff-rule-oracle",
-                "--report out/report.json --out out/oracle.jsonl --passes-of sqll",
+                f"--report out/report.json --out {RULE_ORACLE} --passes-of sqll",
             ),
             ("report: Compare the rule results with the sqlfluff test",),
             needs=rep,
+            # The S5 parity check reads this file: an old file must not stay.
+            removes=(RULE_ORACLE,),
         ),
         Check(
             "oracle-autofix",
             _oracle(
                 "sqlfluff-autofix-oracle",
-                "--report out/report.json --out out/autofix-oracle.jsonl"
-                " --passes-of sqll",
+                f"--report out/report.json --out {AUTOFIX_ORACLE} --passes-of sqll",
             ),
             ("report: Compare the autofix results with the sqlfluff test",),
             needs=rep,
+            # The S5 parity check reads this file: an old file must not stay.
+            removes=(AUTOFIX_ORACLE,),
+        ),
+        # The parity gate of S5 (rule parity: sqll passes 100% of the rule
+        # fixtures, lint and fix; cases that need the Jinja templater move to
+        # the Jinja templater stone; docs/decisions/s5-rules.md, sections 3
+        # and 4): exit code 1 on a sqll pass that the oracle does not pass, on
+        # a case with no class, on a changed class count, and on a missing or
+        # stale known-failure line; exit code 2 if an input is missing or not
+        # valid (for example no oracle output).
+        Check(
+            "s5-parity",
+            f"{UV} python scripts/s5/parity --report out/report.json"
+            f" --oracle {RULE_ORACLE} --autofix-oracle {AUTOFIX_ORACLE}"
+            f" --out {S5_PARITY}",
+            ("report: Check the S5 rule parity",),
+            needs=rep,
+            removes=(S5_PARITY,),
+            report=S5_PARITY,
         ),
         Check(
             "oracle-templater",

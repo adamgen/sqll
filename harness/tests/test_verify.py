@@ -66,6 +66,13 @@ def _s4_parity(data):
     return _step(data, "dialect-oracle", S4_PARITY)
 
 
+S5_PARITY = "Check the S5 rule parity"
+
+
+def _s5_parity(data):
+    return _step(data, "report", S5_PARITY)
+
+
 def _without_step(data, job: str, name: str) -> None:
     steps = data["jobs"][job]["steps"]
     steps.remove(_step(data, job, name))
@@ -485,6 +492,31 @@ CI_CHANGES = {
     "S4 parity step continue-on-error": lambda d: _s4_parity(d).update(
         {"continue-on-error": True}
     ),
+    # The S5 parity gate (S5: rule parity: sqll passes 100% of the rule
+    # fixtures, lint and fix; cases that need the Jinja templater move to the
+    # Jinja templater stone).
+    "no S5 parity step": lambda d: _without_step(d, "report", S5_PARITY),
+    "S5 parity step always": lambda d: _s5_parity(d).update({"if": "always()"}),
+    "S5 parity step with --exit": lambda d: _s5_parity(d).update(
+        run=_s5_parity(d)["run"] + " --exit"
+    ),
+    "S5 parity step with other recorded counts": lambda d: _s5_parity(d).update(
+        run=_s5_parity(d)["run"] + " --recorded x.json"
+    ),
+    "S5 parity step of the sqlfluff-rs oracle": lambda d: _s5_parity(d).update(
+        run=_s5_parity(d)["run"].replace(
+            "--oracle out/oracle.jsonl", "--oracle out/rs-oracle.jsonl"
+        )
+    ),
+    "S5 parity step without --out": lambda d: _s5_parity(d).update(
+        run=_s5_parity(d)["run"].replace(" --out out/s5-parity.json", "")
+    ),
+    "S5 parity step || true": lambda d: _s5_parity(d).update(
+        run=_s5_parity(d)["run"] + " || true"
+    ),
+    "S5 parity step continue-on-error": lambda d: _s5_parity(d).update(
+        {"continue-on-error": True}
+    ),
     "S4 scripts not linted": lambda d: _step(d, "lint", "Lint").update(
         run=_step(d, "lint", "Lint")["run"].replace(" $S4_SCRIPTS", "")
     ),
@@ -605,6 +637,16 @@ LOCAL_CHANGES = {
         lambda c: c.replace(" --report out/report.json", ""),
     ),
     "S4 parity || true": ("s4-parity", lambda c: c + " || true"),
+    "S5 parity of another oracle output": (
+        "s5-parity",
+        lambda c: c.replace("--oracle out/oracle.jsonl", "--oracle x.jsonl"),
+    ),
+    "S5 parity of another autofix oracle output": (
+        "s5-parity",
+        lambda c: c.replace("out/autofix-oracle.jsonl", "x.jsonl"),
+    ),
+    "S5 parity with --exit": ("s5-parity", lambda c: c + " --exit"),
+    "S5 parity || true": ("s5-parity", lambda c: c + " || true"),
     "S4 scripts not linted": (
         "ruff-check",
         lambda c: c.replace(" scripts/s4 scripts/s4/parity", ""),
@@ -888,6 +930,7 @@ def test_the_reports_of_the_checks():
         "s7-run": "out/s7-tests/report.json",
         "s7-summary": "out/s7-tests/summary.json",
         "s7-oracle": "out/s7-tests/oracle.json",
+        "s5-parity": "out/s5-parity.json",
         "s4-parity": "out/s4-parity.json",
         "bench-smoke": "out/bench.json",
         "bench-full": "out/bench-full.json",

@@ -346,14 +346,18 @@ class Repo:
             "cases": cases + self.extra_cases,
         }
 
+    def write_inputs(self) -> None:
+        """Write the inputs of the check (and the recorded counts)."""
+        self.write(REPORT, json.dumps(self.report()))
+        self.write(ORACLE, oracle_text(self.oracle["rules"]))
+        self.write(AUTOFIX_ORACLE, oracle_text(self.oracle["autofix"]))
+        self.write(JINJA_RAW, json.dumps(self.record))
+        self.write(KNOWN, known_text(self.known))
+        self.write(RECORDED, json.dumps(self.recorded))
+
     def run(self, *args: str, write: bool = True, recorded: bool = True):
         if write:
-            self.write(REPORT, json.dumps(self.report()))
-            self.write(ORACLE, oracle_text(self.oracle["rules"]))
-            self.write(AUTOFIX_ORACLE, oracle_text(self.oracle["autofix"]))
-            self.write(JINJA_RAW, json.dumps(self.record))
-            self.write(KNOWN, known_text(self.known))
-            self.write(RECORDED, json.dumps(self.recorded))
+            self.write_inputs()
         extra = ["--recorded", str(self.root / RECORDED)] if recorded else []
         return run_check("--root", str(self.root), *extra, *args)
 
