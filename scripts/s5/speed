@@ -522,12 +522,12 @@ BUILD_INPUTS = (
 )
 
 
-def same_build(st: probe.Steps, base: str, head: str) -> bool:
+def same_build(st: probe.Steps, base: str, head: str, root: Path = ROOT) -> bool:
     """True if BASE and HEAD have the same build inputs (git diff)."""
     proc = st.run(
         "BASE and HEAD: the build inputs",
         ["git", "diff", "--quiet", base, head, "--", *BUILD_INPUTS],
-        ROOT,
+        root,
         check=False,
     )
     if proc.returncode not in (0, 1):
@@ -535,24 +535,38 @@ def same_build(st: probe.Steps, base: str, head: str) -> bool:
     return proc.returncode == 0
 
 
-def root_is(st: probe.Steps, commit: str) -> bool:
-    """True if the checkout of this script is the commit, with no change of
-    a tracked file."""
-    now = speed_check.git(st, "the commit of the checkout", "rev-parse", "HEAD")
-    changes = speed_check.git(
-        st, "the changes of the checkout", "status", "--porcelain", "-uno"
+def root_is(st: probe.Steps, commit: str, root: Path = ROOT) -> bool:
+    """True if the checkout (default: that of this script) is the commit,
+    with no change of a tracked file."""
+    now = st.run("the commit of the checkout", ["git", "rev-parse", "HEAD"], root)
+    changes = st.run(
+        "the changes of the checkout",
+        ["git", "status", "--porcelain", "--untracked-files=no"],
+        root,
     )
-    return now == commit and not changes
+    return now.stdout.strip() == commit and not changes.stdout.strip()
 
 
 def build_head(st: probe.Steps, scratch: Path, commit: str) -> tuple[dict, Path]:
     """Build sqll at HEAD. Return the build record and the source folder.
     If the checkout of this script is HEAD with no change, the build is
-    there (scripts/build-sqll keeps its cargo output, so a second build is
-    fast); else in a new worktree (speed_check.build_role)."""
+    there: if its binary of scripts/build-sqll (out/sqll/bin/sqll) has the
+    source hash and the version of the checkout, that binary; else a new
+    scripts/build-sqll (it keeps its cargo output, so a second build is
+    fast). Else the build is in a new worktree (speed_check.build_role)."""
     if not root_is(st, commit):
         record = speed_check.build_role(st, scratch, "head", commit)
         return record | {"source": "$SCRATCH/src/head"}, scratch / "src" / "head"
+    try:
+        record = speed_check.collect_binary(ROOT, scratch / "bin" / "head")
+    except (speed_check.Refused, OSError):
+        pass
+    else:
+        return record | {
+            "build_s": 0.0,
+            "source": "$REPO: the binary of scripts/build-sqll in the checkout "
+            "(out/sqll/bin/sqll) has the source hash and the version of HEAD",
+        }, ROOT
     start = time.perf_counter()
     st.run(
         "head: scripts/build-sqll",
